@@ -1,7 +1,17 @@
-$Id: CHANGELOG,v 1.82 2004/12/21 12:51:21 jonz Exp $
+$Id: CHANGELOG,v 1.83 2004/12/21 13:42:20 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041221.0600] jonz: added streamlined blackhole list "learn as spam" support
+
+added functionality to automatically perform streamlined blackhole list
+lookups and learn as spam if blacklisted. for more information on the
+streamlined blackhole list, see http://www.nuclearelephant.com/projects/sbl/
+
+[20041221.0600] jonz: fixed preferences extensions and storage profiles
+
+fixed preferences extensions so that they will work with storage profiles
 
 [20041220.0600] jonz: fix for trusted user security and daemon mode
 

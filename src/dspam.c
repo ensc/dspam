@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.45 2004/12/20 12:25:33 jonz Exp $ */
+/* $Id: dspam.c,v 1.46 2004/12/21 13:42:20 jonz Exp $ */
 
 /*
  DSPAM
@@ -36,6 +36,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/types.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <netdb.h>
 #ifdef _WIN32
 #include <io.h>
 #include <process.h>
@@ -355,6 +356,22 @@ process_message (AGENT_CTX *ATX,
   }
 
   CTX->message = components;
+
+  if (CTX->classification == DSR_NONE &&
+      _ds_read_attribute(agent_config, "Lookup"))
+  {
+    int bad;
+    char ip[32];
+
+    if (!dspam_getsource (CTX, ip, sizeof (ip))) {
+      bad = is_blacklisted(ip);
+      if (bad) {
+        LOGDEBUG("source address is blacklisted. learning as spam.");
+        CTX->classification = DSR_ISSPAM;
+        CTX->source = DSS_CORPUS;
+      }
+    }
+  }
 
   /* If a signature was provided, load it */
   have_signature = find_signature(CTX, ATX, PTX);
@@ -2851,4 +2868,45 @@ int tracksource(DSPAM_CTX *CTX) {
     }
   }
   return 0;
+}
+
+int is_blacklisted(const char *ip) {
+  struct attribute *attrib;
+  struct in_addr ip32;
+  struct hostent *h;
+  char host[32];
+  char lookup[256];
+  char *ptr;
+  char *str;
+  char *octet[4];
+  int bad = 0;
+
+  host[0] = 0;
+  str = strdup(ip);
+  ptr = strtok(str, ".");
+  int i = 3;
+  while(ptr != NULL && i>=0) {
+    octet[i] = ptr;
+    ptr = strtok(NULL, ".");
+    i--;
+  }
+
+  snprintf(host, sizeof(host), "%s.%s.%s.%s.", octet[0], octet[1], octet[2], octet[3]);
+  free(str);
+
+  attrib = _ds_find_attribute(agent_config, "Lookup");
+  while(attrib != NULL) {
+    snprintf(lookup, sizeof(lookup), "%s%s", host, attrib->value);
+    h = gethostbyname(lookup);
+
+    if (h != NULL && h->h_addr_list[0]) {
+      memcpy(&ip32, h->h_addr_list[0], h->h_length);
+      if (!strcmp(inet_ntoa(ip32), "127.0.0.2"))
+        bad = 1;
+    }
+
+    attrib = attrib->next;
+  }
+
+  return bad;
 }

@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.15 2004/12/18 22:05:58 jonz Exp $
+## $Id: dspam.conf.in,v 1.16 2004/12/21 13:42:20 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -255,6 +255,24 @@ AllowOverride whitelistThreshold
 #IgnoreHeader X-Spam-Status
 #IgnoreHeader X-Spam-Scanned
 #IgnoreHeader X-Virus-Scanner-Result
+
+#
+# Lookup: Perform lookups on streamlined blackhole list servers (see
+# http://www.nuclearelephant.com/projects/sbl/). The streamlined blacklist
+# server is machine-automated, unsupervised blacklisting system designed to
+# provide real-time and highly accurate blacklisting based on network spread.
+# When performing a lookup, DSPAM will automatically learn the inbound message 
+# as spam if the source IP is listed. Until an official public SBL server is 
+# available, this feature is only useful if you are running your own 
+# streamlined blackhole list server for internal reporting among multiple mail 
+# servers. Provide the name of the lookup zone below to use.
+#
+# This function performs standard reverse-octet.domain lookups, and while it
+# will function with many RBLs, it's strongly discouraged to use those
+# maintained by humans as they're often inaccurate and could hurt filter
+# learning and accuracy.
+#
+#Lookup	"sbl.yourdomain.com"
 
 #
 # Notifications: Enable the sending of notification emails to users (first

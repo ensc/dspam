@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.16 2004/12/19 00:49:18 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.17 2004/12/21 13:42:20 jonz Exp $ */
 
 /*
  DSPAM
@@ -2288,15 +2288,37 @@ int _ds_pref_save(
 int _pgsql_drv_set_attributes(DSPAM_CTX *CTX, attribute_t **config) {
   int i, ret = 0;
   attribute_t *t;
-                                                                                
+  char *profile;
+
+  profile = _ds_read_attribute(config, "DefaultProfile");
+
   for(i=0;config[i];i++) {
     t = config[i];
-    if (!strncasecmp(t->key, "PgSQL", 5))
-    {
-      ret += dspam_addattribute(CTX, t->key, t->value);
+
+    while(t) {
+
+      if (!strncasecmp(t->key, "PgSQL", 5))
+      {
+        if (profile == NULL || profile[0] == 0)
+        {
+          ret += dspam_addattribute(CTX, t->key, t->value);
+        }
+        else if (strchr(t->key, '.'))
+        {
+          if (!strcasecmp((strchr(t->key, '.')+1), profile)) {
+            char *x = strdup(t->key);
+            char *y = strchr(x, '.');
+            y[0] = 0;
+
+            ret += dspam_addattribute(CTX, x, t->value);
+            free(x);
+          }
+        }
+      }
+      t = t->next;
     }
   }
-                                                                                
+
   return 0;
 }
 

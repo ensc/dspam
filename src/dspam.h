@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.12 2004/12/03 01:30:32 jonz Exp $ */
+/* $Id: dspam.h,v 1.13 2004/12/21 13:42:20 jonz Exp $ */
 
 /*
  DSPAM
@@ -65,11 +65,12 @@ int log_events		(DSPAM_CTX *CTX);
 int retrain_message	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int tag_message		(struct _ds_message_block *block, AGENT_PREF PTX);
 int quarantine_message  (const char *message, const char *username);
-int **process_users       (AGENT_CTX *ATX, buffer *message);
+int **process_users     (AGENT_CTX *ATX, buffer *message);
 int find_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX);
 int add_xdspam_headers	(DSPAM_CTX *CTX, AGENT_CTX *ATX,  AGENT_PREF PTX);
 int embed_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX);
 int tracksource		(DSPAM_CTX *CTX);
+int is_blacklisted	(const char *ip);
 buffer *read_stdin	(AGENT_CTX *ATX);
 
 #ifdef NEURAL
