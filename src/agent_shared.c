@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.6 2004/12/24 16:02:03 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.7 2004/12/25 13:20:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -569,7 +569,7 @@ int apply_defaults(AGENT_CTX *ATX) {
 
 int check_configuration(AGENT_CTX *ATX) {
 
-  if (ATX->classification != -1 && ATX->training_mode == DSM_CLASSIFY)
+  if (ATX->classification != -1 && ATX->operating_mode == DSM_CLASSIFY)
   {
     report_error(ERROR_CLASSIFY_CLASS);
     return EINVAL;
