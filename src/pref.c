@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.10 2005/01/14 14:19:49 jonz Exp $ */
+/* $Id: pref.c,v 1.11 2005/01/15 14:56:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -65,8 +65,8 @@ agent_pref_t _ds_pref_aggregate(agent_pref_t STX, agent_pref_t UTX) {
         for(j=0;PTX[j];j++) {
           if (!strcasecmp(PTX[j]->attribute, UTX[i]->attribute)) {
             found = 1;
-            free(STX[j]->value);
-            STX[j]->value = strdup(UTX[i]->value);
+            free(PTX[j]->value);
+            PTX[j]->value = strdup(UTX[i]->value);
             break;
           }
         }
