@@ -1,11 +1,11 @@
-$Id: CHANGELOG,v 1.128 2005/01/06 23:11:59 jonz Exp $
+$Id: CHANGELOG,v 1.129 2005/01/07 13:44:39 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
- 
+
 Version NEXT
 ------------
- 
+
 [20040106.1800] jonz: added SBLQueue dspam.conf option
 
 removed hard-coded sbl queue path (/var/spool/sbl) and added to config an
@@ -14,7 +14,7 @@ option to specify the path
 [20040106.0000] jonz: added manual override for CGI options
 
 for implementations running the cgi as an untrusted user (e.g. cpanel),
-you'll need to manually override autodetection of certain options like
+the cgi needs to manually override autodetection of certain options like
 filesystem scale and preferences extension detection. added option for this
 to configure.pl in the cgi.
 
