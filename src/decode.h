@@ -1,4 +1,4 @@
-/* $Id: decode.h,v 1.2 2004/11/25 14:39:17 jonz Exp $ */
+/* $Id: decode.h,v 1.3 2004/12/14 00:25:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -116,6 +116,14 @@ struct _ds_message
     
 */
 
+/* Adapter-dependent */
+#ifndef NCORE
+char *  _ds_decode_base64       (const char *body);
+char *  _ds_decode_quoted       (const char *body);
+#endif
+
+/* Adapter-independent */
+
 struct _ds_message *	_ds_actualize_message	(const char *message);
 char *			_ds_assemble_message	(struct _ds_message *message);
 
@@ -133,8 +141,6 @@ int _ds_destroy_headers	(struct _ds_message_block *block);
 int _ds_destroy_block	(struct _ds_message_block *block);
 
 char *	_ds_decode_block	(struct _ds_message_block *block);
-char *	_ds_decode_base64	(const char *body);
-char *	_ds_decode_quoted	(const char *body);
 int	_ds_encode_block	(struct _ds_message_block *block, int encoding);
 char *	_ds_encode_base64	(const char *body);
 char *	_ds_encode_quoted	(const char *body);

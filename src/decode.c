@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.7 2004/12/13 22:58:45 jonz Exp $ */
+/* $Id: decode.c,v 1.8 2004/12/14 00:25:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -686,6 +686,7 @@ _ds_decode_block (struct _ds_message_block *block)
   return NULL;
 }
 
+#ifndef NCORE
 char *
 _ds_decode_base64 (const char *body)
 {
@@ -742,6 +743,7 @@ _ds_decode_quoted (const char *body)
   }
   return out;
 }
+#endif /* NCORE */
 
 int
 _ds_encode_block (struct _ds_message_block *block, int encoding)
