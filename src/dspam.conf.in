@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.14 2004/12/18 15:41:06 jonz Exp $
+## $Id: dspam.conf.in,v 1.15 2004/12/18 22:05:58 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -22,7 +22,7 @@ Home @dspam_home@
 # Other popular configurations:
 #TrustedDeliveryAgent "/usr/cyrus/bin/deliver"	# Cyrus
 #TrustedDeliveryAgent "/bin/maildrop"		# Maildrop
-#TrustedDeliveryAgent "/usr/local/sbin/exim -oMr spam-scanned $u" # Exim
+#TrustedDeliveryAgent "/usr/local/sbin/exim -oMr spam-scanned" # Exim
 #
 TrustedDeliveryAgent "@delivery_agent@"
 
