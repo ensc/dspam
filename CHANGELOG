@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.163 2005/02/05 23:06:54 jonz Exp $
+$Id: CHANGELOG,v 1.164 2005/02/08 20:29:22 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050208.0330] jonz: added CGI spam functionality to history
+
+added a retrain link in the history portion of the CGI allowing users to
+retrain spam misses without having to forward messages.
 
 [20050205.1800] jonz: added fast user switching to CGI for admins
 

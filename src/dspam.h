@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.16 2005/01/12 03:12:25 jonz Exp $ */
+/* $Id: dspam.h,v 1.17 2005/02/08 20:29:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -61,7 +61,7 @@ int write_web_stats     (const char *username, const char *group,
 
 int ensure_confident_result	(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result);
 DSPAM_CTX *ctx_init	(AGENT_CTX *ATX, agent_pref_t PTX, const char *username);
-int log_events		(DSPAM_CTX *CTX);
+int log_events		(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int retrain_message	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int tag_message		(struct _ds_message_block *block, agent_pref_t PTX);
 int quarantine_message  (const char *message, const char *username);

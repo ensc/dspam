@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.74 2005/02/03 15:40:50 jonz Exp $ */
+/* $Id: dspam.c,v 1.75 2005/02/08 20:29:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -525,7 +525,7 @@ process_message (AGENT_CTX *ATX,
   if (_ds_match_attribute(agent_config, "SystemLog", "on") ||
       _ds_match_attribute(agent_config, "UserLog", "on"))
   {
-    log_events(CTX);
+    log_events(CTX, ATX);
   }
 
   if (PTX != NULL && !strcmp(_ds_pref_val(PTX, "makeCorpus"), "on")) {
@@ -2348,7 +2348,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
 
 /* log_events: write journal to system.log and user.log */
 
-int log_events(DSPAM_CTX *CTX) {
+int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   char filename[MAX_FILENAME_LENGTH];
   char *subject = NULL, *from = NULL;
   struct nt_node *node_nt;
@@ -2403,10 +2403,11 @@ int log_events(DSPAM_CTX *CTX) {
   else if (CTX->source == DSS_CORPUS)
     class = 'C';
      
-  snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s", 
+  snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s\t%s", 
           (long) time(NULL), 
           class,
           (from == NULL) ? "<None Specified>" : from,
+          ATX->signature,
           (subject == NULL) ? "<None Specified>" : subject);
   for(y=0;y<strlen(x);y++)
     if (x[y] == '\n') 
