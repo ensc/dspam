@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.11 2004/11/22 01:00:03 jonz Exp $ */
+/* $Id: libdspam.c,v 1.12 2004/11/22 01:05:21 jonz Exp $ */
 
 /*
  DSPAM
@@ -1071,10 +1071,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Engage only if ... */
 
-  if (CTX->flags & DSF_NOISE          &&	/* Noise Flag Specified */ 
-      CTX->classification == DSR_NONE &&	/* Class not Provided */
-        CTX->totals.innocent_learned  +		/* At least 2500 innocent */
-        CTX->totals.innocent_classified > 2500)
+  if (CTX->flags & DSF_NOISE) //          &&
+//      CTX->classification == DSR_NONE &&
+//        CTX->totals.innocent_learned  +	
+//        CTX->totals.innocent_classified > 2500)
   {
 /*
     BNR_CTX BTX;
