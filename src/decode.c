@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.2 2004/10/24 23:21:43 jonz Exp $ */
+/* $Id: decode.c,v 1.3 2004/11/23 23:27:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -354,8 +354,8 @@ _ds_create_message_block (void)
   block->terminating_boundary = NULL;
   block->encoding = EN_UNKNOWN;
   block->original_encoding = EN_UNKNOWN;
-  block->media_type = MT_UNKNOWN;
-  block->media_subtype = MST_UNKNOWN;
+  block->media_type = MT_TEXT;
+  block->media_subtype = MST_PLAIN;
   block->original_signed_body = NULL;
 
   return block;
@@ -640,6 +640,7 @@ _ds_analyze_header (struct _ds_message_block *block,
     }
     else {
       block->media_type = MT_OTHER;
+      block->media_subtype = MST_OTHER;
     }
 
   }

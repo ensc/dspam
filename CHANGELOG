@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.31 2004/11/23 22:06:08 jonz Exp $
+$Id: CHANGELOG,v 1.32 2004/11/23 23:27:38 jonz Exp $
 
 Version NEXT
 ------------
@@ -35,6 +35,17 @@ normalized main() by breaking up code into smaller subroutines
 
 Version 3.2.3
 -------------
+
+[20041123.1830] jonz: fixed multipart blocks with no content-type
+
+fixed bug causing the DSPAM signature to NOT be written to multipart
+blocks without a content-type (broken RFC)
+
+[20041123.0800] jonz: fixed bug in _ds_get_spamrecord broken on mysql 4.1
+
+changed token = '' to token in('') in _ds_get_spamrecord, to fix bug in
+mysql 4.1 with respect to numeric fields and quoted conditionals. in('') seems
+to work without problem.
 
 [20041117.0800] jonz: fixed critical bug in Bayesian Noise Reduction
 
