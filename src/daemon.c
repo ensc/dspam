@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.56 2005/03/12 16:15:30 jonz Exp $ */
+/* $Id: daemon.c,v 1.57 2005/03/12 16:30:56 jonz Exp $ */
 
 /*
 
@@ -736,34 +736,30 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
         /* Parse the To: address for a username */
         if (buff[0] == 0)
           body = 1;
-        if (ATX->classification != -1 && !body && 
-            !strncasecmp(buff, "To: ", 4))
+        if (!body && !strncasecmp(buff, "To: ", 4))
         {
           char *y = NULL;
-          if (ATX->classification == DSR_ISSPAM) {
-            char *x = strstr(buff, "spam-");
-            if (x != NULL) {
-              y = strdup(x+5);
+
+          char *x = strstr(buff, "spam-");
+          if (x != NULL) {
+            y = strdup(x+5);
+
+            if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+              ATX->classification = DSR_ISSPAM;
+              ATX->source = DSS_ERROR;
             }
 
-             if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
-                ATX->classification = DSR_ISSPAM;
-                ATX->source = DSS_ERROR;
-             }
-
-          } else {
             char *x = strstr(buff, "fp-");
             if (x != NULL) {
               y = strdup(x+3);
-            }
 
             if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
                ATX->classification = DSR_ISINNOCENT;
                ATX->source = DSS_ERROR;
-             }
-
+               }
+            }
           }
-  
+             
           if (y) {
             char *ptrptr;
             char *z = strtok_r(y, "@", &ptrptr);
@@ -776,7 +772,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
           }
         }
       }
- 
+
       if (buffer_cat (message, buff) || buffer_cat(message, "\n"))
       {
         LOG (LOG_CRIT, ERROR_MEM_ALLOC);
