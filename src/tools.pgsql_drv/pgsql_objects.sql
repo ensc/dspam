@@ -1,4 +1,4 @@
-/* $Id: pgsql_objects.sql,v 1.1 2004/10/24 20:51:55 jonz Exp $ */
+/* $Id: pgsql_objects.sql,v 1.2 2004/12/03 13:19:52 jonz Exp $ */
 
 CREATE TABLE dspam_token_data (
   uid smallint,
@@ -12,6 +12,10 @@ CREATE TABLE dspam_token_data (
 CREATE INDEX id_token_data_01 ON dspam_token_data(innocent_hits);
 CREATE INDEX id_token_data_02 ON dspam_token_data(spam_hits);
 CREATE INDEX id_token_data_03 ON dspam_token_data(token);
+
+/* This index is only necessary to fix a buggy pgsql query builder */
+
+CREATE INDEX id_token_data_04 ON dspam_token_data(uid);
 
 CREATE TABLE dspam_signature_data (
   uid smallint,
