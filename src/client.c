@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.44 2005/03/20 22:19:28 jonz Exp $ */
+/* $Id: client.c,v 1.45 2005/03/28 21:42:20 jonz Exp $ */
 
 /*
 
@@ -632,7 +632,7 @@ QUIT:
   client_getcode(&TTX);
 
 BAIL:
-  LOGDEBUG("socket delivery failed");
+  report_error("TCP delivery failed");
   exitcode = EFAILURE;
   buffer_destroy(TTX.packet_buffer);
   close(TTX.sockfd);
