@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.5 2005/02/25 14:52:14 jonz Exp $ */
+/* $Id: util.c,v 1.6 2005/02/25 15:09:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -547,7 +547,6 @@ int _ds_extract_address(char *buf, const char *address, size_t len) {
   y = strchr(x, '>');
   if (y) y[0] = 0;
 
-printf("X: %s\n", x+1);
   strlcpy(buf, x+1, len);
   free(str);
   return 0;

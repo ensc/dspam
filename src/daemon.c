@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.40 2005/02/25 14:52:13 jonz Exp $ */
+/* $Id: daemon.c,v 1.41 2005/02/25 15:09:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -396,7 +396,6 @@ void *process_connection(void *ptr) {
         }
         nt_add(ATX->users, username);
         strlcpy(ATX->recipient, username, sizeof(ATX->recipient));
-printf("HERE: '%s'\n", username);
       }
 
       snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
@@ -728,6 +727,9 @@ char *daemon_getline(THREAD_CTX *TTX, int timeout) {
     pop = pop_buffer(TTX);
   }
 
+#ifdef VERBOSE
+  LOGDEBUG("SRECV: %s", pop);
+#endif
   return pop;
 }
 
