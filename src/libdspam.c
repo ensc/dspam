@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.83 2005/01/08 03:09:58 jonz Exp $ */
+/* $Id: libdspam.c,v 1.84 2005/01/10 14:09:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -1246,6 +1246,27 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       }
 
       LOGDEBUG("bnr reported snr of %02.3f", snr);
+
+#ifdef LIBBNR_GRAPH_OUTPUT
+      printf("BEFORE\n\n");
+      node_nt = c_nt_first(diction->order, &c_nt);
+      while(node_nt != NULL) {
+        ds_term = node_nt->ptr;
+        printf("%1.5f\n", ds_term->s.probability);
+        node_nt = c_nt_next(diction->order, &c_nt);
+      }
+
+      printf("\n\nAFTER\n\n");
+      node_nt = c_nt_first(diction->order, &c_nt);
+      while(node_nt != NULL) {
+        ds_term = node_nt->ptr;
+        if (ds_term->frequency > 0)
+          printf("%1.5f\n", ds_term->s.probability);
+        node_nt = c_nt_next(diction->order, &c_nt);
+      }
+      printf("\n");
+#endif
+         
 
       snprintf(fn, sizeof(fn), "%s/bnr.log", LOGDIR);
       file = fopen(fn, "a");
