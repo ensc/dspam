@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.49 2005/03/01 19:01:38 jonz Exp $ */
+/* $Id: daemon.c,v 1.50 2005/03/01 19:03:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -343,10 +343,12 @@ void *process_connection(void *ptr) {
           }
         } else {
           char id[256];
+          pass = ident = NULL;
           id[0] = 0;
-          _ds_extract_address(id, input, sizeof(id));
-          pass = strtok_r(id, "@", &ptrptr);
-          ident = strtok_r(NULL, "@", &ptrptr);
+          if (!_ds_extract_address(id, input, sizeof(id))) {
+            pass = strtok_r(id, "@", &ptrptr);
+            ident = strtok_r(NULL, "@", &ptrptr);
+          }
 
           if (pass && ident) {
             char *serverpass;
