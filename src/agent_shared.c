@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.29 2005/03/16 12:39:51 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.30 2005/03/16 18:23:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -733,12 +733,12 @@ buffer * read_stdin(AGENT_CTX *ATX) {
 
               if (x != NULL) {
                 y = strdup(x+4);
-              }
 
-              if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
-              {
-                ATX->classification = DSR_ISINNOCENT;
-                ATX->source = DSS_ERROR;
+                if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
+                {
+                  ATX->classification = DSR_ISINNOCENT;
+                  ATX->source = DSS_ERROR;
+                }
               }
             }
 
