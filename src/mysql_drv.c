@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.12 2004/12/01 18:26:12 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.13 2004/12/01 23:10:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -2540,7 +2540,7 @@ _ds_delete_decision (DSPAM_CTX * CTX, const char *signature)
 
 MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
 {
-  MYSQL *dbh;
+  MYSQL *dbh, *connect;
   FILE *file;
   char filename[MAX_FILENAME_LENGTH];
   char buffer[128];
@@ -2609,8 +2609,8 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
     goto FAILURE;
   }
 
-  dbh = mysql_init (NULL);
-  if (dbh == NULL)
+  connect = mysql_init (NULL);
+  if (connect == NULL)
   {
     LOGDEBUG
       ("_ds_init_storage: mysql_init: unable to initialize handle to database");
@@ -2620,19 +2620,19 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
   if (hostname[0] == '/')
   {
     dbh =
-      mysql_real_connect (dbh, NULL, user, password, db, 0, hostname, 
+      mysql_real_connect (connect, NULL, user, password, db, 0, hostname, 
                           real_connect_flag);
   }
   else
   {
     dbh =
-      mysql_real_connect (dbh, hostname, user, password, db, port, NULL,
+      mysql_real_connect (connect, hostname, user, password, db, port, NULL,
                           real_connect_flag);
   }
 
   if (dbh == NULL)
   {
-    LOG (LOG_WARNING, "%s", mysql_error (dbh));
+    LOG (LOG_WARNING, "%s", mysql_error (connect));
     mysql_close(dbh);
     goto FAILURE;
   }

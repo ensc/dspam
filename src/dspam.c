@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.26 2004/12/01 18:26:12 jonz Exp $ */
+/* $Id: dspam.c,v 1.27 2004/12/01 23:10:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -1623,7 +1623,7 @@ buffer * read_stdin(AGENT_CTX *ATX) {
   if (ATX->signature[0] == 0) {
     while ((fgets (buff, sizeof (buff), stdin)) != NULL)
     {
-  
+
       if (_ds_match_attribute(agent_config, "Broken", "lineStripping")) {
         size_t len = strlen(buff);
   
