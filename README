@@ -1,4 +1,4 @@
-$Id: README,v 1.40 2005/02/24 22:28:49 jonz Exp $
+$Id: README,v 1.41 2005/02/25 15:47:29 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1822,6 +1822,17 @@ DATA
   differently for each user, DSPAM demultiplexes a multi-recipient email. This
   means that while it can receive an email with multiple RCPT TO's specified, it
   will perform delivery individually.
+
+  LOCAL DELIVERY WITH LMTP FRONT-END
+
+  In some circumstances, you may want to relay to DSPAM via LMTP, but have
+  DSPAM deliver via LDA. In these cases, you may use the following
+  conventions in your ServerParameters configuration:
+
+  %r - The RCPT TO passed in via LMTP 
+  %s - The MAIL FROM passed in via LMTP
+
+  In both cases, the content provided between < > is what is actually used.
 
 3.0 BUGS, PORTS, AND THE LIKE
 

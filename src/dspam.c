@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.81 2005/02/25 15:09:08 jonz Exp $ */
+/* $Id: dspam.c,v 1.82 2005/02/25 15:47:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -699,6 +699,10 @@ deliver_message (AGENT_CTX *ATX, const char *message, const char *mailer_args,
  
     if (!strcmp (arg, "$u") || !strcmp (arg, "\\$u") || !strcmp (arg, "%u"))
       strlcpy(a, username, sizeof(a));
+    else if (!strcmp (arg, "%r")) 
+      strlcpy(a, ATX->recipient, sizeof(a));
+    else if (!strcmp (arg, "%s"))
+      strlcpy(a, ATX->mailfrom, sizeof(a));
     else
       strlcpy(a, arg, sizeof(a));
 

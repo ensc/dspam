@@ -1,7 +1,17 @@
-$Id: CHANGELOG,v 1.175 2005/02/25 15:09:08 jonz Exp $
+$Id: CHANGELOG,v 1.176 2005/02/25 15:47:29 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050225.0600] jonz: added %r and %s LDA arguments
+
+For LMTP front-end with LDA delivery, the following conventions may be used
+in ServerParameters:
+
+%r - the RCPT TO provided via LMTP
+%s - the MAIL FROM provided via LMTP
+
+in both cases, only the content between < > is actually used
 
 [20050225.0500] jonz: added pass-through of mail from
 
