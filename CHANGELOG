@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.48 2004/12/01 18:26:12 jonz Exp $
+$Id: CHANGELOG,v 1.49 2004/12/01 23:40:42 jonz Exp $
 
 Version NEXT
 ------------
@@ -23,6 +23,7 @@ DATA
 - implemented multiple responses per recipient
 - changed storage driver layer to use a driver context (for caching connections)
 - stateful db connections done for mysql driver
+- fixed many bugs
 
 next: client
  

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.28 2004/12/01 23:29:17 jonz Exp $ */
+/* $Id: dspam.c,v 1.29 2004/12/01 23:40:43 jonz Exp $ */
 
 /*
  DSPAM
@@ -182,8 +182,10 @@ main (int argc, char *argv[])
   /* Process the message once for each destination user */
   results = process_users(&ATX, message);
   exitcode = *results[ATX.users->items];
-  for(i=0;i<=ATX.users->items;i++) 
-    free(results[i]);
+  for(i=0;i<=ATX.users->items;i++) {
+    if (results[i] != NULL) 
+      free(results[i]);
+  }
   free(results);
 
 bail:
@@ -1719,7 +1721,6 @@ bail:
     message	message to process for each user
 */
 
-// HERE
 int **process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_node *node_nt;
   struct nt_c c_nt;
@@ -1748,6 +1749,8 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
     int result, optin, optout;
+
+    x[i] = NULL;
 
 
 #ifdef DEBUG
@@ -1842,9 +1845,9 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
 #ifdef VERBOSE
     {
       AGENT_ATTRIB *t;
-      int i;
-      for(i=0;PTX[i];i++) {
-        t = PTX[i]; 
+      int j;
+      for(i=0;PTX[j];j++) {
+        t = PTX[j]; 
         LOGDEBUG("Preference '%s' => '%s'", t->attribute, t->value);
       }
     }
@@ -1911,7 +1914,6 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
       code = malloc(sizeof(int));
       *code = result;
       x[i] = code;
-      i++;
 
       /* Classify Only */
 
@@ -2059,6 +2061,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     node_nt = c_nt_next (ATX->users, &c_nt);
 
     LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", exitcode);
+    i++;
   }
 
   code = malloc(sizeof(int));

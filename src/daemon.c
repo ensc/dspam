@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.15 2004/12/01 18:26:12 jonz Exp $ */
+/* $Id: daemon.c,v 1.16 2004/12/01 23:40:43 jonz Exp $ */
 
 /*
  DSPAM
@@ -354,7 +354,7 @@ void *process_connection(void *ptr) {
 
       while(node_nt != NULL) {
         result = results[i];
-        if (*result > 0) 
+        if (result == NULL || *result > 0) 
           snprintf(buf, sizeof(buf), "%d <%s> Message accepted for delivery",
                    LMTP_OK, (char *) node_nt->ptr);
         else
