@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.4 2004/11/25 14:39:17 jonz Exp $ */
+/* $Id: decode.c,v 1.5 2004/11/28 03:45:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -930,23 +930,32 @@ _ds_match_boundary (struct nt *stack, const char *buff)
 }
 
 int
-_ds_extract_boundary (char *buf, size_t size, char *data)
+_ds_extract_boundary (char *buf, size_t size, char *mem)
 {
-  char *ptr, *ptrptr;
+  char *data, *ptr, *ptrptr;
 
-  if (data == NULL)
+  if (mem == NULL)
     return EINVAL;
+
+  data = strdup(mem);
+  if (data == NULL) {
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    return EUNKNOWN;
+  }
 
   for(ptr=data;ptr<(data+strlen(data));ptr++) {
     if (!strncasecmp(ptr, "boundary", 8)) {
       ptr = strchr(ptr, '=');
-      if (ptr == NULL)
+      if (ptr == NULL) {
+        free(data);
         return EFAILURE;
+      }
       ptr++;
       if (ptr[0] == '"')
         ptr++;
       strtok_r(ptr, " \";\n\t", &ptrptr);
       strlcpy(buf, ptr, size);
+      free(data);
       return 0;
     }
   }
