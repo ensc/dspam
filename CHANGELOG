@@ -1,11 +1,7 @@
-$Id: CHANGELOG,v 1.192 2005/03/04 15:45:20 jonz Exp $
+$Id: CHANGELOG,v 1.193 2005/03/04 19:17:27 jonz Exp $
 
 Version NEXT
 ------------
-
-[20050303.0700] jozn: fixed duplicate logging of events
-
-fixed duplicate logging of events in client/server mode
 
 [20050302.0730] jonz: ClientHost to be used for client domain sockets
 
