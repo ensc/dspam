@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.116 2005/03/28 13:37:41 jonz Exp $ */
+/* $Id: dspam.c,v 1.117 2005/03/28 13:47:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -530,7 +530,8 @@ process_message (AGENT_CTX *ATX,
 
   /* System and User Logging */
 
-  if ((_ds_match_attribute(agent_config, "SystemLog", "on") ||
+  if (CTX->operating_mode != DSM_CLASSIFY &&
+     (_ds_match_attribute(agent_config, "SystemLog", "on") ||
       _ds_match_attribute(agent_config, "UserLog", "on")))
   {
     log_events(CTX, ATX, PTX);
