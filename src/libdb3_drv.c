@@ -1,4 +1,4 @@
-/* $Id: libdb3_drv.c,v 1.5 2005/01/03 13:31:10 jonz Exp $ */
+/* $Id: libdb3_drv.c,v 1.6 2005/01/18 18:28:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -364,6 +364,11 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   if (CTX == NULL)
     return EINVAL;
+
+  if (!CTX->home) {
+    report_error(ERROR_NO_HOME);
+    return EINVAL;
+  }
 
   if (dbh != NULL) {
     report_error (ERROR_NO_ATTACH);

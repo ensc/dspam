@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.146 2005/01/18 15:06:08 jonz Exp $
+$Id: CHANGELOG,v 1.147 2005/01/18 18:28:27 jonz Exp $
 
 Version NEXT
 ------------
+
+[20040118.0730] jonz: removed requirement for dspam_home in dspam_create()
+
+some storage drivers don't require dspam_home
 
 [20050118.0710] jonz: fixed negative values in web stats
 
@@ -9,7 +13,7 @@ fixed a bug causing negative values to be written in web stats
  
 [20050118.0700] jonz: applied patch adding full preferences functionality
 
-applied a patch by Philip C. <flah@hell.com> adding full preferences
+applied a patch by Philip Champon <flah@hell.com> adding full preferences
 functionality for installs without storage driver extensions. this allows
 preferences to be set through dspam_admin for flat file-based systems as well.
 

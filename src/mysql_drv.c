@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.31 2005/01/12 03:12:26 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.32 2005/01/18 18:28:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -2632,6 +2632,10 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
       real_connect_flag = CLIENT_COMPRESS;
 
   } else {
+    if (!CTX->home) {
+      report_error(ERROR_NO_HOME);
+      goto FAILURE;
+    }
     snprintf (filename, MAX_FILENAME_LENGTH, "%s/mysql.data", CTX->home);
     file = fopen (filename, "r");
     if (file == NULL)

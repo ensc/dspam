@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.92 2005/01/18 15:08:15 jonz Exp $ */
+/* $Id: libdspam.c,v 1.93 2005/01/18 18:28:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -171,7 +171,7 @@ DSPAM_CTX * dspam_create (const char *username,
 #ifdef DSPAM_HOME
     CTX->home = strdup(DSPAM_HOME);
 #else
-    report_error_printf(ERROR_DSPAM_INIT, ERROR_NO_HOME);
+    CTX->home = NULL;
 #endif
   }
 

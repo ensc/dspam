@@ -60,7 +60,7 @@ BNR_CTX *bnr_init(int type, char identifier)
   BTX->identifier  = identifier;
   BTX->window_size = 3;
   BTX->ex_radius   = 0.25;
-  BTX->in_radius   = 0.30;
+  BTX->in_radius   = 0.33;
   BTX->stream     = bnr_list_create(type);
   BTX->patterns   = bnr_hash_create(1543ul);
   if (BTX->stream == NULL || BTX->patterns == NULL) {

@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.25 2005/01/12 03:12:26 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.26 2005/01/18 18:28:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -2705,6 +2705,10 @@ PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX)
       strlcpy(db, p, sizeof(db)); 
 
   } else {
+    if (!CTX->home) {
+      report_error(ERROR_NO_HOME);
+      return NULL;
+    }
     snprintf (filename, MAX_FILENAME_LENGTH, "%s/pgsql.data", CTX->home);
     file = fopen (filename, "r");
     if (file == NULL)

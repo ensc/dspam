@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.16 2005/01/13 17:34:49 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.17 2005/01/18 18:28:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -600,6 +600,11 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   if (CTX == NULL)
     return EINVAL;
 
+  if (!CTX->home) {
+    report_error(ERROR_NO_HOME);
+    return EINVAL;
+  } 
+
   if (CTX->flags & DSF_MERGED) {
     report_error (ERROR_NO_MERGED);
     return EINVAL;
@@ -698,7 +703,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
       }
       t = t->next;
     } 
-  } else {
+  } else if (CTX->home) {
     snprintf(filename, MAX_FILENAME_LENGTH, "%s/sqlite.pragma", CTX->home);
     file = fopen(filename, "r");
     if (file != NULL) {

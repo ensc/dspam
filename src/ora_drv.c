@@ -1,4 +1,4 @@
-/* $Id: ora_drv.c,v 1.7 2005/01/03 17:12:02 jonz Exp $ */
+/* $Id: ora_drv.c,v 1.8 2005/01/18 18:28:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -135,6 +135,10 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
       strlcpy(schema, p, sizeof(schema));
 
   } else {
+    if (!CTX->home) {
+      report_error(ERROR_NO_HOME);
+      return EINVAL;
+    }
     snprintf (filename, MAX_FILENAME_LENGTH, "%s/oracle.data", CTX->home);
     file = fopen (filename, "r");
     if (file == NULL)
