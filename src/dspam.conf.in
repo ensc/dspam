@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.4 2004/11/12 16:28:09 jonz Exp $
+## $Id: dspam.conf.in,v 1.5 2004/11/30 19:46:09 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -323,5 +323,21 @@ Opt out
 # without processing. Value is in bytes.
 #
 #MaxMessageSize 4194304
+
+#
+# Daemonized Server: If you are running DSPAM as a daemonized server using
+# --daemon, the following parameters will override the default.
+#
+#ServerPort		1900
+#ServerQueueSize	32
+#ServerPass		"secret"
+
+#
+# Client Mode: If you are running DSPAM in client mode using --client, the
+# following parameters will be used.
+#
+#ClientHost	1.2.3.4
+#ClientPort	1900
+#ClientPass	"secret"
 
 ## EOF

@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: error.c,v 1.2 2004/11/30 19:46:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -100,13 +100,17 @@ debug (const char *text)
   char fn[MAX_FILENAME_LENGTH];
   char buf[128];
 
-  snprintf (fn, sizeof (fn), "%s/dspam.debug", LOGDIR);
+  if (DO_DEBUG == 1) {
+    snprintf (fn, sizeof (fn), "%s/dspam.debug", LOGDIR);
 
-  file = fopen (fn, "a");
-  if (file != NULL)
-  {
-    fprintf (file, "%ld: [%s] %s\n", (long) getpid (), format_date_r(buf), text);
-    fclose (file);
+    file = fopen (fn, "a");
+    if (file != NULL)
+    {
+      fprintf (file, "%ld: [%s] %s\n", (long) getpid (), format_date_r(buf), text);
+      fclose (file);
+    }
+  } else if (DO_DEBUG == 2) {
+    printf ("%ld: [%s] %s\n", (long) getpid (), format_date_r(buf), text);
   }
   return;
 }

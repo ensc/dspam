@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.3 2004/11/30 18:37:28 jonz Exp $ */
+/* $Id: daemon.c,v 1.4 2004/11/30 19:46:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -52,6 +52,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "libdspam.h"
 #include "config.h"
 #include "util.h"
+#include "buffer.h"
 #include "language.h"
 
 int daemon_listen() {
@@ -138,7 +139,7 @@ int daemon_listen() {
             {
               LOG(LOG_WARNING, ERROR_DAEMON_ACCEPT, strerror(errno));
             } else {
-              LOGDEBUG("connection id %d from %s.\n", newfd, 
+              LOGDEBUG("connection id %d from %s.", newfd, 
                        inet_ntoa(remote_addr.sin_addr));
               fcntl(newfd, F_SETFL, O_NONBLOCK);
               setsockopt(newfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
@@ -175,11 +176,111 @@ int daemon_listen() {
 
 void *process_connection(void *ptr) {
   THREAD_CTX *TTX = (THREAD_CTX *) ptr;
+  char *serverpass = _ds_read_attribute(agent_config, "ServerPass");
+  int tries = 0;
+
+  TTX->packet_buffer = buffer_create(NULL);
+  if (TTX->packet_buffer == NULL)
+    goto CLOSE;
+
+  TTX->authenticated = (serverpass) ? 0 : 1;
+
+  /* Echo until authenticated */
+
+  while(!TTX->authenticated) {
+    char *input;
+    struct timeval tv;
+
+    input = socket_getline(TTX, 10);
+    if (input == NULL) 
+      goto CLOSE;
+    else {
+      char *pass = strdup(input);
+      chomp(pass);
+      if (!strcmp(pass, serverpass)) {
+        LOGDEBUG("fd %d remote_addr %s authenticated.", TTX->sockfd, 
+                  inet_ntoa(TTX->remote_addr.sin_addr));
+        TTX->authenticated = 1;
+      } 
+      else if (send(TTX->sockfd, input, strlen(input)+1, 0)<0) {
+        free(pass);
+        goto CLOSE;
+      }
+
+      free(pass);
+    }
+      
+    if (!TTX->authenticated) {
+
+      LOGDEBUG("fd %d remote_addr %s authentication failure.", TTX->sockfd,
+                inet_ntoa(TTX->remote_addr.sin_addr));
+      tries++;
+      if (tries>=3) {
+        tv.tv_sec = 5;
+        tv.tv_usec = 0;
+        select(0, NULL, NULL, NULL, &tv);
+        goto CLOSE;
+      }
+    }
+  }
 
   /* Close connection and return */
+CLOSE:
   close(TTX->sockfd);
+  buffer_destroy(TTX->packet_buffer);
   free(TTX);
   return NULL;
+}
+
+char *socket_getline(THREAD_CTX *TTX, int timeout) {
+  int i;
+  struct timeval tv;
+  fd_set fds;
+  long recv_len;
+  char *pop;
+  char buff[1024];
+
+  pop = pop_buffer(TTX);
+  while(!pop) {
+    tv.tv_sec = timeout;
+    tv.tv_usec = 0;
+    FD_ZERO(&fds);
+    FD_SET(TTX->sockfd, &fds);
+    i = select(TTX->sockfd+1, &fds, NULL, NULL, &tv);
+    if (i<=0) 
+      return NULL;
+
+    recv_len = recv(TTX->sockfd, buff, sizeof(buff)-1, 0);
+    buff[recv_len] = 0;
+    if (recv_len == 0)
+      return NULL;
+    buffer_cat(TTX->packet_buffer, buff);
+    pop = pop_buffer(TTX);
+  }
+
+  return pop;
+}
+
+char *pop_buffer(THREAD_CTX *TTX) {
+  char *buff, *eol;
+  long len;
+
+  if (!TTX || !TTX->packet_buffer || !TTX->packet_buffer->data)
+    return NULL;
+
+  eol = strchr(TTX->packet_buffer->data, 10);
+  if (!eol)
+    return NULL;
+  len = (eol - TTX->packet_buffer->data) + 1;
+  buff = calloc(1, len+1);
+  if (!buff) {
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+  memcpy(buff, TTX->packet_buffer->data, len);
+  memmove(TTX->packet_buffer->data, eol+1, strlen(eol+1)+1);
+  TTX->packet_buffer->used -= len;
+  return buff;
 }
 
 #endif /* DAEMON */

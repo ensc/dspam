@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.16 2004/11/30 18:37:28 jonz Exp $ */
+/* $Id: dspam.c,v 1.17 2004/11/30 19:46:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -1204,10 +1204,11 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     /* Launch into daemon mode */
 
     if (!strcmp (argv[i], "--daemon") && ATX->trusted) {
-      fprintf(stderr, "%s\n", DAEMON_START);
+#ifdef DEBUG
+      DO_DEBUG = 2;
+#endif
       LOGDEBUG(DAEMON_START);
       daemon_listen();
-      fprintf(stderr, "%s\n", DAEMON_EXIT);
       LOGDEBUG(DAEMON_EXIT);
       pthread_exit(EXIT_SUCCESS);
       exit(EXIT_SUCCESS);
