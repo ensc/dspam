@@ -1,24 +1,30 @@
-$Id: README.exim,v 1.4 2005/01/07 03:34:03 jonz Exp $
+$Id: README.exim,v 1.5 2005/01/07 06:05:57 jonz Exp $
 
-EXIM INTEGRATION
+EXIM 4 INTEGRATION
 
 Please follow the instructions in the README for building DSPAM. Once DSPAM
 has been built, the following instructions may be used to integrate it with
 exim.
  
-To integrate DSPAM with exim, you'll need to create a new director in the exim
-configuration.  First, add the following code to the directors :
+To integrate DSPAM with exim 4, you'll need to create a new director in the 
+exim configuration.  First, add the following code to the directors:
 
 spamscan:
   no_verify
   condition = "${if and {{!eq {$received_protocol}{spam-scanned}} {!eq {$received_protocol}{local}} } {1}{0}}"
-  driver = localuser
+  driver = accept
   transport = spamcheck
-  require_files = ${local_part}:\
-    +/path/to/dspam-home:\
-    +/path/to/dspam/binary
+  require_files = /usr/local/var/dspam:\
+    +/usr/local/bin
 
-Then add the following code to the transports:
+This code tells exim to run spamcheck unless the message was marked by
+the agent with the spam-scanned protocol, or if it is local mail (to prevent
+loops).
+
+If you're using an alternative prefix, adjust the pathnames to match.
+
+Then add the following code to the transports section. This code defines
+how dspam is called by exim for scanning email:
 
 spamcheck:
   driver = pipe
@@ -29,33 +35,37 @@ spamcheck:
   log_output = true
   return_fail_output = true
 
-Finally, you will need to configure your delivery agent into dspam. This may 
-end up calling exim again, if you are using maildir format for example.  An 
-example of calling back to exim for delivery might look like:
+If you're using virtual users on the system, you may wish to include the
+domain as part of the username: 
+
+  command = /usr/local/bin/dspam --deliver=innocent --user "$local_part@$domain" -- %u
+
+Finally, you will need to configure and compile DSPAM. DSPAM will most likely
+end up calling exim again for delivery, using the spam-scanned protocol to
+identify scanned messages. The most common example is:
 
    ./configure --with-delivery-agent="/usr/sbin/exim -oMr spam-scanned"
 
 RUNNING WITHOUT PRIVILEGED EXIM USERS
 
-Alternatively, one could also write a line to the header and check for 
-that instead of looking at the protocol:
+The problem with setting the $received_protocol in the transport is that only
+privileged Exim users are allowed to do so. With the setup below, DSPAM can
+run as a nonprivileged user. The problem, however, is that this header could
+be easily spoofed:
 
    condition = "${if and {\
                          {!def:h_X-DSPAM-Check:}\
                  }{1}{0}}"
    headers_add = "X-DSPAM-Check: by $primary_hostname on $tod_full"
 
-The problem with setting $received_protocol in the transport is that only
-priviledged Exim users are allowed to do so. With this setup, DSPAM could
-run with /usr/sbin/exim specified as the delivery agent in dspam.conf.
 
 DIRECTORY SETTINGS
 
 When changing the user/group it is highly advisable to set "home_directory"
-and "current_directory" accordingly:
+and "current_directory" to match the DSPAM home:
 
-home_directory = "/path/to/dspam/dspam-home" # or "/tmp"
-current_directory = "/path/to/dspam/dspam-home" # or "/tmp
+home_directory = "/usr/local/var/dspam" # or /tmp
+current_directory = "/usr/local/var/dspam" # or /tmp
 
 Otherwise, the transport might try to run DSPAM in something like /home/bob
 under certain circumstances. This will most likely fail if DSPAM runs as
@@ -104,7 +114,7 @@ addspam:
   suffix = ""
 falsepositive:
   driver = pipe
-  command = "/path/to/dspam --user $local_part --class=innocent --source=error --deliver=innocent"
+  command = "/path/to/dspam --user $local_part --class=innocent --source=error --deliver=innocent %u"
   return_path_add = false
   return_fail_output = true
   log_output = true
