@@ -216,7 +216,7 @@ void *bnr_get_token(BNR_CTX *BTX, int *eliminated) {
       *eliminated = 1;
     else 
       *eliminated = 0;
-    return node;
+    return node->ptr;
   }
 
   BTX->stream_iter = 0;
