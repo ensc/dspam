@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.33 2004/11/25 06:10:30 jonz Exp $
+$Id: CHANGELOG,v 1.34 2004/11/25 14:39:17 jonz Exp $
 
 Version NEXT
 ------------
@@ -36,6 +36,12 @@ normalized main() by breaking up code into smaller subroutines
 
 Version 3.2.3
 -------------
+
+[20041125.0925] jonz: rewrote boundary extraction in decode.c
+
+rewrote boundary extraction in decode.c to fix a bug where messages could
+get mangled if boundary was specified without quotes, but other tags used
+quotes
 
 [20041123.1830] jonz: fixed multipart blocks with no content-type
 

@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.3 2004/11/23 23:27:38 jonz Exp $ */
+/* $Id: decode.c,v 1.4 2004/11/25 14:39:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -217,55 +217,18 @@ _ds_actualize_message (const char *message)
         if (!strncasecmp (line, "Content-Type", 12)
             || ((line[0] == 32 || line[0] == 9) && in_content))
         {
-          char *h = strdup (line);
-
+          char boundary[128];
           in_content = 1;
-          if (h == NULL)
-          {
-            _ds_destroy_message(out);
-            nt_destroy(boundaries);
-            free(m_in);
-            LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-            return NULL;
+          if (!_ds_extract_boundary(boundary, sizeof(boundary), line)) {
+            if (!_ds_match_boundary (boundaries, boundary)) {
+              _ds_push_boundary (boundaries, boundary);
+
+              free(current_block->boundary);
+              current_block->boundary = strdup (boundary);
+            }
+          } else {
+            _ds_push_boundary (boundaries, "");
           }
-
-          lc (h, h);
-
-          if (strstr (h, "boundary"))
-          {
-            char *x;
-            long pos, len;
-
-            if (strchr (h, '=') && strchr (h, '"'))
-            {
-              char *ptrptr;
-              x = strtok_r (strstr (h, "boundary"), "\"", &ptrptr);
-              x = strtok_r (NULL, "\"", &ptrptr);
-            }
-            else
-            {
-              x = strchr (strstr (h, "boundary"), '=') + 1;
-            }
-
-            /* Copy the case sensitive version back */
-            if (x != NULL && x != (char *) 1)
-            {
-              pos = x - h;
-              len = strlen (x);
-              memcpy (x, line + pos, len);
-
-              if (!_ds_match_boundary (boundaries, x))
-              {
-                _ds_push_boundary (boundaries, x);
- 
-                free(current_block->boundary);
-                current_block->boundary = strdup (x);
-              }
-            } else if (x == NULL) {
-              _ds_push_boundary (boundaries, "");
-            }
-          }
-          free (h);
         }
         else
         {
@@ -581,14 +544,7 @@ _ds_analyze_header (struct _ds_message_block *block,
 
     else if (!strncasecmp (header->data, "multipart", 9))
     {
-      char *h = strdup (header->data);
-      lc (h, h);
-
-      if (h == NULL)
-      {
-        LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-        return;
-      }
+      char boundary[128];
 
       block->media_type = MT_MULTIPART;
       if (!strncasecmp (header->data + 10, "mixed", 5))
@@ -602,41 +558,15 @@ _ds_analyze_header (struct _ds_message_block *block,
       else
         block->media_subtype = MST_OTHER;
 
-      /* Check for multipart boundary definition */
-      if (strstr (h, "boundary"))
-      {
-        char *x;
-        long pos, len;
-
-        if (strchr (h, '=') && strchr (h, '"'))
-        {
-          char *ptrptr;
-          x = strtok_r (strstr (h, "boundary"), "\"", &ptrptr);
-          x = strtok_r (NULL, "\"", &ptrptr);
+      if (!_ds_extract_boundary(boundary, sizeof(boundary), header->data)) {
+        if (!_ds_match_boundary (boundaries, boundary)) {
+          _ds_push_boundary (boundaries, boundary);
+          free(block->boundary);
+          block->boundary = strdup (boundary);
         }
-        else
-        {
-          x = strchr (strstr (h, "boundary"), '=') + 1;
-        }
-
-        /* Copy the case-sensitive version back */
-        pos = x - h;
-        if (x != NULL) {
-          len = strlen (x);
-          memcpy (x, header->data + pos, len);
-
-          if (!_ds_match_boundary (boundaries, x))
-          {
-            _ds_push_boundary (boundaries, x);
-            free(block->boundary);
-            block->boundary = strdup (x);
-          }
-        } else {
-          _ds_push_boundary (boundaries, "");
-        }
+      } else {
+        _ds_push_boundary (boundaries, "");
       }
-
-      free (h);
     }
     else {
       block->media_type = MT_OTHER;
@@ -997,5 +927,30 @@ _ds_match_boundary (struct nt *stack, const char *buff)
     node = c_nt_next (stack, &c);
   }
   return 0;
+}
+
+int
+_ds_extract_boundary (char *buf, size_t size, char *data)
+{
+  char *ptr, *ptrptr;
+
+  if (data == NULL)
+    return EINVAL;
+
+  for(ptr=data;ptr<(data+strlen(data));ptr++) {
+    if (!strncasecmp(ptr, "boundary", 8)) {
+      ptr = strchr(ptr, '=');
+      if (ptr == NULL)
+        return EFAILURE;
+      ptr++;
+      if (ptr[0] == '"')
+        ptr++;
+      strtok_r(ptr, " \";\n\t", &ptrptr);
+      strlcpy(buf, ptr, size);
+      return 0;
+    }
+  }
+
+  return EFAILURE;
 }
 
