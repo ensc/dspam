@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.36 2004/12/13 03:08:58 jonz Exp $ */
+/* $Id: libdspam.c,v 1.37 2004/12/13 16:02:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -1110,7 +1110,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     bnr_pattern_instantiate(CTX, bnr_layer1, freq->order, 's', DTT_DEFAULT, NULL);
     bnr_pattern_instantiate(CTX, bnr_layer1, freq->chained_order, 'c', DTT_DEFAULT, NULL);
 
-    lht_hit(bnr_layer1, _ds_getcrc64("bnr.t_"), "bnr.t_");
+    lht_hit(bnr_layer1, _ds_getcrc64("bnr.t:"), "bnr.t:");
 
     LOGDEBUG("Loading %ld BNR patterns at layer 1", bnr_layer1->items);
 
@@ -1121,7 +1121,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       goto bail;
     }
 
-    lht_getspamstat(bnr_layer1, _ds_getcrc64("bnr.t_"), &bnr_tot);
+    lht_getspamstat(bnr_layer1, _ds_getcrc64("bnr.t:"), &bnr_tot);
 
     /* BNR LAYER 2 PATTERNS (Patterns of patterns of tokens) */
 
@@ -1223,7 +1223,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     }
 
     /* Add BNR pattern to token hash */
-    {
+    if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 250) {
       node_lht = c_lht_first (bnr_layer1, &c_lht);
       while(node_lht != NULL) {
         lht_hit(freq, node_lht->key, node_lht->token_name);
@@ -1242,7 +1242,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 #endif
         node_lht = c_lht_next(bnr_layer1, &c_lht);
       }
+    }
 
+    if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 500) {
       node_lht = c_lht_first (bnr_layer2, &c_lht);
       while(node_lht != NULL) {
         lht_hit(freq, node_lht->key, node_lht->token_name);
@@ -1262,7 +1264,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 #endif
         node_lht = c_lht_next(bnr_layer2, &c_lht);
       }
+    }
 
+    if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000) {
       node_lht = c_lht_first (bnr_layer3, &c_lht);
       while(node_lht != NULL) {
         lht_hit(freq, node_lht->key, node_lht->token_name);
@@ -1497,7 +1501,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       }
     }
 
-
     /* SPAM */
     if (CTX->result == DSR_ISSPAM)
     {
@@ -1521,7 +1524,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         }
       }
 
-//HERE
       if (SPAM_MISS(CTX) && !(CTX->flags & DSF_UNLEARN)) { 
         node_lht->s.innocent_hits-= 1;//(node_lht->s.innocent_hits>0) ? 1:0;
 //        if (node_lht->s.innocent_hits < 0)
