@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.78 2005/03/19 19:43:29 jonz Exp $ */
+/* $Id: daemon.c,v 1.79 2005/03/23 04:30:25 jonz Exp $ */
 
 /*
 
@@ -295,7 +295,7 @@ void *process_connection(void *ptr) {
   AGENT_CTX *ATX = NULL;
   buffer *message = NULL;
   char *input, *cmdline = NULL, *token, *ptrptr;
-  char *oldcmd = NULL, *parms=NULL, *p=NULL;
+  char *oldcmd = NULL, *parms = NULL, *p = NULL;
   char *server_ident = _ds_read_attribute(agent_config, "ServerIdent");
   char *argv[64];
   char buf[1024];
@@ -388,6 +388,8 @@ void *process_connection(void *ptr) {
   while(1) {
     char processmode[256];
     parms = NULL;
+    free(p);
+    p = NULL;
 
     /* Configure a new agent context for each pass */
     ATX = calloc(1, sizeof(AGENT_CTX));
@@ -767,9 +769,6 @@ RSET:
       argc = 0;
     }
 
-    free(p);
-    p = NULL;
-
   } /* while(1) */
 
   /* Close connection and return */
@@ -787,6 +786,7 @@ CLOSE:
     nt_destroy(ATX->recipients);
     nt_destroy(ATX->results);
   }
+  free(p);
   free(ATX);
   free(cmdline);
   free(TTX);
@@ -1060,6 +1060,7 @@ char *daemon_getline(THREAD_CTX *TTX, int timeout) {
     if (recv_len == 0)
       return NULL;
     buffer_cat(TTX->packet_buffer, buff);
+    free(pop);
     pop = pop_buffer(TTX);
   }
 
