@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.45 2004/12/17 03:33:56 jonz Exp $ */
+/* $Id: libdspam.c,v 1.46 2004/12/17 17:04:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -80,7 +80,8 @@ char debug_text[1024];
 
 #ifdef NCORE
 nc_dev_t g_ncDevice;
-nc_active_db_t g_ncDbDelimiters;
+
+nc_active_db_t	g_ncDbDelimiters;
 #endif
 
 /*

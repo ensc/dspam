@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.42 2004/12/16 20:17:39 jonz Exp $ */
+/* $Id: dspam.c,v 1.43 2004/12/17 17:04:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -114,8 +114,6 @@ main (int argc, char *argv[])
   DO_DEBUG = 0;
 #endif
 
-  libdspam_init();
-
   /* Read dspam.conf */
   agent_config = read_config(NULL);
   if (!agent_config) {
@@ -167,6 +165,7 @@ main (int argc, char *argv[])
     if (DO_DEBUG)
       DO_DEBUG = 2;
 #endif
+    libdspam_init();
     if (dspam_init_driver (&DTX))
     {
       LOG (LOG_WARNING, "unable to initialize storage driver");
@@ -193,6 +192,7 @@ main (int argc, char *argv[])
       unlink(pidfile);
 
     dspam_shutdown_driver(&DTX);
+    libdspam_shutdown();
     pthread_exit(EXIT_SUCCESS);
     exit(EXIT_SUCCESS);
   }
@@ -232,6 +232,7 @@ main (int argc, char *argv[])
     exitcode = client_process(&ATX, message);
   } else {
 #endif
+    libdspam_init();
  
     if (dspam_init_driver (NULL))
     {
@@ -265,12 +266,11 @@ bail:
   if (!_ds_read_attribute(agent_config, "ClientHost")) {
     if (driver_init)
       dspam_shutdown_driver (NULL);
+    libdspam_shutdown();
   }
 
   if (agent_config)
     _ds_destroy_attributes(agent_config);
-
-  libdspam_shutdown();
 
   exit (exitcode);
 }
