@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.209 2005/03/14 21:20:00 jonz Exp $
+$Id: CHANGELOG,v 1.210 2005/03/14 21:42:49 jonz Exp $
 
 Version NEXT
 ------------
@@ -7,7 +7,8 @@ Version NEXT
 
 fixed bugs in the handling of multiple rcpt to's. strange behavior; some email
 would get sent to the last recipient only. some email would never be 
-processed for a user.
+processed for a user. fixed a bug where specifying --user without recipients
+could cause a crash.
 
 [20050313.0700] jonz: changed lmtp commandline options
 

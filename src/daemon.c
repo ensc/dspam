@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.59 2005/03/14 21:20:00 jonz Exp $ */
+/* $Id: daemon.c,v 1.60 2005/03/14 21:42:50 jonz Exp $ */
 
 /*
 
@@ -623,7 +623,10 @@ void *process_connection(void *ptr) {
     } else {
       struct nt_node *node_nt;
       struct nt_c c_nt;
-      node_nt = c_nt_first(ATX->recipients, &c_nt);
+      if (ATX->recipients)
+        node_nt = c_nt_first(ATX->recipients, &c_nt);
+      else
+        node_nt = c_nt_next(ATX->users, &c_nt);
 
       i = 0;
 
@@ -651,7 +654,10 @@ void *process_connection(void *ptr) {
           free(results);
           goto CLOSE;
         }
-        node_nt = c_nt_next(ATX->recipients, &c_nt);
+        if (ATX->recipients)
+          node_nt = c_nt_next(ATX->recipients, &c_nt);
+        else
+          node_nt = c_nt_next(ATX->users, &c_nt);
         i++;
       }
     }
