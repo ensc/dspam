@@ -1,7 +1,15 @@
-$Id: CHANGELOG,v 1.202 2005/03/12 15:47:42 jonz Exp $
+$Id: CHANGELOG,v 1.203 2005/03/12 20:39:05 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050312.1530] jonz: added virtual_user_aliases.sql for mysql
+
+added virtual_user_aliases.sql, providing an alternative dspam_virtual_users
+table example where aliases to a single dspam user can be created. ideal for
+large mail systems with automatic provisioning of uids. this does, however,
+break dspam's own ability to create new virtual users, so they will need to
+be added manually if this aliases approach is used.
 
 [20050312.1035] jonz: added ChangeModeOnParse functionality
 
