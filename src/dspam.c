@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.121 2005/03/31 21:32:59 jonz Exp $ */
+/* $Id: dspam.c,v 1.122 2005/04/01 18:28:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -272,6 +272,8 @@ process_message (AGENT_CTX *ATX,
   struct _ds_message *components;
 
   char *copyback;
+  char filename[MAX_FILENAME_LENGTH];
+  FILE *file;
   int have_signature = 0;
   int have_decision = 0;
   int result, i;
@@ -331,6 +333,40 @@ process_message (AGENT_CTX *ATX,
   }
 
   CTX->message = components;
+
+
+   /* Check for a domain blocklist */
+  _ds_userdir_path(filename,
+                    _ds_read_attribute(agent_config, "Home"),
+                    LOOKUP(username), "blocklist");
+  file = fopen(filename, "r");
+  if (file != NULL) {
+    int blocklisted = 0;
+    char *heading = _ds_find_header(CTX->message, "From");
+    char buf[256];
+    if (heading) {
+      char *dup = strdup(heading);
+      char *domain = strchr(dup, '@');
+      if (domain) {
+        int i;
+        for(i=0;domain[i] && domain[i]!='\r' && domain[i]!='\n' && domain[i]!='>' && !isspace(domain[i]);i++) { } 
+        domain[i] = 0;
+        *domain++;
+        while((fgets(buf, sizeof(buf), file))!=NULL) {
+          chomp(buf);
+          if (!strcasecmp(buf, domain)) {
+            blocklisted = 1;
+          }
+        } 
+      }
+      free(dup);
+    }
+    fclose(file);
+    if (blocklisted) { 
+      CTX->result = DSR_ISSPAM;
+      return DSR_ISSPAM; 
+    }
+  }
 
   if (CTX->classification == DSR_NONE &&
       _ds_read_attribute(agent_config, "Lookup"))

@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.254 2005/03/31 21:32:59 jonz Exp $
+$Id: CHANGELOG,v 1.255 2005/04/01 18:28:16 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050401.0100] jonz: added domain blocklisting
+
+added domain blocklisting via data/user.blocklist file; does not train. useful
+for filtering unwanted nonspam. may expand for full support later via cgi.
 
 [20050331.0600] jonz: bugfix: external default preferences not merged
 
