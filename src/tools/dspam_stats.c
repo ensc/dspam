@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.3 2004/12/03 01:30:33 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.4 2004/12/11 19:30:21 jonz Exp $ */
 
 /*
  DSPAM
@@ -252,7 +252,7 @@ stat_user (const char *username)
             total_spam, total_innocent,
             spam_misclassified, innocent_misclassified,
             spam_corpusfed, innocent_corpusfed, 
-            MAX(0, 2500 - (MTX->totals.innocent_learned +
+            MAX(0, 1000 - (MTX->totals.innocent_learned +
                            MTX->totals.innocent_classified))
     );
   }
