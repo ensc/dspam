@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.184 2005/03/01 14:53:30 jonz Exp $
+$Id: CHANGELOG,v 1.185 2005/03/01 18:53:19 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050301.0700] jonz: fix for pgsql double-innocent bug
+
+important bug fix for pgsql driver, where new innocent tokens were learned
+twice, killing accuracy since RC1
 
 [20050301.0600] jonz: rewrote flat file preference code
 

@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.28 2005/01/27 16:05:45 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.29 2005/03/01 18:53:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -597,7 +597,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   struct _ds_spam_stat stat, stat2;
   ds_term_t ds_term;
-  ds_cursor_t ds_c;
+  ds_cursor_t ds_c = NULL;
   buffer *update;
   buffer *insert;
   int token_type = -1;
@@ -821,10 +821,13 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
         } else if (transact_pass == 1) {
           if (transact_ok == 0) {
             result = PQexec(s->dbh, single_insert);
-            if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+            if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK) {
+              wrote_this = 1;
               stat2.status |= TST_DISK;
+            }
             PQclear(result);
           } else {
+            wrote_this = 1;
             stat2.status |= TST_DISK;
           }
         }
@@ -833,7 +836,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       if (transact_pass == 0)
       {
         ds_term = ds_diction_next(ds_c);
-      } else if (transact_pass == 1)
+      } else if (transact_pass == 1 && !wrote_this)
       {
         if ((stat2.status & TST_DISK))
         {
@@ -847,6 +850,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
         if (ds_term && wrote_this)
           buffer_cat (update, ",");
+      } else {
+        ds_term = ds_diction_next(ds_c);
       }
     }
 
