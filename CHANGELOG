@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.142 2005/01/15 16:57:52 jonz Exp $
+$Id: CHANGELOG,v 1.143 2005/01/16 23:00:31 jonz Exp $
 
 Version NEXT
 ------------
+
+[20040116.1800] jonz: change to TUM training mode
+
+TUM training mode to train also when confidence is low
 
 [20050115.1200] jonz: fixed token malalignment bug
 

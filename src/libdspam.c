@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.87 2005/01/15 16:57:53 jonz Exp $ */
+/* $Id: libdspam.c,v 1.88 2005/01/16 23:00:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -1586,7 +1586,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         ( CTX->training_mode != DST_TUM  || 
           CTX->source == DSS_ERROR       ||
           CTX->source == DSS_INOCULATION ||
-          ds_term->s.spam_hits + ds_term->s.innocent_hits < 50)) 
+          ds_term->s.spam_hits + ds_term->s.innocent_hits < 50 ||
+          CTX->confidence < 0.70))
     {
       ds_term->s.status |= TST_DIRTY;
     }
