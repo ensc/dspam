@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.9 2004/12/18 15:41:06 jonz Exp $ */
+/* $Id: decode.c,v 1.10 2004/12/19 01:05:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -969,6 +969,7 @@ _ds_extract_boundary (char *buf, size_t size, char *mem)
     }
   }
 
+  free(data);
   return EFAILURE;
 }
 
