@@ -1,8 +1,19 @@
-$Id: CHANGELOG,v 1.144 2005/01/17 16:02:42 jonz Exp $
+$Id: CHANGELOG,v 1.145 2005/01/17 21:00:42 jonz Exp $
 
 Version NEXT
 ------------
- 
+
+[20040116.2330] jonz: tweak to statistical sedation
+
+added a tweak to statistical sedation so that only spammy tokens are
+sedated
+
+[20040116.2300] jonz: added makeCorpus preference
+
+added makeCorpus preference which records all messages processed for the user
+to dspam_home/data/username/username.corpus/[spam|nonspam]. when an error is
+corrected, the file is moved to the appropriate corpus.
+
 [20040116.1800] jonz: change to TUM training mode
 
 TUM training mode to train also when confidence is low

@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.89 2005/01/17 16:02:43 jonz Exp $ */
+/* $Id: libdspam.c,v 1.90 2005/01/17 21:00:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -1957,10 +1957,12 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
   }
 
 #ifdef BIAS
-  if (s->spam_hits + (2 * s->innocent_hits) < min_hits
-      || CTX->totals.innocent_learned < min_hits)
+  if ((s->spam_hits + (2 * s->innocent_hits) < min_hits
+      || CTX->totals.innocent_learned < min_hits) 
+      && s->probability > 0.5000)
 #else
-  if (s->spam_hits + s->innocent_hits < min_hits
+  if ((s->spam_hits + s->innocent_hits < min_hits
+      && s->probability > 0.5000)
       || CTX->totals.innocent_learned < min_hits)
 #endif
     s->probability = .4;

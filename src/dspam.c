@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.66 2005/01/12 03:12:25 jonz Exp $ */
+/* $Id: dspam.c,v 1.67 2005/01/17 21:00:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -526,6 +526,45 @@ process_message (AGENT_CTX *ATX,
       _ds_match_attribute(agent_config, "UserLog", "on"))
   {
     log_events(CTX);
+  }
+
+  if (PTX != NULL && !strcmp(_ds_pref_val(PTX, "makeCorpus"), "on")) {
+    if (ATX->source != DSS_ERROR) {
+      char dirname[MAX_FILENAME_LENGTH];
+      char corpusfile[MAX_FILENAME_LENGTH];
+      FILE *file;
+
+      _ds_userdir_path(dirname, _ds_read_attribute(agent_config, "Home"),
+                   CTX->username, "corpus");
+      snprintf(corpusfile, MAX_FILENAME_LENGTH, "%s/%s/%s.msg",
+        dirname, (result == DSR_ISSPAM) ? "spam" : "nonspam",
+        ATX->signature);
+
+      LOGDEBUG("writing to corpus file %s", corpusfile);
+
+      _ds_prepare_path_for(corpusfile);
+      file = fopen(corpusfile, "w");
+      if (file != NULL) {
+        fputs(message->data, file);
+        fclose(file);
+      }
+    } else {
+      char dirname[MAX_FILENAME_LENGTH];
+      char corpusfile[MAX_FILENAME_LENGTH];
+      char corpusdest[MAX_FILENAME_LENGTH];
+
+      _ds_userdir_path(dirname, _ds_read_attribute(agent_config, "Home"),
+                   CTX->username, "corpus");
+      snprintf(corpusdest, MAX_FILENAME_LENGTH, "%s/%s/%s.msg",
+        dirname, (result == DSR_ISSPAM) ? "spam" : "nonspam",
+        ATX->signature);
+      snprintf(corpusfile, MAX_FILENAME_LENGTH, "%s/%s/%s.msg",
+        dirname, (result == DSR_ISSPAM) ? "nonspam" : "spam",
+        ATX->signature);
+      LOGDEBUG("moving corpusfile %s -> %s", corpusfile, corpusdest);
+      _ds_prepare_path_for(corpusdest);
+      rename(corpusfile, corpusdest);
+    }
   }
 
   /* FP and SM can return */
