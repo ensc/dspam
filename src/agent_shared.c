@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.2 2004/12/03 01:37:17 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.3 2004/12/19 20:40:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -158,6 +158,10 @@ int process_mode(AGENT_CTX *ATX, const char *mode) {
 */
 
 int initialize_atx(AGENT_CTX *ATX) {
+#if defined(TRUSTED_USER_SECURITY) && defined(_REENTRANT) && defined(HAVE_GETPWUID_R)
+  struct passwd pwbuf;
+  char buf[1024];
+#endif
 
   /* Initialize Agent Context */
   memset(ATX, 0, sizeof(AGENT_CTX));
@@ -174,7 +178,13 @@ int initialize_atx(AGENT_CTX *ATX) {
   }
 
 #ifdef TRUSTED_USER_SECURITY
-  ATX->p = getpwuid (getuid ());
+
+#if defined(_REENTRANT) && defined(HAVE_GETPWUID_R)
+  if (getpwuid_r(getuid(), &pwbuf, buf, sizeof(buf), &ATX->p))
+    ATX->p = NULL;
+#else
+  ATX->p = getpwuid (getuid());
+#endif
 
   if (!ATX->p) {
     report_error(ERROR_RUNTIME_USER);
