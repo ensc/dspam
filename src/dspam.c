@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.71 2005/01/23 02:17:11 jonz Exp $ */
+/* $Id: dspam.c,v 1.72 2005/01/27 16:05:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -1324,6 +1324,12 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     UTX = _ds_pref_load(agent_config, 
                         node_nt->ptr, 
                         _ds_read_attribute(agent_config, "Home"), ATX->dbh);
+
+    if (!UTX) {
+      UTX = _ds_pref_load(agent_config,
+                          NULL,
+                          _ds_read_attribute(agent_config, "Home"), ATX->dbh);
+    }
 
     STX = pref_config();
 

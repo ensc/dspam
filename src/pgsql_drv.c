@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.27 2005/01/22 14:14:29 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.28 2005/01/27 16:05:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -2155,9 +2155,7 @@ agent_pref_t _ds_pref_load(
   {
     if (result) PQclear(result);
     dspam_destroy(CTX);
-    if (username == NULL) 
-      return NULL;
-    return _ds_pref_load(config, NULL, home, dbh);
+    return NULL;
   }
 
   PTX = malloc(sizeof(agent_attrib_t )*(PQntuples(result)+1));
@@ -2173,9 +2171,7 @@ agent_pref_t _ds_pref_load(
   {
     if (result) PQclear(result);
     dspam_destroy(CTX);
-    if (username == NULL) 
-      return NULL;
-    return _ds_pref_load(config, NULL, home, dbh);
+    return NULL;
   }
 
   ntuples = PQntuples(result);

@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.32 2005/01/18 18:28:27 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.33 2005/01/27 16:05:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -1959,9 +1959,7 @@ agent_pref_t _ds_pref_load(
   result = mysql_store_result (s->dbh);
   if (result == NULL) {
     dspam_destroy(CTX);
-    if (username == NULL) 
-      return NULL;
-    return _ds_pref_load(config, NULL, home, dbh);
+    return NULL;
   }
 
   PTX = malloc(sizeof(agent_attrib_t )*(mysql_num_rows(result)+1));
@@ -1979,9 +1977,7 @@ agent_pref_t _ds_pref_load(
     mysql_free_result(result);
     _ds_pref_free(PTX);
     free(PTX);
-    if (username == NULL) 
-      return NULL;
-    return _ds_pref_load(config, NULL, home, dbh);
+    return NULL;
   }
 
   while(row != NULL) {
