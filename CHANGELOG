@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.23 2004/11/15 13:07:37 jonz Exp $
+$Id: CHANGELOG,v 1.24 2004/11/17 19:59:50 jonz Exp $
 
 Version NEXT
 ------------
@@ -28,6 +28,14 @@ longer necessary. this helps tum outperform teft in resources.
 [20041020.1400] jonz: normalized main()
 
 normalized main() by breaking up code into smaller subroutines
+
+Version 3.2.3
+-------------
+
+[20041117.0800] jonz: fixed critical bug in Bayesian Noise Reduction
+
+fixed a critical bug in Bayesian Noise Reduction causing the algorithm to
+never instantiate
 
 Version 3.2.2
 -------------

@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.4 2004/11/09 14:52:29 jonz Exp $ */
+/* $Id: libdspam.c,v 1.5 2004/11/17 19:59:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -1071,7 +1071,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   {
     BNR_CTX BTX;
     float snr = 0.00000;
-    long total_eliminations;
     long total_clean;
 
     BTX.stream = freq->order;
