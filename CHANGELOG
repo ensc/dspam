@@ -1,8 +1,12 @@
-$Id: CHANGELOG,v 1.223 2005/03/16 18:40:58 jonz Exp $
+$Id: CHANGELOG,v 1.224 2005/03/16 19:37:58 jonz Exp $
    
 Version NEXT
 ------------
   
+[20050316.0100] jonz: changed fp- to notspam-
+
+changed fp- to notspam- in parsetoheaders and docs
+
 [20050316.0030] jonz: added admin.cgi opt in/out preferences support
 
 added support for opt in/out to admin.cgi

@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.31 2005/03/12 21:23:09 jonz Exp $
+## $Id: dspam.conf.in,v 1.32 2005/03/16 19:37:59 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -372,7 +372,7 @@ Opt out
 #                set to 'on' to use either of the following features.
 # 
 # ChangeModeOnParse: Automatically change the class (to spam or innocent)
-#   depending on whether spam- or fp- was specified, and change the source
+#   depending on whether spam- or notspam- was specified, and change the source
 #   to 'error'. This is convenient if you're not using aliases at all, but
 #   are delivering via LMTP.
 #

@@ -1,4 +1,4 @@
-$Id: README,v 1.49 2005/03/15 19:31:23 jonz Exp $
+$Id: README,v 1.50 2005/03/16 19:37:58 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Network Dweebs Corporation
@@ -695,12 +695,12 @@ First you will need to download a few prerequisite tools:
    need an alias to forward false positives into.  The following example should
    suffice:
 
-   fp-bob: "|/usr/local/bin/dspam --user bob --class=innocent --source=error --deliver=innocent"
+   notspam-bob: "|/usr/local/bin/dspam --user bob --class=innocent --source=error --deliver=innocent"
 
    It doesn't really matter what you name these aliases, so long as the flags
    being passed to dspam are correct for each user.  It might be a good idea
    to create an alias custom to your network, so that spammers don't forward
-   spam into it.  For example, fp-yourcompany-bob or something.  
+   spam into it.  For example, notspam-yourcompany-bob or something.  
 
 6. CLEANUP AND PURGE TOOLS
 

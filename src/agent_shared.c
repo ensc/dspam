@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.30 2005/03/16 18:23:22 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.31 2005/03/16 19:37:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -723,13 +723,13 @@ buffer * read_stdin(AGENT_CTX *ATX) {
               }
             } else {
 
-              /* Check for fp- */
+              /* Check for notspam- */
 
-              x = strstr(buff, "<fp-");
+              x = strstr(buff, "<notspam-");
               if (!x)
-                x = strstr(buff, " fp-");
+                x = strstr(buff, " notspam-");
               if (!x)
-                x = strstr(buff, ":fp-");
+                x = strstr(buff, ":notspam-");
 
               if (x != NULL) {
                 y = strdup(x+4);

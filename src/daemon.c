@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.69 2005/03/16 18:22:33 jonz Exp $ */
+/* $Id: daemon.c,v 1.70 2005/03/16 19:37:59 jonz Exp $ */
 
 /*
 
@@ -794,16 +794,16 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
             }
           } else {
 
-            /* Check for fp- */
+            /* Check for notspam- */
 
-            x = strstr(buff, "<fp-");
+            x = strstr(buff, "<notspam-");
             if (!x)
-              x = strstr(buff, " fp-");
+              x = strstr(buff, " notspam-");
             if (!x)
-              x = strstr(buff, ":fp-");
+              x = strstr(buff, ":notspam-");
 
             if (x != NULL) {
-              y = strdup(x+4);
+              y = strdup(x+9);
 
               if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
               {

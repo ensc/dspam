@@ -1,7 +1,10 @@
-$Id: UPGRADING,v 1.13 2005/03/14 21:23:48 jonz Exp $
+$Id: UPGRADING,v 1.14 2005/03/16 19:37:58 jonz Exp $
 
 UPGRADING FROM 3.4.0
 --------------------
+
+LMTP CHANGES
+------------
 
 Due to some oversight in  commandline -> lmtp compatibility, some commandline
 and dspam.conf options have changed from 3.4.0:
@@ -25,6 +28,28 @@ DeliveryProto       LMTP
 
 It will be necessary to remove your old LMTPDelivery* information and
 replace it with the new format.
+
+PARSE TO HEADERS
+----------------
+
+# ParseToHeader: Parse the To: headers of an incoming message. This must be
+#                set to 'on' to use either of the following features.
+#
+# ChangeModeOnParse: Automatically change the class (to spam or innocent)
+#   depending on whether spam- or fp- was specified, and change the source
+#   to 'error'. This is convenient if you're not using aliases at all, but
+#   are delivering via LMTP.
+#
+# ChangeUserOnParse: Automatically change the username to match that specified
+#   in the To: header. For example, spam-bob@domain.tld will set the username
+#   to bob, ignoring any --user passed in. This may not always be desirable if
+#   you are using virtual email addresses as usernames.
+#
+#ParseToHeaders on
+#ChangeModeOnParse on
+#ChangeUserOnParse on
+
+The fp- alias has also been changed to notspam-
 
 UPGRADING FROM 3.2
 ------------------
