@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.88 2005/01/16 23:00:31 jonz Exp $ */
+/* $Id: libdspam.c,v 1.89 2005/01/17 16:02:43 jonz Exp $ */
 
 /*
  DSPAM
@@ -1389,6 +1389,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
+
     if (ds_term->s.probability == 0.00000 || CTX->classification != DSR_NONE)
       _ds_calc_stat (CTX, ds_term->key, &ds_term->s, DTT_DEFAULT, NULL);
 
@@ -1465,25 +1466,30 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   }
 
 #ifdef LIBBNR_DEBUG
-  if (CTX->flags & DSF_NOISE) {
+  {
     int x = CTX->result;
-    int nobnr_result = _ds_calc_result(CTX, heap_nobnr, diction);
+    int nobnr_result = 0;
 
-    if (CTX->factors) 
-      _ds_factor_destroy(CTX->factors);
-    CTX->result = x;
-    CTX->probability = -1;
+    if (CTX->flags & DSF_NOISE) {
+      nobnr_result = _ds_calc_result(CTX, heap_nobnr, diction);
+
+      if (CTX->factors) 
+        _ds_factor_destroy(CTX->factors);
+      CTX->result = x;
+      CTX->probability = -1;
+    }
 #endif
 
-  result = _ds_calc_result(CTX, heap_sort, diction);
+    result = _ds_calc_result(CTX, heap_sort, diction);
 
 #ifdef LIBBNR_DEBUG
-
-    if (nobnr_result == result) {
-      LOGDEBUG("BNR Decision Concurs");
-    } else {
-      LOGDEBUG("BNR Decision Conflicts: %d (BNR) / %d (No BNR)", result, nobnr_result);
-    } 
+    if (CTX->flags & DSF_NOISE) {
+      if (nobnr_result == result) {
+        LOGDEBUG("BNR Decision Concurs");
+      } else {
+        LOGDEBUG("BNR Decision Conflicts: %d (BNR) / %d (No BNR)", result, nobnr_result);
+      }
+    }
   }
 #endif
 
@@ -1682,6 +1688,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   return CTX->result;
 
 bail:
+  report_error_printf("bailing on error %d", errcode);
   ds_heap_destroy (heap_sort);
 #ifdef LIBBNR_DEBUG
   ds_heap_destroy (heap_nobnr);
