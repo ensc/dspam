@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.36 2004/11/27 22:08:02 jonz Exp $
+$Id: CHANGELOG,v 1.37 2004/11/28 15:01:48 jonz Exp $
 
 Version NEXT
 ------------
@@ -11,6 +11,7 @@ normalized process_message() by breaking up code into many smaller subroutines
 
 implemented initial testing case for Bayesian Noise Reduction v2.0.
 additional tweaks 11/25
+11/28 - no bias for bnr patterns
 
 [20041101.0700] jonz: added MaxMessageSize option to dspam.conf
 
