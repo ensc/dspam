@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.3 2005/01/03 03:29:32 jonz Exp $ */
+/* $Id: sqlite3_drv.c,v 1.4 2005/01/13 17:34:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -628,7 +628,11 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   s->control_ih = 0;
   s->dbh_attached = (dbh) ? 1 : 0;
 
-  _ds_userdir_path (filename, CTX->home, CTX->username, "sdb");
+  if (CTX->group == NULL || CTX->group[0] == 0)
+    _ds_userdir_path (filename, CTX->home, CTX->username, "sdb");
+  else
+    _ds_userdir_path (filename, CTX->home, CTX->group, "sdb");
+
   _ds_prepare_path_for (filename);
 
   noexist = stat(filename, &st);

@@ -1,6 +1,6 @@
-$Id: RELEASE.NOTES,v 1.21 2005/01/12 17:46:53 jonz Exp $
+$Id: RELEASE.NOTES,v 1.22 2005/01/13 17:34:49 jonz Exp $
 
-RELEASE 3.3.12 (Development)
+RELEASE 3.3.13 (Development)
 
 All odd-numbered releases are considered development releases. Development
 releases are for pre-production testing and are likely to contain bugs. Please
@@ -78,6 +78,7 @@ Bug Fixes:
 BUGFIX: Linestripping fails to remove multiple ^Ms on a single line
 BUGFIX: Signed messages are malformatted and appear blank in some MUAs
 BUGFIX: System preferences are ignored when user preferences are present
+BUGFIX: SQLite driver fails to recognize shared groups
 
 TOOLS
 

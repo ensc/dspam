@@ -1,7 +1,14 @@
-$Id: CHANGELOG,v 1.137 2005/01/12 17:36:31 jonz Exp $
+$Id: CHANGELOG,v 1.138 2005/01/13 17:34:49 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
+
+Version 3.3.13
+--------------
+
+[20040113.0500] jonz: fixed sqlite shared group bug
+
+fixed a bug where sqlite was ignoring shared groups
 
 Version 3.3.12
 --------------
