@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.11 2004/12/03 00:36:48 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.12 2004/12/09 19:04:01 jonz Exp $ */
 
 /*
  DSPAM
@@ -278,7 +278,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
 #ifdef VERBOSE
   LOGDEBUG ("sqlite query length: %ld\n", query->used);
-  _sqlite_drv_query_error (strdup("verbose debug INFO ONLY"), query->data);
+  _sqlite_drv_query_error (strdup("VERBOSE DEBUG (INFO ONLY - NOT AN ERROR)"), query->data);
 #endif
 
   if (!get_one) 

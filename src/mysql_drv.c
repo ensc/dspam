@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.15 2004/12/03 16:17:09 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.16 2004/12/09 19:04:01 jonz Exp $ */
 
 /*
  DSPAM
@@ -484,7 +484,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
 #ifdef VERBOSE
   LOGDEBUG ("mysql query length: %ld\n", query->used);
-  _mysql_drv_query_error ("VERBOSE DEBUG (Not an error)", query->data);
+  _mysql_drv_query_error ("VERBOSE DEBUG (INFO ONLY - NOT AN ERROR)", query->data);
 #endif
 
   if (!get_one) 

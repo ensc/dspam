@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.12 2004/12/03 16:17:09 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.13 2004/12/09 19:04:01 jonz Exp $ */
 
 /*
  DSPAM
@@ -497,7 +497,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
 #ifdef VERBOSE
   LOGDEBUG ("pgsql query length: %ld\n", query->used);
-  _pgsql_drv_query_error ("verbose debug", query->data);
+  _pgsql_drv_query_error ("VERBOSE DEBUG (INFO ONLY - NOT AN ERROR)", query->data);
 #endif
 
   if (!get_one) 
