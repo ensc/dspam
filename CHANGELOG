@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.166 2005/02/15 14:30:14 jonz Exp $
+$Id: CHANGELOG,v 1.167 2005/02/16 14:31:16 jonz Exp $
 
-Version NEXT
-------------
+Version 3.4.rc1
+---------------
+
+[20050214.0800] jonz: miscellaneous minor patches
+
+miscellaneous minor patches to CGI and some small subroutines
 
 Version 3.4.beta.3
 ------------------

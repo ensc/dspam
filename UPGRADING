@@ -1,6 +1,6 @@
-$Id: UPGRADING,v 1.10 2005/01/23 18:57:55 jonz Exp $
+$Id: UPGRADING,v 1.11 2005/02/16 14:31:16 jonz Exp $
 
-UPGRADING TO 3.4 BETA 2
+UPGRADING TO 3.4 
 
 As of 3.4 Beta 2, the PostgreSQL driver uses BIGINT instead of NUMERIC(20)
 type to store tokens in database. This change speedup driver and reduce 
