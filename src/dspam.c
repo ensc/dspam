@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.95 2005/03/14 21:20:00 jonz Exp $ */
+/* $Id: dspam.c,v 1.96 2005/03/15 14:15:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -1236,7 +1236,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_c c_nt, c_rcpt;
   int retcode = 0, exitcode = EXIT_SUCCESS;
   int **x = malloc(sizeof(int *)*(ATX->users->items+1));
-  int i = 0;
+  int i = 0, have_rcpts = 0;
   int *code;
   FILE *fout;
   buffer *parse_message;
@@ -1252,8 +1252,10 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
 
   /* Process message for each user */
   node_nt = c_nt_first (ATX->users, &c_nt);
-  if (ATX->recipients)
+  if (ATX->recipients) {
     node_rcpt = c_nt_first (ATX->recipients, &c_rcpt);
+    have_rcpts = 1;
+  }
 
   while (node_nt || node_rcpt)
   {
@@ -1281,6 +1283,8 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
       ATX->recipient = node_rcpt->ptr;
       node_rcpt = c_nt_next (ATX->recipients, &c_rcpt);
     } else {
+      if (have_rcpts)
+        break;
       ATX->recipient = node_nt->ptr;
     }
      
