@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.26 2004/12/19 20:50:47 jonz Exp $ */
+/* $Id: daemon.c,v 1.27 2004/12/19 22:54:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -449,6 +449,7 @@ CLOSE:
   free(cmdline);
   free(TTX);
   pthread_exit(0);
+  return 0;
 }
 
 buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
