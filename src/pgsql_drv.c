@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.32 2005/03/27 18:59:45 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.33 2005/04/06 13:25:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -2028,13 +2028,14 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 DSPAM_CTX *_pgsql_drv_init_tools(
  const char *home,
  attribute_t **config,
- void *dbh)
+ void *dbh,
+ int mode)
 {
   DSPAM_CTX *CTX;
     struct _pgsql_drv_storage *s;
   int dbh_attached = (dbh) ? 1 : 0;
 
-  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
+  CTX = dspam_create (NULL, NULL, home, mode, 0);
 
   if (CTX == NULL)
     return NULL;
@@ -2075,7 +2076,7 @@ agent_pref_t _ds_pref_load(
   agent_attrib_t pref;
   int uid, ntuples, i = 0;
 
-  CTX = _pgsql_drv_init_tools(home, config, dbh);
+  CTX = _pgsql_drv_init_tools(home, config, dbh, DSM_TOOLS);
   if (CTX == NULL)
   {
     LOG (LOG_WARNING, "unable to initialize tools context");
@@ -2178,7 +2179,7 @@ int _ds_pref_set (
   size_t length;
   PGresult *result;
 
-  CTX = _pgsql_drv_init_tools(home, config, dbh);
+  CTX = _pgsql_drv_init_tools(home, config, dbh, DSM_PROCESS);
   if (CTX == NULL)
   {
     LOG (LOG_WARNING, "unable to initialize tools context");
@@ -2259,7 +2260,7 @@ int _ds_pref_del (
   size_t length;
   PGresult *result;
 
-  CTX = _pgsql_drv_init_tools(home, config, dbh);
+  CTX = _pgsql_drv_init_tools(home, config, dbh, DSM_TOOLS);
   if (CTX == NULL)
   {
     LOG (LOG_WARNING, "unable to initialize tools context");
@@ -2325,7 +2326,7 @@ int _ds_pref_save(
   size_t length;
   PGresult *result;
 
-  CTX = _pgsql_drv_init_tools(home, config, dbh);
+  CTX = _pgsql_drv_init_tools(home, config, dbh, DSM_PROCESS);
   if (CTX == NULL)
   {
     LOG (LOG_WARNING, "unable to initialize tools context");

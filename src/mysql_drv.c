@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.33 2005/01/27 16:05:45 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.34 2005/04/06 13:25:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -1872,13 +1872,14 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 DSPAM_CTX *_mysql_drv_init_tools(
  const char *home,
  attribute_t **config,
- void *dbh)
+ void *dbh, 
+ int mode)
 {
   DSPAM_CTX *CTX;
   struct _mysql_drv_storage *s;
   int dbh_attached = (dbh) ? 1 : 0;
 
-  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
+  CTX = dspam_create (NULL, NULL, home, mode, 0);
 
   if (CTX == NULL)
     return NULL;
@@ -1919,7 +1920,7 @@ agent_pref_t _ds_pref_load(
   agent_attrib_t pref;
   int uid, i = 0;
 
-  CTX = _mysql_drv_init_tools(home, config, dbh);
+  CTX = _mysql_drv_init_tools(home, config, dbh, DSM_TOOLS);
   if (CTX == NULL)
   {
     LOG (LOG_WARNING, "unable to initialize tools context");
@@ -2020,7 +2021,7 @@ int _ds_pref_set (
   int uid;
   char *m1, *m2;
 
-  CTX = _mysql_drv_init_tools(home, config, dbh);
+  CTX = _mysql_drv_init_tools(home, config, dbh, DSM_PROCESS);
   if (CTX == NULL) {
     LOG (LOG_WARNING, "unable to initialize tools context");
     return EUNKNOWN;
@@ -2103,7 +2104,7 @@ int _ds_pref_del (
   int uid;
   char *m1;
                                                                                 
-  CTX = _mysql_drv_init_tools(home, config, dbh);
+  CTX = _mysql_drv_init_tools(home, config, dbh, DSM_TOOLS);
   if (CTX == NULL) {
     LOG (LOG_WARNING, "unable to initialize tools context");
     return EUNKNOWN;
@@ -2174,7 +2175,7 @@ int _ds_pref_save(
   int uid, i = 0;
   char m1[257], m2[257];
 
-  CTX = _mysql_drv_init_tools(home, config, dbh);
+  CTX = _mysql_drv_init_tools(home, config, dbh, DSM_PROCESS);
   if (CTX == NULL) {
     LOG (LOG_WARNING, "unable to initialize tools context");
     return EUNKNOWN;

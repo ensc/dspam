@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.h,v 1.5 2004/12/18 15:41:06 jonz Exp $ */
+/* $Id: mysql_drv.h,v 1.6 2005/04/06 13:25:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -62,7 +62,7 @@ MYSQL	*_mysql_drv_connect		(DSPAM_CTX *CTX);
 struct passwd *_mysql_drv_getpwnam      (DSPAM_CTX * CTX, const char *name);
 struct passwd *_mysql_drv_getpwuid      (DSPAM_CTX * CTX, uid_t uid);
 DSPAM_CTX     *_mysql_drv_init_tools	(const char *home, attribute_t **config,
-	void *dbh);
+	void *dbh, int mode);
 
 #ifdef VIRTUAL_USERS
 struct passwd *_mysql_drv_setpwnam	(DSPAM_CTX * CTX, const char *name);

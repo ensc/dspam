@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.261 2005/04/05 22:17:51 jonz Exp $
+$Id: CHANGELOG,v 1.262 2005/04/06 13:25:12 jonz Exp $
    
 Version NEXT
 ------------
@@ -41,6 +41,11 @@ preference when provsioned. To use:
 
 Version 3.4.3
 -------------
+
+[20050406.0700] jonz: fixed optIn + preferences extension support
+
+fixed a bug where dspam_admin 'ch pref' would fail on nonexistent users,
+making it impossible to opt-in users when using preferences extension
 
 [20050404.0700] jonz: applied various cgi patches
 
