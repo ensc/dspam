@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.173 2005/02/24 23:29:10 jonz Exp $
+$Id: CHANGELOG,v 1.174 2005/02/25 14:52:13 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050225.0500] jonz: added pass-through of mail from
+
+added pass-through of contents of MAIL FROM inside < >. for commandline
+functionality, also added --lmtp-mail-from to define it.
 
 [20050224.0700] jonz: added "standard" LMTP inbound support
 

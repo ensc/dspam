@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.13 2005/02/24 17:25:04 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.14 2005/02/25 14:52:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -271,12 +271,20 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 
     /* Set runtime target user(s) */
 
-    if (!strncmp (argv[i], "--lmtp-recipient=", 17)) 
+    if (!strncmp (argv[i], "--lmtp-recipient=", 17) ||
+        !strncmp (argv[i], "--lmtp-rcpt-to=", 15)) 
     {
       strlcpy(ATX->recipient, strchr(argv[i], '=')+1, sizeof(ATX->recipient));
-      LOGDEBUG("LMTP Recipient: %s", ATX->recipient);
+      LOGDEBUG("LMTP RCPT TO: %s", ATX->recipient);
       continue;
     }
+
+    if (!strncmp (argv[i], "--lmtp-mail-from=", 17))
+    {
+      strlcpy(ATX->mailfrom, strchr(argv[i], '=')+1, sizeof(ATX->mailfrom));
+      LOGDEBUG("LMTP MAIL FROM: %s", ATX->mailfrom);
+      continue;
+    } 
 
     if (!strcmp (argv[i], "--user"))
     {

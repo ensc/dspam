@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.39 2005/02/24 23:29:10 jonz Exp $ */
+/* $Id: daemon.c,v 1.40 2005/02/25 14:52:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -279,6 +279,22 @@ void *process_connection(void *ptr) {
   /* Loop here */
   while(1) {
 
+    /* Configure agent context */
+    ATX = calloc(1, sizeof(AGENT_CTX));
+    if (ATX == NULL) {
+      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      send_socket(TTX, ERROR_MEM_ALLOC); 
+      goto CLOSE;
+    }
+
+    if (initialize_atx(ATX))
+    {
+      report_error(ERROR_INITIALIZE_ATX);
+      snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INITIALIZE_ATX);
+      send_socket(TTX, buf);
+      goto CLOSE;
+    }
+
     /* MAIL FROM (Authentication) */
 
     while(!TTX->authenticated) {
@@ -291,6 +307,8 @@ void *process_connection(void *ptr) {
 
         if (server_mode == SSM_STANDARD) {
           TTX->authenticated = 1;
+
+          _ds_extract_address(ATX->mailfrom, input, sizeof(ATX->mailfrom));
           if (daemon_reply(TTX, LMTP_OK, "OK")<=0) {
             free(input);
             goto CLOSE;
@@ -340,23 +358,6 @@ void *process_connection(void *ptr) {
   
     snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
 
-
-    /* Configure agent context */
-    ATX = calloc(1, sizeof(AGENT_CTX));
-    if (ATX == NULL) {
-      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-      send_socket(TTX, ERROR_MEM_ALLOC);
-      goto CLOSE;
-    }
-
-    if (initialize_atx(ATX))
-    {
-      report_error(ERROR_INITIALIZE_ATX);
-      snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INITIALIZE_ATX);
-      send_socket(TTX, buf);
-      goto CLOSE;
-    }
-
     parms = _ds_read_attribute(agent_config, "ServerParameters");
     argc = 0;
     if (parms) {
@@ -386,18 +387,16 @@ void *process_connection(void *ptr) {
         }
     
       } else {
-        char *username = strchr(cmdline, '<');
-        char *x;
+        char username[256];
   
-        if (username == NULL) {
+        if (_ds_extract_address(username, cmdline, sizeof(username))) {
           snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INVALID_RCPT);
           send_socket(TTX, buf);
           goto CLOSE;
         }
-        x = strchr(username, '>');
-        if (x) x[0] = 0;
-        nt_add(ATX->users, username+1);
-        strlcpy(ATX->recipient, username+1, sizeof(ATX->recipient));
+        nt_add(ATX->users, username);
+        strlcpy(ATX->recipient, username, sizeof(ATX->recipient));
+printf("HERE: '%s'\n", username);
       }
 
       snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);

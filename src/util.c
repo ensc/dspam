@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.4 2004/12/30 15:23:46 jonz Exp $ */
+/* $Id: util.c,v 1.5 2005/02/25 14:52:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -529,6 +529,28 @@ int _ds_compute_complexity(const char *token) {
   }
                                                                                 
   return complexity;
+}
+
+int _ds_extract_address(char *buf, const char *address, size_t len) {
+  char *str = strdup(address);
+  char *x, *y;
+
+  if (str == NULL)
+    return EUNKNOWN;
+ 
+  x = strchr(str, '<');
+  if (!x) {
+    free(str);
+    return EFAILURE;
+  }
+
+  y = strchr(x, '>');
+  if (y) y[0] = 0;
+
+printf("X: %s\n", x+1);
+  strlcpy(buf, x+1, len);
+  free(str);
+  return 0;
 }
 
 /* Truncate tokens with EOT delimiters */
