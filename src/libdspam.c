@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.80 2005/01/03 20:46:00 jonz Exp $ */
+/* $Id: libdspam.c,v 1.81 2005/01/03 21:57:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -663,9 +663,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   ds_term_t ds_term;
   ds_cursor_t ds_c;
 
-  struct heap *heap_sort = NULL; /* Heap sort for top N tokens */
+  ds_heap_t heap_sort = NULL; /* Heap sort for top N tokens */
+
 #ifdef BNR_DEBUG
-  struct heap *heap_nobnr = NULL;
+  ds_heap_t heap_nobnr = NULL;
 #endif
 
   struct nt *header = NULL;      /* Header array */
@@ -678,11 +679,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   int result = -1;
 
   if (CTX->algorithms & DSA_BURTON)
-    heap_sort = heap_create(27);
+    heap_sort = ds_heap_create(27, HP_DELTA);
   else if (CTX->algorithms & DSA_ROBINSON)
-    heap_sort = heap_create(25);
+    heap_sort = ds_heap_create(25, HP_DELTA);
   else
-    heap_sort = heap_create(15);
+    heap_sort = ds_heap_create(15, HP_DELTA);
 
   /* Allocate SBPH signature (Message Text) */
 
@@ -736,7 +737,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   }
 
 #ifdef BNR_DEBUG
-  heap_nobnr = heap_create (heap_sort->size);
+  heap_nobnr = ds_heap_create (heap_sort->size, HP_DELTA);
   if (heap_nobnr == NULL) {
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     errcode = EUNKNOWN;
@@ -1387,14 +1388,14 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     if (ds_term->frequency > 0 && 
        (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
     {
-      heap_insert (heap_sort, ds_term->s.probability, ds_term->key,
+      ds_heap_insert (heap_sort, ds_term->s.probability, ds_term->key,
              ds_term->frequency, _ds_compute_complexity(ds_term->name));
     }
 
 #ifdef BNR_DEBUG
     if (!ds_term->name || strncmp(ds_term->name, "bnr.", 4))
     {
-      heap_insert (heap_nobnr, ds_term->s.probability, ds_term->key,
+      ds_heap_insert (heap_nobnr, ds_term->s.probability, ds_term->key,
              ds_term->frequency, _ds_compute_complexity(ds_term->name));
     }
 #endif
@@ -1639,7 +1640,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   ds_diction_destroy (diction);
   ds_diction_destroy (bnr_patterns);
-  heap_destroy (heap_sort);
+  ds_heap_destroy (heap_sort);
+#ifdef BNR_DEBUG
+  ds_heap_destroy (heap_nobnr);
+#endif
 
   /* One final sanity check */
 
@@ -1657,7 +1661,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   return CTX->result;
 
 bail:
-  heap_destroy (heap_sort);
+  ds_heap_destroy (heap_sort);
+#ifdef BNR_DEBUG
+  ds_heap_destroy (heap_nobnr);
+#endif
   ds_diction_destroy(diction);
   ds_diction_destroy(bnr_patterns);
   return errcode;
@@ -2478,11 +2485,11 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
  */
 
 int
-_ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, ds_diction_t diction)
+_ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
 {
   struct _ds_spam_stat stat;
-  struct heap_node *node_heap;
-  struct heap_node *heap_list[heap_sort->items];
+  ds_heap_element_t node_heap;
+  ds_heap_element_t heap_list[heap_sort->items];
 
   /* Graham-Bayesian */
   float bay_top = 0.0; 

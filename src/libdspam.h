@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.10 2005/01/03 03:06:13 jonz Exp $ */
+/* $Id: libdspam.h,v 1.11 2005/01/03 21:57:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -74,7 +74,7 @@ int dspam_clearattributes (DSPAM_CTX * CTX);
 
 int _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token, struct _ds_spam_stat *, int type, struct _ds_spam_stat *bnr_tot);
 
-int _ds_calc_result		(DSPAM_CTX * CTX, struct heap *heap_sort, ds_diction_t diction); 
+int _ds_calc_result		(DSPAM_CTX * CTX, ds_heap_t sort, ds_diction_t diction); 
 
 int _ds_process_header_token	(DSPAM_CTX * CTX, char *joined_token, const char *previous_token, ds_diction_t diction, const char *heading);
 

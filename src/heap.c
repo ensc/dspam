@@ -1,4 +1,4 @@
-/* $Id: heap.c,v 1.4 2004/12/19 03:29:21 jonz Exp $ */
+/* $Id: heap.c,v 1.5 2005/01/03 21:57:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -31,87 +31,100 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *  window-size of 'peak' values, such as the 15 bayes slots open.
  */
 
-struct heap *
-heap_create(int size)
+ds_heap_t
+ds_heap_create(int size, int type)
 {
-  struct heap *h;
+  ds_heap_t h;
 
-  h = calloc(1, sizeof(struct heap));
+  h = calloc(1, sizeof(struct _ds_heap));
   h->size = size;
+  h->type = type;
   return h;
 }
 
-int
-heap_destroy(struct heap *h)
+void
+ds_heap_destroy(ds_heap_t h)
 {
-  struct heap_node *node, *next;
+  ds_heap_element_t node, next;
 
-  if (h == NULL)
-    return 0;
-
-  node = h->root;
-  while(node) {
-    next = node->next;
-    free(node);
-    node = next;
+  if (h) {
+    node = h->root;
+    while(node) {
+      next = node->next;
+      free(node);
+      node = next;
+    }
+    free(h);
   }
-  free(h);
-  return 0;
+  return;
 }
 
-struct heap_node *
-heap_node_create (double probability, 
+ds_heap_element_t
+ds_heap_element_create (double probability, 
                   unsigned long long token, 
                   unsigned long frequency,
                   int complexity)
 {
-  struct heap_node *node = calloc(1, sizeof(struct heap_node));
+  ds_heap_element_t element = calloc(1, sizeof(struct _ds_heap_element));
 
-  if (node == NULL)
+  if (!element)
     return NULL;
 
-  node->delta       = fabs(0.5-probability);
-  node->probability = probability;
-  node->token       = token;
-  node->frequency   = frequency;
-  node->complexity  = complexity;
+  element->delta       = fabs(0.5-probability);
+  element->probability = probability;
+  element->token       = token;
+  element->frequency   = frequency;
+  element->complexity  = complexity;
 
-  return node;
+  return element;
 }
 
-int
-heap_insert (struct heap *h,
+ds_heap_element_t
+ds_heap_insert (ds_heap_t h,
              double probability,
              unsigned long long token,
              unsigned long frequency,
              int complexity)
 {
-  struct heap_node *current = NULL, *insert = NULL, *node;
+  ds_heap_element_t current = NULL;
+  ds_heap_element_t insert = NULL;
+  ds_heap_element_t node;
   float delta = fabs(0.5-probability);
 
   current = h->root;
 
   /* Determine if and where we should insert this item */
-  while(current) {
-    if (delta > current->delta) 
-      insert = current;
-    else if (delta == current->delta) {
-      if (frequency > current->frequency)
+  if (h->type == HP_DELTA) {
+    while(current) {
+      if (delta > current->delta) 
         insert = current;
-      else if (frequency == current->frequency)
-        if (complexity >= current->complexity)
+      else if (delta == current->delta) {
+        if (frequency > current->frequency)
           insert = current;
+        else if (frequency == current->frequency)
+          if (complexity >= current->complexity)
+            insert = current;
+      }
+      if (!insert)
+        break;
+      else
+        current = current->next;
     }
-    if (!insert)
-      break;
-    else
-      current = current->next;
+  } else {
+   while(current) {
+      if (probability > current->probability)
+        insert = current;
+      if (!insert)
+        break;
+      else
+        current = current->next;
+    }
   }
 
   if (insert != NULL) {
 
     /* Insert item, throw out new least significant item if necessary */
-    node = heap_node_create(probability, token, frequency, complexity);
+    node = ds_heap_element_create( probability, token, frequency, complexity);
     node->next = insert->next;
     insert->next = node;
     h->items++;
@@ -125,15 +138,15 @@ heap_insert (struct heap *h,
     
     /* Item is least significant; throw it out or grow the heap */
     if (h->items == h->size)
-      return -1;
+      return NULL;
 
     /* Grow heap */
-    node = heap_node_create(probability, token, frequency, complexity);
+    node = ds_heap_element_create(probability, token, frequency, complexity);
     node->next = h->root;
     h->root = node;
     h->items++;
   }
 
-  return 0;
+  return node;
 }
 

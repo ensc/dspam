@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.55 2004/12/25 22:22:34 jonz Exp $ */
+/* $Id: dspam.c,v 1.56 2005/01/03 21:57:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -75,7 +75,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "language.h"
 #include "buffer.h"
 #include "base64.h"
-#include "tbt.h"
+#include "heap.h"
 #include "pref.h"
 #include "config_api.h"
 
@@ -2126,8 +2126,8 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       struct _ds_neural_record r;
       struct nt_node *node_int;
       struct nt_c c_i;
-      struct tbt *t;
-      struct tbt_node *node_tbt;
+      ds_heap_t heap_sort;
+      ds_heap_element_t heap_element;
       int total_nodes = ATX->classify_users->items;
       float bay_top = 0.0;
       float bay_bot = 0.0;
@@ -2143,8 +2143,10 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
         return EUNKNOWN;
       }
 
-      t = tbt_create();
-      t->type = 1; /* value based */
+      total_nodes /= 5;
+      if (total_nodes<2)
+        total_nodes = 2;
+      heap_sort = ds_heap_create(total_nodes, HP_VALUE);
       
       node_int = c_nt_first (ATX->classify_users, &c_i);
       while (node_int != NULL) 
@@ -2163,7 +2165,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
           if ((res == DSR_ISSPAM || res == DSR_ISINNOCENT) && 
               r.total_incorrect+r.total_correct>4) 
           {
-            tbt_add (t, 
+            heap_insert(heap_sort,
                (double) r.total_correct / (r.total_correct+r.total_incorrect),
                r.uid, res, 0);
           }
@@ -2183,15 +2185,15 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       total_nodes /= 5;
       if (total_nodes<2)
         total_nodes = 2;
-      node_tbt = tbt_first (t);
+      heap_element = heap_sort->root;
 
       /* include the top n reliable sources */
-      while(node_tbt != NULL && total_nodes>0) {
-        float probability = (node_tbt->frequency == DSR_ISINNOCENT     || 
-                             node_tbt->frequency == DSR_ISWHITELISTED) ?
-          1-node_tbt->probability : node_tbt->probability;
+      while(heap_element && total_nodes>0) {
+        float probability = (heap_element->frequency == DSR_ISINNOCENT     || 
+                             heap_element->frequency == DSR_ISWHITELISTED) ?
+          1-heap_element->probability : heap_element->probability;
 
-        LOGDEBUG("including node %llu [%2.6f]", node_tbt->token, probability);
+        LOGDEBUG("including node %llu [%2.6f]", heap_element->token, probability);
         if (bay_used == 0)
         {
           bay_top = probability;
@@ -2205,8 +2207,9 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       
         bay_used++;
         total_nodes--;
-        node_tbt = tbt_next(node_tbt);
+        heap_element = heap_element->next;
       }
+      ds_heap_destroy(heap_sort);
 
       if (bay_used) { 
         bay_result = (bay_top) / (bay_top + bay_bot);

@@ -1,4 +1,4 @@
-/* $Id: heap.h,v 1.2 2004/12/17 23:39:42 jonz Exp $ */
+/* $Id: heap.h,v 1.3 2005/01/03 21:57:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -30,30 +30,34 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef _HEAP_H
 #define _HEAP_H
 
-struct heap
+#define HP_DELTA 0x00
+#define HP_VALUE 0x01
+
+typedef struct _ds_heap
 {
   unsigned int items;
   unsigned int size;
-  struct heap_node *root;
-};
+  char type;
+  struct _ds_heap_element *root;
+} *ds_heap_t;
 
-struct heap_node
+typedef struct _ds_heap_element
 {
   double delta;
   float probability;
   unsigned long long token;
   unsigned long frequency;
   int complexity;
-  struct heap_node *next;
-};
+  struct _ds_heap_element *next;
+} *ds_heap_element_t;
 
-struct heap *	heap_create	(int size);
-int		heap_destroy	(struct heap *);
+ds_heap_t	ds_heap_create	(int size, int type);
+void		ds_heap_destroy	(ds_heap_t);
 
-struct heap_node *heap_node_create (double probability,
+ds_heap_element_t ds_heap_element_create (double probability,
  unsigned long long token, unsigned long frequency, int complexity);
 
-int heap_insert (struct heap *heap, double probability,
+ds_heap_element_t ds_heap_insert (ds_heap_t h, double probability,
  unsigned long long token, unsigned long frequency, int complexity);
 
-#endif /* _TBT_H */
+#endif /* _HEAP_H */
