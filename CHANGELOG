@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.22 2004/11/15 03:47:35 jonz Exp $
+$Id: CHANGELOG,v 1.23 2004/11/15 13:07:37 jonz Exp $
 
 Version NEXT
 ------------
@@ -56,7 +56,7 @@ allow the use of signature headers in forwarded attachments.
 [20041109.0800] jonz: fixed source address tracking
 
 fixed source address tracking by removing an old #ifdef that never got
-defined in 3.2.
+defined in 3.2. also changed 'ham' to 'nonspam' in dspam.conf.
 
 [20041109.0800] jonz: adjusted chi-square cutoff
 
