@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.44 2005/02/27 21:01:06 jonz Exp $ */
+/* $Id: daemon.c,v 1.45 2005/02/28 01:53:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -234,7 +234,7 @@ void *process_connection(void *ptr) {
   THREAD_CTX *TTX = (THREAD_CTX *) ptr;
   AGENT_CTX *ATX = NULL;
   buffer *message = NULL;
-  char *input, *cmdline = NULL, *token, *ptrptr, *oldcmd = NULL, *parms;
+  char *input, *cmdline = NULL, *token, *ptrptr, *oldcmd = NULL, *parms, *p=NULL;
   char *argv[32];
   char buf[1024];
   int tries = 0;
@@ -291,7 +291,11 @@ void *process_connection(void *ptr) {
   }
 
   free(input);
-  if (daemon_reply(TTX, LMTP_OK, "OK")<=0)
+  if (daemon_extension(TTX, "PIPELINING")<=0)
+    goto CLOSE;
+  if (daemon_extension(TTX, "ENHANCEDSTATUSCODES")<=0)
+    goto CLOSE;
+  if (daemon_reply(TTX, LMTP_OK, "", "SIZE")<=0)
     goto CLOSE;
 
   /* Loop here */
@@ -327,7 +331,7 @@ void *process_connection(void *ptr) {
           TTX->authenticated = 1;
 
           _ds_extract_address(ATX->mailfrom, input, sizeof(ATX->mailfrom));
-          if (daemon_reply(TTX, LMTP_OK, "OK")<=0) {
+          if (daemon_reply(TTX, LMTP_OK, "2.1.0", "OK")<=0) {
             free(input);
             goto CLOSE;
           }
@@ -345,7 +349,7 @@ void *process_connection(void *ptr) {
             snprintf(buf, sizeof(buf), "ServerPass.%s", ident);
             if (serverpass && !strcmp(pass, serverpass)) {
               TTX->authenticated = 1;
-              if (daemon_reply(TTX, LMTP_OK, "OK")<=0) {
+              if (daemon_reply(TTX, LMTP_OK, "2.1.0", "OK")<=0) {
                 free(input);
                 goto CLOSE;
               }
@@ -357,7 +361,7 @@ void *process_connection(void *ptr) {
         if (!TTX->authenticated) {
           LOGDEBUG("fd %d authentication failure.", TTX->sockfd);
 
-          if (daemon_reply(TTX, LMTP_AUTH_ERROR, "Authentication Required")<=0) {
+          if (daemon_reply(TTX, LMTP_AUTH_ERROR, "5.1.0", "Authentication Required")<=0) {
             free(input);
             goto CLOSE;
           }
@@ -379,7 +383,7 @@ void *process_connection(void *ptr) {
     parms = _ds_read_attribute(agent_config, "ServerParameters");
     argc = 0;
     if (parms) {
-      char *p = strdup(parms);
+      p = strdup(parms);
       if (p) {
         token = strtok_r(p, " ", &ptrptr);
         while(token != NULL) {
@@ -387,7 +391,6 @@ void *process_connection(void *ptr) {
           argc++;
           token = strtok_r(NULL, " ", &ptrptr);
         }
-        free(p);  
       }
     }
 
@@ -421,8 +424,7 @@ void *process_connection(void *ptr) {
         strlcpy(ATX->recipient, username, sizeof(ATX->recipient));
       }
 
-      snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
-      if (send_socket(TTX, buf)<=0)
+      if (daemon_reply(TTX, LMTP_OK, "2.1.5", "OK")<=0)
         goto CLOSE;
 
       oldcmd = cmdline;
@@ -483,12 +485,12 @@ void *process_connection(void *ptr) {
 
     cmdline = oldcmd;
 
-    if (daemon_reply(TTX, LMTP_DATA, DAEMON_DATA)<=0)
+    if (daemon_reply(TTX, LMTP_DATA, "", DAEMON_DATA)<=0)
       goto CLOSE;
   
     message = read_sock(TTX, ATX);
     if (message == NULL || message->data == NULL || message->used == 0) {
-      daemon_reply(TTX, LMTP_FAILURE, ERROR_MESSAGE_NULL);
+      daemon_reply(TTX, LMTP_FAILURE, "5.2.0", ERROR_MESSAGE_NULL);
       goto CLOSE;
     }
 
@@ -523,10 +525,10 @@ void *process_connection(void *ptr) {
         result = results[i];
         if (result) r = *result; 
         if (result == NULL || r == 0)
-          snprintf(buf, sizeof(buf), "%d <%s> Message accepted for delivery",
+          snprintf(buf, sizeof(buf), "%d 2.6.0 <%s> Message accepted for delivery",
                    LMTP_OK, (char *) node_nt->ptr);
         else
-          snprintf(buf, sizeof(buf), "%d <%s> Error occured during processing", LMTP_ERROR_PROCESS, (char *) node_nt->ptr);
+          snprintf(buf, sizeof(buf), "%d 5.3.0 <%s> Error occured during processing", LMTP_ERROR_PROCESS, (char *) node_nt->ptr);
 
         if (send_socket(TTX, buf)<=0) {
           for(;i<=ATX->users->items;i++)
@@ -555,6 +557,9 @@ void *process_connection(void *ptr) {
       TTX->authenticated = 0;
       argc = 0;
     }
+
+    free(p);
+    p = NULL;
   }
 
   /* Close connection and return */
@@ -687,10 +692,10 @@ char *daemon_expect(THREAD_CTX *TTX, const char *ptr) {
   while(strncasecmp(cmd, ptr, strlen(ptr))) {
     if (!strncasecmp(cmd, "QUIT", 4)) {
       free(cmd);
-      daemon_reply(TTX, LMTP_QUIT, "OK"); 
+      daemon_reply(TTX, LMTP_QUIT, "2.0.0", "OK"); 
       return NULL;
     }
-    snprintf(buf, sizeof(buf), "%d Need %s here.", LMTP_BAD_CMD, ptr);
+    snprintf(buf, sizeof(buf), "%d 5.0.0 Need %s here.", LMTP_BAD_CMD, ptr);
     if (send_socket(TTX, buf)<=0)
       return NULL;
     free(cmd);
@@ -701,9 +706,15 @@ char *daemon_expect(THREAD_CTX *TTX, const char *ptr) {
   return cmd;
 }
 
-int daemon_reply(THREAD_CTX *TTX, int reply, const char *txt) {
+int daemon_reply(THREAD_CTX *TTX, int reply, const char *ecode, const char *txt) {
   char buf[128];
-  snprintf(buf, sizeof(buf), "%d %s", reply, txt);
+  snprintf(buf, sizeof(buf), "%d %s%s%s", reply, ecode, (ecode[0]) ? " " : "", txt);
+  return send_socket(TTX, buf);
+}
+
+int daemon_extension(THREAD_CTX *TTX, const char *txt) {
+  char buf[128];
+  snprintf(buf, sizeof(buf), "%d-%s", LMTP_OK, txt);
   return send_socket(TTX, buf);
 }
 

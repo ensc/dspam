@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.27 2005/02/27 21:01:06 jonz Exp $ */
+/* $Id: client.c,v 1.28 2005/02/28 01:53:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -159,7 +159,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   client_getcode(&TTX);
   close(TTX.sockfd);
   buffer_destroy(TTX.packet_buffer);
-  return 0;
+  return exitcode;
 
 QUIT:
   send_socket(&TTX, "QUIT");
@@ -169,7 +169,7 @@ BAIL:
   exitcode = EFAILURE;
   buffer_destroy(TTX.packet_buffer);
   close(TTX.sockfd);
-  return EFAILURE;
+  return exitcode;
 }
 
 int client_connect(int flags) {

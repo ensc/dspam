@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.82 2005/02/25 15:47:29 jonz Exp $ */
+/* $Id: dspam.c,v 1.83 2005/02/28 01:53:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -675,8 +675,9 @@ deliver_message (AGENT_CTX *ATX, const char *message, const char *mailer_args,
   int rc;
 
 #ifdef DAEMON
-  if (USE_LMTP && ! (ATX->flags & DAF_STDOUT)) 
+  if (USE_LMTP && ! (ATX->flags & DAF_STDOUT)) {
     return deliver_lmtp(ATX, message);
+}
 #endif
  
   if (message == NULL)

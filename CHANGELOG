@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.180 2005/02/27 21:01:06 jonz Exp $
+$Id: CHANGELOG,v 1.181 2005/02/28 01:53:07 jonz Exp $
 
 Version NEXT
 ------------
@@ -12,6 +12,8 @@ processing
 2.  added 'auto' mode for server, to auto-detect DLMTP or LMTP based on
 the LHLO ident
  
+3. added extended status codes and initial LMTP extensions list
+
 [20050225.0700] jonz: added support for LMTP delivery via domai socket
 
 specifying a path as LMTPDeliveryHost will cause DSPAM to connect and deliver
