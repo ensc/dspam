@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.7 2005/02/25 14:52:13 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.8 2005/03/09 13:33:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -88,6 +88,9 @@ typedef struct {
 #ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
   struct passwd *p;
+#if defined(_REENTRANT) && defined(HAVE_GETPWUID_R)
+  struct passwd pwbuf;
+#endif
 #endif
 #endif
 } AGENT_CTX;
