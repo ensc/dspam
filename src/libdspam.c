@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.2 2004/10/29 14:04:52 jonz Exp $ */
+/* $Id: libdspam.c,v 1.3 2004/11/08 16:59:46 jonz Exp $ */
 
 /*
  DSPAM
@@ -730,7 +730,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     heading[0] = 0;
     while (node_nt != NULL)
     {
-      int is_received;
+      int is_received, multiline;
       joined_token[0] = 0;
       alloc_joined = 0;
 
@@ -742,6 +742,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       if (token != NULL && token[0] != 32 && token[0] != 9
           && !strstr (token, " "))
       {
+        multiline = 0;
         strlcpy (heading, token, 128);
         if (alloc_joined) {
           free(previous_token);
@@ -750,6 +751,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         previous_token = NULL;
         if (CTX->flags & DSF_SBPH)
           _ds_sbph_clear(previous_tokens);
+      } else {
+        multiline = 1;
       }
 
 #ifdef VERBOSE
@@ -776,9 +779,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       is_received = (!strcmp (heading, "Received") ? 1 : 0);
 
       if (is_received)
-        token = strtok_r (NULL, DELIMITERS_HEADING, &ptrptr);
+        token = strtok_r ((multiline) ? line : NULL, DELIMITERS_HEADING, &ptrptr);
       else
-        token = strtok_r (NULL, DELIMITERS, &ptrptr);
+        token = strtok_r ((multiline) ? line : NULL, DELIMITERS, &ptrptr);
 
       while (token != NULL)
       {
