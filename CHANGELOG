@@ -1,8 +1,8 @@
-$Id: CHANGELOG,v 1.198 2005/03/09 13:33:35 jonz Exp $
+$Id: CHANGELOG,v 1.199 2005/03/09 15:54:59 jonz Exp $
 
 Version 3.4.pr1
 ---------------
- 
+  
 [20050308.0800] jonz: fixed header duplication on reclassify
 
 fixed a bug where a new set of headers would be added to the old set upon
