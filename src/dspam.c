@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.11 2004/11/24 17:57:47 jonz Exp $ */
+/* $Id: dspam.c,v 1.12 2004/11/27 19:08:43 jonz Exp $ */
 
 /*
  DSPAM
@@ -1655,6 +1655,8 @@ process_message (AGENT_CTX *ATX,
 if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers")) {
 
     if (!_ds_match_attribute(agent_config, "TrainPristine", "on")) {
+      int is_multipart = -1;
+      char toplevel_boundary[128] = { 0 };
 
       /* Embed the signature into all text segments.
        * If for some reason `session' is empty string ("") then nothing
@@ -1665,6 +1667,16 @@ if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers")) {
       {
         struct _ds_message_block *block = node_nt->ptr;
         char *body_close = NULL, *dup = NULL;
+
+        if (is_multipart == -1) {
+          if (block->media_type == MT_MULTIPART) {
+            is_multipart = 1;
+            if (block->terminating_boundary != NULL)
+              strlcpy(toplevel_boundary, block->terminating_boundary, sizeof(toplevel_boundary));
+          } else {
+            is_multipart = 0;
+          }
+        }
     
         /* Append signature to subject of multipart/signed messages */
         if (block != NULL && block->media_type == MT_MULTIPART && 
@@ -1839,7 +1851,9 @@ if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers")) {
         if (block != NULL
             && (block->media_type == MT_TEXT
                 || (block->boundary == NULL && i == 0
-                    && block->media_type != MT_MULTIPART)))
+                    && block->media_type != MT_MULTIPART)) &&
+            (toplevel_boundary[0] == 0 ||
+              (block->terminating_boundary && !strncmp(block->terminating_boundary, toplevel_boundary, strlen(toplevel_boundary)))))
         {
           int unclosed_html = 0, is_attachment = 0;
           struct _ds_header_field *field;
