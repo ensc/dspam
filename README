@@ -1,4 +1,4 @@
-$Id: README,v 1.5 2004/11/03 19:57:49 jonz Exp $
+$Id: README,v 1.6 2004/11/10 04:37:13 jonz Exp $
 
 DSPAM v3.2 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -28,9 +28,6 @@ DSPAM Development Lead
 
 PostgreSQL Driver Maintainer
   Rustam Aliyev <rustam@azernews.com>
-
-Win32 Build Supplement Maintainer
-  Vadim Zeitlin <vz-dspam@zeitlins.org>
 
 Patch Contributors (Past 6 Months)
   Nov/2004 Denis Shaposhnikov <dsh@vlink.ru>
