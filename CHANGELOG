@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.97 2004/12/26 20:27:05 jonz Exp $
+$Id: CHANGELOG,v 1.98 2004/12/26 22:03:01 jonz Exp $
 
 Version NEXT
 ------------
@@ -169,6 +169,7 @@ additional tweaks 11/25
 12/5 - implemented pattern layers 2 and 3 which may provide a concrete
   approach to dubbing
 12/11 - only train when > 200 innocent messages
+12/26 - removed all dubbing, other tweaks
 
 [20041101.0700] jonz: added MaxMessageSize option to dspam.conf
 

@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.14 2004/12/26 20:27:06 jonz Exp $ */
+/* $Id: bnr.c,v 1.15 2004/12/26 22:03:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -112,12 +112,11 @@ int bnr_pattern_instantiate(
 }
 
 /*
-  bnr_filter_process() - Identify and "dub" pattern inconsistencies
+  bnr_filter_process() - Identify pattern inconsistencies
 
   bnr_filter_process() analyzes tokens contained within interesting patterns 
-  and dubs any tokens whose disposition is inconsistent with that of the 
-  pattern (e.g. falls outside of the inclusionary radius of the pattern's 
-  p-value). 
+  whose disposition is inconsistent with that of the pattern (e.g. falls 
+  outside of the inclusionary radius of the pattern's p-value). 
 
   CTX (in)     DSPAM Context
   BTX (in/out) BNR Context
@@ -127,14 +126,13 @@ int bnr_pattern_instantiate(
 int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
   struct lht_node * previous_bnr_tokens[BNR_SIZE];
   float previous_bnr_probs[BNR_SIZE];
-  float dub_prob = 0.00000;
   struct lht_node *node_lht;
   struct _ds_spam_stat s;
   struct nt_node *node_nt;
   struct nt_c c_nt;
   unsigned long long crc;
   char bnr_token[64];
-  int i, dub = 0, suspect;
+  int i, suspect;
 
   for(i=0;i<BNR_SIZE;i++) {
     previous_bnr_probs[i] = 0.00000;
@@ -168,7 +166,7 @@ int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
     
     suspect = ((!lht_getspamstat(BTX->patterns, crc, &s) && 
                  fabs(0.5-s.probability) > EX_RADIUS)); 
-    if (dub || suspect)
+    if (suspect)
     {
 
 #ifdef BNR_VERBOSE_DEBUG
@@ -179,43 +177,13 @@ int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
       for(i=0;i<BNR_SIZE;i++) {
         if (previous_bnr_tokens[i]) {
 
-          /* Wind down our dubbing if we come to consistent records */
-          if (dub &&
-              fabs(dub_prob-previous_bnr_tokens[i]->s.probability)<IN_RADIUS)  
-          { 
-            dub--;
-            if (!dub && !suspect)
-              break;
-          }
-
           /* If the token is inconsistent with the current or dubbing window */
-          if ((suspect &&
-              fabs(s.probability-previous_bnr_tokens[i]->s.probability)
-                 > IN_RADIUS) ||
-              (!suspect &&
-              fabs(dub_prob-previous_bnr_tokens[i]->s.probability)
-                 > IN_RADIUS))
+          if (fabs(s.probability-previous_bnr_tokens[i]->s.probability)
+                 > IN_RADIUS) 
           {
             BTX->total_eliminations++;
-            previous_bnr_tokens[i]->frequency -= 2;
-            dub = 3;
-            if (!dub || suspect) {
-              dub_prob = s.probability;
-            }
-#ifdef BNR_VERBOSE_DEBUG
-            LOGDEBUG("\tDUB: %d ELIMINATING: %s (%1.2f) RADIUS %1.2f %s\n",dub, 
-                   previous_bnr_tokens[i]->token_name,
-                   previous_bnr_tokens[i]->s.probability, 
-                   fabs(s.probability-previous_bnr_tokens[i]->s.probability), 
-                   dub ? "*" : "");
-#endif
+            previous_bnr_tokens[i]->frequency --;
           } else {
-#ifdef BNR_VERBOSE_DEBUG
-            LOGDEBUG("\tOK: %s (%1.2f) RADIUS %1.2f\n",
-                   previous_bnr_tokens[i]->token_name,
-                   previous_bnr_tokens[i]->s.probability,
-                   fabs(s.probability-previous_bnr_tokens[i]->s.probability));
-#endif 
             BTX->total_clean++;
           }
         }

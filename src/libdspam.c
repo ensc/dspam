@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.60 2004/12/26 20:51:14 jonz Exp $ */
+/* $Id: libdspam.c,v 1.61 2004/12/26 22:03:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -665,6 +665,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   struct lht_c c_lht;
 
   struct heap *heap_sort = NULL; /* Heap sort for top N tokens */
+#ifdef BNR_DEBUG
+  struct heap *heap_nobnr = NULL;
+#endif
 
   struct nt *header = NULL;      /* Header array */
   struct nt_node *node_nt;
@@ -730,6 +733,15 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     errcode = EUNKNOWN;
     goto bail;
   }
+
+#ifdef BNR_DEBUG
+  heap_nobnr = heap_create (heap_sort->size);
+  if (heap_nobnr == NULL) {
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    errcode = EUNKNOWN;
+    goto bail;
+  }
+#endif
 
   CTX->result = 
     (CTX->classification == DSR_ISSPAM) ? DSR_ISSPAM : DSR_ISINNOCENT;
@@ -1213,7 +1225,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
            node_nt = c_nt_next(freq->order, &c_nt);
         }
 
-        fprintf(file, "]\n\n");
+        fprintf(file, "]\nProcessed for: %s\n\n", CTX->username);
         fclose(file);
       }
 #endif
@@ -1270,6 +1282,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       heap_insert (heap_sort, node_lht->s.probability, node_lht->key,
              node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
     }
+
+#ifdef BNR_DEBUG
+    if (!node_lht->token_name || strncmp(node_lht->token_name, "bnr.", 4))    {
+      heap_insert (heap_nobnr, node_lht->s.probability, node_lht->key,
+             node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
+    }
+#endif
 
 #ifdef VERBOSE
     LOGDEBUG ("Token: %s [%f]", node_lht->token_name,
@@ -1424,25 +1443,14 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     }
 
     if (node_lht && node_lht->token_name &&
-        !strncmp(node_lht->token_name, "bnr.", 4) &&
-        CTX->confidence < 0.60) {
+        !strncmp(node_lht->token_name, "bnr.", 4))
+    {
 
       if ((node_lht->token_name[4] == 'c' || 
            node_lht->token_name[4] == 's' ||
            node_lht->token_name[4] == 't') &&
-          CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350)
-      {
-        node_lht->s.status |= TST_DIRTY;
-      }
-
-      if (node_lht->token_name[4] == '2' && 
-          CTX->totals.innocent_learned + CTX->totals.innocent_classified > 650)
-      {
-        node_lht->s.status |= TST_DIRTY;
-      }
-
-      if (node_lht->token_name[4] == '3' &&
-          CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000)
+          CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000 &&
+          CTX->confidence < 0.90) 
       {
         node_lht->s.status |= TST_DIRTY;
       }
