@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.10 2004/11/22 00:38:43 jonz Exp $ */
+/* $Id: libdspam.c,v 1.11 2004/11/22 01:00:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -1110,7 +1110,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       node_nt = c_nt_next(freq->order, &c_nt);
     }
 
-    LOGDEBUG("Loading %d BNR Patterns", pfreq->items);
+    LOGDEBUG("Loading %ld BNR Patterns", pfreq->items);
     if (_ds_getall_spamrecords (CTX, pfreq))
     {
       LOGDEBUG ("_ds_getall_spamrecords() failed");
