@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.257 2005/04/02 15:11:09 jonz Exp $
+$Id: CHANGELOG,v 1.258 2005/04/02 15:12:03 jonz Exp $
    
 Version NEXT
 ------------
@@ -29,6 +29,11 @@ preference when provsioned. To use:
 
 Version 3.4.3
 -------------
+
+[20050402.1000] jonz: changed log status of signature errors
+
+changed logging status of signature-based errors so they show up in the
+error and system logs, rather than just debug
 
 [20050402.0900] jonz: fixed system.log formatting bug
 

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.123 2005/04/02 14:29:59 jonz Exp $ */
+/* $Id: dspam.c,v 1.124 2005/04/02 15:12:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -394,7 +394,7 @@ process_message (AGENT_CTX *ATX,
 
     if (_ds_get_signature (CTX, &ATX->SIG, ATX->signature))
     {
-      LOGDEBUG ("signature retrieval for '%s' failed", ATX->signature);
+      LOG(LOG_WARNING, "signature retrieval for '%s' failed", ATX->signature);
       have_signature = 0;
     }
     else
@@ -431,7 +431,7 @@ process_message (AGENT_CTX *ATX,
     if (!_ds_match_attribute(agent_config, "TrainPristine", "on") && 
         strcmp(_ds_pref_val(PTX, "trainPristine"), "on")) {
       if (CTX->classification != DSR_NONE && CTX->source == DSS_ERROR) {
-        LOGDEBUG("unable to find signature; bailing.");
+        LOG(LOG_WARNING, "unable to find signature; bailing.");
         result = EFAILURE;
         goto RETURN;
       }
