@@ -1,12 +1,16 @@
-$Id: CHANGELOG,v 1.234 2005/03/19 00:12:04 jonz Exp $
+$Id: CHANGELOG,v 1.235 2005/03/19 00:31:49 jonz Exp $
    
 Version NEXT
 ------------
 
+[20050318.1930] jonz: fixed transliteration of ""
+
+fixed transliteration of "" so that empty spaces can be passed to LDA
+
 [20050318.1900] jonz: implemented DSPAMPROCESSMODE service tag
 
 implemented DSPAMPROCESSMODE service tag for proprietary client functions
-g
+
 [20050318.0700] jonz: added RSET functionality
 
 added RSET functionality to daemon 
