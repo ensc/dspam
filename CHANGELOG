@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.58 2004/12/03 01:37:16 jonz Exp $
+$Id: CHANGELOG,v 1.59 2004/12/03 12:59:31 jonz Exp $
 
 Version NEXT
 ------------
@@ -56,6 +56,14 @@ longer necessary. this helps tum outperform teft in resources.
 [20041020.1400] jonz: normalized main()
 
 normalized main() by breaking up code into smaller subroutines
+
+Version 3.2.4
+-------------
+
+[20041203.0745] jonz: fixed addition of spurious colons after delimiter
+
+fixed bug causing a colon to be added to lines after -- delimiters that
+were not actual boundary delimiters.
 
 Version 3.2.3
 -------------

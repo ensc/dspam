@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.5 2004/11/28 03:45:35 jonz Exp $ */
+/* $Id: decode.c,v 1.6 2004/12/03 12:59:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -870,17 +870,22 @@ _ds_assemble_message (struct _ds_message *message)
 int
 _ds_push_boundary (struct nt *stack, const char *boundary)
 {
-  char *y = malloc (strlen (boundary) + 3);
+  char *y;
+
+  if (boundary == NULL || boundary[0] == 0)
+    return EINVAL;
+
+  y = malloc (strlen (boundary) + 3);
   if (y == NULL)
     return EUNKNOWN;
-                                                                                
+
   sprintf (y, "--%s", boundary);
   nt_add (stack, (char *) y);
   free(y);
 
   return 0;
 }
-                                                                                
+
 char *
 _ds_pop_boundary (struct nt *stack)
 {
