@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.48 2005/02/28 21:05:57 jonz Exp $ */
+/* $Id: daemon.c,v 1.49 2005/03/01 19:01:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -334,13 +334,16 @@ void *process_connection(void *ptr) {
         if (server_mode == SSM_STANDARD) {
           TTX->authenticated = 1;
 
+          ATX->mailfrom[0] = 0;
           _ds_extract_address(ATX->mailfrom, input, sizeof(ATX->mailfrom));
+
           if (daemon_reply(TTX, LMTP_OK, "2.1.0", "OK")<=0) {
             free(input);
             goto CLOSE;
           }
         } else {
           char id[256];
+          id[0] = 0;
           _ds_extract_address(id, input, sizeof(id));
           pass = strtok_r(id, "@", &ptrptr);
           ident = strtok_r(NULL, "@", &ptrptr);
@@ -424,6 +427,7 @@ void *process_connection(void *ptr) {
           daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERROR_INVALID_RCPT);
           goto CLOSE;
         }
+
         if (!parms || !strstr(parms, "--user "))
           nt_add(ATX->users, username);
         strlcpy(ATX->recipient, username, sizeof(ATX->recipient));
