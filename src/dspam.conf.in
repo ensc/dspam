@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.27 2005/03/02 22:07:18 jonz Exp $
+## $Id: dspam.conf.in,v 1.28 2005/03/11 21:47:47 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -113,10 +113,10 @@ TrainingMode teft
 # If _any_ features are specified on the commandline, these are ignored.
 #
 #Feature sbph
+#Feature noise
 Feature chained
 Feature tb=5
 Feature whitelist
-Feature noise
 
 #
 # Algorithms: Specify the statistical algorithms to use, overriding any
