@@ -1,4 +1,4 @@
-$Id: README.osx,v 1.1 2005/01/29 06:10:05 jonz Exp $
+$Id: README.osx,v 1.2 2005/03/05 23:55:41 jonz Exp $
 
 MAC OSX NOTES
 
@@ -9,9 +9,8 @@ If you're building from CVS, you'll need a few tools in order to perform an
 autogen. The latest versions of autoconf, automake, and libtool will need to
 be installed first. This can be done quite easily using an OSX package tool.
 Visit http://www.darwinports.com or http://fink.sf.net for more information.
-
 Once you've installed these latest tools, you'll need to run autogen-glibtool.sh
-to generate a new configure script. Be sure that the path to these new binaries
+to generate a new configure script . Be sure that the path to these new binaries
 comes first in your path. This is usually /opt/local/bin (darwinports) or
 /sw/local/bin (fink).
 
