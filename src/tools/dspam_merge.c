@@ -1,4 +1,4 @@
-/* $Id: dspam_merge.c,v 1.1 2004/10/24 20:51:55 jonz Exp $ */
+/* $Id: dspam_merge.c,v 1.2 2004/12/01 17:29:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -102,7 +102,7 @@ main (int argc, char **argv)
   signal (SIGPIPE, dieout);
   signal (SIGTERM, dieout);
 
-  dspam_init_driver ();
+  dspam_init_driver (NULL);
   users = nt_create (NT_CHAR);
   freq = lht_create (1543);
 
@@ -216,7 +216,7 @@ main (int argc, char **argv)
   lht_destroy (freq);
   dspam_destroy (CTX);
   open_ctx = NULL;
-  dspam_shutdown_driver ();
+  dspam_shutdown_driver (NULL);
   _ds_destroy_attributes(agent_config);
   exit (EXIT_SUCCESS);
 
@@ -225,7 +225,7 @@ bail:
     dspam_destroy (open_ctx);
   if (open_mtx != NULL)
     dspam_destroy (open_mtx);
-  dspam_shutdown_driver ();
+  dspam_shutdown_driver (NULL);
   nt_destroy(users);
   lht_destroy (freq);
   _ds_destroy_attributes(agent_config);

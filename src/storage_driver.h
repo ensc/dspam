@@ -1,4 +1,4 @@
-/* $Id: storage_driver.h,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: storage_driver.h,v 1.2 2004/12/01 17:29:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -29,6 +29,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "pref.h"
 #include "config_shared.h"
 #endif
+#ifdef MULTITHREADED
+#include <pthread.h>
+#endif
+
+typedef struct {
+  DSPAM_CTX *CTX;
+  void *storage;
+  int status;
+  int flags;
+#ifdef MULTITHREADED
+  pthread_mutex_t lock;
+#endif
+} DRIVER_CTX;
 
 struct _ds_storage_record
 {
@@ -68,8 +81,8 @@ struct _ds_storage_decision
        have completed; closes database and unlocks. 
        this function is performed by dspam_init */
 
-int dspam_init_driver (void);
-int dspam_shutdown_driver (void);
+int dspam_init_driver (DRIVER_CTX *DTX);
+int dspam_shutdown_driver (DRIVER_CTX *DTX);
 int _ds_init_storage (DSPAM_CTX * CTX, void *dbh);
 int _ds_shutdown_storage (DSPAM_CTX * CTX);
 
@@ -127,13 +140,15 @@ int	_ds_pref_del(attribute_t **, const char *user, const char *home,
                      const char *attrib);
 #endif
 
-/*
-   Dynamic Noise Reduction Extensions
-   Dynamic BNR Extensions allow for dynamic tracking of SNR margins in email
-   to provide more dynamic (and effective) Bayesian noise reduction. Without
-   this extension, fixed values for SNR thresholds are used and no
-   calibration is performed.
-*/
+/* Driver context flags */
+
+#define DRF_STATEFUL	0x01
+
+/* Driver statii */
+
+#define DRS_ONLINE	0x01
+#define DRS_OFFLINE	0x02
+#define DRS_UNKNOWN	0xFF
 
 #endif /* _STORAGE_DRIVER_H */
 

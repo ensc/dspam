@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.3 2004/11/21 22:13:53 jonz Exp $ */
+/* $Id: dspam_clean.c,v 1.4 2004/12/01 17:29:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -203,7 +203,7 @@ main (int argc, char *argv[])
   signal (SIGPIPE, dieout);
   signal (SIGTERM, dieout);
 
-  dspam_init_driver ();
+  dspam_init_driver (NULL);
 
   if (users->items == 0) {
     CTX = dspam_create (NULL, NULL, _ds_read_attribute(agent_config, "Home"), DSM_TOOLS, 0);
@@ -211,7 +211,7 @@ main (int argc, char *argv[])
     if (CTX == NULL)
     {
       fprintf (stderr, "Could not initialize context: %s\n", strerror (errno));
-      dspam_shutdown_driver ();
+      dspam_shutdown_driver (NULL);
       goto bail;
     }
 
@@ -276,7 +276,7 @@ main (int argc, char *argv[])
     open_ctx = NULL;
   }
 
-  dspam_shutdown_driver ();
+  dspam_shutdown_driver (NULL);
   _ds_destroy_attributes(agent_config);
   nt_destroy(users);
   exit (EXIT_SUCCESS);

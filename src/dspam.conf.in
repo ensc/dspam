@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.6 2004/12/01 02:05:23 jonz Exp $
+## $Id: dspam.conf.in,v 1.7 2004/12/01 17:29:11 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -169,18 +169,20 @@ AllowOverride whitelistThreshold
 # Storage driver settings: Specific to a particular storage driver. Uncomment
 # the configuration specific to your installation, if applicable.
 #
-#MySQLServer    /var/lib/mysql/mysql.sock
+#MySQLServer    	/var/lib/mysql/mysql.sock
 #MySQLPort
-#MySQLUser      dspam
-#MySQLPass      changeme
-#MySQLDb        dspam
-#MySQLCompress  true
+#MySQLUser 	     	dspam
+#MySQLPass    		changeme
+#MySQLDb      	  	dspam
+#MySQLCompress		true
+#MySQLConnectionCache	3
 
-#PgSQLServer    127.0.0.1
-#PgSQLPort      5432
-#PgSQLUser      dspam
-#PgSQLPass      changeme
-#PgSQLDb        dspam
+#PgSQLServer    	127.0.0.1
+#PgSQLPort      	5432
+#PgSQLUser      	dspam
+#PgSQLPass      	changeme
+#PgSQLDb        	dspam
+#PgSQLConnectionCache	3
 
 #OraServer       "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SID=PROD)))"
 #OraUser         dspam

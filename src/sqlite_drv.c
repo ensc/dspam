@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.9 2004/11/24 18:04:15 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.10 2004/12/01 17:29:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -67,13 +67,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 int
-dspam_init_driver (void)
+dspam_init_driver (DRIVER_CTX *DTX)
 {
   return 0;
 }
 
 int
-dspam_shutdown_driver (void)
+dspam_shutdown_driver (DRIVER_CTX *DTX)
 {
   return 0;
 }

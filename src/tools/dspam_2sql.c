@@ -1,4 +1,4 @@
-/* $Id: dspam_2sql.c,v 1.1 2004/10/24 20:51:55 jonz Exp $ */
+/* $Id: dspam_2sql.c,v 1.2 2004/12/01 17:29:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -102,9 +102,9 @@ main (int argc, char **argv)
   signal (SIGPIPE, dieout);
   signal (SIGTERM, dieout);
 
-  dspam_init_driver ();
+  dspam_init_driver (NULL);
   ret = process_all_users();
-  dspam_shutdown_driver ();
+  dspam_shutdown_driver (NULL);
   _ds_destroy_attributes(agent_config);
   exit((ret == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
 }

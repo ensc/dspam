@@ -1,4 +1,4 @@
-/* $Id: libdb3_drv.c,v 1.2 2004/11/23 21:59:38 jonz Exp $ */
+/* $Id: libdb3_drv.c,v 1.3 2004/12/01 17:29:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -57,13 +57,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "lht.h"
 
 int
-dspam_init_driver (void)
+dspam_init_driver (DRIVER_CTX *DTX)
 {
   return 0;
 }
 
 int
-dspam_shutdown_driver (void)
+dspam_shutdown_driver (DRIVER_CTX *DTX)
 {
   return 0;
 }

@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.h,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: mysql_drv.h,v 1.2 2004/12/01 17:29:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -28,6 +28,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #include <mysql.h>
+#ifdef MULTITHREADED
+#include <pthread.h>
+#endif
+
+struct _mysql_drv_connection
+{
+  MYSQL *dbh;
+#ifdef MULTITHREADED
+  pthread_mutex_t lock;
+#endif
+};
+
+struct _mysql_drv_driver_storage
+{
+  int connection_cache;
+  struct _mysql_drv_connection **connections;
+};
 
 struct _mysql_drv_storage
 {
@@ -57,9 +74,10 @@ struct _mysql_drv_storage
 
 int	_mysql_drv_get_spamtotals	(DSPAM_CTX * CTX);
 int	_mysql_drv_set_spamtotals	(DSPAM_CTX * CTX);
-struct passwd *_mysql_drv_getpwnam	(DSPAM_CTX * CTX, const char *name);
-struct passwd *_mysql_drv_getpwuid	(DSPAM_CTX * CTX, uid_t uid);
 void	_mysql_drv_query_error		(const char *error, const char *query);
+MYSQL	*_mysql_drv_connect		(DSPAM_CTX *CTX);
+struct passwd *_mysql_drv_getpwnam      (DSPAM_CTX * CTX, const char *name);
+struct passwd *_mysql_drv_getpwuid      (DSPAM_CTX * CTX, uid_t uid);
 
 #ifdef VIRTUAL_USERS
 struct passwd *_mysql_drv_setpwnam	(DSPAM_CTX * CTX, const char *name);

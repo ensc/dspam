@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.10 2004/12/01 03:17:14 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.11 2004/12/01 17:29:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -72,7 +72,7 @@ int test(MYSQL *dbh, char *query) {
 #define MYSQL_RUN_QUERY(A, B) mysql_query(A, B)
 
 int
-dspam_init_driver (void)
+dspam_init_driver (DRIVER_CTX *DTX) 
 {
 #if defined(MYSQL4_INITIALIZATION) && MYSQL_VERSION_ID >= 40001
   const char *server_default_groups[]=
@@ -84,12 +84,65 @@ dspam_init_driver (void)
   }
 #endif
 
+  if (DTX == NULL)
+    return 0;
+
+  /* Establish a series of stateful connections */
+
+  if (DTX->flags & DRF_STATEFUL) {
+    int i, connection_cache = 1;
+    struct _mysql_drv_driver_storage *d;
+
+    if (_ds_read_attribute(DTX->CTX->config->attributes, "MySQLConnectionCache"))
+      connection_cache = atoi(_ds_read_attribute(DTX->CTX->config->attributes, "MySQLConnectionCache"));
+
+    DTX->storage = calloc(1, sizeof(struct _mysql_drv_driver_storage));
+    if (DTX->storage == NULL) {
+      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      return EUNKNOWN;
+    }
+    d = DTX->storage;
+    d->connection_cache = connection_cache;
+    d->connections = calloc(1, sizeof(struct _mysql_drv_connection *)*connection_cache); 
+    if (d->connections == NULL) {
+      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      free(DTX->storage);
+      return EUNKNOWN;
+    }
+
+    for(i=0;i<connection_cache;i++) {
+      d->connections[i] = calloc(1, sizeof(struct _mysql_drv_connection *));
+      if (d->connections[i]) {
+        d->connections[i]->dbh = _mysql_drv_connect(DTX->CTX);
+      }
+    }
+  }
+
   return 0;
 }
 
 int
-dspam_shutdown_driver (void)
+dspam_shutdown_driver (DRIVER_CTX *DTX)
 {
+ 
+  if (DTX != NULL) {
+    if (DTX->flags & DRF_STATEFUL && DTX->storage) {
+      struct _mysql_drv_driver_storage *d;
+      int i;
+
+      d = DTX->storage;
+      for(i=0;i<d->connection_cache;i++) {
+        struct _mysql_drv_connection *o = d->connections[i];
+        if (o && o->dbh)
+          mysql_close(o->dbh);
+        free(o);
+      }
+
+      free(d->connections);
+      free(d);
+    }
+  }
+
 #if defined(MYSQL4_INITIALIZATION) && MYSQL_VERSION_ID >= 40001
   mysql_server_end();
 #endif
@@ -883,15 +936,6 @@ int
 _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 {
   struct _mysql_drv_storage *s;
-  MYSQL *connect;
-  FILE *file;
-  char filename[MAX_FILENAME_LENGTH];
-  char buffer[128];
-  char hostname[128] = "";
-  char user[64] = "";
-  char password[32] = "";
-  char db[64] = "";
-  int port = 3306, i = 0, real_connect_flag = 0;
 
   /* don't init if we're already initted */
   if (CTX->storage != NULL)
@@ -912,98 +956,17 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   memset(&s->p_getpwnam, 0, sizeof(struct passwd));
   memset(&s->p_getpwuid, 0, sizeof(struct passwd));
 
-  /* Read storage attributes */
-  if (_ds_read_attribute(CTX->config->attributes, "MySQLServer")) {
-    char *p;
+  if (dbh)
+    s->dbh = dbh;
+  else
+    s->dbh = _mysql_drv_connect(CTX);
 
-    strlcpy(hostname, 
-            _ds_read_attribute(CTX->config->attributes, "MySQLServer"), 
-            sizeof(hostname));
-
-    if (_ds_read_attribute(CTX->config->attributes, "MySQLPort"))
-      port = atoi(_ds_read_attribute(CTX->config->attributes, "MySQLPort"));
-    else
-      port = 0;
-
-    if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLUser")))
-      strlcpy(user, p, sizeof(user));
-    if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLPass")))
-      strlcpy(password, p, sizeof(password));
-    if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLDb")))
-      strlcpy(db, p, sizeof(db)); 
-
-    if (_ds_match_attribute(CTX->config->attributes, "MySQLCompress", "true"))
-      real_connect_flag = CLIENT_COMPRESS;
-
-  } else {
-    snprintf (filename, MAX_FILENAME_LENGTH, "%s/mysql.data", CTX->home);
-    file = fopen (filename, "r");
-    if (file == NULL)
-    {
-      LOG (LOG_WARNING, "unable to open %s for reading: %s",
-           filename, strerror (errno));
-      goto FAILURE;
-    }
-  
-    db[0] = 0;
-  
-    while (fgets (buffer, sizeof (buffer), file) != NULL)
-    {
-      chomp (buffer);
-      if (!i)
-        strlcpy (hostname, buffer, sizeof (hostname));
-      else if (i == 1)
-        port = atoi (buffer);
-      else if (i == 2)
-        strlcpy (user, buffer, sizeof (user));
-      else if (i == 3)
-        strlcpy (password, buffer, sizeof (password));
-      else if (i == 4)
-        strlcpy (db, buffer, sizeof (db));
-      i++;
-    }
-    fclose (file);
-  }
-
-  if (db[0] == 0)
-  {
-    LOG (LOG_WARNING, "file %s: incomplete mysql connect data", filename);
-    free(s);
-    return EINVAL;
-  }
-
-  s->dbh = mysql_init (NULL);
   if (s->dbh == NULL)
   {
     LOGDEBUG
       ("_ds_init_storage: mysql_init: unable to initialize handle to database");
     free(s);
     return EUNKNOWN;
-  }
-
-  if (dbh) {
-    connect = dbh;
-  } else {
-    if (hostname[0] == '/')
-    {
-      connect =
-        mysql_real_connect (s->dbh, NULL, user, password, db, 0, hostname, 
-                            real_connect_flag);
-  
-    }
-    else
-    {
-      connect =
-        mysql_real_connect (s->dbh, hostname, user, password, db, port, NULL,
-                            real_connect_flag);
-    }
-  }
-
-  if (connect == NULL)
-  {
-    LOG (LOG_WARNING, "%s", mysql_error (s->dbh));
-    mysql_close(s->dbh);
-    goto FAILURE;
   }
 
   CTX->storage = s;
@@ -1027,11 +990,6 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   }
 
   return 0;
-
-FAILURE:
-  free(s);
-  LOGDEBUG("_ds_init_storage() failed");
-  return EFAILURE;
 }
 
 int
@@ -2589,5 +2547,111 @@ _ds_delete_decision (DSPAM_CTX * CTX, const char *signature)
   }
                                                                                                                               
   return 0;
+}
+
+MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
+{
+  MYSQL *dbh;
+  FILE *file;
+  char filename[MAX_FILENAME_LENGTH];
+  char buffer[128];
+  char hostname[128] = "";
+  char user[64] = "";
+  char password[32] = "";
+  char db[64] = "";
+  int port = 3306, i = 0, real_connect_flag = 0;
+
+  /* Read storage attributes */
+  if (_ds_read_attribute(CTX->config->attributes, "MySQLServer")) {
+    char *p;
+
+    strlcpy(hostname, 
+            _ds_read_attribute(CTX->config->attributes, "MySQLServer"), 
+            sizeof(hostname));
+
+    if (_ds_read_attribute(CTX->config->attributes, "MySQLPort"))
+      port = atoi(_ds_read_attribute(CTX->config->attributes, "MySQLPort"));
+    else
+      port = 0;
+
+    if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLUser")))
+      strlcpy(user, p, sizeof(user));
+    if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLPass")))
+      strlcpy(password, p, sizeof(password));
+    if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLDb")))
+      strlcpy(db, p, sizeof(db)); 
+
+    if (_ds_match_attribute(CTX->config->attributes, "MySQLCompress", "true"))
+      real_connect_flag = CLIENT_COMPRESS;
+
+  } else {
+    snprintf (filename, MAX_FILENAME_LENGTH, "%s/mysql.data", CTX->home);
+    file = fopen (filename, "r");
+    if (file == NULL)
+    {
+      LOG (LOG_WARNING, "unable to open %s for reading: %s",
+           filename, strerror (errno));
+      goto FAILURE;
+    }
+  
+    db[0] = 0;
+  
+    while (fgets (buffer, sizeof (buffer), file) != NULL)
+    {
+      chomp (buffer);
+      if (!i)
+        strlcpy (hostname, buffer, sizeof (hostname));
+      else if (i == 1)
+        port = atoi (buffer);
+      else if (i == 2)
+        strlcpy (user, buffer, sizeof (user));
+      else if (i == 3)
+        strlcpy (password, buffer, sizeof (password));
+      else if (i == 4)
+        strlcpy (db, buffer, sizeof (db));
+      i++;
+    }
+    fclose (file);
+  }
+
+  if (db[0] == 0)
+  {
+    LOG (LOG_WARNING, "file %s: incomplete mysql connect data", filename);
+    goto FAILURE;
+  }
+
+  dbh = mysql_init (NULL);
+  if (dbh == NULL)
+  {
+    LOGDEBUG
+      ("_ds_init_storage: mysql_init: unable to initialize handle to database");
+    goto FAILURE;
+  }
+
+  if (hostname[0] == '/')
+  {
+    dbh =
+      mysql_real_connect (dbh, NULL, user, password, db, 0, hostname, 
+                          real_connect_flag);
+  }
+  else
+  {
+    dbh =
+      mysql_real_connect (dbh, hostname, user, password, db, port, NULL,
+                          real_connect_flag);
+  }
+
+  if (dbh == NULL)
+  {
+    LOG (LOG_WARNING, "%s", mysql_error (dbh));
+    mysql_close(dbh);
+    goto FAILURE;
+  }
+
+  return dbh;
+
+FAILURE:
+  LOGDEBUG("_ds_init_storage() failed");
+  return NULL;
 }
 

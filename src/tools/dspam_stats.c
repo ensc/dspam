@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.1 2004/10/24 20:51:55 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.2 2004/12/01 17:29:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -115,7 +115,7 @@ main (int argc, char **argv)
 #endif
   signal (SIGTERM, dieout);
 
-  dspam_init_driver ();
+  dspam_init_driver (NULL);
 
   /* Process command line */
   ch = opt_humanfriendly = 0;
@@ -164,7 +164,7 @@ main (int argc, char **argv)
   if (!users)
     process_all_users ();
 
-  dspam_shutdown_driver ();
+  dspam_shutdown_driver (NULL);
   _ds_destroy_attributes(agent_config);
   exit (EXIT_SUCCESS);
 }

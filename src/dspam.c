@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.24 2004/12/01 14:08:34 jonz Exp $ */
+/* $Id: dspam.c,v 1.25 2004/12/01 17:29:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -170,7 +170,7 @@ main (int argc, char *argv[])
     goto bail;
   }
 
-  if (dspam_init_driver ())
+  if (dspam_init_driver (NULL))
   {
     LOG (LOG_WARNING, "unable to initialize storage driver");
     exitcode = EXIT_FAILURE;
@@ -197,7 +197,7 @@ bail:
     nt_destroy(ATX.users);
 
   if (driver_init)
-    dspam_shutdown_driver ();
+    dspam_shutdown_driver (NULL);
 
   if (agent_config)
     _ds_destroy_attributes(agent_config);
@@ -1229,7 +1229,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 #ifdef DEBUG
       DO_DEBUG = 2;
 #endif
-      if (dspam_init_driver ())
+      if (dspam_init_driver (NULL))
       {
         LOG (LOG_WARNING, "unable to initialize storage driver");
         exit(EXIT_FAILURE);
@@ -1237,7 +1237,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       LOGDEBUG(DAEMON_START);
       daemon_listen();
       LOGDEBUG(DAEMON_EXIT);
-      dspam_shutdown_driver();
+      dspam_shutdown_driver(NULL);
       pthread_exit(EXIT_SUCCESS);
       exit(EXIT_SUCCESS);
     }
