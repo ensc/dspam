@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.122 2005/04/01 18:28:16 jonz Exp $ */
+/* $Id: dspam.c,v 1.123 2005/04/02 14:29:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -349,12 +349,12 @@ process_message (AGENT_CTX *ATX,
       char *domain = strchr(dup, '@');
       if (domain) {
         int i;
-        for(i=0;domain[i] && domain[i]!='\r' && domain[i]!='\n' && domain[i]!='>' && !isspace(domain[i]);i++) { } 
+        for(i=0;domain[i] && domain[i]!='\r' && domain[i]!='\n'
+             && domain[i]!='>' && !isspace((int) domain[i]);i++) { } 
         domain[i] = 0;
-        *domain++;
         while((fgets(buf, sizeof(buf), file))!=NULL) {
           chomp(buf);
-          if (!strcasecmp(buf, domain)) {
+          if (!strcasecmp(buf, domain+1)) {
             blocklisted = 1;
           }
         } 
@@ -2597,7 +2597,14 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
       if (!i) {
         char s[1024];
 
-        snprintf(s, sizeof(s), "%s\t%f\n", x, gettime()-ATX->timestart);
+
+        snprintf(s, sizeof(s), "%ld\t%c\t%s\t%s\t%s\t%f\n",
+            (long) time(NULL),
+            class,
+            (from == NULL) ? "<None Specified>" : from,
+            ATX->signature,
+            (subject == NULL) ? "<None Specified>" : subject,
+            gettime()-ATX->timestart);
         fputs(s, file);
         _ds_free_fcntl_lock(fileno(file));
       } else {

@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.255 2005/04/01 18:28:16 jonz Exp $
+$Id: CHANGELOG,v 1.256 2005/04/02 14:29:56 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050402.0900] jonz: fixed system.log formatting bug
+
+fixed a bug causing the system.log to be malformatted when reclassifying a
+message
 
 [20050401.0100] jonz: added domain blocklisting
 
