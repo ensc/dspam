@@ -1,4 +1,4 @@
-/* $Id: storage_driver.h,v 1.3 2004/12/01 18:26:12 jonz Exp $ */
+/* $Id: storage_driver.h,v 1.4 2004/12/03 00:36:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -129,6 +129,7 @@ int _ds_get_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
 int _ds_set_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
                       const char *signature);
 int _ds_delete_decision (DSPAM_CTX * CTX, const char *signature);
+void *_ds_connect (DSPAM_CTX *CTX);
 
 /*
    Storage Driver Preferences Extension

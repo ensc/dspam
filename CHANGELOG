@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.55 2004/12/02 23:33:08 jonz Exp $
+$Id: CHANGELOG,v 1.56 2004/12/03 00:36:48 jonz Exp $
 
 Version NEXT
 ------------
@@ -10,7 +10,8 @@ configure client in dspam.conf to talk to daemon, or speak LMTP without the
 client. authentication configurable in dspam.conf. implemented stateful
 database connections. --stdout and --classify supported. 
 
-TODO: re-establish connections as necessary
+TODO: re-establish connections as necessary 
+      - done, but concerned about threading conflicts; need mutex
 
 [20041127.1700] jonz: normalized process_message()
 

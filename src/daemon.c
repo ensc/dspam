@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.20 2004/12/02 23:33:08 jonz Exp $ */
+/* $Id: daemon.c,v 1.21 2004/12/03 00:36:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -381,6 +381,10 @@ void *process_connection(void *ptr) {
   
     results = process_users(ATX, message);
   
+    
+    if (TTX->DTX->connections[i]->dbh != ATX->dbh) 
+      TTX->DTX->connections[i]->dbh = ATX->dbh;
+
     if (ATX->sockfd_output) {
       if (send_socket(TTX, ".")<=0)
         goto CLOSE;

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.33 2004/12/02 23:33:08 jonz Exp $ */
+/* $Id: dspam.c,v 1.34 2004/12/03 00:36:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -247,10 +247,25 @@ process_message (AGENT_CTX *ATX,
 
   /* Pass any libdspam preferences through the API, then attach storage */
   set_libdspam_attributes(CTX);
+  if (ATX->sockfd && ATX->dbh == NULL) 
+    ATX->dbh = _ds_connect(CTX);
+
   if (dspam_attach(CTX, ATX->dbh)) {
-    LOGDEBUG("unable to attach dspam context");
-    result = EUNKNOWN;
-    goto RETURN;
+
+    /* Try again */
+    if (ATX->sockfd) {
+      ATX->dbh = _ds_connect(CTX);
+
+      if (dspam_attach(CTX, ATX->dbh)) {
+        LOGDEBUG("unable to attach dspam context");
+        result = EUNKNOWN;
+        goto RETURN;
+      }
+    } else {
+      LOGDEBUG("unable to attach dspam context");
+      result = EUNKNOWN;
+      goto RETURN;
+    }
   }
 
   /* First Run Message */

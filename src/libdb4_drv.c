@@ -1,4 +1,4 @@
-/* $Id: libdb4_drv.c,v 1.3 2004/12/01 17:29:11 jonz Exp $ */
+/* $Id: libdb4_drv.c,v 1.4 2004/12/03 00:36:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -1286,5 +1286,10 @@ _ds_delall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
   }
                                                                                 
   return ret;
+}
+
+void *_ds_connect (DSPAM_CTX *CTX)
+{
+  return NULL;
 }
 

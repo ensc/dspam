@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.13 2004/12/01 23:10:15 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.14 2004/12/03 00:36:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -2536,6 +2536,11 @@ _ds_delete_decision (DSPAM_CTX * CTX, const char *signature)
   }
                                                                                                                               
   return 0;
+}
+
+void *_ds_connect (DSPAM_CTX *CTX)
+{
+  return (void *) _mysql_drv_connect(CTX);
 }
 
 MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)

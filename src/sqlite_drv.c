@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.10 2004/12/01 17:29:11 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.11 2004/12/03 00:36:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -1360,5 +1360,10 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
   buffer_destroy (query);
   return 0;
+}
+
+void *_ds_connect (DSPAM_CTX *CTX)
+{
+  return NULL;
 }
 

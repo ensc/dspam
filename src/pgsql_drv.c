@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.8 2004/12/01 17:29:11 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.9 2004/12/03 00:36:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -2634,4 +2634,9 @@ _ds_delete_decision (DSPAM_CTX * CTX, const char *signature)
 }
 
 /* END Neural network functions */
+
+void *_ds_connect (DSPAM_CTX *CTX)
+{
+  return NULL;
+}
 
