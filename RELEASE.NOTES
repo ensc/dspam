@@ -1,6 +1,6 @@
-$Id: RELEASE.NOTES,v 1.32 2005/03/02 22:18:22 jonz Exp $
+$Id: RELEASE.NOTES,v 1.33 2005/03/04 16:33:23 jonz Exp $
 
-RELEASE 3.4 (Release Candidate 2)
+RELEASE 3.4
 
 ------------------------------------------------------
 PLEASE SEE THE FILE 'UPGRADING' PRIOR TO INSTALLATION!
@@ -110,7 +110,7 @@ TOOLS
 
 Enhancements:
 
-Accuracy Reporting in dspam_stats
+New Reporting Features in dspam_stats
 Functionality has been added to dspam_stats to report accuracy either based
 on total activity or activity based on a snapshot. The tool can now take a
 snapshot of the current activity (just like reset stats) and report on
