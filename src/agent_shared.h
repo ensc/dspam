@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.2 2004/12/08 18:01:18 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.3 2004/12/20 12:27:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -55,7 +55,9 @@ typedef struct {
   int classification;       /* Classification        IN DSR_ */
   int source;               /* Classification Source IN DSS_ */
   int spam_action;	    /* Action on Spam        IN DSA_ */
+#ifdef TRUSTED_USER_SECURITY
   int trusted;		    /* Trusted User?         IN      */
+#endif
   int feature;		    /* Feature Overridden?   IN      */
   void *dbh;                /* Database Handle       IN      */
   u_int32_t flags;          /* Flags DAF_            IN      */
