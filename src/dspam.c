@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.127 2005/04/05 21:55:31 jonz Exp $ */
+/* $Id: dspam.c,v 1.128 2005/04/06 13:29:56 jonz Exp $ */
 
 /*
  DSPAM
@@ -3060,6 +3060,10 @@ int tracksource(DSPAM_CTX *CTX) {
 }
 
 int is_blacklisted(const char *ip) {
+#ifdef __CYGWIN__
+  /* No cygwin support for ip blacklisting */
+  return 0;
+#else
   struct attribute *attrib;
   struct addrinfo *res;
   struct sockaddr_in saddr;
@@ -3102,6 +3106,7 @@ int is_blacklisted(const char *ip) {
   }
 
   return bad;
+#endif
 }
 
 #ifdef DAEMON

@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.262 2005/04/06 13:25:12 jonz Exp $
+$Id: CHANGELOG,v 1.263 2005/04/06 13:29:56 jonz Exp $
    
 Version NEXT
 ------------
@@ -41,6 +41,12 @@ preference when provsioned. To use:
 
 Version 3.4.3
 -------------
+
+[20050406.0700] jonz: fixed cygwin build errors
+
+fixed cygwin build errors by removing support for ip blacklisting (cygwin
+does not have the necessary functions to perform these lookups, at least
+nothing standard + mt-safe)
 
 [20050406.0700] jonz: fixed optIn + preferences extension support
 
