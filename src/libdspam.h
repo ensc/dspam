@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.6 2004/12/16 20:17:39 jonz Exp $ */
+/* $Id: libdspam.h,v 1.7 2004/12/17 22:59:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "storage_driver.h"
 #include "decode.h"
 #include "libdspam_objects.h"
-#include "tbt.h"
+#include "heap.h"
 
 #ifndef _LIBDSPAM_H
 #  define _LIBDSPAM_H
@@ -79,7 +79,7 @@ int _ds_calc_stat		(DSPAM_CTX * CTX,
                                  struct _ds_spam_stat *bnr_tot);
 
 int _ds_calc_result		(DSPAM_CTX * CTX,
-                                 struct tbt *index,
+                                 struct heap *heap_sort,
                                  struct lht *freq);
 
 int _ds_process_header_token	(DSPAM_CTX * CTX, 

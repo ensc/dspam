@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.46 2004/12/17 17:04:49 jonz Exp $ */
+/* $Id: libdspam.c,v 1.47 2004/12/17 22:59:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -59,7 +59,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "storage_driver.h"
 #include "buffer.h"
 #include "lht.h"
-#include "tbt.h"
+#include "heap.h"
 #include "error.h"
 #include "decode.h"
 #include "language.h"
@@ -650,11 +650,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   nc_strtok_t NTX;
 #endif
 
-  /* Variables for Bayesian Noise Reduction */
-#ifdef BNR_DEBUG
-  struct tbt *pindex = tbt_create();
-#endif
-
   char *line = NULL;			/* header broken up into lines */
   char *url_body;			/* urls broken up */
 
@@ -671,9 +666,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   struct lht_node *node_lht;
   struct lht_c c_lht;
 
-  struct tbt *index = tbt_create ();    /* Binary tree index */
+  struct heap *heap_sort = NULL; /* Heap sort for top N tokens */
 
-  struct nt *header = NULL;     /* header array */
+  struct nt *header = NULL;      /* Header array */
   struct nt_node *node_nt;
   struct nt_c c_nt;
   long body_length = 0;
@@ -681,6 +676,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   unsigned long long whitelist_token = 0;
   int do_whitelist = 0;
   int result = -1;
+
+  if (CTX->algorithms & DSA_BURTON)
+    heap_sort = heap_create(27);
+  else if (CTX->algorithms & DSA_ROBINSON)
+    heap_sort = heap_create(25);
+  else if (CTX->algorithms & DSA_GRAHAM)
+    heap_sort = heap_create(15);
 
   /* Allocate SBPH signature (Message Text) */
 
@@ -724,7 +726,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     
   joined_token[0] = 0;
 
-  if (freq == NULL || index == NULL)
+  if (freq == NULL || heap_sort == NULL)
   {
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     errcode = EUNKNOWN;
@@ -1255,10 +1257,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
                  node_lht->s.spam_hits,
                  node_lht->s.innocent_hits);
   
-#ifdef BNR_DEBUG
-        tbt_add (pindex, node_lht->s.probability, node_lht->key,
-               node_lht->frequency, 1);
-#endif
         node_lht = c_lht_next(bnr_layer1, &c_lht);
       }
     }
@@ -1277,10 +1275,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         lht_setspamstat(freq, node_lht->key, &node_lht->s);
         lht_setfrequency(freq, node_lht->key, 1);
 
-#ifdef BNR_DEBUG
-        tbt_add (pindex, node_lht->s.probability, node_lht->key,
-               node_lht->frequency, 1);
-#endif
         node_lht = c_lht_next(bnr_layer2, &c_lht);
       }
     }
@@ -1298,10 +1292,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
                  node_lht->s.spam_hits,
                  node_lht->s.innocent_hits);
 
-#ifdef BNR_DEBUG
-        tbt_add (pindex, node_lht->s.probability, node_lht->key,
-               node_lht->frequency, 1);
-#endif
         node_lht = c_lht_next(bnr_layer3, &c_lht);
       }
     }
@@ -1312,7 +1302,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     LOGDEBUG("Whitelist threshold: %d", CTX->wh_threshold);
   }
 
-  /* Create a binary tree index sorted by a token's delta from .5 */
+  /* Create a heap sort based on the token's delta from .5 */
   node_lht = c_lht_first (freq, &c_lht);
   while (node_lht != NULL)
   {
@@ -1334,10 +1324,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     if (node_lht->frequency > 0)
     {
-      tbt_add (index, node_lht->s.probability, node_lht->key,
+      heap_insert (heap_sort, node_lht->s.probability, node_lht->key,
              node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
     }
-
      
 #ifdef VERBOSE
     LOGDEBUG ("Token: %s [%f]", node_lht->token_name,
@@ -1349,7 +1338,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Take the 15 most interesting tokens and generate a score */
 
-  if (index->items == 0)
+  if (heap_sort->items == 0)
   {
     LOGDEBUG ("no tokens found in message");
     errcode = EINVAL; 
@@ -1383,14 +1372,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     }
   }
 
-#ifdef BNR_DEBUG
-  LOGDEBUG("Calculating BNR Result");
-  result = _ds_calc_result(CTX, pindex, bnr_layer1);
-  LOGDEBUG ("message result: %s", (result != DSR_ISSPAM) ? "NOT SPAM" : "SPAM");
-  tbt_destroy(pindex);
-#endif
-
-  result = _ds_calc_result(CTX, index, freq);
+  result = _ds_calc_result(CTX, heap_sort, freq);
 
   if (CTX->flags & DSF_WHITELIST && do_whitelist) {
     LOGDEBUG("auto-whitelisting this message");
@@ -1585,11 +1567,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     goto bail;
   }
 
-  tbt_destroy (index);
   lht_destroy (freq);
   lht_destroy (bnr_layer1);
   lht_destroy (bnr_layer2);
   lht_destroy (bnr_layer3);
+  heap_destroy (heap_sort);
 
   /* One final sanity check */
 
@@ -1607,7 +1589,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   return CTX->result;
 
 bail:
-  tbt_destroy (index);
+  heap_destroy (heap_sort);
   lht_destroy (freq);
   lht_destroy (bnr_layer1);
   lht_destroy (bnr_layer2);
@@ -2423,10 +2405,9 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
  *  provided message sample.
  */
 
-int _ds_calc_result(DSPAM_CTX *CTX, struct tbt *index, struct lht *freq) {
-
+int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
   struct _ds_spam_stat stat;
-  struct tbt_node *node_tbt;
+  struct heap_node *node_heap;
 
   /* Graham-Bayesian */
   float bay_top = 0.0; 
@@ -2456,36 +2437,22 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct tbt *index, struct lht *freq) {
   double chi_s = 1.0, chi_h = 1.0;
   struct nt *factor_chi = nt_create(NT_PTR);
 
-  int i;
+  node_heap = heap_sort->root;
 
-  node_tbt = tbt_first (index);
-
-  for (i = 0; i <
-    (  ( !(CTX->algorithms & DSA_CHI_SQUARE) && index->items > 27 ) ? 
-       27 : (long)index->items); i++)
+  while(node_heap)
   {
     unsigned long long crc;
     char *token_name;
 
-    crc = node_tbt->token;
+    crc = node_heap->token;
     token_name = lht_gettoken (freq, crc);
 
     if (lht_getspamstat (freq, crc, &stat) || token_name == NULL)
-    {
-      node_tbt = tbt_next (node_tbt);
-      continue;
-    }
+      goto HEAP_NEXT;
 
-    /* Skip BNR patterns if still training */
-    if (!strncmp(token_name, "bnr.", 4)) {
-//      if (CTX->classification != DSR_NONE ||
-//          CTX->totals.innocent_learned + CTX->totals.innocent_classified 
-//            <= 2500)
-//      {
-        node_tbt = tbt_next (node_tbt);
-        continue;
-      }
-//    }
+    /* Skip BNR patterns */
+    if (!strncmp(token_name, "bnr.", 4))
+      goto HEAP_NEXT;
 
     /* Set the probability if we've provided a classification */
     if (CTX->classification == DSR_ISSPAM)
@@ -2498,7 +2465,6 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct tbt *index, struct lht *freq) {
     /* Graham-Bayesian */
     if (CTX->algorithms & DSA_GRAHAM && bay_used < 15)
     {
-
         LOGDEBUG ("[graham] [%2.6f] %s (%dfrq, %lds, %ldi)",
                   stat.probability, token_name, lht_getfrequency (freq, crc),
                   stat.spam_hits, stat.innocent_hits);
@@ -2566,7 +2532,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct tbt *index, struct lht *freq) {
     if (rob_used < 25)
     {
       float probability;
-      long n = (index->items > 25) ? 25 : index->items;
+      long n = (heap_sort->items > 25) ? 25 : heap_sort->items;
 
       probability = ((ROB_S * ROB_X) + (n * stat.probability)) / (ROB_S + n);
 
@@ -2627,26 +2593,44 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct tbt *index, struct lht *freq) {
       }
     }
 
-    /* Fisher-Robinson's Inverse Chi-Square */
+    /* END Combine Token Values */
+
+HEAP_NEXT:
+    node_heap = node_heap->next;
+  }
+
+  /* Fisher-Robinson's Inverse Chi-Square */
 #define CHI_CUTOFF	0.5010	/* Ham/Spam Cutoff */
 #define CHI_EXCR	0.4500	/* Exclusionary Radius */
 #define LN2		0.69314718055994530942 /* log e2 */
-    if (CTX->algorithms & DSA_CHI_SQUARE)
-    {
-      double fw;
-      int n, exp;
+
+  if (CTX->algorithms & DSA_CHI_SQUARE)
+  {
+    struct lht_node *node_lht;
+    struct lht_c c_lht;
+    double fw;
+    int n, exp;
+
+    node_lht = c_lht_first(freq, &c_lht);
+    while(node_lht != NULL) {
+
+      /* Skip BNR Tokens */
+      if (node_lht->token_name && !strncmp(node_lht->token_name, "bnr.", 4))
+        goto CHI_NEXT;
+
+      /* Convert the p-value */
 
       if (CTX->algorithms & DSP_ROBINSON) {
-        fw = stat.probability;
+        fw = node_lht->s.probability;
       } else {
-        n = stat.spam_hits + stat.innocent_hits;
-        fw = ((CHI_S * CHI_X) + (n * stat.probability))/(CHI_S + n);
+        n = node_lht->s.spam_hits + node_lht->s.innocent_hits;
+        fw = ((CHI_S * CHI_X) + (n * node_lht->s.probability))/(CHI_S + n);
       }
 
       if (fabs(0.5-fw)>CHI_EXCR) {
-        int iter = _ds_compute_complexity(token_name);
+        int iter = _ds_compute_complexity(node_lht->token_name);
 
-iter = 1;
+        iter = 1;
         while(iter>0) {
           iter --;
 
@@ -2655,13 +2639,13 @@ iter = 1;
           {
 #endif
             LOGDEBUG ("[chi-sq] [%2.6f] %s (%dfrq, %lds, %ldi)",
-                      fw, token_name, lht_getfrequency (freq, crc),
-                      stat.spam_hits, stat.innocent_hits);
+                      fw, node_lht->token_name, node_lht->frequency,
+                      node_lht->s.spam_hits, node_lht->s.innocent_hits);
 #ifndef VERBOSE
           }
 #endif
 
-          _ds_factor(factor_chi, token_name, stat.probability);
+          _ds_factor(factor_chi, node_lht->token_name, node_lht->s.probability);
 
           chi_used++;
           chi_s *= (1.0 - fw);
@@ -2676,15 +2660,13 @@ iter = 1;
           }
         }
       }
+
+CHI_NEXT:
+      node_lht = c_lht_next(freq, &c_lht);
     }
-
-
-/* END Combine Token Values */
-
-    node_tbt = tbt_next (node_tbt);
   }
 
-/* BEGIN Calculate Individual Probabilities */
+  /* BEGIN Calculate Individual Probabilities */
 
   if (CTX->algorithms & DSA_GRAHAM) {
     bay_result = (bay_top) / (bay_top + bay_bot);

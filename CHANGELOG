@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.70 2004/12/15 23:46:16 jonz Exp $
+$Id: CHANGELOG,v 1.71 2004/12/17 22:59:04 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041217.0700] jonz: replaced btree sort with heap sort, major speedup
+
+replaced btree sort of tokens by delta with a heap window-size sort, major
+speedup in performance; a 200k text message down to 2.2s from 12s.
 
 [20041215.1845] jonz: added sqlite3_drv 
 

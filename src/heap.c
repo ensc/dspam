@@ -1,4 +1,4 @@
-/* $Id: heap.c,v 1.1 2004/12/17 22:14:48 jonz Exp $ */
+/* $Id: heap.c,v 1.2 2004/12/17 22:59:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -53,6 +53,7 @@ heap_destroy(struct heap *h)
   while(node) {
     next = node->next;
     free(node);
+    node = next;
   }
   return 0;
 }
