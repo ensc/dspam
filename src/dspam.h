@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.10 2004/12/01 18:26:12 jonz Exp $ */
+/* $Id: dspam.h,v 1.11 2004/12/02 17:55:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -72,6 +72,7 @@ typedef struct {
   int learned;                  /* Message learned?  OUT     */
   int sockfd;			/* Socket FD if not STDOUT   */
   int sockfd_output;		/* Output sent to sockfd?    */
+  char client_args[1024];	/* Args for client connection */
 
 #ifdef DEBUG
   char debug_args[1024];

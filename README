@@ -1,4 +1,4 @@
-$Id: README,v 1.12 2004/11/21 18:48:16 jonz Exp $
+$Id: README,v 1.13 2004/12/02 17:55:51 jonz Exp $
 
 DSPAM v3.2 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1264,6 +1264,13 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
          whitelisting) were active at the time of the initial classification.
          Since BNR is only necessary when a message is being classified, the
          --feature flag can be safely omitted from error source calls.
+
+  --daemon
+  Puts DSPAM in daemon mode; sits and waits for connections from a client.
+  When using this, database connections are kept stateful. See dspam.conf
+  for instructions on configuring the daemon. You'll also need to configure
+  the client connection data in dspam.conf so that DSPAM (when not in
+  daemon mode) will connect to the server.
 
 2.0 LINKING WITH LIBDSPAM
 

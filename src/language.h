@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.3 2004/11/30 18:37:28 jonz Exp $ */
+/* $Id: language.h,v 1.4 2004/12/02 17:55:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -78,6 +78,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define DAEMON_START		"Daemon process starting"
 #define DAEMON_EXIT             "Daemon process exiting"
 #define DAEMON_BINDING		"Binding to :%d"
+#define DAEMON_DATA		"Enter mail, end with \".\" on a line by itself"
 
 #define ERROR_DAEMON_BIND		"Could not bind to :%d (%s)"
 #define ERROR_DAEMON_SOCKET		"Could not create socket: %s"
@@ -85,5 +86,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ERROR_DAEMON_LISTEN		"listen() failed: %s"
 #define ERROR_DAEMON_ACCEPT		"accept() failed: %s"
 #define ERROR_DAEMON_THREAD		"pthread_create() failed: %s"
+#define ERROR_MESSAGE_NULL		"Message is empty. Aborting."
+
+#define ERROR_CLIENT_CONNECT		"Could not connect to server"
+#define ERROR_CLIENT_CONNECT_HOST	"Connection to %s:%d failed: %s"
+#define ERROR_CLIENT_AUTH_FAILED	"Unable to authenticate client"
+#define ERROR_CLIENT_AUTHENTICATE	"Authentication rejected"
+#define CLIENT_CONNECTED		"Connection established"
+#define CLIENT_CONNECT			"Establishing Connection to %s:%d"
 
 #endif /* _LANGUAGE_H */

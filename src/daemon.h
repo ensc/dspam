@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.9 2004/12/01 18:26:12 jonz Exp $ */
+/* $Id: daemon.h,v 1.10 2004/12/02 17:55:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -56,19 +56,20 @@ int daemon_listen(DRIVER_CTX *DTX);
 void *process_connection(void *ptr);
 char *socket_getline(THREAD_CTX *TTX, int timeout);
 char *pop_buffer(THREAD_CTX *TTX);
-int socket_send(THREAD_CTX *TTX, const char *ptr);
+int send_socket(THREAD_CTX *TTX, const char *ptr);
 buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
 int process_users_daemon(THREAD_CTX *TTX, AGENT_CTX *ATX, buffer *message);
-char *socket_expect(THREAD_CTX *TTX, const char *ptr);
-int socket_reply(THREAD_CTX *TTX, int reply, const char *txt);
+char *daemon_expect(THREAD_CTX *TTX, const char *ptr);
+int daemon_reply(THREAD_CTX *TTX, int reply, const char *txt);
 
-#define LMTP_GREETING	220
-#define LMTP_QUIT	221
-#define LMTP_OK		250
-#define LMTP_DATA	354
-#define LMTP_ERROR	500
-#define LMTP_AUTH_ERROR	503
-#define LMTP_BAD_CMD	503
+#define LMTP_GREETING		220
+#define LMTP_QUIT		221
+#define LMTP_OK			250
+#define LMTP_DATA		354
+#define LMTP_ERROR_PROCESS	500
+#define LMTP_FAILURE		530
+#define LMTP_AUTH_ERROR		503
+#define LMTP_BAD_CMD		503
 
 #endif
 #endif /* _DAEMON_H */

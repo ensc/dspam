@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.29 2004/12/01 23:40:43 jonz Exp $ */
+/* $Id: dspam.c,v 1.30 2004/12/02 17:55:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -51,6 +51,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "read_config.h"
 #ifdef DAEMON
 #include "daemon.h"
+#include "client.h"
 #endif
 
 #ifdef TIME_WITH_SYS_TIME
@@ -170,23 +171,29 @@ main (int argc, char *argv[])
     goto bail;
   }
 
-  if (dspam_init_driver (NULL))
-  {
-    LOG (LOG_WARNING, "unable to initialize storage driver");
-    exitcode = EXIT_FAILURE;
-    goto bail;
+  if (_ds_read_attribute(agent_config, "ClientHost")   &&
+      _ds_read_attribute(agent_config, "ClientIdent")) {
+    exitcode = client_process(&ATX, message);
   } else {
-    driver_init = 1;
+ 
+    if (dspam_init_driver (NULL))
+    {
+      LOG (LOG_WARNING, "unable to initialize storage driver");
+      exitcode = EXIT_FAILURE;
+      goto bail;
+    } else {
+      driver_init = 1;
+    }
+  
+    /* Process the message once for each destination user */
+    results = process_users(&ATX, message);
+    exitcode = *results[ATX.users->items];
+    for(i=0;i<=ATX.users->items;i++) {
+      if (results[i] != NULL) 
+        free(results[i]);
+    }
+    free(results);
   }
-
-  /* Process the message once for each destination user */
-  results = process_users(&ATX, message);
-  exitcode = *results[ATX.users->items];
-  for(i=0;i<=ATX.users->items;i++) {
-    if (results[i] != NULL) 
-      free(results[i]);
-  }
-  free(results);
 
 bail:
 
@@ -196,8 +203,10 @@ bail:
   if (agent_init)
     nt_destroy(ATX.users);
 
-  if (driver_init)
-    dspam_shutdown_driver (NULL);
+  if (!_ds_read_attribute(agent_config, "ClientHost")) {
+    if (driver_init)
+      dspam_shutdown_driver (NULL);
+  }
 
   if (agent_config)
     _ds_destroy_attributes(agent_config);
@@ -252,6 +261,11 @@ process_message (AGENT_CTX *ATX,
   }
 
   /* Decode the message into a series of structures for easy processing */
+  if (message->data == NULL) {
+    LOGDEBUG("Message provided is NULL");
+    return EINVAL;
+  }
+
   components = _ds_actualize_message (message->data);
   if (components == NULL)
   {
@@ -1195,6 +1209,7 @@ int initialize_atx(AGENT_CTX *ATX) {
 
 int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
   int i, user_flag = 0;
+  char *clienthost = _ds_read_attribute(agent_config, "ClientHost");
 
   for (i = 0; i < argc; i++)
   {
@@ -1210,6 +1225,11 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
        user_flag = 0;
        if (!strcmp(argv[i], "--"))
          continue;
+    }
+
+    if (clienthost && !user_flag && i && strcmp(argv[i], "--user")) {
+      strlcat (ATX->client_args, argv[i], sizeof(ATX->client_args));
+      strlcat (ATX->client_args, " ", sizeof(ATX->client_args));
     }
 
     /* Debug */

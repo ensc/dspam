@@ -1,4 +1,4 @@
-/* $Id: client.h,v 1.1 2004/11/21 02:47:55 jonz Exp $ */
+/* $Id: client.h,v 1.2 2004/12/02 17:55:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -20,19 +20,28 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#ifdef DAEMON
-
 #ifndef _CLIENT_H
 #  define _CLIENT_H
+
+#ifdef HAVE_CONFIG_H
+#include <auto-config.h>
+#endif
+
+#ifdef DAEMON
 
 #include <sys/types.h>
 #ifndef _WIN32
 #include <pwd.h>
 #endif
 
-#ifdef HAVE_CONFIG_H
-#include <auto-config.h>
-#endif
+#include "dspam.h"
+#include "buffer.h"
+
+int client_process(AGENT_CTX *ATX, buffer *message);
+int client_connect(void);
+int client_authenticate(THREAD_CTX *TTX);
+int client_getcode(THREAD_CTX *TTX);
+char * client_expect(THREAD_CTX *TTX, int response_code);
 
 #endif /* _CLIENT_H */
 
