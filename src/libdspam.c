@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.40 2004/12/15 19:41:48 jonz Exp $ */
+/* $Id: libdspam.c,v 1.41 2004/12/16 02:33:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -1810,14 +1810,10 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
 
   {
     if (token_type == DTT_BNR) {
-      /* Hit counts are step 5 */
-      int bnr_spam = (bnr_tot->spam_hits/5) * 5;
-      int bnr_innocent = (bnr_tot->innocent_hits/5) * 5;
-  
       s->probability =
-        (s->spam_hits * 1.0 / bnr_spam * 1.0) /
-        ((s->spam_hits * 1.0 / bnr_spam * 1.0) +
-         (s->innocent_hits * 1.0 / bnr_innocent * 1.0));
+        (s->spam_hits * 1.0 / bnr_tot->spam_hits * 1.0) /
+        ((s->spam_hits * 1.0 / bnr_tot->spam_hits * 1.0) +
+         (s->innocent_hits * 1.0 / bnr_tot->innocent_hits * 1.0));
     } else {
 #ifdef BIAS
         s->probability =
