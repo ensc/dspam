@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.22 2005/02/24 22:04:06 jonz Exp $
+## $Id: dspam.conf.in,v 1.23 2005/02/25 23:19:35 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -40,7 +40,8 @@ TrustedDeliveryAgent "@delivery_agent@"
 # LMTP Delivery: Alternatively, you may wish to use LMTP delivery to deliver
 # your message to the mail server. You will need to configure with 
 # --enable-daemon to use LMTP delivery, however you do not need to 
-# operate in daemon mode.
+# operate in daemon mode. Specify an IP address or UNIX path to a domain socket
+# below as a host.
 #
 #LMTPDeliveryHost        127.0.0.1
 #LMTPDeliveryPort        24

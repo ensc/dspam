@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.25 2005/02/25 15:09:08 jonz Exp $ */
+/* $Id: client.c,v 1.26 2005/02/25 23:19:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -188,6 +188,9 @@ int client_connect(int flags) {
     if (_ds_read_attribute(agent_config, "LMTPDeliveryPort"))
       port = atoi(_ds_read_attribute(agent_config, "LMTPDeliveryPort"));
 
+    if (host[0] == '/') 
+      domain = 1;
+
   } else {
 
     host = _ds_read_attribute(agent_config, "ClientHost");
@@ -205,7 +208,12 @@ int client_connect(int flags) {
   }
 
   if (domain) {
-    char *address = _ds_read_attribute(agent_config, "ServerDomainSocketPath");
+    char *address;
+
+    if (flags & CCF_LMTPHOST) 
+      address = host;
+    else
+      address = _ds_read_attribute(agent_config, "ServerDomainSocketPath");
 
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     saun.sun_family = AF_UNIX;

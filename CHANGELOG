@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.176 2005/02/25 15:47:29 jonz Exp $
+$Id: CHANGELOG,v 1.177 2005/02/25 23:19:35 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050225.0700] jonz: added support for LMTP delivery via domai socket
+
+specifying a path as LMTPDeliveryHost will cause DSPAM to connect and deliver
+via domain socket (instead of TCP).
 
 [20050225.0600] jonz: added %r and %s LDA arguments
 
