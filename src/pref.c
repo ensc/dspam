@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.4 2005/01/11 18:08:12 jonz Exp $ */
+/* $Id: pref.c,v 1.5 2005/01/11 19:24:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -44,52 +44,49 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "language.h"
 #include "read_config.h"
 
-int _ds_pref_aggregate(AGENT_PREF system, AGENT_PREF user) {
-  AGENT_ATTRIB *pref, *syspref;
-  int i, j, size;
+AGENT_PREF _ds_pref_aggregate(AGENT_PREF STX, AGENT_PREF UTX) {
+  AGENT_PREF PTX = calloc(PREF_MAX, sizeof(AGENT_ATTRIB *));
+  int i, j, size = 0;
 
-  if (!user)
-    return 0;
-
-  system = realloc(system, sizeof(AGENT_ATTRIB *)*PREF_MAX); 
-  if (system == NULL) {
-    report_error(ERROR_MEM_ALLOC);
-    return EUNKNOWN;
-  }
-
-  for(size=0;system[size];size++) { }
-
-  for(i=0;user[i];i++) {
-    pref = user[i];
-
-    if (_ds_match_attribute(agent_config, "AllowOverride", pref->attribute)) {
-      int find = 0;
-      for(j=0;system[j];j++) {
-        syspref = system[j];
-        if (!strcasecmp(syspref->attribute, pref->attribute)) {
-          find = 1;
-          free(syspref->value);
-          syspref->value = strdup(pref->value);
-          break;
-        }
-      }
-      if (!find) {
-        size = j;
-        system[j+1] = NULL;
-        system[j] = _ds_pref_new(pref->attribute, pref->value);
-        size++;
-      }
-    } else {
-      report_error_printf(ERROR_IGNORING_PREF, pref->attribute);
+  if (STX) {
+    for(i=0;STX[i];i++) {
+      PTX[i] = _ds_pref_new(STX[i]->attribute, STX[i]->value);
+      size++;
     }
   }
 
-  system = realloc(system, sizeof(AGENT_ATTRIB *)*size);
-  if (system == NULL) {
-    report_error(ERROR_MEM_ALLOC);
-    return EUNKNOWN;
+  if (UTX) {
+    for(i=0;UTX[i];i++) {
+
+      if (_ds_match_attribute(agent_config, "AllowOverride", UTX[i]->attribute))
+      {
+        int found = 0;
+        for(j=0;PTX[j];j++) {
+          if (!strcasecmp(PTX[j]->attribute, UTX[i]->attribute)) {
+            found = 1;
+            free(STX[j]->value);
+            STX[j]->value = strdup(UTX[i]->value);
+            break;
+          }
+        }
+  
+        if (!found) {
+          PTX[size] = _ds_pref_new(UTX[i]->attribute, UTX[i]->value);
+          size++;
+        }
+      } else {
+        report_error_printf(ERROR_IGNORING_PREF, UTX[i]->attribute);
+      }
+    }
   }
-  return 0;
+
+  PTX = realloc(PTX, sizeof(AGENT_ATTRIB *)*size+1);
+  if (PTX == NULL) {
+    report_error(ERROR_MEM_ALLOC);
+    return NULL;
+  }
+
+  return PTX;
 }
 
 int _ds_pref_free(AGENT_PREF PTX) {

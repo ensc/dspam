@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.63 2005/01/11 18:08:12 jonz Exp $ */
+/* $Id: dspam.c,v 1.64 2005/01/11 19:24:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -1189,6 +1189,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
   while (node_nt != NULL)
   {
     AGENT_PREF PTX;
+    AGENT_PREF STX;
     AGENT_PREF UTX;
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
@@ -1285,25 +1286,16 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
                         node_nt->ptr, 
                         _ds_read_attribute(agent_config, "Home"), ATX->dbh);
 
-    if (UTX && UTX[0] == 0) {
-      _ds_pref_free(UTX);
-      free(UTX);
-      UTX = NULL;
-    }
+    STX = pref_config();
 
-    PTX = pref_config();
-
-    if (PTX == NULL) 
-      PTX = UTX;
-    else {
-      if (!_ds_pref_aggregate(PTX, UTX)) {
-        _ds_pref_free(UTX);
-        free(UTX);
-      }
-    }
+    PTX = _ds_pref_aggregate(STX, UTX);
+    _ds_pref_free(UTX);
+    free(UTX);
+    _ds_pref_free(STX);
+    free(STX);
 
 #ifdef VERBOSE
-    {
+    if (PTX) {
       AGENT_ATTRIB *t;
       int j;
       for(j=0;PTX[j];j++) {

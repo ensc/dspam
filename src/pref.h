@@ -1,4 +1,4 @@
-/* $Id: pref.h,v 1.4 2005/01/11 18:08:12 jonz Exp $ */
+/* $Id: pref.h,v 1.5 2005/01/11 19:24:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -37,7 +37,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define PREF_MAX	32
 
 /* a single preference attribute */
-                                                                                
+
 typedef struct {
   char *attribute;
   char *value;
@@ -49,7 +49,7 @@ typedef struct {
 
 const char *	_ds_pref_val (AGENT_PREF PTX, const char *attrib);
 int             _ds_pref_free (AGENT_PREF PTX);
-int		_ds_pref_aggregate(AGENT_PREF system, AGENT_PREF user);
+AGENT_PREF	_ds_pref_aggregate(AGENT_PREF, AGENT_PREF);
 AGENT_ATTRIB	*_ds_pref_new(const char *attribute, const char *value);
 
 #ifndef PREFERENCES_EXTENSION
