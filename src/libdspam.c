@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.8 2004/11/21 22:13:52 jonz Exp $ */
+/* $Id: libdspam.c,v 1.9 2004/11/21 23:57:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -621,6 +621,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   struct lht_c c_lht;
 
   struct tbt *index = tbt_create ();    /* Binary tree index */
+#ifdef BNR_DEBUG
+  struct tbt *pindex = tbt_create ();
+#endif
 
   struct nt *header = NULL;     /* header array */
   struct nt_node *node_nt;
@@ -1151,6 +1154,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       lht_hit(freq, node_lht->key, node_lht->token_name);
       lht_setspamstat(freq, node_lht->key, &node_lht->s);
       lht_setfrequency(freq, node_lht->key, 1);
+
+#ifdef BNR_DEBUG
+      tbt_add (pindex, node_lht->s.probability, node_lht->key,
+             node_lht->frequency, 1);
+#endif
       node_lht = c_lht_next(pfreq, &c_lht);
     }
   }
@@ -1181,9 +1189,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
              node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
     }
 
-    /* Create a second index without any BNR filtering to see if BNR had any
-       affect on the result */
-
+     
 #ifdef VERBOSE
     LOGDEBUG ("Token: %s [%f]", node_lht->token_name,
               node_lht->s.probability);
@@ -1192,7 +1198,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     node_lht = c_lht_next (freq, &c_lht);
   }
 
-#ifdef BNR_DEBUG
+#ifdef BNR_VERBOSE_DEBUG
   printf("BNR FILTER PROCESS RESULTS: %ld TOKENS PROCESSED\n", freq->items);
   printf("TOKENS ELIMINATED: \n");
   node_lht = c_lht_first (freq, &c_lht);
@@ -1251,6 +1257,14 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       return EUNKNOWN;
     }
   }
+
+
+#ifdef BNR_DEBUG
+  LOGDEBUG("Calculating BNR Result");
+  result = _ds_calc_result(CTX, pindex, pfreq);
+  LOGDEBUG ("message result: %s", (result != DSR_ISSPAM) ? "NOT SPAM" : "SPAM");
+  tbt_destroy(pindex);
+#endif
 
   result = _ds_calc_result(CTX, index, freq);
 
