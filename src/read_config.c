@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.2 2004/11/01 15:07:22 jonz Exp $ */
+/* $Id: read_config.c,v 1.3 2004/11/12 14:06:23 jonz Exp $ */
 
 /*
  DSPAM
@@ -166,28 +166,34 @@ int set_libdspam_attributes(DSPAM_CTX *CTX) {
 
   for(i=0;agent_config[i];i++) {
     t = agent_config[i];
-    if (!strncasecmp(t->key, "MySQL", 5) ||
-        !strncasecmp(t->key, "PgSQL", 5) ||
-        !strncasecmp(t->key, "Ora", 3)   ||
-        !strncasecmp(t->key, "SQLite", 6))
-    {
 
-      if (profile == NULL || profile[0] == 0)
-      { 
-        ret += dspam_addattribute(CTX, t->key, t->value);
-      }
-      else if (strchr(t->key, '.'))
+    while(t) {
+
+      if (!strncasecmp(t->key, "MySQL", 5) ||
+          !strncasecmp(t->key, "PgSQL", 5) ||
+          !strncasecmp(t->key, "Ora", 3)   ||
+          !strncasecmp(t->key, "SQLite", 6) ||
+          !strcasecmp(t->key, "LocalMX"))
       {
-       
-        if (!strcasecmp((strchr(t->key, '.')+1), profile)) { 
-          char *x = strdup(t->key);
-          char *y = strchr(x, '.');
-          y[0] = 0;
 
-          ret += dspam_addattribute(CTX, x, t->value);
-          free(x);
+        if (profile == NULL || profile[0] == 0)
+        { 
+          ret += dspam_addattribute(CTX, t->key, t->value);
+        }
+        else if (strchr(t->key, '.'))
+        {
+       
+          if (!strcasecmp((strchr(t->key, '.')+1), profile)) { 
+            char *x = strdup(t->key);
+            char *y = strchr(x, '.');
+            y[0] = 0;
+
+            ret += dspam_addattribute(CTX, x, t->value);
+            free(x);
+          }
         }
       }
+      t = t->next;
     }
   }
 
