@@ -1,8 +1,15 @@
-$Id: CHANGELOG,v 1.229 2005/03/18 12:44:59 jonz Exp $
+$Id: CHANGELOG,v 1.230 2005/03/18 12:51:58 jonz Exp $
    
 Version NEXT
 ------------
   
+[20050318.0700] jonz: fixed bug related to corpusfeeding and signatures
+
+normally you're not supposed to corpus traini with email containing dspam
+signatures, but that doesn't mean dspam should bomb when you do. fixed a
+bug where the signature would cause the process to fail (since the signature
+isn't in the database anymore).
+
 [20050318.0700] jonz: fixed bug sending empty parameter via client
 
 fixed a bug where sending an empty parameter via client (for example -a "") 
