@@ -1,7 +1,10 @@
-$Id: CHANGELOG,v 1.109 2004/12/30 00:32:59 jonz Exp $
+$Id: CHANGELOG,v 1.110 2004/12/30 04:14:53 jonz Exp $
 
-Version NEXT
-------------
+Rapid Development Changes - To be consolidated at stable release time
+---------------------------------------------------------------------
+
+Version 3.3.7
+-------------
 
 [20041229.1928] jonz: more bnr tweaks
 
@@ -228,6 +231,9 @@ longer necessary. this helps tum outperform teft in resources.
 [20041020.1400] jonz: normalized main()
 
 normalized main() by breaking up code into smaller subroutines
+
+Stable Version Changes
+----------------------
 
 Version 3.2.4
 -------------
