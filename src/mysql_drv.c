@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.17 2004/12/13 22:58:45 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.18 2004/12/18 15:02:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -933,6 +933,11 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EINVAL;
   }
 
+  if (dbh) {
+    if (mysql_ping((MYSQL *) dbh))
+      return EFAILURE;
+  }
+
   s = calloc (1, sizeof (struct _mysql_drv_storage));
   if (s == NULL)
   {
@@ -1849,7 +1854,8 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 AGENT_PREF _ds_pref_load(
   attribute_t **config,  
   const char *username, 
-  const char *home)
+  const char *home,
+  void *dbh)
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
@@ -1861,17 +1867,10 @@ AGENT_PREF _ds_pref_load(
   AGENT_ATTRIB *pref;
   int uid, i = 0;
 
-  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
-
+  CTX = _mysql_drv_init_tools(home, config, dbh);
   if (CTX == NULL)
   {
-    LOG (LOG_WARNING, "unable to create dspam context");
-    return NULL;
-  }
-
-  _mysql_drv_set_attributes(CTX, config);
-  if (dspam_attach(CTX, NULL)) {
-    LOG (LOG_WARNING, "unable to attach dspam context");
+    LOG (LOG_WARNING, "unable to initialize tools context");
     return NULL;
   }
 
@@ -1909,7 +1908,7 @@ AGENT_PREF _ds_pref_load(
     dspam_destroy(CTX);
     if (username == NULL) 
       return NULL;
-    return _ds_pref_load(config, NULL, home);
+    return _ds_pref_load(config, NULL, home, dbh);
   }
 
   PTX = malloc(sizeof(AGENT_ATTRIB *)*(mysql_num_rows(result)+1));
@@ -1929,7 +1928,7 @@ AGENT_PREF _ds_pref_load(
     free(PTX);
     if (username == NULL)
       return NULL;
-    return _ds_pref_load(config, NULL, home);
+    return _ds_pref_load(config, NULL, home, dbh);
   }
 
   while(row != NULL) {
@@ -1962,7 +1961,8 @@ int _ds_pref_set (
  const char *username, 
  const char *home,
  const char *preference,
- const char *value) 
+ const char *value,
+ void *dbh) 
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
@@ -1971,20 +1971,12 @@ int _ds_pref_set (
   int uid;
   char *m1, *m2;
 
-  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
-                                                                                
-  if (CTX == NULL)
-  {
-    LOG (LOG_WARNING, "unable to create dspam context");
+  CTX = _mysql_drv_init_tools(home, config, dbh);
+  if (CTX == NULL) {
+    LOG (LOG_WARNING, "unable to initialize tools context");
     return EUNKNOWN;
   }
                                                                                 
-  _mysql_drv_set_attributes(CTX, config);
-  if (dspam_attach(CTX, NULL)) {
-    LOG (LOG_WARNING, "unable to attach dspam context");
-    return EUNKNOWN;
-  }
-
   s = (struct _mysql_drv_storage *) CTX->storage;
                                                                                 
   if (username != NULL) {
@@ -2052,7 +2044,8 @@ int _ds_pref_del (
  attribute_t **config,
  const char *username,
  const char *home,
- const char *preference)
+ const char *preference,
+ void *dbh)
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
@@ -2061,17 +2054,9 @@ int _ds_pref_del (
   int uid;
   char *m1;
                                                                                 
-  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
-                                                                                
-  if (CTX == NULL)
-  {
-    LOG (LOG_WARNING, "unable to create dspam context");
-    return EUNKNOWN;
-  }
-                                                                                
-  _mysql_drv_set_attributes(CTX, config);
-  if (dspam_attach(CTX, NULL)) {
-    LOG (LOG_WARNING, "unable to attach dspam context");
+  CTX = _mysql_drv_init_tools(home, config, dbh);
+  if (CTX == NULL) {
+    LOG (LOG_WARNING, "unable to initialize tools context");
     return EUNKNOWN;
   }
 
@@ -2129,7 +2114,8 @@ int _ds_pref_save(
   attribute_t **config,
   const char *username,  
   const char *home, 
-  AGENT_PREF PTX) 
+  AGENT_PREF PTX,
+  void *dbh) 
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
@@ -2139,17 +2125,9 @@ int _ds_pref_save(
   int uid, i = 0;
   char m1[257], m2[257];
 
-  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
-                                                                                
-  if (CTX == NULL)
-  {
-    LOG (LOG_WARNING, "unable to create dspam context");
-    return EUNKNOWN;
-  }
-                                                                                
-  _mysql_drv_set_attributes(CTX, config);
-  if (dspam_attach(CTX, NULL)) {
-    LOG (LOG_WARNING, "unable to attach dspam context");
+  CTX = _mysql_drv_init_tools(home, config, dbh);
+  if (CTX == NULL) {
+    LOG (LOG_WARNING, "unable to initialize tools context");
     return EUNKNOWN;
   }
 
@@ -2646,6 +2624,36 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
 
 FAILURE:
   LOGDEBUG("_ds_init_storage() failed");
+  return NULL;
+}
+
+DSPAM_CTX *_mysql_drv_init_tools(
+ const char *home, 
+ attribute_t **config,
+ void *dbh)
+{
+  DSPAM_CTX *CTX;
+
+  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
+
+  if (CTX == NULL) 
+    return NULL;
+
+  if (!dbh)
+    dbh = _mysql_drv_connect(CTX);
+
+  if (!dbh)
+    goto BAIL;
+
+  _mysql_drv_set_attributes(CTX, config);
+
+  if (dspam_attach(CTX, dbh)) 
+    goto BAIL;
+
+  return CTX;
+
+BAIL:
+  dspam_destroy(CTX);
   return NULL;
 }
 

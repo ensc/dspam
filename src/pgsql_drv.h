@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.h,v 1.2 2004/12/03 16:12:51 jonz Exp $ */
+/* $Id: pgsql_drv.h,v 1.3 2004/12/18 15:02:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -61,6 +61,8 @@ void	_pgsql_drv_query_error		(const char *error, const char *query);
 PGconn *_pgsql_drv_connect		(DSPAM_CTX *CTX);
 struct passwd *_pgsql_drv_getpwnam      (DSPAM_CTX * CTX, const char *name);
 struct passwd *_pgsql_drv_getpwuid      (DSPAM_CTX * CTX, uid_t uid);
+DSPAM_CTX *_pgsql_drv_init_tools( const char *home, attribute_t **config,
+ void *dbh);
 
 #ifdef VIRTUAL_USERS
 struct passwd *_pgsql_drv_setpwnam	(DSPAM_CTX * CTX, const char *name);

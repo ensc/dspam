@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.43 2004/12/17 17:04:49 jonz Exp $ */
+/* $Id: dspam.c,v 1.44 2004/12/18 15:02:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -1285,7 +1285,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     LOGDEBUG("Loading preferences for user %s", (const char *) node_nt->ptr);
     PTX = _ds_pref_load(agent_config, 
                         node_nt->ptr, 
-                        _ds_read_attribute(agent_config, "Home"));
+                        _ds_read_attribute(agent_config, "Home"), ATX->dbh);
 
     if (PTX && PTX[0] == 0) {
       _ds_pref_free(PTX);

@@ -1,4 +1,4 @@
-/* $Id: dspam_admin.c,v 1.2 2004/12/01 17:29:11 jonz Exp $ */
+/* $Id: dspam_admin.c,v 1.3 2004/12/18 15:02:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -199,9 +199,9 @@ int set_preference_attribute(
   int i;
 
   if (username[0] == 0) 
-    i = _ds_pref_set(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), attr, value);
+    i = _ds_pref_set(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), attr, value, NULL);
   else
-    i = _ds_pref_set(agent_config, username, _ds_read_attribute(agent_config, "Home"), attr, value);
+    i = _ds_pref_set(agent_config, username, _ds_read_attribute(agent_config, "Home"), attr, value, NULL);
 
   if (!i) 
     printf("operation successful.\n");
@@ -218,9 +218,9 @@ int del_preference_attribute(
   int i;
 
   if (username[0] == 0)
-    i = _ds_pref_del(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), attr);
+    i = _ds_pref_del(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), attr, NULL);
   else
-    i = _ds_pref_del(agent_config, username, _ds_read_attribute(agent_config, "Home"), attr);
+    i = _ds_pref_del(agent_config, username, _ds_read_attribute(agent_config, "Home"), attr, NULL);
 
   if (!i)
     printf("operation successful.\n");
@@ -237,9 +237,9 @@ int list_preference_attributes(const char *username)
   int i;
   
   if (username[0] == 0)
-    PTX = _ds_pref_load(agent_config, NULL, _ds_read_attribute(agent_config, "Home"));
+    PTX = _ds_pref_load(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), NULL);
   else
-    PTX = _ds_pref_load(agent_config, username,  _ds_read_attribute(agent_config, "Home"));
+    PTX = _ds_pref_load(agent_config, username,  _ds_read_attribute(agent_config, "Home"), NULL);
 
   if (PTX == NULL) 
     return 0;

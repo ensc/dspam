@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: pref.c,v 1.2 2004/12/18 15:02:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -98,7 +98,8 @@ AGENT_ATTRIB *_ds_pref_new(const char *attribute, const char *value) {
 AGENT_PREF _ds_pref_load(
   attribute_t **config,
   const char *user, 
-  const char *home)
+  const char *home,
+  void *ignore)
 {
   char filename[MAX_FILENAME_LENGTH];
   AGENT_PREF PTX = malloc(sizeof(AGENT_ATTRIB *)*PREF_MAX);

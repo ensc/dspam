@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.7 2004/12/18 00:21:17 jonz Exp $ */
+/* $Id: dspam_clean.c,v 1.8 2004/12/18 15:02:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -386,7 +386,7 @@ int process_unused (DSPAM_CTX *CTX, int any, int quota, int nospam, int onehit) 
          any, quota, nospam, onehit);
 #endif
 
-  PTX = _ds_pref_load(agent_config, CTX->username, _ds_read_attribute(agent_config, "Home"));
+  PTX = _ds_pref_load(agent_config, CTX->username, _ds_read_attribute(agent_config, "Home"), NULL);
 
   if (PTX == NULL || PTX[0] == 0) {
     if (PTX)

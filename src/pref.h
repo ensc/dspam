@@ -1,4 +1,4 @@
-/* $Id: pref.h,v 1.2 2004/11/21 02:47:40 jonz Exp $ */
+/* $Id: pref.h,v 1.3 2004/12/18 15:02:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -52,7 +52,7 @@ int             _ds_pref_free (AGENT_PREF PTX);
 AGENT_ATTRIB	*_ds_pref_new(const char *attribute, const char *value);
 
 #ifndef PREFERENCES_EXTENSION
-AGENT_PREF      _ds_pref_load(attribute_t **config, const char *user, const char *home);
+AGENT_PREF      _ds_pref_load(attribute_t **config, const char *user, const char *home, void *ignore);
 #endif
 
 #endif /* _PREF_H */

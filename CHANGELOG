@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.74 2004/12/18 03:45:05 jonz Exp $
+$Id: CHANGELOG,v 1.75 2004/12/18 15:02:52 jonz Exp $
 
 Version NEXT
 ------------
@@ -54,6 +54,15 @@ NOTE: Daemon mode is multithreaded, and therefore requires a multithreaded
 
 TODO: re-establish connections as necessary 
       - done, but concerned about threading conflicts; need locking
+
+12/18 - Big problem; must start locking database handles when in use or
+        do some transactional processing; mysql won't execute some queries
+        with "you can't do that now" error.
+
+12/18 - Fixed problem where new connection was initiated for preferences,
+        making performance increase kind of nonexistent
+
+12/18 - Another problem; awkward segfaults that are untraceable
 
 [20041127.1700] jonz: normalized process_message()
 

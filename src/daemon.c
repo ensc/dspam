@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.22 2004/12/03 01:30:32 jonz Exp $ */
+/* $Id: daemon.c,v 1.23 2004/12/18 15:02:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -344,7 +344,7 @@ void *process_connection(void *ptr) {
     LOGDEBUG("using database handle id %d", i);
 
     ATX->dbh = TTX->DTX->connections[i]->dbh;
- 
+
     if (check_configuration(ATX)) {
       report_error(ERROR_DSPAM_MISCONFIGURED);
       snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_DSPAM_MISCONFIGURED);
@@ -381,7 +381,6 @@ void *process_connection(void *ptr) {
     }
   
     results = process_users(ATX, message);
-  
     
     if (TTX->DTX->connections[i]->dbh != ATX->dbh) 
       TTX->DTX->connections[i]->dbh = ATX->dbh;

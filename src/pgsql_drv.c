@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.13 2004/12/09 19:04:01 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.14 2004/12/18 15:02:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -1925,7 +1925,8 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 AGENT_PREF _ds_pref_load(
   attribute_t **config,
   const char *username, 
-  const char *home) 
+  const char *home,
+  void *dbh) 
 {
   struct _pgsql_drv_storage *s;
   struct passwd *p;
@@ -1936,18 +1937,10 @@ AGENT_PREF _ds_pref_load(
   AGENT_ATTRIB *pref;
   int uid, ntuples, i = 0;
 
-  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
-                                                                                
+  CTX = _pgsql_drv_init_tools(home, config, dbh);
   if (CTX == NULL)
   {
-    LOG (LOG_WARNING, "unable to create dspam context");
-    return NULL;
-  }
-                                                                                
-  _pgsql_drv_set_attributes(CTX, config);
-  if (dspam_attach(CTX, NULL)) {
-    LOG (LOG_WARNING, "unable to attach dspam context");
-    dspam_destroy(CTX);
+    LOG (LOG_WARNING, "unable to initialize tools context");
     return NULL;
   }
 
@@ -1988,7 +1981,7 @@ AGENT_PREF _ds_pref_load(
     dspam_destroy(CTX);
     if (username == NULL) 
       return NULL;
-    return _ds_pref_load(config, NULL, home);
+    return _ds_pref_load(config, NULL, home, dbh);
   }
 
   PTX = malloc(sizeof(AGENT_ATTRIB *)*(PQntuples(result)+1));
@@ -2006,7 +1999,7 @@ AGENT_PREF _ds_pref_load(
     dspam_destroy(CTX);
     if (username == NULL) 
       return NULL;
-    return _ds_pref_load(config, NULL, home);
+    return _ds_pref_load(config, NULL, home, dbh);
   }
 
   ntuples = PQntuples(result);
@@ -2039,7 +2032,8 @@ int _ds_pref_set (
   const char *username, 
   const char *home,
   const char *preference,
-  const char *value) 
+  const char *value,
+  void *dbh) 
 {
   struct _pgsql_drv_storage *s;
   struct passwd *p;
@@ -2050,19 +2044,11 @@ int _ds_pref_set (
   size_t length;
   PGresult *result;
 
-  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
-                                                                                
+  CTX = _pgsql_drv_init_tools(home, config, dbh);
   if (CTX == NULL)
   {
-    LOG (LOG_WARNING, "unable to create dspam context");
-    return EUNKNOWN;
-  }
-                                                                                
-  _pgsql_drv_set_attributes(CTX, config);
-  if (dspam_attach(CTX, NULL)) {
-    LOG (LOG_WARNING, "unable to attach dspam context");
-    dspam_destroy(CTX);
-    return EUNKNOWN;
+    LOG (LOG_WARNING, "unable to initialize tools context");
+    return EFAILURE;
   }
 
   s = (struct _pgsql_drv_storage *) CTX->storage;
@@ -2127,7 +2113,8 @@ int _ds_pref_del (
   attribute_t **config,
   const char *username,
   const char *home,
-  const char *preference)
+  const char *preference,
+  void *dbh)
 {
   struct _pgsql_drv_storage *s;
   struct passwd *p;
@@ -2138,19 +2125,11 @@ int _ds_pref_del (
   size_t length;
   PGresult *result;
 
-  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
-                                                                                
+  CTX = _pgsql_drv_init_tools(home, config, dbh);
   if (CTX == NULL)
   {
-    LOG (LOG_WARNING, "unable to create dspam context");
-    return EUNKNOWN;
-  }
-                                                                                
-  _pgsql_drv_set_attributes(CTX, config);
-  if (dspam_attach(CTX, NULL)) {
-    LOG (LOG_WARNING, "unable to attach dspam context");
-    dspam_destroy(CTX);
-    return EUNKNOWN;
+    LOG (LOG_WARNING, "unable to initialize tools context");
+    return EFAILURE;
   }
 
   s = (struct _pgsql_drv_storage *) CTX->storage;
@@ -2199,7 +2178,8 @@ int _ds_pref_save(
   attribute_t **config,
   const char *username, 
   const char *home, 
-  AGENT_PREF PTX) 
+  AGENT_PREF PTX, 
+  void *dbh) 
 {
   struct _pgsql_drv_storage *s;
   struct passwd *p;
@@ -2211,19 +2191,11 @@ int _ds_pref_save(
   size_t length;
   PGresult *result;
 
-  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
-                                                                                
+  CTX = _pgsql_drv_init_tools(home, config, dbh);
   if (CTX == NULL)
   {
-    LOG (LOG_WARNING, "unable to create dspam context");
-    return EUNKNOWN;
-  }
-                                                                                
-  _pgsql_drv_set_attributes(CTX, config);
-  if (dspam_attach(CTX, NULL)) {
-    LOG (LOG_WARNING, "unable to attach dspam context");
-    dspam_destroy(CTX);
-    return EUNKNOWN;
+    LOG (LOG_WARNING, "unable to initialize tools context");
+    return EFAILURE;
   }
 
   s = (struct _pgsql_drv_storage *) CTX->storage;
@@ -2299,7 +2271,6 @@ int _pgsql_drv_set_attributes(DSPAM_CTX *CTX, attribute_t **config) {
 }
 
 #endif
-
 
 /* Neural network functions */
 
@@ -2711,3 +2682,34 @@ PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX)
 
   return dbh;
 }
+
+DSPAM_CTX *_pgsql_drv_init_tools(
+ const char *home,
+ attribute_t **config,
+ void *dbh)
+{
+  DSPAM_CTX *CTX;
+
+  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
+
+  if (CTX == NULL)
+    return NULL;
+
+  if (!dbh)
+    dbh = _pgsql_drv_connect(CTX);
+
+  if (!dbh)
+    goto BAIL;
+
+  _pgsql_drv_set_attributes(CTX, config);
+
+  if (dspam_attach(CTX, dbh))
+    goto BAIL;
+
+  return CTX;
+
+BAIL:
+  dspam_destroy(CTX);
+  return NULL;
+}
+
