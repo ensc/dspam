@@ -1,6 +1,59 @@
-$Id: RELEASE.NOTES,v 1.35 2005/03/12 04:06:00 jonz Exp $
+$Id: RELEASE.NOTES,v 1.36 2005/03/21 04:28:25 jonz Exp $
 
-RELEASE 3.4-STABLE
+RELEASE 3.4.1-STABLE
+
+This version is a maintenance release and contains bug and security-related
+fixes and minor enhancements.
+
+BUGFIX:	Broken returnCodes option does not work in daemon mode
+BUGFIX: Improper handling of empty arguments
+BUGFIX: Missing RSET functionality in LMTP server mode 
+BUGFIX: Corpus feeding fails on messages with DSPAM signatures
+BUGFIX: TrackSources reports spam from users forwarding spam misses
+BUGFIX: 5.1.0 Initialization error fails to RSET
+BUGFIX: False positives are delivered if no matching signature
+BUGFIX: Opt-in/out preferences support lacking in admin.cgi
+BUGFIX: When listener fails, file descriptors remain open
+BUGFIX: When file descriptors fail, their invalid state can lead to a crash
+BUGFIX: Syslogging does not use LOG_NOWAIT and hangs if syslog breaks
+BUGFIX: Some sessions using multiple RCPT TOs process for last recipient only
+BUGFIX: Socket communications do not send \r
+
+SECFIX: Fixed possible argument overflow vulnerability in authenticated server
+        Threat Level: Low; requires local relay authentication and routing
+
+Enhancements and other changes:
+
+DSPAM Protocol Enhancements
+In an attempt to steer away from DLMTP (DSPAM-proprietary LMTP), the
+arguments list sent by the dspam client are now sent via a DSPAMPROCESSMODE
+service tag advertised when the LMTP server recognizes a client's LHLO ident
+and later authenticates.
+
+SMTP Support Addition
+In addition to LMTP delivery, SMTP delivery has been added. As a result,
+previous LMTPDeliveryHost options have changed. See dspam.conf for more
+information. DeliveryProto option has been added to specify LMTP or SMTP.
+
+False Positive Alias:
+The false positive alias prefix has been changed from fp- to notspam- when using
+ParseToHeader. This helps prevent a conflict with an existing email account. 
+
+ParseToHeader Changes:
+Two new configuration options are used in conjunction with ParseToHeader:
+ChangeUserOnParse: Sets the current user to match the local part after prefix
+ChangeModeOnParse: Sets the processing mode to match the prefix provided,
+  eliminating the need for aliases when configured with ChangeUserOnParse.
+
+LMTP Commandline Changes:
+The LMTP commandline options have changed to support multiple rcpt tos and
+support SMTP delivery:
+  --lmtp-rcpt-to and --lmtp-recipient have been changed to --rcpt-to, which
+  can be a list of users similar to --user. If no recipient list is specified,
+  the recipient list will mirror the user list.
+  --lmtp-mail-from= has been changed to --mail-from=
+
+RELEASE 3.4.0-STABLE
 
 ------------------------------------------------------
 PLEASE SEE THE FILE 'UPGRADING' PRIOR TO INSTALLATION!
