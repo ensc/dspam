@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.7 2004/12/03 01:30:32 jonz Exp $ */
+/* $Id: client.c,v 1.8 2004/12/03 17:38:46 jonz Exp $ */
 
 /*
  DSPAM
@@ -34,6 +34,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/un.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
 #ifndef _WIN32
 #include <unistd.h>
 #include <pwd.h>
