@@ -1,7 +1,14 @@
-$Id: CHANGELOG,v 1.111 2004/12/30 15:23:46 jonz Exp $
+$Id: CHANGELOG,v 1.112 2005/01/02 21:45:31 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
+
+Version NEXT
+------------
+
+[20040102.1645] jonz: bayesian noise reduction training tweaks
+
+bnr seems to preform best when trained on everything
 
 Version 3.3.8
 -------------
