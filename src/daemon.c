@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.5 2004/11/30 21:05:37 jonz Exp $ */
+/* $Id: daemon.c,v 1.6 2004/11/30 21:46:55 jonz Exp $ */
 
 /*
  DSPAM
@@ -39,10 +39,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
+
 #ifndef _WIN32
 #include <unistd.h>
 #include <pwd.h>
 #endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -236,19 +238,19 @@ void *process_connection(void *ptr) {
     argc++;
     token = strtok_r(NULL, " ", &ptrptr);
   }
-  
+
   /* Tokenize commandline */
   
   /* Configure agent context */
   ATX = calloc(1, sizeof(AGENT_CTX));
   if (ATX == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC); 
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     socket_send(TTX, ERROR_MEM_ALLOC);
-    goto CLOSE;   
+    goto CLOSE;
   }
 
-  if (initialize_atx(ATX) || process_arguments(ATX, argc, argv),
-      apply_defaults(ATX)) 
+  if (initialize_atx(ATX) || process_arguments(ATX, argc, argv) ||
+      apply_defaults(ATX))
   {
     report_error(ERROR_INITIALIZE_ATX);
     socket_send(TTX, ERROR_INITIALIZE_ATX);
@@ -445,4 +447,4 @@ bail:
   return NULL;
 }
 
-#endif /* DAEMON */
+#endif

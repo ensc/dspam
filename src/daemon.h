@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.5 2004/11/30 21:05:37 jonz Exp $ */
+/* $Id: daemon.h,v 1.6 2004/11/30 21:46:55 jonz Exp $ */
 
 /*
  DSPAM
@@ -58,6 +58,5 @@ int socket_send(THREAD_CTX *TTX, const char *ptr);
 buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
 int process_users_daemon(THREAD_CTX *TTX, AGENT_CTX *ATX, buffer *message);
 
-#endif /* _DAEMON_H */
-
 #endif
+#endif /* _DAEMON_H */
