@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.2 2004/10/26 13:24:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -822,21 +822,13 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EINVAL;
   }
 
-  s = malloc (sizeof (struct _mysql_drv_storage));
+  s = calloc (1, sizeof (struct _mysql_drv_storage));
   if (s == NULL)
   {
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
-  s->dbh = NULL;
-  s->control_token = 0;
-  s->iter_user = NULL;
-  s->iter_token = NULL;
-  s->iter_sig = NULL;
-  s->control_token = 0;
-  s->control_sh = 0;
-  s->control_ih = 0;
   s->dbh_attached = (dbh) ? 1 : 0;
   s->u_getnextuser[0] = 0;
   memset(&s->p_getpwnam, 0, sizeof(struct passwd));
@@ -1338,14 +1330,12 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  st = malloc (sizeof (struct _ds_storage_record));
+  st = calloc (1, sizeof (struct _ds_storage_record));
   if (st == NULL)
   {
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return NULL;
   }
-
-  memset (st, 0, sizeof (struct _ds_storage_record));
 
   if (s->iter_token == NULL)
   {
@@ -1412,14 +1402,12 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  st = malloc (sizeof (struct _ds_storage_signature));
+  st = calloc (1, sizeof (struct _ds_storage_signature));
   if (st == NULL)
   {
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return NULL;
   }
-
-  memset (st, 0, sizeof (struct _ds_storage_signature));
 
   if (s->iter_sig == NULL)
   {
