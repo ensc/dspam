@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.12 2004/12/25 22:53:57 jonz Exp $ */
+/* $Id: client.c,v 1.13 2004/12/25 23:07:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -133,9 +133,11 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     while(line != NULL && strcmp(line, ".")) {
       chomp(line);
       printf("%s\n", line);
+      free(line);
       line = client_getline(&TTX, 300);
       if (line) chomp(line);
     }
+    free(line);
     if (line == NULL)
       goto BAIL;
   } else {
@@ -230,6 +232,7 @@ int client_authenticate(THREAD_CTX *TTX) {
   input = client_expect(TTX, LMTP_GREETING);
   if (input == NULL) 
     return EFAILURE;
+  free(input);
 
   if (send_socket(TTX, "LHLO")<=0) 
     return EFAILURE;
@@ -279,6 +282,7 @@ char * client_expect(THREAD_CTX *TTX, int response_code) {
 
 int client_getcode(THREAD_CTX *TTX) {
   char *input, *ptr, *ptrptr;
+  int i;
 
   input = client_getline(TTX, 300);
   if (input == NULL)
@@ -286,7 +290,9 @@ int client_getcode(THREAD_CTX *TTX) {
   ptr = strtok_r(input, " ", &ptrptr);
   if (ptr == NULL)
     return EFAILURE;
-  return atoi(ptr);
+  i = atoi(ptr);
+  free(input);
+  return i;
 }
 
 char *client_getline(THREAD_CTX *TTX, int timeout) {

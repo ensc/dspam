@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.93 2004/12/25 22:53:57 jonz Exp $
+$Id: CHANGELOG,v 1.94 2004/12/25 23:07:49 jonz Exp $
 
 Version NEXT
 ------------
@@ -9,6 +9,8 @@ BUGFIX: if using ServerDomainSocketPath and ClientHost is not specified,
         commandline arguments are never passed in for processing
 
 BUGFIX: *BSD operating systems truncate last character of domain socket file
+
+BUGFIX: fixed some memory leaks in client code
 
 [20041225.1400] jonz: added support for trainPristine as user preference
 
