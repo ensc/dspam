@@ -1,4 +1,4 @@
-/* $Id: client.h,v 1.7 2005/03/12 21:23:09 jonz Exp $ */
+/* $Id: client.h,v 1.8 2005/03/19 00:12:04 jonz Exp $ */
 
 /*
 
@@ -40,7 +40,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 int client_process      (AGENT_CTX *ATX, buffer *message);
 int client_connect      (int flags);
-int client_authenticate (THREAD_CTX *TTX);
+int client_authenticate (THREAD_CTX *TTX, const char *processmode);
 int client_getcode      (THREAD_CTX *TTX);
 char * client_expect    (THREAD_CTX *TTX, int response_code);
 char * client_getline   (THREAD_CTX *TTX, int timeout);

@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.75 2005/03/18 21:49:08 jonz Exp $ */
+/* $Id: daemon.c,v 1.76 2005/03/19 00:12:04 jonz Exp $ */
 
 /*
 
@@ -297,7 +297,7 @@ void *process_connection(void *ptr) {
   char *input, *cmdline = NULL, *token, *ptrptr;
   char *oldcmd = NULL, *parms=NULL, *p=NULL;
   char *server_ident = _ds_read_attribute(agent_config, "ServerIdent");
-  char *argv[32];
+  char *argv[64];
   char buf[1024];
   int tries = 0;
   int argc = 0;
@@ -377,11 +377,16 @@ void *process_connection(void *ptr) {
   if (daemon_extension(TTX, "ENHANCEDSTATUSCODES")<=0)
     goto CLOSE;
 
+  if (server_mode == SSM_DSPAM)
+    if (daemon_extension(TTX, "DSPAMPROCESSMODE")<=0)
+      goto CLOSE;
+
   if (daemon_reply(TTX, LMTP_OK, "", "SIZE")<=0)
     goto CLOSE;
 
   /* Loop until QUIT or disconnect */
   while(1) {
+    char processmode[256];
     parms = NULL;
 
     /* Configure a new agent context for each pass */
@@ -400,6 +405,7 @@ void *process_connection(void *ptr) {
 
     /* MAIL FROM (and authentication, if SSM_DSPAM) */
 
+    processmode[0] = 0;
     while(!TTX->authenticated) {
       input = daemon_expect(TTX, "MAIL FROM");
 
@@ -433,6 +439,7 @@ void *process_connection(void *ptr) {
 
           if (pass && ident) {
             char *serverpass;
+            char *ptr, *ptr2, *ptr3;
   
             snprintf(buf, sizeof(buf), "ServerPass.%s", ident);
             serverpass = _ds_read_attribute(agent_config, buf);
@@ -440,6 +447,30 @@ void *process_connection(void *ptr) {
             snprintf(buf, sizeof(buf), "ServerPass.%s", ident);
             if (serverpass && !strcmp(pass, serverpass)) {
               TTX->authenticated = 1;
+
+              /* Parse for PROCESSMODE */
+ 
+              ptr = strstr(input, "DSPAMPROCESSMODE=\"");
+              if (ptr) {
+                ptr2 = strchr(ptr, '"')+1;
+                char *mode = ptr2;
+                while((ptr3 = strstr(ptr2, "\\\""))) 
+                  ptr2 = ptr3+2;
+                ptr3 = strchr(ptr2+2, '"');
+                if (ptr3)
+                  ptr3[0] = 0;
+                strlcpy(processmode, mode, sizeof(processmode)); 
+                
+                ptr = processmode;
+                for(;*ptr;*ptr++) {
+                  if (ptr[0] == '\\') {
+                    strcpy(ptr, ptr+1);
+                  }
+                }
+printf("PROCESSMODE: %s\n", processmode);
+                LOGDEBUG("process mode: '%s'", processmode);
+              }
+                
               if (daemon_reply(TTX, LMTP_OK, "2.1.0", "OK")<=0) {
                 free(input);
                 goto CLOSE;
@@ -472,17 +503,21 @@ void *process_connection(void *ptr) {
     /* MAIL FROM Response */
     snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
 
+    argc = 1;
+    argv[0] = "dspam";
+    argv[1] = 0;
+
     /* Load open-LMTP parameters from config */
     if (server_mode == SSM_STANDARD) {
       parms = _ds_read_attribute(agent_config, "ServerParameters");
-      argc = 0;
       if (parms) {
         p = strdup(parms);
         if (p) {
           token = strtok_r(p, " ", &ptrptr);
-          while(token != NULL && argc<31) {
+          while(token != NULL && argc<63) {
             argv[argc] = token;
             argc++;
+            argv[argc] = 0;
             token = strtok_r(NULL, " ", &ptrptr);
           }
         }
@@ -492,7 +527,6 @@ void *process_connection(void *ptr) {
     /* RCPT TO */
 
     while(ATX->users->items == 0 || invalid) {
-      int bad_response = 0;
       cmdline = daemon_getline(TTX, 300);
  
       while(cmdline && (!strncasecmp(cmdline, "RCPT TO:", 8) || (!strncasecmp(cmdline, "RSET", 4)))) {
@@ -505,25 +539,26 @@ void *process_connection(void *ptr) {
         }
 
         if (server_mode == SSM_DSPAM) {
-          /* Tokenize arguments */
-          chomp(cmdline);
-          argv[argc] = "--user";
-          argc++;
-          token = strtok_r(cmdline+8, " ", &ptrptr);
-          while(token != NULL && argc<31) {
-            argv[argc] = token;
-            argc++;
-            token = strtok_r(NULL, " ", &ptrptr);
+          char username[256];
+   
+          if (_ds_extract_address(username, cmdline, sizeof(username)) ||
+              username[0] == 0 || username[0] == '-')
+          {
+            daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERROR_INVALID_RCPT);
+            goto GETCMD;
+//            break;
           }
-    
+
+          nt_add(ATX->users, username);
+
         } else {
           char username[256];
     
           if (_ds_extract_address(username, cmdline, sizeof(username)) ||
-              username[0] == 0) 
+              username[0] == 0 || username[0] == '-') 
           {
             daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERROR_INVALID_RCPT);
-            bad_response = 1;
+            goto GETCMD;
             break;
           }
 
@@ -543,10 +578,11 @@ void *process_connection(void *ptr) {
         if (daemon_reply(TTX, LMTP_OK, "2.1.5", "OK")<=0)
           goto CLOSE;
 
+GETCMD:
         oldcmd = cmdline;
         cmdline = daemon_getline(TTX, 300);
-        if  (server_mode == SSM_DSPAM)
-          break;
+//        if  (server_mode == SSM_DSPAM)
+//          break;
       }
 
       if (cmdline == NULL)
@@ -559,14 +595,22 @@ void *process_connection(void *ptr) {
         goto RSET;
       }
 
+      if (server_mode == SSM_DSPAM && processmode[0] != 0) {
+        token = strtok_r(processmode, " ", &ptrptr);
+        while(token != NULL && argc<63) {
+printf("SETTING: %d %s\n", argc, token);
+          argv[argc] = token;
+          argc++;
+          argv[argc] = 0;
+          token = strtok_r(NULL, " ", &ptrptr);
+        }
+      }
+
       if (!strncasecmp(cmdline, "quit", 4)) {
         daemon_reply(TTX, LMTP_OK, "2.0.0", "OK");
         goto CLOSE;
       }
 
-      if (bad_response) 
-        continue;
- 
       invalid = 0;
       if (process_arguments(ATX, argc, argv) || apply_defaults(ATX))
       {

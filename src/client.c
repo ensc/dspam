@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.41 2005/03/18 12:44:59 jonz Exp $ */
+/* $Id: client.c,v 1.42 2005/03/19 00:12:04 jonz Exp $ */
 
 /*
 
@@ -86,7 +86,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   /* LHLO and MAIL FROM - Authenticate on the server */
   /* ----------------------------------------------- */
 
-  if (client_authenticate(&TTX)<0) {
+  if (client_authenticate(&TTX, ATX->client_args)<0) {
     report_error(ERROR_CLIENT_AUTH_FAILED);
     goto QUIT;
   }
@@ -98,17 +98,15 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   node_nt = c_nt_first(ATX->users, &c_nt);
   while(node_nt != NULL) {
     const char *ptr = (const char *) node_nt->ptr;
-    strlcat(buff, ptr, sizeof(buff));
-    strlcat(buff, " ", sizeof(buff));
+    snprintf(buff, sizeof(buff), "RCPT TO: <%s>", ptr);
+    if (send_socket(&TTX, buff)<=0)
+      goto BAIL;
+
+    if (client_getcode(&TTX)!=LMTP_OK)
+      goto QUIT;
+
     node_nt = c_nt_next(ATX->users, &c_nt);
   }
-  strlcat(buff, ATX->client_args, sizeof(buff));
-
-  if (send_socket(&TTX, buff)<=0) 
-    goto BAIL;
-
-  if (client_getcode(&TTX)!=LMTP_OK) 
-    goto QUIT;
 
   /* DATA - Send message */
   /* ------------------- */
@@ -296,10 +294,28 @@ int client_connect(int flags) {
 
 */
 
-int client_authenticate(THREAD_CTX *TTX) {
+int client_authenticate(THREAD_CTX *TTX, const char *processmode) {
   char buff[1024];
   char *input;
   char *ident = _ds_read_attribute(agent_config, "ClientIdent");
+  char pmode[1024];
+
+  /* ugly hack for backslashing quotes */
+  pmode[0] = 0;
+  if (processmode) {
+    int pos = 0;
+    int cpos = 0;
+    for(;processmode[cpos]&&pos<(sizeof(pmode)-1);cpos++) {
+      if (processmode[cpos] == '"') {
+        pmode[pos] = '\\';
+        pos++;
+      }
+      pmode[pos] = processmode[cpos];
+      pos++;
+    }
+    pmode[pos] = 0;
+  }
+printf("PMODE: '%s'\n", pmode);
 
   if (ident == NULL || !strchr(ident, '@')) {
     report_error(ERROR_CLIENT_IDENT);
@@ -318,7 +334,11 @@ int client_authenticate(THREAD_CTX *TTX) {
   if (client_getcode(TTX)!=LMTP_OK) 
     return EFAILURE;
 
-  snprintf(buff, sizeof(buff), "MAIL FROM: <%s>", ident);
+  if (processmode != NULL) {
+    snprintf(buff, sizeof(buff), "MAIL FROM: <%s> DSPAMPROCESSMODE=\"%s\"", ident, pmode);
+  } else {
+    snprintf(buff, sizeof(buff), "MAIL FROM: <%s>", ident);
+  }
   if (send_socket(TTX, buff)<=0)
     return EFAILURE;
 

@@ -1,8 +1,12 @@
-$Id: CHANGELOG,v 1.233 2005/03/18 21:44:05 jonz Exp $
+$Id: CHANGELOG,v 1.234 2005/03/19 00:12:04 jonz Exp $
    
 Version NEXT
 ------------
 
+[20050318.1900] jonz: implemented DSPAMPROCESSMODE service tag
+
+implemented DSPAMPROCESSMODE service tag for proprietary client functions
+g
 [20050318.0700] jonz: added RSET functionality
 
 added RSET functionality to daemon 

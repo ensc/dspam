@@ -1,4 +1,4 @@
-$Id: README,v 1.51 2005/03/17 14:36:43 jonz Exp $
+$Id: README,v 1.52 2005/03/19 00:12:04 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Network Dweebs Corporation
@@ -1713,11 +1713,14 @@ SERVER> 220 DSPAM DLMTP 3.4.0 Authentication Required
 CLIENT> LHLO Relay1
 SERVER> 250-PIPELINING
 SERVER> 250-ENHANCEDSTATUSCODES
+SERVER> 250-DSPAMPROCESSMODE
 SERVER> 250 SIZE
-CLIENT> MAIL FROM: <secret@Relay1>
+CLIENT> MAIL FROM: <secret@Relay1> DSPAMPROCESSMODE="--deliver=innocent -d %u"
 SERVER> 250 2.1.0 OK
-CLIENT> RCPT TO: dick jane --deliver=innocent -d %u
+CLIENT> RCPT TO: dick
 SERVER> 250 2.1.5 OK
+CLIENT> RCPT TO: jane
+SERVER: 250 2.1.5 OK
 CLIENT> DATA
 SERVER> 354 Enter mail, end with "." on a line by itself
 CLIENT> Subject: Cheap Viagra!
