@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.72 2005/01/27 16:05:45 jonz Exp $ */
+/* $Id: dspam.c,v 1.73 2005/01/28 19:53:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -647,8 +647,12 @@ RETURN:
     free(ATX->SIG.data);
   nt_destroy (ATX->inoc_users);
   nt_destroy (ATX->classify_users);
-  if (CTX)
+  if (CTX) {
+    if (CTX->signature == &ATX->SIG) {
+      CTX->signature = NULL;
+    }
     dspam_destroy (CTX);
+  }
   return result;
 }
 

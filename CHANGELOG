@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.155 2005/01/26 18:51:54 jonz Exp $
+$Id: CHANGELOG,v 1.156 2005/01/28 19:53:29 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050128.0245] jonz: fixed segfault on post-signature failure
+
+fixed a segfault that only occurs when dspam_process() fails after loading a
+signature
 
 [20040126.0100] jonz: fixed whitelist training bug with notrain
 
