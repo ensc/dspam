@@ -1,4 +1,4 @@
-/* $Id: lht.c,v 1.3 2004/12/18 00:33:44 jonz Exp $ */
+/* $Id: lht.c,v 1.4 2004/12/27 01:06:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -254,7 +254,7 @@ c_lht_next (struct lht *lht, struct lht_c *c)
 }
 
 int
-lht_hit (struct lht *lht, unsigned long long key, const char *token_name, int chained)
+lht_hit (struct lht *lht, unsigned long long key, const char *token_name, int chained, int contextual)
 {
   unsigned long hash_code;
   struct lht_node *parent;
@@ -301,10 +301,12 @@ lht_hit (struct lht *lht, unsigned long long key, const char *token_name, int ch
   lht->tbl[hash_code] = new_node;
 
 ADD:
-  if (chained)
-    nt_add(lht->chained_order, new_node);
-  else
-    nt_add(lht->order, new_node);
+  if (contextual) {
+    if (chained)
+      nt_add(lht->chained_order, new_node);
+    else
+      nt_add(lht->order, new_node);
+  }
   return 0;
 }
 
