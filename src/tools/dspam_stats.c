@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.4 2004/12/11 19:30:21 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.5 2005/01/12 17:35:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -43,11 +43,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "read_config.h"
 #include "config_api.h"
 #include "language.h"
+#include "util.h"
 
-#define TSYNTAX	"syntax: dspam_stats [username]"
+#define TSYNTAX	"syntax: dspam_stats [-hHrsS] [username]"
 
 DSPAM_CTX *open_ctx, *open_mtx;
 int opt_humanfriendly;
+int opt_reset;
+int opt_snapshot;
+int opt_stats;
 
 int stat_user (const char *username);
 int process_all_users (void);
@@ -57,7 +61,7 @@ void usage (void);
 int
 main (int argc, char **argv)
 {
-  int ch,i,users = 0;
+  int ch, i, users = 0;
 #ifndef HAVE_GETOPT
   int optind = 1;
 #endif
@@ -94,7 +98,6 @@ main (int argc, char **argv)
 #endif
 
   for(i=0;i<argc;i++) {
-                                                                                
     if (!strncmp (argv[i], "--profile=", 10))
     {
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
@@ -120,8 +123,10 @@ main (int argc, char **argv)
 
   /* Process command line */
   ch = opt_humanfriendly = 0;
+  opt_reset = opt_snapshot = opt_stats = 0;
+
 #ifdef HAVE_GETOPT
-  while((ch = getopt(argc, argv, "hH")) != -1)
+  while((ch = getopt(argc, argv, "hHrsS")) != -1)
 #else
   while ( argv[optind] &&
             argv[optind][0] == '-' &&
@@ -136,6 +141,15 @@ main (int argc, char **argv)
         break;
       case 'H':
         opt_humanfriendly = 1;
+        break;
+      case 'r':
+        opt_reset = 1;
+        break;
+      case 's':
+        opt_snapshot = 1;
+        break;
+      case 'S':
+        opt_stats = 1;
         break;
 
 #ifndef HAVE_GETOPT
@@ -207,7 +221,9 @@ int
 stat_user (const char *username)
 {
   DSPAM_CTX *MTX;
-  long total_spam, total_innocent, spam_misclassified, innocent_misclassified, spam_corpusfed, innocent_corpusfed;
+  long total_spam, total_innocent, spam_misclassified, innocent_misclassified, spam_corpusfed, innocent_corpusfed, all_spam, all_innocent;
+  char filename[MAX_FILENAME_LENGTH];
+  FILE *file;
 
   MTX = dspam_create (username, NULL, _ds_read_attribute(agent_config, "Home"), DSM_CLASSIFY, 0);
   open_mtx = MTX;
@@ -223,23 +239,57 @@ stat_user (const char *username)
     return EUNKNOWN;
   }
 
-
-  /* Convenience variables. Compiling with optimization will cause this to have 0 slowdown,
-   * as it is essentially dead code */
+  /* Convenience variables. Compiling with optimization will cause this to 
+     have 0 slowdown, as it is essentially dead code */
   total_spam =
-        MAX(0, (MTX->totals.spam_learned + MTX->totals.spam_classified) -
-          (MTX->totals.spam_misclassified + MTX->totals.spam_corpusfed));
+      MAX(0, (MTX->totals.spam_learned + MTX->totals.spam_classified) -
+        (MTX->totals.spam_misclassified + MTX->totals.spam_corpusfed));
   total_innocent =
-        MAX(0, (MTX->totals.innocent_learned + MTX->totals.innocent_classified) - 
-          (MTX->totals.innocent_misclassified + MTX->totals.innocent_corpusfed));
-  spam_misclassified = MTX->totals.spam_misclassified;
+      MAX(0, (MTX->totals.innocent_learned + MTX->totals.innocent_classified) - 
+        (MTX->totals.innocent_misclassified + MTX->totals.innocent_corpusfed));
+  spam_misclassified     = MTX->totals.spam_misclassified;
   innocent_misclassified = MTX->totals.innocent_misclassified;
-  spam_corpusfed = MTX->totals.spam_corpusfed;
-  innocent_corpusfed = MTX->totals.innocent_corpusfed;
+  spam_corpusfed         = MTX->totals.spam_corpusfed;
+  innocent_corpusfed     = MTX->totals.innocent_corpusfed;
+
+  /* Subtract the snapshot from the current totals to get stats "since last
+     reset" for the user */
+
+  if (opt_snapshot) {
+    long s_total_spam, s_total_innocent, s_spam_misclassified,
+         s_innocent_misclassified, s_spam_corpusfed, s_innocent_corpusfed;
+
+    _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"),
+                     username, "rstats");
+    _ds_prepare_path_for (filename);
+
+    file = fopen (filename, "r");
+    if (file != NULL) {
+      if (fscanf(file, "%ld,%ld,%ld,%ld,%ld,%ld", 
+                 &s_total_spam,
+                 &s_total_innocent,
+                 &s_spam_misclassified,
+                 &s_innocent_misclassified,
+                 &s_spam_corpusfed,
+                 &s_innocent_corpusfed)==6) {
+        total_spam             -= s_total_spam;
+        total_innocent         -= s_total_innocent;
+        spam_misclassified     -= s_spam_misclassified;
+        innocent_misclassified -= s_innocent_misclassified;
+        spam_corpusfed         -= s_spam_corpusfed;
+        innocent_corpusfed     -= s_innocent_corpusfed;
+      }
+      fclose(file);
+    }
+  }
+
+
+  all_spam = total_spam + spam_misclassified,
+  all_innocent = total_innocent + innocent_misclassified;
 
   if (opt_humanfriendly)
   {
-    (void)printf("%s:\n\
+    printf("%s:\n\
         \tTS Total Spam:             %6ld\n\
         \tTI Total Innocent:         %6ld\n\
         \tSM Spam Misclassified:     %6ld\n\
@@ -247,23 +297,73 @@ stat_user (const char *username)
         \tSC Spam Corpusfed:         %6ld\n\
         \tIC Innocent Corpusfed:     %6ld\n\
         \tTL Training Left:          %6ld\n\
+        \tSR Spam Catch Rate:      % 7.2f%%\n\
+        \tIR Innocent Catch Rate:  % 7.2f%%\n\
+        \tOR Overall Rate/Accuracy:% 7.2f%%\n\
         \n",
             username,
             total_spam, total_innocent,
             spam_misclassified, innocent_misclassified,
             spam_corpusfed, innocent_corpusfed, 
-            MAX(0, 1000 - (MTX->totals.innocent_learned +
-                           MTX->totals.innocent_classified))
-    );
+            MAX(0, 2500 - (MTX->totals.innocent_learned +
+                           MTX->totals.innocent_classified)),
+       (all_spam) ?
+          (100.0-((float)spam_misclassified / (float)all_spam )*100.0)
+          : 100.0,
+        (all_innocent) ?
+          (100.0-((float)innocent_misclassified / (float)all_innocent )*100.0)
+          : 100.0,
+        (all_spam + all_innocent) ?
+          (100.0-(((float)spam_misclassified +(float)innocent_misclassified) /
+                   (float)(all_spam + all_innocent))*100.0)
+          : 100.0);
   }
   else
   {
-    (void)printf ("%-16s  TS:% 6ld TI:% 6ld SM:% 6ld IM:% 6ld SC:% 6ld IC:% 6ld\n",
+    printf ("%-16s  TS:% 6ld TI:% 6ld SM:% 6ld IM:% 6ld SC:% 6ld IC:% 6ld\n",
             username,
             total_spam, total_innocent,
             spam_misclassified, innocent_misclassified,
             spam_corpusfed, innocent_corpusfed);
-            
+
+    if (opt_stats) 
+      printf ("                  "
+              "SR: % 7.2f%%        IR: % 7.2f%%        OR: % 7.2f%%\n",
+        (all_spam) ?
+          (100.0-((float)spam_misclassified / (float)all_spam )*100.0) 
+          : 100.0,
+        (all_innocent) ? 
+          (100.0-((float)innocent_misclassified / (float)all_innocent )*100.0)
+          : 100.0,
+        (all_spam + all_innocent) ? 
+          (100.0-(((float)spam_misclassified +(float)innocent_misclassified) / 
+                   (float)(all_spam + all_innocent))*100.0) 
+          : 100.0);
+  }
+
+  if (opt_reset) {
+    _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), 
+                     username, "rstats");
+    _ds_prepare_path_for (filename);
+    file = fopen (filename, "w");
+    if (file == NULL)
+    {
+      file_error (ERROR_FILE_WRITE, filename, strerror (errno));
+      dspam_destroy (MTX);
+      open_mtx = NULL;
+      return EFILE;
+    }
+
+    fprintf (file, "%ld,%ld,%ld,%ld,%ld,%ld\n",
+     MAX(0,(MTX->totals.spam_learned + MTX->totals.spam_classified) -
+       (MTX->totals.spam_misclassified + MTX->totals.spam_corpusfed)),
+     MAX(0,(MTX->totals.innocent_learned + MTX->totals.innocent_classified) -
+       (MTX->totals.innocent_misclassified + MTX->totals.innocent_corpusfed)),
+     MTX->totals.spam_misclassified, 
+     MTX->totals.innocent_misclassified,
+     MTX->totals.spam_corpusfed, 
+     MTX->totals.innocent_corpusfed);
+    fclose(file);
   }
 
   dspam_destroy (MTX);

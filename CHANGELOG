@@ -1,7 +1,22 @@
-$Id: CHANGELOG,v 1.135 2005/01/11 19:49:54 jonz Exp $
+$Id: CHANGELOG,v 1.136 2005/01/12 17:35:15 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
+
+Version 3.3.12
+--------------
+
+[20040112.0600] jonz: added stats functionality to dspam_stats
+
+added the following functionality to dspam_stats:
+
+- specifying -S will display accuracy levels as percentages
+- specifying -s will use totals "since last reset" (s = snapshot)
+- specifying -r will reset the totals in the snapshot
+ 
+to measure accuracy for each month, use dspam_stats -r [username] at the
+beginning of the month, and dspam_stats -s -S [username] at the end of the
+month.
 
 Version 3.3.11
 --------------
