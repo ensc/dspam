@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.99 2005/03/26 22:35:56 jonz Exp $ */
+/* $Id: libdspam.c,v 1.100 2005/03/28 20:27:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -1114,6 +1114,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
           _ds_map_body_token (CTX, joined_token, previous_tokens, diction);
       }
     }
+  }
+
+  if (alloc_joined) {
+    alloc_joined = 0;
+    free (previous_token), previous_token = NULL;
   }
 
   /* Load all token statistics */
