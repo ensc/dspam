@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.68 2004/12/27 01:27:32 jonz Exp $ */
+/* $Id: libdspam.c,v 1.69 2004/12/27 03:07:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -1333,7 +1333,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     }
 
 #ifdef BNR_DEBUG
-    if (!node_lht->token_name || strncmp(node_lht->token_name, "bnr.", 4))    {
+    if (!node_lht->token_name || strncmp(node_lht->token_name, "bnr.", 4))
+    {
       heap_insert (heap_nobnr, node_lht->s.probability, node_lht->key,
              node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
     }
@@ -1383,7 +1384,27 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     }
   }
 
+#ifdef BNR_DEBUG
+  {
+    int nobnr_result = _ds_calc_result(CTX, heap_nobnr, freq);
+
+    if (CTX->factors) 
+      _ds_factor_destroy(CTX->factors);
+    CTX->result = 0;
+    CTX->probability = -1;
+#endif
+
   result = _ds_calc_result(CTX, heap_sort, freq);
+
+#ifdef BNR_DEBUG
+
+    if (nobnr_result == result) {
+      LOGDEBUG("BNR Decision Concurs");
+    } else {
+      LOGDEBUG("BNR Decision Conflicts: %d (BNR) / %d (No BNR)", result, nobnr_result);
+    } 
+  }
+#endif
 
   if (CTX->flags & DSF_WHITELIST && do_whitelist) {
     LOGDEBUG("auto-whitelisting this message");
