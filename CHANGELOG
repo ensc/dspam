@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.78 2004/12/18 16:16:56 jonz Exp $
+$Id: CHANGELOG,v 1.79 2004/12/19 20:50:47 jonz Exp $
 
 Version NEXT
 ------------
@@ -63,6 +63,8 @@ CVS Notes:
 
 12/18 - Fixed problem where new connection was initiated for preferences,
         making performance increase kind of nonexistent
+
+12/19 - Fixed many non-MT safe functions such as strtok()
 
 [20041127.1700] jonz: normalized process_message()
 

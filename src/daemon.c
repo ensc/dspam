@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.25 2004/12/18 15:52:13 jonz Exp $ */
+/* $Id: daemon.c,v 1.26 2004/12/19 20:50:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -209,6 +209,8 @@ int daemon_listen(DRIVER_CTX *DTX) {
 
   /* Shutdown - We should never get here */
   close(listener);
+
+  pthread_attr_destroy(&attr);
 
   return 0;
 }
@@ -502,7 +504,8 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
           }
   
           if (y) {
-            char *z = strtok(y, "@");
+            char *ptrptr;
+            char *z = strtok_r(y, "@", &ptrptr);
             nt_add (ATX->users, z);
             free(y);
           }

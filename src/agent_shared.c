@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.3 2004/12/19 20:40:34 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.4 2004/12/19 20:50:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -82,7 +82,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
  
 int process_features(AGENT_CTX *ATX, const char *features) {
-  char *s, *d;
+  char *s, *d, *ptrptr;
   int ret = 0;
 
   if (features[0] == 0)
@@ -94,7 +94,7 @@ int process_features(AGENT_CTX *ATX, const char *features) {
     return EUNKNOWN;
   }
 
-  s = strtok(d, ",");
+  s = strtok_r(d, ",", &ptrptr);
   while(s != NULL) {
     if (!strcmp(s, "chained") || !strcmp(s, "ch"))
       ATX->flags |= DAF_CHAINED;
@@ -118,7 +118,7 @@ int process_features(AGENT_CTX *ATX, const char *features) {
       ret = EINVAL;
     }
 
-    s = strtok(NULL, ",");
+    s = strtok_r(NULL, ",", &ptrptr);
   }
   free(d);
   return ret;
@@ -211,6 +211,7 @@ int initialize_atx(AGENT_CTX *ATX) {
 int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
   int i, user_flag = 0;
   char *clienthost = _ds_read_attribute(agent_config, "ClientHost");
+  char *ptrptr;
 
   for (i = 0; i < argc; i++)
   {
@@ -425,7 +426,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
         return EUNKNOWN;
       }
 
-      s = strtok(d, ",");
+      s = strtok_r(d, ",", &ptrptr);
       while(s != NULL) {
         if (!strcmp(s, "spam")) 
           ATX->flags |= DAF_DELIVER_SPAM;
@@ -439,7 +440,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
           return EINVAL;
         }
       
-        s = strtok(NULL, ",");
+        s = strtok_r(NULL, ",", &ptrptr);
       }
       free(d);
       continue;
@@ -653,7 +654,8 @@ buffer * read_stdin(AGENT_CTX *ATX) {
             }
     
             if (y) {
-              char *z = strtok(y, "@");
+              char *ptrptr;
+              char *z = strtok_r(y, "@", &ptrptr);
               nt_add (ATX->users, z);
               free(y);
             }
