@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.25 2004/11/21 20:55:30 jonz Exp $
+$Id: CHANGELOG,v 1.26 2004/11/22 00:43:14 jonz Exp $
 
 Version NEXT
 ------------
@@ -7,7 +7,9 @@ Version NEXT
 
 implemented parts of BNR v2.0, which tracks guilty patterns and applies the
 appropriate values. added pattern tokenization and reporting, but not
-application. old v1.2 code still present.
+application.
+
+disengaged BNR 1.x.
 
 [20041101.0700] jonz: added MaxMessageSize option to dspam.conf
 
