@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.161 2005/02/03 15:40:50 jonz Exp $
+$Id: CHANGELOG,v 1.162 2005/02/04 16:40:23 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050204.0800] jonz: applied patch to improve performance in pgsql migration
+
+patched for performance improvement in pgsql migration tool
 
 [20050203.0800] jonz: signature to write to all text segments
 

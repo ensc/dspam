@@ -1,4 +1,4 @@
-/* $Id: dspam_pg2int8.c,v 1.1 2005/01/22 14:14:29 jonz Exp $ */
+/* $Id: dspam_pg2int8.c,v 1.2 2005/02/04 16:40:23 jonz Exp $ */
 
 /*
  DSPAM
@@ -278,6 +278,7 @@ GenSQL (PGconn *dbh,const char *file)
                   ") WITHOUT OIDS;\n"
                   "COMMIT;\n"
                   "BEGIN;\n"
+				  "COPY dspam_token_data (uid,token,spam_hits,innocent_hits,last_hit) FROM stdin;\n"
                   , token_type);
     }
     if (!reverse) {
@@ -287,15 +288,15 @@ GenSQL (PGconn *dbh,const char *file)
       token = (unsigned long long) strtoll( PQgetvalue(result,i,1), NULL, 0);
       snprintf(token_data, TOKEN_DATA_LEN, "%llu", token);
     }
-    fprintf(out,"INSERT INTO dspam_token_data (uid,token,spam_hits,innocent_hits,last_hit) "
-                "VALUES ('%s','%s','%s','%s','%s');\n",
+    fprintf(out,"%s\t%s\t%s\t%s\t%s\n",
                 PQgetvalue(result,i,0), token_data,
                 PQgetvalue(result,i,2),
                 PQgetvalue(result,i,3),
                 PQgetvalue(result,i,4) );
   }
   if (result) PQclear(result);
-  fprintf(out, "COMMIT;\n"
+  fprintf(out, "\\.\n\n"
+			   "COMMIT;\n"
                "BEGIN;\n"
                "CREATE INDEX id_token_data_01 ON dspam_token_data(innocent_hits);\n"
                "CREATE INDEX id_token_data_02 ON dspam_token_data(spam_hits);\n"
