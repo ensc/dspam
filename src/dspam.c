@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.119 2005/03/29 18:41:43 jonz Exp $ */
+/* $Id: dspam.c,v 1.120 2005/03/31 16:56:24 jonz Exp $ */
 
 /*
  DSPAM
@@ -1272,12 +1272,15 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
     int result, optin, optout;
+    char *username;
 
     /* If ServerParameters specifies a --user, there will only be one 
        instance on the stack, but possible multiple recipients. */
 
     if (node_nt == NULL) 
       node_nt = ATX->users->first;
+
+    username = node_nt->ptr;
 
     /* Set the "current recipient" to either the next item on the rcpt stack 
        or the current user if not present.  */
@@ -1378,11 +1381,27 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     }
 #endif
 
-    LOGDEBUG("Loading preferences for user %s", (const char *) node_nt->ptr);
+    LOGDEBUG("Loading preferences for user %s", username);
     UTX = _ds_pref_load(agent_config, 
-                        node_nt->ptr, 
+                        username,
                         _ds_read_attribute(agent_config, "Home"), ATX->dbh);
 
+    if (!UTX && _ds_match_attribute(agent_config, "FallbackDomains", "on")) {
+      char *domain = strchr(username, '@');
+      if (domain) {
+        UTX = _ds_pref_load(agent_config,
+                            domain,
+                            _ds_read_attribute(agent_config, "Home"), ATX->dbh);
+        if (UTX && !strcmp(_ds_pref_val(UTX, "fallbackDomain"), "on")) {
+          LOGDEBUG("empty prefs found. falling back to %s", domain);
+          username = domain;
+        } else {
+          _ds_pref_free(UTX);
+          UTX = NULL;
+        }
+      }
+    }
+         
     if (!UTX) {
       UTX = _ds_pref_load(agent_config,
                           NULL,
@@ -1408,7 +1427,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
     _ds_userdir_path(filename, 
                      _ds_read_attribute(agent_config, "Home"), 
-                     LOOKUP(node_nt->ptr), "dspam");
+                     LOOKUP(username), "dspam");
     optin = stat(filename, &s);
 
 #ifdef HOMEDIR
@@ -1420,7 +1439,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
     _ds_userdir_path(filename, 
                      _ds_read_attribute(agent_config, "Home"), 
-                     LOOKUP(node_nt->ptr), "nodspam");
+                     LOOKUP(username), "nodspam");
     optout = stat(filename, &s);
 
     /* If the message is too big to process, just deliver it */
@@ -1461,7 +1480,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
     else
     {
-      result = process_message (ATX, PTX, parse_message, node_nt->ptr);
+      result = process_message (ATX, PTX, parse_message, username);
       presult->classification = result;
       if (_ds_match_attribute(agent_config, "Broken", "returnCodes")) {
         if (result == DSR_ISSPAM) 
@@ -1527,7 +1546,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                 (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
               ATX->source = DSS_ERROR;
               ATX->flags |= DAF_UNLEARN;
-              process_message (ATX, PTX, parse_message, node_nt->ptr);
+              process_message (ATX, PTX, parse_message, username);
             }
           }
         }
@@ -1579,7 +1598,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
               /* Use standard quarantine procedure */
               if (ATX->source == DSS_INOCULATION || ATX->classification == -1) {
                 if (ATX->managed_group[0] == 0)
-                  retcode = quarantine_message (PTX, parse_message->data, node_nt->ptr);
+                  retcode = quarantine_message (PTX, parse_message->data, username);
                 else
                   retcode = quarantine_message (PTX, parse_message->data, ATX->managed_group);
               }
@@ -1595,7 +1614,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                   (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
                 ATX->source = DSS_ERROR;
                 ATX->flags |= DAF_UNLEARN;
-                process_message (ATX, PTX, parse_message, node_nt->ptr);
+                process_message (ATX, PTX, parse_message, username);
               }
             }
           }
@@ -1621,7 +1640,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                 (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
               ATX->source = DSS_ERROR;
               ATX->flags |= DAF_UNLEARN;
-              process_message (ATX, PTX, parse_message, node_nt->ptr);
+              process_message (ATX, PTX, parse_message, username);
             }
           }
         }
