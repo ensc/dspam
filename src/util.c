@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: util.c,v 1.2 2004/11/21 20:55:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -609,3 +609,9 @@ int _ds_pow2(int exp) {
   return j;
 }
 
+float _ds_round(float n) {
+  int r = (n*100);
+  while(r % 5)
+    r++;
+  return (r/100.0);
+}

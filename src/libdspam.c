@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.5 2004/11/17 19:59:51 jonz Exp $ */
+/* $Id: libdspam.c,v 1.6 2004/11/21 20:55:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -26,9 +26,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <ctype.h>
 #include <errno.h>
-#include <math.h>
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -596,6 +596,8 @@ dspam_getsource (DSPAM_CTX * CTX,
  *              DSR_ISWHITELISTED	message is whitelisted
  */
 
+#define BNR_SIZE 3
+
 int
 _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 {
@@ -603,6 +605,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   char joined_token[32];		/* used for de-obfuscating tokens */
   char *previous_token = NULL;		/* used for chained tokens */
   char *previous_tokens[SBPH_SIZE];	/* used for k-mapped tokens */
+  float previous_probs[BNR_SIZE];	/* BNR Pattern Size */
 
   char *line = NULL;			/* header broken up into lines */
   char *url_body;			/* urls broken up */
@@ -613,6 +616,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Long Hashed Token Tree: Track tokens, frequencies, and stats */
   struct lht *freq = lht_create (24593);
+  struct lht *pfreq = lht_create (1543);
   struct lht_node *node_lht;
   struct lht_c c_lht;
 
@@ -1073,6 +1077,44 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     float snr = 0.00000;
     long total_clean;
 
+    for(i=0;i<BNR_SIZE;i++)
+      previous_probs[i] = 0.00000;
+
+    node_nt = c_nt_first(freq->order, &c_nt);
+    while(node_nt != NULL) {
+      struct lht_node *node = (struct lht_node *) node_nt->ptr;
+      unsigned long long crc;
+      char bnr_token[64];
+ 
+      _ds_calc_stat (CTX, node->key, &node->s);
+
+      previous_probs[BNR_SIZE-1] = _ds_round(node->s.probability);
+      bnr_token[0] = 0;
+      for(i=0;i<BNR_SIZE;i++) {
+        char x[8];
+        snprintf(x, 8, "%01.2f.", previous_probs[i]);
+        strlcat(bnr_token, x, sizeof(bnr_token));
+      }
+      for(i=0;i<BNR_SIZE-1;i++)
+        previous_probs[i] = previous_probs[i+1];
+
+      crc = _ds_getcrc64 (bnr_token);
+#ifdef VERBOSE
+      LOGDEBUG ("BNR Pattern hit: '%s'", bnr_token);
+#endif
+      lht_hit (pfreq, crc, bnr_token);
+      node_nt = c_nt_next(freq->order, &c_nt);
+    }
+
+    if (_ds_getall_spamrecords (CTX, pfreq))
+    {
+      LOGDEBUG ("_ds_getall_spamrecords() failed");
+      tbt_destroy(index);
+      lht_destroy(freq);
+      lht_destroy(pfreq);
+      return EUNKNOWN;
+    }
+
     BTX.stream = freq->order;
     bnr_filter_process(CTX, &BTX);
     total_eliminations = BTX.total_eliminations;
@@ -1101,11 +1143,22 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     LOGDEBUG("Whitelist threshold: %d", CTX->wh_threshold);
   }
 
+  /* Add the noise patterns to the primary array */
+  if (CTX->flags & DSF_NOISE) {
+    node_lht = c_lht_first (pfreq, &c_lht);
+    while(node_lht != NULL) {
+      lht_hit(freq, node_lht->key, node_lht->token_name);
+      lht_setspamstat(freq, node_lht->key, &node_lht->s);
+      lht_setfrequency(freq, node_lht->key, node_lht->frequency);
+      node_lht = c_lht_next(pfreq, &c_lht);
+    }
+  }
+
   /* Create a binary tree index sorted by a token's delta from .5 */
   node_lht = c_lht_first (freq, &c_lht);
   while (node_lht != NULL)
   {
-    if (total_eliminations == -1) 
+    if (total_eliminations == -1 && !(CTX->flags & DSF_NOISE))
       _ds_calc_stat (CTX, node_lht->key, &node_lht->s);
 
     if (CTX->flags & DSF_WHITELIST) {
