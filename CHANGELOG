@@ -1,7 +1,31 @@
-$Id: CHANGELOG,v 1.8 2004/10/29 13:31:21 jonz Exp $
+$Id: CHANGELOG,v 1.9 2004/10/29 13:43:32 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041024.1700] jonz: moved sources to src/
+
+moved all build sources to src/ for easier management
+
+[20041024.1545] jonz: repeat linestripping as necessary
+
+changed broken linestripping code to repeat as necessary, for some dos
+systems with multiple ^M's.
+
+[20041020.2345] jonz: enhanced TUM mode training
+
+greatly enhanced TUM-mode training by setting a dirty bit for each token in
+memory; instead of writing all tokens and then adding a conditional where
+clause for TUM (where total hits < 50), only tokens whose total hits are
+below 50 are included in the sql statement, the extra where clause is no
+longer necessary. this helps tum outperform teft in resources.
+
+[20041020.1400] jonz: normalized main()
+
+normalized main() by breaking up code into smaller subroutines
+
+Version 3.2.1
+-------------
 
 [20041029.0800] jonz: fixed pragma bug in sqlite_drv
 
@@ -13,9 +37,9 @@ added support for mysql 4.1's ON DUPLICATE KEY functionality, so that compiling
 with 4.1+ will perform a single insert query without causing duplicate key
 failures
 
-[20041025.0600] jonz: fixed memory leak in dspam_clean
+[20041025.0600] jonz: memory leaks in dspam_clean
 
-fixed memory leak of preferences in dspam_clean
+fixed minor memory leaks in dspam_clean
 
 [20041025.0600] jonz: sqlite fixes
 
@@ -30,15 +54,6 @@ messages with malformed signature lines
 [20041024.1845] jonz: added patch for pgsql and PQfreemem()
 
 added patch to search for PQfreemem() and use free() as an alternative
-
-[20041024.1700] jonz: moved sources to src/
-
-moved all build sources to src/ for easier management
-
-[20041024.1545] jonz: repeat linestripping as necessary
-
-changed broken linestripping code to repeat as necessary, for some dos
-systems with multiple ^M's.
 
 [20041024.0650] jonz: fixed bug with mysql_drv and duplicate key entries
 
@@ -59,22 +74,10 @@ the attachment to have an invalid boundary delimiter
 put --with-delivery-agent flag back (formerly, would try and just autodetect)
 and made some fixes to escape comma's.
 
-[20041020.2345] jonz: enhanced TUM mode training
-
-greatly enhanced TUM-mode training by setting a dirty bit for each token in
-memory; instead of writing all tokens and then adding a conditional where
-clause for TUM (where total hits < 50), only tokens whose total hits are
-below 50 are included in the sql statement, the extra where clause is no
-longer necessary. this helps tum outperform teft in resources.
-
 [20041020.1400] jonz: changed default logdir to dspam_home/log
 
 default logdir has been changed to dspam_home/log; this prevents confusion
 around permissions on /var/log
-
-[20041020.1400] jonz: normalized main()
-
-normalized main() by breaking up code into smaller subroutines
 
 [20041020.1400] jonz: applied patch for man page install
 
