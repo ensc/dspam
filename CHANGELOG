@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.239 2005/03/23 04:32:16 jonz Exp $
+$Id: CHANGELOG,v 1.240 2005/03/23 04:44:24 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050322.2330] jonz: fixed deadlocked connection on null characters
+
+fixed a condition where a 300-second deadlock, then timeout occurs when
+client sends \0 to server
 
 [20050322.2330] jonz: fixed some minor memory leaks
 

@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.79 2005/03/23 04:30:25 jonz Exp $ */
+/* $Id: daemon.c,v 1.80 2005/03/23 04:44:24 jonz Exp $ */
 
 /*
 
@@ -1057,10 +1057,13 @@ char *daemon_getline(THREAD_CTX *TTX, int timeout) {
 
     recv_len = recv(TTX->sockfd, buff, sizeof(buff)-1, 0);
     buff[recv_len] = 0;
-    if (recv_len == 0)
+    if (recv_len == 0) 
       return NULL;
+    for(i=0;i<recv_len;i++) {
+      if (buff[i]==0) 
+        return NULL;
+    }
     buffer_cat(TTX->packet_buffer, buff);
-    free(pop);
     pop = pop_buffer(TTX);
   }
 
