@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.100 2005/03/15 22:48:05 jonz Exp $ */
+/* $Id: dspam.c,v 1.101 2005/03/16 18:22:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -1439,6 +1439,12 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     }
 
     /* Deliver the message if the user has opted not to be filtered */
+
+    if (_ds_match_attribute(agent_config, "PassThruAtUsers", "on") &&
+        ((const char *) (node_nt->ptr))[0] == '@')
+    {
+      optout = 0;
+    }
 
     if (!optout ||
         !strcmp(_ds_pref_val(PTX, "optOut"), "on") ||

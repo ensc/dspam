@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.68 2005/03/16 17:31:50 jonz Exp $ */
+/* $Id: daemon.c,v 1.69 2005/03/16 18:22:33 jonz Exp $ */
 
 /*
 
@@ -804,12 +804,12 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
 
             if (x != NULL) {
               y = strdup(x+4);
-            }
 
-            if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
-            {
-              ATX->classification = DSR_ISINNOCENT;
-              ATX->source = DSS_ERROR;
+              if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
+              {
+                ATX->classification = DSR_ISINNOCENT;
+                ATX->source = DSS_ERROR;
+              }
             }
           }
 
