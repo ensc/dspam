@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.9 2004/11/30 23:52:36 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.10 2004/12/01 03:17:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -1978,6 +1978,8 @@ AGENT_PREF _ds_pref_load(
   if (row == NULL) {
     dspam_destroy(CTX);
     mysql_free_result(result);
+    _ds_pref_free(PTX);
+    free(PTX);
     if (username == NULL)
       return NULL;
     return _ds_pref_load(config, NULL, home);

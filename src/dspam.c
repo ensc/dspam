@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.22 2004/12/01 02:13:47 jonz Exp $ */
+/* $Id: dspam.c,v 1.23 2004/12/01 03:17:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -1804,11 +1804,12 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                         _ds_read_attribute(agent_config, "Home"));
 
     if (PTX && PTX[0] == 0) {
+      _ds_pref_free(PTX);
       free(PTX);
       PTX = NULL;
     }
 
-    if (PTX == NULL || PTX[0] == 0) 
+    if (PTX == NULL) 
       PTX = pref_config();
 
 #ifdef VERBOSE
