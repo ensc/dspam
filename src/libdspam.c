@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.56 2004/12/24 17:24:25 jonz Exp $ */
+/* $Id: libdspam.c,v 1.57 2004/12/26 20:01:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -1182,6 +1182,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     if (CTX->classification == DSR_NONE &&
         CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000) {
+#ifdef BNR_VERBOSE_DEBUG
+      char fn[MAX_FILENAME_LENGTH];
+      FILE *file;
+#endif
       BTX.stream = freq->order;
       BTX.total_eliminations = 0;
       BTX.total_clean = 0;
@@ -1204,45 +1208,48 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
 
 #ifdef BNR_VERBOSE_DEBUG
-      printf("BNR FILTER PROCESS RESULTS:\n");
-      printf("Eliminations:\n");
-      node_nt = c_nt_first(freq->order, &c_nt);
-      while(node_nt != NULL) {
-        node_lht = (struct lht_node *) node_nt->ptr;
-        if (node_lht->frequency <= 0)
-          printf("%s ", node_lht->token_name);
-        node_nt = c_nt_next(freq->order, &c_nt);
-      }
-      printf("\n[");
-      node_nt = c_nt_first(freq->order, &c_nt);
-      while(node_nt != NULL) {
-        node_lht = (struct lht_node *) node_nt->ptr;
-        if (node_lht->frequency <= 0)
-          printf("%1.2f ", node_lht->s.probability);
-        node_nt = c_nt_next(freq->order, &c_nt);
-      }
+      snprintf(fn, sizeof(fn), "%s/bnr.log", LOGDIR);
+      file = fopen(fn, "a");
+      if (file != NULL) {
+        fprintf(file, "-- BNR Filter Process Results --");
+        fprintf(file, "Eliminations:");
+        node_nt = c_nt_first(freq->order, &c_nt);
+        while(node_nt != NULL) {
+          node_lht = (struct lht_node *) node_nt->ptr;
+          if (node_lht->frequency <= 0)
+            fprintf(file, "%s ", node_lht->token_name);
+          node_nt = c_nt_next(freq->order, &c_nt);
+        }
+        fprintf(file, "\n[");
+        node_nt = c_nt_first(freq->order, &c_nt);
+        while(node_nt != NULL) {
+          node_lht = (struct lht_node *) node_nt->ptr;
+          if (node_lht->frequency <= 0)
+            fprintf(file, "%1.2f ", node_lht->s.probability);
+          node_nt = c_nt_next(freq->order, &c_nt);
+        }
   
-      printf("]\n\nRemaining:\n");
-      node_nt = c_nt_first(freq->order, &c_nt);
-      while(node_nt != NULL) {
-        node_lht = (struct lht_node *) node_nt->ptr;
-        if (node_lht->frequency > 0)
-          printf("%s ", node_lht->token_name);
-        node_nt = c_nt_next(freq->order, &c_nt);
-      }
-      printf("\n[");
-       node_nt = c_nt_first(freq->order, &c_nt);
-       while(node_nt != NULL) {
-         node_lht = (struct lht_node *) node_nt->ptr;
-         if (node_lht->frequency > 0)
-  
-          printf("%1.2f ", node_lht->s.probability);
-         node_nt = c_nt_next(freq->order, &c_nt);
-      }
+        fprintf(file, "]\n\nRemaining:\n");
+        node_nt = c_nt_first(freq->order, &c_nt);
+        while(node_nt != NULL) {
+          node_lht = (struct lht_node *) node_nt->ptr;
+          if (node_lht->frequency > 0)
+            fprintf(file, "%s ", node_lht->token_name);
+          node_nt = c_nt_next(freq->order, &c_nt);
+        }
+        fprintf(file, "\n[");
+         node_nt = c_nt_first(freq->order, &c_nt);
+         while(node_nt != NULL) {
+           node_lht = (struct lht_node *) node_nt->ptr;
+           if (node_lht->frequency > 0)
+    
+            fprintf(file, "%1.2f ", node_lht->s.probability);
+           node_nt = c_nt_next(freq->order, &c_nt);
+        }
 
-      printf("]\n\n");
+        fprintf(file, "]\n\n");
+      }
 #endif
-
     }
 
     /* Add BNR pattern to token hash */
@@ -1253,7 +1260,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         lht_setspamstat(freq, node_lht->key, &node_lht->s);
         lht_setfrequency(freq, node_lht->key, 1);
   
-#ifdef VERBOSE
+#ifdef BNR_DEBUG
         LOGDEBUG("BNR Pattern L1: %s %01.5f %lds %ldi",
                  node_lht->token_name,
                  node_lht->s.probability,
@@ -1270,7 +1277,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       while(node_lht != NULL) {
         lht_hit(freq, node_lht->key, node_lht->token_name, 0);
 
-#ifdef VERBOSE
+#ifdef BNR_DEBUG
        LOGDEBUG("BNR Pattern L2: %s %01.5f %lds %ldi",
                  node_lht->token_name,
                  node_lht->s.probability,
@@ -1292,7 +1299,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         lht_setspamstat(freq, node_lht->key, &node_lht->s);
         lht_setfrequency(freq, node_lht->key, 1);
 
-#ifdef VERBOSE
+#ifdef BNR_DEBUG
         LOGDEBUG("BNR Pattern L3: %s %01.5f %lds %ldi",
                  node_lht->token_name,
                  node_lht->s.probability,
