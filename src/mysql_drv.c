@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.18 2004/12/18 15:02:52 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.19 2004/12/18 16:02:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -2639,13 +2639,13 @@ DSPAM_CTX *_mysql_drv_init_tools(
   if (CTX == NULL) 
     return NULL;
 
-  if (!dbh)
+  _mysql_drv_set_attributes(CTX, config);
+
+  if (!dbh) 
     dbh = _mysql_drv_connect(CTX);
 
   if (!dbh)
     goto BAIL;
-
-  _mysql_drv_set_attributes(CTX, config);
 
   if (dspam_attach(CTX, dbh)) 
     goto BAIL;
@@ -2656,4 +2656,3 @@ BAIL:
   dspam_destroy(CTX);
   return NULL;
 }
-

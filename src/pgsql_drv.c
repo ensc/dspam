@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.14 2004/12/18 15:02:52 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.15 2004/12/18 16:02:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -2695,13 +2695,13 @@ DSPAM_CTX *_pgsql_drv_init_tools(
   if (CTX == NULL)
     return NULL;
 
+  _pgsql_drv_set_attributes(CTX, config);
+
   if (!dbh)
     dbh = _pgsql_drv_connect(CTX);
 
   if (!dbh)
     goto BAIL;
-
-  _pgsql_drv_set_attributes(CTX, config);
 
   if (dspam_attach(CTX, dbh))
     goto BAIL;
