@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.8 2004/12/09 18:25:32 jonz Exp $ */
+/* $Id: language.h,v 1.9 2004/12/24 16:02:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -42,6 +42,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ERROR_UNKNOWN_FEATURE	"Unknown Feature '%s'"
 #define ERROR_NO_AGENT		"No %s configured, and --stdout not specified"
 #define ERROR_NO_SOURCE		"No source was specified (required with class)"
+#define ERROR_CLASSIFY_CLASS	"--classify cannot be specified with --class"
 #define ERROR_NO_CLASS		"No class was specified (required with source)"
 #define ERROR_NO_OP_MODE	"No operating mode was specified"
 #define ERROR_NO_TR_MODE	"No training mode was specified"

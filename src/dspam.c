@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.48 2004/12/22 03:36:40 jonz Exp $ */
+/* $Id: dspam.c,v 1.49 2004/12/24 16:02:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -196,8 +196,15 @@ main (int argc, char *argv[])
     if (pidfile)
       unlink(pidfile);
 
+    dspam_destroy(DTX.CTX);
     dspam_shutdown_driver(&DTX);
     libdspam_shutdown();
+    if (agent_init)
+      nt_destroy(ATX.users);
+
+    if (agent_config)
+      _ds_destroy_attributes(agent_config);
+
     pthread_exit(EXIT_SUCCESS);
     exit(EXIT_SUCCESS);
   }
@@ -604,12 +611,13 @@ process_message (AGENT_CTX *ATX,
         break;
     }
 
-    if (ATX->sockfd > 0) {
-      fout = fdopen(ATX->sockfd, "w");
+    if (ATX->sockfd) { 
+      fout = ATX->sockfd;
       ATX->sockfd_output = 1;
     }
-    else
+    else {
       fout = stdout;
+    }
 
     setbuf(fout, NULL);
 
@@ -620,8 +628,6 @@ process_message (AGENT_CTX *ATX,
            CTX->probability,
            CTX->confidence);
 
-//   if (ATX->sockfd)
-//     fclose(fout);
   }
 
   ATX->learned = CTX->learned;
@@ -1200,11 +1206,11 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
   if (x == NULL)
     return NULL;
 
-  if (ATX->sockfd > 0) {
-    fout = fdopen(ATX->sockfd, "w");
-  }
-  else
+  if (ATX->sockfd) {
+    fout = ATX->sockfd;
+  } else {
     fout = stdout;
+  }
 
   setbuf(fout, NULL);
 
@@ -2899,6 +2905,8 @@ int is_blacklisted(const char *ip) {
       if (!strcmp(inet_ntoa(ip32), "127.0.0.2"))
         bad = 1;
     }
+
+    free(h);
 
     attrib = attrib->next;
   }

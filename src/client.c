@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.8 2004/12/03 17:38:46 jonz Exp $ */
+/* $Id: client.c,v 1.9 2004/12/24 16:02:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -126,14 +126,14 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   if (ATX->flags & DAF_STDOUT || ATX->operating_mode == DSM_CLASSIFY) {
     char *line = NULL;
 
-    line = socket_getline(&TTX, 300);
+    line = client_getline(&TTX, 300);
     if (line)
       chomp(line);
 
     while(line != NULL && strcmp(line, ".")) {
       chomp(line);
       printf("%s\n", line);
-      line = socket_getline(&TTX, 300);
+      line = client_getline(&TTX, 300);
       if (line) chomp(line);
     }
     if (line == NULL)
@@ -249,7 +249,7 @@ char * client_expect(THREAD_CTX *TTX, int response_code) {
   char *ptr, *ptrptr;
   int code;
 
-  input = socket_getline(TTX, 300);
+  input = client_getline(TTX, 300);
   while(input != NULL) {
     code = 0;
     dup = strdup(input);
@@ -266,7 +266,7 @@ char * client_expect(THREAD_CTX *TTX, int response_code) {
       return input;
     
     free(input);
-    input = socket_getline(TTX, 300);
+    input = client_getline(TTX, 300);
   }
 
   return NULL;
@@ -275,7 +275,7 @@ char * client_expect(THREAD_CTX *TTX, int response_code) {
 int client_getcode(THREAD_CTX *TTX) {
   char *input, *ptr, *ptrptr;
 
-  input = socket_getline(TTX, 300);
+  input = client_getline(TTX, 300);
   if (input == NULL)
     return EFAILURE;
   ptr = strtok_r(input, " ", &ptrptr);
@@ -284,7 +284,7 @@ int client_getcode(THREAD_CTX *TTX) {
   return atoi(ptr);
 }
 
-char *socket_getline(THREAD_CTX *TTX, int timeout) {
+char *client_getline(THREAD_CTX *TTX, int timeout) {
   int i;
   struct timeval tv;
   fd_set fds;

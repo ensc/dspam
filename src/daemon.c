@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.27 2004/12/19 22:54:54 jonz Exp $ */
+/* $Id: daemon.c,v 1.28 2004/12/24 16:02:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -60,6 +60,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "buffer.h"
 #include "language.h"
 
+int __daemon_run;
+
 int daemon_listen(DRIVER_CTX *DTX) {
   int port = 24;
   int queue = 32;
@@ -74,7 +76,11 @@ int daemon_listen(DRIVER_CTX *DTX) {
   pthread_attr_t attr;
   fd_set master, read_fds;
 
+  __daemon_run = 1;
+
   signal(SIGPIPE, SIG_IGN);
+  signal(SIGINT, die);
+  signal(SIGTERM, die);
 
   /* Set Defaults */
   if (_ds_read_attribute(agent_config, "ServerPort"))
@@ -158,6 +164,15 @@ int daemon_listen(DRIVER_CTX *DTX) {
     tv.tv_sec = 2;
     tv.tv_usec = 0;
 
+    if (__daemon_run == 0) {
+      close(listener);
+
+      if (_ds_read_attribute(agent_config, "ServerDomainSocketPath"))
+        unlink (_ds_read_attribute(agent_config, "ServerDomainSocketPath"));
+      
+      return 0; 
+    }
+
     if (select(fdmax+1, &read_fds, NULL, NULL, &tv)>0) {
 
       /* Process read-ready connections */
@@ -226,6 +241,7 @@ void *process_connection(void *ptr) {
   int argc = 0;
   int **results, *result;
   int i, locked = -1;
+  FILE *sockfd = fdopen(TTX->sockfd, "w");
 
   TTX->packet_buffer = buffer_create(NULL);
   if (TTX->packet_buffer == NULL)
@@ -338,7 +354,7 @@ void *process_connection(void *ptr) {
       goto CLOSE;
     } 
 
-    ATX->sockfd = TTX->sockfd;
+    ATX->sockfd = sockfd;
     ATX->sockfd_output = 0;
 
     /* Determine which database handle to use */
@@ -439,7 +455,8 @@ void *process_connection(void *ptr) {
 CLOSE:
   if (locked>=0)
     pthread_mutex_unlock(&TTX->DTX->connections[locked]->lock);
-  close(TTX->sockfd);
+  fclose(sockfd);
+//  close(TTX->sockfd);
   buffer_destroy(TTX->packet_buffer);
   if (message) 
     buffer_destroy(message);
@@ -463,7 +480,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
     return NULL;
   }
 
-  while ((buff = socket_getline(TTX, 300))!=NULL) {
+  while ((buff = daemon_getline(TTX, 300))!=NULL) {
     chomp(buff);
 
     if (!strcmp(buff, ".")) {
@@ -555,7 +572,7 @@ char *daemon_expect(THREAD_CTX *TTX, const char *ptr) {
   char buf[128];
   char *cmd;
 
-  cmd = socket_getline(TTX, 300); 
+  cmd = daemon_getline(TTX, 300); 
   if (cmd == NULL)
     return NULL;
 
@@ -569,7 +586,7 @@ char *daemon_expect(THREAD_CTX *TTX, const char *ptr) {
     if (send_socket(TTX, buf)<=0)
       return NULL;
     free(cmd);
-    cmd = socket_getline(TTX, 300);
+    cmd = daemon_getline(TTX, 300);
     if (cmd == NULL)
       return NULL;
   } 
@@ -580,6 +597,45 @@ int daemon_reply(THREAD_CTX *TTX, int reply, const char *txt) {
   char buf[128];
   snprintf(buf, sizeof(buf), "%d %s", reply, txt);
   return send_socket(TTX, buf);
+}
+
+void die(int sig) {
+  LOGDEBUG("cleaning up on signal %d", sig);
+  __daemon_run = 0;
+  return;
+}
+
+char *daemon_getline(THREAD_CTX *TTX, int timeout) {
+  int i;
+  struct timeval tv;
+  fd_set fds;
+  long recv_len;
+  char *pop;
+  char buff[1024];
+  int total_wait = 0;
+
+  pop = pop_buffer(TTX);
+  while(!pop && total_wait<timeout) {
+    if (__daemon_run == 0) 
+      return NULL;
+    total_wait++;
+    tv.tv_sec = 1;
+    tv.tv_usec = 0;
+    FD_ZERO(&fds);
+    FD_SET(TTX->sockfd, &fds);
+    i = select(TTX->sockfd+1, &fds, NULL, NULL, &tv);
+    if (i<=0)
+      continue;
+
+    recv_len = recv(TTX->sockfd, buff, sizeof(buff)-1, 0);
+    buff[recv_len] = 0;
+    if (recv_len == 0)
+      return NULL;
+    buffer_cat(TTX->packet_buffer, buff);
+    pop = pop_buffer(TTX);
+  }
+
+  return pop;
 }
 
 #endif

@@ -1,7 +1,16 @@
-$Id: CHANGELOG,v 1.87 2004/12/24 02:19:06 jonz Exp $
+$Id: CHANGELOG,v 1.88 2004/12/24 16:02:03 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041224.1059] jonz: cleaned up reachable memory and memory leaks in daemon
+
+cleaned up reachable memory and some memory leaks in daemon mode
+
+[20041224.1033] jonz: added proper cleanup to daemon mode
+
+added proper cleanup functionality to daemon mode; all sockets closed, socket
+file unlinked, etc.
 
 [20041223.2106] jonz: fixed segfault on unreadable dspam.conf
 

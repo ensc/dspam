@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.11 2004/12/03 01:30:32 jonz Exp $ */
+/* $Id: daemon.h,v 1.12 2004/12/24 16:02:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -52,12 +52,14 @@ typedef struct {
   DRIVER_CTX *DTX;
 } THREAD_CTX;
 
-int daemon_listen(DRIVER_CTX *DTX);
-void *process_connection(void *ptr);
-buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
-int process_users_daemon(THREAD_CTX *TTX, AGENT_CTX *ATX, buffer *message);
-char *daemon_expect(THREAD_CTX *TTX, const char *ptr);
-int daemon_reply(THREAD_CTX *TTX, int reply, const char *txt);
+int	daemon_listen(DRIVER_CTX *DTX);
+int	process_users_daemon(THREAD_CTX *TTX, AGENT_CTX *ATX, buffer *message);
+int	daemon_reply(THREAD_CTX *TTX, int reply, const char *txt);
+void *	process_connection(void *ptr);
+char *	daemon_expect(THREAD_CTX *TTX, const char *ptr);
+char *	daemon_getline(THREAD_CTX *TTX, int timeout);
+void	die(int signal);
+buffer *read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
 
 #define LMTP_GREETING		220
 #define LMTP_QUIT		221
