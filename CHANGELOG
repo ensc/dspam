@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.84 2004/12/22 03:36:40 jonz Exp $
+$Id: CHANGELOG,v 1.85 2004/12/23 16:57:52 jonz Exp $
 
-Version NEXT
-------------
+Version 3.3.1
+-------------
 
 [20041221.2230] jonz: rewrote signature embedding code
 

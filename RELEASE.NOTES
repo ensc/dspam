@@ -1,6 +1,6 @@
-$Id: RELEASE.NOTES,v 1.8 2004/12/22 03:36:40 jonz Exp $
+$Id: RELEASE.NOTES,v 1.9 2004/12/23 16:57:52 jonz Exp $
 
-RELEASE 3.3.0 (Development)
+RELEASE 3.3.1 (Development)
 
 All odd-numbered releases are considered development releases. Development
 releases are for pre-production testing and are likely to contain bugs. Please
@@ -68,6 +68,13 @@ The agent now supports failover of storage profiles. This allows you to
 select an alternative server (or chain of servers) to use in the event of
 a failure. Keep in mind that this will require some type of database
 replication, or a centralized database to pull off.
+
+Streamlined Blackhole List Support
+The DSPAM Streamlined Blackhole List Server is an unsupervised, machine-
+automated temporary blacklisting system which bases its decisions on how
+many networks report a particular network address. The DSPAM agent can now
+perform lookups on an SBL server and learn messages as spam which originate
+from blacklisted addresses.
 
 Bug Fixes:
 
