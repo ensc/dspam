@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.117 2005/03/28 13:47:05 jonz Exp $ */
+/* $Id: dspam.c,v 1.118 2005/03/28 21:38:21 jonz Exp $ */
 
 /*
  DSPAM
@@ -2426,6 +2426,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
 
 int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
   char filename[MAX_FILENAME_LENGTH];
+  char retrain[MAX_FILENAME_LENGTH];
   char *subject = NULL, *from = NULL;
   struct nt_node *node_nt;
   struct nt_c c_nt;
@@ -2435,6 +2436,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
   size_t y;
 
   _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(CTX->username), "log");
+  _ds_userdir_path(retrain, _ds_read_attribute(agent_config, "Home"), LOOKUP(CTX->username), "retrain.log");
 
   node_nt = c_nt_first (CTX->message->components, &c_nt);
   if (node_nt != NULL)
@@ -2479,19 +2481,31 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
   else if (CTX->source == DSS_CORPUS)
     class = 'C';
      
-  snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s\t%s", 
-          (long) time(NULL), 
-          class,
-          (from == NULL) ? "<None Specified>" : from,
-          ATX->signature,
-          (subject == NULL) ? "<None Specified>" : subject);
+  if (class == 'M' || class == 'F') {
+    snprintf(x, sizeof(x), "%ld\t%s\t%s",
+            (long) time(NULL),
+            ATX->signature,
+            (class == 'M') ? "spam" : "innocent");
+  } else {
+    snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s\t%s", 
+            (long) time(NULL), 
+            class,
+            (from == NULL) ? "<None Specified>" : from,
+            ATX->signature,
+            (subject == NULL) ? "<None Specified>" : subject);
+  }
   for(y=0;y<strlen(x);y++)
     if (x[y] == '\n') 
       x[y] = 32;
 
   if (_ds_match_attribute(agent_config, "UserLog", "on")) {
-    _ds_prepare_path_for(filename);
-    file = fopen(filename, "a");
+    if (class == 'M' || class == 'F') {
+      _ds_prepare_path_for(retrain);
+      file = fopen(retrain, "a");
+    } else {
+      _ds_prepare_path_for(filename);
+      file = fopen(filename, "a");
+    }
     if (file != NULL) {
       int i = _ds_get_fcntl_lock(fileno(file));
       if (!i) {
