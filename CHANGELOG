@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.195 2005/03/05 14:18:37 jonz Exp $
+$Id: CHANGELOG,v 1.196 2005/03/08 17:41:04 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050308.0800] jonz: fixed header duplication on reclassify
+
+fixed a bug where a new set of headers would be added to the old set upon
+reclassification. now, only X-DSPAM-Reclassified header is added. also fixed
+duplicate signature being written.
 
 [20050305.0900] jonz: fixed bug in cgi autodetect of extensions
 

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.86 2005/03/05 02:00:36 jonz Exp $ */
+/* $Id: dspam.c,v 1.87 2005/03/08 17:41:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -574,7 +574,7 @@ process_message (AGENT_CTX *ATX,
     goto RETURN;
 
   if (!_ds_match_attribute(agent_config, "TrainPristine", "on") && 
-        strcmp(_ds_pref_val(PTX, "trainPristine"), "on"))
+        strcmp(_ds_pref_val(PTX, "trainPristine"), "on")) 
     add_xdspam_headers(CTX, ATX, PTX);
 
   if (!strcmp(_ds_pref_val(PTX, "spamAction"), "tag") && 
@@ -585,7 +585,8 @@ process_message (AGENT_CTX *ATX,
 
   if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers") &&
       !_ds_match_attribute(agent_config, "TrainPristine", "on") &&
-        strcmp(_ds_pref_val(PTX, "trainPristine"), "on"))
+        strcmp(_ds_pref_val(PTX, "trainPristine"), "on") &&
+        CTX->classification == DSR_NONE)
   {
     i = embed_signature(CTX, ATX, PTX);
     if (i<0) {
@@ -2486,7 +2487,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
   struct nt_c c_nt;
 
   node_nt = c_nt_first (CTX->message->components, &c_nt);
-  if (node_nt != NULL && ! FALSE_POSITIVE(CTX))
+  if (node_nt != NULL)
   {
     struct _ds_message_block *block = node_nt->ptr;
     struct nt_node *node_ft;
@@ -2497,7 +2498,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
       char data[10240];
       char scratch[128];
   
-      strcpy(data, "X-DSPAM-Result: ");
+      strcpy(data, (CTX->classification == DSR_NONE) ? "X-DSPAM-Result: " : "X-DSPAM-Reclassified: ");
       switch (CTX->result) {
         case DSR_ISSPAM:
           strcat(data, "Spam");
@@ -2522,55 +2523,24 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
         LOG (LOG_CRIT, ERROR_MEM_ALLOC);
       }
 
-      snprintf(data, sizeof(data), "X-DSPAM-Confidence: %01.4f", 
-               CTX->confidence);
-      head = _ds_create_header_field(data);
-      if (head != NULL)
-      {
-#ifdef VERBOSE
-        LOGDEBUG("appending header %s: %s", head->heading, head->data);
-#endif
-        nt_add(block->headers, (void *) head);
-      }
-      else
-        LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+      if (CTX->classification == DSR_NONE) {
 
-      snprintf(data, sizeof(data), "X-DSPAM-Probability: %01.4f", 
-               CTX->probability);
-
-      head = _ds_create_header_field(data);
-      if (head != NULL)
-      {
-#ifdef VERBOSE
-        LOGDEBUG ("appending header %s: %s", head->heading, head->data)
-#endif
-          nt_add (block->headers, (void *) head);
-      }
-      else
-        LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-
-      if (CTX->training_mode != DST_NOTRAIN && ATX->signature[0] != 0) {
-        snprintf(data, sizeof(data), "X-DSPAM-Signature: %s", ATX->signature);
-
+        snprintf(data, sizeof(data), "X-DSPAM-Confidence: %01.4f", 
+                 CTX->confidence);
         head = _ds_create_header_field(data);
         if (head != NULL)
         {
-          if (strlen(ATX->signature)<5) 
-          {
-            LOGDEBUG("WARNING: Signature not generated, or invalid");
-          }
 #ifdef VERBOSE
-          LOGDEBUG ("appending header %s: %s", head->heading, head->data)
+          LOGDEBUG("appending header %s: %s", head->heading, head->data);
 #endif
-          nt_add (block->headers, (void *) head);
+          nt_add(block->headers, (void *) head);
         }
         else
           LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-      }
 
-      if (CTX->result == DSR_ISSPAM)
-      {
-        snprintf(data, sizeof(data), "X-DSPAM-User: %s", CTX->username);
+        snprintf(data, sizeof(data), "X-DSPAM-Probability: %01.4f", 
+                 CTX->probability);
+
         head = _ds_create_header_field(data);
         if (head != NULL)
         {
@@ -2581,34 +2551,69 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
         }
         else
           LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-      }
 
-      if (!strcmp(_ds_pref_val(PTX, "showFactors"), "on")) {
+        if (CTX->training_mode != DST_NOTRAIN && ATX->signature[0] != 0) {
+          snprintf(data, sizeof(data), "X-DSPAM-Signature: %s", ATX->signature);
 
-        if (CTX->factors != NULL) {
-          snprintf(data, sizeof(data), "X-DSPAM-Factors: %d",
-                   CTX->factors->items);
-          node_ft = c_nt_first(CTX->factors, &c_ft);
-          while(node_ft != NULL) {
-            struct dspam_factor *f = (struct dspam_factor *) node_ft->ptr;
-            if (f) {
-              strlcat(data, ",\n\t", sizeof(data));
-              snprintf(scratch, sizeof(scratch), "%s, %2.5f",
-                       f->token_name, f->value);
-              strlcat(data, scratch, sizeof(data));
+          head = _ds_create_header_field(data);
+          if (head != NULL)
+          {
+            if (strlen(ATX->signature)<5) 
+            {
+              LOGDEBUG("WARNING: Signature not generated, or invalid");
             }
-            node_ft = c_nt_next(CTX->factors, &c_ft);
+#ifdef VERBOSE
+            LOGDEBUG ("appending header %s: %s", head->heading, head->data)
+#endif
+            nt_add (block->headers, (void *) head);
           }
+          else
+            LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+        }
+
+        if (CTX->result == DSR_ISSPAM)
+        {
+          snprintf(data, sizeof(data), "X-DSPAM-User: %s", CTX->username);
           head = _ds_create_header_field(data);
           if (head != NULL)
           {
 #ifdef VERBOSE
-            LOGDEBUG("appending header %s: %s", head->heading, head->data);
+            LOGDEBUG ("appending header %s: %s", head->heading, head->data)
 #endif
-            nt_add(block->headers, (void *) head);
+              nt_add (block->headers, (void *) head);
+          }
+          else
+            LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+        }
+
+        if (!strcmp(_ds_pref_val(PTX, "showFactors"), "on")) {
+
+          if (CTX->factors != NULL) {
+            snprintf(data, sizeof(data), "X-DSPAM-Factors: %d",
+                     CTX->factors->items);
+            node_ft = c_nt_first(CTX->factors, &c_ft);
+            while(node_ft != NULL) {
+              struct dspam_factor *f = (struct dspam_factor *) node_ft->ptr;
+              if (f) {
+                strlcat(data, ",\n\t", sizeof(data));
+                snprintf(scratch, sizeof(scratch), "%s, %2.5f",
+                         f->token_name, f->value);
+                strlcat(data, scratch, sizeof(data));
+              }
+              node_ft = c_nt_next(CTX->factors, &c_ft);
+            }
+            head = _ds_create_header_field(data);
+            if (head != NULL)
+            {
+#ifdef VERBOSE
+              LOGDEBUG("appending header %s: %s", head->heading, head->data);
+#endif
+              nt_add(block->headers, (void *) head);
+            }
           }
         }
-      }
+
+      } /* CTX->classification == DSR_NONE */
     }
   }
   return 0;
