@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.92 2005/03/14 14:41:03 jonz Exp $ */
+/* $Id: dspam.c,v 1.93 2005/03/14 14:48:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -1256,7 +1256,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     *code = 0;
     x[i] = code;
 
-    if (!strcmp(ATX->recipient, "%u"))
+    if (ATX->rcpt_match_user)
       strlcpy(ATX->recipient, node_nt->ptr, sizeof(ATX->recipient));
 
     parse_message = buffer_create(message->data);

@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.25 2005/03/14 14:41:03 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.26 2005/03/14 14:48:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -279,7 +279,9 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
         !strncmp (argv[i], "--rcpt-to=", 10)) 
     {
       strlcpy(ATX->recipient, strchr(argv[i], '=')+1, sizeof(ATX->recipient));
-      LOGDEBUG("LMTP RCPT TO: %s", ATX->recipient);
+      if (!strcmp(ATX->recipient, "%u"))
+        ATX->rcpt_match_user = 1;
+      LOGDEBUG("RCPT TO: %s", ATX->recipient);
       continue;
     }
 

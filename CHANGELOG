@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.206 2005/03/14 14:41:03 jonz Exp $
+$Id: CHANGELOG,v 1.207 2005/03/14 14:48:17 jonz Exp $
 
 Version NEXT
 ------------
@@ -6,7 +6,7 @@ Version NEXT
 [20050313.0700] jonz: changed lmtp commandline options
 
 removed lmtp from commandline options to service lmtp and smtp. so...
-
+ 
 --lmtp-rcpt-to or --lmtp-recipient becomes --rcpt-to and --recipient
 --lmtp-mail-from becomes --mail-from
 

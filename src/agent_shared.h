@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.9 2005/03/14 14:41:03 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.10 2005/03/14 14:48:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -63,6 +63,7 @@ typedef struct {
   void *dbh;                /* Database Handle       IN      */
   u_int32_t flags;          /* Flags DAF_            IN      */
   int training_buffer;	    /* Sedation Level 0-10   IN      */
+  int rcpt_match_user;		/* RCPT TO           INTERNAL*/
   char mailer_args[256];        /* Delivery Args     IN      */
   char spam_args[256];          /* Quarantine Args   IN      */
   char managed_group[256];      /* Managed Groupname IN      */
