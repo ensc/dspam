@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.3 2004/12/02 19:41:31 jonz Exp $ */
+/* $Id: client.c,v 1.4 2004/12/02 19:42:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -153,6 +153,7 @@ QUIT:
   client_getcode(&TTX);
 
 BAIL:
+  exitcode = EFAILURE;
   buffer_destroy(TTX.packet_buffer);
   close(TTX.sockfd);
   return EFAILURE;
