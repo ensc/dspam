@@ -121,3 +121,13 @@ Congratulations! You're now set up. You can start DSPAM using dspam --daemon.
 You might want to run with verbose debug to test and ensure everything is
 working properly.
 
+GLOBAL DATABASES
+
+If you're thinking about going with a global database, I strongly recommend
+using merged groups + toe instead of a single global group. To do this, just
+follow the README directions for setting one up and leave everything the way
+it is. If, however, you insist on a single global group, you'll need to make
+one change to dspam.conf to accomodate this configuration. Add
+--user [globaluser] to your ServerParameters property. This will cause all
+mail to be processed using this user, but will still deliver using the
+recipient information.
