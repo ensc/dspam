@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.67 2005/03/16 14:33:19 jonz Exp $ */
+/* $Id: daemon.c,v 1.68 2005/03/16 17:31:50 jonz Exp $ */
 
 /*
 
@@ -774,38 +774,58 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
         if (!body && !strncasecmp(buff, "To: ", 4))
         {
           char *y = NULL;
-          char *x = strstr(buff, "spam-");
+          char *x;
+
+          /* Check for spam- */
+
+          x = strstr(buff, "<spam-");
+          if (!x)
+            x = strstr(buff, " spam-");
+          if (!x)
+            x = strstr(buff, ":spam-");
 
           if (x != NULL) {
-            y = strdup(x+5);
+            y = strdup(x+6);
 
-            if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+            if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
+            {
               ATX->classification = DSR_ISSPAM;
               ATX->source = DSS_ERROR;
             }
-          }
+          } else {
 
-          x = strstr(buff, "fp-");
-          if (x != NULL) {
-            y = strdup(x+3);
+            /* Check for fp- */
 
-            if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+            x = strstr(buff, "<fp-");
+            if (!x)
+              x = strstr(buff, " fp-");
+            if (!x)
+              x = strstr(buff, ":fp-");
+
+            if (x != NULL) {
+              y = strdup(x+4);
+            }
+
+            if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
+            {
               ATX->classification = DSR_ISINNOCENT;
               ATX->source = DSS_ERROR;
             }
           }
-             
-          if (y && !strcmp(_ds_read_attribute(agent_config, "ChangeUserOnParse"), "on")) {
+
+          if (y && _ds_match_attribute(agent_config,
+                                       "ChangeUserOnParse", "on"))
+          {
             char *ptrptr;
             char *z = strtok_r(y, "@", &ptrptr);
             nt_destroy(ATX->users);
             ATX->users = nt_create(NT_CHAR);
-            if (!ATX->users) 
+            if (!ATX->users)
               return NULL;
             nt_add (ATX->users, z);
             free(y);
           }
-        }
+        } /* To: Header */
       }
 
       if (buffer_cat (message, buff) || buffer_cat(message, "\n"))
