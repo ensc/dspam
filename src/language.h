@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.7 2004/12/03 01:37:17 jonz Exp $ */
+/* $Id: language.h,v 1.8 2004/12/09 18:25:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -50,6 +50,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ERROR_IGNORING_PREF	"Ignoring Disallowed Preference '%s'"
 #define ERROR_INITIALIZE_ATX	"Unable to initialize agent context"
 #define ERROR_DSPAM_MISCONFIGURED	"DSPAM misconfigured. Aborting."
+#define ERROR_FAILOVER_OUT      "Could not fail over: out of failover servers"
+#define ERROR_CLEAR_ATTRIBUTES  "dspam_clearattributes() failed"
+#define ERROR_FAILING_OVER	"Failing over to profile '%s'"
 
 /* Delivery Agent Failures */
 

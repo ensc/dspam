@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.4 2004/12/06 13:47:08 jonz Exp $ */
+/* $Id: libdspam.h,v 1.5 2004/12/09 18:25:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -63,7 +63,9 @@ int dspam_getsource	(DSPAM_CTX * CTX,
                          char *buf, 
                          size_t size);
 
-int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value);
+int dspam_addattribute    (DSPAM_CTX * CTX, const char *key, const char *value);
+int dspam_clearattributes (DSPAM_CTX * CTX);
+
 
 /* Private functions */
 

@@ -1,4 +1,4 @@
-/* $Id: config_api.c,v 1.1 2004/12/03 01:30:32 jonz Exp $ */
+/* $Id: config_api.c,v 1.2 2004/12/09 18:25:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -73,7 +73,6 @@ int set_libdspam_attributes(DSPAM_CTX *CTX) {
         }
         else if (strchr(t->key, '.'))
         {
-
           if (!strcasecmp((strchr(t->key, '.')+1), profile)) {
             char *x = strdup(t->key);
             char *y = strchr(x, '.');
@@ -89,6 +88,51 @@ int set_libdspam_attributes(DSPAM_CTX *CTX) {
   }
 
   ret += configure_algorithms(CTX);
+
   return ret;
+}
+
+int attach_context(DSPAM_CTX *CTX, void *dbh) {
+  int tries = 0;
+  int maxtries = 1;
+  int r;
+
+  if (!_ds_read_attribute(agent_config, "DefaultProfile"))
+    return dspam_attach(CTX, dbh);
+
+  /* Perform failover if an attach fails */
+
+  if (_ds_read_attribute(agent_config, "FailoverAttempts"))
+    maxtries = atoi(_ds_read_attribute(agent_config, "FailoverAttempts"));
+
+  r = dspam_attach(CTX, dbh);
+  while (r && tries < maxtries) {
+    char key[128];
+    char *failover;
+
+    snprintf(key, sizeof(key), "Failover.%s", _ds_read_attribute(agent_config, "DefaultProfile"));
+
+    failover = _ds_read_attribute(agent_config, key);
+
+    if (!failover) {
+      report_error(ERROR_FAILOVER_OUT);
+      return r;
+    }
+
+    report_error_printf(ERROR_FAILING_OVER, failover);
+    _ds_overwrite_attribute(agent_config, "DefaultProfile", failover);
+
+    if (dspam_clearattributes(CTX)) {
+      report_error(ERROR_CLEAR_ATTRIBUTES);
+      return r;
+    }
+
+    set_libdspam_attributes(CTX);
+
+    tries++;
+    r = dspam_attach(CTX, dbh);
+  }
+
+  return r;
 }
 

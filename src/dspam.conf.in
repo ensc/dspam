@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.11 2004/12/08 18:01:18 jonz Exp $
+## $Id: dspam.conf.in,v 1.12 2004/12/09 18:25:32 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -222,6 +222,19 @@ AllowOverride whitelistThreshold
 #MySQLCompress.Sun420R  false
 #
 #DefaultProfile DECAlpha
+
+#
+# If you're using storage profiles, you can set failovers for each profile.
+#
+#Failover.DECAlpha      SUN420R
+#Failover.Sun420R       DECAlpha
+
+# If the storage fails, the agent will follow each profile's failover up to
+# a maximum number of failover attempts. This should be set to a maximum of
+# the number of profiles you have, otherwise the agent could loop and try
+# the same profile multiple times (unless this is your desired behavior).
+#
+#FailoverAttempts       1
 
 #
 # Ignored headers: If DSPAM is behind other tools which may add a header to

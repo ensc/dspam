@@ -1,4 +1,4 @@
-.\" $Id: libdspam.3,v 1.1 2004/10/24 20:48:46 jonz Exp $
+.\" $Id: libdspam.3,v 1.2 2004/12/09 18:25:31 jonz Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam3.2
@@ -11,7 +11,7 @@
 .TH libdspam 1  "Sep 29, 2004" "libdspam" "libdspam"
 
 .SH NAME
-libdspam, dspam_init, dspam_create, dspam_addattribute, dspam_attach, dspam_process, dspam_getsource, dspam_detach, dspam_destroy 
+libdspam, dspam_init, dspam_create, dspam_addattribute, dspam_attach, dspam_process, dspam_getsource, dspam_detach, dspam_clearattributes, dspam_destroy 
 .PP
 DSPAM Core Analyis Engine Functions
 
@@ -27,6 +27,8 @@ DSPAM Core Analyis Engine Functions
 .sp
 .BI "int dspam_addattribute(DSPAM_CTX *" CTX ", const char *" name ", "
 .BI "  const char *" value ");"
+.sp
+.BI "int dspam_clearattributes(DSPAM_CTX *" CTX ");"
 .sp
 .BI "int dspam_attach(DSPAM_CTX *" CTX ", void *" dbh ");"
 .sp
@@ -125,6 +127,11 @@ is no longer needed, another call to \fBdspam_destroy()\fP should be
 made. If you are closing storage and destroying the context at the same
 time, it is not necessary to call this function. Instead you may call
 \fBdspam_destroy()\fP directly.
+.PP
+The \fBdspam_clearattributes()\fP function is called to clear any attributes
+previously set using \fBdspam_addattribute()\fP within the classification
+context. It is necessary to call this function prior to replacing any
+attributes already written.
 .PP
 The \fBdspam_destroy()\fP function should be called when the context is
 no longer needed. If a connection was established to storage internally,

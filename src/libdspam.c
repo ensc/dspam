@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.33 2004/12/07 15:08:08 jonz Exp $ */
+/* $Id: libdspam.c,v 1.34 2004/12/09 18:25:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -225,6 +225,40 @@ bail:
   free(CTX->group);
   free(CTX);
   return NULL;
+}
+
+/*
+ *  The dspam_clearattributes() function is called to clear any attributes
+ *  previously set using dspam_addattribute()  within  the  classification
+ *  context.  It is necessary to call this function prior to replacing any
+ *  attributes already written.
+ *
+ */ 
+
+int dspam_clearattributes (DSPAM_CTX * CTX) {
+
+  if (CTX->config) {
+    _ds_destroy_attributes(CTX->config->attributes);
+    free(CTX->config);
+  } else {
+    return EFAILURE;
+  }
+
+  CTX->config = calloc(1, sizeof(struct _ds_config));
+  if (CTX->config == NULL)
+    goto bail;
+  CTX->config->size = 128;
+  CTX->config->attributes = calloc(1, sizeof(attribute_t *)*128);
+  if (CTX->config->attributes == NULL)
+    goto bail;
+
+  return 0;
+
+bail:
+  free(CTX->config);
+  CTX->config = NULL;
+  report_error(ERROR_MEM_ALLOC);
+  return EUNKNOWN;
 }
 
 /*

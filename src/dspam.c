@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.39 2004/12/08 18:01:18 jonz Exp $ */
+/* $Id: dspam.c,v 1.40 2004/12/09 18:25:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -308,13 +308,13 @@ process_message (AGENT_CTX *ATX,
   if (ATX->sockfd && ATX->dbh == NULL) 
     ATX->dbh = _ds_connect(CTX);
 
-  if (dspam_attach(CTX, ATX->dbh)) {
+  if (attach_context(CTX, ATX->dbh)) {
 
     /* Try again */
     if (ATX->sockfd) {
       ATX->dbh = _ds_connect(CTX);
 
-      if (dspam_attach(CTX, ATX->dbh)) {
+      if (attach_context(CTX, ATX->dbh)) {
         LOGDEBUG("unable to attach dspam context");
         result = EUNKNOWN;
         goto RETURN;
@@ -957,7 +957,7 @@ inoculate_user (const char *username, struct _ds_spam_signature *SIG,
   if (INOC)
   {
     set_libdspam_attributes(INOC);
-    if (dspam_attach(INOC, ATX->dbh)) {
+    if (attach_context(INOC, ATX->dbh)) {
       LOG (LOG_WARNING, "unable to attach dspam context");
       dspam_destroy(INOC);
       return EUNKNOWN;
@@ -1009,7 +1009,7 @@ inoculate_user (const char *username, struct _ds_spam_signature *SIG,
     if (INOC)
     {
       set_libdspam_attributes(INOC);
-      if (dspam_attach(INOC, ATX->dbh)) {
+      if (attach_context(INOC, ATX->dbh)) {
         LOG (LOG_WARNING, "unable to attach dspam context");
         dspam_destroy(INOC);
         return EUNKNOWN;
@@ -1070,7 +1070,7 @@ user_classify (const char *username, struct _ds_spam_signature *SIG,
   if (CLX)
   {
     set_libdspam_attributes(CLX);
-    if (dspam_attach(CLX, ATX->dbh)) {
+    if (attach_context(CLX, ATX->dbh)) {
       LOG (LOG_WARNING, "unable to attach dspam context");
       dspam_destroy(CLX);
       return EUNKNOWN;
@@ -2078,7 +2078,7 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       }
 
       set_libdspam_attributes(CLX);
-      if (dspam_attach(CLX, ATX->dbh)) {
+      if (attach_context(CLX, ATX->dbh)) {
         do_train = 0;
         dspam_destroy(CLX);
         break;

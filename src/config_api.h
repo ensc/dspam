@@ -1,4 +1,4 @@
-/* $Id: config_api.h,v 1.1 2004/12/03 01:30:32 jonz Exp $ */
+/* $Id: config_api.h,v 1.2 2004/12/09 18:25:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -32,5 +32,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "pref.h"
 
 int set_libdspam_attributes(DSPAM_CTX *CTX);
+int attach_context         (DSPAM_CTX *CTX, void *dbh);
 
 #endif /* _CONFIG_API_H */
