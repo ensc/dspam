@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.82 2005/01/05 18:48:50 jonz Exp $ */
+/* $Id: libdspam.c,v 1.83 2005/01/08 03:09:58 jonz Exp $ */
 
 /*
  DSPAM
@@ -453,7 +453,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   if ((CTX->training_mode == DST_TOE     &&
       CTX->operating_mode == DSM_PROCESS &&
       CTX->classification == DSR_NONE    &&
-      CTX->totals.innocent_learned > 100) || 
+      CTX->totals.innocent_learned > 2500) || 
      (CTX->training_mode  == DST_NOTRAIN  &&
       CTX->operating_mode == DSM_PROCESS  &&
       CTX->classification == DSR_NONE))
@@ -1714,7 +1714,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
     } else {
       if (CTX->source == DSS_ERROR) {
         CTX->totals.innocent_misclassified++;
-        if ((CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 100)
+        if ((CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 2500)
             && CTX->training_mode != DST_NOTRAIN)
           CTX->totals.spam_learned -= (CTX->totals.spam_learned > 0) ? 1:0;
       } else {
@@ -1734,7 +1734,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
     } else {
       if (CTX->source == DSS_ERROR) {
         CTX->totals.spam_misclassified++;
-        if ((CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 100)
+        if ((CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 2500)
           && CTX->training_mode != DST_NOTRAIN)
           CTX->totals.innocent_learned -= (CTX->totals.innocent_learned > 0) ? 1:0;
       } else {
@@ -1775,7 +1775,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
       } else {
         ds_term->s.innocent_hits++;
         if (CTX->source == DSS_ERROR &&
-          (CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 100)
+          (CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 2500)
           && CTX->training_mode != DST_NOTRAIN)
 
           ds_term->s.spam_hits -= (ds_term->s.spam_hits > 0) ? 1 : 0;
@@ -1789,7 +1789,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
         ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1 :0;
       } else {
        if (CTX->source == DSS_ERROR &&
-          (CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 100)
+          (CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 2500)
           && CTX->training_mode != DST_NOTRAIN)
 
           ds_term->s.innocent_hits -= (ds_term->s.innocent_hits > 0) ? 1 : 0;
