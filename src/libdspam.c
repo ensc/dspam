@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.22 2004/11/23 22:06:09 jonz Exp $ */
+/* $Id: libdspam.c,v 1.23 2004/11/23 23:28:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -2312,10 +2312,10 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct tbt *index, struct lht *freq) {
 
     /* Skip BNR patterns if still training */
     if (!strncmp(token_name, "bnr.", 4)) {
-      if (CTX->classification != DSR_NONE ||
-          CTX->totals.innocent_learned + CTX->totals.innocent_classified 
-            <= 2500)
-      {
+//      if (CTX->classification != DSR_NONE ||
+//          CTX->totals.innocent_learned + CTX->totals.innocent_classified 
+//            <= 2500)
+//      {
         node_tbt = tbt_next (node_tbt);
         continue;
       }
