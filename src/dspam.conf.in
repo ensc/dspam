@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.3 2004/11/12 14:07:17 jonz Exp $
+## $Id: dspam.conf.in,v 1.4 2004/11/12 16:28:09 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -279,10 +279,11 @@ UserLog   on
 
 #
 # Opt: in or out; determines DSPAM's default filtering behavior. If this value
-# is set to in, users must opt-in to filtering by dropping a .optin file in
-# /var/dspam/opt-in/user.optin (or if you have homedirs configured, in their
-# home directory). The default is opt-out, which means all users will be 
-# filtered unless a .optout file is dropped in /var/dspam/opt-out/user.optout
+# is set to in, users must opt-in to filtering by dropping a .dspam file in
+# /var/dspam/opt-in/user.dspam (or if you have homedirs configured, a .dspam
+# folder in their home directory).  The default is opt-out, which means all 
+# users will be filtered unless a .nodspam file is dropped in 
+# /var/dspam/opt-out/user.nodspam
 #
 Opt out
 
