@@ -1,4 +1,4 @@
-$Id: README.exim,v 1.2 2004/12/18 16:27:01 jonz Exp $
+$Id: README.exim,v 1.3 2005/01/06 22:45:14 jonz Exp $
 
 EXIM INTEGRATION
 
@@ -22,7 +22,7 @@ Then add the following code to the transports:
 
 spamcheck:
   driver = pipe
-  command = /usr/local/bin/dspam --deliver=innocent --user $local_part -- -bm %u
+  command = /usr/local/bin/dspam --deliver=innocent --user $local_part -- %u
   user = mail
   group = mail
   return_path_add = false
