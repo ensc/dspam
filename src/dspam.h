@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.3 2004/11/24 17:57:47 jonz Exp $ */
+/* $Id: dspam.h,v 1.4 2004/11/27 22:08:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -55,17 +55,21 @@ typedef struct {
   int classification;   /* DSR_ */
   int source;           /* DSS_ */
   int spam_action;	/* DSA_ */
-  int learned;
-  int trusted;		/* Trusted User */
-  int feature;		/* Features supplied on cmdline? 0/1 */
-  u_int32_t flags;      /* DAF_ */
-  int training_buffer;	/* 0-10 */
-  char mailer_args[256];
-  char spam_args[256];
-  char managed_group[256];
-  char profile[32];	/* Storage Profile */
-  char signature[128];
-  struct nt *users;	/* Destination Users */
+  int trusted;		    /* Trusted User?         IN  */
+  int feature;		    /* Feature Overridden?   IN  */
+  u_int32_t flags;          /* Flags DAF_            IN  */
+  int training_buffer;	    /* Sedation Level 0-10   IN  */
+  char mailer_args[256];        /* Delivery Args     IN  */
+  char spam_args[256];          /* Quarantine Args   IN  */
+  char managed_group[256];      /* Managed Groupname IN  */
+  char profile[32];	        /* Storage Profile   IN  */
+  char signature[128];          /* Signature Serial  IN  */
+  struct nt *users;	        /* Destination Users IN  */
+  struct nt *inoc_users;        /* Inoculate list    OUT */
+  struct nt *classify_users;    /* Classify list     OUT */
+  struct _ds_spam_signature SIG;/* signature object  OUT */ 
+  int learned;                  /* Message learned?  OUT  */
+
 #ifdef DEBUG
   char debug_args[1024];
 #endif
@@ -105,6 +109,10 @@ int write_web_stats     (const char *username,
                          const char *group, 
                          struct _ds_spam_totals *totals);
 
+int ensure_confident_result	(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result);
+DSPAM_CTX *ctx_init	(AGENT_CTX *ATX, AGENT_PREF PTX, const char *username);
+int log_events		(DSPAM_CTX *CTX);
+int retrain_message	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int tag_message		(struct _ds_message_block *block, AGENT_PREF PTX);
 int quarantine_message  (const char *message, const char *username);
 int process_features	(AGENT_CTX *ATX, const char *features);
@@ -114,22 +122,17 @@ int apply_defaults      (AGENT_CTX *ATX);
 int process_arguments   (AGENT_CTX *ATX, int argc, char **argv);
 int process_users       (AGENT_CTX *ATX, buffer *message);
 int initialize_atx      (AGENT_CTX *ATX);
+int find_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX);
+int strip_xdspam_headers(DSPAM_CTX *CTX, AGENT_PREF PTX);
+int add_xdspam_headers	(DSPAM_CTX *CTX, AGENT_CTX *ATX,  AGENT_PREF PTX);
+int embed_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX);
+int tracksource		(DSPAM_CTX *CTX);
 buffer *read_stdin	(AGENT_CTX *ATX);
 
 #ifndef MIN
 #   define MAX(a,b)  ((a)>(b)?(a):(b))
 #   define MIN(a,b)  ((a)<(b)?(a):(b))
 #endif /* !MIN */
-
-#ifdef EXPERIMENTAL
-
-/* Inoculation Authentication Types */
-
-#define IAT_NONE	0x00
-#define IAT_MD5		0x01
-#define IAT_SIGNED	0x02
-#define IAT_UNKNOWN	0xFF
-#endif
 
 /*
  *  DSPAM Agent Context Flags (DAF)
@@ -139,16 +142,16 @@ buffer *read_stdin	(AGENT_CTX *ATX);
 #define DAF_STDOUT		0x01
 #define DAF_DELIVER_SPAM	0x02
 #define DAF_DELIVER_INNOCENT	0x04
-#define DAF_NEURAL		0x08 /* No Context */
 #define DAF_WHITELIST		0x08 
-#define DAF_GLOBAL		0x10 /* No Context */
-#define DAF_INOCULATE		0x20 /* No Context */
+#define DAF_GLOBAL		0x10 
+#define DAF_INOCULATE		0x20 
 #define DAF_CHAINED		0x40
 #define DAF_NOISE		0x80
 #define DAF_MERGED		0x100
 #define DAF_SUMMARY		0x200
 #define DAF_SBPH		0x400
 #define DAF_UNLEARN		0x800
+#define DAF_NEURAL		0x1000 
 
 #endif /* _DSPAM_H */
 

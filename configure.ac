@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.3 2004/11/20 22:49:35 jonz Exp $
+dnl $Id: configure.ac,v 1.4 2004/11/27 22:08:02 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -404,34 +404,6 @@ else
     AC_DEFINE(PREFERENCES_EXTENSION, 1, [Defined if storage driver supports preferences extension])
 fi
 AC_MSG_RESULT([$enable_preferences_extension])
-
-#
-#   Experimental Functions
-#
-AC_ARG_ENABLE(experimental,
-    [AS_HELP_STRING(--enable-experimental,
-                        Activates DSPAM's experimental functions.
-                    )])
-AC_MSG_CHECKING([whether to enable experimental functions])
-case x"$enable_experimental" in
-    xyes)   # enabled explicity
-            ;;
-    xno)    # disabled explicity
-            ;;
-    x)      # disabled by default
-            enable_experimental=no
-            ;;
-    *)      AC_MSG_ERROR([unexpected value $enable_experimental for --{enable,disable}-experimental configure option])
-            ;;
-esac
-if test x"$enable_experimental" != xyes
-then
-    enable_experimental=no
-else
-    enable_experimental=yes    # overkill, but convenient
-    AC_DEFINE(EXPERIMENTAL, 1, [Defined if experimental is enabled])
-fi
-AC_MSG_RESULT([$enable_experimental])
 
 #
 #   Verbose debug output

@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.35 2004/11/27 19:08:43 jonz Exp $
+$Id: CHANGELOG,v 1.36 2004/11/27 22:08:02 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041127.1700] jonz: normalized process_message()
+
+normalized process_message() by breaking up code into many smaller subroutines
 
 [20041121.1530] jonz: implemented initial test case for BNR v2.0
 
