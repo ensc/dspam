@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.16 2004/12/26 20:29:30 jonz Exp $
+dnl $Id: configure.ac,v 1.17 2004/12/26 20:43:09 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -266,34 +266,6 @@ fi
 AC_MSG_RESULT([$enable_trusted_user_security])
 
 #
-#   BNR Debug
-#
-AC_ARG_ENABLE(bnr-debug,
-    [AS_HELP_STRING(--enable-bnr-debug,
-                        Activates debugging output for Bayesian Noise Reduction
-                    )])
-AC_MSG_CHECKING([whether to enable debug for Bayesian Noise Reduction])
-case x"$enable_bnr_debug" in
-    xyes)   # enabled explicity
-            ;;
-    xno)    # disabled explicity
-            ;;
-    x)      # disabled by default
-            enable_bnr_debug=no
-            ;;
-    *)      AC_MSG_ERROR([unexpected value $enable_bnr_debug for --{enable,disable}-bnr-debug configure option])
-            ;;
-esac
-if test x"$enable_bnr_debug" != xyes
-then
-    enable_bnr_debug=no
-else
-    enable_bnr_debug=yes    # overkill, but convenient
-    AC_DEFINE(BNR_DEBUG, 1, [Defined if BNR Debug is enabled])
-fi
-AC_MSG_RESULT([$enable_bnr_debug])
-
-#
 #   Debug support
 #
 AC_ARG_ENABLE(debug,
@@ -321,6 +293,35 @@ else
     AC_DEFINE(DEBUG, 1, [Defined if debug output is enabled])
 fi
 AC_MSG_RESULT([$enable_debug])
+
+#
+#   BNR Debug
+#
+AC_ARG_ENABLE(bnr-debug,
+    [AS_HELP_STRING(--enable-bnr-debug,
+                        Activates debugging output for Bayesian Noise Reduction
+                    )])
+AC_MSG_CHECKING([whether to enable debug output for BNR])
+case x"$enable_bnr_debug" in
+    xyes)   # enabled explicity
+            ;;
+    xno)    # disabled explicity
+            ;;
+    x)      # disabled by default
+            enable_bnr_debug=no
+            ;;
+    *)      AC_MSG_ERROR([unexpected value $enable_bnr_debug for --{enable,disable}-bnr-debug configure option])
+            ;;
+esac
+if test x"$enable_bnr_debug" != xyes
+then
+    enable_bnr_debug=no
+else
+    enable_bnr_debug=yes    # overkill, but convenient
+    AC_DEFINE(BNR_DEBUG, 1, [Defined if BNR Debug is enabled])
+fi
+AC_MSG_RESULT([$enable_bnr_debug])
+
 
 #
 #   Homedir support

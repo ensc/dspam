@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.58 2004/12/26 20:27:06 jonz Exp $ */
+/* $Id: libdspam.c,v 1.59 2004/12/26 20:43:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -1332,8 +1332,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   result = _ds_calc_result(CTX, heap_sort, freq);
 #ifdef BNR_DEBUG
-  if (result != _ds_calc_result(CTX, heap_nobnr, freq)) {
-    LOGDEBUG("BNR CATCH: %s", (result == DSR_ISINNOCENT) ? "Spam" : "Nonspam"); 
+  {
+    int bnr_result = _ds_calc_result(CTX, heap_nobnr, freq);
+    if (result != bnr_result)
+      LOGDEBUG("BNR CATCH: %d/%d", result, bnr_result);
   }
 #endif
 
