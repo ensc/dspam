@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.6 2004/11/21 20:55:30 jonz Exp $ */
+/* $Id: libdspam.c,v 1.7 2004/11/21 21:18:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -1147,6 +1147,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   if (CTX->flags & DSF_NOISE) {
     node_lht = c_lht_first (pfreq, &c_lht);
     while(node_lht != NULL) {
+      _ds_calc_stat(CTX, node_lht->key, &node_lht->s);
       lht_hit(freq, node_lht->key, node_lht->token_name);
       lht_setspamstat(freq, node_lht->key, &node_lht->s);
       lht_setfrequency(freq, node_lht->key, node_lht->frequency);
