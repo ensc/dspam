@@ -1,4 +1,4 @@
-/* $Id: bnr.h,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: bnr.h,v 1.2 2004/11/23 14:20:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -36,11 +36,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/stat.h>
 
 #include "config.h"
-#include "libdspam_objects.h"
 #include "libdspam.h"
-#include "nodetree.h"
-#include "config.h"
-#include "util.h"
 #include "lht.h"
 
 /*
@@ -48,11 +44,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
    http://www.nuclearelephant.com/projects/dspam/bnr.html 
 */
 
+/* BNR Pattern Window-Size */
+
+#define BNR_SIZE	3 
+
 typedef struct {
   long total_eliminations;
   long total_clean;
   struct nt *stream;
+  struct lht *patterns;
 } BNR_CTX;
 
-int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX);
+int bnr_pattern_instantiate(DSPAM_CTX *, struct lht *, struct nt *, char);
+int bnr_filter_process(DSPAM_CTX *, BNR_CTX *);
 

@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.16 2004/11/22 20:57:09 jonz Exp $ */
+/* $Id: libdspam.c,v 1.17 2004/11/23 14:20:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -596,8 +596,6 @@ dspam_getsource (DSPAM_CTX * CTX,
  *              DSR_ISWHITELISTED	message is whitelisted
  */
 
-#define BNR_SIZE 3
-
 int
 _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 {
@@ -605,7 +603,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   char joined_token[32];		/* used for de-obfuscating tokens */
   char *previous_token = NULL;		/* used for chained tokens */
   char *previous_tokens[SBPH_SIZE];	/* used for k-mapped tokens */
-  float previous_probs[BNR_SIZE];	/* BNR Pattern Size */
+
+  /* Variables for Bayesian Noise Reduction */
+#ifdef BNR_DEBUG
+  struct tbt *pindex = tbt_create();;
+#endif
 
   char *line = NULL;			/* header broken up into lines */
   char *url_body;			/* urls broken up */
@@ -613,6 +615,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   char heading[128];			/* current heading */
   int alloc_joined = 0;			/* track joined token free()'s */
   int i = 0;
+  int errcode = 0;
 
   /* Long Hashed Token Tree: Track tokens, frequencies, and stats */
   struct lht *freq = lht_create (24593);
@@ -621,15 +624,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   struct lht_c c_lht;
 
   struct tbt *index = tbt_create ();    /* Binary tree index */
-#ifdef BNR_DEBUG
-  struct tbt *pindex = tbt_create ();
-#endif
 
   struct nt *header = NULL;     /* header array */
   struct nt_node *node_nt;
   struct nt_c c_nt;
   long body_length = 0;
-  long total_eliminations = 0;	 	/* # of BNR eliminations (-1 if not used) */
 
   unsigned long long whitelist_token = 0;
   int do_whitelist = 0;
@@ -647,9 +646,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     if (CTX->signature == NULL)
     {
       LOG (LOG_CRIT, "memory allocation error");
-      tbt_destroy (index);
-      lht_destroy (freq);
-      return EUNKNOWN;
+      errcode = EUNKNOWN;
+      goto bail;
     }
                                                                                 
     CTX->signature->length = strlen(headers)+strlen(body)+2;
@@ -660,9 +658,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       LOG (LOG_CRIT, "memory allocation error");
       free (CTX->signature);
       CTX->signature = NULL;
-      tbt_destroy (index);
-      lht_destroy (freq);
-      return EUNKNOWN;
+      errcode = EUNKNOWN; 
+      goto bail;
     }
 
     strcpy(CTX->signature->data, headers);
@@ -682,7 +679,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   if (freq == NULL || index == NULL)
   {
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-    goto bail_unknown;
+    errcode = EUNKNOWN;
+    goto bail;
   }
 
   CTX->result = 
@@ -721,7 +719,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     if (header == NULL)
     {
       LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-      goto bail_unknown;
+      errcode = EUNKNOWN;
+      goto bail;
     }
 
     /* HEADER: Split up the text into tokens, include heading */
@@ -1051,9 +1050,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   if (_ds_getall_spamrecords (CTX, freq))
   {
     LOGDEBUG ("_ds_getall_spamrecords() failed");
-    tbt_destroy(index);
-    lht_destroy(freq);
-    return EUNKNOWN;
+    errcode = EUNKNOWN;
+    goto bail;
   }
 
   /*
@@ -1061,151 +1059,76 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
      http://www.nuclearelephant.com/projects/dspam/bnr.html 
   */
 
-  i = 0;
-
-#define DUB_MIN_THRESHHOLD	4
-#define TH_LOW	0.2500
-#define TH_HIGH 0.7500
-#define TH_NL   0.2500
-#define TH_NH	0.7500
-
-  /* Engage only if ... */
-
   if (CTX->flags & DSF_NOISE && CTX->classification == DSR_NONE)
-//          &&
-//      CTX->classification == DSR_NONE &&
-//        CTX->totals.innocent_learned  +	
-//        CTX->totals.innocent_classified > 2500)
   {
-/*
+    struct lht_node *node_lht;
+    struct lht_c c_lht;
     BNR_CTX BTX;
-    float snr = 0.00000;
-    long total_clean;
-*/
-    for(i=0;i<BNR_SIZE;i++)
-      previous_probs[i] = 0.00000;
+    float snr;
 
-    node_nt = c_nt_first(freq->order, &c_nt);
-    while(node_nt != NULL) {
-      struct lht_node *node = (struct lht_node *) node_nt->ptr;
-      unsigned long long crc;
-      char bnr_token[64];
- 
-      _ds_calc_stat (CTX, node->key, &node->s, DTT_DEFAULT);
+    bnr_pattern_instantiate(CTX, pfreq, freq->order, 's');
+    bnr_pattern_instantiate(CTX, pfreq, freq->chained_order, 'c');
 
-      previous_probs[BNR_SIZE-1] = _ds_round(node->s.probability);
-      strcpy(bnr_token, "bnr.s");
-      for(i=0;i<BNR_SIZE;i++) {
-        char x[8];
-        snprintf(x, 8, "%01.2f.", previous_probs[i]);
-        strlcat(bnr_token, x, sizeof(bnr_token));
-      }
-      for(i=0;i<BNR_SIZE-1;i++)
-        previous_probs[i] = previous_probs[i+1];
-
-      crc = _ds_getcrc64 (bnr_token);
-#ifdef VERBOSE
-      LOGDEBUG ("BNR Pattern hit: '%s'", bnr_token);
-#endif
-      lht_hit (pfreq, crc, bnr_token);
-      node_nt = c_nt_next(freq->order, &c_nt);
-    }
-
-    node_nt = c_nt_first(freq->chained_order, &c_nt);
-    while(node_nt != NULL) {
-      struct lht_node *node = (struct lht_node *) node_nt->ptr;
-      unsigned long long crc;
-      char bnr_token[64];
-
-      _ds_calc_stat (CTX, node->key, &node->s, DTT_DEFAULT);
-
-      previous_probs[BNR_SIZE-1] = _ds_round(node->s.probability);
-      strcpy(bnr_token, "bnr.c");
-      for(i=0;i<BNR_SIZE;i++) {
-        char x[8];
-        snprintf(x, 8, "%01.2f.", previous_probs[i]);
-        strlcat(bnr_token, x, sizeof(bnr_token));
-      }
-      for(i=0;i<BNR_SIZE-1;i++)
-        previous_probs[i] = previous_probs[i+1];
-
-      crc = _ds_getcrc64 (bnr_token);
-#ifdef VERBOSE
-      LOGDEBUG ("BNR Pattern hit: '%s'", bnr_token);
-#endif
-      lht_hit (pfreq, crc, bnr_token);
-      node_nt = c_nt_next(freq->chained_order, &c_nt);
-    }
-
-    LOGDEBUG("Loading %ld BNR Patterns", pfreq->items);
+    LOGDEBUG("Loading %ld BNR patterns", pfreq->items);
     if (_ds_getall_spamrecords (CTX, pfreq))
     {
       LOGDEBUG ("_ds_getall_spamrecords() failed");
-      tbt_destroy(index);
-      lht_destroy(freq);
-      lht_destroy(pfreq);
-      return EUNKNOWN;
+      errcode = EUNKNOWN;
+      goto bail;
     }
 
-/*
-    BTX.stream = freq->order;
-    bnr_filter_process(CTX, &BTX);
-    total_eliminations = BTX.total_eliminations;
-    total_clean = BTX.total_clean;
-
-    BTX.stream = freq->chained_order;
-    bnr_filter_process(CTX, &BTX);
-    total_eliminations += BTX.total_eliminations;
-    total_clean += BTX.total_clean;
-
-    snr = 100.0*((total_eliminations+0.0)/(total_clean+total_eliminations));
-    if ((snr > 77.5 && body_length>3500) || (snr > 93.0 && body_length<=3500)) {
-      total_eliminations = 0;
-      LOGDEBUG("Deactivating BNR: Noise levels too high");
-    }
-
-    LOGDEBUG("BNR noise ratio: %2.2f Noisy Tokens: %ld",
-             snr, total_eliminations);
-*/
-    total_eliminations = 0;
-
-  } else {
-    total_eliminations = -1;
-  }
-
-  if (CTX->flags & DSF_WHITELIST)  
-  {
-    LOGDEBUG("Whitelist threshold: %d", CTX->wh_threshold);
-  }
-
-  /* Add the noise patterns to the primary array */
-  if (CTX->flags & DSF_NOISE && CTX->classification == DSR_NONE) {
+    /* Calculate BNR pattern probability and add to primary token hash */
     node_lht = c_lht_first (pfreq, &c_lht);
     while(node_lht != NULL) {
-#ifdef BNR_VERBOSE_DEBUG
-      if (!(node_lht->s.status & TST_DISK)) {
-        LOGDEBUG("pattern %s not on disk", node_lht->token_name);
-      }
-#endif
       _ds_calc_stat(CTX, node_lht->key, &node_lht->s, DTT_BNR);
       lht_hit(freq, node_lht->key, node_lht->token_name);
       lht_setspamstat(freq, node_lht->key, &node_lht->s);
       lht_setfrequency(freq, node_lht->key, 1);
 
-      LOGDEBUG("BNR Pattern: %s %01.5f %lds %ldi", node_lht->token_name, node_lht->s.probability, node_lht->s.spam_hits, node_lht->s.innocent_hits);
+      LOGDEBUG("BNR Pattern: %s %01.5f %lds %ldi", 
+               node_lht->token_name, 
+               node_lht->s.probability, 
+               node_lht->s.spam_hits, 
+               node_lht->s.innocent_hits);
+
 #ifdef BNR_DEBUG
       tbt_add (pindex, node_lht->s.probability, node_lht->key,
              node_lht->frequency, 1);
 #endif
       node_lht = c_lht_next(pfreq, &c_lht);
     }
+
+    /* Perform BNR Processing */
+
+    BTX.stream = freq->order;
+    BTX.total_eliminations = 0;
+    BTX.total_clean = 0;
+    BTX.patterns = pfreq;
+    bnr_filter_process(CTX, &BTX);
+
+    BTX.stream = freq->chained_order;
+    bnr_filter_process(CTX, &BTX);
+
+    if (BTX.total_clean + BTX.total_eliminations > 0)
+      snr = 100.0*((BTX.total_eliminations+0.0)/
+            (BTX.total_clean+BTX.total_eliminations));
+    else
+      snr = 0;
+
+    LOGDEBUG("bnr_filter_process() reported snr of %02.3f (%ld %ld)", 
+             snr, BTX.total_eliminations, BTX.total_clean); 
+  }
+
+  if (CTX->flags & DSF_WHITELIST)
+  {
+    LOGDEBUG("Whitelist threshold: %d", CTX->wh_threshold);
   }
 
   /* Create a binary tree index sorted by a token's delta from .5 */
   node_lht = c_lht_first (freq, &c_lht);
   while (node_lht != NULL)
   {
-    if (total_eliminations == -1) 
+    if (!(CTX->flags & DSF_NOISE) || CTX->classification != DSR_NONE)
       _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT);
 
     if (CTX->flags & DSF_WHITELIST) {
@@ -1221,7 +1144,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     if (CTX->flags & DSF_SBPH)
       node_lht->frequency = 1;
 
-    if (node_lht->frequency > 0 || total_eliminations < 5) 
+    if (node_lht->frequency > 0)
     {
       tbt_add (index, node_lht->s.probability, node_lht->key,
              node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
@@ -1262,9 +1185,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   if (index->items == 0)
   {
     LOGDEBUG ("no tokens found in message");
-    tbt_destroy (index);
-    lht_destroy (freq);
-    return EINVAL;
+    errcode = EINVAL; 
+    goto bail;
   }
 
   /* Initialize Non-SBPH signature, if requested */
@@ -1277,9 +1199,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     if (CTX->signature == NULL)
     {
       LOG (LOG_CRIT, "memory allocation error");
-      tbt_destroy (index);
-      lht_destroy (freq);
-      return EUNKNOWN;
+      errcode = EUNKNOWN;
+      goto bail;
     }
 
     CTX->signature->length =
@@ -1290,9 +1211,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       LOG (LOG_CRIT, "memory allocation error");
       free (CTX->signature);
       CTX->signature = NULL;
-      tbt_destroy (index);
-      lht_destroy (freq);
-      return EUNKNOWN;
+      errcode = EUNKNOWN;
+      goto bail;
     }
   }
 
@@ -1467,13 +1387,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   if (_ds_setall_spamrecords (CTX, freq))
   {
     LOGDEBUG ("_ds_setall_spamrecords() failed");
-    tbt_destroy(index);
-    lht_destroy(freq);
-    return EUNKNOWN;
+    errcode = EUNKNOWN;
+    goto bail;
   }
 
   tbt_destroy (index);
   lht_destroy (freq);
+  lht_destroy (pfreq);
 
   /* One final sanity check */
 
@@ -1490,11 +1410,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   return CTX->result;
 
-bail_unknown:
+bail:
   tbt_destroy (index);
-  nt_destroy (header);
   lht_destroy (freq);
-  return EUNKNOWN;
+  lht_destroy (pfreq);
+  return errcode;
 }
 
 /*
