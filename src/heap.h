@@ -1,4 +1,4 @@
-/* $Id: heap.h,v 1.1 2004/12/17 22:14:48 jonz Exp $ */
+/* $Id: heap.h,v 1.2 2004/12/17 23:39:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -32,8 +32,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 struct heap
 {
-  unsigned long items;
-  int size;
+  unsigned int items;
+  unsigned int size;
   struct heap_node *root;
 };
 

@@ -1,4 +1,4 @@
-/* $Id: heap.c,v 1.2 2004/12/17 22:59:04 jonz Exp $ */
+/* $Id: heap.c,v 1.3 2004/12/17 23:39:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -55,6 +55,7 @@ heap_destroy(struct heap *h)
     free(node);
     node = next;
   }
+  free(h);
   return 0;
 }
 
@@ -92,7 +93,7 @@ heap_insert (struct heap *h,
 
   /* Determine if and where we should insert this item */
   while(current) {
-    if (delta > current->delta)
+    if (delta > current->delta) 
       insert = current;
     else if (delta == current->delta) {
       if (frequency > current->frequency)
@@ -101,13 +102,14 @@ heap_insert (struct heap *h,
         if (complexity > current->complexity)
           insert = current;
     }
-    if (insert != current)
-      break;
-    current = current->next;
+    if (!insert)
+      current = NULL;
+    else
+      current = current->next;
   }
 
   if (insert != NULL) {
- 
+
     /* Insert item, throw out new least significant item if necessary */
     node = heap_node_create(probability, token, frequency, complexity);
     node->next = insert->next;
@@ -117,6 +119,7 @@ heap_insert (struct heap *h,
       node = h->root;
       h->root = node->next;
       free(node);
+      h->items--;
     }
   } else {
     

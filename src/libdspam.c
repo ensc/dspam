@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.47 2004/12/17 22:59:04 jonz Exp $ */
+/* $Id: libdspam.c,v 1.48 2004/12/17 23:39:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -681,7 +681,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     heap_sort = heap_create(27);
   else if (CTX->algorithms & DSA_ROBINSON)
     heap_sort = heap_create(25);
-  else if (CTX->algorithms & DSA_GRAHAM)
+  else
     heap_sort = heap_create(15);
 
   /* Allocate SBPH signature (Message Text) */
@@ -1322,7 +1322,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     if (CTX->flags & DSF_SBPH)
       node_lht->frequency = 1;
 
-    if (node_lht->frequency > 0)
+    if (node_lht->frequency > 0 && strncmp(node_lht->token_name, "bnr.", 4))
     {
       heap_insert (heap_sort, node_lht->s.probability, node_lht->key,
              node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
@@ -2436,6 +2436,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
   long chi_used  = 0, chi_sx = 0, chi_hx = 0;
   double chi_s = 1.0, chi_h = 1.0;
   struct nt *factor_chi = nt_create(NT_PTR);
+  int i = 0;
 
   node_heap = heap_sort->root;
 
@@ -2463,7 +2464,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
     /* BEGIN Combine Token Values */
 
     /* Graham-Bayesian */
-    if (CTX->algorithms & DSA_GRAHAM && bay_used < 15)
+    if (CTX->algorithms & DSA_GRAHAM && bay_used < 15 && i>=heap_sort->items-15)
     {
         LOGDEBUG ("[graham] [%2.6f] %s (%dfrq, %lds, %ldi)",
                   stat.probability, token_name, lht_getfrequency (freq, crc),
@@ -2486,7 +2487,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
     }
 
     /* Burton Bayesian */
-    if (CTX->algorithms & DSA_BURTON && abay_used < 27)
+    if (CTX->algorithms & DSA_BURTON && abay_used < 27 && i>=heap_sort->items-27)
     {
         LOGDEBUG ("[burton] [%2.6f] %s (%dfrq, %lds, %ldi)",
                   stat.probability, token_name, lht_getfrequency (freq, crc),
@@ -2529,7 +2530,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
 #define ROB_X	0.415           /* Value to use when N = 0 */
 #define ROB_CUTOFF	0.54
 
-    if (rob_used < 25)
+    if (rob_used < 25 && i>=heap_sort->items-25)
     {
       float probability;
       long n = (heap_sort->items > 25) ? 25 : heap_sort->items;
@@ -2597,6 +2598,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
 
 HEAP_NEXT:
     node_heap = node_heap->next;
+    i++;
   }
 
   /* Fisher-Robinson's Inverse Chi-Square */
