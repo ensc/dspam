@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.178 2005/02/27 20:20:04 jonz Exp $
+$Id: CHANGELOG,v 1.179 2005/02/27 20:27:11 jonz Exp $
 
 Version NEXT
 ------------
@@ -7,7 +7,7 @@ Version NEXT
 
 if --user is specified in ServerParameters when DSPAM is running in standard
 LMTP mode, then RCPT TO will be used only for delivery, and not processing
-
+ 
 [20050225.0700] jonz: added support for LMTP delivery via domai socket
 
 specifying a path as LMTPDeliveryHost will cause DSPAM to connect and deliver

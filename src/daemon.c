@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.42 2005/02/27 20:20:04 jonz Exp $ */
+/* $Id: daemon.c,v 1.43 2005/02/27 20:27:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -361,12 +361,14 @@ void *process_connection(void *ptr) {
     parms = _ds_read_attribute(agent_config, "ServerParameters");
     argc = 0;
     if (parms) {
-      token = strtok_r(parms, " ", &ptrptr);
+      char *p = strdup(parms);
+      token = strtok_r(p, " ", &ptrptr);
       while(token != NULL) {
         argv[argc] = token;
         argc++;
         token = strtok_r(NULL, " ", &ptrptr);
       }
+      free(p);  
     }
 
     /* RCPT TO (Userlist and arguments) */
