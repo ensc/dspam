@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.20 2004/11/23 17:00:54 jonz Exp $ */
+/* $Id: libdspam.c,v 1.21 2004/11/23 21:27:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -1159,7 +1159,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     }
 
     /* Add BNR pattern to token hash */
-    if (CTX->classification != DSR_NONE)
+//    if (CTX->classification != DSR_NONE)
     {
       node_lht = c_lht_first (pfreq, &c_lht);
       while(node_lht != NULL) {

@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.4 2004/11/23 17:00:54 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.5 2004/11/23 21:27:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -376,10 +376,6 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
   int get_one = 0;
   int uid, gid;
 
-  s->control_token = 0;
-  s->control_ih = 0;
-  s->control_sh = 0;
-
   if (s->dbh == NULL)
   {
     LOGDEBUG ("_ds_getall_spamrecords: invalid database handle (NULL)");
@@ -580,8 +576,9 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
   }
   else
   {
-    lht_getspamstat (freq, s->control_token, &stat);
-printf("CONTROL: %ld %ld\n", stat.spam_hits, stat.innocent_hits);
+
+    printf("CONTROL %llu RETURNED: %d\n", s->control_token, lht_getspamstat (freq, s->control_token, &stat));
+printf("CONTROL: %ld %ld\n", stat.innocent_hits, stat.spam_hits); 
   }
 
   snprintf (scratch, sizeof (scratch),
@@ -649,8 +646,8 @@ printf("CONTROL: %ld %ld\n", stat.spam_hits, stat.innocent_hits);
                    (insert_one) ? ", " : "",
                    p->pw_uid,
                    node_lht->key,
-                   stat2.spam_hits > 0 ? stat2.spam_hits : 0,
-                   stat2.innocent_hits > 0 ? stat2.innocent_hits : 0);
+                   stat2.spam_hits > 0 ? 1 : 0,
+                   stat2.innocent_hits > 0 ? 1 : 0);
       }
 
       insert_one = 1;
@@ -681,8 +678,8 @@ printf("CONTROL: %ld %ld\n", stat.spam_hits, stat.innocent_hits);
                  "current_date())",
                  p->pw_uid,
                  node_lht->key,
-                 stat2.spam_hits,
-                 stat2.innocent_hits);
+                 stat2.spam_hits > 0 ? 1 : 0,
+                 stat2.innocent_hits > 0 ? 1 : 0);
       }
 
       if (MYSQL_RUN_QUERY (s->dbh, insert))
@@ -713,10 +710,15 @@ printf("CONTROL: %ld %ld\n", stat.spam_hits, stat.innocent_hits);
 
   buffer_cat (query, ")");
 
+#ifdef BNR_VERBOSE_DEBUG
+  printf("Control: [%ld %ld] [%ld %ld]",  s->control_sh, s->control_ih, stat.spam_hits, stat.innocent_hits); 
+#endif
+
   LOGDEBUG("Control: [%ld %ld] [%ld %ld]", s->control_sh, s->control_ih, stat.spam_hits, stat.innocent_hits);
 
   if (update_one)
   {
+
     if (MYSQL_RUN_QUERY (s->dbh, query->data))
     {
       _mysql_drv_query_error (mysql_error (s->dbh), query->data);
@@ -733,9 +735,9 @@ printf("CONTROL: %ld %ld\n", stat.spam_hits, stat.innocent_hits);
             "spam_hits = greatest(0, spam_hits %s %d), "
             "innocent_hits = greatest(0, innocent_hits %s %d) ",
             (stat.spam_hits > s->control_sh) ? "+" : "-",
-            abs (stat.spam_hits - s->control_sh),
+            abs (stat.spam_hits - s->control_sh) > 0 ? 1 : 0,
             (stat.innocent_hits > s->control_ih) ? "+" : "-",
-            abs (stat.innocent_hits - s->control_ih));
+            abs (stat.innocent_hits - s->control_ih) > 0 ? 1 : 0);
 
     buffer_cat(insert, scratch);
 
@@ -1006,6 +1008,10 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   }
 
   CTX->storage = s;
+
+  s->control_token = 0;
+  s->control_ih = 0;
+  s->control_sh = 0;
 
   /* get spam totals on successful init */
   if (CTX->username != NULL)

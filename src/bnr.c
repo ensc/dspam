@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.4 2004/11/23 15:17:47 jonz Exp $ */
+/* $Id: bnr.c,v 1.5 2004/11/23 21:27:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -87,6 +87,10 @@ int bnr_pattern_instantiate(
 
     _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT);
 
+    for(i=0;i<BNR_SIZE-1;i++) {
+      previous_bnr_probs[i] = previous_bnr_probs[i+1];
+    }
+
     previous_bnr_probs[BNR_SIZE-1] = _ds_round(node_lht->s.probability);
     sprintf(bnr_token, "bnr.%c", type);
     for(i=0;i<BNR_SIZE;i++) {
@@ -95,9 +99,6 @@ int bnr_pattern_instantiate(
       strlcat(bnr_token, x, sizeof(bnr_token));
     }
 
-    for(i=0;i<BNR_SIZE-1;i++) {
-      previous_bnr_probs[i] = previous_bnr_probs[i+1];
-    }
 
     crc = _ds_getcrc64 (bnr_token);
 #ifdef VERBOSE
@@ -125,26 +126,34 @@ int bnr_pattern_instantiate(
 int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
   struct lht_node * previous_bnr_tokens[BNR_SIZE];
   float previous_bnr_probs[BNR_SIZE];
+  float dub_prob = 0.00000;
   struct lht_node *node_lht;
   struct _ds_spam_stat s;
   struct nt_node *node_nt;
   struct nt_c c_nt;
   unsigned long long crc;
   char bnr_token[64];
-  int i;
+  int i, dub = 0, suspect;
 
   for(i=0;i<BNR_SIZE;i++) {
     previous_bnr_probs[i] = 0.00000;
     previous_bnr_tokens[i] = NULL;
   } 
+
   node_nt = c_nt_first(BTX->stream, &c_nt);
   while(node_nt != NULL) {
     node_lht = (struct lht_node *) node_nt->ptr;
 
     _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT);
 
+    for(i=0;i<BNR_SIZE-1;i++) {
+      previous_bnr_probs[i] = previous_bnr_probs[i+1];
+      previous_bnr_tokens[i] = previous_bnr_tokens[i+1];
+    }
+
     previous_bnr_probs[BNR_SIZE-1] = _ds_round(node_lht->s.probability);
     previous_bnr_tokens[BNR_SIZE-1] = node_lht;
+
     sprintf(bnr_token, "bnr.%c", BTX->type);
     for(i=0;i<BNR_SIZE;i++) {
       char x[6];
@@ -152,36 +161,57 @@ int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
       strlcat(bnr_token, x, sizeof(bnr_token));
     }
 
-    for(i=0;i<BNR_SIZE-1;i++) {
-      previous_bnr_probs[i] = previous_bnr_probs[i+1];
-      previous_bnr_tokens[i] = previous_bnr_tokens[i+1];
-    }
-
     crc = _ds_getcrc64 (bnr_token);
 
     /* Identify interesting patterns */
-    if (!lht_getspamstat(BTX->patterns, crc, &s) && 
-        fabs(0.5-s.probability) > EX_RADIUS) 
+    
+    suspect = ((!lht_getspamstat(BTX->patterns, crc, &s) && 
+                 fabs(0.5-s.probability) > EX_RADIUS)); 
+    if (dub || suspect)
     {
 
 #ifdef BNR_VERBOSE_DEBUG
-      printf("SUSPECT PATTERN: %s (%1.2f)\n", bnr_token, s.probability);
+      printf("%s PATTERN: %s (%1.2f) %ld %ld\n", suspect ? "SUSPECT" : "DUB", bnr_token, s.probability, s.spam_hits, s.innocent_hits);
 #endif
+
       /* Eliminate inconsistent tokens */
       for(i=0;i<BNR_SIZE;i++) {
         if (previous_bnr_tokens[i]) {
-          if (fabs(s.probability-previous_bnr_tokens[i]->s.probability)>IN_RADIUS) {
+
+          /* Wind down our dubbing if we come to consistent records */
+          if (dub &&
+              fabs(dub_prob-previous_bnr_tokens[i]->s.probability)<IN_RADIUS)  
+          { 
+            dub--;
+            if (!dub && !suspect)
+              break;
+          }
+
+          /* If the token is inconsistent with the current or dubbing window */
+          if ((suspect &&
+              fabs(s.probability-previous_bnr_tokens[i]->s.probability)
+                 > IN_RADIUS) ||
+              (!suspect &&
+              fabs(dub_prob-previous_bnr_tokens[i]->s.probability)
+                 > IN_RADIUS))
+          {
             BTX->total_eliminations++;
             previous_bnr_tokens[i]->frequency -= 2;
+            dub = 3;
+            if (!dub || suspect) {
+              dub = 3;
+              dub_prob = s.probability;
+            }
 #ifdef BNR_VERBOSE_DEBUG
-            printf("\tELIMINATING: %s (%1.2f) RADIS %1.2f\n", 
+            printf("\tDUB: %d ELIMINATING: %s (%1.2f) RADIUS %1.2f %s\n",dub, 
                    previous_bnr_tokens[i]->token_name,
                    previous_bnr_tokens[i]->s.probability, 
-                   fabs(s.probability-previous_bnr_tokens[i]->s.probability));
+                   fabs(s.probability-previous_bnr_tokens[i]->s.probability), 
+                   dub ? "*" : "");
 #endif
           } else {
 #ifdef BNR_VERBOSE_DEBUG
-            printf("\tOK: %s (%1.2f) RADIS %1.2f\n",
+            printf("\tOK: %s (%1.2f) RADIUS %1.2f\n",
                    previous_bnr_tokens[i]->token_name,
                    previous_bnr_tokens[i]->s.probability,
                    fabs(s.probability-previous_bnr_tokens[i]->s.probability));
@@ -190,7 +220,7 @@ int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
           }
         }
       }
-    } 
+    }
 
     node_nt = c_nt_next(BTX->stream, &c_nt);
   }

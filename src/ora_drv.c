@@ -1,4 +1,4 @@
-/* $Id: ora_drv.c,v 1.2 2004/11/23 17:00:54 jonz Exp $ */
+/* $Id: ora_drv.c,v 1.3 2004/11/23 21:27:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -1755,10 +1755,6 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
     LOGDEBUG ("_ds_getall_spamrecords: storage not initialized");
     return EINVAL;
   }
-
-  s->control_token = 0;
-  s->control_ih = 0;
-  s->control_sh = 0;
 
   p = _ora_drv_getpwnam (CTX, CTX->username);
   if (p == NULL)

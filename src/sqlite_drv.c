@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.6 2004/11/23 17:00:54 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.7 2004/11/23 21:27:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -238,10 +238,6 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
   unsigned long long token = 0;
   char *err=NULL, **row;
   int nrow, ncolumn, get_one = 0, i;
-
-  s->control_token = 0;
-  s->control_ih = 0;
-  s->control_sh = 0;
 
   if (s->dbh == NULL)
   {
@@ -706,6 +702,10 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   CTX->storage = s;
   s->dir_handles = nt_create (NT_INDEX);
+
+  s->control_token = 0;
+  s->control_ih = 0;
+  s->control_sh = 0; 
 
   /* get spam totals on successful init */
   if (CTX->username != NULL)
