@@ -1,4 +1,4 @@
-$Id: README,v 1.32 2005/01/23 16:29:52 jonz Exp $
+$Id: README,v 1.33 2005/01/30 00:43:18 jonz Exp $
 
 DSPAM v3.3 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -277,7 +277,7 @@ First you will need to download a few prerequisite tools:
      ora_drv:     Oracle Drivers (BETA)
      pgsql_drv:   PostgreSQL Drivers           ** MT SAFE ** 
      sqlite_drv:  SQLite Drivers 
-     sqlite3_drv: SQLite v3.x Drivets
+     sqlite3_drv: SQLite v3.x Drivers
 
    The DSPAM agent does not require a multi-thread safe driver, but some
    third party applications may. Be sure you use one labeled "MT SAFE" if
@@ -501,7 +501,7 @@ First you will need to download a few prerequisite tools:
      and the third party application makes its own calls to libmysqlclient,
      you should use this option to disable libdspam's initialization and
      cleanup of libmysqlclient, and allow the application to manage this.
-     This option supresses libdspam's calls to mysql_server_init and
+     This option suppresses libdspam's calls to mysql_server_init and
      mysql_server_end.
      
      NOTE: Please see the file tools.mysql_drv/README for more information
@@ -718,14 +718,14 @@ First you will need to download a few prerequisite tools:
    PURGE
 
    Depending on which storage driver you choose, it may be beneficial to run
-   a purge tool that will recreate the database nightly.  This is expecially
+   a purge tool that will recreate the database nightly.  This is especially
    true to the BDB drivers.  Using db_dump and db_load in a shell script,
    for example, can very easily reclaim free space in a BDB database if run
    once a week or so.
 
    Obviously if you are using a SQL-based driver, you will not need to compress
    files, but may want to run some basic SQL commands to delete unused tokens, 
-   etc.  You can find insructions about each driver's purge functions in
+   etc.  You can find instructions about each driver's purge functions in
    the driver's README (tools.[driver]/README) for performing nightly
    maintenance. dspam_clean can also be used for more granular purges.
 
@@ -1053,7 +1053,7 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
   of storage driver you are using.  For example, the MySQL storage driver
   includes a script which performs signature and unused token operations, 
   leaving only probability operations as useful.  If you are using a SQL-based
-  storage driver, it is strongly recommended that you use the maintenace 
+  storage driver, it is strongly recommended that you use the maintenance 
   scripts wherever possible for optimum efficiency.
 
   dspam_stats - Displays the spam statistics for one or all users on the system.
@@ -1088,7 +1088,7 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
 
   --class=[spam|innocent]
   Tells DSPAM that the message being presented has already been classified by
-  the user.  This flag should be used when a misclassification has occured, 
+  the user.  This flag should be used when a misclassification has occurred, 
   when the user is corpus-feeding a message, or an inoculation is being 
   presented.  This flag must be used in conjunction with the --source flag.
   Providing no classification invokes the SOP of DSPAM, which is to determine
@@ -1123,7 +1123,7 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
    inoculation: The message being presented is in pristine form, and should
                 be trained as an inoculation.  Inoculations are a more 
                 intense mode of training designed to cause DSPAM to 
-                train the user's metadata repeatedly on previoulsy unknown
+                train the user's metadata repeatedly on previously unknown
                 tokens, in an attepmt to vaccinate the user from future
                 messages similar to the one being presented.
 
@@ -1136,7 +1136,7 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
   --deliver=innocent,spam will cause DSPAM to deliver the message regardless
   of its classification.  This flag provides a significant amount of 
   flexibility for nonstandard implementations, where false positives may not
-  be delivered but spam is, and etecetera.
+  be delivered but spam is, and etcetera.
   
   --stdout
   If the message is indeed deemed "deliverable" by the --deliver flag, this
@@ -1751,7 +1751,7 @@ SERVER> 250 <jane> Message accepted for delivery
   the distribution, please email a diff along with any other pertinent 
   information to the dspam-dev mailing list.
 
-  If you like DSPAM and want to buy the author pizza (or a ferrari),
+  If you like DSPAM and want to buy the author pizza (or a Ferrari),
   paypal donations may be sent to jonathan@nuclearelephant.com.
 
   Thanks =)
