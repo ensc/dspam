@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: read_config.c,v 1.2 2004/11/01 15:07:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -39,6 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "language.h"
 #include "libdspam.h"
 #include "pref.h"
+#include "util.h"
 
 static char *next_normal_token(char **p)
 {

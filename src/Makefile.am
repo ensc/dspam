@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.2 2004/10/24 20:54:44 jonz Exp $
+# $Id: Makefile.am,v 1.3 2004/11/01 15:07:22 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -40,7 +40,7 @@ bin_PROGRAMS = dspam
 
 # installed for libdspam
 include_HEADERS = buffer.h decode.h error.h lht.h libdspam.h \
-	libdspam_objects.h nodetree.h storage_driver.h
+	libdspam_objects.h nodetree.h storage_driver.h tbt.h config.h
 
 # libdspam.a contans objects common for dspam and tools/* binaries
 libdspam_la_SOURCES = \
