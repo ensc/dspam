@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.68 2005/01/18 15:06:08 jonz Exp $ */
+/* $Id: dspam.c,v 1.69 2005/01/19 17:35:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -2025,9 +2025,6 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, agent_pref_t PTX, const char *username) {
   } else {
     CTX->training_mode = ATX->training_mode;
   }
-
-  if (CTX->training_buffer != -1)
-    CTX->training_buffer = ATX->training_buffer;
 
   return CTX;
 }
