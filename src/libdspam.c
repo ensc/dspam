@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.71 2004/12/29 04:03:21 jonz Exp $ */
+/* $Id: libdspam.c,v 1.72 2004/12/29 05:54:21 jonz Exp $ */
 
 /*
  DSPAM
@@ -1576,10 +1576,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         !strncmp(node_lht->token_name, "bnr.", 4))
     {
 
-      if ((node_lht->token_name[4] == 'c' || 
-           node_lht->token_name[4] == 's' ||
-           node_lht->token_name[4] == 't') &&
-          CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000 &&
+      if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350 &&
           CTX->confidence < 0.60 &&
           CTX->flags & DSF_NOISE &&
           CTX->_sig_provided == 0)
