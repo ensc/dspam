@@ -1,4 +1,4 @@
-$Id: RELEASE.NOTES,v 1.29 2005/02/24 16:33:37 jonz Exp $
+$Id: RELEASE.NOTES,v 1.30 2005/02/25 14:56:22 jonz Exp $
 
 RELEASE 3.4 (Release Candidate 1)
 
@@ -64,16 +64,18 @@ useful data to be ignored.
 Daemonized LMTP Server
 The agent can be placed into daemon mode (using --daemon) to run a single
 stateful processing core for DSPAM in a multi-threaded environment. The
-agent uses a proprietary LMTP dialog to accept and process inbound messages,
-meaning it can be tied closely to the MTA or the DSPAM agent in client mode.
-Use the --enable-daemon compile flag to activate. A thin-client (dspamc) has
-also been added to the build, which is basically a scaled down version of
-the agent without libdspam linked in. The client process is called with
---client.
+agent can run in one of two modes:
+  1. A standard, MTA-compatible LMTP server -or-
+  2. A proprietary, DSPAM-proprietary DLMTP server
+This allows the daemon to service either MTAs or the DSPAM thin-client, 
+depending on your needs.  Use the --enable-daemon compile flag to activate. 
+A thin-client (dspamc) has also been added to the build, which is basically a 
+scaled down version of the agent without libdspam linked in, which of course
+speaks DLMTP (DSPAM LMTP). The client process is called with --client.
 
 LMTP Delivery
-The agent can now deliver via LMTP instead of LDA by configuring an LMTP
-delivery host in dspam.conf.
+On top of full LMTP support inbound, DSPAM also supports LMTP delivery
+instead of LDA delivery by configuring an LMTP delivery host in dspam.conf.
 
 Storage Profile Failover
 The agent now supports failover of storage profiles. This allows you to
