@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.1 2004/10/24 20:53:29 jonz Exp $
+## $Id: dspam.conf.in,v 1.2 2004/11/01 14:42:14 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -315,5 +315,12 @@ Opt out
 #Broken returnCodes
 #Broken case
 #Broken lineStripping
+
+#
+# MaxMessageSize: You may specify a maximum message size for DSPAM to process.
+# If the message is larger than the maximum size, it will be delivered 
+# without processing. Value is in bytes.
+#
+#MaxMessageSize 4194304
 
 ## EOF

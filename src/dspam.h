@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: dspam.h,v 1.2 2004/11/01 14:42:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -43,8 +43,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define         SIGNATURE_BEGIN		"!DSPAM:"
 #define         SIGNATURE_END		"!"
-#define         LOOSE_SIGNATURE_BEGIN	"DSPAM:"
-#define         SIGNATURE_DELIMITER	":"
+#define         LOOSE_SIGNATURE_BEGIN	"X-DSPAM-Signature:"
+#define         SIGNATURE_DELIMITER	": "
 
 /* Agent Context: Agent Configuration */
 

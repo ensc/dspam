@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.4 2004/10/29 18:10:15 jonz Exp $ */
+/* $Id: dspam.c,v 1.5 2004/11/01 14:42:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -3224,6 +3224,16 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                      _ds_read_attribute(agent_config, "Home"), 
                      node_nt->ptr, "nodspam");
     optout = stat(filename, &s);
+
+    /* If the message is too big to process, just deliver it */
+    if (_ds_read_attribute(agent_config, "MaxMessageSize")) {
+      if (message->used > 
+          atoi(_ds_read_attribute(agent_config, "MaxMessageSize")))
+      {
+        LOG (LOG_INFO, "message too big, delivering");
+        optout = 0;
+      }
+    }
 
     /* Deliver the message if the user has opted not to be filtered */
 

@@ -1,7 +1,17 @@
-$Id: CHANGELOG,v 1.11 2004/10/29 18:10:15 jonz Exp $
+$Id: CHANGELOG,v 1.12 2004/11/01 14:42:14 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041101.0700] jonz: added MaxMessageSize option to dspam.conf
+
+added a max message size configuration option to specify a maximum message
+size to process
+
+[20041101.0700] jonz: changed loose signature matching
+
+changed loose signature to X-DSPAM-Signature from the ever useless DSPAM: to
+allow the use of signature headers in forwarded attachments.
 
 [20041024.1700] jonz: moved sources to src/
 
