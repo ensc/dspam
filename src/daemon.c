@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.72 2005/03/18 21:13:57 jonz Exp $ */
+/* $Id: daemon.c,v 1.73 2005/03/18 21:31:50 jonz Exp $ */
 
 /*
 
@@ -891,7 +891,11 @@ char *daemon_expect(THREAD_CTX *TTX, const char *ptr) {
       daemon_reply(TTX, LMTP_QUIT, "2.0.0", "OK"); 
       return NULL;
     }
-    snprintf(buf, sizeof(buf), "%d 5.0.0 Need %s here.", LMTP_BAD_CMD, ptr);
+    if (!strcmp(ptr, "MAIL FROM") && !strncasecmp(cmd, "RSET", 4)) 
+      snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
+    else
+      snprintf(buf, sizeof(buf), "%d 5.0.0 Need %s here.", LMTP_BAD_CMD, ptr);
+
     if (send_socket(TTX, buf)<=0)
       return NULL;
     free(cmd);
