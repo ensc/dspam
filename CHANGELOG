@@ -1,10 +1,14 @@
-$Id: CHANGELOG,v 1.131 2005/01/11 16:54:12 jonz Exp $
+$Id: CHANGELOG,v 1.132 2005/01/11 17:45:02 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
 
 Version 3.3.NEXT
 ----------------
+
+[20040111.0700] jonz: fixed spam tagging
+
+fixed spam tagging, which was never called
 
 [20040111.0700] jonz: fixed compile error
 

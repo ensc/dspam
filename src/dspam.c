@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.61 2005/01/11 16:54:12 jonz Exp $ */
+/* $Id: dspam.c,v 1.62 2005/01/11 17:45:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -536,6 +536,12 @@ process_message (AGENT_CTX *ATX,
         strcmp(_ds_pref_val(PTX, "trainPristine"), "on"))
     add_xdspam_headers(CTX, ATX, PTX);
 
+  if (!strcmp(_ds_pref_val(PTX, "spamAction"), "tag") && 
+      result == DSR_ISSPAM)
+  {
+    tag_message((struct _ds_message_block *) CTX->message->components->first->ptr, PTX);
+  }
+
   if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers") &&
       !_ds_match_attribute(agent_config, "TrainPristine", "on") &&
         strcmp(_ds_pref_val(PTX, "trainPristine"), "on"))
@@ -740,6 +746,7 @@ int tag_message(struct _ds_message_block *block, AGENT_PREF PTX)
   while (node_header != NULL) 
   {
     struct _ds_header_field *head;
+
     head = (struct _ds_header_field *) node_header->ptr;
     if (head->heading && 
         !strcasecmp(head->heading, "Subject")) 
