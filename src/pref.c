@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.14 2005/03/01 13:45:00 jonz Exp $ */
+/* $Id: pref.c,v 1.15 2005/03/01 13:56:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -217,30 +217,27 @@ static int _ds_pref_process_file (
   in_file = fopen(filename, "r");
   *out_file = fopen(out_filename, "w");
 
-  if (in_file == NULL) {
-    file_error("open", filename, strerror(errno));
-    return -1;
-  }
   if (*out_file == NULL) {
     file_error("open", out_filename, strerror(errno));
     return -1;
   }
 
-  while (fgets(line, sizeof(line), in_file)) {
-    if (!strncmp(line, preference, plen))
-      continue;
-
-    ++lineno;
-
-    if (fputs(line, *out_file)) {
-      file_error("write", out_filename, strerror(errno));
-      fclose(*out_file);
-      unlink(out_filename);
-      return -1;
+  if (in_file) {
+    while (fgets(line, sizeof(line), in_file)) {
+      if (!strncmp(line, preference, plen))
+        continue;
+  
+      ++lineno;
+  
+      if (fputs(line, *out_file)) {
+        file_error("write", out_filename, strerror(errno));
+        fclose(*out_file);
+        unlink(out_filename);
+        return -1;
+      }
     }
+    fclose(in_file);
   }
-
-  fclose(in_file);
 
   return lineno;
 }
