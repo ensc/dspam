@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.89 2005/03/11 12:55:42 jonz Exp $ */
+/* $Id: dspam.c,v 1.90 2005/03/11 12:57:43 jonz Exp $ */
 
 /*
  DSPAM
@@ -2613,7 +2613,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
           }
         }
 
-      } /* CTX->classification == DSR_NONE */
+      } /* CTX->source != DSS_ERROR */
     }
   }
   return 0;
