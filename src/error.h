@@ -1,4 +1,4 @@
-/* $Id: error.h,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: error.h,v 1.2 2004/12/03 01:30:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -19,6 +19,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+
+#ifdef HAVE_CONFIG_H
+#include <auto-config.h>
+#endif
 
 #ifndef _DSPAM_ERROR_H
 #  define _DSPAM_ERROR_H

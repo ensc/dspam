@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.6 2004/12/02 23:33:08 jonz Exp $ */
+/* $Id: client.c,v 1.7 2004/12/03 01:30:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -277,6 +277,78 @@ int client_getcode(THREAD_CTX *TTX) {
   if (ptr == NULL)
     return EFAILURE;
   return atoi(ptr);
+}
+
+char *socket_getline(THREAD_CTX *TTX, int timeout) {
+  int i;
+  struct timeval tv;
+  fd_set fds;
+  long recv_len;
+  char *pop;
+  char buff[1024];
+
+  pop = pop_buffer(TTX);
+  while(!pop) {
+    tv.tv_sec = timeout;
+    tv.tv_usec = 0;
+    FD_ZERO(&fds);
+    FD_SET(TTX->sockfd, &fds);
+    i = select(TTX->sockfd+1, &fds, NULL, NULL, &tv);
+    if (i<=0)
+      return NULL;
+
+    recv_len = recv(TTX->sockfd, buff, sizeof(buff)-1, 0);
+    buff[recv_len] = 0;
+    if (recv_len == 0)
+      return NULL;
+    buffer_cat(TTX->packet_buffer, buff);
+    pop = pop_buffer(TTX);
+  }
+
+  return pop;
+}
+
+char *pop_buffer(THREAD_CTX *TTX) {
+  char *buff, *eol;
+  long len;
+
+  if (!TTX || !TTX->packet_buffer || !TTX->packet_buffer->data)
+    return NULL;
+
+  eol = strchr(TTX->packet_buffer->data, 10);
+  if (!eol)
+    return NULL;
+  len = (eol - TTX->packet_buffer->data) + 1;
+  buff = calloc(1, len+1);
+  if (!buff) {
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+  memcpy(buff, TTX->packet_buffer->data, len);
+  memmove(TTX->packet_buffer->data, eol+1, strlen(eol+1)+1);
+  TTX->packet_buffer->used -= len;
+  return buff;
+}
+
+int send_socket(THREAD_CTX *TTX, const char *ptr) {
+  int i = 0, r, msglen;
+
+  msglen = strlen(ptr);
+  while(i<msglen) {
+    r = send(TTX->sockfd, ptr+i, msglen-i, 0);
+    if (r <= 0) {
+      return r;
+}
+    i += r;
+  }
+
+  r = send(TTX->sockfd, "\n", 2, 0);
+  if (r == 1) {
+    send(TTX->sockfd, "", 1, 0);
+    r++;
+  }
+
+  return i+2;
 }
 
 #endif /* DAEMON */

@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.56 2004/12/03 00:36:48 jonz Exp $
+$Id: CHANGELOG,v 1.57 2004/12/03 01:30:32 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041202.2024] jonz: added dspamc thin client
+
+added dspamc thin client for those who would prefer something light than
+running DSPAM in client mode (linked in with libdspam and other unnecessary
+code).
 
 [20041130.0800] jonz: dspam daemonized LMTP server and client
 

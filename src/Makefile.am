@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.6 2004/11/27 22:08:03 jonz Exp $
+# $Id: Makefile.am,v 1.7 2004/12/03 01:30:32 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -36,7 +36,7 @@ DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
        -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS 
 
 lib_LTLIBRARIES = libdspam.la
-bin_PROGRAMS = dspam
+bin_PROGRAMS = dspam dspamc
 
 # installed for libdspam
 include_HEADERS = buffer.h decode.h error.h lht.h libdspam.h \
@@ -81,11 +81,24 @@ dspam_SOURCES = \
         buffer.h \
 	storage_driver.h \
 	read_config.c read_config.h \
+	config_api.c config_api.h \
 	daemon.c daemon.h \
-	client.c client.h
+	client.c client.h \
+	agent_shared.c agent_shared.h
 
 dspam_LDADD = libdspam.la
 dspam_LDFLAGS = -static
+
+dspamc_SOURCES = \
+	config.h libdspam.h language.h \
+	dspamc.c dspamc.h \
+	buffer.h error.h \
+	read_config.c read_config.h \
+	client.c client.h \
+	agent_shared.c agent_shared.h 
+
+dspamc_LDADD = buffer.o config_shared.o error.o pref.o nodetree.o util.o
+dspamc_LDFLAGS = -static
 
 # Failing of chgrp is expected and normal case when someone do
 #   make install DESTDIR=...

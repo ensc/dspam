@@ -1,4 +1,4 @@
-/* $Id: read_config.h,v 1.2 2004/12/03 01:30:33 jonz Exp $ */
+/* $Id: dspamc.h,v 1.1 2004/12/03 01:30:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -20,23 +20,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#ifndef _READ_CONFIG_H
-#define _READ_CONFIG_H
+#include <sys/types.h>
+#ifndef _WIN32
+#include <pwd.h>
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
 #endif
 
-#include "config_shared.h"
-#include "libdspam.h"
-#include "pref.h"
+#ifndef _DSPAMC_H
+#  define _DSPAMC_H
 
-struct attribute **read_config(const char *path);
+#endif /* _DSPAMC_H */
 
-int configure_algorithms    (DSPAM_CTX * CTX);
-
-AGENT_PREF pref_config(void);
-
-attribute_t **agent_config;
-
-#endif /* _READ_CONFIG_H */

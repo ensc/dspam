@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.5 2004/12/02 23:33:08 jonz Exp $ */
+/* $Id: language.h,v 1.6 2004/12/03 01:30:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -90,6 +90,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ERROR_DAEMON_THREAD		"pthread_create() failed: %s"
 #define ERROR_MESSAGE_NULL		"Message is empty. Aborting."
 
+#define ERROR_INVALID_CLIENT_CONFIG	"Invalid client configuration"
 #define ERROR_CLIENT_CONNECT		"Could not connect to server"
 #define ERROR_CLIENT_CONNECT_HOST	"Connection to %s:%d failed: %s"
 #define ERROR_CLIENT_AUTH_FAILED	"Unable to authenticate client"

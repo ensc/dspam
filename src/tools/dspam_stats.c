@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.2 2004/12/01 17:29:11 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.3 2004/12/03 01:30:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -41,6 +41,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "libdspam.h"
 #include "read_config.h"
+#include "config_api.h"
 #include "language.h"
 
 #define TSYNTAX	"syntax: dspam_stats [username]"

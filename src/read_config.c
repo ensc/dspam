@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.3 2004/11/12 14:06:23 jonz Exp $ */
+/* $Id: read_config.c,v 1.4 2004/12/03 01:30:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -149,56 +149,6 @@ attribute_t **read_config(const char *path) {
 
   attrib = realloc(attrib, ((num_root+1)*sizeof(attribute_t *))+1);
   return attrib;
-}
-
-int set_libdspam_attributes(DSPAM_CTX *CTX) {
-  attribute_t *t;
-  int i, ret = 0;
-  char *profile;
-
-  t = _ds_find_attribute(agent_config, "IgnoreHeader");
-  while(t != NULL) {
-    ret += dspam_addattribute(CTX, t->key, t->value);
-    t = t->next;
-  }
-
-  profile = _ds_read_attribute(agent_config, "DefaultProfile");
-
-  for(i=0;agent_config[i];i++) {
-    t = agent_config[i];
-
-    while(t) {
-
-      if (!strncasecmp(t->key, "MySQL", 5) ||
-          !strncasecmp(t->key, "PgSQL", 5) ||
-          !strncasecmp(t->key, "Ora", 3)   ||
-          !strncasecmp(t->key, "SQLite", 6) ||
-          !strcasecmp(t->key, "LocalMX"))
-      {
-
-        if (profile == NULL || profile[0] == 0)
-        { 
-          ret += dspam_addattribute(CTX, t->key, t->value);
-        }
-        else if (strchr(t->key, '.'))
-        {
-       
-          if (!strcasecmp((strchr(t->key, '.')+1), profile)) { 
-            char *x = strdup(t->key);
-            char *y = strchr(x, '.');
-            y[0] = 0;
-
-            ret += dspam_addattribute(CTX, x, t->value);
-            free(x);
-          }
-        }
-      }
-      t = t->next;
-    }
-  }
-
-  ret += configure_algorithms(CTX);
-  return ret;
 }
 
 int configure_algorithms(DSPAM_CTX *CTX) {

@@ -1,4 +1,4 @@
-/* $Id: client.h,v 1.2 2004/12/02 17:55:51 jonz Exp $ */
+/* $Id: client.h,v 1.3 2004/12/03 01:30:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -42,6 +42,11 @@ int client_connect(void);
 int client_authenticate(THREAD_CTX *TTX);
 int client_getcode(THREAD_CTX *TTX);
 char * client_expect(THREAD_CTX *TTX, int response_code);
+
+/* Shared between client and server */
+char *socket_getline(THREAD_CTX *TTX, int timeout);
+char *pop_buffer(THREAD_CTX *TTX);
+int send_socket(THREAD_CTX *TTX, const char *ptr);
 
 #endif /* _CLIENT_H */
 

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.1 2004/10/24 20:51:55 jonz Exp $
+# $Id: Makefile.am,v 1.2 2004/12/03 01:30:33 jonz Exp $
 # tools/Makefile.am
 
 EXTRA_DIST = dspam_corpus.in dspam_genaliases.in 
@@ -12,19 +12,19 @@ CFLAGS = @CFLAGS@ -I$(top_srcdir)/src
 bin_PROGRAMS = dspam_dump dspam_clean dspam_crc dspam_stats dspam_merge dspam_2sql dspam_admin
 bin_SCRIPTS = dspam_corpus dspam_genaliases
 
-dspam_2sql_SOURCES = dspam_2sql.c ../read_config.c
+dspam_2sql_SOURCES = dspam_2sql.c ../read_config.c ../config_api.c
 dspam_2sql_LDFLAGS = -static
-dspam_dump_SOURCES = dspam_dump.c ../read_config.c
+dspam_dump_SOURCES = dspam_dump.c ../read_config.c ../config_api.c
 dspam_dump_LDFLAGS = -static
-dspam_clean_SOURCES = dspam_clean.c ../read_config.c
+dspam_clean_SOURCES = dspam_clean.c ../read_config.c ../config_api.c
 dspam_clean_LDFLAGS = -static
 dspam_crc_SOURCES = dspam_crc.c
 dspam_crc_LDFLAGS = -static
-dspam_stats_SOURCES = dspam_stats.c ../read_config.c
+dspam_stats_SOURCES = dspam_stats.c ../read_config.c ../config_api.c
 dspam_stats_LDFLAGS = -static
-dspam_merge_SOURCES = dspam_merge.c ../read_config.c
+dspam_merge_SOURCES = dspam_merge.c ../read_config.c ../config_api.c
 dspam_merge_LDFLAGS = -static
-dspam_admin_SOURCES = dspam_admin.c ../read_config.c
+dspam_admin_SOURCES = dspam_admin.c ../read_config.c ../config_api.c
 dspam_admin_LDFLAGS = -static
 
 LDADD = ../libdspam.la
