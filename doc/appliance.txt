@@ -116,3 +116,8 @@ When any of these destination addresses is specified, DSPAM will process
 mail under the same user so that only one database is used for all of these
 addresses. You can create as many aliases as you like, and in fact should 
 probably write a script to pull this from your existing production system.
+
+Congratulations! You're now set up. You can start DSPAM using dspam --daemon.
+You might want to run with verbose debug to test and ensure everything is
+working properly.
+
