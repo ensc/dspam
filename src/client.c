@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.32 2005/03/10 23:06:36 jonz Exp $ */
+/* $Id: client.c,v 1.33 2005/03/11 12:55:42 jonz Exp $ */
 
 /*
 
@@ -513,8 +513,8 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
     goto QUIT;
   free(input);
 
-  snprintf(buff, sizeof(buff), "MAIL FROM:<%s> SIZE=%d", 
-           ATX->mailfrom, strlen(message));
+  snprintf(buff, sizeof(buff), "MAIL FROM:<%s> SIZE=%ld", 
+           ATX->mailfrom, (long) strlen(message));
   if (send_socket(&TTX, buff)<=0)
     goto BAIL;
 

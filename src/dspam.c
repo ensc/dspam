@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.88 2005/03/09 15:52:52 jonz Exp $ */
+/* $Id: dspam.c,v 1.89 2005/03/11 12:55:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -2497,8 +2497,8 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
       struct _ds_header_field *head; 
       char data[10240];
       char scratch[128];
-  
-      strcpy(data, (CTX->classification == DSR_NONE) ? "X-DSPAM-Result: " : "X-DSPAM-Reclassified: ");
+
+      strcpy(data, (CTX->source == DSS_ERROR) ? "X-DSPAM-Reclassified: " : "X-DSPAM-Result: ");
       switch (CTX->result) {
         case DSR_ISSPAM:
           strcat(data, "Spam");
@@ -2523,7 +2523,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
         LOG (LOG_CRIT, ERROR_MEM_ALLOC);
       }
 
-      if (CTX->classification == DSR_NONE) {
+      if (CTX->source != DSS_ERROR) {
 
         snprintf(data, sizeof(data), "X-DSPAM-Confidence: %01.4f", 
                  CTX->confidence);
