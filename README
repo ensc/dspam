@@ -1,4 +1,4 @@
-$Id: README,v 1.41 2005/02/25 15:47:29 jonz Exp $
+$Id: README,v 1.42 2005/02/27 21:04:15 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1822,6 +1822,14 @@ DATA
   differently for each user, DSPAM demultiplexes a multi-recipient email. This
   means that while it can receive an email with multiple RCPT TO's specified, it
   will perform delivery individually.
+
+  "auto" mode setting.
+  If you would like to support both connecting MTAs and remote dspam client
+  processes (such as for inoculations), you can set the server mode to auto,
+  which will base its dialect on the ident supplied in the LHLO. If the LHLO
+  ident matches an ident in dspam.conf's ServerPass section, the server will
+  default to DLMTP. Otherwise, DSPAM will assume the client is a standard 
+  LMTP client and speak standard LMTP.
 
   LOCAL DELIVERY WITH LMTP FRONT-END
 
