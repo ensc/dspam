@@ -1,4 +1,4 @@
-$Id: README,v 1.31 2005/01/19 22:33:45 jonz Exp $
+$Id: README,v 1.32 2005/01/23 16:29:52 jonz Exp $
 
 DSPAM v3.3 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1240,8 +1240,9 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
      noise:  Bayesian Noise Reduction (BNR).  Bayesian Noise Reduction kicks
              in at 2500 innocent messages and provides an advanced progressive
              noise logic to reduce Bayesian Noise (wordlist attacks) in
-             spams.  See http://dspam.nuclearelephant.com/bnr.html
-             for more information.
+             spams.  See http://bnr.nuclearelephant.com for more information.
+             BNR is not for everyone, and so users should try it out after 
+             they've trained to see if it helps improve accuracy.
 
       tb=N:  Sets the training loop buffering level.
              Training loop buffering is the amount of statistical sedation
@@ -1251,7 +1252,9 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
              between 0 (no buffering whatsoever) to 10 (heavy buffering).  The 
              default is 5, half of what previous versions of DSPAM used.  
              To avoid dulling down statistics at all during the training loop, 
-             set this to 0.
+             set this to 0. This feature should be disabled if you're not
+             paranoid about false positives, as it does increase the number
+             of spam misses significantly during training.
 
  whitelist:  Automatic whitelisting.  DSPAM will keep track of the entire
              "From:" line for each message received per user, and automatically
