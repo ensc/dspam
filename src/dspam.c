@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.124 2005/04/02 15:12:03 jonz Exp $ */
+/* $Id: dspam.c,v 1.125 2005/04/03 00:55:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -2010,7 +2010,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, agent_pref_t PTX, const char *username) {
           while (user != NULL)
           {
             if (!strcmp (user, username) || user[0] == '*' ||
-               (user[0] == '@' && !strcmp(user, strchr(username,'@'))))
+               (!strncmp(user, "*@", 2) && !strcmp(user+1, strchr(username,'@'))))
             {
   
               /* If we're reporting a spam, report it as a spam to all other

@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.258 2005/04/02 15:12:03 jonz Exp $
+$Id: CHANGELOG,v 1.259 2005/04/03 00:55:11 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050402.1945] jonz: changed domain-based groups to use *@domain
+
+domain-based groups have been changed to require *@domain.tld instead of
+@domain.tld in the group file. 
 
 [20050401.0100] jonz: added domain blocklisting
 
