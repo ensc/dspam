@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.84 2005/03/23 15:21:44 jonz Exp $ */
+/* $Id: daemon.c,v 1.85 2005/03/23 16:04:30 jonz Exp $ */
 
 /*
 
@@ -1057,8 +1057,9 @@ char *daemon_getline(THREAD_CTX *TTX, int timeout) {
       return NULL;
     for(i=0;i<recv_len;i++) {
       if (buff[i]==0) {
-        daemon_reply(TTX, LMTP_ERROR_PROCESS, "5.3.0", "Don't send me NULL");
-        return NULL;
+        if (i+1<recv_len) {
+          memmove(buff+i, buff+i+1, recv_len-(i+1));
+        }
       }
     }
     buffer_cat(TTX->packet_buffer, buff);
