@@ -1,7 +1,7 @@
-# $Id: Makefile.am,v 1.3 2004/12/03 13:16:20 jonz Exp $
+# $Id: Makefile.am,v 1.4 2005/01/15 15:08:34 jonz Exp $
 # tools/Makefile.am
 
-EXTRA_DIST = dspam_corpus.in dspam_genaliases.in 
+EXTRA_DIST = dspam_corpus.in dspam_genaliases.in dspam_logrotate
 CLEANFILES = dspam_corpus dspam_genaliases
 
 AM_CPPFLAGS = \
@@ -11,7 +11,7 @@ AM_CPPFLAGS = \
 CFLAGS = @CFLAGS@ -I$(top_srcdir)/src
 
 bin_PROGRAMS = dspam_dump dspam_clean dspam_crc dspam_stats dspam_merge dspam_2sql dspam_admin
-bin_SCRIPTS = dspam_corpus dspam_genaliases
+bin_SCRIPTS = dspam_corpus dspam_genaliases dspam_logrotate
 
 dspam_2sql_SOURCES = dspam_2sql.c ../read_config.c ../config_api.c
 dspam_2sql_LDFLAGS = -static

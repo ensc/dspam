@@ -1,8 +1,12 @@
-$Id: CHANGELOG,v 1.140 2005/01/15 14:56:13 jonz Exp $
+$Id: CHANGELOG,v 1.141 2005/01/15 15:08:33 jonz Exp $
 
 Version NEXT
 ------------
 
+[20050115.1000] jonz: added dspam_logrotate
+
+added Steve Pellegrin's log rotate script as a tool
+ 
 [20050115.0900] jonz: fixed preference overrides
 
 fixed a bug causing preferences to fail to override
