@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: dspam.c,v 1.2 2004/10/25 00:17:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -864,6 +864,11 @@ process_message (AGENT_CTX *ATX,
                 {
                   memcpy (signature_key, signature_begin, signature_length);
                   signature_key[signature_length] = 0;
+
+                  while(isspace(signature_key[0]))
+                  {
+                    memmove(signature_key, signature_key+1, strlen(signature_key));
+                  }
 
                   if (strcmp(_ds_pref_val(PTX, "signatureLocation"), 
                       "headers")) {
