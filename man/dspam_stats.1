@@ -1,4 +1,4 @@
-.\" $Id: dspam_stats.1,v 1.1 2004/10/24 20:48:46 jonz Exp $
+.\" $Id: dspam_stats.1,v 1.2 2005/03/03 16:22:10 jonz Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam_stats3.2
@@ -17,7 +17,7 @@ dspam_stats - display spam statistics
 .na
 .B dspam_stats
 [\c
-.BI \-H\fR\c
+.BI \-HhrSs\fR\c
 ]
 [\c
 .I \ username \fR\c
@@ -37,6 +37,26 @@ displays the spam filtering statistics for one or all users on the system. Displ
 Uses multi-line, human-readable output displaying the fully-qualified names for
 each class of totals, instead of their abbreviated terms.
  
+.ne 3
+.TP
+.BI \-h\fR\c
+Displays help syntax
+
+.ne 3
+.TP
+.BI \-r\fR\c
+Resets the current snapshot
+
+.ne 3
+.TP
+.BI \-s\fR\c
+Displays stats since last snapshot (instead of since epoch)
+
+.ne 3
+.TP
+.BI \-S\fR\c
+Displays accuracy percentages in addition to stats
+
 .n3 3
 .TP
 .BI \[username]\c
