@@ -1,4 +1,4 @@
-$Id: RELEASE.NOTES,v 1.37 2005/03/29 22:36:10 jonz Exp $
+$Id: RELEASE.NOTES,v 1.38 2005/03/29 22:46:19 jonz Exp $
 
 RELEASE 3.4.2-STABLE
 
@@ -13,7 +13,7 @@ user alias support, and a full featured UI! Made by the makers of DSPAM.
 e-mail jonathan@nuclearelephant.com for more information about the pilot
 --------------------------------------------------------------------------
 
-BUGFIX: Minior memory leaks in multi-word tokenizer
+BUGFIX: Minor memory leaks in multi-word tokenizer
 BUGFIX: When using --classify, the system/user log is appended to 
 BUGFIX: Using signatureLocation=headers should prefer signature in headers
 BUGFIX: History-based training only works for admins
