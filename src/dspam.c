@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.109 2005/03/19 00:15:08 jonz Exp $ */
+/* $Id: dspam.c,v 1.110 2005/03/19 00:31:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -736,14 +736,16 @@ deliver_message (AGENT_CTX *ATX, const char *message, const char *mailer_args,
     else
       strlcpy(a, arg, sizeof(a));
 
-    for(i=0;i<strlen(a);i++) {
-      if (!(isalnum((unsigned char) a[i]) || a[i] == '+' || a[i] == '_' || 
-          a[i] == '-' || a[i] == '.' || a[i] == '/' || a[i] == '@')) {
-        strlcpy(b, a+i, sizeof(b));
-        a[i] = '\\';
-        a[i+1] = 0;
-        strlcat(a, b, sizeof(a));
-        i++;
+    if (strcmp(a, "\"\"")) {
+      for(i=0;i<strlen(a);i++) {
+        if (!(isalnum((unsigned char) a[i]) || a[i] == '+' || a[i] == '_' || 
+            a[i] == '-' || a[i] == '.' || a[i] == '/' || a[i] == '@')) {
+          strlcpy(b, a+i, sizeof(b));
+          a[i] = '\\';
+          a[i+1] = 0;
+          strlcat(a, b, sizeof(a));
+          i++;
+        }
       }
     }
 
