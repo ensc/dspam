@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.3 2005/01/03 03:06:13 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.4 2005/04/05 21:55:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -395,13 +395,15 @@ typedef struct
 #define DSM_PROCESS             0x00
 #define DSM_TOOLS		0x01
 #define DSM_CLASSIFY		0x02
+#define DSM_NONE		0xFF
 
 /* Training Modes */ 
 
 #define DST_TEFT		0x00
 #define DST_TOE			0x01
 #define DST_TUM			0x02
-#define DST_NOTRAIN		0xFF
+#define DST_NOTRAIN		0xFE
+#define DST_DEFAULT		0xFF
 
 /* Classification Results */
 
@@ -426,5 +428,7 @@ typedef struct
 /* Token Types */
 #define DTT_DEFAULT	0x00
 #define DTT_BNR		0x01
+
+#define DSP_UNCALCULATED	-1
 
 #endif /* _LIBDSPAM_OBJECTS */

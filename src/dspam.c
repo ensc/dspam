@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.126 2005/04/05 21:39:01 jonz Exp $ */
+/* $Id: dspam.c,v 1.127 2005/04/05 21:55:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -385,7 +385,7 @@ process_message (AGENT_CTX *ATX,
   }
 
   /* If a signature was provided, load it */
-  if (ATX->source != DSS_CORPUS && ATX->source != -1) {
+  if (ATX->source != DSS_CORPUS && ATX->source != DSS_NONE) {
     have_signature = find_signature(CTX, ATX, PTX);
   }
   if (have_signature && ATX->source != DSS_CORPUS)
@@ -1354,7 +1354,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       }
       else {
         if (_ds_match_attribute(agent_config, "DebugOpt", "process") &&
-            ATX->source == -1 &&
+            ATX->source == DSS_NONE &&
             ATX->operating_mode == DSM_PROCESS)
         {
           DO_DEBUG = 1;
@@ -1558,7 +1558,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
         /* Processing Error */
 
         if (result != DSR_ISINNOCENT && result != DSR_ISWHITELISTED &&
-            ATX->classification != DSR_NONE && ATX->classification != -1)
+            ATX->classification != DSR_NONE && ATX->classification != DSR_NONE)
         {
           deliver = 0;
           LOG (LOG_WARNING,
@@ -1620,7 +1620,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                  )
                )
             {
-              if (ATX->classification == -1) {
+              if (ATX->classification == DSR_NONE) {
                 if (ATX->spam_args[0] != 0) {
                   retcode = deliver_message
                     (ATX, parse_message->data,
@@ -1644,7 +1644,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
             else
             {
               /* Use standard quarantine procedure */
-              if (ATX->source == DSS_INOCULATION || ATX->classification == -1) {
+              if (ATX->source == DSS_INOCULATION || ATX->classification == DSR_NONE) {
                 if (ATX->managed_group[0] == 0)
                   retcode = quarantine_message (PTX, parse_message->data, username);
                 else
@@ -1924,7 +1924,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
                 if (strcmp(_ds_pref_val(PTX, "signatureLocation"), 
                     "headers")) {
 
-                  if (!is_signed && ATX->classification == -1) {
+                  if (!is_signed && ATX->classification == DSR_NONE) {
                     memmove(erase_begin, signature_end+1, strlen(signature_end+1)+1);
                     block->body->used = (long) strlen(body);
                   }
@@ -2159,7 +2159,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, agent_pref_t PTX, const char *username) {
   if (PTX != NULL && strcmp(_ds_pref_val(PTX, "whitelistThreshold"), ""))
     CTX->wh_threshold = atoi(_ds_pref_val(PTX, "whitelistThreshold"));
 
-  if (ATX->classification != -1) {
+  if (ATX->classification != DSR_NONE) {
     CTX->classification  = ATX->classification;
     CTX->source          = ATX->source;
   }

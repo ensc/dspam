@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.102 2005/03/29 21:11:34 jonz Exp $ */
+/* $Id: libdspam.c,v 1.103 2005/04/05 21:55:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -185,7 +185,7 @@ DSPAM_CTX * dspam_create (const char *username,
   else
     CTX->group = NULL;
 
-  CTX->probability     = -1;
+  CTX->probability     = DSP_UNCALCULATED;
   CTX->operating_mode  = operating_mode;
   CTX->flags           = flags;
   CTX->message         = NULL;
@@ -509,7 +509,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     _ds_degenerate_message(CTX, header, body);
   }
 
-  CTX->result = -1;
+  CTX->result = DSR_NONE;
 
   if (CTX->flags & DSF_SBPH &&
       CTX->operating_mode != DSM_CLASSIFY && 
@@ -678,7 +678,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   unsigned long long whitelist_token = 0;
   int do_whitelist = 0;
-  int result = -1;
+  int result;
 
   if (CTX->algorithms & DSA_BURTON)
     heap_sort = ds_heap_create(27, HP_DELTA);
@@ -1488,7 +1488,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       if (CTX->factors) 
         _ds_factor_destroy(CTX->factors);
       CTX->result = x;
-      CTX->probability = -1;
+      CTX->probability = DSP_UNCALCULATED;
     }
 #endif
 
@@ -1743,7 +1743,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
 
   LOGDEBUG ("processing signature.  length: %ld", CTX->signature->length);
 
-  CTX->result = -1;
+  CTX->result = DSS_NONE;
 
   if (!(CTX->flags & DSF_UNLEARN)) 
     CTX->learned = 1;

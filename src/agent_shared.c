@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.36 2005/03/24 18:24:15 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.37 2005/04/05 21:55:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -163,10 +163,10 @@ int initialize_atx(AGENT_CTX *ATX) {
 
   /* Initialize Agent Context */
   memset(ATX, 0, sizeof(AGENT_CTX));
-  ATX->training_mode   = -1;
+  ATX->training_mode   = DST_DEFAULT;
   ATX->training_buffer = 0;
-  ATX->classification  = -1;
-  ATX->source          = -1;
+  ATX->classification  = DSS_NONE;
+  ATX->source          = DSS_NONE;
   ATX->operating_mode  = DSM_PROCESS;
   ATX->users           = nt_create (NT_CHAR);
 
@@ -563,7 +563,7 @@ int apply_defaults(AGENT_CTX *ATX) {
 
   /* Training mode */
 
-  if (ATX->training_mode == -1) {
+  if (ATX->training_mode == DST_DEFAULT) {
     char *v = _ds_read_attribute(agent_config, "TrainingMode");
     process_mode(ATX, v);
   }
@@ -627,31 +627,32 @@ int apply_defaults(AGENT_CTX *ATX) {
 
 int check_configuration(AGENT_CTX *ATX) {
 
-  if (ATX->classification != -1 && ATX->operating_mode == DSM_CLASSIFY)
+  if (ATX->classification != DSR_NONE && ATX->operating_mode == DSM_CLASSIFY)
   {
     report_error(ERROR_CLASSIFY_CLASS);
     return EINVAL;
   }
 
-  if (ATX->classification != -1 && ATX->source == -1 && !(ATX->flags & DAF_UNLEARN))
+  if (ATX->classification != DSR_NONE && ATX->source == DSS_NONE && 
+     !(ATX->flags & DAF_UNLEARN))
   {
     report_error(ERROR_NO_SOURCE);
     return EINVAL;
   }
 
-  if (ATX->source != -1 && ATX->classification == -1)
+  if (ATX->source != DSS_NONE && ATX->classification == DSR_NONE)
   {
     report_error(ERROR_NO_CLASS);
     return EINVAL;
   }
 
-  if (ATX->operating_mode == -1)
+  if (ATX->operating_mode == DSM_NONE)
   {
     report_error(ERROR_NO_OP_MODE);
     return EINVAL;
   }
 
-  if (ATX->training_mode == -1)
+  if (ATX->training_mode == DST_DEFAULT)
   {
     report_error(ERROR_NO_TR_MODE);
     return EINVAL;
