@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.136 2005/01/12 17:35:15 jonz Exp $
+$Id: CHANGELOG,v 1.137 2005/01/12 17:36:31 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
@@ -17,6 +17,10 @@ added the following functionality to dspam_stats:
 to measure accuracy for each month, use dspam_stats -r [username] at the
 beginning of the month, and dspam_stats -s -S [username] at the end of the
 month.
+
+NOTE: dspam_stats -r uses the same .rstats file as the CGI, so resetting
+stats in either will affect the other. this is the desired behavior at
+the moment, rather than have two snapshots running around.
 
 Version 3.3.11
 --------------
