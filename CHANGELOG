@@ -1,8 +1,14 @@
-$Id: CHANGELOG,v 1.224 2005/03/16 19:37:58 jonz Exp $
+$Id: CHANGELOG,v 1.225 2005/03/16 19:49:24 jonz Exp $
    
 Version NEXT
 ------------
   
+[20050316.0100] jonz: reclassification failures should not deliver
+
+false positive reclassification failures shouldn't deliver, as a spammer could 
+take advantage of a system using false positive aliases and send mail
+through them.
+
 [20050316.0100] jonz: changed fp- to notspam-
 
 changed fp- to notspam- in parsetoheaders and docs

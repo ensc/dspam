@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.102 2005/03/16 18:31:26 jonz Exp $ */
+/* $Id: dspam.c,v 1.103 2005/03/16 19:49:24 jonz Exp $ */
 
 /*
  DSPAM
@@ -1491,17 +1491,28 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
       if (result != DSR_ISSPAM)
       {
+        int deliver = 1;
+
         /* Processing Error */
 
-        if (result != DSR_ISINNOCENT && result != DSR_ISWHITELISTED)
+        if (result != DSR_ISINNOCENT && result != DSR_ISWHITELISTED &&
+            ATX->classification != DSR_NONE)
         {
+          deliver = 0;
           LOG (LOG_WARNING,
-               "process_message returned error %d.  delivering message.",
-               result);
+               "process_message returned error %d.  dropping message.", result);
         }
 
+        if (result != DSR_ISINNOCENT && result != DSR_ISWHITELISTED &&
+            ATX->classification == DSR_NONE)
+        {
+          deliver = 1;
+          LOG (LOG_WARNING,
+               "process_message returned error %d.  delivering message.", result);        }
+
+
         /* Deliver */
-        if (ATX->flags & DAF_DELIVER_INNOCENT) {
+        if (deliver && ATX->flags & DAF_DELIVER_INNOCENT) {
           LOGDEBUG ("delivering message");
           retcode = deliver_message
             (ATX, parse_message->data,
