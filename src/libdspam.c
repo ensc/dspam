@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.12 2004/11/22 01:05:21 jonz Exp $ */
+/* $Id: libdspam.c,v 1.13 2004/11/22 04:04:01 jonz Exp $ */
 
 /*
  DSPAM
@@ -1071,7 +1071,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Engage only if ... */
 
-  if (CTX->flags & DSF_NOISE) //          &&
+  if (CTX->flags & DSF_NOISE)
+//          &&
 //      CTX->classification == DSR_NONE &&
 //        CTX->totals.innocent_learned  +	
 //        CTX->totals.innocent_classified > 2500)
@@ -1108,6 +1109,32 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 #endif
       lht_hit (pfreq, crc, bnr_token);
       node_nt = c_nt_next(freq->order, &c_nt);
+    }
+
+    node_nt = c_nt_first(freq->chained_order, &c_nt);
+    while(node_nt != NULL) {
+      struct lht_node *node = (struct lht_node *) node_nt->ptr;
+      unsigned long long crc;
+      char bnr_token[64];
+
+      _ds_calc_stat (CTX, node->key, &node->s, DTT_DEFAULT);
+
+      previous_probs[BNR_SIZE-1] = _ds_round(node->s.probability);
+      strcpy(bnr_token, "c");
+      for(i=0;i<BNR_SIZE;i++) {
+        char x[8];
+        snprintf(x, 8, "%01.2f.", previous_probs[i]);
+        strlcat(bnr_token, x, sizeof(bnr_token));
+      }
+      for(i=0;i<BNR_SIZE-1;i++)
+        previous_probs[i] = previous_probs[i+1];
+
+      crc = _ds_getcrc64 (bnr_token);
+#ifdef VERBOSE
+      LOGDEBUG ("BNR Pattern hit: '%s'", bnr_token);
+#endif
+      lht_hit (pfreq, crc, bnr_token);
+      node_nt = c_nt_next(freq->chained_order, &c_nt);
     }
 
     LOGDEBUG("Loading %ld BNR Patterns", pfreq->items);
@@ -1177,7 +1204,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   node_lht = c_lht_first (freq, &c_lht);
   while (node_lht != NULL)
   {
-    if (total_eliminations == -1 && !(CTX->flags & DSF_NOISE))
+    if (total_eliminations == -1) 
       _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT);
 
     if (CTX->flags & DSF_WHITELIST) {
@@ -1637,11 +1664,10 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
                struct _ds_spam_stat *s, int token_type)
 {
 
-  int min_hits = 5;
+  int min_hits;
   long ti, ts;
 
-  if (token_type == DTT_BNR)
-    min_hits = 25;
+  min_hits = (token_type == DTT_BNR) ? 25 : 5;
 
   ti = CTX->totals.innocent_learned + CTX->totals.innocent_classified;
   ts = CTX->totals.spam_learned + CTX->totals.spam_classified;
@@ -1662,10 +1688,8 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
     }
   }
 
-  if (min_hits < 5)
-    min_hits = 5;
-  if (token_type == DTT_BNR && min_hits < 25)
-    min_hits = 25;
+  if (min_hits < (token_type == DTT_BNR) ? 25 : 5)
+    min_hits = (token_type == DTT_BNR) ? 25 : 5;
 
   if (CTX->training_mode == DST_TUM) {
     if (min_hits>20)
