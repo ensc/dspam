@@ -1,14 +1,20 @@
-$Id: CHANGELOG,v 1.150 2005/01/19 18:14:11 jonz Exp $
+$Id: CHANGELOG,v 1.151 2005/01/19 18:20:35 jonz Exp $
 
 Version NEXT
 ------------
 
-[20040119.0230] jonz: fixed bug in statisticalSedation preference
+[20050119.0245] jonz: applied patch adding aggregation to dspam_admin
+
+applied a patch by Philip Champon <flah@hell.com> adding a preference
+aggregation function to dspam_admin, which combined system preferences with
+user preferences before outputting.
+ 
+[20050119.0230] jonz: fixed bug in statisticalSedation preference
 
 statisticalSedation preference has been ignored for 2 versions. this bug
 has been fixed.
 
-[20040118.0730] jonz: removed requirement for dspam_home in dspam_create()
+[20050118.0730] jonz: removed requirement for dspam_home in dspam_create()
 
 some storage drivers don't require dspam_home
 

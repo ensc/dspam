@@ -1,4 +1,4 @@
-/* $Id: dspam_admin.c,v 1.5 2005/01/18 15:06:08 jonz Exp $ */
+/* $Id: dspam_admin.c,v 1.6 2005/01/19 18:20:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -57,6 +57,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 int set_preference_attribute(const char *, const char *, const char *);
 int del_preference_attribute(const char *, const char *);
 int list_preference_attributes(const char *);
+int list_aggregate_preference_attributes(const char *);
 
 void dieout (int signal);
 void usage (void);
@@ -131,7 +132,7 @@ main (int argc, char **argv)
     }
 
     /* Add, Change */
-    if (!strncmp(argv[1], "ch", 2) || !strncmp(argv[1], "a", 1)) {
+    if (!strncmp(argv[1], "ch", 2) || !strncmp(argv[1], "ad", 2)) {
       min_args(argc, 5);
       valid = 1; 
       set_preference_attribute(argv[3], argv[4], argv[5]); 
@@ -142,6 +143,13 @@ main (int argc, char **argv)
       min_args(argc, 3);
       valid = 1;
       list_preference_attributes(argv[3]);
+    }
+
+    /* Aggregate - Preference attr + AllowOverride attr + user prefs */
+    if (!strncmp(argv[1], "ag", 2)) {
+      min_args(argc, 3);
+      valid = 1;
+      list_aggregate_preference_attributes(argv[3]);
     }
   }
 
@@ -170,6 +178,7 @@ usage (void)
   fprintf(stderr, "\tchange preference [user] [attrib] [value]\n");
   fprintf(stderr, "\tdelete preference [user] [attrib] [value]\n");
   fprintf(stderr, "\tlist preference [user] [attrib] [value]\n");
+  fprintf(stderr, "\taggregate preference [user]\n");
   _ds_destroy_attributes(agent_config);
   exit(EXIT_FAILURE);
 }
@@ -243,5 +252,39 @@ int list_preference_attributes(const char *username)
   }
 
   _ds_pref_free(PTX);
+  return 0;
+}
+
+int list_aggregate_preference_attributes(const char *username)
+{
+  agent_pref_t PTX = NULL;
+  agent_pref_t STX = NULL;
+  agent_pref_t UTX = NULL;
+  agent_attrib_t pref;
+  int i;
+  
+  STX = pref_config();
+
+  if (username[0] == 0 || !strncmp(username, "default", strlen(username)))
+    UTX = _ds_pref_load(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), NULL);
+  else
+    UTX = _ds_pref_load(agent_config, username,  _ds_read_attribute(agent_config, "Home"), NULL);
+
+  if (UTX == NULL) 
+    return 0;
+
+  PTX = _ds_pref_aggregate(STX, UTX);
+  _ds_pref_free(STX);
+  free(STX);
+  _ds_pref_free(UTX);
+  free(UTX);
+
+  for(i=0;PTX[i];i++) {
+    pref = PTX[i];
+    printf("%s=%s\n", pref->attribute, pref->value);
+  }
+
+  _ds_pref_free(PTX);
+  free(PTX);
   return 0;
 }
