@@ -1,4 +1,4 @@
-$Id: README,v 1.26 2005/01/03 23:03:35 jonz Exp $
+$Id: README,v 1.27 2005/01/15 04:03:09 jonz Exp $
 
 DSPAM v3.3 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1189,7 +1189,8 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
           accuracy consistent, but also allows for dynamic adaptation to any
           new types of email behavior a user might be experiencing. It is a
           balance of resources as well, as only less-than-mature tokens are
-          written to the database.
+          written to the database. NOTE: You should corpus train before
+          using tum.
 
  notrain: No training.  Do not train the user's data, and do not keep totals.
           This should only be used in cases where you want to process mail for
