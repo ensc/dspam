@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.23 2004/12/24 17:24:25 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.24 2004/12/26 00:37:01 jonz Exp $ */
 
 /*
  DSPAM
@@ -36,6 +36,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <fcntl.h>
 #include <signal.h>
 #include <mysql.h>
+#ifdef DAEMON
+#include <pthread.h>
+#endif
 
 #ifdef TIME_WITH_SYS_TIME
 #   include <sys/time.h>
