@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.43 2004/12/16 20:17:39 jonz Exp $ */
+/* $Id: libdspam.c,v 1.44 2004/12/17 02:17:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -64,6 +64,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "decode.h"
 #include "language.h"
 #ifdef NCORE
+#include <ncore/ncore.h>
+#include <ncore/types.h>
 #include "ncore_adp.h"
 #endif
 
@@ -78,6 +80,7 @@ char debug_text[1024];
 
 #ifdef NCORE
 nc_dev_t _ncdevice;
+nc_pattern_db_t *_ncdelimiters;
 #endif
 
 /*
@@ -1026,6 +1029,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     joined_token[0] = 0;
     alloc_joined = 0;
 #ifdef NCORE
+    NTX.patternDbPtr = _ncdelimiters;
+
     token = strtok_n (body, DELIMITERS_NCORE, &NTX);
 #else
     token = strtok_r (body, DELIMITERS, &ptrptr);
@@ -2927,10 +2932,7 @@ void _ds_factor_destroy(struct nt *factors) {
 int libdspam_init(void) {
 
 #ifdef NCORE
-  if (ncInit(0, &_ncdevice)) {
-    LOG(LOG_CRIT, "unable to initialize NodalCore(tm) hardware");
-    return EFAILURE;
-  }
+  _ncsetup();
 #endif
 
   return 0;
@@ -2939,10 +2941,7 @@ int libdspam_init(void) {
 int libdspam_shutdown(void) {
 
 #ifdef NCORE
-  if (ncTerminate(_ncdevice)) {
-    LOG(LOG_CRIT, "unable to shutdown NodalCore(tm) hardware");
-    return EFAILURE;
-  }
+  _nccleanup();
 #endif
 
   return 0;

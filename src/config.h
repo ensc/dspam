@@ -42,7 +42,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /* Acceptable Word Delimiters */
 #define DELIMITERS              " .,;:\"/\\[]}{=+_()<>|&\n\t\r@-*~`?"
-#define DELIMITERS_NCORE        " .,;:\"/\\\\[\\]}{=+_()<>|&\n\t\r@-*~`?"
+#define DELIMITERS_NCORE        "[ .,;:\"/\\\\[\\]}{=+_()<>|&\n\t\r@-*~`?]"
 #define DELIMITERS_HEADING      " ,;:\"/\\[]}{=+()<>|&\n\t\r@*~`?"
 #define DELIMITERS_EOT		"!"
 
