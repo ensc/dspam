@@ -1,4 +1,4 @@
-$Id: UPGRADING,v 1.9 2005/01/22 14:14:29 jonz Exp $
+$Id: UPGRADING,v 1.10 2005/01/23 18:57:55 jonz Exp $
 
 UPGRADING TO 3.4 BETA 2
 
@@ -71,9 +71,11 @@ some live user's corpora in the coming months.
 
 The end results showed a significant improvement between all versions. Version
 3.4 completed with 99.53% accuracy (13 spam misses and 0 false positives).
-Version 3.2 completed with 99.25% accuracy (20 spam misses and 1 false positive).
-Finally, version 3.0 scored the lowest (as expected) with 99.07% accuracy
-(25 spam misses and 1 false positive).
+Version 3.2 completed with 99.25% accuracy (20 spam misses and 1 false 
+positive).  Finally, version 3.0 scored the lowest (as expected) with 99.07% 
+accuracy (25 spam misses and 1 false positive). Bear in mind that these numbers
+aren't as high as real-world results, primarily due to the corpus being used
+(SpamAssassin) and the lack of true simulation in testing.
 
 This test framework is available upon request. Please email me at
 jonathan@nuclearelephant.com if you're interested in testing.
