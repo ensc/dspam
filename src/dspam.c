@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.70 2005/01/23 01:44:56 jonz Exp $ */
+/* $Id: dspam.c,v 1.71 2005/01/23 02:17:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -2886,8 +2886,8 @@ int tracksource(DSPAM_CTX *CTX) {
 
 int is_blacklisted(const char *ip) {
   struct attribute *attrib;
-  struct in_addr ip32;
-  struct hostent *h;
+  struct addrinfo *res;
+  struct sockaddr_in saddr;
   char host[32];
   char lookup[256];
   char *ptr;
@@ -2909,13 +2909,18 @@ int is_blacklisted(const char *ip) {
 
   attrib = _ds_find_attribute(agent_config, "Lookup");
   while(attrib != NULL) {
+    int error;
     snprintf(lookup, sizeof(lookup), "%s%s", host, attrib->value);
-    h = gethostbyname(lookup);
-
-    if (h != NULL && h->h_addr_list[0]) {
-      memcpy(&ip32, h->h_addr_list[0], h->h_length);
-      if (!strcmp(inet_ntoa(ip32), "127.0.0.2"))
-        bad = 1;
+    error = getaddrinfo(lookup, NULL, NULL, &res);
+    if (!error) {
+      char buff[128];
+      if (!bad) {
+        memcpy(&saddr, res->ai_addr, sizeof(struct sockaddr));
+        inet_ntoa_r(saddr.sin_addr, buff, sizeof(buff));
+        if (!strcmp(buff, "127.0.0.2"))
+          bad = 1;
+      }
+      freeaddrinfo(res);
     }
 
     attrib = attrib->next;
