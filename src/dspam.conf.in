@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.17 2005/01/06 23:11:59 jonz Exp $
+## $Id: dspam.conf.in,v 1.18 2005/01/11 18:11:14 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -141,8 +141,8 @@ PValue graham
 #
 # Preferences: Specify any preferences to set by default, unless otherwise
 # overridden by the user (see next section) or a default.prefs file.
-# If user or default.prefs are found, none of these preferences are
-# loaded.
+# If user or default.prefs are found, the user's preferences will override any
+# defaults.
 #
 Preference "spamAction=quarantine"
 Preference "signatureLocation=message"	# 'message' or 'headers'
