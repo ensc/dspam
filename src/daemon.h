@@ -1,8 +1,9 @@
-/* $Id: daemon.h,v 1.18 2005/03/02 20:07:01 jonz Exp $ */
+/* $Id: daemon.h,v 1.19 2005/03/02 21:23:50 jonz Exp $ */
 
 /*
+
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 NETWORK DWEEBS CORPORATION
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -58,15 +59,15 @@ typedef struct {
 } THREAD_CTX;
 
 int	daemon_listen(DRIVER_CTX *DTX);
-int	process_users_daemon(THREAD_CTX *TTX, AGENT_CTX *ATX, buffer *message);
-int	daemon_reply(THREAD_CTX *TTX, int reply, const char *ecode, const char *txt);
-int	daemon_extension(THREAD_CTX *TTX, const char *txt);
+int	daemon_reply(THREAD_CTX *TTX, int reply, const char *ecode, 
+                     const char *txt);
+int	daemon_extension(THREAD_CTX *TTX, const char *extension);
 void *	process_connection(void *ptr);
 char *	daemon_expect(THREAD_CTX *TTX, const char *ptr);
 char *	daemon_getline(THREAD_CTX *TTX, int timeout);
 void	process_signal(int signal);
-void	inc_lock(void);
-void	dec_lock(void);
+void	increment_thread_count(void);
+void	decrement_thread_count(void);
 buffer *read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
 
 #define LMTP_GREETING		220
