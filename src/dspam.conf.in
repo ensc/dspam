@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.7 2004/12/01 17:29:11 jonz Exp $
+## $Id: dspam.conf.in,v 1.8 2004/12/02 16:54:05 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -340,10 +340,10 @@ Opt out
 #ServerPass.Relay2	"password"
 
 #
-# Client Mode: If you are running DSPAM in client mode using --client, the
-# following parameters will be used.
+# Client Mode: If you are running DSPAM in client/server mode, uncomment and
+# set these variables.
 #
-#ClientHost	1.2.3.4
+#ClientHost	127.0.0.1
 #ClientPort	24
 #ClientIdent	"secret@Relay1"
 
