@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.30 2005/03/02 22:07:18 jonz Exp $ */
+/* $Id: client.c,v 1.31 2005/03/05 02:00:36 jonz Exp $ */
 
 /*
 
@@ -102,6 +102,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     node_nt = c_nt_next(ATX->users, &c_nt);
   }
   strlcat(buff, ATX->client_args, sizeof(buff));
+
   if (send_socket(&TTX, buff)<=0) 
     goto BAIL;
 

@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.193 2005/03/04 19:17:27 jonz Exp $
+$Id: CHANGELOG,v 1.194 2005/03/05 02:00:36 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050304.2100] jonz: fixed user duplicate bug in ParseToHeaders+Daemon combo
+
+fixed a bug causing a user to be processed twice when using ParseToHeaders and
+server daemon mode
 
 [20050302.0730] jonz: ClientHost to be used for client domain sockets
 

@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.18 2005/03/04 21:37:47 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.19 2005/03/05 02:00:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -691,6 +691,10 @@ buffer * read_stdin(AGENT_CTX *ATX) {
               char *ptrptr;
               char *z = strtok_r(y, "@", &ptrptr);
               LOGDEBUG("found username %s in To: header", z);
+              nt_destroy(ATX->users);
+              ATX->users = nt_create(NT_CHAR);
+              if (ATX->users == NULL) 
+                return NULL;
               nt_add (ATX->users, z);
               free(y);
             }

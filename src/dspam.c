@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.85 2005/03/04 19:12:35 jonz Exp $ */
+/* $Id: dspam.c,v 1.86 2005/03/05 02:00:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -2458,7 +2458,6 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   }
 
   if (_ds_match_attribute(agent_config, "SystemLog", "on")) {
-
     snprintf(filename, sizeof(filename), "%s/system.log", _ds_read_attribute(agent_config, "Home"));
    
     file = fopen(filename, "a");

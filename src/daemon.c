@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.54 2005/03/02 22:07:18 jonz Exp $ */
+/* $Id: daemon.c,v 1.55 2005/03/05 02:00:36 jonz Exp $ */
 
 /*
 
@@ -755,6 +755,10 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
           if (y) {
             char *ptrptr;
             char *z = strtok_r(y, "@", &ptrptr);
+            nt_destroy(ATX->users);
+            ATX->users = nt_create(NT_CHAR);
+            if (!ATX->users) 
+              return NULL;
             nt_add (ATX->users, z);
             free(y);
           }
@@ -921,6 +925,7 @@ char *daemon_getline(THREAD_CTX *TTX, int timeout) {
 #ifdef VERBOSE
   LOGDEBUG("SRECV: %s", pop);
 #endif
+
   return pop;
 }
 
