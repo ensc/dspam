@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.103 2005/03/16 19:49:24 jonz Exp $ */
+/* $Id: dspam.c,v 1.104 2005/03/16 22:47:41 jonz Exp $ */
 
 /*
  DSPAM
@@ -1496,7 +1496,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
         /* Processing Error */
 
         if (result != DSR_ISINNOCENT && result != DSR_ISWHITELISTED &&
-            ATX->classification != DSR_NONE)
+            ATX->classification != DSR_NONE && ATX->classification != -1)
         {
           deliver = 0;
           LOG (LOG_WARNING,
