@@ -1,4 +1,4 @@
-/* $Id: ora_drv.c,v 1.6 2004/12/03 00:36:48 jonz Exp $ */
+/* $Id: ora_drv.c,v 1.7 2005/01/03 17:12:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -55,7 +55,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "error.h"
 #include "language.h"
 #include "util.h"
-#include "lht.h"
 #include "config_shared.h"
 
 int
@@ -1735,13 +1734,13 @@ bail:
 }
 
 int
-_ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
+_ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
   struct _ora_drv_storage *s = (struct _ora_drv_storage *) CTX->storage;
   struct passwd *p;
   buffer *query;
-  struct lht_node *node_lht;
-  struct lht_c c_lht;
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
   char scratch[1024], token_c[32] = { 0 };
   struct _ds_spam_stat stat;
   OCIStmt *stmthp;
@@ -1778,19 +1777,21 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
             "SELECT TOKEN, SPAM_HITS, INNOCENT_HITS FROM %s.DSPAM_TOKEN_DATA WHERE "
             "  USER_ID = %d AND TOKEN IN(", s->schema, p->pw_uid);
   buffer_cat (query, scratch);
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c); 
+  while(ds_term)
   {
-    snprintf (scratch, sizeof (scratch), "%llu", node_lht->key);
+    snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
     buffer_cat (query, scratch);
-    node_lht->s.innocent_hits = 0;
-    node_lht->s.spam_hits = 0;
-    node_lht->s.probability = 0;
-    node_lht->s.status &= ~TST_DISK;
-    node_lht = c_lht_next (freq, &c_lht);
-    if (node_lht != NULL)
+    ds_term->s.innocent_hits = 0;
+    ds_term->s.spam_hits = 0;
+    ds_term->s.probability = 0;
+    ds_term->s.status &= ~TST_DISK;
+    ds_term = ds_diction_next(ds_c);
+    if (ds_term)
       buffer_cat (query, ",");
   }
+  ds_diction_close(ds_c);
   buffer_cat (query, ")");
 #ifdef VERBOSE
   LOGDEBUG ("oracle query length: %ld\n", query->used);
@@ -1865,7 +1866,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
         s->control_sh = stat.spam_hits;
         s->control_ih = stat.innocent_hits;
       }
-      lht_setspamstat (freq, token, &stat);
+      ds_diction_setstat(diction, token, &stat);
     }
   }
 
@@ -1888,12 +1889,12 @@ bail:
 }
 
 int
-_ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
+_ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
   struct _ora_drv_storage *s = (struct _ora_drv_storage *) CTX->storage;
   struct _ds_spam_stat stat;
-  struct lht_node *node_lht;
-  struct lht_c c_lht;
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
   buffer *query;
   char scratch[1024];
   struct passwd *p;
@@ -1908,7 +1909,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
   if (CTX->operating_mode == DSM_CLASSIFY &&
         (CTX->training_mode != DST_TOE ||
-          (freq->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
+          (diction->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
     return 0;
 
   p = _ora_drv_getpwnam (CTX, CTX->username);
@@ -1928,21 +1929,23 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
   if (s->control_token == 0)
   {
-    node_lht = c_lht_first (freq, &c_lht);
-    if (node_lht == NULL)
+    ds_c = ds_diction_cursor(diction);
+    ds_term = ds_diction_next(ds_c);
+    if (!ds_term)
     {
       stat.spam_hits = 0;
       stat.innocent_hits = 0;
     }
     else
     {
-      stat.spam_hits = node_lht->s.spam_hits;
-      stat.innocent_hits = node_lht->s.innocent_hits;
+      stat.spam_hits = ds_term->s.spam_hits;
+      stat.innocent_hits = ds_term->s.innocent_hits;
     }
+    ds_diction_close(ds_c);
   }
   else
   {
-    lht_getspamstat (freq, s->control_token, &stat);
+    ds_diction_setstat(diction, s->control_token, &stat);
   }
   snprintf (scratch, sizeof (scratch),
             "UPDATE %s.DSPAM_TOKEN_DATA SET LAST_HIT = SYSDATE, "
@@ -1957,26 +1960,27 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
   buffer_cat (query, scratch);
 
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while(ds_term)
   {
     int wrote_this = 0;
     if (CTX->training_mode == DST_TOE           &&
         CTX->classification == DSR_NONE         &&
 	CTX->operating_mode == DSM_CLASSIFY	&&
-        freq->whitelist_token != node_lht->key  &&
-        (!node_lht->token_name || strncmp(node_lht->token_name, "bnr.", 4)))
+        diction->whitelist_token != ds_term->key  &&
+        (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
     {
-      node_lht = c_lht_next(freq, &c_lht);
+      ds_term = ds_diction_next(ds_c);
       continue;
     }
 
-    if (!(node_lht->s.status & TST_DIRTY)) {
-      node_lht = c_lht_next(freq, &c_lht);
+    if (!(ds_term->s.status & TST_DIRTY)) {
+      ds_term = ds_diction_next(ds_c);
       continue;
     }
 
-    lht_getspamstat (freq, node_lht->key, &stat);
+    ds_diction_getstat(diction, ds_term->key, &stat);
 
     if (!(stat.status & TST_DISK))
     {
@@ -1985,7 +1989,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
       snprintf (insert, sizeof (insert),
                 "INSERT INTO %s.DSPAM_TOKEN_DATA(USER_ID, TOKEN, SPAM_HITS, "
                 "INNOCENT_HITS, LAST_HIT) VALUES(%d, %llu, %ld, %ld, SYSDATE)",
-                s->schema, p->pw_uid, node_lht->key,
+                s->schema, p->pw_uid, ds_term->key,
                 stat.spam_hits, stat.innocent_hits);
 
       if (_ora_drv_checkerr
@@ -2012,16 +2016,17 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
     if ((stat.status & TST_DISK))
     {
-      snprintf (scratch, sizeof (scratch), "%llu", node_lht->key);
+      snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
       buffer_cat (query, scratch);
       update_one = 1;
       wrote_this = 1;
-      node_lht->s.status |= TST_DISK;
+      ds_term->s.status |= TST_DISK;
     }
-    node_lht = c_lht_next (freq, &c_lht);
-    if (node_lht != NULL && wrote_this)
+    ds_term = ds_diction_next(ds_c);
+    if (ds_term && wrote_this)
       buffer_cat (query, ",");
   }
+  ds_diction_close(ds_c);
 
   if (query->used && query->data[strlen (query->data) - 1] == ',')
   {
@@ -2298,18 +2303,18 @@ bail:
 
 }
 
-int _ds_delall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
+int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
   struct _ora_drv_storage *s = (struct _ora_drv_storage *) CTX->storage;
-  struct lht_node *node_lht;
-  struct lht_c c_lht;
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
   buffer *query;
   char scratch[1024];
   char queryhead[1024];
   struct passwd *p;
   OCIStmt *stmthp;
 
-  if (freq == NULL || freq->items == 0)
+  if (diction == NULL || diction->items == 0)
     return 0;
 
   if (CTX->storage == NULL)
@@ -2340,15 +2345,17 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
   buffer_cat (query, queryhead);
 
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while (ds_term)
   {
-      snprintf (scratch, sizeof (scratch), "%llu", node_lht->key);
+      snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
       buffer_cat (query, scratch);
-      node_lht = c_lht_next (freq, &c_lht);
-      if (node_lht != NULL) 
+      ds_term = ds_diction_next(ds_c);
+      if (ds_term)
         buffer_cat (query, ",");
   }
+  ds_diction_close(ds_c);
   buffer_cat (query, ")");
 
     if (_ora_drv_checkerr (NULL, s->errhp, OCIHandleAlloc ((dvoid *) s->envhp,

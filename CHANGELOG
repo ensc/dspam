@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.117 2005/01/03 13:31:10 jonz Exp $
+$Id: CHANGELOG,v 1.118 2005/01/03 17:12:02 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
@@ -15,8 +15,6 @@ fixed some additional bytes of unfreed memory on daemon exit
 rewrote the lht code (long-hash-token) into a more specialized 'diction'
 structure, which has terms. a diction represents a subset of lexical data
 within the user's dataset (namely, the data representing a message).
-
-TODO: oracle
 
 [20040102.1645] jonz: bayesian noise reduction training tweaks
 
