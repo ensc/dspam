@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.69 2005/01/19 17:35:52 jonz Exp $ */
+/* $Id: dspam.c,v 1.70 2005/01/23 01:44:56 jonz Exp $ */
 
 /*
  DSPAM
@@ -2917,8 +2917,6 @@ int is_blacklisted(const char *ip) {
       if (!strcmp(inet_ntoa(ip32), "127.0.0.2"))
         bad = 1;
     }
-
-    free(h);
 
     attrib = attrib->next;
   }
