@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.8 2004/11/30 23:52:35 jonz Exp $ */
+/* $Id: daemon.c,v 1.9 2004/12/01 00:06:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -213,7 +213,7 @@ void *process_connection(void *ptr) {
       t = strtok_r(input, " ", &ptrptr);
       if (t) 
         pass = strtok_r(NULL, " ", &ptrptr);
-      if (t == NULL || strcasecmp(t, "LHLO") || !pass || strcmp(pass, serverpass)) {
+      if (t == NULL || strcasecmp(t, "LHLO") || (serverpass && (!pass || strcmp(pass, serverpass)))) {
         snprintf(buf, sizeof(buf), "%d Authentication Required", LMTP_AUTH_ERROR);
         if (socket_send(TTX, buf)<=0)
           goto CLOSE;
