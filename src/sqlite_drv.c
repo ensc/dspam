@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.3 2004/10/29 13:31:21 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.4 2004/11/03 13:48:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -882,11 +882,11 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   snprintf (scratch, sizeof (scratch),
             "insert into dspam_signature_data(signature, created_on, data) "
-            "values(\"%s\", date('now'), \"",
+            "values(\"%s\", date('now'), '",
             signature);
   buffer_cat (query, scratch);
   buffer_cat (query, mem);
-  buffer_cat (query, "\")");
+  buffer_cat (query, "')");
 
   if ((sqlite_exec(s->dbh, query->data, NULL, NULL, &err))!=SQLITE_OK)
   {

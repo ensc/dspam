@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.12 2004/11/01 14:42:14 jonz Exp $
+$Id: CHANGELOG,v 1.13 2004/11/03 13:48:33 jonz Exp $
 
 Version NEXT
 ------------
@@ -33,6 +33,13 @@ longer necessary. this helps tum outperform teft in resources.
 [20041020.1400] jonz: normalized main()
 
 normalized main() by breaking up code into smaller subroutines
+
+Version 3.2.2
+-------------
+
+[20041103.0745] jonz: fixed signature encoding bug in sqlite_drv
+
+fixed a bug causing signature inserts to fail in sqlite.
 
 Version 3.2.1
 -------------
