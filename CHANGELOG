@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.83 2004/12/21 13:42:20 jonz Exp $
+$Id: CHANGELOG,v 1.84 2004/12/22 03:36:40 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041221.2230] jonz: rewrote signature embedding code
+
+rewrote signature embedding code
+- fixed malformatting bug with signed messages
+- made body and html tag searches case insensitive
 
 [20041221.0600] jonz: added streamlined blackhole list "learn as spam" support
 

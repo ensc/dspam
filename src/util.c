@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.2 2004/11/21 20:55:30 jonz Exp $ */
+/* $Id: util.c,v 1.3 2004/12/22 03:36:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -614,4 +614,25 @@ float _ds_round(float n) {
   while(r % 5)
     r++;
   return (r/100.0);
+}
+
+char *
+strcasestr(s, find)
+	const char *s, *find;
+{
+	char c, sc;
+	size_t len;
+
+	if ((c = *find++) != 0) {
+		c = tolower((unsigned char)c);
+		len = strlen(find);
+		do {
+			do {
+				if ((sc = *s++) == 0)
+					return (NULL);
+			} while ((char)tolower((unsigned char)sc) != c);
+		} while (strncasecmp(s, find, len) != 0);
+		s--;
+	}
+	return ((char *)s);
 }

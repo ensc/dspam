@@ -1,4 +1,4 @@
-/* $Id: nodetree.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: nodetree.c,v 1.2 2004/12/22 03:36:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -32,9 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "libdspam_objects.h"
 
 /* nt_node_create (used internally) to allocate space for a new node */
-static struct nt_node *
-nt_node_create (void *data)
-{
+struct nt_node * nt_node_create (void *data) {
   struct nt_node *node;
   if ((node = (struct nt_node *) malloc (sizeof (struct nt_node))) == 0)
   {

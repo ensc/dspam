@@ -1,4 +1,4 @@
-/* $Id: nodetree.h,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: nodetree.h,v 1.2 2004/12/22 03:36:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -82,6 +82,7 @@ struct nt_node *	c_nt_first	(struct nt *nt, struct nt_c *c);
 struct nt_node *	c_nt_next	(struct nt *nt, struct nt_c *c);
 struct nt *		nt_create	(int node_type);
 void			nt_destroy	(struct nt *nt);
+struct nt_node *	nt_node_create	(void *data);
 
 #endif /* _NODETREE_H */
 

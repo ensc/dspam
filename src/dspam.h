@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.13 2004/12/21 13:42:20 jonz Exp $ */
+/* $Id: dspam.h,v 1.14 2004/12/22 03:36:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -69,6 +69,7 @@ int **process_users     (AGENT_CTX *ATX, buffer *message);
 int find_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX);
 int add_xdspam_headers	(DSPAM_CTX *CTX, AGENT_CTX *ATX,  AGENT_PREF PTX);
 int embed_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX);
+int embed_signed	(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX);
 int tracksource		(DSPAM_CTX *CTX);
 int is_blacklisted	(const char *ip);
 buffer *read_stdin	(AGENT_CTX *ATX);

@@ -1,4 +1,4 @@
-$Id: RELEASE.NOTES,v 1.7 2004/12/20 03:39:44 jonz Exp $
+$Id: RELEASE.NOTES,v 1.8 2004/12/22 03:36:40 jonz Exp $
 
 RELEASE 3.3.0 (Development)
 
@@ -72,6 +72,7 @@ replication, or a centralized database to pull off.
 Bug Fixes:
 
 BUGFIX: Linestripping fails to remove multiple ^Ms on a single line
+BUGFIX: Signed messages are malformatted and appear blank in some MUAs
 
 CGI
 

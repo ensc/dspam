@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.47 2004/12/21 13:45:13 jonz Exp $ */
+/* $Id: dspam.c,v 1.48 2004/12/22 03:36:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -2570,6 +2570,9 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
   struct _ds_message_block *block;
   int i = 0;
 
+  if (CTX->training_mode == DST_NOTRAIN || ! ATX->signature[0])
+    return 0;
+
   /* Add our own X-DSPAM Headers */
   node_nt = c_nt_first (CTX->message->components, &c_nt);
 
@@ -2577,191 +2580,39 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
     return EFAILURE;
 
   block = node_nt->ptr;
+
+  /* Signed messages are handled differently */
+  if (block->media_subtype == MST_SIGNED)
+    return embed_signed(CTX, ATX, PTX);
+
   if (block->media_type == MT_MULTIPART && block->terminating_boundary != NULL)
   {
-    strlcpy(toplevel_boundary, block->terminating_boundary, 
+    strlcpy(toplevel_boundary, block->terminating_boundary,
             sizeof(toplevel_boundary));
   }
 
-  while (CTX->training_mode != DST_NOTRAIN && 
-         ATX->signature[0]                 &&
-         node_nt != NULL)
+  while (node_nt != NULL)
   {
     char *body_close = NULL, *dup = NULL;
 
     block = node_nt->ptr;
 
-    /* Append signature to subject of multipart/signed messages */
-    if (block != NULL && block->media_type == MT_MULTIPART && 
-        block->media_subtype == MST_SIGNED && !i && block->boundary != NULL)
-    {
-      size_t lenBoundary = strlen (block->boundary);
-      char *boundary = malloc(lenBoundary + 1);
-      char *term = malloc(lenBoundary + 3);
-      struct nt_node *node_nt, *prev_node = NULL;
-      struct nt_c c_nt;
-      int i = 0;
-    
-      /* 
-       * Message is already in an acceptable multipart format;
-       * insert signature block
-       */
-    
-      strlcpy (boundary, block->boundary, lenBoundary + 1);
-      snprintf (term, lenBoundary + 3, "%s--", boundary);
+    /* Append signature to blocks when... */
 
-      /* Strip the terminating boundary from the last block */
-      node_nt = c_nt_first (CTX->message->components, &c_nt);
-      while (node_nt != NULL)
-      {
-
-        block = (struct _ds_message_block *) node_nt->ptr;
-        if (block->terminating_boundary != NULL
-            && !strcmp (block->terminating_boundary, term) && term[0] != 0)
-        {
-          struct nt_node *old;
-          free (block->terminating_boundary);
-          block->terminating_boundary = strdup (boundary);
-          term[0] = 0;
-
-          old = node_nt->next;
-          _ds_destroy_block ((struct _ds_message_block *) old->ptr);
-          node_nt->next = old->next;
-          free (old);
-          CTX->message->components->insert = NULL;
-          CTX->message->components->items--;
-          break;
-        }
-        i++;
-        prev_node = node_nt;
-        node_nt = c_nt_next (CTX->message->components, &c_nt);
-      }
-
-      node_nt = c_nt_first (CTX->message->components, &c_nt);
-      block = (struct _ds_message_block *) node_nt->ptr;
-
-      if (boundary[0] != 0)
-      {
-        struct _ds_message_block *newblock;
-        struct _ds_header_field *field;
-        char scratch[128], typedata[128];
-
-        snprintf (scratch, sizeof (scratch),
-                  "%s%s%s\n", SIGNATURE_BEGIN, ATX->signature, SIGNATURE_END);
-
-        /* Create new message block */
-        newblock =
-          (struct _ds_message_block *)
-          malloc (sizeof (struct _ds_message_block));
-        if (newblock == NULL)
-        {
-          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-          return EUNKNOWN;
-        }
-
-        newblock->headers = nt_create (NT_PTR);
-        if (newblock->headers == NULL)
-        {
-          free (newblock);
-          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-          return EUNKNOWN;
-        }
-
-        /* Create new block information */
-        snprintf (term, lenBoundary + 3, "%s--\n\n", boundary);
-        newblock->boundary = NULL;
-        newblock->terminating_boundary = strdup (term);
-        newblock->encoding = EN_7BIT;
-        newblock->original_encoding = EN_7BIT;
-        newblock->media_type = MT_TEXT;
-        newblock->media_subtype = MST_PLAIN;
-        newblock->body = buffer_create (scratch);
-        newblock->original_signed_body = NULL;
-
-        snprintf(typedata, sizeof(typedata),
-            "Content-Type: text/plain; name=\"dspam.txt\"");
-        field = _ds_create_header_field(typedata);
-        if (field == NULL)
-        {
-          _ds_destroy_block (newblock);
-          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-          return EUNKNOWN;
-        }
-        nt_add (newblock->headers, field);
-
-        snprintf(typedata, sizeof(typedata),
-            "Content-Disposition: attachment");
-        field = _ds_create_header_field(typedata);
-        if (field == NULL)
-        {
-          _ds_destroy_block (newblock);
-          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-          return EUNKNOWN;
-        }
-        nt_add (newblock->headers, field);
-
-
-        snprintf(typedata, sizeof(typedata), 
-            "Content-Transfer-Encoding: 7bit"); 
-        field = _ds_create_header_field(typedata);
-        if (field == NULL)
-        {
-          _ds_destroy_block (newblock);
-          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-          return EUNKNOWN;
-        }
-        nt_add (newblock->headers, field);
-
-        /* Add the new block */
-
-        nt_add (CTX->message->components, (void *) newblock);
-
-        /* New empty block with c/r */
-
-        newblock =
-          (struct _ds_message_block *)
-          malloc (sizeof (struct _ds_message_block));
-        if (newblock == NULL)
-        {
-          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-          return EUNKNOWN;
-        }
-
-        newblock->headers = nt_create (NT_PTR);
-        if (newblock->headers == NULL)
-        {
-          free (newblock);
-          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-          return EUNKNOWN;
-        }
-
-        /* Create new block information */
-        newblock->boundary = NULL;
-        newblock->terminating_boundary = NULL;
-        newblock->encoding = EN_7BIT;
-        newblock->original_encoding = EN_7BIT;
-        newblock->media_type = MT_TEXT;
-        newblock->media_subtype = MST_PLAIN;
-        newblock->body = buffer_create ("\n");
-        newblock->original_signed_body = NULL;
-        nt_add (CTX->message->components, (void *) newblock);
-
-      }
-
-      free(term);
-      free(boundary);
-
-      break;
-    }
-    
     if (block != NULL
+
+        /* Either a text section, or this is a non-multipart message AND...*/
         && (block->media_type == MT_TEXT
             || (block->boundary == NULL && i == 0
-                && block->media_type != MT_MULTIPART)) &&
-        (toplevel_boundary[0] == 0 ||
-          (block->terminating_boundary && !strncmp(block->terminating_boundary, toplevel_boundary, strlen(toplevel_boundary)))))
+                && block->media_type != MT_MULTIPART))
+
+        /* The part is one of the top-level parts */ 
+        && (toplevel_boundary[0] == 0 ||
+           (block->terminating_boundary && 
+            !strncmp(block->terminating_boundary, toplevel_boundary,
+             strlen(toplevel_boundary)))))
     {
-      int unclosed_html = 0, is_attachment = 0;
+      int is_attachment = 0;
       struct _ds_header_field *field;
       struct nt_node *node_hnt;
       struct nt_c c_hnt;
@@ -2784,42 +2635,27 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
         continue;
       }
 
-      if (block->body != NULL && block->body->data != NULL
-          && block->media_subtype == MST_HTML)
-        body_close = strstr (block->body->data, "</body");
-      if (body_close == NULL && block->body != NULL
-          && block->body->data != NULL && block->media_subtype == MST_HTML)
-        body_close = strstr (block->body->data, "</BODY");
-      if (body_close == NULL && block->body != NULL
-          && block->body->data != NULL && block->media_subtype == MST_HTML)
-        body_close = strstr (block->body->data, "</Body");
-      if (body_close == NULL && block->body != NULL
-          && block->body->data != NULL && block->media_subtype == MST_HTML)
-        body_close = strstr (block->body->data, "</HTML");
-      if (body_close == NULL && block->body != NULL
-          && block->body->data != NULL && block->media_subtype == MST_HTML)
-        body_close = strstr (block->body->data, "</html");
-      if (body_close == NULL && block->body != NULL
-          && block->body->data != NULL && block->media_subtype == MST_HTML)
-        body_close = strstr (block->body->data, "</Html");
-    
-      if (body_close != NULL)
+      /* Some email clients reformat HTML parts, and require that we include
+         the signature before the HTML close tags (because they're stupid) */
+
+      if (body_close		== NULL &&
+          block->body		!= NULL &&
+          block->body->data	!= NULL &&
+          block->media_subtype	== MST_HTML)
+
+      {
+        body_close = strcasestr(block->body->data, "</body");
+        if (!body_close)
+          body_close = strcasestr(block->body->data, "</html");
+      }
+
+      /* Save and truncate everything after and including the close tag */
+      if (body_close)
       {
         dup = strdup (body_close);
         block->body->used -= (long) strlen (dup);
         body_close[0] = 0;
       }
-
-      if (block->body->data != NULL
-          &&
-          ((strstr (block->body->data, "</html")
-            || strstr (block->body->data, "</HTML"))
-           && (!strstr (block->body->data, "</html>")
-               && !strstr (block->body->data, "</HTML>"))))
-        unclosed_html = 1;
-
-      if (!dup && unclosed_html)
-        buffer_cat (block->body, ">");
 
       buffer_cat (block->body, "\n");
       buffer_cat (block->body, SIGNATURE_BEGIN);
@@ -2831,8 +2667,6 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
       {
         buffer_cat (block->body, dup);
         free (dup);
-        if (unclosed_html)
-          buffer_cat (block->body, ">");
       }
     }
 
@@ -2840,6 +2674,168 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
     i++;
   }
   return 0;
+}
+
+/* embed_signed: reformat a signed message to include a signature */
+
+int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
+  struct nt_node *node_nt, *node_block, *parent;
+  struct nt_c c_nt;
+  struct _ds_message_block *block, *newblock;
+  struct _ds_header_field *field;
+  char scratch[256], data[256];
+
+  node_block = c_nt_first (CTX->message->components, &c_nt);
+  if (node_block == NULL || node_block->ptr == NULL)
+    return EFAILURE;
+
+  block = node_block->ptr;
+
+  /* Construct a new block to contain the signed message */
+
+  newblock = (struct _ds_message_block *) 
+    malloc(sizeof(struct _ds_message_block));
+  if (newblock == NULL)
+    goto MEM_ALLOC;
+
+  newblock->headers = nt_create(NT_PTR);
+  if (newblock->headers == NULL)
+    goto MEM_ALLOC;
+
+  newblock->boundary		= NULL;
+  newblock->terminating_boundary= block->terminating_boundary;
+  newblock->encoding		= block->encoding;
+  newblock->original_encoding	= block->original_encoding;
+  newblock->media_type		= block->media_type;
+  newblock->media_subtype	= block->media_subtype;
+  newblock->body		= buffer_create (NULL);
+  newblock->original_signed_body= NULL;
+
+  /* Move the relevant headers from the main part to the new block */
+
+  parent = NULL;
+  node_nt = c_nt_first(block->headers, &c_nt);
+  while(node_nt != NULL) {
+    field = node_nt->ptr;
+    if (field) {
+      if (!strcasecmp(field->heading, "Content-Type") ||
+          !strcasecmp(field->heading, "Content-Disposition"))
+      {
+        struct nt_node *old = node_nt;
+        node_nt = c_nt_next(block->headers, &c_nt);
+        if (parent) 
+          parent->next = node_nt;
+        else
+          block->headers->first = node_nt;
+        nt_add(newblock->headers, field);
+        free(old);
+        block->headers->items--;
+        continue;
+      }
+    }
+    parent = node_nt;
+    node_nt = c_nt_next(block->headers, &c_nt);
+  }
+
+  /* Create a new top-level boundary */
+  snprintf(scratch, sizeof(scratch), "DSPAM_MULTIPART_EX-%ld", (long)getpid()); 
+  block->terminating_boundary = strdup(scratch);
+
+  /* Create a new content-type field */
+  block->media_type    = MT_MULTIPART;
+  block->media_subtype = MST_MIXED;
+  snprintf(data, sizeof(data), "Content-Type: multipart/mixed; boundary=%s", scratch);
+  field = _ds_create_header_field(data);
+  if (field != NULL)
+    nt_add(block->headers, field);
+
+  /* Insert the new block right below the top headers and blank body */
+  node_nt = nt_node_create(newblock);
+  if (node_nt == NULL)
+    goto MEM_ALLOC;
+  node_nt->next = node_block->next;
+  node_block->next = node_nt;
+  CTX->message->components->items++; 
+
+  /* Strip the old terminating boundary */
+
+  parent = NULL;
+  node_nt = c_nt_first (CTX->message->components, &c_nt);
+  while (node_nt)
+  {
+    if (!node_nt->next && parent) {
+      parent->next = node_nt->next;
+      CTX->message->components->items--;
+      CTX->message->components->insert = NULL;
+      _ds_destroy_block(node_nt->ptr);    
+      free(node_nt);
+    } else {
+      parent = node_nt;
+    }
+    node_nt = node_nt->next;
+  }
+
+  /* Create a new message part containing only the boundary delimiter */
+
+  newblock = (struct _ds_message_block *)
+    malloc(sizeof(struct _ds_message_block));
+  if (newblock == NULL)
+    goto MEM_ALLOC;
+
+  newblock->headers = nt_create(NT_PTR);
+  if (newblock->headers == NULL)
+    goto MEM_ALLOC;
+
+  newblock->boundary            = NULL;
+  newblock->terminating_boundary= strdup(scratch);
+  newblock->encoding            = EN_7BIT;
+  newblock->original_encoding   = EN_7BIT;
+  newblock->media_type          = MT_TEXT;
+  newblock->media_subtype       = MST_PLAIN;
+  newblock->body                = buffer_create (NULL);
+  newblock->original_signed_body= NULL;
+  nt_add (CTX->message->components, newblock);
+
+  /* Create a new message part containing the signature */
+
+  newblock = (struct _ds_message_block *)
+    malloc(sizeof(struct _ds_message_block));
+  if (newblock == NULL)
+    goto MEM_ALLOC;
+
+  newblock->headers = nt_create(NT_PTR);
+  if (newblock->headers == NULL)
+    goto MEM_ALLOC;
+
+  snprintf(data, sizeof(data), "%s--\n\n", scratch);
+  newblock->boundary		= NULL;
+  newblock->terminating_boundary= strdup(data);
+  newblock->encoding		= EN_7BIT;
+  newblock->original_encoding	= EN_7BIT;
+  newblock->media_type		= MT_TEXT;
+  newblock->media_subtype	= MST_PLAIN;
+  snprintf (scratch, sizeof (scratch),
+    "%s%s%s\n", SIGNATURE_BEGIN, ATX->signature, SIGNATURE_END);
+  newblock->body		= buffer_create (scratch);
+  newblock->original_signed_body= NULL;
+
+  field = _ds_create_header_field ("Content-Type: text/plain");
+  nt_add (newblock->headers, field);
+  snprintf(data, sizeof(data), "X-DSPAM-Signature: %s", ATX->signature);
+  nt_add (newblock->headers, _ds_create_header_field(data));
+  nt_add (CTX->message->components, newblock);
+
+  return 0;
+
+MEM_ALLOC:
+  if (newblock) {
+    if (newblock->headers)
+      nt_destroy(newblock->headers);
+    free(newblock);
+  }
+
+  LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+  return EUNKNOWN;
 }
 
 /* tracksource: report spam/ham sources as requested, log to SBL */

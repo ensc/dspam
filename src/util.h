@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.2 2004/11/21 20:55:30 jonz Exp $ */
+/* $Id: util.h,v 1.3 2004/12/22 03:36:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -57,6 +57,7 @@ void	chomp	(char *string);
 char *	ltrim	(char *str);
 char *	rtrim	(char *str);
 int	lc	(char *buff, const char *string);
+char *  strcasestr (const char *, const char *);
 
 #define ALLTRIM(str)  ltrim(rtrim(str))
 
