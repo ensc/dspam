@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.58 2005/01/06 01:41:02 jonz Exp $ */
+/* $Id: dspam.c,v 1.59 2005/01/06 23:11:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -2824,10 +2824,13 @@ int tracksource(DSPAM_CTX *CTX) {
         FILE *file;
         char dropfile[MAX_FILENAME_LENGTH];
         LOG (LOG_INFO, "spam detected from %s", ip);
-        snprintf(dropfile, sizeof(dropfile), "/var/spool/sbl/%s", ip);
-        file = fopen(dropfile, "w");
-        if (file != NULL) 
-          fclose(file);
+        if (_ds_read_attribute(agent_config, "SBLQueue")) {
+          snprintf(dropfile, sizeof(dropfile), "%s/%s", 
+            _ds_read_attribute(agent_config, "SBLQueue"), ip);
+          file = fopen(dropfile, "w");
+          if (file != NULL) 
+            fclose(file);
+        }
       }
       if (CTX->result != DSR_ISSPAM &&
           _ds_match_attribute(agent_config, "TrackSources", "nonspam"))

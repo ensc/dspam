@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.16 2004/12/21 13:42:20 jonz Exp $
+## $Id: dspam.conf.in,v 1.17 2005/01/06 23:11:59 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -404,5 +404,12 @@ Opt out
 #ClientHost	127.0.0.1
 #ClientPort	24
 #ClientIdent	"secret@Relay1"
+
+#
+# SBLQueue: Touch files in the SBL queue
+# If you are a reporting streamlined blackhole list participant, you can
+# touch ip addresses within the directory the sbl_client process is watching.
+#
+#SBLQueue	/var/spool/sbl
 
 ## EOF
