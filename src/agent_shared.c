@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.10 2005/01/03 22:55:26 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.11 2005/01/19 19:26:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -165,7 +165,7 @@ int initialize_atx(AGENT_CTX *ATX) {
   /* Initialize Agent Context */
   memset(ATX, 0, sizeof(AGENT_CTX));
   ATX->training_mode   = -1;
-  ATX->training_buffer = 5;
+  ATX->training_buffer = 0;
   ATX->classification  = -1;
   ATX->source          = -1;
   ATX->operating_mode  = DSM_PROCESS;

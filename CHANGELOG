@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.151 2005/01/19 18:20:35 jonz Exp $
+$Id: CHANGELOG,v 1.152 2005/01/19 19:26:42 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050119.0300] jonz: set default training buffer to off
+
+sedation should not be instantiated unless specifically specified
 
 [20050119.0245] jonz: applied patch adding aggregation to dspam_admin
 
