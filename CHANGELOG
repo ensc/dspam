@@ -1,8 +1,13 @@
-$Id: CHANGELOG,v 1.228 2005/03/18 12:18:43 jonz Exp $
+$Id: CHANGELOG,v 1.229 2005/03/18 12:44:59 jonz Exp $
    
 Version NEXT
 ------------
   
+[20050318.0700] jonz: fixed bug sending empty parameter via client
+
+fixed a bug where sending an empty parameter via client (for example -a "") 
+would break the arg chain, as the empty argument would not be quoted
+
 [20050318.0700] jonz: fixed track sources on report spam bug
 
 fixed a bug causing tracksources to report a spam from the user who forwarded

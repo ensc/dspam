@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.32 2005/03/17 17:35:47 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.33 2005/03/18 12:44:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -234,7 +234,11 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     }
 
     if (clienthost && !user_flag && i && strcmp(argv[i], "--user")) {
+      if (argv[i][0] == 0)
+        strlcat(ATX->client_args, "\"", sizeof(ATX->client_args));
       strlcat (ATX->client_args, argv[i], sizeof(ATX->client_args));
+      if (argv[i][0] == 0)
+        strlcat(ATX->client_args, "\"", sizeof(ATX->client_args));
       strlcat (ATX->client_args, " ", sizeof(ATX->client_args));
     }
 

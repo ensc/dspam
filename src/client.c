@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.40 2005/03/15 22:52:00 jonz Exp $ */
+/* $Id: client.c,v 1.41 2005/03/18 12:44:59 jonz Exp $ */
 
 /*
 
@@ -97,7 +97,8 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   strcpy(buff, "RCPT TO: ");
   node_nt = c_nt_first(ATX->users, &c_nt);
   while(node_nt != NULL) {
-    strlcat(buff, (const char *) node_nt->ptr, sizeof(buff));
+    const char *ptr = (const char *) node_nt->ptr;
+    strlcat(buff, ptr, sizeof(buff));
     strlcat(buff, " ", sizeof(buff));
     node_nt = c_nt_next(ATX->users, &c_nt);
   }
