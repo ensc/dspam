@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.186 2005/03/01 19:06:27 jonz Exp $
+$Id: CHANGELOG,v 1.187 2005/03/01 19:16:50 jonz Exp $
 
-Version NEXT
-------------
+Version 3.4.rc2a
+----------------
 
 [20050301.0700] jonz: fix for segfault on malformatted MAIL FROM
 
