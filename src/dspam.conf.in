@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.26 2005/02/28 21:05:57 jonz Exp $
+## $Id: dspam.conf.in,v 1.27 2005/03/02 22:07:18 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -437,7 +437,11 @@ Opt out
 
 #
 # Client Mode: If you are running DSPAM in client/server mode, uncomment and
-# set these variables.
+# set these variables. A ClientHost beginning with a / will be treated as
+# a domain socket.
+#
+#ClientHost	/tmp/dspam.sock
+#ClientIdent	"secret@Relay1"
 #
 #ClientHost	127.0.0.1
 #ClientPort	24

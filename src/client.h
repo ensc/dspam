@@ -1,8 +1,9 @@
-/* $Id: client.h,v 1.5 2005/02/24 16:33:37 jonz Exp $ */
+/* $Id: client.h,v 1.6 2005/03/02 22:07:18 jonz Exp $ */
 
 /*
+
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 NETWORK DWEEBS CORPORATION
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -37,19 +38,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "dspam.h"
 #include "buffer.h"
 
-int client_process(AGENT_CTX *ATX, buffer *message);
-int client_connect(int flags);
-int client_authenticate(THREAD_CTX *TTX);
-int client_getcode(THREAD_CTX *TTX);
-char * client_expect(THREAD_CTX *TTX, int response_code);
-char * client_getline(THREAD_CTX *TTX, int timeout);
-int deliver_lmtp(AGENT_CTX *ATX, const char *message);
+int client_process      (AGENT_CTX *ATX, buffer *message);
+int client_connect      (int flags);
+int client_authenticate (THREAD_CTX *TTX);
+int client_getcode      (THREAD_CTX *TTX);
+char * client_expect    (THREAD_CTX *TTX, int response_code);
+char * client_getline   (THREAD_CTX *TTX, int timeout);
+int deliver_lmtp        (AGENT_CTX *ATX, const char *message);
 
 /* Shared between client and server */
-char *pop_buffer(THREAD_CTX *TTX);
-int send_socket(THREAD_CTX *TTX, const char *ptr);
+char *pop_buffer  (THREAD_CTX *TTX);
+int   send_socket (THREAD_CTX *TTX, const char *ptr);
 
-#define CCF_LMTPHOST	0x01	/* Delivering to external LMTP host */
+#define CCF_PROCESS	0x00	/* Establish connection to process host */
+#define CCF_DELIVERY	0x01	/* Establish connection to delivery host */
 
 #endif /* _CLIENT_H */
 

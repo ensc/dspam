@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.53 2005/03/02 21:29:31 jonz Exp $ */
+/* $Id: daemon.c,v 1.54 2005/03/02 22:07:18 jonz Exp $ */
 
 /*
 
@@ -254,6 +254,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
 }
 
 /*
+
  process_connection: server process thread
 
  This function instantiates for each thread at the beginning of a connection
@@ -279,6 +280,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
  If the ident matches a relay named in dspam.conf, DLMTP is assumed. For this
  reason, authenticated DLMTP relays should NOT be assigned an ident matching
  their hostname.
+
 */
 
 void *process_connection(void *ptr) {
@@ -690,6 +692,7 @@ CLOSE:
 }
 
 /*
+
  read_sock: read a message via socket
 
  This is a dupe of read_stdin, only geared around a server socket, with
@@ -797,10 +800,12 @@ bail:
 }
 
 /*
+
  daemon_expect: Wait for the right command to be issued by the client.
 
  Essentially, we keep throwing out errors until we get the command we want and
  then we return the commandline. This helps to enforce syntax.
+
 */
  
 char *daemon_expect(THREAD_CTX *TTX, const char *ptr) {
@@ -829,9 +834,11 @@ char *daemon_expect(THREAD_CTX *TTX, const char *ptr) {
 }
 
 /*
+
  daemon_reply: Send a response code, enhanced status code, and text response
 
  A very simple subroutine to send responses to the client.
+
 */
 
 int daemon_reply(THREAD_CTX *TTX, int reply, const char *ecode, const char *txt)
@@ -843,9 +850,11 @@ int daemon_reply(THREAD_CTX *TTX, int reply, const char *ecode, const char *txt)
 }
 
 /*
+
  daemon_extension: Advertise supported extensions
 
  Send a 250 with a dash instead of a space to advertise LMTP extensions
+
 */
  
 int daemon_extension(THREAD_CTX *TTX, const char *extension) {
@@ -870,11 +879,13 @@ void process_signal(int sig) {
 }
 
 /*
+
  daemon_getline: read a line of text from the socket buffer
 
  Waits for a full line of text to appear in the buffer and then reeturns
  the entire line. If no complete line is received within the timeout
  specified, return NULL.
+
 */
 
 char *daemon_getline(THREAD_CTX *TTX, int timeout) {
@@ -914,10 +925,12 @@ char *daemon_getline(THREAD_CTX *TTX, int timeout) {
 }
 
 /*
+
  increment/decrement _thread_count: keep track of running threads
 
  before we can reload or quit, we have to wait for all threads to exit. these
  functions are called whenever a thread spawns or ends, and bumps the counter.
+
 */
 
 void increment_thread_count(void) {

@@ -1,8 +1,9 @@
-/* $Id: client.c,v 1.29 2005/02/28 02:12:31 jonz Exp $ */
+/* $Id: client.c,v 1.30 2005/03/02 22:07:18 jonz Exp $ */
 
 /*
+
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 NETWORK DWEEBS CORPORATION
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -54,13 +55,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "language.h"
 #include "buffer.h"
 
+/*
+
+ client_process: process as a DLMTP client
+
+ This function is called by the DSPAM agent in lieu of standard processing
+ when --client is specified. It passes off all responsibility for processing 
+ to the configured server and returns the appropriate response. This should
+ be ultimately transparent to any tools outside of the agent process.
+
+*/
+
 int client_process(AGENT_CTX *ATX, buffer *message) {
   struct nt_node *node_nt;
   struct nt_c c_nt;
-  THREAD_CTX TTX;
+  THREAD_CTX TTX;	/* Needed for compatibility */
   char buff[1024];
-  int exitcode = 0;
-  int i, msglen;
+  int exitcode = 0, i, msglen;
 
   TTX.sockfd = client_connect(0);
   if (TTX.sockfd <0) {
@@ -71,6 +82,9 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   TTX.packet_buffer = buffer_create(NULL);
   if (TTX.packet_buffer == NULL) 
     goto BAIL;
+
+  /* LHLO and MAIL FROM - Authenticate on the server */
+  /* ----------------------------------------------- */
 
   if (client_authenticate(&TTX)<0) {
     report_error(ERROR_CLIENT_AUTH_FAILED);
@@ -93,7 +107,6 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
 
   if (client_getcode(&TTX)!=LMTP_OK) 
     goto QUIT;
-
 
   /* DATA - Send message */
   /* ------------------- */
@@ -172,6 +185,16 @@ BAIL:
   return exitcode;
 }
 
+/*
+
+ client_connect: establish a connection to an LMTP server
+
+ Depending on whether CCF_PROCESS or CCF_DELIVER was specified in flags,
+ this function establishes a connection to either the DSPAM server (for
+ processing) or an LMTP delivery host (for delivery).
+
+*/
+
 int client_connect(int flags) {
   struct sockaddr_in addr;
   struct sockaddr_un saun;
@@ -182,7 +205,7 @@ int client_connect(int flags) {
   int addr_len;
   char *host;
 
-  if (flags & CCF_LMTPHOST) {
+  if (flags & CCF_DELIVERY) {
     host = _ds_read_attribute(agent_config, "LMTPDeliveryHost");
 
     if (_ds_read_attribute(agent_config, "LMTPDeliveryPort"))
@@ -192,40 +215,36 @@ int client_connect(int flags) {
       domain = 1;
 
   } else {
-
     host = _ds_read_attribute(agent_config, "ClientHost");
 
     if (_ds_read_attribute(agent_config, "ClientPort"))
       port = atoi(_ds_read_attribute(agent_config, "ClientPort"));
 
-    if (_ds_read_attribute(agent_config, "ServerDomainSocketPath"))
+    if (host[0] == '/')
       domain = 1;
   }
 
-  if (!domain && host == NULL) {
+  if (host == NULL) {
     report_error(ERROR_INVALID_CLIENT_CONFIG);
     return EINVAL;
   }
 
+  /* Connect (Domain Socket) */
+
   if (domain) {
-    char *address;
-
-    if (flags & CCF_LMTPHOST) 
-      address = host;
-    else
-      address = _ds_read_attribute(agent_config, "ServerDomainSocketPath");
-
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     saun.sun_family = AF_UNIX;
-    strcpy(saun.sun_path, address); 
+    strcpy(saun.sun_path, host);
     addr_len = sizeof(saun.sun_family) + strlen(saun.sun_path) + 1;
 
-    LOGDEBUG(CLIENT_CONNECT, address, 0);
+    LOGDEBUG(CLIENT_CONNECT, host, 0);
     if(connect(sockfd, (struct sockaddr *)&saun, addr_len)<0) {
-      report_error_printf(ERROR_CLIENT_CONNECT_SOCKET, address, strerror(errno));
+      report_error_printf(ERROR_CLIENT_CONNECT_SOCKET, host, strerror(errno));
       return EFAILURE;
     }
-     
+
+  /* Connect (TCP) */
+
   } else {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     memset(&addr, 0, sizeof(struct sockaddr_in));
@@ -246,6 +265,15 @@ int client_connect(int flags) {
 
   return sockfd;
 }
+
+/*
+
+ client_authenticate: greet and authenticate on a DLMTP server
+
+ LHLO [ident]
+ MAIL FROM: <password@ident>
+
+*/
 
 int client_authenticate(THREAD_CTX *TTX) {
   char buff[1024];
@@ -281,6 +309,15 @@ int client_authenticate(THREAD_CTX *TTX) {
   return 0;
 }
 
+/*
+
+ client_expect: wait for the appropriate code and return
+
+ Keep reading until we receive the appropriate response code, then return
+ the buffer. We also want to skip over LHLO extension advertisements.
+
+*/
+ 
 char * client_expect(THREAD_CTX *TTX, int response_code) {
   char *input, *dup; 
   char *ptr, *ptrptr;
@@ -311,6 +348,8 @@ char * client_expect(THREAD_CTX *TTX, int response_code) {
   return NULL;
 }
 
+/* client_getcode: read the buffer and return response code */
+
 int client_getcode(THREAD_CTX *TTX) {
   char *input, *ptr, *ptrptr;
   int i;
@@ -331,6 +370,15 @@ int client_getcode(THREAD_CTX *TTX) {
   free(input);
   return i;
 }
+
+/*
+
+ client_getline: read a complete line from the buffer
+
+ Wait for a complete line in the buffer, then return the line. If the wait
+ exceeds the specified timeout, NULL is returned.
+
+*/
 
 char *client_getline(THREAD_CTX *TTX, int timeout) {
   int i;
@@ -365,6 +413,13 @@ char *client_getline(THREAD_CTX *TTX, int timeout) {
   return pop;
 }
 
+/*
+  pop_buffer: pop and return a line off the buffer 
+
+  If a complete line isn't available, return NULL.
+
+*/
+
 char *pop_buffer(THREAD_CTX *TTX) {
   char *buff, *eol;
   long len;
@@ -387,6 +442,8 @@ char *pop_buffer(THREAD_CTX *TTX) {
   return buff;
 }
 
+/* send_socket: send text to a socket */
+
 int send_socket(THREAD_CTX *TTX, const char *ptr) {
   int i = 0, r, msglen;
 
@@ -404,26 +461,29 @@ int send_socket(THREAD_CTX *TTX, const char *ptr) {
   }
 
   r = send(TTX->sockfd, "\n", 1, 0);
-/*
-  if (r == 1) {
-    send(TTX->sockfd, "", 1, 0);
-    r++;
-  }
-*/
-
   return i+1;
 }
 
-/* deliver_lmtp: delivers via LMTP instead of TrustedDeliveryAgent */
+/*
+  deliver_lmtp: delivers via LMTP instead of TrustedDeliveryAgent 
+
+  If LMTPDeliveryHost was specified in dspam.conf, this function will be 
+  called by deliver_message(). This function connects to and delivers the
+  message using standard LMTP. Depending on how DSPAM was originally called,
+  either the address supplied with the incoming RCPT TO or the address
+  supplied on the commandline with --lmtp-recipient will  be used. 
+
+*/
 
 int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
   THREAD_CTX TTX;
   char buff[1024];
   char *input;
+  char *ident = _ds_read_attribute(agent_config, "LMTPDeliveryIdent");
   int exitcode = 0;
   int i, msglen;
 
-  TTX.sockfd = client_connect(CCF_LMTPHOST);
+  TTX.sockfd = client_connect(CCF_DELIVERY);
   if (TTX.sockfd <0) {
     report_error(ERROR_CLIENT_CONNECT);
     return TTX.sockfd;
@@ -433,35 +493,35 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
   if (TTX.packet_buffer == NULL) 
     goto BAIL;
 
-  /* LHLO */
-
   input = client_expect(&TTX, LMTP_GREETING);
   if (input == NULL)
     goto BAIL;
   free(input);
 
-  strcpy(buff, "LHLO localhost");
-  if (_ds_read_attribute(agent_config, "LMTPDeliveryIdent")) {
-    snprintf(buff, sizeof(buff), "LHLO %s", _ds_read_attribute(agent_config, "LMTPDeliveryIdent"));
-  }
+  /* LHLO */
 
+  snprintf(buff, sizeof(buff), "LHLO %s", (ident) ? ident : "localhost");
   if (send_socket(&TTX, buff)<=0)
     goto BAIL;
 
-  /* RCPT TO - Send recipient information */
-  /* ------------------------------------ */
+  /* MAIL FROM - Pass-thru MAIL FROM and SIZE */
+  /* ---------------------------------------- */
 
   input = client_expect(&TTX, LMTP_OK);
   if (input == NULL)
     goto QUIT;
   free(input);
 
-  snprintf(buff, sizeof(buff), "MAIL FROM:<%s> SIZE=%ld", ATX->mailfrom, strlen(message));
+  snprintf(buff, sizeof(buff), "MAIL FROM:<%s> SIZE=%ld", 
+           ATX->mailfrom, strlen(message));
   if (send_socket(&TTX, buff)<=0)
     goto BAIL;
 
- if (client_getcode(&TTX)!=LMTP_OK)
+  if (client_getcode(&TTX)!=LMTP_OK)
     goto QUIT;
+
+  /* RCPT TO - Recipient information or pass-thru */
+  /* -------------------------------------------- */
 
   snprintf(buff, sizeof(buff), "RCPT TO:<%s>", ATX->recipient);
   if (send_socket(&TTX, buff)<=0) 
@@ -498,10 +558,10 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
   /* Server Response */
   /* --------------- */
 
- input = client_expect(&TTX, LMTP_OK);
- if (input == NULL)
-   goto QUIT;
-  free(input);
+  input = client_expect(&TTX, LMTP_OK);
+  if (input == NULL)
+    goto QUIT;
+   free(input);
 
   send_socket(&TTX, "QUIT");
   client_getcode(&TTX);
@@ -522,5 +582,4 @@ BAIL:
 }
 
 #endif /* DAEMON */
-
 
