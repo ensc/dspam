@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.101 2005/03/28 21:14:34 jonz Exp $ */
+/* $Id: libdspam.c,v 1.102 2005/03/29 21:11:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -875,6 +875,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
                   (CTX, joined_token, previous_token, diction, heading)
                   && (CTX->flags & DSF_CHAINED))
               {
+                if (alloc_joined)
+                  free(previous_token);
                 alloc_joined = 1;
                 previous_token = strdup (joined_token);
               }
