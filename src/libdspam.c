@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.63 2004/12/26 22:49:15 jonz Exp $ */
+/* $Id: libdspam.c,v 1.64 2004/12/26 22:51:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -1153,7 +1153,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       errcode = EUNKNOWN;
       goto bail;
     }
-// HERE
 
     lht_getspamstat(bnr_layer1, crc, &bnr_tot);
 
