@@ -1,4 +1,4 @@
-/* $Id: lht.c,v 1.2 2004/12/18 00:21:17 jonz Exp $ */
+/* $Id: lht.c,v 1.3 2004/12/18 00:33:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -46,19 +46,13 @@ static unsigned long lht_prime_list[lht_num_primes] = {
 struct lht_node *
 lht_node_create (unsigned long long key)
 {
-  struct lht_node *node;
+  struct lht_node *node
+    = (struct lht_node *) calloc (1, sizeof (struct lht_node));
 
-  node = (struct lht_node *) malloc (sizeof (struct lht_node));
-  if (node == NULL)
-    return NULL;
+  if (node)
+    node->key = key;
 
-  node->key = key;
-  node->next = NULL;
-  node->frequency = 0;
-  node->token_name = NULL;
-  memset (&node->s, 0, sizeof (struct _ds_spam_stat));
-
-  return (node);
+  return node;
 }
 
 struct lht *
@@ -243,33 +237,21 @@ c_lht_next (struct lht *lht, struct lht_c *c)
   unsigned long index;
   struct lht_node *node = c->iter_next;
 
-  if (lht == NULL)
-    return NULL;
-
-  if (node)
-  {
-    if (node != NULL)
-    {
-      c->iter_next = node->next;
-      return (node);
-    }
+  if (node) {
+    c->iter_next = node->next;
+    return (node);
   }
 
-  if (!node)
+  while (c->iter_index < lht->size)
   {
-    while (c->iter_index < lht->size)
-    {
-      index = c->iter_index++;
-      if (lht->tbl[index])
-      {
-        c->iter_next = lht->tbl[index]->next;
-        return (lht->tbl[index]);
-      }
+    index = c->iter_index++;
+    if (lht->tbl[index]) {
+      c->iter_next = lht->tbl[index]->next;
+      return (lht->tbl[index]);
     }
   }
-  return ((struct lht_node *) NULL);
+  return NULL;
 }
-
 
 int
 lht_hit (struct lht *lht, unsigned long long key, const char *token_name, int chained)
