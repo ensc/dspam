@@ -1,4 +1,4 @@
-$Id: README,v 1.21 2004/12/15 19:32:02 jonz Exp $
+$Id: README,v 1.22 2004/12/16 14:07:24 jonz Exp $
 
 DSPAM v3.3 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -180,12 +180,13 @@ First you will need to download a few prerequisite tools:
 
    Depending on which storage driver you want to use, you will need:
  
-   libdb4_drv: Berkeley DB-4. ** Not Recommended ** 
-   libdb3_drv: Berkeley DB-3. ** Not Recommended **
-   mysql_drv:  MySQL client libraries (and a server to connect to) 
-   ora_drv:    Oracle Call Interface (and a server to connect to)
-   pgsql_drv:  PostgreSQL client libraries (and a server to connect to)
-   sqlite_drv: SQLite v2.7.7 or above * Default * 
+   libdb4_drv:  Berkeley DB-4. ** Not Recommended ** 
+   libdb3_drv:  Berkeley DB-3. ** Not Recommended **
+   mysql_drv:   MySQL client libraries (and a server to connect to) 
+   ora_drv:     Oracle Call Interface (and a server to connect to)
+   pgsql_drv:   PostgreSQL client libraries (and a server to connect to)
+   sqlite_drv:  SQLite v2.7.7 or above * Default * 
+   sqlite3_drv: SQLite v3.x
 
    MySQL is the recommended storage driver, even for small implementations, as
    it is more stable and tested than the other drivers. If you are incapable
@@ -269,12 +270,13 @@ First you will need to download a few prerequisite tools:
    perform other proprietary operations.  The default driver is sqlite_drv,
    which uses SQLite.  The following drivers have been provided:
 
-     libdb4_drv: Berkeley DB4 Library
-     libdb3_drv: Berkeley DB3 Library
-     mysql_drv:  MySQL Drivers and ZLib       ** MT SAFE **
-     ora_drv:    Oracle Drivers (BETA)
-     pgsql_drv:  PostgreSQL Drivers           ** MT SAFE ** 
-     sqlite_drv: SQLite Drivers (BETA)
+     libdb4_drv:  Berkeley DB4 Library
+     libdb3_drv:  Berkeley DB3 Library
+     mysql_drv:   MySQL Drivers and ZLib       ** MT SAFE **
+     ora_drv:     Oracle Drivers (BETA)
+     pgsql_drv:   PostgreSQL Drivers           ** MT SAFE ** 
+     sqlite_drv:  SQLite Drivers 
+     sqlite3_drv: SQLite v3.x Drivets
 
    The DSPAM agent does not require a multi-thread safe driver, but some
    third party applications may. Be sure you use one labeled "MT SAFE" if
@@ -533,6 +535,7 @@ First you will need to download a few prerequisite tools:
      about configuring the ora_drv storage driver.
 
    sqlite_drv:
+   sqlite3_drv:
      --with-sqlite-includes=DIR
      Specify a path to the SQLite includes
 
