@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.23 2005/01/03 03:16:42 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.24 2005/01/03 03:29:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -58,7 +58,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "error.h"
 #include "language.h"
 #include "util.h"
-#include "diction.h"
 #ifdef PREFERENCES_EXTENSION
 #include "pref.h"
 #endif

@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.14 2005/01/03 03:13:49 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.15 2005/01/03 03:29:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -58,7 +58,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "error.h"
 #include "language.h"
 #include "util.h"
-#include "diction.h"
 #include "config_shared.h"
 
 #ifdef _WIN32
