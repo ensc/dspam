@@ -1,4 +1,4 @@
-/* $Id: diction.c,v 1.1 2005/01/03 03:10:19 jonz Exp $ */
+/* $Id: diction.c,v 1.2 2005/01/03 03:38:51 jonz Exp $ */
 
 /*
  DCLASSIFY
@@ -116,6 +116,7 @@ ds_diction_term_create (ds_key_t key, const char *name)
     perror("ds_diction_term_create: calloc() failed");
   } else {
     term->key = key;
+    term->frequency = 1;
     if (name)
       term->name = strdup(name);
   }
@@ -172,6 +173,7 @@ ds_diction_touch (ds_diction_t diction, ds_key_t key, const char *name, int flag
   } else {
     if (!insert->name && name) 
       insert->name = strdup(name);
+    insert->frequency++;
   }
 
   if (flags & DSD_CONTEXT) {
