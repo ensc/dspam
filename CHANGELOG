@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.77 2004/12/18 15:52:13 jonz Exp $
+$Id: CHANGELOG,v 1.78 2004/12/18 16:16:56 jonz Exp $
 
 Version NEXT
 ------------
@@ -52,8 +52,8 @@ database connections. --stdout and --classify supported.
 NOTE: Daemon mode is multithreaded, and therefore requires a multithreaded
       driver: mysql_drv or pgsql_drv.
 
-TODO: re-establish connections as necessary 
-      - done, but concerned about threading conflicts; need locking
+TODO: Better database handle locking; don't just mutex lock on your assigned
+      handle (as it is now), but try to find another one that's free.
 
 CVS Notes:
 
