@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.57 2005/01/03 22:55:26 jonz Exp $ */
+/* $Id: dspam.c,v 1.58 2005/01/06 01:41:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -1967,13 +1967,13 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, AGENT_PREF PTX, const char *username) {
   }
 
   if (PTX != NULL && strcmp(_ds_pref_val(PTX, "trainingMode"), "")) {
-    if (!strcmp(_ds_pref_val(PTX, "trainingMode"), "TEFT"))
+    if (!strcasecmp(_ds_pref_val(PTX, "trainingMode"), "TEFT"))
       CTX->training_mode = DST_TEFT;
-    else if (!strcmp(_ds_pref_val(PTX, "trainingMode"), "TOE"))
+    else if (!strcasecmp(_ds_pref_val(PTX, "trainingMode"), "TOE"))
       CTX->training_mode = DST_TOE;
-    else if (!strcmp(_ds_pref_val(PTX, "trainingMode"), "TUM"))
+    else if (!strcasecmp(_ds_pref_val(PTX, "trainingMode"), "TUM"))
       CTX->training_mode = DST_TUM;
-    else if (!strcmp(_ds_pref_val(PTX, "trainingMode"), "NOTRAIN"))
+    else if (!strcasecmp(_ds_pref_val(PTX, "trainingMode"), "NOTRAIN"))
       CTX->training_mode = DST_NOTRAIN;
     else
       CTX->training_mode = ATX->training_mode;
