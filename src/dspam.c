@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.59 2005/01/06 23:11:59 jonz Exp $ */
+/* $Id: dspam.c,v 1.60 2005/01/11 06:37:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -2419,31 +2419,6 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
       char data[10240];
       char scratch[128];
   
-      if (!strcmp(_ds_pref_val(PTX, "showFactors"), "on")) {
-  
-        if (CTX->factors != NULL) {
-          snprintf(data, sizeof(data), "X-DSPAM-Factors: %d", 
-                   CTX->factors->items);
-          node_ft = c_nt_first(CTX->factors, &c_ft);
-          while(node_ft != NULL) {
-            struct dspam_factor *f = (struct dspam_factor *) node_ft->ptr;
-            strlcat(data, ",\n\t", sizeof(data));
-            snprintf(scratch, sizeof(scratch), "%s, %2.5f", 
-                     f->token_name, f->value);
-            strlcat(data, scratch, sizeof(data));
-            node_ft = c_nt_next(CTX->factors, &c_ft);
-          }
-          head = _ds_create_header_field(data);  
-          if (head != NULL)
-          { 
-#ifdef VERBOSE
-            LOGDEBUG("appending header %s: %s", head->heading, head->data);
-#endif
-            nt_add(block->headers, (void *) head);  
-          }
-        }
-      }
-  
       strcpy(data, "X-DSPAM-Result: ");
       switch (CTX->result) {
         case DSR_ISSPAM:
@@ -2528,6 +2503,31 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
         }
         else
           LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+      }
+
+      if (!strcmp(_ds_pref_val(PTX, "showFactors"), "on")) {
+
+        if (CTX->factors != NULL) {
+          snprintf(data, sizeof(data), "X-DSPAM-Factors: %d",
+                   CTX->factors->items);
+          node_ft = c_nt_first(CTX->factors, &c_ft);
+          while(node_ft != NULL) {
+            struct dspam_factor *f = (struct dspam_factor *) node_ft->ptr;
+            strlcat(data, ",\n\t", sizeof(data));
+            snprintf(scratch, sizeof(scratch), "%s, %2.5f",
+                     f->token_name, f->value);
+            strlcat(data, scratch, sizeof(data));
+            node_ft = c_nt_next(CTX->factors, &c_ft);
+          }
+          head = _ds_create_header_field(data);
+          if (head != NULL)
+          {
+#ifdef VERBOSE
+            LOGDEBUG("appending header %s: %s", head->heading, head->data);
+#endif
+            nt_add(block->headers, (void *) head);
+          }
+        }
       }
     }
   }
