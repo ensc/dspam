@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.85 2005/03/23 16:04:30 jonz Exp $ */
+/* $Id: daemon.c,v 1.86 2005/03/23 17:07:40 jonz Exp $ */
 
 /*
 
@@ -1034,7 +1034,7 @@ char *daemon_getline(THREAD_CTX *TTX, int timeout) {
   struct timeval tv;
   fd_set fds;
   long recv_len;
-  char *pop;
+  char *p, *q, *pop;
   char buff[1024];
   int total_wait = 0;
 
@@ -1055,13 +1055,14 @@ char *daemon_getline(THREAD_CTX *TTX, int timeout) {
     buff[recv_len] = 0;
     if (recv_len == 0)
       return NULL;
-    for(i=0;i<recv_len;i++) {
-      if (buff[i]==0) {
-        if (i+1<recv_len) {
-          memmove(buff+i, buff+i+1, recv_len-(i+1));
-        }
+    for(p=q=buff,i=0;i<recv_len;i++) {
+      if (*q) {
+        *p = *q;
+        p++;
       }
+      q++;
     }
+    *p = 0;
     buffer_cat(TTX->packet_buffer, buff);
     pop = pop_buffer(TTX);
   }
