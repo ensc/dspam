@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.21 2004/11/12 16:06:25 jonz Exp $
+$Id: CHANGELOG,v 1.22 2004/11/15 03:47:35 jonz Exp $
 
 Version NEXT
 ------------
@@ -31,6 +31,10 @@ normalized main() by breaking up code into smaller subroutines
 
 Version 3.2.2
 -------------
+
+[20041114.2245] jonz: fixed optOut preferences option
+
+fixed a bug causing optOut preference to be ignored
 
 [20041112.0800] jonz: fixed source address tracking bug w/TOE
 

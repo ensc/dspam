@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.9 2004/11/12 16:06:26 jonz Exp $ */
+/* $Id: dspam.c,v 1.10 2004/11/15 03:47:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -3236,12 +3236,11 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     /* Deliver the message if the user has opted not to be filtered */
 
     if (!optout ||
+        !strcmp(_ds_pref_val(PTX, "optOut"), "on") ||
 
         (_ds_match_attribute(agent_config, "Opt", "in") &&
-        optin && strcmp(_ds_pref_val(PTX, "optIn"), "on")) ||
-
-        (!_ds_match_attribute(agent_config, "Opt", "out") &&
-        !strcmp(_ds_pref_val(PTX, "optOut"), "on")) )
+        optin && strcmp(_ds_pref_val(PTX, "optIn"), "on"))
+    )
     {
       if (ATX->flags & DAF_DELIVER_INNOCENT)
       {
