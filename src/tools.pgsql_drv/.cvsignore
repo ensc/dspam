@@ -3,3 +3,4 @@
 Makefile
 Makefile.in
 *_purge
+dspam_pg2int8
