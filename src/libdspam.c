@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.65 2004/12/26 23:05:51 jonz Exp $ */
+/* $Id: libdspam.c,v 1.66 2004/12/26 23:23:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -1139,33 +1139,35 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     /* BNR LAYER 1 PATTERNS (Patterns of tokens) */
 
-    bnr_pattern_instantiate(CTX, bnr_layer1, freq->order, 's', DTT_DEFAULT, NULL);
-    bnr_pattern_instantiate(CTX, bnr_layer1, freq->chained_order, 'c', DTT_DEFAULT, NULL);
+    if (CTX->flags & DSF_NOISE) {
+      bnr_pattern_instantiate(CTX, bnr_layer1, freq->order, 's', DTT_DEFAULT, NULL);
+      bnr_pattern_instantiate(CTX, bnr_layer1, freq->chained_order, 'c', DTT_DEFAULT, NULL);
 
-    crc = _ds_getcrc64("bnr.t|");
-    lht_hit(bnr_layer1, crc, "bnr.t|", 0);
+      crc = _ds_getcrc64("bnr.t|");
+      lht_hit(bnr_layer1, crc, "bnr.t|", 0);
 
-    LOGDEBUG("Loading %ld BNR patterns at layer 1", bnr_layer1->items);
+      LOGDEBUG("Loading %ld BNR patterns at layer 1", bnr_layer1->items);
 
-    if (_ds_getall_spamrecords (CTX, bnr_layer1))
-    {
-      LOGDEBUG ("_ds_getall_spamrecords() failed");
-      errcode = EUNKNOWN;
-      goto bail;
-    }
+      if (_ds_getall_spamrecords (CTX, bnr_layer1))
+      {
+        LOGDEBUG ("_ds_getall_spamrecords() failed");
+        errcode = EUNKNOWN;
+        goto bail;
+      }
 
-    lht_getspamstat(bnr_layer1, crc, &bnr_tot);
+      lht_getspamstat(bnr_layer1, crc, &bnr_tot);
 
-
-    node_lht = c_lht_first(bnr_layer1, &c_lht);
-    while(node_lht != NULL) {
-      _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_BNR, &bnr_tot);
-      node_lht = c_lht_next(bnr_layer1, &c_lht);
+      node_lht = c_lht_first(bnr_layer1, &c_lht);
+      while(node_lht != NULL) {
+        _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_BNR, &bnr_tot);
+        node_lht = c_lht_next(bnr_layer1, &c_lht);
+      }
     }
 
     /* Perform BNR Processing */
 
     if (CTX->classification == DSR_NONE &&
+        CTX->flags & DSF_NOISE &&
         CTX->_sig_provided == 0 &&
         CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000) {
 #ifdef BNR_DEBUG
@@ -1498,6 +1500,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
            node_lht->token_name[4] == 't') &&
           CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000 &&
           CTX->confidence < 0.60 &&
+          CTX->flags & DSF_NOISE &&
           CTX->_sig_provided == 0)
       {
         node_lht->s.status |= TST_DIRTY;
