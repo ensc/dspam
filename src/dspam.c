@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.93 2005/03/14 14:48:17 jonz Exp $ */
+/* $Id: dspam.c,v 1.94 2005/03/14 15:40:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -79,8 +79,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "pref.h"
 #include "config_api.h"
 
-#define USE_LMTP	!strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "LMTP")
-#define USE_SMTP	!strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "SMTP")
+#define USE_LMTP        (_ds_read_attribute(agent_config, "DeliveryProto") && !strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "LMTP"))
+#define USE_SMTP        (_ds_read_attribute(agent_config, "DeliveryProto") && !strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "SMTP"))
 
 static double timestart;
 
