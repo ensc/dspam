@@ -1,4 +1,4 @@
-$Id: README,v 1.24 2004/12/24 14:45:30 jonz Exp $
+$Id: README,v 1.25 2004/12/24 19:03:05 jonz Exp $
 
 DSPAM v3.3 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1709,6 +1709,23 @@ SERVER> 250 <jane> Message accepted for delivery
   or results, respectively. From there, it's up to you and your MTA to
   deliver the message. The DSPAM client will output the results to stdout in
   this case, just as it would in standard operating mode.
+
+  Once the server is running, its configuration can be reloaded with a SIGHUP.
+  When the daemon is reloaded, the following occurs:
+
+  - The daemon stops listening for new requests
+  - All threads are allowed to finish processing and exit
+  - All connections to the database are closed
+  - The dspam.conf configuration is reloaded
+  - All connections to the database are re-opened
+  - The daemon starts listening for new requests
+
+  This allows database and listener configurations to also be reloaded from
+  dspam.conf without the need to interrupt the process.
+
+  NOTE: During the period of time the daemon is reloading, client connections
+  will fail. Depending on how the MTA reacts, this may cause messages to
+  fall back to queue or to bounce.
 
 3.0 BUGS, PORTS, AND THE LIKE
 
