@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.18 2004/11/10 17:06:31 jonz Exp $
+$Id: CHANGELOG,v 1.19 2004/11/10 19:52:01 jonz Exp $
 
 Version NEXT
 ------------
@@ -31,6 +31,10 @@ normalized main() by breaking up code into smaller subroutines
 
 Version 3.2.2
 -------------
+
+[20041110.0800] jonz: set permissions on dspam.conf to 640
+
+permissions on dspam.conf were defaulted to 750, changed to 640
 
 [20041101.0700] jonz: changed loose signature matching
 

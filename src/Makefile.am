@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.3 2004/11/01 15:07:22 jonz Exp $
+# $Id: Makefile.am,v 1.4 2004/11/10 19:52:01 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -104,7 +104,7 @@ install-exec-hook:
 	fi
 	-if test ! -f $(DESTDIR)$(sysconfdir)/dspam.conf; then \
 		cp dspam.conf $(DESTDIR)$(sysconfdir)/dspam.conf; \
-		chmod 750 $(DESTDIR)$(sysconfdir)/dspam.conf; \
+		chmod 640 $(DESTDIR)$(sysconfdir)/dspam.conf; \
 		chown "$(dspam_owner)" $(DESTDIR)$(sysconfdir)/dspam.conf; \
 		chgrp "$(dspam_group)" $(DESTDIR)$(sysconfdir)/dspam.conf; \
 	fi
