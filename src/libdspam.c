@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.67 2004/12/27 01:06:03 jonz Exp $ */
+/* $Id: libdspam.c,v 1.68 2004/12/27 01:27:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -1310,7 +1310,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   node_lht = c_lht_first (freq, &c_lht);
   while (node_lht != NULL)
   {
-    if (!(CTX->flags & DSF_NOISE) || CTX->classification != DSR_NONE)
+    if (node_lht->s.probability == 0.00000 || CTX->classification != DSR_NONE)
       _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT, NULL);
 
     if (CTX->flags & DSF_WHITELIST) {
