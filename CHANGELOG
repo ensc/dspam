@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.196 2005/03/08 17:41:04 jonz Exp $
+$Id: CHANGELOG,v 1.197 2005/03/08 17:50:20 jonz Exp $
 
-Version NEXT
-------------
+Version 3.4.pr1
+---------------
 
 [20050308.0800] jonz: fixed header duplication on reclassify
 
