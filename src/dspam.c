@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.114 2005/03/26 04:52:06 jonz Exp $ */
+/* $Id: dspam.c,v 1.115 2005/03/27 19:09:56 jonz Exp $ */
 
 /*
  DSPAM
@@ -349,7 +349,9 @@ process_message (AGENT_CTX *ATX,
   }
 
   /* If a signature was provided, load it */
-  have_signature = find_signature(CTX, ATX, PTX);
+  if (ATX->source != DSS_CORPUS) {
+    have_signature = find_signature(CTX, ATX, PTX);
+  }
   if (have_signature && ATX->source != DSS_CORPUS)
   {
     have_decision = 1;
