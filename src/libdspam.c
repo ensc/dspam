@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.64 2004/12/26 22:51:06 jonz Exp $ */
+/* $Id: libdspam.c,v 1.65 2004/12/26 23:05:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -1166,6 +1166,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     /* Perform BNR Processing */
 
     if (CTX->classification == DSR_NONE &&
+        CTX->_sig_provided == 0 &&
         CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000) {
 #ifdef BNR_DEBUG
       char fn[MAX_FILENAME_LENGTH];
@@ -1496,7 +1497,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
            node_lht->token_name[4] == 's' ||
            node_lht->token_name[4] == 't') &&
           CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000 &&
-          CTX->confidence < 0.60) 
+          CTX->confidence < 0.60 &&
+          CTX->_sig_provided == 0)
       {
         node_lht->s.status |= TST_DIRTY;
       }
