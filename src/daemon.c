@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.38 2005/02/24 23:10:45 jonz Exp $ */
+/* $Id: daemon.c,v 1.39 2005/02/24 23:29:10 jonz Exp $ */
 
 /*
  DSPAM
@@ -234,7 +234,7 @@ void *process_connection(void *ptr) {
   THREAD_CTX *TTX = (THREAD_CTX *) ptr;
   AGENT_CTX *ATX = NULL;
   buffer *message = NULL;
-  char *input, *cmdline = NULL, *token, *ptrptr, *oldcmd = NULL;
+  char *input, *cmdline = NULL, *token, *ptrptr, *oldcmd = NULL, *parms;
   char *argv[32];
   char buf[1024];
   int tries = 0;
@@ -357,6 +357,17 @@ void *process_connection(void *ptr) {
       goto CLOSE;
     }
 
+    parms = _ds_read_attribute(agent_config, "ServerParameters");
+    argc = 0;
+    if (parms) {
+      token = strtok_r(parms, " ", &ptrptr);
+      while(token != NULL) {
+        argv[argc] = token;
+        argc++;
+        token = strtok_r(NULL, " ", &ptrptr);
+      }
+    }
+
     /* RCPT TO (Userlist and arguments) */
 
     cmdline = daemon_getline(TTX, 300);
@@ -375,9 +386,7 @@ void *process_connection(void *ptr) {
         }
     
       } else {
-
         char *username = strchr(cmdline, '<');
-        char *parms = _ds_read_attribute(agent_config, "ServerParameters");
         char *x;
   
         if (username == NULL) {
@@ -389,16 +398,6 @@ void *process_connection(void *ptr) {
         if (x) x[0] = 0;
         nt_add(ATX->users, username+1);
         strlcpy(ATX->recipient, username+1, sizeof(ATX->recipient));
-  
-        argc = 0;
-        if (parms) {
-          token = strtok_r(parms, " ", &ptrptr);
-          while(token != NULL) {
-            argv[argc] = token;
-            argc++;
-            token = strtok_r(NULL, " ", &ptrptr);
-          }
-        }
       }
 
       snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
@@ -499,12 +498,14 @@ void *process_connection(void *ptr) {
       i = 0;
 
       while(node_nt != NULL) {
+        int r = 0;
         result = results[i];
-        if (result == NULL || *result > 0) 
+        if (result) r = *result; 
+        if (result == NULL || r == 0)
           snprintf(buf, sizeof(buf), "%d <%s> Message accepted for delivery",
                    LMTP_OK, (char *) node_nt->ptr);
         else
-          snprintf(buf, sizeof(buf), "%d <%s> %d Error occured during processing", LMTP_ERROR_PROCESS, (char *) node_nt->ptr, *result);
+          snprintf(buf, sizeof(buf), "%d <%s> Error occured during processing", LMTP_ERROR_PROCESS, (char *) node_nt->ptr);
 
         if (send_socket(TTX, buf)<=0) {
           for(;i<=ATX->users->items;i++)

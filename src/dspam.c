@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.79 2005/02/24 23:10:45 jonz Exp $ */
+/* $Id: dspam.c,v 1.80 2005/02/24 23:29:10 jonz Exp $ */
 
 /*
  DSPAM
@@ -1228,7 +1228,6 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
   if (x == NULL)
     return NULL;
 
-printf("IN PROCESS USERS\n");
   if (ATX->sockfd) {
     fout = ATX->sockfd;
   } else {
@@ -1245,8 +1244,6 @@ printf("IN PROCESS USERS\n");
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
     int result, optin, optout;
-
-printf("USER %d\n", i);
 
     code = malloc(sizeof(int));
     *code = 0;

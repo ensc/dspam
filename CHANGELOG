@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.172 2005/02/24 23:10:45 jonz Exp $
+$Id: CHANGELOG,v 1.173 2005/02/24 23:29:10 jonz Exp $
 
 Version NEXT
 ------------
@@ -8,6 +8,8 @@ Version NEXT
 added a ServerMode option to dspam.conf allowing DSPAM to function in either
 "dspam" proprietary LMTP mode or "standard" LMTP server mode. see README 
 section 2.4 for more information. support for multiple RCPT TO's added.  
+Fixed pass-through of error messages, to show failure instead of "accepted"
+when a failure actually did occur.
 
 [20050224.0700] jonz: fixed dspamc hanging bug
 

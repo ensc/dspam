@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.22 2005/02/24 23:10:45 jonz Exp $ */
+/* $Id: client.c,v 1.23 2005/02/24 23:29:10 jonz Exp $ */
 
 /*
  DSPAM
@@ -347,8 +347,6 @@ char *client_getline(THREAD_CTX *TTX, int timeout) {
   LOGDEBUG("RECV: %s", pop);
 #endif
 
-printf("RECV: %s\n", pop);
-
   return pop;
 }
 
@@ -380,7 +378,6 @@ int send_socket(THREAD_CTX *TTX, const char *ptr) {
 #ifdef VERBOSE
   LOGDEBUG("SEND: %s", ptr);
 #endif
-printf("SEND: %s\n", ptr);
 
   msglen = strlen(ptr);
   while(i<msglen) {
