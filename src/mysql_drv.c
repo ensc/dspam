@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.5 2004/11/23 21:27:18 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.6 2004/11/23 21:30:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -574,11 +574,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
       stat.innocent_hits = node_lht->s.innocent_hits;
     }
   }
-  else
-  {
-
-    printf("CONTROL %llu RETURNED: %d\n", s->control_token, lht_getspamstat (freq, s->control_token, &stat));
-printf("CONTROL: %ld %ld\n", stat.innocent_hits, stat.spam_hits); 
+  else {
+    lht_getspamstat (freq, s->control_token, &stat);
   }
 
   snprintf (scratch, sizeof (scratch),
