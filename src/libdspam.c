@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.14 2004/11/22 14:51:40 jonz Exp $ */
+/* $Id: libdspam.c,v 1.15 2004/11/22 16:48:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -1071,7 +1071,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Engage only if ... */
 
-  if (CTX->flags & DSF_NOISE)
+  if (CTX->flags & DSF_NOISE && CTX->classification == DSR_NONE)
 //          &&
 //      CTX->classification == DSR_NONE &&
 //        CTX->totals.innocent_learned  +	
@@ -1179,7 +1179,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   }
 
   /* Add the noise patterns to the primary array */
-  if (CTX->flags & DSF_NOISE) {
+  if (CTX->flags & DSF_NOISE && CTX->classification == DSR_NONE) {
     node_lht = c_lht_first (pfreq, &c_lht);
     while(node_lht != NULL) {
 #ifdef BNR_VERBOSE_DEBUG
