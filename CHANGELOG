@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.26 2004/11/22 00:43:14 jonz Exp $
+$Id: CHANGELOG,v 1.27 2004/11/22 15:05:27 jonz Exp $
 
 Version NEXT
 ------------
@@ -6,8 +6,8 @@ Version NEXT
 [20041121.1530] jonz: implemented parts of Bayesian Noise Reduction v2.0
 
 implemented parts of BNR v2.0, which tracks guilty patterns and applies the
-appropriate values. added pattern tokenization and reporting, but not
-application.
+appropriate values. added pattern tokenization and reporting, which will treat
+patterns as tokens, but not dubbing portion yet.
 
 disengaged BNR 1.x.
 
