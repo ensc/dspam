@@ -1,10 +1,10 @@
-$Id: CHANGELOG,v 1.120 2005/01/03 20:26:09 jonz Exp $
+$Id: CHANGELOG,v 1.121 2005/01/03 21:00:35 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
 
-Version NEXT
-------------
+Version 3.3.9
+-------------
 
 [20041013.0600] jonz: fixed invalid memory read in hash.c
 
