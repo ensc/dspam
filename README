@@ -1,4 +1,4 @@
-$Id: README,v 1.8 2004/11/16 14:17:10 jonz Exp $
+$Id: README,v 1.9 2004/11/16 17:07:50 jonz Exp $
 
 DSPAM v3.2 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -846,7 +846,8 @@ showFactors=off
 
   If you would like your users to be able to opt in/out of DSPAM filtering,
   add the correct option to the nav_preferences.html template, depending on
-  your configuration:
+  your configuration. Note: This currently only works with the preferences
+  extension, and not drop files.
 
 <INPUT TYPE=CHECKBOX NAME=optIn $C_OPTIN$>
 Opt into DSPAM filtering
