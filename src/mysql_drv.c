@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.3 2004/10/28 14:11:28 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.4 2004/11/23 17:00:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -581,6 +581,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
   else
   {
     lht_getspamstat (freq, s->control_token, &stat);
+printf("CONTROL: %ld %ld\n", stat.spam_hits, stat.innocent_hits);
   }
 
   snprintf (scratch, sizeof (scratch),
@@ -648,8 +649,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
                    (insert_one) ? ", " : "",
                    p->pw_uid,
                    node_lht->key,
-                   stat2.spam_hits,
-                   stat2.innocent_hits);
+                   stat2.spam_hits > 0 ? stat2.spam_hits : 0,
+                   stat2.innocent_hits > 0 ? stat2.innocent_hits : 0);
       }
 
       insert_one = 1;
@@ -783,7 +784,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
 
   snprintf (query, sizeof (query),
             "select spam_hits, innocent_hits from dspam_token_data "
-            "where uid = %d " "and token = '%llu' ", p->pw_uid, token);
+            "where uid = %d " "and token in('%llu') ", p->pw_uid, token);
 
   stat->probability = 0.0;
   stat->spam_hits = 0;

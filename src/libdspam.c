@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.19 2004/11/23 15:38:43 jonz Exp $ */
+/* $Id: libdspam.c,v 1.20 2004/11/23 17:00:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -421,6 +421,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   }
 
   /* A signature has been presented for training; process it */
+// HERE
+/*
   if (CTX->operating_mode == DSM_PROCESS && 
       CTX->classification != DSR_NONE    &&
       CTX->flags & DSF_SIGNATURE         &&
@@ -431,6 +433,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
       CTX->operating_mode = DSM_PROCESS;
     return i;
   }
+*/
 
   /* From this point on, logic assumes that there will be no signature-based
      classification (as it was forked off from the above call) */
@@ -466,7 +469,9 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
 
   CTX->result = -1;
 
-  if (CTX->flags & DSF_SBPH &&
+  if (
+// HERE
+// CTX->flags & DSF_SBPH &&
       CTX->operating_mode != DSM_CLASSIFY && 
       CTX->classification != DSR_NONE     &&
       CTX->flags & DSF_SIGNATURE) 
@@ -636,7 +641,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Allocate SBPH signature (Message Text) */
 
-  if (CTX->flags & DSF_SBPH   &&
+  if (
+//HERE
+//CTX->flags & DSF_SBPH   &&
       CTX->flags & DSF_SIGNATURE && 
      ((CTX->operating_mode != DSM_CLASSIFY && CTX->classification == DSR_NONE)
       || ! (CTX->_sig_provided)) && 
@@ -1152,8 +1159,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     }
 
     /* Add BNR pattern to token hash */
-    if (CTX->classification == DSR_NONE ||
-        CTX->source == DSS_INOCULATION)
+    if (CTX->classification != DSR_NONE)
     {
       node_lht = c_lht_first (pfreq, &c_lht);
       while(node_lht != NULL) {
@@ -1227,6 +1233,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Initialize Non-SBPH signature, if requested */
 
+//HERE
+/*
   if (! (CTX->flags & DSF_SBPH) &&
        CTX->flags & DSF_SIGNATURE && 
        (CTX->operating_mode != DSM_CLASSIFY || ! CTX->_sig_provided))
@@ -1251,6 +1259,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       goto bail;
     }
   }
+*/
 
 #ifdef BNR_DEBUG
   LOGDEBUG("Calculating BNR Result");
@@ -1336,6 +1345,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     /* Create a signature if we're processing a message */
 
+// HERE
+/*
     if ((!(CTX->flags & DSF_SBPH))  && 
         CTX->flags & DSF_SIGNATURE && 
        (CTX->operating_mode != DSM_CLASSIFY || !(CTX->_sig_provided)))
@@ -1349,6 +1360,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
               (i * sizeof (struct _ds_signature_token)), &t,
               sizeof (struct _ds_signature_token));
     }
+*/
 
     /* If classification was provided, force probabilities */
     if (CTX->classification == DSR_ISSPAM)
@@ -1388,12 +1400,15 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         }
       }
 
+//HERE
       if (SPAM_MISS(CTX) && !(CTX->flags & DSF_UNLEARN)) { 
-        node_lht->s.innocent_hits-= (node_lht->s.innocent_hits>0) ? 1:0;
-        if (node_lht->s.innocent_hits < 0)
-          node_lht->s.innocent_hits = 0;
+        node_lht->s.innocent_hits-= 1;//(node_lht->s.innocent_hits>0) ? 1:0;
+//        if (node_lht->s.innocent_hits < 0)
+//          node_lht->s.innocent_hits = 0;
+
       }
     }
+
 
     /* INNOCENT */
     else
@@ -1408,9 +1423,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       if (FALSE_POSITIVE(CTX) && !(CTX->flags & DSF_UNLEARN))
       {
 
-        node_lht->s.spam_hits-= (node_lht->s.spam_hits>0) ? 1:0;
-        if (node_lht->s.spam_hits < 0)
-          node_lht->s.spam_hits = 0;
+        node_lht->s.spam_hits-= 1;//(node_lht->s.spam_hits>0) ? 1:0;
+//        if (node_lht->s.spam_hits < 0)
+//          node_lht->s.spam_hits = 0;
       }
     }
 
@@ -1676,11 +1691,11 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
 #endif
   }
 
-  if (s->innocent_hits < 0)
-    s->innocent_hits = 0;
+//  if (s->innocent_hits < 0)
+//    s->innocent_hits = 0;
 
-  if (s->spam_hits < 0)
-    s->spam_hits = 0;
+//  if (s->spam_hits < 0)
+//    s->spam_hits = 0;
 
   if (s->spam_hits == 0 && s->innocent_hits > 0)
   {

@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.5 2004/11/04 23:09:03 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.6 2004/11/23 17:00:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -433,8 +433,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
                  "innocent_hits, last_hit) values('%" LLU_FMT_SPEC "', %ld, %ld, "
                  "date('now'))",
                  node_lht->key,
-                 stat2.spam_hits, 
-                 stat2.innocent_hits);
+                 stat2.spam_hits > 0 ? stat2.spam_hits : 0, 
+                 stat2.innocent_hits > 0 ? stat2.innocent_hits : 0);
 
       if ((sqlite_exec(s->dbh, insert, NULL, NULL, &err)) != SQLITE_OK)
       {
@@ -550,7 +550,9 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
               "insert into dspam_token_data(token, spam_hits, "
               "innocent_hits, last_hit)"
               " values('%" LLU_FMT_SPEC "', %ld, %ld, date('now'))",
-              token, stat->spam_hits, stat->innocent_hits);
+              token, 
+              stat->spam_hits > 0 ? stat->spam_hits : 0,
+              stat->innocent_hits > 0 ? stat->innocent_hits : 0);
     result = sqlite_exec(s->dbh, query, NULL, NULL, &err);
   }
 
@@ -560,8 +562,10 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     snprintf (query, sizeof (query), "update dspam_token_data "
               "set spam_hits = %ld, "
               "innocent_hits = %ld "
-              "where token = %" LLD_FMT_SPEC, stat->spam_hits,
-              stat->innocent_hits, token);
+              "where token = %" LLD_FMT_SPEC,
+              stat->spam_hits > 0 ? stat->spam_hits : 0,
+              stat->innocent_hits > 0 ? stat->innocent_hits : 0,
+              token);
 
     if ((sqlite_exec(s->dbh, query, NULL, NULL, &err))!=SQLITE_OK)
     {

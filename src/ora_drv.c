@@ -1,4 +1,4 @@
-/* $Id: ora_drv.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: ora_drv.c,v 1.2 2004/11/23 17:00:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -2217,8 +2217,9 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   snprintf (query, sizeof (query),
             "INSERT INTO %s.DSPAM_TOKEN_DATA (USER_ID, TOKEN, INNOCENT_HITS,"
             "  SPAM_HITS, LAST_HIT) VALUES(%d, %llu, %ld, %ld, SYSDATE)",
-            s->schema, p->pw_uid, token, stat->innocent_hits,
-            stat->spam_hits);
+            s->schema, p->pw_uid, token, 
+            stat->innocent_hits > 0 ? stat->innocent_hits : 0,
+            stat->spam_hits > 0 ? stat->spam_hits : 0);
 
   if (_ora_drv_checkerr (NULL, s->errhp, OCIHandleAlloc ((dvoid *) s->envhp,
                                                          (dvoid **) & stmthp,

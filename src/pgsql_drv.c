@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.3 2004/10/26 13:24:51 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.4 2004/11/23 17:00:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -660,8 +660,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
                  "CURRENT_DATE)",
                  p->pw_uid,
                  node_lht->key,
-                 stat2.spam_hits,
-                 stat2.innocent_hits);
+                 stat2.spam_hits > 0 ? stat2.spam_hits : 0,
+                 stat2.innocent_hits > 0 ? stat2.innocent_hits : 0);
       }
                                                                                 
       result = PQexec(s->dbh, insert);
