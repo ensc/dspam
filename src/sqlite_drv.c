@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.8 2004/11/23 21:59:38 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.9 2004/11/24 18:04:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -431,8 +431,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
                  "innocent_hits, last_hit) values('%" LLU_FMT_SPEC "', %ld, %ld, "
                  "date('now'))",
                  node_lht->key,
-                 stat2.spam_hits > 0 ? stat2.spam_hits : 0, 
-                 stat2.innocent_hits > 0 ? stat2.innocent_hits : 0);
+                 stat2.spam_hits > 0 ? (long) 1 : (long) 0, 
+                 stat2.innocent_hits > 0 ? (long) 1 : (long) 0);
 
       if ((sqlite_exec(s->dbh, insert, NULL, NULL, &err)) != SQLITE_OK)
       {
