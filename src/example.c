@@ -1,4 +1,4 @@
-/* $Id: example.c,v 1.2 2005/01/03 18:40:18 jonz Exp $ */
+/* $Id: example.c,v 1.3 2005/04/05 22:17:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -132,6 +132,9 @@ main (int argc, char **argv)
     exit (EXIT_FAILURE);
   }
 
+  /* Use graham and robinson algorithms, graham's p-values */
+  CTX->algorithms = DSA_GRAHAM | DSA_BURTON | DSP_GRAHAM;
+
   /* Call DSPAM's processor with the message text */
   if (dspam_process (CTX, message) != 0)
   {
@@ -192,6 +195,9 @@ main (int argc, char **argv)
   CTX->classification = DSR_ISSPAM;
   CTX->source         = DSS_ERROR;
 
+  /* Use graham and robinson algorithms, graham's p-values */
+  CTX->algorithms = DSA_GRAHAM | DSA_BURTON | DSP_GRAHAM;
+
   /* Call DSPAM */
   if (dspam_process(CTX, message) != 0)
   {
@@ -232,6 +238,9 @@ main (int argc, char **argv)
   /* Set up the context for error correction as innocent */
   CTX->classification = DSR_ISINNOCENT;
   CTX->source         = DSS_ERROR;
+
+  /* Use graham and robinson algorithms, graham's p-values */
+  CTX->algorithms = DSA_GRAHAM | DSA_BURTON | DSP_GRAHAM;
 
   /* Attach the signature to the context */
   CTX->signature = &SIG;
@@ -282,6 +291,9 @@ main (int argc, char **argv)
   dspam_addattribute(CTX, "MySQLUser", "example");
   dspam_addattribute(CTX, "MySQLPass", "1234");
   dspam_addattribute(CTX, "MySQLDb", "dspam"); 
+
+  /* Use graham and robinson algorithms, graham's p-values */
+  CTX->algorithms = DSA_GRAHAM | DSA_BURTON | DSP_GRAHAM;
 
   /* Here, we can also pass in any other attributes used by libdspam
      (see dspam.conf). We can also do this after the attach, since they are

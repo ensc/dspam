@@ -1,7 +1,14 @@
-$Id: CHANGELOG,v 1.260 2005/04/04 14:53:43 jonz Exp $
+$Id: CHANGELOG,v 1.261 2005/04/05 22:17:51 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050405.1815] jonz: minor code cleanup
+
+minor cleanup of static -1 values in code, replaced with #define'd values
+
+removed configure help strings and checking notifications for developer-only
+features. will phase out in a few versions.
 
 [20050402.1945] jonz: changed domain-based groups to use *@domain
 

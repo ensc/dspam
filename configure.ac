@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.27 2005/03/11 21:16:03 jonz Exp $
+dnl $Id: configure.ac,v 1.28 2005/04/05 22:17:51 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -11,7 +11,7 @@ dnl    automake (GNU automake) 1.9.2
 dnl
 AC_PREREQ(2.59)
 AC_COPYRIGHT([Copyright (C) 2002-2005 Network Dweebs Corporation])
-AC_INIT([dspam],[CVS],[jonathan@nuclearelephant.com])
+AC_INIT([dspam],[CVS],[dspam-dev@nuclearelephant.com])
 CONFIGURE_ARGS=$@
 AC_CONFIG_SRCDIR(./src)
 
@@ -553,8 +553,7 @@ AC_MSG_RESULT([$enable_long_usernames])
 #   Only use this if you're a developer; end-users: set this in dspam.conf
 #
 AC_ARG_ENABLE(graham-bayesian,
-    [AS_HELP_STRING(--disable-graham-bayesian,Disable Graham Bayesian calculations)])
-AC_MSG_CHECKING([whether to enable Graham-Bayesian calculations])
+    [])
 case x"$enable_graham_bayesian" in
     xyes)   # enabled explicity
             ;;
@@ -577,15 +576,13 @@ else
                                                                                 
                                                                                 
 fi
-AC_MSG_RESULT([$enable_graham_bayesian])
 
 #
 #   Burton-Bayesian Calculations
 #   Only use this if you're a developer; end-users: set this in dspam.conf
 #
 AC_ARG_ENABLE(burton-bayesian,
-    [AS_HELP_STRING(--disable-burton-bayesian,Disable burton Bayesian calculations)])
-AC_MSG_CHECKING([whether to enable Burton Bayesian calculations])
+    [])
 case x"$enable_burton_bayesian" in
     xyes)   # enabled explicity
             ;;
@@ -606,15 +603,13 @@ else
     AC_DEFINE(BURTON_BAYESIAN, 1,
              [Defined if burton bayesian calculation is enabled])
 fi
-AC_MSG_RESULT([$enable_burton_bayesian])
 
 #
 #   Robinson's Geometric Mean
 #   Only use this if you're a developer; end-users: set this in dspam.conf
 #
 AC_ARG_ENABLE(robinson,
-    [AS_HELP_STRING(--enable-robinson,Cause DSPAM to use the Robinson Geometric Mean calculation)])
-AC_MSG_CHECKING([whether to enable Robinson's Geometric Mean calculations])
+    [])
 case x"$enable_robinson" in
     xyes)   # enabled explicity
             ;;
@@ -633,15 +628,13 @@ else
     enable_robinson=yes    # overkill, but convenient
     AC_DEFINE(ROBINSON, 1, [Defined if Chi-Square calculation is enabled])
 fi
-AC_MSG_RESULT([$enable_robinson])
 
 #
 #   Fisher-Robinson's Inverse Chi-Square
 #   Only use this if you're a developer; end-users: set this in dspam.conf
 #
 AC_ARG_ENABLE(chi-square,
-    [AS_HELP_STRING(--enable-chi-square,Enable Fisher-Robinson Inverse Chi-Square calculations)])
-AC_MSG_CHECKING([whether to enable Chi-Square calculations])
+    [])
 case x"$enable_chi_square" in
     xyes)   # enabled explicity
             ;;
@@ -661,7 +654,6 @@ else
     AC_DEFINE(CHI_SQ, 1,
              [Defined if Chi-Square calculation is enabled])
 fi
-AC_MSG_RESULT([$enable_chi_square])
 
 if test x"$enable_graham_bayesian$enable_burton_bayesian$enable_robinson$enable_chi_square" = xnononono
 then
@@ -683,8 +675,7 @@ fi
 #   Only use this if you're a developer; end-users: set this in dspam.conf
 #
 AC_ARG_ENABLE(robinson-pvalues,
-    [AS_HELP_STRING(--enable-robinson-pvalues,Enable Robinson's technique for combining p-values)])
-AC_MSG_CHECKING([whether to enable Robinson's technique])
+    [])
 case x"$enable_robinson_pvalues" in
     xyes)   # enabled explicity
             ;;
@@ -704,8 +695,7 @@ else
     AC_DEFINE(ROBINSON_FW, 1,
              [Defined if Robinson's technique for combining p-values is enabled])
 fi
-AC_MSG_RESULT([$enable_robinson_pvalues])
-                                                                                
+
 #
 #   Test-Conditional Training
 #   (users with > 2500 innocent messages will retrain spams + false positives
