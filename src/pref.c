@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.13 2005/01/27 16:05:45 jonz Exp $ */
+/* $Id: pref.c,v 1.14 2005/03/01 13:45:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -200,11 +200,10 @@ static int _ds_pref_process_file (
   const char *preference,
   char *filename,
   char *out_filename,
-  FILE **out_file
-)
+  FILE **out_file)
 {
   char line[1024];
-  int plen = strlen(preference);
+  int lineno = 0, plen = strlen(preference);
   FILE *in_file;
 
   if (username == NULL) {
@@ -231,6 +230,8 @@ static int _ds_pref_process_file (
     if (!strncmp(line, preference, plen))
       continue;
 
+    ++lineno;
+
     if (fputs(line, *out_file)) {
       file_error("write", out_filename, strerror(errno));
       fclose(*out_file);
@@ -241,14 +242,13 @@ static int _ds_pref_process_file (
 
   fclose(in_file);
 
-  return 0;
+  return lineno;
 }
 
 static int _ds_pref_save_file (
   const char *filename,
   const char *out_filename,
-  FILE *out_file
-)
+  FILE *out_file)
 {
   if (fclose(out_file)) {
     file_error("close", out_filename, strerror(errno));
@@ -281,7 +281,7 @@ int _ds_pref_set (
   r = _ds_pref_process_file(username, home, preference,
             filename, out_filename, &out_file);
 
-  if (r)
+  if (r == -1)
     return -1;
 
   fprintf(out_file, "%s=%s\n", preference, value);
@@ -304,8 +304,13 @@ int _ds_pref_del (
   r = _ds_pref_process_file(username, home, preference,
             filename, out_filename, &out_file);
 
-  if (r)
+  if (r == -1)
     return -1;
+  else if (r == 0) {
+    fclose(out_file);
+    unlink(out_filename);
+    return unlink(filename);
+  }
 
   return _ds_pref_save_file(filename, out_filename, out_file);
 }
