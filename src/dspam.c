@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.8 2004/11/12 14:07:09 jonz Exp $ */
+/* $Id: dspam.c,v 1.9 2004/11/12 16:06:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -1929,12 +1929,8 @@ if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers")) {
   buffer_cat (message, copyback);
   free (copyback);
 
-  if (
-       _ds_read_attribute(agent_config, "TrackSources") &&
-       (
-       (CTX->training_mode == DST_TOE && CTX->operating_mode == DSM_CLASSIFY) ||
-       (CTX->training_mode != DST_TOE && CTX->operating_mode == DSM_PROCESS)
-       ) &&
+  if ( _ds_read_attribute(agent_config, "TrackSources") &&
+       CTX->operating_mode == DSM_PROCESS               &&
        CTX->source != DSS_CORPUS)
   {
     char ip[32];
@@ -1943,6 +1939,7 @@ if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers")) {
     {
       if (CTX->totals.innocent_learned + CTX->totals.innocent_classified 
           > 2500) {
+
         if (result == DSR_ISSPAM && 
             _ds_match_attribute(agent_config, "TrackSources", "spam")) {
           FILE *file;

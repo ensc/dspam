@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.20 2004/11/12 14:06:23 jonz Exp $
+$Id: CHANGELOG,v 1.21 2004/11/12 16:06:25 jonz Exp $
 
 Version NEXT
 ------------
@@ -31,6 +31,10 @@ normalized main() by breaking up code into smaller subroutines
 
 Version 3.2.2
 -------------
+
+[20041112.0800] jonz: fixed source address tracking bug w/TOE
+
+fixed a bug causing source address tracking to fail when TOE used
 
 [20041112.0800] jonz: fixed LocalMX bug
 
