@@ -1,10 +1,14 @@
-$Id: CHANGELOG,v 1.115 2005/01/03 03:39:08 jonz Exp $
+$Id: CHANGELOG,v 1.116 2005/01/03 03:55:47 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
 
 Version NEXT
 ------------
+
+[20040102.2300] jonz: fixed some more reachable memory on daemon exit
+
+fixed some additional bytes of unfreed memory on daemon exit
 
 [20040102.2100] jonz: rewrite hash-code into 'diction' and 'term' structures
 
@@ -13,7 +17,6 @@ structure, which has terms. a diction represents a subset of lexical data
 within the user's dataset (namely, the data representing a message).
 
 TODO: libdb3, libdb4, oracle
-
 
 [20040102.1645] jonz: bayesian noise reduction training tweaks
 

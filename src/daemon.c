@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.33 2004/12/30 15:23:46 jonz Exp $ */
+/* $Id: daemon.c,v 1.34 2005/01/03 03:55:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -425,8 +425,12 @@ void *process_connection(void *ptr) {
         else
           snprintf(buf, sizeof(buf), "%d <%s> %d Error occured during processing", LMTP_ERROR_PROCESS, (char *) node_nt->ptr, *result);
 
-        if (send_socket(TTX, buf)<=0)
+        if (send_socket(TTX, buf)<=0) {
+          for(;i<=ATX->users->items;i++)
+            free(results[i]);
+          free(results);
           goto CLOSE;
+        }
         node_nt = c_nt_next(ATX->users, &c_nt);
         i++;
       }
