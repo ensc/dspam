@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.37 2004/12/13 16:02:08 jonz Exp $ */
+/* $Id: libdspam.c,v 1.38 2004/12/13 22:21:58 jonz Exp $ */
 
 /*
  DSPAM
@@ -36,8 +36,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #ifdef TIME_WITH_SYS_TIME
 #   include <sys/time.h>
