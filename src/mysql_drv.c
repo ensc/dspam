@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.28 2005/01/03 03:29:32 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.29 2005/01/10 14:09:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -769,10 +769,6 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
   buffer_cat (query, ")");
-
-#ifdef BNR_VERBOSE_DEBUG
-  printf("Control: [%ld %ld] [%ld %ld]",  s->control_sh, s->control_ih, stat.spam_hits, stat.innocent_hits); 
-#endif
 
   LOGDEBUG("Control: [%ld %ld] [%ld %ld]", s->control_sh, s->control_ih, stat.spam_hits, stat.innocent_hits);
 
