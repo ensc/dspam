@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: libdspam.c,v 1.2 2004/10/29 14:04:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -853,8 +853,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         }
       }
 
-      if (alloc_joined)
+      if (alloc_joined) {
         free(previous_token);
+        previous_token = NULL;
+        alloc_joined = 0;
+      }
     }
 
     nt_destroy (header);

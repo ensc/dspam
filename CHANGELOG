@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.9 2004/10/29 13:43:32 jonz Exp $
+$Id: CHANGELOG,v 1.10 2004/10/29 14:04:52 jonz Exp $
 
 Version NEXT
 ------------
@@ -26,6 +26,11 @@ normalized main() by breaking up code into smaller subroutines
 
 Version 3.2.1
 -------------
+
+[20041029.0800] jonz: fixed invalid read of free()'d memory
+
+fixed invalid read of free()'d memory caused when parsing multi-line 
+header tokens
 
 [20041029.0800] jonz: fixed pragma bug in sqlite_drv
 
