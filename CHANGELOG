@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.250 2005/03/28 20:27:28 jonz Exp $
+$Id: CHANGELOG,v 1.251 2005/03/28 22:16:24 jonz Exp $
    
 Version NEXT
 ------------
@@ -12,6 +12,8 @@ fixed a very small memory leak in chained tokens implementation
 added retrain log to keep track of messages retrained, which allows the cgi
 to display 'Retrained' in the history next to messages that have already been
 retrained. history retraining and quarantine retraining both log this info.
+
+history retraining now forwards false positives and removed from quarantine
 
 made top and bottom row of buttons symmetric in quarantine view (deliver
 checked, delete checked, delete all)
