@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.164 2005/02/08 20:29:22 jonz Exp $
+$Id: CHANGELOG,v 1.165 2005/02/14 14:41:20 jonz Exp $
 
-Version NEXT
-------------
+Version 3.4.beta.3
+------------------
 
 [20050208.0330] jonz: added CGI spam functionality to history
 

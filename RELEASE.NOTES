@@ -1,6 +1,6 @@
-$Id: RELEASE.NOTES,v 1.26 2005/01/30 00:39:50 jonz Exp $
+$Id: RELEASE.NOTES,v 1.27 2005/02/14 14:41:21 jonz Exp $
 
-RELEASE 3.4 (Beta 2)
+RELEASE 3.4 (Beta 3)
 
 ------------------------------------------------------
 PLEASE SEE THE FILE 'UPGRADING' PRIOR TO INSTALLATION!
@@ -117,6 +117,11 @@ Sorting by Subject and Sender options have been added to the quarantine view
 Manual Override of Autodetectable Features
 Implementations where the CGI runs untrusted provide an override to manually
 set the features which would normally be autodetectable as a trusted user.
+
+Retrain Options via History
+Retraining options have been added to the history tab, allowing users to
+quickly retrain messages without actually delivering or forwarding them. This
+is ideal for lazy users.
 
 Jonathan Zdziarski
 <jonathan@nuclearelephant.com>
