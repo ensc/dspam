@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.162 2005/02/04 16:40:23 jonz Exp $
+$Id: CHANGELOG,v 1.163 2005/02/05 23:06:54 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050205.1800] jonz: added fast user switching to CGI for admins
+
+added the ability for admins to change users dynamically in the cgi
 
 [20050204.0800] jonz: applied patch to improve performance in pgsql migration
 
