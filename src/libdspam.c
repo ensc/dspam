@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.21 2004/11/23 21:27:18 jonz Exp $ */
+/* $Id: libdspam.c,v 1.22 2004/11/23 22:06:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -421,8 +421,6 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   }
 
   /* A signature has been presented for training; process it */
-// HERE
-/*
   if (CTX->operating_mode == DSM_PROCESS && 
       CTX->classification != DSR_NONE    &&
       CTX->flags & DSF_SIGNATURE         &&
@@ -433,7 +431,6 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
       CTX->operating_mode = DSM_PROCESS;
     return i;
   }
-*/
 
   /* From this point on, logic assumes that there will be no signature-based
      classification (as it was forked off from the above call) */
@@ -469,9 +466,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
 
   CTX->result = -1;
 
-  if (
-// HERE
-// CTX->flags & DSF_SBPH &&
+  if (CTX->flags & DSF_SBPH &&
       CTX->operating_mode != DSM_CLASSIFY && 
       CTX->classification != DSR_NONE     &&
       CTX->flags & DSF_SIGNATURE) 
@@ -641,9 +636,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Allocate SBPH signature (Message Text) */
 
-  if (
-//HERE
-//CTX->flags & DSF_SBPH   &&
+  if (CTX->flags & DSF_SBPH   &&
       CTX->flags & DSF_SIGNATURE && 
      ((CTX->operating_mode != DSM_CLASSIFY && CTX->classification == DSR_NONE)
       || ! (CTX->_sig_provided)) && 
@@ -1233,8 +1226,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Initialize Non-SBPH signature, if requested */
 
-//HERE
-/*
   if (! (CTX->flags & DSF_SBPH) &&
        CTX->flags & DSF_SIGNATURE && 
        (CTX->operating_mode != DSM_CLASSIFY || ! CTX->_sig_provided))
@@ -1259,7 +1250,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       goto bail;
     }
   }
-*/
 
 #ifdef BNR_DEBUG
   LOGDEBUG("Calculating BNR Result");
@@ -1345,8 +1335,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     /* Create a signature if we're processing a message */
 
-// HERE
-/*
     if ((!(CTX->flags & DSF_SBPH))  && 
         CTX->flags & DSF_SIGNATURE && 
        (CTX->operating_mode != DSM_CLASSIFY || !(CTX->_sig_provided)))
@@ -1360,7 +1348,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
               (i * sizeof (struct _ds_signature_token)), &t,
               sizeof (struct _ds_signature_token));
     }
-*/
 
     /* If classification was provided, force probabilities */
     if (CTX->classification == DSR_ISSPAM)
