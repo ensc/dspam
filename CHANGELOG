@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.17 2004/11/09 20:30:33 jonz Exp $
+$Id: CHANGELOG,v 1.18 2004/11/10 17:06:31 jonz Exp $
 
 Version NEXT
 ------------
@@ -7,11 +7,6 @@ Version NEXT
 
 added a max message size configuration option to specify a maximum message
 size to process
-
-[20041101.0700] jonz: changed loose signature matching
-
-changed loose signature to X-DSPAM-Signature from the ever useless DSPAM: to
-allow the use of signature headers in forwarded attachments.
 
 [20041024.1700] jonz: moved sources to src/
 
@@ -36,6 +31,11 @@ normalized main() by breaking up code into smaller subroutines
 
 Version 3.2.2
 -------------
+
+[20041101.0700] jonz: changed loose signature matching
+
+changed loose signature to X-DSPAM-Signature from the ever useless DSPAM: to
+allow the use of signature headers in forwarded attachments.
 
 [20041109.0800] jonz: fixed source address tracking
 
