@@ -1,17 +1,25 @@
-$Id: CHANGELOG,v 1.208 2005/03/14 15:40:37 jonz Exp $
+$Id: CHANGELOG,v 1.209 2005/03/14 21:20:00 jonz Exp $
 
 Version NEXT
 ------------
 
+[20050313.0700] jonz: fixed bugs handling multiple rcpt to's
+
+fixed bugs in the handling of multiple rcpt to's. strange behavior; some email
+would get sent to the last recipient only. some email would never be 
+processed for a user.
+
 [20050313.0700] jonz: changed lmtp commandline options
 
-removed lmtp from commandline options to service lmtp and smtp. so...
- 
---lmtp-rcpt-to or --lmtp-recipient becomes --rcpt-to and --recipient
---lmtp-mail-from becomes --mail-from
+--lmtp-rcpt-to and --lmtp-recipient have been changed to --rcpt-to, which
+takes a list of users like --user does. For example:
 
-also added ability to set --recipient=%u, which will cause the RCPT TO to
-match the username (useful if calling DSPAM from the commandline)
+--user spot dick jane --rcpt-to spot@domain.com dick@domain.com jane@domain.com
+
+This allows for each user to be assigned its own unique recipient. If the
+recipient is not provided, it will default to the username being processed
+
+--lmtp-mail-from has been changed to --mail-from
 
 [20050312.1600] jonz: added SMTP delivery support, changes delivery hosts
 
@@ -34,8 +42,6 @@ added ChangeModeOnParse option to set the proper --class and --source when
 ParseToHeaders deteects a spam- or fp- address. This allows a system to be
 implemented without aliases, as all requests can be passed to dspam.
 
-Version 3.4.1
--------------
 
 [20050313.0700] jonz: added \r to socket communications
 

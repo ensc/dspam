@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.94 2005/03/14 15:40:37 jonz Exp $ */
+/* $Id: dspam.c,v 1.95 2005/03/14 21:20:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -159,8 +159,10 @@ main (int argc, char *argv[])
     daemon_start(&ATX);
 
     libdspam_shutdown();
-    if (agent_init)
+    if (agent_init) {
       nt_destroy(ATX.users);
+      nt_destroy(ATX.recipients);
+    }
 
     if (agent_config)
       _ds_destroy_attributes(agent_config);
@@ -238,8 +240,10 @@ bail:
   if (message)
     buffer_destroy(message);
 
-  if (agent_init)
+  if (agent_init) {
     nt_destroy(ATX.users);
+    nt_destroy(ATX.recipients);
+  }
 
   if (!_ds_read_attribute(agent_config, "ClientHost")) {
     if (driver_init)
@@ -702,8 +706,12 @@ deliver_message (AGENT_CTX *ATX, const char *message, const char *mailer_args,
  
     if (!strcmp (arg, "$u") || !strcmp (arg, "\\$u") || !strcmp (arg, "%u"))
       strlcpy(a, username, sizeof(a));
-    else if (!strcmp (arg, "%r")) 
-      strlcpy(a, ATX->recipient, sizeof(a));
+    else if (!strcmp (arg, "%r")) {
+      if (ATX->recipient) 
+        strlcpy(a, ATX->recipient, sizeof(a));
+      else
+        strlcpy(a, username, sizeof(a));
+    }
     else if (!strcmp (arg, "%s"))
       strlcpy(a, ATX->mailfrom, sizeof(a));
     else
@@ -1224,7 +1232,8 @@ int send_notice(AGENT_CTX *ATX, const char *filename, const char *mailer_args,
 
 int **process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_node *node_nt;
-  struct nt_c c_nt;
+  struct nt_node *node_rcpt = NULL;
+  struct nt_c c_nt, c_rcpt;
   int retcode = 0, exitcode = EXIT_SUCCESS;
   int **x = malloc(sizeof(int *)*(ATX->users->items+1));
   int i = 0;
@@ -1243,7 +1252,10 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
 
   /* Process message for each user */
   node_nt = c_nt_first (ATX->users, &c_nt);
-  while (node_nt != NULL)
+  if (ATX->recipients)
+    node_rcpt = c_nt_first (ATX->recipients, &c_rcpt);
+
+  while (node_nt || node_rcpt)
   {
     agent_pref_t PTX = NULL;
     agent_pref_t STX = NULL;
@@ -1256,9 +1268,22 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     *code = 0;
     x[i] = code;
 
-    if (ATX->rcpt_match_user)
-      strlcpy(ATX->recipient, node_nt->ptr, sizeof(ATX->recipient));
+    /* If ServerParameters specifies a --user, there will only be one 
+       instance on the stack, but possible multiple recipients. */
 
+    if (node_nt == NULL) 
+      node_nt = ATX->users->first;
+
+    /* Set the "current recipient" to either the next item on the rcpt stack
+       or the current user if not present */
+       
+    if (node_rcpt) { 
+      ATX->recipient = node_rcpt->ptr;
+      node_rcpt = c_nt_next (ATX->recipients, &c_rcpt);
+    } else {
+      ATX->recipient = node_nt->ptr;
+    }
+     
     parse_message = buffer_create(message->data);
     if (parse_message == NULL) {
       LOG(LOG_CRIT, ERROR_MEM_ALLOC);

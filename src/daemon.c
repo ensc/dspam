@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.58 2005/03/12 18:54:48 jonz Exp $ */
+/* $Id: daemon.c,v 1.59 2005/03/14 21:20:00 jonz Exp $ */
 
 /*
 
@@ -505,9 +505,17 @@ void *process_connection(void *ptr) {
             break;
           }
 
-          if (!parms || !strstr(parms, "--user "))
+          if (!parms || !strstr(parms, "--user ")) 
             nt_add(ATX->users, username);
-          strlcpy(ATX->recipient, username, sizeof(ATX->recipient));
+
+          if (!ATX->recipients) {
+            ATX->recipients = nt_create(NT_CHAR);
+            if (ATX->recipients == NULL) {
+              report_error(ERROR_MEM_ALLOC);
+              goto CLOSE;
+            }
+          }
+          nt_add(ATX->recipients, username);
         }
 
         if (daemon_reply(TTX, LMTP_OK, "2.1.5", "OK")<=0)
@@ -615,7 +623,7 @@ void *process_connection(void *ptr) {
     } else {
       struct nt_node *node_nt;
       struct nt_c c_nt;
-      node_nt = c_nt_first(ATX->users, &c_nt);
+      node_nt = c_nt_first(ATX->recipients, &c_nt);
 
       i = 0;
 
@@ -643,7 +651,7 @@ void *process_connection(void *ptr) {
           free(results);
           goto CLOSE;
         }
-        node_nt = c_nt_next(ATX->users, &c_nt);
+        node_nt = c_nt_next(ATX->recipients, &c_nt);
         i++;
       }
     }
@@ -659,6 +667,7 @@ void *process_connection(void *ptr) {
     message = NULL;
     if (ATX != NULL) {
       nt_destroy(ATX->users);
+      nt_destroy(ATX->recipients);
       free(ATX);
       ATX = NULL;
       free(cmdline);
@@ -681,8 +690,10 @@ CLOSE:
   buffer_destroy(TTX->packet_buffer);
   if (message) 
     buffer_destroy(message);
-  if (ATX != NULL)
+  if (ATX != NULL) {
     nt_destroy(ATX->users);
+    nt_destroy(ATX->recipients);
+  }
   free(ATX);
   free(cmdline);
   free(TTX);

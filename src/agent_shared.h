@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.10 2005/03/14 14:48:17 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.11 2005/03/14 21:20:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -63,17 +63,17 @@ typedef struct {
   void *dbh;                /* Database Handle       IN      */
   u_int32_t flags;          /* Flags DAF_            IN      */
   int training_buffer;	    /* Sedation Level 0-10   IN      */
-  int rcpt_match_user;		/* RCPT TO           INTERNAL*/
+  char *recipient;
   char mailer_args[256];        /* Delivery Args     IN      */
   char spam_args[256];          /* Quarantine Args   IN      */
   char managed_group[256];      /* Managed Groupname IN      */
   char profile[32];	        /* Storage Profile   IN      */
   char signature[128];          /* Signature Serial  IN/OUT  */
-  char recipient[256];		/* For LMTP or SMTP */
   char mailfrom[256];		/* For LMTP or SMTP */
   struct nt *users;	        /* Destination Users IN      */
   struct nt *inoc_users;        /* Inoculate list    OUT     */
   struct nt *classify_users;    /* Classify list     OUT     */
+  struct nt *recipients;	/* Recipients        IN      */
   struct _ds_spam_signature SIG;/* signature object  OUT     */ 
   int learned;                  /* Message learned?  OUT     */
   FILE *sockfd;			/* Socket FD if not STDOUT   */

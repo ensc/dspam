@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.35 2005/03/14 14:24:54 jonz Exp $ */
+/* $Id: client.c,v 1.36 2005/03/14 21:20:00 jonz Exp $ */
 
 /*
 
@@ -472,7 +472,8 @@ int send_socket(THREAD_CTX *TTX, const char *ptr) {
   by deliver_message(). This function connects to and delivers the message 
   using standard LMTP or SMTP. Depending on how DSPAM was originally called, 
   either the address supplied with the incoming RCPT TO or the address 
-  supplied on the commandline with --lmtp-recipient will  be used. 
+  supplied on the commandline with --rcpt-to  will be used. If neither are
+  present, the username will be used. 
 
 */
 
@@ -530,7 +531,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *message, int proto) {
   /* RCPT TO - Recipient information or pass-thru */
   /* -------------------------------------------- */
 
-  snprintf(buff, sizeof(buff), "RCPT TO:<%s>", ATX->recipient);
+  snprintf(buff, sizeof(buff), "RCPT TO:<%s>", (ATX->recipient) ? ATX->recipient : "");
   if (send_socket(&TTX, buff)<=0) 
     goto BAIL;
 

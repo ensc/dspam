@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.26 2005/03/14 14:48:17 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.27 2005/03/14 21:20:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -207,7 +207,7 @@ int initialize_atx(AGENT_CTX *ATX) {
  */
 
 int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
-  int i, user_flag = 0;
+  int i, user_flag = 0, rcpt_flag = 0;
   int clienthost = (_ds_read_attribute(agent_config, "ClientHost") || _ds_read_attribute(agent_config, "ServerDomainSocketPath"));
   char *ptrptr;
 
@@ -224,10 +224,11 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     strlcat (ATX->debug_args, " ", sizeof (ATX->debug_args));
 #endif
 
-    if (user_flag &&
+    if ((user_flag || rcpt_flag) &&
        (argv[i][0] == '-' || argv[i][0] == 0 || !strcmp(argv[i], "--")))
     {
        user_flag = 0;
+       rcpt_flag = 0;
        if (!strcmp(argv[i], "--"))
          continue;
     }
@@ -275,14 +276,41 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 
     /* Set runtime target user(s) */
 
-    if (!strncmp (argv[i], "--recipient=", 12) ||
-        !strncmp (argv[i], "--rcpt-to=", 10)) 
+    if (!strncmp (argv[i], "--rcpt-to", 9))
     {
-      strlcpy(ATX->recipient, strchr(argv[i], '=')+1, sizeof(ATX->recipient));
-      if (!strcmp(ATX->recipient, "%u"))
-        ATX->rcpt_match_user = 1;
-      LOGDEBUG("RCPT TO: %s", ATX->recipient);
+      if (!ATX->recipients) {
+        ATX->recipients = nt_create(NT_CHAR);
+        if (ATX->recipients == NULL) {
+          report_error(ERROR_MEM_ALLOC);
+          return EUNKNOWN;
+        }
+      }
+      rcpt_flag = 1;
       continue;
+    }
+
+    if (rcpt_flag)
+    {
+      if (argv[i] != NULL && strlen (argv[i]) <= MAX_USERNAME_LENGTH)
+      {
+        char user[MAX_USERNAME_LENGTH];
+
+        if (_ds_match_attribute(agent_config, "Broken", "case"))
+          lc(user, argv[i]);
+        else
+          strlcpy(user, argv[i], MAX_USERNAME_LENGTH);
+
+#ifdef TRUSTED_USER_SECURITY
+        if (!ATX->trusted && strcmp(user, ATX->p->pw_name)) {
+          report_error_printf(ERROR_TRUSTED_USER, ATX->p->pw_uid,
+                              ATX->p->pw_name);
+          return EFAILURE;
+        }
+
+        if (ATX->trusted)
+#endif
+          nt_add (ATX->recipients, user);
+      }
     }
 
     if (!strncmp (argv[i], "--mail-from=", 12))
