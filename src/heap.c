@@ -1,4 +1,4 @@
-/* $Id: heap.c,v 1.3 2004/12/17 23:39:42 jonz Exp $ */
+/* $Id: heap.c,v 1.4 2004/12/19 03:29:21 jonz Exp $ */
 
 /*
  DSPAM
@@ -99,11 +99,11 @@ heap_insert (struct heap *h,
       if (frequency > current->frequency)
         insert = current;
       else if (frequency == current->frequency)
-        if (complexity > current->complexity)
+        if (complexity >= current->complexity)
           insert = current;
     }
     if (!insert)
-      current = NULL;
+      break;
     else
       current = current->next;
   }
