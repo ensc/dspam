@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.12 2005/01/28 21:26:59 jonz Exp $ */
+/* $Id: dspam_clean.c,v 1.13 2005/01/28 21:44:56 jonz Exp $ */
 
 /*
  DSPAM
@@ -189,7 +189,7 @@ main (int argc, char *argv[])
       nt_add(users, argv[i]);
   }
 
-  if (help || !do_probs && !do_sigs && !do_unused) {
+  if (help || (!do_probs && !do_sigs && !do_unused)) {
     fprintf(stderr, "%s", CLEANSYNTAX);
     _ds_destroy_attributes(agent_config);
     nt_destroy(users);
