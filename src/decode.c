@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.10 2004/12/19 01:05:33 jonz Exp $ */
+/* $Id: decode.c,v 1.11 2004/12/30 00:30:57 jonz Exp $ */
 
 /*
  DSPAM
@@ -960,6 +960,8 @@ _ds_extract_boundary (char *buf, size_t size, char *mem)
         return EFAILURE;
       }
       ptr++;
+      while(isspace(ptr[0]))
+        ptr++;
       if (ptr[0] == '"')
         ptr++;
       strtok_r(ptr, " \";\n\t", &ptrptr);

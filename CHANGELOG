@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.106 2004/12/29 22:06:57 jonz Exp $
+$Id: CHANGELOG,v 1.107 2004/12/30 00:30:57 jonz Exp $
 
 Version NEXT
 ------------
@@ -226,6 +226,10 @@ normalized main() by breaking up code into smaller subroutines
 
 Version 3.2.4
 -------------
+
+[20041229.1925] jonz: fix for broken boundary rfc
+
+added fix for intentionally broken mime boundaries
 
 [20041203.0800] jonz: performance fixes for pgsql_drv
 
