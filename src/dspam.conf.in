@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.19 2005/01/17 23:17:29 jonz Exp $
+## $Id: dspam.conf.in,v 1.20 2005/01/19 18:14:12 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -103,7 +103,7 @@ TrainingMode teft
 #
 #Feature sbph
 Feature chained
-Feature tb=4
+Feature tb=5
 Feature whitelist
 Feature noise
 
