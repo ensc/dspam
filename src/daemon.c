@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.13 2004/12/01 03:24:36 jonz Exp $ */
+/* $Id: daemon.c,v 1.14 2004/12/01 14:08:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -187,7 +187,8 @@ void *process_connection(void *ptr) {
   char buf[1024];
   int tries = 0;
   int argc = 0;
-  int exitcode;
+  int **results, *result;
+  int i;
 
   TTX->packet_buffer = buffer_create(NULL);
   if (TTX->packet_buffer == NULL)
@@ -225,9 +226,13 @@ void *process_connection(void *ptr) {
         ptr = strtok_r(input+10, " ", &ptrptr);
         pass = strtok_r(ptr, "@", &ptrptr);
         ident = strtok_r(NULL, "@", &ptrptr);
+printf("'%s' '%s'\n", pass, ident);
 
         if (pass && ident) {
-          char *serverpass = _ds_read_attribute(agent_config, buf);
+          char *serverpass;
+
+          snprintf(buf, sizeof(buf), "ServerPass.%s", ident);
+          serverpass = _ds_read_attribute(agent_config, buf);
 
           snprintf(buf, sizeof(buf), "ServerPass.%s", ident);
           if (serverpass && !strcmp(pass, serverpass)) {
@@ -330,18 +335,38 @@ void *process_connection(void *ptr) {
       goto CLOSE;
     }
   
-    exitcode = process_users(ATX, message);
-    LOGDEBUG("process_users() returned with exit code %d", exitcode);
+    results = process_users(ATX, message);
   
-    if (!exitcode) {
-      if (! ATX->sockfd_output)
-        snprintf(buf, sizeof(buf), "%d 2.5.0 Message accepted for delivery", LMTP_OK);
-      else
-       strcpy(buf, ".");
+    if (ATX->sockfd_output) {
+      if (socket_send(TTX, ".")<=0)
+        goto CLOSE;
     } else {
-      snprintf(buf, sizeof(buf), "%d Error occured during processing.", LMTP_ERROR);
+      struct nt_node *node_nt;
+      struct nt_c c_nt;
+      node_nt = c_nt_first(ATX->users, &c_nt);
+
+      i = 0;
+
+      while(node_nt != NULL) {
+        result = results[i];
+        if (*result > 0) 
+          snprintf(buf, sizeof(buf), "%d <%s> Message accepted for delivery",
+                   LMTP_OK, (char *) node_nt->ptr);
+        else
+          snprintf(buf, sizeof(buf), "%d <%s> %d Error occured during processing", LMTP_ERROR, (char *) node_nt->ptr, *result);
+
+        free(result);
+        if (socket_send(TTX, buf)<=0)
+          goto CLOSE;
+        node_nt = c_nt_next(ATX->users, &c_nt);
+        i++;
+      }
     }
-    socket_send(TTX, buf);
+
+    for(i=0;i<=ATX->users->items;i++)
+      free(results[i]);
+    free(results);
+
     buffer_destroy(message);
     message = NULL;
     if (ATX != NULL) {

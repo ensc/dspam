@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.45 2004/12/01 03:24:34 jonz Exp $
+$Id: CHANGELOG,v 1.46 2004/12/01 14:08:34 jonz Exp $
 
 Version NEXT
 ------------
@@ -16,11 +16,11 @@ RCPT TO: [list of DSPAM users] [DSPAM parameters] [delivery agent parameters]
 DATA
 [message]
 .
-daemon processes *and* delivers at the moment (including to stdout). For
-client-side delivery, use --stdout and configure your MTA to deliver.
-removed some memory leaks.
-it may be necessary to perform all delivery in the client, as using fork &&
-pipe in a MT app may be bad
+- daemon processes *and* delivers at the moment (including to stdout). 
+- For client-side delivery, use --stdout and configure your MTA to deliver.
+- it may be necessary to perform all delivery in the client, as using fork &&
+  pipe in a MT app may be bad
+- implemented multiple responses per recipient
 
 next: client
 then: stateful db connections

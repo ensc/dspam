@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.23 2004/12/01 03:17:14 jonz Exp $ */
+/* $Id: dspam.c,v 1.24 2004/12/01 14:08:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -98,8 +98,10 @@ main (int argc, char *argv[])
   AGENT_CTX ATX;		/* Agent configuration */
   buffer *message = NULL;       /* Input Message */
   int exitcode = EXIT_SUCCESS;
+  int **results;
   int driver_init = 0;		/* Driver is initialized */
   int agent_init = 0;		/* Agent is initialized */
+  int i;
 
   timestart = gettime();	/* Set tick count to calculate run time */
   srand (getpid ());		/* Random numbers for signature creation */
@@ -178,7 +180,13 @@ main (int argc, char *argv[])
   }
 
   /* Process the message once for each destination user */
-  exitcode = process_users(&ATX, message);
+  results = process_users(&ATX, message);
+  exitcode = *results[ATX.users->items];
+  for(i=0;i<=ATX.users->items;i++) {
+    int *x = results[i];
+    free(x);
+  }
+  free(results);
 
 bail:
 
@@ -1699,11 +1707,18 @@ bail:
     message	message to process for each user
 */
 
-int process_users(AGENT_CTX *ATX, buffer *message) {
+// HERE
+int **process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_node *node_nt;
   struct nt_c c_nt;
   int retcode, exitcode = EXIT_SUCCESS;
+  int **x = malloc(sizeof(int *)*(ATX->users->items+1));
+  int i = 0;
+  int *code;
   FILE *fout;
+
+  if (x == NULL)
+    return NULL;
 
   if (ATX->sockfd > 0) {
     fout = fdopen(ATX->sockfd, "w");
@@ -1881,6 +1896,10 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
         if (result == DSR_ISSPAM)
           exitcode = 99;
       }
+      code = malloc(sizeof(int));
+      *code = result;
+      x[i] = code;
+      i++;
 
       /* Classify Only */
 
@@ -2030,7 +2049,10 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", exitcode);
   }
 
-  return exitcode;
+  code = malloc(sizeof(int));
+  *code = exitcode;
+  x[ATX->users->items] = code;
+  return x;
 }
 
 

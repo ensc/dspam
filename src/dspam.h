@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.8 2004/12/01 00:32:15 jonz Exp $ */
+/* $Id: dspam.h,v 1.9 2004/12/01 14:08:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -116,7 +116,7 @@ int process_mode	(AGENT_CTX *ATX, const char *mode);
 int check_configuration (AGENT_CTX *ATX);
 int apply_defaults      (AGENT_CTX *ATX);
 int process_arguments   (AGENT_CTX *ATX, int argc, char **argv);
-int process_users       (AGENT_CTX *ATX, buffer *message);
+int **process_users       (AGENT_CTX *ATX, buffer *message);
 int initialize_atx      (AGENT_CTX *ATX);
 int find_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX);
 int strip_xdspam_headers(DSPAM_CTX *CTX, AGENT_PREF PTX);
