@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.51 2004/12/18 03:45:07 jonz Exp $ */
+/* $Id: libdspam.c,v 1.52 2004/12/18 03:51:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -1121,6 +1121,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     struct lht_node *node_lht;
     struct lht_c c_lht;
     struct _ds_spam_stat bnr_tot;
+    unsigned long long crc;
     BNR_CTX BTX;
     float snr;
 
@@ -1131,7 +1132,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     bnr_pattern_instantiate(CTX, bnr_layer1, freq->order, 's', DTT_DEFAULT, NULL);
     bnr_pattern_instantiate(CTX, bnr_layer1, freq->chained_order, 'c', DTT_DEFAULT, NULL);
 
-    lht_hit(bnr_layer1, _ds_getcrc64("bnr.t|"), "bnr.t|", 0);
+    crc = _ds_getcrc64("bnr.t|");
+    lht_hit(bnr_layer1, crc, "bnr.t|", 0);
 
     LOGDEBUG("Loading %ld BNR patterns at layer 1", bnr_layer1->items);
 
@@ -1142,7 +1144,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       goto bail;
     }
 
-    lht_getspamstat(bnr_layer1, _ds_getcrc64("bnr.t|"), &bnr_tot);
+    lht_getspamstat(bnr_layer1, crc, &bnr_tot);
 
     /* BNR LAYER 2 PATTERNS (Patterns of patterns of tokens) */
 
