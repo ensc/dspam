@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.5 2004/10/25 22:15:49 jonz Exp $
+$Id: CHANGELOG,v 1.6 2004/10/25 22:22:17 jonz Exp $
 
 Version NEXT
 ------------
@@ -6,6 +6,11 @@ Version NEXT
 [20041025.0600] jonz: fixed memory leak in dspam_clean
 
 fixed memory leak of preferences in dspam_clean
+
+[20041025.0600] jonz: sqlite fixes
+
+fixes to sqlite driver; started using sqlite_[encode|decode]_binary and fixed
+calls to sqlite_finalize causing segfaults.
 
 [20041024.2000] jonz: added patch for parsing signature from body
 

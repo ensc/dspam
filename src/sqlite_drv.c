@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.2 2004/10/25 22:22:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -787,7 +787,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
                    const char *signature)
 {
   struct _sqlite_drv_storage *s = (struct _sqlite_drv_storage *) CTX->storage;
-  unsigned long length, offset, final;
+  unsigned long length;
   char *mem;
   char query[128];
   char *err=NULL, **row;
@@ -821,34 +821,22 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EFAILURE;
   }
 
-  mem = calloc(1, length+1);
-  if (mem == NULL)
-  {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-    sqlite_free_table(row);
-    return EUNKNOWN;
+ mem = malloc(length+1);
+  if (mem == NULL) {
+   LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+   sqlite_free_table(row);
+   return EUNKNOWN;
   }
 
-  strcpy(mem, row[ncolumn]);
-  final = length;
-
-  /* Unquote special characters */
-  for(offset=0;offset<final;offset++) {
-    if (mem[offset] == '\\' && mem[offset+1] == '\\') {
-      memmove(mem+offset, mem+offset+1, (length-offset)+1); 
-      final--;
-    } else if (mem[offset] == '\\' && mem[offset+1] == '0') {
-      memmove(mem+offset, mem+offset+1, (length-offset)+1);
-      mem[offset] = 0;
-      final--;
-    } else if (mem[offset] == '"' && mem[offset+1] == '"') {
-      memmove(mem+offset, mem+offset+1, (length-offset)+1);
-      final--;
-    }
+  length = sqlite_decode_binary(row[ncolumn], mem);
+  if (length<0) {
+    report_error_printf("sqlite_decode_binary() failed with error %d", length);
+    return EFAILURE;
   }
 
-  SIG->data = realloc(mem, final);
-  SIG->length = final;
+  SIG->data = realloc(mem, length);
+  SIG->length = length;
+
   sqlite_free_table(row);
   return 0;
 }
@@ -858,7 +846,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
                    const char *signature)
 {
   struct _sqlite_drv_storage *s = (struct _sqlite_drv_storage *) CTX->storage;
-  unsigned long length, final, offset;
+  unsigned long length;
   char *mem;
   char scratch[1024];
   buffer *query;
@@ -877,7 +865,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EUNKNOWN;
   }
 
-  mem = calloc (1, SIG->length * 2);
+  mem = calloc (1, 2 + (257*SIG->length)/254);
   if (mem == NULL)
   {
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
@@ -885,23 +873,11 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EUNKNOWN;
   }
 
-  memcpy(mem, SIG->data, SIG->length);
-  length = SIG->length;
-  final = length;
-
-  for(offset=0;offset<final;offset++) {
-    if (mem[offset] == '\\' || mem[offset] == '"') {
-      memmove(mem+offset+1, mem+offset, (final-offset)+1); 
-      mem[offset] = mem[offset+1];
-      offset++;
-      final++;
-    } else if (mem[offset] == '\0') {
-      memmove(mem+offset+1, mem+offset, (final-offset)+1);
-      mem[offset] = '\\';
-      mem[offset+1] = '0';
-      offset++;
-      final++;
-    }
+  length = sqlite_encode_binary(SIG->data, SIG->length, mem);
+  if (length<0) {
+   report_error_printf("sqlite_encode_binary() failed on error %d", length);
+   buffer_destroy(query);
+   return EFAILURE;
   }
 
   snprintf (scratch, sizeof (scratch),
@@ -1146,7 +1122,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
       free(st);
       return NULL;
     }
-    sqlite_finalize((struct sqlite_vm *) &s->iter_token, &err);
+    sqlite_finalize((struct sqlite_vm *) s->iter_token, &err);
     s->iter_token = NULL;
     free(st);
     return NULL;
@@ -1165,7 +1141,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
 {
   struct _sqlite_drv_storage *s = (struct _sqlite_drv_storage *) CTX->storage;
   struct _ds_storage_signature *st;
-  unsigned long length, final, offset;
+  unsigned long length;
   char query[128];
   char *mem;
   char *err=NULL;
@@ -1208,7 +1184,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
       free(st);
       return NULL;
     }
-    sqlite_finalize((struct sqlite_vm *) &s->iter_sig, &err);
+    sqlite_finalize((struct sqlite_vm *) s->iter_sig, &err);
     s->iter_sig = NULL;
     free(st);
     return NULL;
@@ -1220,37 +1196,27 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     return _ds_get_nextsignature(CTX);
   }
 
-  mem = malloc (length+1);
+ mem = malloc (length+1);
   if (mem == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC)
     sqlite_finalize(s->iter_sig, &err);
     s->iter_sig = NULL;
     free(st);
     return NULL;
   }
 
-  strcpy(mem, row[0]);
-  final = length;
-                                                                                
-  /* Unquote special characters */
-  for(offset=0;offset<final;offset++) {
-    if (mem[offset] == '\\' && mem[offset+1] == '\\') {
-      memmove(mem+offset, mem+offset+1, (length-offset)+1);
-      final--;
-    } else if (mem[offset] == '\\' && mem[offset+1] == '0') {
-      memmove(mem+offset, mem+offset+1, (length-offset)+1);
-      mem[offset] = 0;
-      final--;
-    } else if (mem[offset] == '"' && mem[offset+1] == '"') {
-      memmove(mem+offset, mem+offset+1, (length-offset)+1);
-      final--;
-    }
+  length = sqlite_decode_binary((const unsigned char *) &row[ncolumn], mem);
+  if (length<0) {
+    report_error_printf("sqlite_decode_binary() failed with error %d", length);
+    s->iter_sig = NULL;
+    free(st);
+    return NULL;
   }
-                                                                                
-  st->data = realloc(mem, final);
+
+  st->data = realloc(mem, length);
   strlcpy(st->signature, row[1], sizeof(st->signature));
-  st->length = final;
+  st->length = length;
   st->created_on = (time_t) strtol(row[2], NULL, 0);
 
   return st;
