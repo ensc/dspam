@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.20 2004/12/19 00:49:18 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.21 2004/12/19 01:38:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -1857,6 +1857,8 @@ DSPAM_CTX *_mysql_drv_init_tools(
  void *dbh)
 {
   DSPAM_CTX *CTX;
+  struct _mysql_drv_storage *s;
+  int dbh_attached = (dbh) ? 1 : 0;
 
   CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
 
@@ -1874,6 +1876,8 @@ DSPAM_CTX *_mysql_drv_init_tools(
   if (dspam_attach(CTX, dbh))
     goto BAIL;
 
+  s = CTX->storage;
+  s->dbh_attached = dbh_attached;
   return CTX;
 
 BAIL:
@@ -1930,6 +1934,7 @@ AGENT_PREF _ds_pref_load(
   if (MYSQL_RUN_QUERY (s->dbh, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbh), query);
+    dspam_destroy(CTX);
     return NULL;
   }
 
@@ -1956,7 +1961,7 @@ AGENT_PREF _ds_pref_load(
     mysql_free_result(result);
     _ds_pref_free(PTX);
     free(PTX);
-    if (username == NULL)
+    if (username == NULL) 
       return NULL;
     return _ds_pref_load(config, NULL, home, dbh);
   }
@@ -2553,7 +2558,7 @@ void *_ds_connect (DSPAM_CTX *CTX)
 
 MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
 {
-  MYSQL *dbh, *connect;
+  MYSQL *dbh;
   FILE *file;
   char filename[MAX_FILENAME_LENGTH];
   char buffer[128];
@@ -2622,8 +2627,8 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
     goto FAILURE;
   }
 
-  connect = mysql_init (NULL);
-  if (connect == NULL)
+  dbh = mysql_init(NULL);
+  if (dbh == NULL)
   {
     LOGDEBUG
       ("_ds_init_storage: mysql_init: unable to initialize handle to database");
@@ -2632,22 +2637,23 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
 
   if (hostname[0] == '/')
   {
-    dbh =
-      mysql_real_connect (connect, NULL, user, password, db, 0, hostname, 
-                          real_connect_flag);
+    if (!mysql_real_connect (dbh, NULL, user, password, db, 0, hostname, 
+                        real_connect_flag))
+    {
+      LOG (LOG_WARNING, "%s", mysql_error (dbh));
+      mysql_close(dbh);
+      goto FAILURE;
+    }
   }
   else
   {
-    dbh =
-      mysql_real_connect (connect, hostname, user, password, db, port, NULL,
-                          real_connect_flag);
-  }
-
-  if (dbh == NULL)
-  {
-    LOG (LOG_WARNING, "%s", mysql_error (connect));
-    mysql_close(dbh);
-    goto FAILURE;
+    if (!mysql_real_connect (dbh, hostname, user, password, db, port, NULL,
+                        real_connect_flag))
+    {
+      LOG (LOG_WARNING, "%s", mysql_error (dbh));
+      mysql_close(dbh);
+      goto FAILURE;
+    }
   }
 
   return dbh;
