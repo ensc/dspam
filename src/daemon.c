@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.82 2005/03/23 05:27:00 jonz Exp $ */
+/* $Id: daemon.c,v 1.83 2005/03/23 05:33:41 jonz Exp $ */
 
 /*
 
@@ -295,7 +295,7 @@ void *process_connection(void *ptr) {
   AGENT_CTX *ATX = NULL;
   buffer *message = NULL;
   char *input, *cmdline = NULL, *token, *ptrptr;
-  char *oldcmd = NULL, *parms=NULL, *p=NULL;
+  char *parms=NULL, *p=NULL;
   char *server_ident = _ds_read_attribute(agent_config, "ServerIdent");
   char *argv[64];
   char buf[1024];
@@ -528,6 +528,7 @@ void *process_connection(void *ptr) {
     /* RCPT TO */
 
     while(ATX->users->items == 0 || invalid) {
+      free(cmdline);
       cmdline = daemon_getline(TTX, 300);
  
       while(cmdline && (!strncasecmp(cmdline, "RCPT TO:", 8) || (!strncasecmp(cmdline, "RSET", 4)))) {
@@ -547,7 +548,6 @@ void *process_connection(void *ptr) {
           {
             daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERROR_INVALID_RCPT);
             goto GETCMD;
-//            break;
           }
 
           nt_add(ATX->users, username);
@@ -580,10 +580,8 @@ void *process_connection(void *ptr) {
           goto CLOSE;
 
 GETCMD:
-        oldcmd = cmdline;
+        free(cmdline);
         cmdline = daemon_getline(TTX, 300);
-//        if  (server_mode == SSM_DSPAM)
-//          break;
       }
 
       if (cmdline == NULL)
@@ -644,8 +642,6 @@ GETCMD:
       if (RSET(input)) 
         goto RSET;
     }
-
-    cmdline = oldcmd;
 
     if (daemon_reply(TTX, LMTP_DATA, "", DAEMON_DATA)<=0)
       goto CLOSE;
