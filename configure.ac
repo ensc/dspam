@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.15 2004/12/26 20:27:05 jonz Exp $
+dnl $Id: configure.ac,v 1.16 2004/12/26 20:29:30 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -272,7 +272,7 @@ AC_ARG_ENABLE(bnr-debug,
     [AS_HELP_STRING(--enable-bnr-debug,
                         Activates debugging output for Bayesian Noise Reduction
                     )])
-AC_MSG_CHECKING([whether to enable bnr-debug])
+AC_MSG_CHECKING([whether to enable debug for Bayesian Noise Reduction])
 case x"$enable_bnr_debug" in
     xyes)   # enabled explicity
             ;;
