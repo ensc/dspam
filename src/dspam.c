@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.46 2004/12/21 13:42:20 jonz Exp $ */
+/* $Id: dspam.c,v 1.47 2004/12/21 13:45:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -2879,12 +2879,11 @@ int is_blacklisted(const char *ip) {
   char *ptr;
   char *str;
   char *octet[4];
-  int bad = 0;
+  int bad = 0, i = 3;
 
   host[0] = 0;
   str = strdup(ip);
   ptr = strtok(str, ".");
-  int i = 3;
   while(ptr != NULL && i>=0) {
     octet[i] = ptr;
     ptr = strtok(NULL, ".");
