@@ -1,10 +1,17 @@
-$Id: CHANGELOG,v 1.125 2005/01/06 01:40:56 jonz Exp $
+$Id: CHANGELOG,v 1.126 2005/01/06 05:02:08 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
  
 Version NEXT
 ------------
+
+[20040106.0000] jonz: added manual override for CGI options
+
+for implementations running the cgi as an untrusted user (e.g. cpanel),
+you'll need to manually override autodetection of certain options like
+filesystem scale and preferences extension detection. added option for this
+to configure.pl in the cgi.
 
 [20040105.2035] jonz: trainingMode preference to be case insensitive
 
