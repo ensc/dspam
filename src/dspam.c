@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.17 2004/11/30 19:46:09 jonz Exp $ */
+/* $Id: dspam.c,v 1.18 2004/11/30 21:05:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -1195,7 +1195,8 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     if (!strcmp (argv[i], "--debug"))
     {
 #ifdef DEBUG
-      DO_DEBUG = 1;
+      if (DO_DEBUG == 0)
+        DO_DEBUG = 1;
 #endif
       continue;
     }
@@ -1207,9 +1208,15 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 #ifdef DEBUG
       DO_DEBUG = 2;
 #endif
+      if (dspam_init_driver ())
+      {
+        LOG (LOG_WARNING, "unable to initialize storage driver");
+        exit(EXIT_FAILURE);
+      }
       LOGDEBUG(DAEMON_START);
       daemon_listen();
       LOGDEBUG(DAEMON_EXIT);
+      dspam_shutdown_driver();
       pthread_exit(EXIT_SUCCESS);
       exit(EXIT_SUCCESS);
     }
@@ -1695,8 +1702,9 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
 
 #ifdef DEBUG
-    if (_ds_match_attribute(agent_config, "Debug", "*")           ||
-        _ds_match_attribute(agent_config, "Debug", node_nt->ptr))
+    if (!DO_DEBUG &&
+        (_ds_match_attribute(agent_config, "Debug", "*")           ||
+         _ds_match_attribute(agent_config, "Debug", node_nt->ptr)))
     {
       // No DebugOpt specified; turn it on for everything
       if (!_ds_read_attribute(agent_config, "DebugOpt")) 
@@ -1851,7 +1859,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
       /* Classify Only */
 
-      if (ATX->operating_mode == DSM_CLASSIFY)
+      if (ATX->operating_mode == DSM_CLASSIFY) 
       {
         node_nt = c_nt_next (ATX->users, &c_nt);
         _ds_pref_free(PTX);

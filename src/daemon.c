@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.4 2004/11/30 19:46:09 jonz Exp $ */
+/* $Id: daemon.c,v 1.5 2004/11/30 21:05:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -176,8 +176,14 @@ int daemon_listen() {
 
 void *process_connection(void *ptr) {
   THREAD_CTX *TTX = (THREAD_CTX *) ptr;
+  AGENT_CTX *ATX = NULL;
+  buffer *message = NULL;
   char *serverpass = _ds_read_attribute(agent_config, "ServerPass");
+  char *input, *cmdline = NULL, *token, *ptrptr;
+  char *argv[32];
   int tries = 0;
+  int argc = 0;
+  int exitcode;
 
   TTX->packet_buffer = buffer_create(NULL);
   if (TTX->packet_buffer == NULL)
@@ -188,26 +194,20 @@ void *process_connection(void *ptr) {
   /* Echo until authenticated */
 
   while(!TTX->authenticated) {
-    char *input;
     struct timeval tv;
 
     input = socket_getline(TTX, 10);
     if (input == NULL) 
       goto CLOSE;
     else {
-      char *pass = strdup(input);
-      chomp(pass);
-      if (!strcmp(pass, serverpass)) {
+      chomp(input);
+      if (!strcmp(input, serverpass)) {
         LOGDEBUG("fd %d remote_addr %s authenticated.", TTX->sockfd, 
                   inet_ntoa(TTX->remote_addr.sin_addr));
         TTX->authenticated = 1;
       } 
-      else if (send(TTX->sockfd, input, strlen(input)+1, 0)<0) {
-        free(pass);
+      else if (socket_send(TTX, input)<0) 
         goto CLOSE;
-      }
-
-      free(pass);
     }
       
     if (!TTX->authenticated) {
@@ -224,11 +224,69 @@ void *process_connection(void *ptr) {
     }
   }
 
+  /* Client is authenticated, receive username */
+  cmdline = socket_getline(TTX, 60);
+  if (cmdline == NULL) 
+    goto CLOSE;
+  chomp(cmdline);
+
+  token = strtok_r(cmdline, " ", &ptrptr);
+  while(token != NULL) {
+    argv[argc] = token;
+    argc++;
+    token = strtok_r(NULL, " ", &ptrptr);
+  }
+  
+  /* Tokenize commandline */
+  
+  /* Configure agent context */
+  ATX = calloc(1, sizeof(AGENT_CTX));
+  if (ATX == NULL) {
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC); 
+    socket_send(TTX, ERROR_MEM_ALLOC);
+    goto CLOSE;   
+  }
+
+  if (initialize_atx(ATX) || process_arguments(ATX, argc, argv),
+      apply_defaults(ATX)) 
+  {
+    report_error(ERROR_INITIALIZE_ATX);
+    socket_send(TTX, ERROR_INITIALIZE_ATX);
+    goto CLOSE;
+  } 
+
+  ATX->daemon = 1;
+
+  if (check_configuration(ATX)) {
+    report_error(ERROR_DSPAM_MISCONFIGURED);
+    socket_send(TTX, ERROR_DSPAM_MISCONFIGURED);
+    goto CLOSE;
+  }
+
+  message = read_sock(TTX, ATX);
+
+  if (ATX->users->items == 0)
+  {
+    LOG (LOG_ERR, ERROR_USER_UNDEFINED);
+    socket_send(TTX, ERROR_USER_UNDEFINED);
+    goto CLOSE;
+  }
+
+  exitcode = process_users(ATX, message);
+  LOGDEBUG("process_users() returned with exit code %d", exitcode);
+
   /* Close connection and return */
+
 CLOSE:
   close(TTX->sockfd);
   buffer_destroy(TTX->packet_buffer);
+  if (message) 
+    buffer_destroy(message);
   free(TTX);
+  if (ATX != NULL)
+    nt_destroy(ATX->users);
+  free(ATX);
+  free(cmdline);
   return NULL;
 }
 
@@ -281,6 +339,110 @@ char *pop_buffer(THREAD_CTX *TTX) {
   memmove(TTX->packet_buffer->data, eol+1, strlen(eol+1)+1);
   TTX->packet_buffer->used -= len;
   return buff;
+}
+
+int socket_send(THREAD_CTX *TTX, const char *ptr) {
+  int i;
+
+  i = send(TTX->sockfd, ptr, strlen(ptr), 0);
+  if (i>0) 
+    i = send(TTX->sockfd, "\n", 2, 0);
+  return i;
+}
+
+buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
+  char *buff;
+  buffer *message;
+  int body = 0, line = 1;
+
+  message = buffer_create(NULL);
+  if (message == NULL) {
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+
+  while ((buff = socket_getline(TTX, 60))!=NULL) {
+    chomp(buff);
+    if (!strcmp(buff, ".")) {
+      return message;
+    }
+
+    if (_ds_match_attribute(agent_config, "Broken", "lineStripping")) {
+      size_t len = strlen(buff);
+  
+      while (len>1 && buff[len-2]==13) {
+        buff[len-2] = buff[len-1];
+        buff[len-1] = 0;
+        len--;
+      }
+    }
+  
+    if (line > 1 || strncmp (buff, "From QUARANTINE", 15))
+    {
+      if (_ds_match_attribute(agent_config, "ParseToHeaders", "on")) {
+
+        /* Parse the To: address for a username */
+        if (buff[0] == 0)
+          body = 1;
+        if (ATX->classification != -1 && !body && 
+            !strncasecmp(buff, "To: ", 4))
+        {
+          char *y = NULL;
+          if (ATX->classification == DSR_ISSPAM) {
+            char *x = strstr(buff, "spam-");
+            if (x != NULL) {
+              y = strdup(x+5);
+            }
+          } else {
+            char *x = strstr(buff, "fp-");
+            if (x != NULL) {
+              y = strdup(x+3);
+            }
+          }
+  
+          if (y) {
+            char *z = strtok(y, "@");
+            nt_add (ATX->users, z);
+            free(y);
+          }
+        }
+      }
+ 
+      if (buffer_cat (message, buff) || buffer_cat(message, "\n"))
+      {
+        LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+        goto bail;
+      }
+    }
+  
+    /* Use the original user id if we are reversing a false positive */
+    if (!strncasecmp (buff, "X-DSPAM-User: ", 14) && 
+        ATX->managed_group[0] != 0                 &&
+        ATX->operating_mode == DSM_PROCESS    &&
+        ATX->classification == DSR_ISINNOCENT &&
+        ATX->source         == DSS_ERROR)
+    {
+      char user[MAX_USERNAME_LENGTH];
+      strlcpy (user, buff + 14, sizeof (user));
+      chomp (user);
+      nt_destroy (ATX->users);
+      ATX->users = nt_create (NT_CHAR);
+      if (ATX->users == NULL)
+      {
+        report_error (ERROR_MEM_ALLOC);
+        goto bail;
+      }
+      nt_add (ATX->users, user);
+    }
+
+    line++;
+  }
+
+  return NULL;
+
+bail:
+  buffer_destroy(message);
+  return NULL;
 }
 
 #endif /* DAEMON */

@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.4 2004/11/30 19:46:09 jonz Exp $ */
+/* $Id: daemon.h,v 1.5 2004/11/30 21:05:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <arpa/inet.h>
 
 #include "buffer.h"
+#include "dspam.h"
 
 #ifdef DAEMON
 
@@ -53,6 +54,9 @@ int daemon_listen(void);
 void *process_connection(void *ptr);
 char *socket_getline(THREAD_CTX *TTX, int timeout);
 char *pop_buffer(THREAD_CTX *TTX);
+int socket_send(THREAD_CTX *TTX, const char *ptr);
+buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
+int process_users_daemon(THREAD_CTX *TTX, AGENT_CTX *ATX, buffer *message);
 
 #endif /* _DAEMON_H */
 

@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.39 2004/11/30 19:46:09 jonz Exp $
+$Id: CHANGELOG,v 1.40 2004/11/30 21:05:37 jonz Exp $
 
 Version NEXT
 ------------
@@ -7,11 +7,17 @@ Version NEXT
 
 CVS notes:
 
-current status: initial daemonization code to launch into daemon mode and 
-listen for new connections, authenticates based on ServerPass in dspam.conf
+set up daemonized dspam in daemon.c, compile with --enable-daemon, then call
+dspam --daemon. initial protocol is:
 
-next: parameters and process
-then: client
+[secret password]
+[commandline arguments]
+[message]
+.
+
+daemon processes *and* delivers at the moment
+
+next: client
 then: stateful db connections
  
 [20041127.1700] jonz: normalized process_message()

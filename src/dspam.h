@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.5 2004/11/27 22:38:15 jonz Exp $ */
+/* $Id: dspam.h,v 1.6 2004/11/30 21:05:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -69,6 +69,7 @@ typedef struct {
   struct nt *classify_users;    /* Classify list     OUT     */
   struct _ds_spam_signature SIG;/* signature object  OUT     */ 
   int learned;                  /* Message learned?  OUT     */
+  int daemon;			/* In daemon mode?   IN      */
 
 #ifdef DEBUG
   char debug_args[1024];
