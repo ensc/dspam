@@ -1,4 +1,4 @@
-/* $Id: hash.c,v 1.1 2004/12/29 04:03:21 jonz Exp $ */
+/* $Id: hash.c,v 1.2 2004/12/29 05:18:56 jonz Exp $ */
 
 /*
  DSPAM
@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /* Read-only */
 
-static unsigned long hash_prime_list[hash_num_primes] = {
+static unsigned long bnr_hash_prime_list[bnr_hash_num_primes] = {
   53ul, 97ul, 193ul, 389ul, 769ul,
   1543ul, 3079ul, 6151ul, 12289ul, 24593ul,
   49157ul, 98317ul, 196613ul, 393241ul, 786433ul,
@@ -41,11 +41,11 @@ static unsigned long hash_prime_list[hash_num_primes] = {
   1610612741ul, 3221225473ul, 4294967291ul
 };
 
-struct hash_node *
-hash_node_create (const char *name)
+struct bnr_hash_node *
+bnr_hash_node_create (const char *name)
 {
-  struct hash_node *node
-    = (struct hash_node *) calloc (1, sizeof (struct hash_node));
+  struct bnr_hash_node *node
+    = (struct bnr_hash_node *) calloc (1, sizeof (struct bnr_hash_node));
 
   if (node)
     node->name = strdup(name);
@@ -53,20 +53,20 @@ hash_node_create (const char *name)
   return node;
 }
 
-struct hash *
-hash_create (unsigned long size)
+struct bnr_hash *
+bnr_hash_create (unsigned long size)
 {
   unsigned long i = 0;
-  struct hash *hash = (struct hash *) malloc (sizeof (struct hash));
+  struct bnr_hash *hash = (struct bnr_hash *) malloc (sizeof (struct bnr_hash));
 
   if (hash == NULL) 
     return NULL;
-  while (hash_prime_list[i] < size)
+  while (bnr_hash_prime_list[i] < size)
     i++;
-  hash->size = hash_prime_list[i];
+  hash->size = bnr_hash_prime_list[i];
   hash->items = 0;
   hash->tbl =
-    (struct hash_node **) calloc (hash->size, sizeof (struct hash_node *));
+    (struct bnr_hash_node **) calloc (hash->size, sizeof (struct bnr_hash_node *));
   if (hash->tbl == NULL) {
     free (hash);
     return NULL;
@@ -75,20 +75,20 @@ hash_create (unsigned long size)
 }
 
 int
-hash_destroy (struct hash *hash)
+bnr_hash_destroy (struct bnr_hash *hash)
 {
-  struct hash_node *node, *next;
-  struct hash_c c;
+  struct bnr_hash_node *node, *next;
+  struct bnr_hash_c c;
 
   if (hash == NULL)
     return -1;
 
-  node = c_hash_first (hash, &c);
+  node = c_bnr_hash_first (hash, &c);
   while (node != NULL)
   {
-    next = c_hash_next (hash, &c);
+    next = c_bnr_hash_next (hash, &c);
     free (node->name);
-    hash_delete (hash, node->name);
+    bnr_hash_delete (hash, node->name);
     node = next;
   }
 
@@ -99,14 +99,14 @@ hash_destroy (struct hash *hash)
 }
 
 int
-hash_delete (struct hash *hash, const char *name)
+bnr_hash_delete (struct bnr_hash *hash, const char *name)
 {
   unsigned long hash_code;
-  struct hash_node *node;
-  struct hash_node *del_node = NULL;
-  struct hash_node *parent = NULL;
+  struct bnr_hash_node *node;
+  struct bnr_hash_node *del_node = NULL;
+  struct bnr_hash_node *parent = NULL;
 
-  hash_code = hash_hashcode(hash, name);
+  hash_code = bnr_hash_hashcode(hash, name);
   node = hash->tbl[hash_code];
 
   while (node)
@@ -137,19 +137,19 @@ hash_delete (struct hash *hash, const char *name)
   return 0;
 }
 
-struct hash_node *
-c_hash_first (struct hash *hash, struct hash_c *c)
+struct bnr_hash_node *
+c_bnr_hash_first (struct bnr_hash *hash, struct bnr_hash_c *c)
 {
   c->iter_index = 0;
-  c->iter_next = (struct hash_node *) NULL;
-  return (c_hash_next (hash, c));
+  c->iter_next = (struct bnr_hash_node *) NULL;
+  return (c_bnr_hash_next (hash, c));
 }
 
-struct hash_node *
-c_hash_next (struct hash *hash, struct hash_c *c)
+struct bnr_hash_node *
+c_bnr_hash_next (struct bnr_hash *hash, struct bnr_hash_c *c)
 {
   unsigned long index;
-  struct hash_node *node = c->iter_next;
+  struct bnr_hash_node *node = c->iter_next;
 
   if (node) {
     c->iter_next = node->next;
@@ -168,14 +168,14 @@ c_hash_next (struct hash *hash, struct hash_c *c)
 }
 
 int
-hash_hit (struct hash *hash, const char *name)
+bnr_hash_hit (struct bnr_hash *hash, const char *name)
 {
   unsigned long hash_code;
-  struct hash_node *parent;
-  struct hash_node *node;
-  struct hash_node *new_node = NULL;
+  struct bnr_hash_node *parent;
+  struct bnr_hash_node *node;
+  struct bnr_hash_node *new_node = NULL;
 
-  hash_code = hash_hashcode(hash, name);
+  hash_code = bnr_hash_hashcode(hash, name);
   parent = NULL;
   node = hash->tbl[hash_code];
 
@@ -194,7 +194,7 @@ hash_hit (struct hash *hash, const char *name)
     return 0;
 
   /* Create a new node */
-  new_node = hash_node_create(name);
+  new_node = bnr_hash_node_create(name);
   hash->items++;
 
   /* Insert */
@@ -210,13 +210,13 @@ hash_hit (struct hash *hash, const char *name)
 }
 
 float
-hash_value (struct hash *hash, const char *name)
+bnr_hash_value (struct bnr_hash *hash, const char *name)
 {
   unsigned long hash_code;
-  struct hash_node *parent;
-  struct hash_node *node;
+  struct bnr_hash_node *parent;
+  struct bnr_hash_node *node;
 
-  hash_code = hash_hashcode(hash, name);
+  hash_code = bnr_hash_hashcode(hash, name);
   parent = NULL;
   node = hash->tbl[hash_code];
 
@@ -233,16 +233,16 @@ hash_value (struct hash *hash, const char *name)
 }
 
 int
-hash_set (struct hash *hash, const char *name, float value)
+bnr_hash_set (struct bnr_hash *hash, const char *name, float value)
 {
   unsigned long hash_code;
-  struct hash_node *parent;
-  struct hash_node *node;
+  struct bnr_hash_node *parent;
+  struct bnr_hash_node *node;
 
   if (!name)
     return 0;
 
-  hash_code = hash_hashcode(hash, name);
+  hash_code = bnr_hash_hashcode(hash, name);
   parent = NULL;
   node = hash->tbl[hash_code];
 
@@ -260,7 +260,7 @@ hash_set (struct hash *hash, const char *name, float value)
   return 0;
 }
 
-long hash_hashcode(struct hash *hash, const char *name) {
+long bnr_hash_hashcode(struct bnr_hash *hash, const char *name) {
   unsigned long val = 0;
 
   if (!name)

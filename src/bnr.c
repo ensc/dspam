@@ -61,12 +61,12 @@ BNR_CTX *bnr_init(int type, char identifier)
   BTX->window_size = 3;
   BTX->ex_radius   = 0.25;
   BTX->in_radius   = 0.30;
-  BTX->stream     = list_create(type);
-  BTX->patterns   = hash_create(1543ul);
+  BTX->stream     = bnr_list_create(type);
+  BTX->patterns   = bnr_hash_create(1543ul);
   if (BTX->stream == NULL || BTX->patterns == NULL) {
     perror("memory allocation error: bnr_init() failed");
-    list_destroy(BTX->stream);
-    hash_destroy(BTX->patterns);
+    bnr_list_destroy(BTX->stream);
+    bnr_hash_destroy(BTX->patterns);
     free(BTX);
     return NULL;
   }
@@ -81,8 +81,8 @@ BNR_CTX *bnr_init(int type, char identifier)
  */
 
 int bnr_destroy(BNR_CTX *BTX) {
-  list_destroy(BTX->stream);
-  hash_destroy(BTX->patterns);
+  bnr_list_destroy(BTX->stream);
+  bnr_hash_destroy(BTX->patterns);
   free(BTX);
   return 0;
 }
@@ -99,7 +99,7 @@ int bnr_destroy(BNR_CTX *BTX) {
 
 int bnr_add(BNR_CTX *BTX, void *token, float value) {
 
-  return (list_insert(BTX->stream, token, value) != NULL) ? 0 : EFAILURE;
+  return (bnr_list_insert(BTX->stream, token, value) != NULL) ? 0 : EFAILURE;
 }
 
 /*
@@ -113,15 +113,15 @@ int bnr_add(BNR_CTX *BTX, void *token, float value) {
 int bnr_instantiate(BNR_CTX *BTX) {
   int BNR_SIZE = BTX->window_size;
   float previous_bnr_probs[BNR_SIZE];
-  struct list_node *node_list;
-  struct list_c c_list;
+  struct bnr_list_node *node_list;
+  struct bnr_list_c c_list;
   char bnr_token[64];
   int i;
 
   for(i=0;i<BNR_SIZE;i++)
     previous_bnr_probs[i] = 0.00000;
 
-  node_list = c_list_first(BTX->stream, &c_list);
+  node_list = c_bnr_list_first(BTX->stream, &c_list);
   while(node_list != NULL) {
     
     for(i=0;i<BNR_SIZE-1;i++) {
@@ -140,8 +140,8 @@ int bnr_instantiate(BNR_CTX *BTX) {
     fprintf(stderr, "libbnr: instantiating pattern '%s'\n", bnr_token);
 #endif
 
-    hash_hit (BTX->patterns, bnr_token);
-    node_list = c_list_next(BTX->stream, &c_list);
+    bnr_hash_hit (BTX->patterns, bnr_token);
+    node_list = c_bnr_list_next(BTX->stream, &c_list);
   }
 
   return 0;
@@ -159,13 +159,13 @@ int bnr_instantiate(BNR_CTX *BTX) {
  */
  
 char *bnr_get_pattern(BNR_CTX *BTX) {
-  struct hash_node *node;
+  struct bnr_hash_node *node;
  
   if (!BTX->pattern_iter) {
-    node = c_hash_first(BTX->patterns, &BTX->c_pattern);
+    node = c_bnr_hash_first(BTX->patterns, &BTX->c_pattern);
     BTX->pattern_iter = 1;
   } else {
-    node = c_hash_next(BTX->patterns, &BTX->c_pattern);
+    node = c_bnr_hash_next(BTX->patterns, &BTX->c_pattern);
   }
 
   if (node)
@@ -189,26 +189,26 @@ char *bnr_get_pattern(BNR_CTX *BTX) {
  */
 
 int bnr_set_pattern(BNR_CTX *BTX, const char *name, float value) {
-  return hash_set(BTX->patterns, name, value);
+  return bnr_hash_set(BTX->patterns, name, value);
 }
 
 /*
  * bnr_get_token() Retrieves the next token from the stream.
  *   This function should be called after a call to bnr_finalize(). Each
- *   call to bnr_get_token() will return the next non-eliminated token in
- *   the stream until NULL is returned.
+ *   call to bnr_get_token() will return the next token and set its elimination
+ *   status (by way of the passed-in variable).
  * parameters:	BTX (BNR_CTX *)		The noise reduction context to use
  * returns:	The name (or pointer) of the next non-eliminated token
  */
 
 void *bnr_get_token(BNR_CTX *BTX, int *eliminated) {
-  struct list_node *node;
+  struct bnr_list_node *node;
 
   if (BTX->stream_iter == 0) {
     BTX->stream_iter = 1;
-    node = c_list_first(BTX->stream, &BTX->c_stream);
+    node = c_bnr_list_first(BTX->stream, &BTX->c_stream);
   } else {
-    node = c_list_next(BTX->stream, &BTX->c_stream);
+    node = c_bnr_list_next(BTX->stream, &BTX->c_stream);
   }
 
   if (node) {
@@ -248,10 +248,10 @@ float _bnr_round(float n) {
 
 int bnr_finalize(BNR_CTX *BTX) {
   int BNR_SIZE = BTX->window_size;
-  struct list_node * previous_bnr_tokens[BNR_SIZE];
+  struct bnr_list_node * previous_bnr_tokens[BNR_SIZE];
   float previous_bnr_probs[BNR_SIZE];
-  struct list_node *node_list;
-  struct list_c c_list;
+  struct bnr_list_node *node_list;
+  struct bnr_list_c c_list;
   char bnr_token[64];
   int i, interesting;
 
@@ -260,7 +260,7 @@ int bnr_finalize(BNR_CTX *BTX) {
     previous_bnr_tokens[i] = NULL;
   } 
 
-  node_list = c_list_first(BTX->stream, &c_list);
+  node_list = c_bnr_list_first(BTX->stream, &c_list);
   while(node_list != NULL) {
     float pattern_value;
 
@@ -281,7 +281,7 @@ int bnr_finalize(BNR_CTX *BTX) {
 
     /* Identify interesting patterns */
     
-    pattern_value = hash_value(BTX->patterns, bnr_token);
+    pattern_value = bnr_hash_value(BTX->patterns, bnr_token);
     interesting = (fabs(0.5-pattern_value) > BTX->ex_radius);
 
     if (interesting) {
@@ -310,7 +310,7 @@ int bnr_finalize(BNR_CTX *BTX) {
       }
     }
 
-    node_list = c_list_next(BTX->stream, &c_list);
+    node_list = c_bnr_list_next(BTX->stream, &c_list);
   }
 
   return 0;

@@ -1,4 +1,4 @@
-/* $Id: hash.h,v 1.1 2004/12/29 04:03:21 jonz Exp $ */
+/* $Id: hash.h,v 1.2 2004/12/29 05:18:56 jonz Exp $ */
 
 /*
   Bayesian Noise Reduction - Contextual Symmetry Logic
@@ -21,50 +21,50 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#ifndef _HASH_H
-#define _HASH_H
+#ifndef _BNR_HASH_H
+#define _BNR_HASH_H
 
 enum
-{ hash_num_primes = 28 };
+{ bnr_hash_num_primes = 28 };
 
-/* hash root */
-struct hash
+/* bnr_hash root */
+struct bnr_hash
 {
   unsigned long size;
   unsigned long items;
-  struct hash_node **tbl;
+  struct bnr_hash_node **tbl;
 };
 
-/* hash node */
-struct hash_node
+/* bnr_hash node */
+struct bnr_hash_node
 {
-  struct hash_node *next;
+  struct bnr_hash_node *next;
 
   char *name;
   float value;
 };
 
-/* hash cursor */
-struct hash_c
+/* bnr_hash cursor */
+struct bnr_hash_c
 {
   unsigned long iter_index;
-  struct hash_node *iter_next;
+  struct bnr_hash_node *iter_next;
 };
 
 /* constructor and destructor */
-struct hash *	hash_create (unsigned long size);
-int		hash_destroy (struct hash *hash);
+struct bnr_hash *	bnr_hash_create (unsigned long size);
+int		bnr_hash_destroy (struct bnr_hash *hash);
 
-int hash_set	(struct hash *hash, const char *name, float value);
-int hash_hit	(struct hash *hash, const char *name);
-int hash_delete	(struct hash *hash, const char *name);
-float hash_value(struct hash *hash, const char *name);
+int bnr_hash_set	(struct bnr_hash *hash, const char *name, float value);
+int bnr_hash_hit	(struct bnr_hash *hash, const char *name);
+int bnr_hash_delete	(struct bnr_hash *hash, const char *name);
+float bnr_hash_value(struct bnr_hash *hash, const char *name);
 
-struct hash_node *hash_node_create (const char *name);
-long hash_hashcode(struct hash *hash, const char *name);
+struct bnr_hash_node *bnr_hash_node_create (const char *name);
+long bnr_hash_hashcode(struct bnr_hash *hash, const char *name);
 
 /* iteration functions */
-struct hash_node *c_hash_first	(struct hash *hash, struct hash_c *c);
-struct hash_node *c_hash_next	(struct hash *hash, struct hash_c *c);
+struct bnr_hash_node *c_bnr_hash_first	(struct bnr_hash *hash, struct bnr_hash_c *c);
+struct bnr_hash_node *c_bnr_hash_next	(struct bnr_hash *hash, struct bnr_hash_c *c);
 
-#endif /* _HASH_H */
+#endif /* _BNR_HASH_H */

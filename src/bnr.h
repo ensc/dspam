@@ -40,12 +40,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 typedef struct {
   long eliminations;
-  struct list *stream;
-  struct hash *patterns;
+  struct bnr_list *stream;
+  struct bnr_hash *patterns;
   char identifier;
 
-  struct list_c c_stream;
-  struct hash_c c_pattern;
+  struct bnr_list_c c_stream;
+  struct bnr_hash_c c_pattern;
   int stream_iter;
   int pattern_iter;
   int window_size;

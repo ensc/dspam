@@ -1,4 +1,4 @@
-/* $Id: list.h,v 1.1 2004/12/29 04:03:21 jonz Exp $ */
+/* $Id: list.h,v 1.2 2004/12/29 05:18:56 jonz Exp $ */
 
 /*
   Bayesian Noise Reduction - Contextual Symmetry Logic
@@ -30,32 +30,32 @@
 #ifndef _LIST_H
 #define _LIST_H
 
-struct list_node
+struct bnr_list_node
 {
   void *ptr;		/* Token name or pointer */
   float value;		/* Token value (probability) */
   int eliminated;	/* Token eliminated == 1 */
-  struct list_node *next;
+  struct bnr_list_node *next;
 };
 
-struct list
+struct bnr_list
 {
-  struct list_node *first;
-  struct list_node *insert;	/* Next insertion point */
+  struct bnr_list_node *first;
+  struct bnr_list_node *insert;	/* Next insertion point */
   int items;
   int nodetype;
 };
 
-struct list_c
+struct bnr_list_c
 {
-  struct list_node *iter_index;
+  struct bnr_list_node *iter_index;
 };
 
-struct list_node *	list_insert		(struct list *list, void *data, float v);
-struct list_node *	c_list_first	(struct list *list, struct list_c *c);
-struct list_node *	c_list_next	(struct list *list, struct list_c *c);
-struct list *		list_create	(int node_type);
-void			list_destroy	(struct list *list);
+struct bnr_list_node *bnr_list_insert	(struct bnr_list *list, void *data, float v);
+struct bnr_list_node *c_bnr_list_first	(struct bnr_list *list, struct bnr_list_c *c);
+struct bnr_list_node *c_bnr_list_next	(struct bnr_list *list, struct bnr_list_c *c);
+struct bnr_list *	bnr_list_create	(int node_type);
+void			bnr_list_destroy(struct bnr_list *list);
 
 #endif /* _LIST_H */
 
