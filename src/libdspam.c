@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.30 2004/12/06 00:13:09 jonz Exp $ */
+/* $Id: libdspam.c,v 1.31 2004/12/06 00:19:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -2794,6 +2794,7 @@ iter = 1;
     CTX->confidence = 1.0 - rob_result;
   }
 
+  LOGDEBUG("Result Confidence: %1.2f", CTX->confidence);
   return CTX->result;
 }
 
