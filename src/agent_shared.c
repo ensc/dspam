@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.27 2005/03/14 21:20:00 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.28 2005/03/14 22:02:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -697,47 +697,46 @@ buffer * read_stdin(AGENT_CTX *ATX) {
       {
         if (_ds_match_attribute(agent_config, "ParseToHeaders", "on")) {
 
-        /* Parse the To: address for a username */
-        if (buff[0] == 0)
-          body = 1;
-        if (!body && !strncasecmp(buff, "To: ", 4))
-        {
-          char *y = NULL;
+          /* Parse the To: address for a username */
+          if (buff[0] == 0)
+            body = 1;
+          if (!body && !strncasecmp(buff, "To: ", 4))
+          {
+            char *y = NULL;
+            char *x = strstr(buff, "spam-");
 
-          char *x = strstr(buff, "spam-");
-          if (x != NULL) {
-            y = strdup(x+5);
+            if (x != NULL) {
+              y = strdup(x+5);
 
-            if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
-              ATX->classification = DSR_ISSPAM;
-              ATX->source = DSS_ERROR;
+              if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+                ATX->classification = DSR_ISSPAM;
+                ATX->source = DSS_ERROR;
+              }
             }
 
-            char *x = strstr(buff, "fp-");
+            x = strstr(buff, "fp-");
             if (x != NULL) {
               y = strdup(x+3);
 
-            if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
-               ATX->classification = DSR_ISINNOCENT;
-               ATX->source = DSS_ERROR;
-               }
+              if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+                ATX->classification = DSR_ISINNOCENT;
+                ATX->source = DSS_ERROR;
+              }
+            }
+
+            if (y && !strcmp(_ds_read_attribute(agent_config, "ChangeUserOnParse"), "on")) {
+              char *ptrptr;
+              char *z = strtok_r(y, "@", &ptrptr);
+              nt_destroy(ATX->users);
+              ATX->users = nt_create(NT_CHAR);
+              if (!ATX->users)
+                return NULL;
+              nt_add (ATX->users, z);
+              free(y);
             }
           }
-
-          if (y && !strcmp(_ds_read_attribute(agent_config, "ChangeUserOnParse"), "on")) {
-            char *ptrptr;
-            char *z = strtok_r(y, "@", &ptrptr);
-            nt_destroy(ATX->users);
-            ATX->users = nt_create(NT_CHAR);
-            if (!ATX->users)
-              return NULL;
-            nt_add (ATX->users, z);
-            free(y);
-          }
         }
-      }
 
-  
         if (buffer_cat (message, buff))
         {
           LOG (LOG_CRIT, ERROR_MEM_ALLOC);

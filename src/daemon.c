@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.60 2005/03/14 21:42:50 jonz Exp $ */
+/* $Id: daemon.c,v 1.61 2005/03/14 22:02:18 jonz Exp $ */
 
 /*
 
@@ -756,8 +756,8 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
         if (!body && !strncasecmp(buff, "To: ", 4))
         {
           char *y = NULL;
-
           char *x = strstr(buff, "spam-");
+
           if (x != NULL) {
             y = strdup(x+5);
 
@@ -765,15 +765,15 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
               ATX->classification = DSR_ISSPAM;
               ATX->source = DSS_ERROR;
             }
+          }
 
-            char *x = strstr(buff, "fp-");
-            if (x != NULL) {
-              y = strdup(x+3);
+          x = strstr(buff, "fp-");
+          if (x != NULL) {
+            y = strdup(x+3);
 
             if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
-               ATX->classification = DSR_ISINNOCENT;
-               ATX->source = DSS_ERROR;
-               }
+              ATX->classification = DSR_ISINNOCENT;
+              ATX->source = DSS_ERROR;
             }
           }
              
