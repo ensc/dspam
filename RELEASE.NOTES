@@ -1,4 +1,4 @@
-$Id: RELEASE.NOTES,v 1.20 2005/01/12 17:35:15 jonz Exp $
+$Id: RELEASE.NOTES,v 1.21 2005/01/12 17:46:53 jonz Exp $
 
 RELEASE 3.3.12 (Development)
 
@@ -78,6 +78,16 @@ Bug Fixes:
 BUGFIX: Linestripping fails to remove multiple ^Ms on a single line
 BUGFIX: Signed messages are malformatted and appear blank in some MUAs
 BUGFIX: System preferences are ignored when user preferences are present
+
+TOOLS
+
+Enhancements:
+
+Accuracy Reporting in dspam_stats
+Functionality has been added to dspam_stats to report accuracy either based
+on total activity or activity based on a snapshot. The tool can now take a
+snapshot of the current activity (just like reset stats) and report on
+activity since the last snapshot.
 
 CGI
 
