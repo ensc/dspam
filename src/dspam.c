@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.7 2004/11/09 20:30:35 jonz Exp $ */
+/* $Id: dspam.c,v 1.8 2004/11/12 14:07:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -1954,7 +1954,7 @@ if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers")) {
             fclose(file);
         }
         if (result != DSR_ISSPAM &&
-            _ds_match_attribute(agent_config, "TrackSources", "ham"))
+            _ds_match_attribute(agent_config, "TrackSources", "nonspam"))
         {
           LOG (LOG_INFO, "innocent message from %s", ip);
         }
