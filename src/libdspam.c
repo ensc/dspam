@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.98 2005/03/09 14:08:18 jonz Exp $ */
+/* $Id: libdspam.c,v 1.99 2005/03/26 22:35:56 jonz Exp $ */
 
 /*
  DSPAM
@@ -2019,7 +2019,7 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
   {
     if (!isdigit ((unsigned char) token[i]))
       all_num = 0;
-    if (token[i] >= 127 || iscntrl ((unsigned char) token[i])) {
+    if (iscntrl ((unsigned char) token[i])) {
       token[i] = 'z';
       all_num = 0;
     }
@@ -2033,7 +2033,7 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
       all_num = 1;
   }
 
-  if (!isalnum ((unsigned char) token[0]) && token[0] != '$' && token[0] != '#')
+  if (!(isalnum ((unsigned char) token[0]) || (unsigned char) token[0] > 127) && token[0] != '$' && token[0] != '#')
     all_num = 1;
 
   if (is_received)
@@ -2097,7 +2097,7 @@ _ds_process_body_token (DSPAM_CTX * CTX, char *token,
   {
     if (!isdigit ((unsigned char) token[i]))
       all_num = 0;
-    if (token[i] >= 127 || iscntrl ((unsigned char) token[i])) {
+    if (iscntrl ((unsigned char) token[i])) {
       token[i] = 'z';
       all_num = 0;
     }
@@ -2112,7 +2112,7 @@ _ds_process_body_token (DSPAM_CTX * CTX, char *token,
       all_num = 1;
   }
 
-  if (!isalnum ((unsigned char) token[0]) && token[0] != '$' && token[0] != '#')
+  if (!(isalnum ((unsigned char) token[0]) || (unsigned char) token[0] > 127) && token[0] != '$' && token[0] != '#')
     all_num = 1;
 
   /* Ignore tokens that are all numbers, or contain high ASCII characters */
@@ -2163,7 +2163,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
   {
     if (!isdigit ((unsigned char) token[i]))
       all_num = 0;
-    if (token[i] >= 127 || iscntrl ((unsigned char) token[i])) {
+    if (iscntrl ((unsigned char) token[i])) {
       token[i] = 'z';
       all_num = 0;
     }
@@ -2177,7 +2177,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
       all_num = 1;
   }
 
-  if (!isalnum ((unsigned char) token[0]) && token[0] != '$' && token[0] != '#')
+  if (!(isalnum ((unsigned char) token[0]) || (unsigned char) token[0] > 127) && token[0] != '$' && token[0] != '#')
     all_num = 1;
 
   /* Ignore tokens that are all numbers, or contain high ASCII characters */
@@ -2230,7 +2230,7 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
   {
     if (!isdigit ((unsigned char) token[i]))
       all_num = 0;
-    if (token[i] >= 127 || iscntrl ((unsigned char) token[i])) {
+    if (iscntrl ((unsigned char) token[i])) {
       token[i] = 'z';
       all_num = 0;
     }
@@ -2245,7 +2245,7 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
       all_num = 1;
   }
 
-  if (!isalnum ((unsigned char) token[0]) && token[0] != '$' && token[0] != '#')
+  if (!(isalnum ((unsigned char) token[0]) || (unsigned char) token[0] > 127) && token[0] != '$' && token[0] != '#')
     all_num = 1;
 
   /* Ignore tokens that are all numbers, or contain high ASCII characters */

@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.243 2005/03/26 04:52:05 jonz Exp $
+$Id: CHANGELOG,v 1.244 2005/03/26 22:35:56 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050326.1730] jonz: added support for non-ascii character sets
+
+added support for non-ascii character sets
 
 [20050325.2345] jonz: fixed avg. processing time reporting
 
