@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.204 2005/03/12 21:23:09 jonz Exp $
+$Id: CHANGELOG,v 1.205 2005/03/14 14:24:54 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050313.0700] jonz: added \r to socket communications
+
+as per RFC 2822, \r\n should be sent to SMTP/LMTP 
 
 [20050312.1600] jonz: added SMTP delivery support, changes delivery hosts
 

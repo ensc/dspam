@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.34 2005/03/12 21:23:09 jonz Exp $ */
+/* $Id: client.c,v 1.35 2005/03/14 14:24:54 jonz Exp $ */
 
 /*
 
@@ -461,7 +461,7 @@ int send_socket(THREAD_CTX *TTX, const char *ptr) {
     i += r;
   }
 
-  r = send(TTX->sockfd, "\n", 1, 0);
+  r = send(TTX->sockfd, "\r\n", 2, 0);
   return i+1;
 }
 
@@ -559,7 +559,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *message, int proto) {
     if (send_socket(&TTX, "")<=0)
      goto BAIL;
 
-  if (send_socket(&TTX, ".")<=0)
+  if (send_socket(&TTX, "\r\n.")<=0)
     goto BAIL;
 
   /* Server Response */
