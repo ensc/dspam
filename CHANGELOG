@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.76 2004/12/18 15:41:06 jonz Exp $
+$Id: CHANGELOG,v 1.77 2004/12/18 15:52:13 jonz Exp $
 
 Version NEXT
 ------------
@@ -54,6 +54,8 @@ NOTE: Daemon mode is multithreaded, and therefore requires a multithreaded
 
 TODO: re-establish connections as necessary 
       - done, but concerned about threading conflicts; need locking
+
+CVS Notes:
 
 12/18 - Big problem solved; must start locking database handles when in use or
         do some transactional processing; mysql won't execute some queries

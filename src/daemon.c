@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.24 2004/12/18 15:41:06 jonz Exp $ */
+/* $Id: daemon.c,v 1.25 2004/12/18 15:52:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -223,7 +223,7 @@ void *process_connection(void *ptr) {
   int tries = 0;
   int argc = 0;
   int **results, *result;
-  int i;
+  int i, locked = -1;
 
   TTX->packet_buffer = buffer_create(NULL);
   if (TTX->packet_buffer == NULL)
@@ -345,6 +345,7 @@ void *process_connection(void *ptr) {
 
     pthread_mutex_lock(&TTX->DTX->connections[i]->lock);
     ATX->dbh = TTX->DTX->connections[i]->dbh;
+    locked = i;
 
     if (check_configuration(ATX)) {
       report_error(ERROR_DSPAM_MISCONFIGURED);
@@ -383,10 +384,11 @@ void *process_connection(void *ptr) {
   
     results = process_users(ATX, message);
     
-    if (TTX->DTX->connections[i]->dbh != ATX->dbh) 
-      TTX->DTX->connections[i]->dbh = ATX->dbh;
+    if (TTX->DTX->connections[locked]->dbh != ATX->dbh) 
+      TTX->DTX->connections[locked]->dbh = ATX->dbh;
 
-    pthread_mutex_unlock(&TTX->DTX->connections[i]->lock);
+    pthread_mutex_unlock(&TTX->DTX->connections[locked]->lock);
+    locked = -1;
 
     if (ATX->sockfd_output) {
       if (send_socket(TTX, ".")<=0)
@@ -433,6 +435,8 @@ void *process_connection(void *ptr) {
   /* Close connection and return */
 
 CLOSE:
+  if (locked>=0)
+    pthread_mutex_unlock(&TTX->DTX->connections[locked]->lock);
   close(TTX->sockfd);
   buffer_destroy(TTX->packet_buffer);
   if (message) 
