@@ -1,4 +1,4 @@
-/* $Id: example.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: example.c,v 1.2 2005/01/03 18:40:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -51,7 +51,7 @@ main (int argc, char **argv)
      starts
   */
 
-  dspam_init_driver ();
+  dspam_init_driver (NULL);
 
   /* read in the message from stdin */
   message[0] = 0;
@@ -314,7 +314,7 @@ main (int argc, char **argv)
   printf("Create/attach performed successfully.\n");
 
   /* Performs any driver-specific shutdown functions */
-  dspam_shutdown_driver ();
+  dspam_shutdown_driver (NULL);
 
   exit (EXIT_SUCCESS);
 }
