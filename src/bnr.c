@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.8 2004/12/06 00:13:09 jonz Exp $ */
+/* $Id: bnr.c,v 1.9 2004/12/06 13:47:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -68,7 +68,9 @@ int bnr_pattern_instantiate(
   DSPAM_CTX *CTX, 
   struct lht *pfreq, 
   struct nt *order, 
-  char type)
+  char identifier,
+  int type,
+  struct _ds_spam_stat *bnr_tot)
 {
   float previous_bnr_probs[BNR_SIZE];
   struct lht_node *node_lht;
@@ -85,14 +87,14 @@ int bnr_pattern_instantiate(
   while(node_nt != NULL) {
     node_lht = (struct lht_node *) node_nt->ptr;
 
-    _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT);
+    _ds_calc_stat (CTX, node_lht->key, &node_lht->s, type, bnr_tot);
 
     for(i=0;i<BNR_SIZE-1;i++) {
       previous_bnr_probs[i] = previous_bnr_probs[i+1];
     }
 
     previous_bnr_probs[BNR_SIZE-1] = _ds_round(node_lht->s.probability);
-    sprintf(bnr_token, "bnr.%c.", type);
+    sprintf(bnr_token, "bnr.%c.", identifier);
     for(i=0;i<BNR_SIZE;i++) {
       char x[6];
       snprintf(x, 6, "%01.2f_", previous_bnr_probs[i]);
@@ -143,7 +145,7 @@ int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
   while(node_nt != NULL) {
     node_lht = (struct lht_node *) node_nt->ptr;
 
-    _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT);
+    _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT, NULL);
 
     for(i=0;i<BNR_SIZE-1;i++) {
       previous_bnr_probs[i] = previous_bnr_probs[i+1];

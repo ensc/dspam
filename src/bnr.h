@@ -1,4 +1,4 @@
-/* $Id: bnr.h,v 1.3 2004/11/23 15:17:47 jonz Exp $ */
+/* $Id: bnr.h,v 1.4 2004/12/06 13:47:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -56,6 +56,6 @@ typedef struct {
   char type;
 } BNR_CTX;
 
-int bnr_pattern_instantiate(DSPAM_CTX *, struct lht *, struct nt *, char);
+int bnr_pattern_instantiate(DSPAM_CTX *, struct lht *, struct nt *, char, int, struct _ds_spam_stat *bnr_tot);
 int bnr_filter_process(DSPAM_CTX *, BNR_CTX *);
 

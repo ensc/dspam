@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.5 2004/12/03 01:30:33 jonz Exp $ */
+/* $Id: dspam_clean.c,v 1.6 2004/12/06 13:47:10 jonz Exp $ */
 
 /*
  DSPAM
@@ -358,7 +358,7 @@ int process_probs (DSPAM_CTX *CTX, int age) {
     s.innocent_hits = sr->innocent_hits;
     s.spam_hits = sr->spam_hits;
     s.probability = 0.00000;
-    _ds_calc_stat(CTX, sr->token, &s, DTT_DEFAULT);
+    _ds_calc_stat(CTX, sr->token, &s, DTT_DEFAULT, NULL);
     if (s.probability >= 0.3500 && s.probability <= 0.6500) {
       delta = (((time (NULL) - sr->last_hit) / 60) / 60) / 24;
       if (age == 0 || delta > age)
