@@ -1,7 +1,14 @@
-$Id: CHANGELOG,v 1.92 2004/12/25 19:11:22 jonz Exp $
+$Id: CHANGELOG,v 1.93 2004/12/25 22:53:57 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041225.1750] jonz: fixed minor bugs in daemon mode
+
+BUGFIX: if using ServerDomainSocketPath and ClientHost is not specified, 
+        commandline arguments are never passed in for processing
+
+BUGFIX: *BSD operating systems truncate last character of domain socket file
 
 [20041225.1400] jonz: added support for trainPristine as user preference
 

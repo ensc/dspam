@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.31 2004/12/25 02:38:22 jonz Exp $ */
+/* $Id: daemon.c,v 1.32 2004/12/25 22:53:57 jonz Exp $ */
 
 /*
  DSPAM
@@ -95,8 +95,6 @@ int daemon_listen(DRIVER_CTX *DTX) {
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-  LOGDEBUG("creating listening socket on port %d", port);
-
   if (domain) {
     struct sockaddr_un saun;
     char *address = _ds_read_attribute(agent_config, "ServerDomainSocketPath");
@@ -113,7 +111,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
     strcpy(saun.sun_path, address);
 
     unlink(address);
-    len = sizeof(saun.sun_family) + strlen(saun.sun_path);
+    len = sizeof(saun.sun_family) + strlen(saun.sun_path) + 1;
 
     LOGDEBUG(DAEMON_DOMAIN, address);
   

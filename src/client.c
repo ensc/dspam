@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.11 2004/12/25 22:22:34 jonz Exp $ */
+/* $Id: client.c,v 1.12 2004/12/25 22:53:57 jonz Exp $ */
 
 /*
  DSPAM
@@ -193,9 +193,9 @@ int client_connect(void) {
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     saun.sun_family = AF_UNIX;
     strcpy(saun.sun_path, address); 
-    addr_len = sizeof(saun.sun_family) + strlen(saun.sun_path);
+    addr_len = sizeof(saun.sun_family) + strlen(saun.sun_path) + 1;
 
-    LOGDEBUG(CLIENT_CONNECT, host, port);
+    LOGDEBUG(CLIENT_CONNECT, address, 0);
     if(connect(sockfd, (struct sockaddr *)&saun, addr_len)<0) {
       report_error_printf(ERROR_CLIENT_CONNECT_HOST, address, port, strerror(errno));
       return EFAILURE;
