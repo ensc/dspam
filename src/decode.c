@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.12 2004/12/30 00:34:00 jonz Exp $ */
+/* $Id: decode.c,v 1.13 2005/03/09 14:08:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -150,37 +150,47 @@ _ds_actualize_message (const char *message)
         if (current_heading != NULL)
         {
           char *eow;
+          char *ptr;
 
-          current_heading->data =
+          ptr =
             realloc (current_heading->data,
                      strlen (current_heading->data) + strlen (line) + 2);
-          if (current_heading->data != NULL)
+          if (ptr) 
           {
+            current_heading->data = ptr;
             strcat (current_heading->data, "\n");
             strcat (current_heading->data, line);
+          } else {
+            report_error(ERROR_MEM_ALLOC);
           }
 
           /* Our concatenated data doesn't have any whitespace between lines */
           for(eow=line;eow[0] && isspace((int) eow[0]);eow++) { }
 
-          current_heading->concatenated_data =
+          ptr =
            realloc (current_heading->concatenated_data,
              strlen (current_heading->concatenated_data) + strlen (eow) + 1);
-          if (current_heading->concatenated_data != NULL)
+          if (ptr) 
           {
+            current_heading->concatenated_data = ptr;
             strcat (current_heading->concatenated_data, eow);
+          } else {
+            report_error(ERROR_MEM_ALLOC);
           }
 
           if (current_heading->original_data != NULL) {
 
-            current_heading->original_data =
+            ptr =
               realloc (current_heading->original_data,
                        strlen (current_heading->original_data) +
                                strlen (line) + 2);
-            if (current_heading->original_data != NULL)
+            if (ptr)
             {
+              current_heading->original_data = ptr;
               strcat (current_heading->original_data, "\n");
               strcat (current_heading->original_data, line);
+            } else {
+              report_error(ERROR_MEM_ALLOC);
             }
           }
 

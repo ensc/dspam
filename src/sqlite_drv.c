@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.17 2005/01/18 18:28:27 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.18 2005/03/09 14:08:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -815,6 +815,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   char query[128];
   char *err=NULL, **row;
   int nrow, ncolumn;
+  void *ptr;
 
   if (s->dbh == NULL)
   {
@@ -857,7 +858,13 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EFAILURE;
   }
 
-  SIG->data = realloc(mem, length);
+  ptr = realloc(mem, length);
+  if (ptr)
+    SIG->data = ptr;
+  else {
+    report_error(ERROR_MEM_ALLOC);
+    SIG->data = mem;
+  }
   SIG->length = length;
 
   sqlite_free_table(row);

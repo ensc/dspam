@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.97 2005/03/02 18:26:58 jonz Exp $ */
+/* $Id: libdspam.c,v 1.98 2005/03/09 14:08:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -293,12 +293,15 @@ int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value) {
     j++;
                                                                                 
   if (j >= CTX->config->size) {
+    attribute_t **ptr;
     CTX->config->size *= 2;
-    CTX->config->attributes = realloc(CTX->config->attributes, 1+(sizeof(attribute_t *)*CTX->config->size));
-    if (CTX->config->attributes == NULL) {
+    ptr = realloc(CTX->config->attributes, 1+(sizeof(attribute_t *)*CTX->config->size));
+    if (ptr) {
+      CTX->config->attributes = ptr;
+    } else {
       report_error(ERROR_MEM_ALLOC);
-      return EUNKNOWN;
-    }
+      return EFAILURE; 
+    } 
   }
                                                                                 
   return _ds_add_attribute(CTX->config->attributes, key, value);
