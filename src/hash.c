@@ -1,4 +1,4 @@
-/* $Id: hash.c,v 1.2 2004/12/29 05:18:56 jonz Exp $ */
+/* $Id: hash.c,v 1.3 2005/01/03 20:26:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -86,9 +86,10 @@ bnr_hash_destroy (struct bnr_hash *hash)
   node = c_bnr_hash_first (hash, &c);
   while (node != NULL)
   {
+    char *x = node->name;
     next = c_bnr_hash_next (hash, &c);
-    free (node->name);
     bnr_hash_delete (hash, node->name);
+    free (x);
     node = next;
   }
 
