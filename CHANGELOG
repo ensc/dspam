@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.240 2005/03/23 04:44:24 jonz Exp $
+$Id: CHANGELOG,v 1.241 2005/03/24 15:28:49 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050324.0700] jonz: added long usernames support to dspam stats
+
+if --enable-long-usernames is used, formatting will add additional padding
+for username in stats output
 
 [20050322.2330] jonz: fixed deadlocked connection on null characters
 
