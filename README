@@ -1,4 +1,4 @@
-$Id: README,v 1.55 2005/03/26 22:35:56 jonz Exp $
+$Id: README,v 1.56 2005/03/28 22:37:21 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Network Dweebs Corporation
@@ -157,6 +157,11 @@ eliminate the quarantine box in lieu of an alternative solution, such as
 client-filtering/forwarding, but many users will appreciate the added
 functionality and information provided by the CGI client. Administrators may
 find the client's ability to generate usage graphs and reports to be useful.
+
+The CGI also adds the ability to perform historical retraining, as opposed to
+having to forward in spam. By clicking on the 'history' tab, users can see
+the last 200 messages sent to them and, with the click of the mouse, retrain
+spam and deliver false positives.
 
 TOOLS
 
@@ -648,8 +653,10 @@ First you will need to download a few prerequisite tools:
 5. ALIASES
 
    Users must have an alias to forward/bounce spams to in order for DSPAM to
-   learn. Since DSPAM learns each user's specific email behavior, it is
-   necessary to identify the end-user to program their specific dictionary.  
+   learn unless you want them to use the CGI's history function for all of 
+   their retraining. Since DSPAM learns each user's specific email behavior, 
+   it is necessary to identify the end-user to program their specific 
+   dictionary.  
 
    This can be done in two ways:
 
