@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.18 2005/01/11 18:11:14 jonz Exp $
+## $Id: dspam.conf.in,v 1.19 2005/01/17 23:17:29 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -285,17 +285,17 @@ Notifications	on
 # specified on the commandline
 #
 PurgeSignatures 14          # Stale signatures
-PurgeNeutral    30          # Tokens with neutralish probabilities
-PurgeUnused     60          # Unused tokens
-PurgeHapaxes    15          # Tokens with less than 5 hits (hapaxes)
-PurgeHits1S	10          # Tokens with only 1 spam hit
-PurgeHits1I	10          # Tokens with only 1 innocent hit
+PurgeNeutral    90          # Tokens with neutralish probabilities
+PurgeUnused     90          # Unused tokens
+PurgeHapaxes    30          # Tokens with less than 5 hits (hapaxes)
+PurgeHits1S	15          # Tokens with only 1 spam hit
+PurgeHits1I	15          # Tokens with only 1 innocent hit
 
 #
 # Purge configuration for SQL-based installations using purge.sql
 #
 #PurgeSignature	off # Specified in purge.sql
-#PurgeNeutral   30
+#PurgeNeutral   90
 #PurgeUnused    off # Specified in purge.sql
 #PurgeHapaxes   off # Specified in purge.sql
 #PurgeHits1S    off # Specified in purge.sql
