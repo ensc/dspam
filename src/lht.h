@@ -1,4 +1,4 @@
-/* $Id: lht.h,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: lht.h,v 1.2 2004/12/18 00:21:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -89,7 +89,7 @@ int lht_addspamstat     (struct lht *lht, unsigned long long key,
                          struct _ds_spam_stat *s);
 
 int lht_hit		(struct lht *lht, unsigned long long key, 
-			 const char *token_name);
+			 const char *token_name, int chained);
 
 int lht_delete		(struct lht *lht, unsigned long long key);
 

@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.6 2004/12/06 13:47:10 jonz Exp $ */
+/* $Id: dspam_clean.c,v 1.7 2004/12/18 00:21:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -362,7 +362,7 @@ int process_probs (DSPAM_CTX *CTX, int age) {
     if (s.probability >= 0.3500 && s.probability <= 0.6500) {
       delta = (((time (NULL) - sr->last_hit) / 60) / 60) / 24;
       if (age == 0 || delta > age)
-        lht_hit(del, sr->token, "");
+        lht_hit(del, sr->token, "", 0);
     }
     free (sr);
     sr = _ds_get_nexttoken (CTX);
@@ -421,23 +421,23 @@ int process_unused (DSPAM_CTX *CTX, int any, int quota, int nospam, int onehit) 
     if (!toe && (any == 0 || delta > any))
     { 
       if (!tum || sr->innocent_hits + sr->spam_hits < 50)
-        lht_hit(del, sr->token, "");
+        lht_hit(del, sr->token, "", 0);
     }
     else if ((sr->innocent_hits*2) + sr->spam_hits < 5)
     { 
       if (quota == 0 || delta > quota)
       {
-        lht_hit(del, sr->token, "");
+        lht_hit(del, sr->token, "", 0);
       }
       else if (sr->innocent_hits == 0 && sr->spam_hits == 1 &&
           (nospam == 0 || delta > nospam))
       {
-        lht_hit(del, sr->token, "");
+        lht_hit(del, sr->token, "", 0);
       }
       else if (sr->innocent_hits == 1 && sr->spam_hits == 0 &&
           (onehit == 0 || delta > onehit))
       {
-        lht_hit(del, sr->token, "");
+        lht_hit(del, sr->token, "", 0);
       }
     }
  

@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.12 2004/12/15 19:03:04 jonz Exp $ */
+/* $Id: bnr.c,v 1.13 2004/12/18 00:21:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -105,7 +105,7 @@ int bnr_pattern_instantiate(
 #ifdef VERBOSE
     LOGDEBUG ("BNR pattern instantiated: '%s'", bnr_token);
 #endif
-    lht_hit (pfreq, crc, bnr_token);
+    lht_hit (pfreq, crc, bnr_token, 0);
     node_nt = c_nt_next(order, &c_nt);
   }
   return 0;

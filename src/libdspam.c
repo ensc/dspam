@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.48 2004/12/17 23:39:42 jonz Exp $ */
+/* $Id: libdspam.c,v 1.49 2004/12/18 00:21:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -754,7 +754,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
               (i * sizeof (struct _ds_signature_token)),
               sizeof (struct _ds_signature_token));
       snprintf (x, sizeof (x), "E: %" LLU_FMT_SPEC, t.token);
-      lht_hit (freq, t.token, x);
+      lht_hit (freq, t.token, x, 0);
       lht_setfrequency (freq, t.token, t.frequency);
     }
   }
@@ -827,7 +827,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
           snprintf(wl, sizeof(wl), "%s*%s", heading, fromline);
           whitelist_token = _ds_getcrc64(wl); 
-          lht_hit (freq, whitelist_token, wl);
+          lht_hit (freq, whitelist_token, wl, 0);
           freq->whitelist_token = whitelist_token;
         }
       }
@@ -961,7 +961,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
             snprintf (combined_token, sizeof (combined_token), "Url*%s",
                       urltoken);
             crc = _ds_getcrc64 (combined_token);
-            lht_hit (freq, crc, combined_token);
+            lht_hit (freq, crc, combined_token, 0);
             urltoken = strtok_r (NULL, DELIMITERS, &ptrurl2);
           }
 
@@ -1012,7 +1012,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
             snprintf (combined_token, sizeof (combined_token), "Url*%s",
                       urlind);
             crc = _ds_getcrc64 (combined_token);
-            lht_hit (freq, crc, combined_token);
+            lht_hit (freq, crc, combined_token, 0);
             urlind = strtok_r (NULL, DELIMITERS, &ptrind);
           }
 
@@ -1131,7 +1131,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     bnr_pattern_instantiate(CTX, bnr_layer1, freq->order, 's', DTT_DEFAULT, NULL);
     bnr_pattern_instantiate(CTX, bnr_layer1, freq->chained_order, 'c', DTT_DEFAULT, NULL);
 
-    lht_hit(bnr_layer1, _ds_getcrc64("bnr.t|"), "bnr.t|");
+    lht_hit(bnr_layer1, _ds_getcrc64("bnr.t|"), "bnr.t|", 0);
 
     LOGDEBUG("Loading %ld BNR patterns at layer 1", bnr_layer1->items);
 
@@ -1247,7 +1247,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350) {
       node_lht = c_lht_first (bnr_layer1, &c_lht);
       while(node_lht != NULL) {
-        lht_hit(freq, node_lht->key, node_lht->token_name);
+        lht_hit(freq, node_lht->key, node_lht->token_name, 0);
         lht_setspamstat(freq, node_lht->key, &node_lht->s);
         lht_setfrequency(freq, node_lht->key, 1);
   
@@ -1264,7 +1264,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 650) {
       node_lht = c_lht_first (bnr_layer2, &c_lht);
       while(node_lht != NULL) {
-        lht_hit(freq, node_lht->key, node_lht->token_name);
+        lht_hit(freq, node_lht->key, node_lht->token_name, 0);
 
        LOGDEBUG("BNR Pattern L2: %s %01.5f %lds %ldi",
                  node_lht->token_name,
@@ -1282,7 +1282,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000) {
       node_lht = c_lht_first (bnr_layer3, &c_lht);
       while(node_lht != NULL) {
-        lht_hit(freq, node_lht->key, node_lht->token_name);
+        lht_hit(freq, node_lht->key, node_lht->token_name, 0);
         lht_setspamstat(freq, node_lht->key, &node_lht->s);
         lht_setfrequency(freq, node_lht->key, 1);
 
@@ -1681,7 +1681,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
             (char *) CTX->signature->data +
             (i * sizeof (struct _ds_signature_token)),
             sizeof (struct _ds_signature_token));
-    lht_hit (freq, t.token, "-");
+    lht_hit (freq, t.token, "-", 0);
     lht_setfrequency (freq, t.token, t.frequency);
   }
 
@@ -1952,7 +1952,7 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
 #ifdef VERBOSE
   LOGDEBUG ("Token Hit: '%s'", combined_token);
 #endif
-  lht_hit (freq, crc, combined_token); 
+  lht_hit (freq, crc, combined_token, 0); 
 
   if ((CTX->flags & DSF_CHAINED) && previous_token != NULL && !is_received)
   {
@@ -1966,7 +1966,7 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
               "%s*%s+%s", heading, tweaked_previous, tweaked_token);
     crc = _ds_getcrc64 (combined_token);
 
-    lht_hit (freq, crc, combined_token);
+    lht_hit (freq, crc, combined_token, 1);
     free(tweaked_previous);
   }
 
@@ -2016,7 +2016,7 @@ _ds_process_body_token (DSPAM_CTX * CTX, char *token,
 
   crc = _ds_getcrc64 (tweaked_token);
 
-  lht_hit (freq, crc, tweaked_token);
+  lht_hit (freq, crc, tweaked_token, 0);
 
   if ((CTX->flags & DSF_CHAINED) && previous_token != NULL)
   {
@@ -2028,7 +2028,7 @@ _ds_process_body_token (DSPAM_CTX * CTX, char *token,
               tweaked_previous, tweaked_token);
     crc = _ds_getcrc64 (combined_token);
 
-    lht_hit (freq, crc, combined_token);
+    lht_hit (freq, crc, combined_token, 1);
     free(tweaked_previous);
   }
   free(tweaked_token);
@@ -2101,7 +2101,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
     /* If the bucket has at least 2 literals, hit it */
     if (t>=2) {
       crc = _ds_getcrc64(key);
-      lht_hit (freq, crc, key);
+      lht_hit (freq, crc, key, 0);
     }
   }
 
@@ -2173,7 +2173,7 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
         key[strlen(key)-1] = 0;
 
       crc = _ds_getcrc64(key);
-      lht_hit (freq, crc, key);
+      lht_hit (freq, crc, key, 0);
     }
   }
 

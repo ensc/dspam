@@ -1,4 +1,4 @@
-/* $Id: lht.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: lht.c,v 1.2 2004/12/18 00:21:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -272,15 +272,12 @@ c_lht_next (struct lht *lht, struct lht_c *c)
 
 
 int
-lht_hit (struct lht *lht, unsigned long long key, const char *token_name)
+lht_hit (struct lht *lht, unsigned long long key, const char *token_name, int chained)
 {
   unsigned long hash_code;
   struct lht_node *parent;
   struct lht_node *node;
   struct lht_node *new_node = NULL;
-
-  if (lht == NULL)
-    return -1;
 
   hash_code = key % lht->size;
   parent = NULL;
@@ -288,38 +285,32 @@ lht_hit (struct lht *lht, unsigned long long key, const char *token_name)
 
   while (node != NULL)
   {
-    if (key == node->key)
-    {
+    if (key == node->key) {
       new_node = node;
       node = NULL;
-    }
-
-    if (new_node == NULL)
-    {
+    } else {
       parent = node;
       node = node->next;
     }
   }
 
-  if (new_node != NULL)
-  {
+  if (new_node != NULL) {
     new_node->frequency++;
     if (new_node->token_name == NULL && token_name != NULL)
       new_node->token_name = strdup (token_name);
-      goto ADD;
+    goto ADD;
   }
 
   /* Create a new node */
-  new_node = lht_node_create (key);
-  new_node->frequency++;
-  if (new_node->token_name == NULL && token_name != NULL)
+  new_node = lht_node_create(key);
+  new_node->frequency = 1;
+  if (token_name != NULL)
     new_node->token_name = strdup (token_name);
-
   lht->items++;
 
   /* Insert */
   if (parent)
-  {                             /* Existing parent */
+  {
     parent->next = new_node;
     goto ADD;
   }
@@ -328,7 +319,7 @@ lht_hit (struct lht *lht, unsigned long long key, const char *token_name)
   lht->tbl[hash_code] = new_node;
 
 ADD:
-  if (strchr(token_name, '+'))
+  if (chained)
     nt_add(lht->chained_order, new_node);
   else
     nt_add(lht->order, new_node);
