@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.44 2004/12/17 02:17:13 jonz Exp $ */
+/* $Id: libdspam.c,v 1.45 2004/12/17 03:33:56 jonz Exp $ */
 
 /*
  DSPAM
@@ -79,8 +79,8 @@ char debug_text[1024];
 #endif
 
 #ifdef NCORE
-nc_dev_t _ncdevice;
-nc_pattern_db_t *_ncdelimiters;
+nc_dev_t g_ncDevice;
+nc_active_db_t g_ncDbDelimiters;
 #endif
 
 /*
@@ -1029,9 +1029,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     joined_token[0] = 0;
     alloc_joined = 0;
 #ifdef NCORE
-    NTX.patternDbPtr = _ncdelimiters;
-
-    token = strtok_n (body, DELIMITERS_NCORE, &NTX);
+    token = strtok_n (body, &g_ncDbDelimiters, &NTX);
 #else
     token = strtok_r (body, DELIMITERS, &ptrptr);
 #endif
@@ -1084,7 +1082,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 #ifdef NCORE
       token = strtok_n (NULL, NULL, &NTX);
 #else
-      token = strtok_r (body, DELIMITERS, &ptrptr);
+      token = strtok_r (NULL, DELIMITERS, &ptrptr);
 #endif
     }
 
