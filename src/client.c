@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.19 2005/02/24 17:56:31 jonz Exp $ */
+/* $Id: client.c,v 1.20 2005/02/24 19:33:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -343,6 +343,9 @@ char *client_getline(THREAD_CTX *TTX, int timeout) {
     pop = pop_buffer(TTX);
   }
 
+#ifdef VERBOSE
+  LOGDEBUG("RECV: %s", pop);
+#endif
   return pop;
 }
 
@@ -370,6 +373,10 @@ char *pop_buffer(THREAD_CTX *TTX) {
 
 int send_socket(THREAD_CTX *TTX, const char *ptr) {
   int i = 0, r, msglen;
+
+#ifdef VERBOSE
+  LOGDEBUG("SEND: %s", ptr);
+#endif
 
   msglen = strlen(ptr);
   while(i<msglen) {
@@ -430,7 +437,7 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
 
   input = client_expect(&TTX, LMTP_OK);
   if (input == NULL)
-    goto BAIL;
+    goto QUIT;
   free(input);
 
   snprintf(buff, sizeof(buff), "MAIL FROM:<> SIZE=%ld", strlen(message));
@@ -451,7 +458,7 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
   /* ------------------- */
 
   if (send_socket(&TTX, "DATA")<=0) 
-    goto BAIL;
+    goto QUIT;
 
   if (client_getcode(&TTX)!=LMTP_DATA)
     goto QUIT;
@@ -475,6 +482,11 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
   /* Server Response */
   /* --------------- */
 
+ input = client_expect(&TTX, LMTP_OK);
+ if (input == NULL)
+   goto QUIT;
+  free(input);
+
   send_socket(&TTX, "QUIT");
   client_getcode(&TTX);
   close(TTX.sockfd);
@@ -486,6 +498,7 @@ QUIT:
   client_getcode(&TTX);
 
 BAIL:
+  LOGDEBUG("LMTP delivery failed");
   exitcode = EFAILURE;
   buffer_destroy(TTX.packet_buffer);
   close(TTX.sockfd);
