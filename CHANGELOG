@@ -1,8 +1,8 @@
-$Id: CHANGELOG,v 1.217 2005/03/15 22:48:04 jonz Exp $
+$Id: CHANGELOG,v 1.218 2005/03/16 12:39:51 jonz Exp $
 
 Version NEXT
 ------------
-
+ 
 [20050315.0800] jonz: fixed broken returnCodes when using dspamc
 
 fixed broken return codes when using dspamc, which involved rewriting the

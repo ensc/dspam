@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.28 2005/03/14 22:02:18 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.29 2005/03/16 12:39:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -703,28 +703,48 @@ buffer * read_stdin(AGENT_CTX *ATX) {
           if (!body && !strncasecmp(buff, "To: ", 4))
           {
             char *y = NULL;
-            char *x = strstr(buff, "spam-");
+            char *x;
+
+            /* Check for spam- */
+
+            x = strstr(buff, "<spam-");
+            if (!x)
+              x = strstr(buff, " spam-");
+            if (!x)
+              x = strstr(buff, ":spam-");
 
             if (x != NULL) {
-              y = strdup(x+5);
+              y = strdup(x+6);
 
-              if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+              if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
+              {
                 ATX->classification = DSR_ISSPAM;
                 ATX->source = DSS_ERROR;
               }
-            }
+            } else {
 
-            x = strstr(buff, "fp-");
-            if (x != NULL) {
-              y = strdup(x+3);
+              /* Check for fp- */
 
-              if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+              x = strstr(buff, "<fp-");
+              if (!x)
+                x = strstr(buff, " fp-");
+              if (!x)
+                x = strstr(buff, ":fp-");
+
+              if (x != NULL) {
+                y = strdup(x+4);
+              }
+
+              if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
+              {
                 ATX->classification = DSR_ISINNOCENT;
                 ATX->source = DSS_ERROR;
               }
             }
 
-            if (y && !strcmp(_ds_read_attribute(agent_config, "ChangeUserOnParse"), "on")) {
+            if (y && _ds_match_attribute(agent_config,
+                                         "ChangeUserOnParse", "on")) 
+            {
               char *ptrptr;
               char *z = strtok_r(y, "@", &ptrptr);
               nt_destroy(ATX->users);
@@ -734,7 +754,7 @@ buffer * read_stdin(AGENT_CTX *ATX) {
               nt_add (ATX->users, z);
               free(y);
             }
-          }
+          } /* To: Header */
         }
 
         if (buffer_cat (message, buff))
