@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.12 2004/12/19 01:54:35 jonz Exp $
+# $Id: Makefile.am,v 1.13 2004/12/19 02:01:58 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -72,6 +72,8 @@ EXTRA_libdspam_la_SOURCES = \
         ora_drv.c ora_drv.h \
 	sqlite_drv.c sqlite_drv.h \
 	sqlite3_drv.c sqlite3_drv.h 
+# extend and uncomment for NodalCore(tm) builds
+#	ncore_adp.cpp ncore_adp.h
 
 # Libtools veriooning scheme is:
 #   current:revision:age
