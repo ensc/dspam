@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.13 2004/11/27 22:08:03 jonz Exp $ */
+/* $Id: dspam.c,v 1.14 2004/11/27 22:10:58 jonz Exp $ */
 
 /*
  DSPAM
@@ -67,7 +67,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "language.h"
 #include "buffer.h"
 #include "base64.h"
-#include "md5.h"
 #include "tbt.h"
 #include "pref.h"
 
