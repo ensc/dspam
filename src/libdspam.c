@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.86 2005/01/14 21:11:19 jonz Exp $ */
+/* $Id: libdspam.c,v 1.87 2005/01/15 16:57:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -1465,7 +1465,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   }
 
 #ifdef LIBBNR_DEBUG
-  {
+  if (CTX->flags & DSF_NOISE) {
     int x = CTX->result;
     int nobnr_result = _ds_calc_result(CTX, heap_nobnr, diction);
 
@@ -2553,9 +2553,10 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
   for(i=0;i<heap_sort->items;i++)
   {
     char *token_name;
-    ds_term_t ds_term = ds_diction_find(diction, node_heap->token);
+    ds_term_t ds_term;
 
     node_heap = heap_list[i];
+    ds_term = ds_diction_find(diction, node_heap->token);
 
     if (!ds_term) 
       continue;

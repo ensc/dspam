@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.141 2005/01/15 15:08:33 jonz Exp $
+$Id: CHANGELOG,v 1.142 2005/01/15 16:57:52 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050115.1200] jonz: fixed token malalignment bug
+
+fixed a bug causing token names to be malaligned with their values; should
+not have affected accuracy, only debug messages 
 
 [20050115.1000] jonz: added dspam_logrotate
 
