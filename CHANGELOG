@@ -1,7 +1,14 @@
-$Id: CHANGELOG,v 1.130 2005/01/07 13:47:31 jonz Exp $
+$Id: CHANGELOG,v 1.131 2005/01/11 16:54:12 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
+
+Version 3.3.NEXT
+----------------
+
+[20040111.0700] jonz: fixed compile error
+
+fixed compile error in freebsd
 
 Version 3.3.10
 --------------

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.60 2005/01/11 06:37:22 jonz Exp $ */
+/* $Id: dspam.c,v 1.61 2005/01/11 16:54:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -2166,7 +2166,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
           if ((res == DSR_ISSPAM || res == DSR_ISINNOCENT) && 
               r.total_incorrect+r.total_correct>4) 
           {
-            heap_insert(heap_sort,
+            ds_heap_insert(heap_sort,
                (double) r.total_correct / (r.total_correct+r.total_incorrect),
                r.uid, res, 0);
           }
