@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.10 2004/12/03 13:32:03 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.11 2004/12/03 16:12:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -70,12 +70,55 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 int
 dspam_init_driver (DRIVER_CTX *DTX)
 {
+
+  if (DTX == NULL)
+    return 0;
+
+  /* Establish a series of stateful connections */
+
+  if (DTX->flags & DRF_STATEFUL) {
+    int i, connection_cache = 1;
+
+    if (_ds_read_attribute(DTX->CTX->config->attributes, "PgSQLConnectionCache"))
+      connection_cache = atoi(_ds_read_attribute(DTX->CTX->config->attributes, "PgSQLConnectionCache"));
+
+    DTX->connection_cache = connection_cache;
+    DTX->connections = calloc(1, sizeof(struct _ds_drv_connection *)*connection_cache);
+    if (DTX->connections == NULL) {
+      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      return EUNKNOWN;
+    }
+
+    for(i=0;i<connection_cache;i++) {
+      DTX->connections[i] = calloc(1, sizeof(struct _ds_drv_connection *));
+      if (DTX->connections[i]) {
+        DTX->connections[i]->dbh = (void *) _pgsql_drv_connect(DTX->CTX);
+      }
+    }
+  }
+
   return 0;
 }
 
 int
 dspam_shutdown_driver (DRIVER_CTX *DTX)
 {
+
+  if (DTX != NULL) {
+    if (DTX->flags & DRF_STATEFUL) {
+      int i;
+
+      for(i=0;i<DTX->connection_cache;i++) {
+        if (DTX->connections && DTX->connections[i]->dbh)
+          PQfinish((PGconn *)DTX->connections[i]->dbh);
+        free(DTX->connections[i]);
+      }
+
+      free(DTX->connections);
+      DTX->connections = NULL;
+    }
+  }
+
   return 0;
 }
 
@@ -857,15 +900,6 @@ int
 _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 {
   struct _pgsql_drv_storage *s;
-  FILE *file;
-  char filename[MAX_FILENAME_LENGTH];
-  char buffer[256];
-  char hostname[128] = "";
-  char user[64] = "";
-  char password[32] = "";
-  char db[64] = "";
-  int port = 5432, i = 0;
-  // PGresult *result;
 
   /* don't init if we're already initted */
   if (CTX->storage != NULL)
@@ -886,80 +920,13 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   memset(&s->p_getpwnam, 0, sizeof(struct passwd));
   memset(&s->p_getpwuid, 0, sizeof(struct passwd));
 
-  /* Read Storage Attributes */
-
-  if (_ds_read_attribute(CTX->config->attributes, "PgSQLServer")) {
-    char *p;
-
-    strlcpy(hostname, 
-           _ds_read_attribute(CTX->config->attributes, "PgSQLServer"),
-            sizeof(hostname));
-
-    if (_ds_read_attribute(CTX->config->attributes, "PgSQLPort"))
-      port = atoi(_ds_read_attribute(CTX->config->attributes, "PgSQLPort"));
-    else
-      port = 0;
-
-    if ((p = _ds_read_attribute(CTX->config->attributes, "PgSQLUser")))
-      strlcpy(user, p, sizeof(user));
-    if ((p = _ds_read_attribute(CTX->config->attributes, "PgSQLPass")))
-      strlcpy(password, p, sizeof(password));
-    if ((p = _ds_read_attribute(CTX->config->attributes, "PgSQLDb")))
-      strlcpy(db, p, sizeof(db)); 
-
-  } else {
-    snprintf (filename, MAX_FILENAME_LENGTH, "%s/pgsql.data", CTX->home);
-    file = fopen (filename, "r");
-    if (file == NULL)
-    {
-      LOG (LOG_WARNING, "unable to open %s for reading: %s",
-           filename, strerror (errno));
-      free(s);
-      return EFAILURE;
-    }
-  
-    db[0] = 0;
-  
-    while (fgets (buffer, sizeof (buffer), file) != NULL)
-    {
-      chomp (buffer);
-      if (!i)
-        strlcpy (hostname, buffer, sizeof (hostname));
-      else if (i == 1)
-        port = atoi (buffer);
-      else if (i == 2)
-        strlcpy (user, buffer, sizeof (user));
-      else if (i == 3)
-        strlcpy (password, buffer, sizeof (password));
-      else if (i == 4)
-        strlcpy (db, buffer, sizeof (db));
-      i++;
-    }
-    fclose (file);
-  }
-  
-  if (db[0] == 0)
-  {
-    LOG (LOG_WARNING, "file %s: incomplete pgsql connect data", filename);
-    free(s);
-    return EINVAL;
-  }
-
-  if (port == 0) port = 5432;
-
   if (dbh) {
     s->dbh = dbh;
   } else {
-
-    /* create string and connect to db */
-    snprintf (buffer, sizeof (buffer),
-              "host='%s' user='%s' dbname='%s' password='%s' port='%d'",
-              hostname, user, db, password, port);
-
-    s->dbh = PQconnectdb(buffer);
+    s->dbh = _pgsql_drv_connect(CTX);
   }
 
-  if ( PQstatus(s->dbh) == CONNECTION_BAD)
+  if (s->dbh == NULL || PQstatus(s->dbh) == CONNECTION_BAD)
   {
     LOG (LOG_WARNING, "%s", PQerrorMessage(s->dbh) );
     free(s);
@@ -2655,6 +2622,92 @@ _ds_delete_decision (DSPAM_CTX * CTX, const char *signature)
 
 void *_ds_connect (DSPAM_CTX *CTX)
 {
-  return NULL;
+  return (void *) _pgsql_drv_connect(CTX);
 }
 
+PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX) 
+{
+  PGconn *dbh;
+  FILE *file;
+  char filename[MAX_FILENAME_LENGTH];
+  char buffer[256];
+  char hostname[128] = "";
+  char user[64] = "";
+  char password[32] = "";
+  char db[64] = "";
+  int port = 5432, i = 0;
+
+  /* Read Storage Attributes */
+
+  if (_ds_read_attribute(CTX->config->attributes, "PgSQLServer")) {
+    char *p;
+
+    strlcpy(hostname, 
+           _ds_read_attribute(CTX->config->attributes, "PgSQLServer"),
+            sizeof(hostname));
+
+    if (_ds_read_attribute(CTX->config->attributes, "PgSQLPort"))
+      port = atoi(_ds_read_attribute(CTX->config->attributes, "PgSQLPort"));
+    else
+      port = 0;
+
+    if ((p = _ds_read_attribute(CTX->config->attributes, "PgSQLUser")))
+      strlcpy(user, p, sizeof(user));
+    if ((p = _ds_read_attribute(CTX->config->attributes, "PgSQLPass")))
+      strlcpy(password, p, sizeof(password));
+    if ((p = _ds_read_attribute(CTX->config->attributes, "PgSQLDb")))
+      strlcpy(db, p, sizeof(db)); 
+
+  } else {
+    snprintf (filename, MAX_FILENAME_LENGTH, "%s/pgsql.data", CTX->home);
+    file = fopen (filename, "r");
+    if (file == NULL)
+    {
+      LOG (LOG_WARNING, "unable to open %s for reading: %s",
+           filename, strerror (errno));
+      return NULL;
+    }
+  
+    db[0] = 0;
+  
+    while (fgets (buffer, sizeof (buffer), file) != NULL)
+    {
+      chomp (buffer);
+      if (!i)
+        strlcpy (hostname, buffer, sizeof (hostname));
+      else if (i == 1)
+        port = atoi (buffer);
+      else if (i == 2)
+        strlcpy (user, buffer, sizeof (user));
+      else if (i == 3)
+        strlcpy (password, buffer, sizeof (password));
+      else if (i == 4)
+        strlcpy (db, buffer, sizeof (db));
+      i++;
+    }
+    fclose (file);
+  }
+  
+  if (db[0] == 0)
+  {
+    LOG (LOG_WARNING, "file %s: incomplete pgsql connect data", filename);
+    return NULL;
+  }
+
+  if (port == 0) port = 5432;
+
+  /* create string and connect to db */
+  snprintf (buffer, sizeof (buffer),
+            "host='%s' user='%s' dbname='%s' password='%s' port='%d'",
+            hostname, user, db, password, port);
+
+  dbh = PQconnectdb(buffer);
+
+  if ( PQstatus(dbh) == CONNECTION_BAD)
+  {
+    LOG (LOG_WARNING, "%s", PQerrorMessage(dbh) );
+    return NULL;
+  }
+
+  return dbh;
+}

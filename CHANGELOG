@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.63 2004/12/03 13:38:21 jonz Exp $
+$Id: CHANGELOG,v 1.64 2004/12/03 16:12:50 jonz Exp $
 
 Version NEXT
 ------------
@@ -21,8 +21,11 @@ configure client in dspam.conf to talk to daemon, or speak LMTP without the
 client. authentication configurable in dspam.conf. implemented stateful
 database connections. --stdout and --classify supported. 
 
+NOTE: Daemon mode is multithreaded, and therefore requires a multithreaded
+      driver: mysql_drv or pgsql_drv.
+
 TODO: re-establish connections as necessary 
-      - done, but concerned about threading conflicts; need mutex
+      - done, but concerned about threading conflicts; need locking
 
 [20041127.1700] jonz: normalized process_message()
 
