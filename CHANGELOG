@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.189 2005/03/02 18:26:58 jonz Exp $
+$Id: CHANGELOG,v 1.190 2005/03/02 20:07:01 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050302.0730] jonz: minor lmtp protocol tweaks
+
+minor tweaks to LMTP protocol service
 
 [20050302.0730] jonz: fixed a bug with TOE and automatic whitelisting
 

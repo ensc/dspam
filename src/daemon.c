@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.50 2005/03/01 19:03:36 jonz Exp $ */
+/* $Id: daemon.c,v 1.51 2005/03/02 20:07:01 jonz Exp $ */
 
 /*
  DSPAM
@@ -324,7 +324,7 @@ void *process_connection(void *ptr) {
     /* MAIL FROM (Authentication) */
 
     while(!TTX->authenticated) {
-      input = daemon_expect(TTX, "MAIL FROM:");
+      input = daemon_expect(TTX, "MAIL FROM");
       if (input == NULL) 
         goto CLOSE;
       else {
@@ -408,55 +408,65 @@ void *process_connection(void *ptr) {
 
     /* RCPT TO (Userlist and arguments) */
 
-    cmdline = daemon_getline(TTX, 300);
-    while(cmdline && !strncasecmp(cmdline, "RCPT TO:", 8)) {
-      if (server_mode == SSM_DSPAM) {
-        /* Tokenize arguments */
-        chomp(cmdline);
-        argv[argc] = "--user";
-        argc++;
-        token = strtok_r(cmdline+8, " ", &ptrptr);
-        while(token != NULL) {
-          argv[argc] = token;
-          argc++;
-          token = strtok_r(NULL, " ", &ptrptr);
-        }
-    
-      } else {
-        char username[256];
-  
-        if (_ds_extract_address(username, cmdline, sizeof(username))) {
-          daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERROR_INVALID_RCPT);
+    while(ATX->users->items == 0) {
+      int bad_response = 0;
+      cmdline = daemon_getline(TTX, 300);
+ 
+      while(cmdline && !strncasecmp(cmdline, "RCPT TO:", 8)) {
+
+        if (!strcasecmp(cmdline, "quit")) {
+          daemon_reply(TTX, LMTP_OK, "2.0.0", "OK"); 
           goto CLOSE;
         }
 
-        if (!parms || !strstr(parms, "--user "))
-          nt_add(ATX->users, username);
-        strlcpy(ATX->recipient, username, sizeof(ATX->recipient));
-      }
+        if (server_mode == SSM_DSPAM) {
+          /* Tokenize arguments */
+          chomp(cmdline);
+          argv[argc] = "--user";
+          argc++;
+          token = strtok_r(cmdline+8, " ", &ptrptr);
+          while(token != NULL) {
+            argv[argc] = token;
+            argc++;
+            token = strtok_r(NULL, " ", &ptrptr);
+          }
+    
+        } else {
+          char username[256];
+    
+          if (_ds_extract_address(username, cmdline, sizeof(username))) {
+            daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERROR_INVALID_RCPT);
+            bad_response = 1;
+            break;
+          }
 
-      if (daemon_reply(TTX, LMTP_OK, "2.1.5", "OK")<=0)
+          if (!parms || !strstr(parms, "--user "))
+            nt_add(ATX->users, username);
+          strlcpy(ATX->recipient, username, sizeof(ATX->recipient));
+        }
+
+        if (daemon_reply(TTX, LMTP_OK, "2.1.5", "OK")<=0)
+          goto CLOSE;
+
+        oldcmd = cmdline;
+        cmdline = daemon_getline(TTX, 300);
+        if  (server_mode == SSM_DSPAM)
+          break;
+      }
+  
+      if (cmdline == NULL) 
         goto CLOSE;
 
-      oldcmd = cmdline;
-      cmdline = daemon_getline(TTX, 300);
-      if  (server_mode == SSM_DSPAM)
-        break;
-    }
-  
-    if (cmdline == NULL) 
-      goto CLOSE;
-
-    if (process_arguments(ATX, argc, argv) || apply_defaults(ATX))
-    {
-      report_error(ERROR_INITIALIZE_ATX);
-      daemon_reply(TTX, LMTP_BAD_CMD, "5.1.0", ERROR_INITIALIZE_ATX);
-      goto CLOSE;
-    }
-
-    if (ATX->users->items == 0) {
-      daemon_reply(TTX, LMTP_BAD_CMD, "5.1.1", ERROR_USER_UNDEFINED);
-      goto CLOSE;
+      if (bad_response) 
+        continue;
+ 
+      if (process_arguments(ATX, argc, argv) || apply_defaults(ATX))
+      {
+        report_error(ERROR_INITIALIZE_ATX);
+        daemon_reply(TTX, LMTP_NO_RCPT, "5.1.0", ERROR_INITIALIZE_ATX);
+      } else if (ATX->users->items == 0) {
+        daemon_reply(TTX, LMTP_NO_RCPT, "5.1.1", ERROR_USER_UNDEFINED);
+      }
     }
 
     ATX->sockfd = fd;
@@ -466,10 +476,6 @@ void *process_connection(void *ptr) {
     i = (TTX->sockfd % TTX->DTX->connection_cache);
     LOGDEBUG("using database handle id %d", i);
   
-    pthread_mutex_lock(&TTX->DTX->connections[i]->lock);
-    ATX->dbh = TTX->DTX->connections[i]->dbh;
-    locked = i;
-
     if (check_configuration(ATX)) {
       report_error(ERROR_DSPAM_MISCONFIGURED);
       daemon_reply(TTX, LMTP_BAD_CMD, "5.3.5", ERROR_DSPAM_MISCONFIGURED);
@@ -478,12 +484,10 @@ void *process_connection(void *ptr) {
 
     /* DATA */
   
-    /* Check for at least one recipient */
-
     if (strncasecmp(cmdline, "DATA", 4)) {
       if (daemon_reply(TTX, LMTP_BAD_CMD, "5.0.0", "Need DATA Here")<0) 
         goto CLOSE;
-      input = daemon_expect(TTX, "LHLO");
+      input = daemon_expect(TTX, "DATA");
       if (input == NULL)
         goto CLOSE;
     }
@@ -499,8 +503,12 @@ void *process_connection(void *ptr) {
       goto CLOSE;
     }
 
+    pthread_mutex_lock(&TTX->DTX->connections[i]->lock);
+    ATX->dbh = TTX->DTX->connections[i]->dbh;
+    locked = i;
+
     results = process_users(ATX, message);
-    
+  
     if (TTX->DTX->connections[locked]->dbh != ATX->dbh) 
       TTX->DTX->connections[locked]->dbh = ATX->dbh;
 
@@ -517,12 +525,12 @@ void *process_connection(void *ptr) {
 
       i = 0;
 
-      while(node_nt != NULL) {
+        while(node_nt != NULL) {
         int r = 0;
         result = results[i];
         if (result) r = *result; 
         if (result == NULL || r == 0)
-          snprintf(buf, sizeof(buf), "%d 2.6.0 <%s> Message accepted for delivery",
+        snprintf(buf, sizeof(buf), "%d 2.6.0 <%s> Message accepted for delivery",
                    LMTP_OK, (char *) node_nt->ptr);
         else
           snprintf(buf, sizeof(buf), "%d 5.3.0 <%s> Error occured during processing", LMTP_ERROR_PROCESS, (char *) node_nt->ptr);
@@ -565,7 +573,6 @@ CLOSE:
   if (locked>=0)
     pthread_mutex_unlock(&TTX->DTX->connections[locked]->lock);
   fclose(fd);
-//  close(TTX->sockfd);
   buffer_destroy(TTX->packet_buffer);
   if (message) 
     buffer_destroy(message);
