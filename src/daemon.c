@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.18 2004/12/02 21:48:17 jonz Exp $ */
+/* $Id: daemon.c,v 1.19 2004/12/02 22:45:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -492,6 +492,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
 
   while ((buff = socket_getline(TTX, 300))!=NULL) {
     chomp(buff);
+
     if (!strcmp(buff, ".")) {
       free(buff);
       return message;

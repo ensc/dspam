@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.4 2004/12/02 19:42:27 jonz Exp $ */
+/* $Id: client.c,v 1.5 2004/12/02 22:45:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -98,17 +98,18 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   if (client_getcode(&TTX)!=LMTP_DATA)
     goto QUIT;
 
-  if (message->data[strlen(message->data)-1]!= '\n') 
-    buffer_cat(message, "\n");
-
   i = 0;
-  msglen = strlen(message->data)+1;
+  msglen = strlen(message->data);
   while(i<msglen) {
     int r = send(TTX.sockfd, message->data+i, msglen - i, 0);
     if (r <= 0) 
       goto BAIL;
     i += r;
   }
+
+  if (message->data[strlen(message->data)-1]!= '\n')
+    if (send_socket(&TTX, "")<=0)
+     goto BAIL;
 
   if (send_socket(&TTX, ".")<=0)
     goto BAIL;
