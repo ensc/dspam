@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.188 2005/03/02 17:48:02 jonz Exp $
+$Id: CHANGELOG,v 1.189 2005/03/02 18:26:58 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050302.0730] jonz: fixed a bug with TOE and automatic whitelisting
+
+fixed a bug where the "spam hit" from a false positive wouldn't be reversed
+for users using TOE after their training threshold has been exceeded
 
 [20050302.0700] jonz: fixed unknown token value bug
 

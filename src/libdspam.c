@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.96 2005/03/02 17:48:02 jonz Exp $ */
+/* $Id: libdspam.c,v 1.97 2005/03/02 18:26:58 jonz Exp $ */
 
 /*
  DSPAM
@@ -1805,10 +1805,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
         ds_term->s.innocent_hits-= (ds_term->s.innocent_hits>0) ? 1:0;
       } else {
         ds_term->s.innocent_hits++;
-        if (CTX->source == DSS_ERROR &&
-          (CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 2500)
-          && CTX->training_mode != DST_NOTRAIN)
-
+        if (CTX->source == DSS_ERROR && CTX->training_mode != DST_NOTRAIN)
           ds_term->s.spam_hits -= (ds_term->s.spam_hits > 0) ? 1 : 0;
       }
     }
@@ -1819,10 +1816,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
       if (CTX->flags & DSF_UNLEARN) {
         ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1 :0;
       } else {
-       if (CTX->source == DSS_ERROR &&
-          (CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 2500)
-          && CTX->training_mode != DST_NOTRAIN)
-
+       if (CTX->source == DSS_ERROR && CTX->training_mode != DST_NOTRAIN)
           ds_term->s.innocent_hits -= (ds_term->s.innocent_hits > 0) ? 1 : 0;
 
         if (CTX->source == DSS_INOCULATION)
