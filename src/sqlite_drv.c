@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.13 2005/01/03 03:06:13 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.14 2005/01/03 03:13:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -339,7 +339,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
      s->control_token = ds_term->key;
      s->control_sh = ds_term->s.spam_hits;
      s->control_ih = ds_term->s.innocent_hits;
-     ds_term = ds_diction_close(ds_c);
+     ds_diction_close(ds_c);
   }
 
   buffer_destroy (query);
@@ -366,7 +366,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   if (CTX->operating_mode == DSM_CLASSIFY &&
         (CTX->training_mode != DST_TOE ||
-          (freq->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
+          (diction->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
     return 0;
 
   query = buffer_create (NULL);
@@ -417,7 +417,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     if (CTX->training_mode == DST_TOE          && 
         CTX->classification == DSR_NONE        &&
 	CTX->operating_mode == DSM_CLASSIFY    &&
-        freq->whitelist_token != ds_term->key  &&
+        diction->whitelist_token != ds_term->key  &&
         (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))  
     {
       ds_term = ds_diction_next(ds_c);
@@ -1307,7 +1307,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   char queryhead[1024];
   int writes = 0;
 
-  if (freq->items < 1)
+  if (diction->items < 1)
     return 0;
 
   if (s->dbh == NULL)

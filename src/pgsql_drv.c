@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.22 2005/01/03 03:06:13 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.23 2005/01/03 03:16:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -491,7 +491,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   buffer_cat (query, scratch);
   ds_c = ds_diction_cursor(diction);
-  ds_term = ds_cursor_next(ds_c);
+  ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
     snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
@@ -500,7 +500,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     ds_term->s.spam_hits = 0;
     ds_term->s.probability = 0;
     ds_term->s.status &= ~TST_DISK;
-    ds_term = ds_cursor_next(ds_c);
+    ds_term = ds_diction_next(ds_c);
     if (ds_term)
       buffer_cat (query, ",");
     get_one = 1;
@@ -597,7 +597,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   if (CTX->operating_mode == DSM_CLASSIFY &&
         (CTX->training_mode != DST_TOE ||
-          (freq->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
+          (diction->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
     return 0;
 
   if (!CTX->group || CTX->flags & DSF_MERGED)
@@ -634,7 +634,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       stat.innocent_hits = ds_term->s.innocent_hits;
     }
 
-    ds_diction_close(diction);
+    ds_diction_close(ds_c);
   }
   else
   {
@@ -691,7 +691,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
 
   ds_c = ds_diction_cursor(diction);
-  ds_term = dS_diction_next(ds_c);
+  ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
     int wrote_this = 0;
@@ -699,7 +699,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     if (CTX->training_mode == DST_TOE           &&
         CTX->classification == DSR_NONE         &&
         CTX->operating_mode == DSM_CLASSIFY	&&
-        freq->whitelist_token != ds_term->key  &&
+        diction->whitelist_token != ds_term->key  &&
         (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
     {
       ds_term = ds_diction_next(ds_c);
@@ -707,7 +707,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     }
 
     if (!(ds_term->s.status & TST_DIRTY)) {
-      ds_term = dS_diction_next(ds_c);
+      ds_term = ds_diction_next(ds_c);
       continue;
     }
 
@@ -1860,7 +1860,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   int writes = 0;
   PGresult *result;
 
-  if (freq->items < 1)
+  if (diction->items < 1)
     return 0;
 
   if (s->dbh == NULL)
