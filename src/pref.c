@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.6 2005/01/11 19:38:55 jonz Exp $ */
+/* $Id: pref.c,v 1.7 2005/01/11 19:41:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -202,8 +202,6 @@ AGENT_PREF _ds_pref_load(
     }
     fclose(file);
   }
-
-  PTX = realloc(PTX, sizeof(AGENT_ATTRIB *)*(i+1));
 
   return PTX;
 }
