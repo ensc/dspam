@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.17 2005/02/24 17:25:04 jonz Exp $ */
+/* $Id: client.c,v 1.18 2005/02/24 17:28:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -427,7 +427,7 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
  if (client_getcode(&TTX)!=LMTP_OK)
     goto QUIT;
 
-  snprintf(buff, sizeof(buff), "RCPT TO: <%s>", ATX->recipient);
+  snprintf(buff, sizeof(buff), "RCPT TO:<%s>", ATX->recipient);
   if (send_socket(&TTX, buff)<=0) 
     goto BAIL;
 
