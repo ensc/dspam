@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.154 2005/01/23 02:26:13 jonz Exp $
+$Id: CHANGELOG,v 1.155 2005/01/26 18:51:54 jonz Exp $
 
 Version NEXT
 ------------
+
+[20040126.0100] jonz: fixed whitelist training bug with notrain
+
+when in notrain mode, whitelists were still trained
+
 [20050122.2115] jonz: applied bugfixes to sbl lookup
 
 fixed sbl lookups to use mt-safe functions, also fixed crashing

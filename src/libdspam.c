@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.93 2005/01/18 18:28:27 jonz Exp $ */
+/* $Id: libdspam.c,v 1.94 2005/01/26 18:51:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -1658,11 +1658,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   ds_diction_close(ds_c);
 
   /* Store all tokens */
-  if (_ds_setall_spamrecords (CTX, diction))
-  {
-    LOGDEBUG ("_ds_setall_spamrecords() failed");
-    errcode = EUNKNOWN;
-    goto bail;
+  if (CTX->training_mode != DST_NOTRAIN) {
+    if (_ds_setall_spamrecords (CTX, diction))
+    {
+      LOGDEBUG ("_ds_setall_spamrecords() failed");
+      errcode = EUNKNOWN;
+      goto bail;
+    }
   }
 
   ds_diction_destroy (diction);
@@ -1839,9 +1841,11 @@ _ds_process_signature (DSPAM_CTX * CTX)
   }
   ds_diction_close(ds_c);
 
-  if (_ds_setall_spamrecords (CTX, diction)) {
-    ds_diction_destroy(diction);
-    return EUNKNOWN;
+  if (CTX->training_mode != DST_NOTRAIN) {
+    if (_ds_setall_spamrecords (CTX, diction)) {
+      ds_diction_destroy(diction);
+      return EUNKNOWN;
+    }
   }
 
   if (CTX->classification == DSR_ISSPAM)
