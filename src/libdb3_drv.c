@@ -1,4 +1,4 @@
-/* $Id: libdb3_drv.c,v 1.4 2004/12/03 00:36:48 jonz Exp $ */
+/* $Id: libdb3_drv.c,v 1.5 2005/01/03 13:31:10 jonz Exp $ */
 
 /*
  DSPAM
@@ -54,7 +54,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "error.h"
 #include "language.h"
 #include "util.h"
-#include "lht.h"
 
 int
 dspam_init_driver (DRIVER_CTX *DTX)
@@ -164,37 +163,39 @@ _libdb3_drv_set_spamtotals (DSPAM_CTX * CTX)
 }
 
 int
-_ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
+_ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
-  struct lht_node *node_lht;
-  struct lht_c c_lht;
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
   struct _ds_spam_stat stat;
   int ret = 0, x = 0;
 
-  if (freq == NULL || CTX == NULL)
+  if (diction == NULL || CTX == NULL)
     return EINVAL;
 
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while(ds_term)
   {
-    node_lht->s.spam_hits = 0;
-    node_lht->s.innocent_hits = 0;
-    x = _ds_get_spamrecord (CTX, node_lht->key, &stat);
+    ds_term->s.spam_hits = 0;
+    ds_term->s.innocent_hits = 0;
+    x = _ds_get_spamrecord (CTX, ds_term->key, &stat);
     if (!x)
     {
-      lht_setspamstat (freq, node_lht->key, &stat);
-      if (node_lht->s.spam_hits > CTX->totals.spam_learned)
-        node_lht->s.spam_hits = CTX->totals.spam_learned;
-      if (node_lht->s.innocent_hits > CTX->totals.innocent_learned)
-        node_lht->s.innocent_hits = CTX->totals.innocent_learned;
+      ds_diction_setstat(diction, ds_term->key, &stat);
+      if (ds_term->s.spam_hits > CTX->totals.spam_learned)
+        ds_term->s.spam_hits = CTX->totals.spam_learned;
+      if (ds_term->s.innocent_hits > CTX->totals.innocent_learned)
+        ds_term->s.innocent_hits = CTX->totals.innocent_learned;
     }
     else if (x != EFAILURE)
     {
       ret = x;
     }
 
-    node_lht = c_lht_next (freq, &c_lht);
+    ds_term = ds_diction_next(ds_c);
   }
+  ds_diction_close(ds_c);
 
   if (ret) {
     LOGDEBUG("_ds_getall_spamtotals returning %d", ret);
@@ -204,39 +205,41 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 }
 
 int
-_ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
+_ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
-  struct lht_node *node_lht;
-  struct lht_c c_lht;
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
   int ret = EUNKNOWN;
 
-  if (freq == NULL || CTX == NULL)
+  if (diction == NULL || CTX == NULL)
     return EINVAL;
 
   if (CTX->operating_mode == DSM_CLASSIFY &&
         (CTX->training_mode != DST_TOE ||
-          (freq->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
+          (diction->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
   {
     return 0;
   }
                                                                                 
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while(ds_term)
   {
     if (CTX->training_mode == DST_TOE           &&
         CTX->classification == DSR_NONE         &&
         CTX->operating_mode == DSM_CLASSIFY     &&
-        freq->whitelist_token != node_lht->key  &&
-        (!node_lht->token_name || strncmp(node_lht->token_name, "bnr.", 4)))
+        diction->whitelist_token != ds_term->key  &&
+        (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
     {
-      node_lht = c_lht_next(freq, &c_lht);
+      ds_term = ds_diction_next(ds_c);
       continue;
     }
 
-    if (!_ds_set_spamrecord (CTX, node_lht->key, &node_lht->s))
+    if (!_ds_set_spamrecord (CTX, ds_term->key, &ds_term->s))
       ret = 0;
-    node_lht = c_lht_next (freq, &c_lht);
+    ds_term = ds_diction_next(ds_c);
   }
+  ds_diction_close(ds_c);
 
   return ret;
 }
@@ -1265,24 +1268,26 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
 }
                                                                                 
 int
-_ds_delall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
+_ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
-  struct lht_node *node_lht;
-  struct lht_c c_lht;
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
   int ret = 0, x = 0;
-                                                                                
-  if (freq == NULL || CTX == NULL)
+
+  if (diction == NULL || CTX == NULL)
     return EINVAL;
-                                                                                
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
+
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while(ds_term)
   {
-    x = _ds_del_spamrecord (CTX, node_lht->key);
+    x = _ds_del_spamrecord (CTX, ds_term->key);
     if (x)
       ret = x;
                                                                                 
-    node_lht = c_lht_next (freq, &c_lht);
+    ds_term = ds_diction_next(ds_c);
   }
+  ds_diction_close(ds_c);
                                                                                 
   return ret;
 }
