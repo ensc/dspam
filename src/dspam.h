@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.7 2004/11/30 22:32:22 jonz Exp $ */
+/* $Id: dspam.h,v 1.8 2004/12/01 00:32:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -70,6 +70,7 @@ typedef struct {
   struct _ds_spam_signature SIG;/* signature object  OUT     */ 
   int learned;                  /* Message learned?  OUT     */
   int sockfd;			/* Socket FD if not STDOUT */
+  int sockfd_output;		/* Output sent to sockfd? */
 
 #ifdef DEBUG
   char debug_args[1024];

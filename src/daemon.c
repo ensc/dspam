@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.9 2004/12/01 00:06:11 jonz Exp $ */
+/* $Id: daemon.c,v 1.10 2004/12/01 00:32:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -120,8 +120,9 @@ int daemon_listen() {
   for(;;) {
     read_fds = master;
 
-    tv.tv_sec = 0;
-    tv.tv_usec = 50;
+    tv.tv_sec = 2;
+    tv.tv_usec = 1000;
+// HERE
 
     if (select(fdmax+1, &read_fds, NULL, NULL, &tv)>0) {
 
@@ -143,8 +144,9 @@ int daemon_listen() {
             } else {
               LOGDEBUG("connection id %d from %s.", newfd, 
                        inet_ntoa(remote_addr.sin_addr));
-              fcntl(newfd, F_SETFL, O_NONBLOCK);
-              setsockopt(newfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
+                fcntl(newfd, F_SETFL, O_RDWR);
+//              fcntl(newfd, F_SETFL, O_NONBLOCK);
+//              setsockopt(newfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
 
               TTX = calloc(1, sizeof(THREAD_CTX));
               if (TTX == NULL) {
@@ -211,8 +213,15 @@ void *process_connection(void *ptr) {
       chomp(input);
 
       t = strtok_r(input, " ", &ptrptr);
-      if (t) 
+      if (t) {
+        if (!strncasecmp(t, "QUIT", 4)) {
+          snprintf(buf, sizeof(buf), "%d OK", LMTP_QUIT);
+          socket_send(TTX, buf);
+          goto CLOSE;
+        }
+
         pass = strtok_r(NULL, " ", &ptrptr);
+      }
       if (t == NULL || strcasecmp(t, "LHLO") || (serverpass && (!pass || strcmp(pass, serverpass)))) {
         snprintf(buf, sizeof(buf), "%d Authentication Required", LMTP_AUTH_ERROR);
         if (socket_send(TTX, buf)<=0)
@@ -249,16 +258,16 @@ void *process_connection(void *ptr) {
     goto CLOSE;
 
   while(strncasecmp(cmdline, "MAIL FROM:", 10)) {
-    snprintf(buf, sizeof(buf), "%d Need MAIL here", LMTP_BAD_CMD);
-    if (socket_send(TTX, buf)<=0)
-      goto CLOSE;
-    cmdline = socket_getline(TTX, 300);
     if (!strncasecmp(cmdline, "QUIT", 4)) {
       snprintf(buf, sizeof(buf), "%d OK", LMTP_QUIT);
       socket_send(TTX, buf);
     }
     if (cmdline == NULL || !strncasecmp(cmdline, "QUIT", 4))
       goto CLOSE;
+    snprintf(buf, sizeof(buf), "%d Need MAIL here", LMTP_BAD_CMD);
+    if (socket_send(TTX, buf)<=0)
+      goto CLOSE;
+    cmdline = socket_getline(TTX, 300);
   }
 
   chomp(cmdline);
@@ -288,6 +297,7 @@ void *process_connection(void *ptr) {
   } 
 
   ATX->sockfd = TTX->sockfd;
+  ATX->sockfd_output = 0;
 
   /* Get recipients */
   snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
@@ -299,16 +309,16 @@ void *process_connection(void *ptr) {
     goto CLOSE;
 
   while(strncasecmp(cmdline, "RCPT TO:", 8)) {
-    snprintf(buf, sizeof(buf), "%d Need RCPT here", LMTP_BAD_CMD);
-    if (socket_send(TTX, buf)<=0)
-      goto CLOSE;
-    cmdline = socket_getline(TTX, 300);
     if (!strncasecmp(cmdline, "QUIT", 4)) {
       snprintf(buf, sizeof(buf), "%d OK", LMTP_QUIT);
       socket_send(TTX, buf);
     }
     if (cmdline == NULL || !strncasecmp(cmdline, "QUIT", 4))
       goto CLOSE;
+    snprintf(buf, sizeof(buf), "%d Need RCPT here", LMTP_BAD_CMD);
+    if (socket_send(TTX, buf)<=0)
+      goto CLOSE;
+    cmdline = socket_getline(TTX, 300);
   }
 
   /* Tokenize arguments */
@@ -336,16 +346,16 @@ void *process_connection(void *ptr) {
     goto CLOSE;
 
   while(strncasecmp(cmdline, "DATA", 4)) {
-    snprintf(buf, sizeof(buf), "%d Need DATA here", LMTP_BAD_CMD);
-    if (socket_send(TTX, buf)<=0)
-      goto CLOSE;
-    cmdline = socket_getline(TTX, 300);
     if (!strncasecmp(cmdline, "QUIT", 4)) {
       snprintf(buf, sizeof(buf), "%d OK", LMTP_QUIT);
       socket_send(TTX, buf);
     }
     if (cmdline == NULL || !strncasecmp(cmdline, "QUIT", 4))
       goto CLOSE;
+    snprintf(buf, sizeof(buf), "%d Need RCPT here", LMTP_BAD_CMD);
+    if (socket_send(TTX, buf)<=0)
+      goto CLOSE;
+    cmdline = socket_getline(TTX, 300);
   }
 
   snprintf(buf, sizeof(buf), "%d Enter mail, end with \".\" on a line by itself", LMTP_DATA);
@@ -366,7 +376,10 @@ void *process_connection(void *ptr) {
   LOGDEBUG("process_users() returned with exit code %d", exitcode);
 
   if (!exitcode) {
-    snprintf(buf, sizeof(buf), "%d 2.5.0 Message accepted for delivery", LMTP_OK);
+    if (! ATX->sockfd_output)
+      snprintf(buf, sizeof(buf), "%d 2.5.0 Message accepted for delivery", LMTP_OK);
+    else
+     strcpy(buf, ".");
   } else {
     snprintf(buf, sizeof(buf), "%d Error occured during processing.", LMTP_ERROR);
   }

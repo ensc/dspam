@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.20 2004/11/30 23:52:35 jonz Exp $ */
+/* $Id: dspam.c,v 1.21 2004/12/01 00:32:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -473,7 +473,7 @@ process_message (AGENT_CTX *ATX,
   if (CTX->operating_mode == DSM_CLASSIFY || ATX->flags & DAF_SUMMARY)
   {
     char data[128];
-    FILE *out;
+    FILE *fout;
 
     switch (CTX->result) {
       case DSR_ISSPAM:
@@ -487,9 +487,16 @@ process_message (AGENT_CTX *ATX,
         break;
     }
 
-   out = (ATX->sockfd) ? fdopen(ATX->sockfd, "r+") : stdout;
-    
-    fprintf(out, "X-DSPAM-Result: %s; result=\"%s\"; probability=%01.4f; "
+    if (ATX->sockfd > 0) {
+      fout = fdopen(ATX->sockfd, "w");
+      ATX->sockfd_output = 1;
+    }
+    else
+      fout = stdout;
+
+    setbuf(fout, NULL);
+
+    fprintf(fout, "X-DSPAM-Result: %s; result=\"%s\"; probability=%01.4f; "
            "confidence=%02.2f\n",
            CTX->username,
            data,
@@ -497,7 +504,7 @@ process_message (AGENT_CTX *ATX,
            CTX->confidence);
 
 //   if (ATX->sockfd)
-//     fclose(out);
+//     fclose(fout);
   }
 
   ATX->learned = CTX->learned;
@@ -531,8 +538,6 @@ deliver_message (const char *message, const char *mailer_args,
   if (mailer_args == NULL)
   {
     fputs (message, stream);
-    if (stream != stdout) 
-      fputs(".\n", stream);
     return 0;
   }
 
@@ -1698,9 +1703,16 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_node *node_nt;
   struct nt_c c_nt;
   int retcode, exitcode = EXIT_SUCCESS;
-  FILE *out;
+  FILE *fout;
 
-  out = (ATX->sockfd) ? fdopen(ATX->sockfd, "r+") : stdout;
+  if (ATX->sockfd > 0) {
+    fout = fdopen(ATX->sockfd, "w");
+    ATX->sockfd_output = 1;
+  }
+  else
+    fout = stdout;
+
+  setbuf(fout, NULL);
 
   /* Process message for each user */
   node_nt = c_nt_first (ATX->users, &c_nt);
@@ -1852,7 +1864,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
         retcode =
           deliver_message (message->data,
                            (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
-                            node_nt->ptr, out);
+                            node_nt->ptr, fout);
         if (retcode && exitcode == EXIT_SUCCESS)
           exitcode = retcode;
       }
@@ -1899,7 +1911,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
           retcode = deliver_message
             (message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
-             node_nt->ptr, out);
+             node_nt->ptr, fout);
           if (retcode) {
             exitcode = retcode;
             if ((result == DSR_ISINNOCENT || result == DSR_ISWHITELISTED) && 
@@ -1942,12 +1954,12 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                   retcode = deliver_message
                     (message->data,
                      (ATX->flags & DAF_STDOUT) ? NULL : ATX->spam_args, 
-                     node_nt->ptr, out);
+                     node_nt->ptr, fout);
                 } else {
                   retcode = deliver_message
                     (message->data,
                      (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
-                     node_nt->ptr, out);
+                     node_nt->ptr, fout);
                 }
               }
             }
@@ -1985,7 +1997,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
           retcode = deliver_message
             (message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
-             node_nt->ptr, out);
+             node_nt->ptr, fout);
           if (retcode) {
             exitcode = retcode;
             if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
@@ -2007,9 +2019,6 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
     LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", exitcode);
   }
-
-//  if (ATX->sockfd)
-//    fclose(out);
 
   return exitcode;
 }

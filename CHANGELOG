@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.41 2004/11/30 23:52:35 jonz Exp $
+$Id: CHANGELOG,v 1.42 2004/12/01 00:32:15 jonz Exp $
 
 Version NEXT
 ------------
@@ -16,7 +16,7 @@ RCPT TO: [list of DSPAM users]
 DATA
 [message]
 .
-daemon processes *and* delivers at the moment
+daemon processes *and* delivers at the moment 9including to stdout)
 
 next: client
 then: stateful db connections
