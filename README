@@ -1,4 +1,4 @@
-$Id: README,v 1.2 2004/10/24 22:32:59 jonz Exp $
+$Id: README,v 1.3 2004/11/01 02:43:29 jonz Exp $
 
 DSPAM v3.2 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -202,7 +202,7 @@ First you will need to download a few prerequisite tools:
    mysql_drv:  MySQL client libraries (and a server to connect to) 
    ora_drv:    Oracle Call Interface (and a server to connect to)
    pgsql_drv:  PostgreSQL client libraries (and a server to connect to)
-   sqlite_drv: SQLite v2.x * Default * 
+   sqlite_drv: SQLite v2.7.7 or above * Default * 
 
    MySQL is the recommended storage driver, even for small implementations, as
    it is more stable and tested than the other drivers. If you are incapable
