@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.160 2005/02/02 22:37:53 jonz Exp $
+$Id: CHANGELOG,v 1.161 2005/02/03 15:40:50 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050203.0800] jonz: signature to write to all text segments
+
+reverted back to signature writing to all text segments of an email, and not
+just the top level parts.
 
 [20050202.0530] jonz: miscellaneous cgi patches
 

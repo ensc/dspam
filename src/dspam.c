@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.73 2005/01/28 19:53:29 jonz Exp $ */
+/* $Id: dspam.c,v 1.74 2005/02/03 15:40:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -2591,7 +2591,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
 int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
   struct nt_node *node_nt;
   struct nt_c c_nt;
-  char toplevel_boundary[128] = { 0 };
+/*  char toplevel_boundary[128] = { 0 }; */
   struct _ds_message_block *block;
   int i = 0;
 
@@ -2610,11 +2610,13 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
   if (block->media_subtype == MST_SIGNED)
     return embed_signed(CTX, ATX, PTX);
 
+/*
   if (block->media_type == MT_MULTIPART && block->terminating_boundary != NULL)
   {
     strlcpy(toplevel_boundary, block->terminating_boundary,
             sizeof(toplevel_boundary));
   }
+*/
 
   while (node_nt != NULL)
   {
@@ -2632,10 +2634,14 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
                 && block->media_type != MT_MULTIPART))
 
         /* The part is one of the top-level parts */ 
-        && (toplevel_boundary[0] == 0 ||
-           (block->terminating_boundary && 
+        && (
+/*toplevel_boundary[0] == 0 || */
+           (block->terminating_boundary 
+/*            && 
             !strncmp(block->terminating_boundary, toplevel_boundary,
-             strlen(toplevel_boundary)))))
+             strlen(toplevel_boundary))   
+*/
+           )))
     {
       int is_attachment = 0;
       struct _ds_header_field *field;
