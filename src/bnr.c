@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.6 2004/11/23 21:59:38 jonz Exp $ */
+/* $Id: bnr.c,v 1.7 2004/12/05 22:14:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -98,7 +98,6 @@ int bnr_pattern_instantiate(
       snprintf(x, 6, "%01.2f.", previous_bnr_probs[i]);
       strlcat(bnr_token, x, sizeof(bnr_token));
     }
-
 
     crc = _ds_getcrc64 (bnr_token);
 #ifdef VERBOSE

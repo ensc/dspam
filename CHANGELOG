@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.64 2004/12/03 16:12:50 jonz Exp $
+$Id: CHANGELOG,v 1.65 2004/12/05 22:14:45 jonz Exp $
 
 Version NEXT
 ------------
@@ -38,6 +38,8 @@ CVS notes:
 implemented initial testing case for Bayesian Noise Reduction v2.0.
 additional tweaks 11/25
 11/28 - no bias for bnr patterns
+12/5 - implemented pattern layers 2 and 3 which may provide a concrete
+  approach to dubbing
 
 [20041101.0700] jonz: added MaxMessageSize option to dspam.conf
 

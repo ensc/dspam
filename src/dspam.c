@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.36 2004/12/03 01:37:17 jonz Exp $ */
+/* $Id: dspam.c,v 1.37 2004/12/05 22:14:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -1278,7 +1278,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     {
       AGENT_ATTRIB *t;
       int j;
-      for(i=0;PTX[j];j++) {
+      for(j=0;PTX[j];j++) {
         t = PTX[j]; 
         LOGDEBUG("Preference '%s' => '%s'", t->attribute, t->value);
       }
