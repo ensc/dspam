@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.218 2005/03/16 12:39:51 jonz Exp $
+$Id: CHANGELOG,v 1.219 2005/03/16 14:09:11 jonz Exp $
 
 Version NEXT
 ------------
@@ -13,6 +13,8 @@ running in 'DSPAM' mode, : CLASSIFICATION is sent back with each response.
 
 when listener fails, file descriptor fails to close, causing a possibly
 fatal situation in the event of too many failures
+
+fixed invalid file descriptor problem
 
 [20050315.0730] jonz: added LOG_NOWAIT to syslogging
 

@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.65 2005/03/15 22:48:05 jonz Exp $ */
+/* $Id: daemon.c,v 1.66 2005/03/16 14:09:11 jonz Exp $ */
 
 /*
 
@@ -210,6 +210,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
                                 &addrlen)) == -1)
             {
               LOG(LOG_WARNING, ERROR_DAEMON_ACCEPT, strerror(errno));
+              continue;
 #ifdef DEBUG
             } else if (!domain) {
               char buff[32];
@@ -299,7 +300,7 @@ void *process_connection(void *ptr) {
   int tries = 0;
   int argc = 0;
   int i, locked = -1;
-  FILE *fd = fdopen(TTX->sockfd, "w");
+  FILE *fd = 0;
   int server_mode = SSM_DSPAM;
 
   /* Set defaults */
@@ -317,6 +318,9 @@ void *process_connection(void *ptr) {
   }
 
   /* Initialize */
+  fd = fdopen(TTX->sockfd, "w");
+  if (!fd)
+    goto CLOSE;
 
   setbuf(fd, NULL);
 
@@ -702,7 +706,8 @@ void *process_connection(void *ptr) {
 CLOSE:
   if (locked>=0)
     pthread_mutex_unlock(&TTX->DTX->connections[locked]->lock);
-  fclose(fd);
+  if (fd)
+    fclose(fd);
   buffer_destroy(TTX->packet_buffer);
   if (message) 
     buffer_destroy(message);
