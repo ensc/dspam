@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.46 2005/02/28 02:12:31 jonz Exp $ */
+/* $Id: daemon.c,v 1.47 2005/02/28 15:44:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -307,15 +307,14 @@ void *process_connection(void *ptr) {
     ATX = calloc(1, sizeof(AGENT_CTX));
     if (ATX == NULL) {
       LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-      send_socket(TTX, ERROR_MEM_ALLOC); 
+      daemon_reply(TTX, LMTP_ERROR_PROCESS, "5.3.0", ERROR_MEM_ALLOC);
       goto CLOSE;
     }
 
     if (initialize_atx(ATX))
     {
       report_error(ERROR_INITIALIZE_ATX);
-      snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INITIALIZE_ATX);
-      send_socket(TTX, buf);
+      daemon_reply(TTX, LMTP_BAD_CMD, "5.3.0", ERROR_INITIALIZE_ATX);
       goto CLOSE;
     }
 
@@ -419,8 +418,7 @@ void *process_connection(void *ptr) {
         char username[256];
   
         if (_ds_extract_address(username, cmdline, sizeof(username))) {
-          snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INVALID_RCPT);
-          send_socket(TTX, buf);
+          daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERROR_INVALID_RCPT);
           goto CLOSE;
         }
         if (!parms || !strstr(parms, "--user "))
@@ -443,13 +441,12 @@ void *process_connection(void *ptr) {
     if (process_arguments(ATX, argc, argv) || apply_defaults(ATX))
     {
       report_error(ERROR_INITIALIZE_ATX);
-      snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INITIALIZE_ATX);
-      send_socket(TTX, buf);
+      daemon_reply(TTX, LMTP_BAD_CMD, "5.1.0", ERROR_INITIALIZE_ATX);
       goto CLOSE;
     }
 
     if (ATX->users->items == 0) {
-      daemon_reply(TTX, LMTP_BAD_CMD, "5.0.0", "No recipients specified. Good bye!");
+      daemon_reply(TTX, LMTP_BAD_CMD, "5.1.1", ERROR_USER_UNDEFINED);
       goto CLOSE;
     }
 
@@ -466,22 +463,13 @@ void *process_connection(void *ptr) {
 
     if (check_configuration(ATX)) {
       report_error(ERROR_DSPAM_MISCONFIGURED);
-      snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_DSPAM_MISCONFIGURED);
-      send_socket(TTX, buf);
+      daemon_reply(TTX, LMTP_BAD_CMD, "5.3.5", ERROR_DSPAM_MISCONFIGURED);
       goto CLOSE;
     }
 
     /* DATA */
   
     /* Check for at least one recipient */
-
-    if (ATX->users->items == 0)
-    {
-      LOG (LOG_ERR, ERROR_USER_UNDEFINED);
-      snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_USER_UNDEFINED);
-      send_socket(TTX, buf);
-      goto CLOSE;
-    }
 
     if (strncasecmp(cmdline, "DATA", 4)) {
       if (daemon_reply(TTX, LMTP_BAD_CMD, "5.0.0", "Need DATA Here")<0) 
@@ -502,14 +490,6 @@ void *process_connection(void *ptr) {
       goto CLOSE;
     }
 
-    if (ATX->users->items == 0)
-    {
-      LOG (LOG_ERR, ERROR_USER_UNDEFINED);
-      snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_USER_UNDEFINED);
-      send_socket(TTX, buf);
-      goto CLOSE;
-    }
-  
     results = process_users(ATX, message);
     
     if (TTX->DTX->connections[locked]->dbh != ATX->dbh) 
