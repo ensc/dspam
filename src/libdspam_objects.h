@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.2 2004/11/21 22:13:52 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.3 2005/01/03 03:06:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -112,13 +112,13 @@ struct _ds_spam_totals
  *    TST_DIRTY	Statistic is dirty (not written to disk since last modified)
  */
 
-struct _ds_spam_stat
+typedef struct _ds_spam_stat
 {
   double probability;
   long spam_hits;
   long innocent_hits;
   char status;
-};
+} *ds_spam_stat_t;
 
 /*
  *  struct _ds_neural_record - A neural network node

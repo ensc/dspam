@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.26 2004/12/30 15:23:46 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.27 2005/01/03 03:06:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -58,7 +58,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "error.h"
 #include "language.h"
 #include "util.h"
-#include "lht.h"
+#include "diction.h"
 #ifdef PREFERENCES_EXTENSION
 #include "pref.h"
 #include "config_shared.h"
@@ -413,13 +413,13 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
 }
 
 int
-_ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
+_ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct passwd *p;
   buffer *query;
-  struct lht_node *node_lht;
-  struct lht_c c_lht;
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
   char scratch[1024];
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -476,20 +476,23 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
             "from dspam_token_data where (uid = %d or uid = %d) and token in(",
             uid, gid);
   buffer_cat (query, scratch);
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
+
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while (ds_term)
   {
-    snprintf (scratch, sizeof (scratch), "'%llu'", node_lht->key);
+    snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
     buffer_cat (query, scratch);
-    node_lht->s.innocent_hits = 0;
-    node_lht->s.spam_hits = 0;
-    node_lht->s.probability = 0;
-    node_lht->s.status = 0;
-    node_lht = c_lht_next (freq, &c_lht);
-    if (node_lht != NULL)
+    ds_term->s.innocent_hits = 0;
+    ds_term->s.spam_hits = 0;
+    ds_term->s.probability = 0;
+    ds_term->s.status = 0;
+    ds_term = ds_diction_next(ds_c);
+    if (ds_term)
       buffer_cat (query, ",");
     get_one = 1;
   }
+  ds_diction_close(ds_c);
   buffer_cat (query, ")");
 
 #ifdef VERBOSE
@@ -531,25 +534,29 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
     if (stat.innocent_hits < 0)
       stat.innocent_hits = 0;
 
-    lht_addspamstat (freq, token, &stat);
+    ds_diction_addstat(diction, token, &stat);
   }
 
-  node_lht = c_lht_first(freq, &c_lht);
-  while(node_lht != NULL && !s->control_token) {
-    if (node_lht->s.spam_hits && node_lht->s.innocent_hits) {
-      s->control_token = node_lht->key;
-      s->control_sh = node_lht->s.spam_hits;
-      s->control_ih = node_lht->s.innocent_hits;
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while(ds_term && !s->control_token) {
+    if (ds_term->s.spam_hits && ds_term->s.innocent_hits) {
+      s->control_token = ds_term->key;
+      s->control_sh = ds_term->s.spam_hits;
+      s->control_ih = ds_term->s.innocent_hits;
     }
-    node_lht = c_lht_next(freq, &c_lht);
+    ds_term = ds_diction_next(ds_c);
   }
+  ds_diction_close(ds_c);
 
   if (!s->control_token)
   {
-     node_lht = c_lht_first(freq, &c_lht);
-     s->control_token = node_lht->key;
-     s->control_sh = node_lht->s.spam_hits;
-     s->control_ih = node_lht->s.innocent_hits;
+     ds_c = ds_diction_cursor(diction);
+     ds_term = ds_diction_next(ds_c);
+     s->control_token = ds_term->key;
+     s->control_sh = ds_term->s.spam_hits;
+     s->control_ih = ds_term->s.innocent_hits;
+     ds_diction_close(ds_c);
   }
 
   mysql_free_result (result);
@@ -558,12 +565,12 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 }
 
 int
-_ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
+_ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct _ds_spam_stat stat, stat2;
-  struct lht_node *node_lht;
-  struct lht_c c_lht;
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
   buffer *query;
   char scratch[1024];
   struct passwd *p;
@@ -581,7 +588,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
   if (CTX->operating_mode == DSM_CLASSIFY && 
         (CTX->training_mode != DST_TOE || 
-          (freq->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE))))) 
+          (diction->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE))))) 
     return 0;
 
   if (!CTX->group || CTX->flags & DSF_MERGED)
@@ -615,20 +622,22 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
   if (s->control_token == 0)
   {
-    node_lht = c_lht_first (freq, &c_lht);
-    if (node_lht == NULL)
+    ds_c = ds_diction_cursor(diction);
+    ds_term = ds_diction_next(ds_c);
+    if (!ds_term)
     {
       stat.spam_hits = 0;
       stat.innocent_hits = 0;
     }
     else
     {
-      stat.spam_hits = node_lht->s.spam_hits;
-      stat.innocent_hits = node_lht->s.innocent_hits;
+      stat.spam_hits = ds_term->s.spam_hits;
+      stat.innocent_hits = ds_term->s.innocent_hits;
     }
+    ds_diction_close(ds_c);
   }
   else {
-    lht_getspamstat (freq, s->control_token, &stat);
+    ds_diction_getstat(diction, s->control_token, &stat);
   }
 
   snprintf (scratch, sizeof (scratch),
@@ -648,24 +657,25 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
                        "innocent_hits, last_hit) values");
 #endif
 
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while(ds_term)
   {
     int wrote_this = 0;
     if (CTX->training_mode == DST_TOE           && 
         CTX->classification == DSR_NONE         &&
         CTX->operating_mode == DSM_CLASSIFY     &&
-        freq->whitelist_token != node_lht->key  &&
-        (!node_lht->token_name || strncmp(node_lht->token_name, "bnr.", 4)))
+        diction->whitelist_token != ds_term->key  &&
+        (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
     {
-      node_lht = c_lht_next(freq, &c_lht);
+      ds_term = ds_diction_next(ds_c);
       continue;
     }
       
-    lht_getspamstat (freq, node_lht->key, &stat2);
+    ds_diction_getstat(diction, ds_term->key, &stat2);
 
     if (!(stat2.status & TST_DIRTY)) {
-      node_lht = c_lht_next(freq, &c_lht);
+      ds_term = ds_diction_next(ds_c);
       continue;
     } else {
       stat2.status &= ~TST_DIRTY;
@@ -688,7 +698,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
                   "%s(%d, '%llu', %d, %d, current_date())",
                    (insert_one) ? ", " : "",
                    p->pw_uid,
-                   node_lht->key,
+                   ds_term->key,
                    stat.spam_hits > s->control_sh ? 1 : 0,
                    stat.innocent_hits > s->control_ih ? 1 : 0);
       } else {
@@ -696,7 +706,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
                   "%s(%d, '%llu', %ld, %ld, current_date())",
                    (insert_one) ? ", " : "",
                    p->pw_uid,
-                   node_lht->key,
+                   ds_term->key,
                    stat2.spam_hits > 0 ? (long) 1 : (long) 0,
                    stat2.innocent_hits > 0 ? (long) 1 : (long) 0);
       }
@@ -719,7 +729,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
                   "innocent_hits, last_hit) values(%d, '%llu', %d, %d, "
                   "current_date())",
                    p->pw_uid,
-                   node_lht->key,
+                   ds_term->key,
                    stat.spam_hits > s->control_sh ? 1 : 0,
                    stat.innocent_hits > s->control_ih ? 1 : 0);
       } else {
@@ -728,7 +738,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
                  "innocent_hits, last_hit) values(%d, '%llu', %d, %d, "
                  "current_date())",
                  p->pw_uid,
-                 node_lht->key,
+                 ds_term->key,
                  stat2.spam_hits > 0 ? 1 : 0,
                  stat2.innocent_hits > 0 ? 1 : 0);
       }
@@ -739,24 +749,24 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
     }
 
     if (stat2.status & TST_DISK) {
-      snprintf (scratch, sizeof (scratch), "'%llu'", node_lht->key);
+      snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
       buffer_cat (query, scratch);
       update_one = 1;
       wrote_this = 1;
     }
  
-    node_lht->s.status |= TST_DISK;
+    ds_term->s.status |= TST_DISK;
 
-    node_lht = c_lht_next (freq, &c_lht);
-    if (node_lht != NULL && wrote_this) 
+    ds_term = ds_diction_next(ds_c);
+    if (ds_term && wrote_this)
       buffer_cat (query, ",");
   }
+  ds_diction_close(ds_c);
 
   if (query->used && query->data[strlen (query->data) - 1] == ',')
   {
     query->used--;
     query->data[strlen (query->data) - 1] = 0;
-
   }
 
   buffer_cat (query, ")");
@@ -1774,18 +1784,18 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
   return 0;
 }
 
-int _ds_delall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
+int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
-  struct lht_node *node_lht;
-  struct lht_c c_lht;
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
   buffer *query;
   char scratch[1024];
   char queryhead[1024];
   struct passwd *p;
   int writes = 0;
 
-  if (freq->items < 1)
+  if (diction->items < 1)
     return 0;
 
   if (s->dbh == NULL)
@@ -1820,14 +1830,15 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
   buffer_cat (query, queryhead);
 
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while(ds_term)
   {
-    snprintf (scratch, sizeof (scratch), "'%llu'", node_lht->key);
+    snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
     buffer_cat (query, scratch);
-    node_lht = c_lht_next (freq, &c_lht);
+    ds_term = ds_diction_next(ds_c);
    
-    if (writes > 2500 || node_lht == NULL) {
+    if (writes > 2500 || !ds_term) {
       buffer_cat (query, ")");
 
       if (MYSQL_RUN_QUERY (s->dbh, query->data))
@@ -1841,10 +1852,11 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
    
     } else { 
       writes++;
-      if (node_lht != NULL)
+      if (ds_term)
         buffer_cat (query, ",");
     }
   }
+  ds_diction_close(ds_c);
 
   if (writes) {
     buffer_cat (query, ")");

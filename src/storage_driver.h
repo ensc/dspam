@@ -1,4 +1,4 @@
-/* $Id: storage_driver.h,v 1.7 2004/12/24 17:24:25 jonz Exp $ */
+/* $Id: storage_driver.h,v 1.8 2005/01/03 03:06:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #  define _STORAGE_DRIVER_H
 
 #include "libdspam_objects.h"
-#include "lht.h"
+#include "diction.h"
 #ifdef PREFERENCES_EXTENSION
 #include "pref.h"
 #include "config_shared.h"
@@ -97,9 +97,9 @@ int _ds_init_storage (DSPAM_CTX * CTX, void *dbh);
 int _ds_shutdown_storage (DSPAM_CTX * CTX);
 
 /* Standardized database calls */
-int _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *lht);
-int _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *lht);
-int _ds_delall_spamrecords (DSPAM_CTX * CTX, struct lht *lht);
+int _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction);
+int _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction);
+int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction);
 
 int _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
                         struct _ds_spam_stat *stat);

@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.78 2005/01/02 21:45:32 jonz Exp $ */
+/* $Id: libdspam.c,v 1.79 2005/01/03 03:06:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -58,7 +58,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "util.h"
 #include "storage_driver.h"
 #include "buffer.h"
-#include "lht.h"
+#include "diction.h"
 #include "heap.h"
 #include "error.h"
 #include "decode.h"
@@ -658,11 +658,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   int i = 0;
   int errcode = 0;
 
-  /* Long Hashed Token Tree: Track tokens, frequencies, and stats */
-  struct lht *freq = lht_create (24593);
-  struct lht *bnr_patterns = lht_create (1543);
-  struct lht_node *node_lht;
-  struct lht_c c_lht;
+  /* Create our diction (lexical data in message) and patterns */
+  ds_diction_t diction = ds_diction_create(24593);
+  ds_diction_t bnr_patterns = ds_diction_create(1543);
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
 
   struct heap *heap_sort = NULL; /* Heap sort for top N tokens */
 #ifdef BNR_DEBUG
@@ -727,8 +727,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     
   joined_token[0] = 0;
 
-  if (freq == NULL || heap_sort == NULL)
+  if (!diction || !bnr_patterns)
   {
+    ds_diction_destroy(diction);
+    ds_diction_destroy(bnr_patterns);
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     errcode = EUNKNOWN;
     goto bail;
@@ -764,8 +766,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
               (i * sizeof (struct _ds_signature_token)),
               sizeof (struct _ds_signature_token));
       snprintf (x, sizeof (x), "E: %" LLU_FMT_SPEC, t.token);
-      lht_hit (freq, t.token, x, 0, 0);
-      lht_setfrequency (freq, t.token, t.frequency);
+      ds_term = ds_diction_touch(diction, t.token, x, 0);
+      if (ds_term)
+        ds_term->frequency = t.frequency;
     }
   }
 
@@ -837,8 +840,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
           snprintf(wl, sizeof(wl), "%s*%s", heading, fromline);
           whitelist_token = _ds_getcrc64(wl); 
-          lht_hit (freq, whitelist_token, wl, 0, 0);
-          freq->whitelist_token = whitelist_token;
+          ds_diction_touch(diction, whitelist_token, wl, 0);
+          diction->whitelist_token = whitelist_token;
         }
       }
 
@@ -868,7 +871,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
             {
               if (!_ds_process_header_token
                   (CTX, joined_token,
-                   previous_token, freq, heading)
+                   previous_token, diction, heading)
                   && (CTX->flags & DSF_CHAINED))
               {
                 alloc_joined = 1;
@@ -876,13 +879,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
               }
               /* Map the joined token */
               if (CTX->flags & DSF_SBPH)
-                _ds_map_header_token (CTX, joined_token, previous_tokens, freq, heading);
+                _ds_map_header_token (CTX, joined_token, previous_tokens, diction, heading);
             }
             joined_token[0] = 0;
           }
 
           if (!_ds_process_header_token
-              (CTX, token, previous_token, freq,
+              (CTX, token, previous_token, diction,
                heading) && (CTX->flags & DSF_CHAINED))
           {
             if (alloc_joined)
@@ -895,7 +898,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
           /* Map the joined token */
           if (CTX->flags & DSF_SBPH)
-            _ds_map_header_token (CTX, token, previous_tokens, freq, heading);
+            _ds_map_header_token (CTX, token, previous_tokens, diction, heading);
         }
         else if (l == 1
                  || (l == 2 && (strchr (token, '$') || strchr (token, '!'))))
@@ -915,10 +918,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         if (strlen (joined_token) < 25 && joined_token[1] != 0)
         {
           _ds_process_header_token (CTX, joined_token,
-                                    previous_token, freq, heading);
+                                    previous_token, diction, heading);
           /* Map the joined token */
           if (CTX->flags & DSF_SBPH)
-            _ds_map_header_token (CTX, joined_token, previous_tokens, freq, heading);
+            _ds_map_header_token (CTX, joined_token, previous_tokens, diction, heading);
         }
       }
 
@@ -971,7 +974,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
             snprintf (combined_token, sizeof (combined_token), "Url*%s",
                       urltoken);
             crc = _ds_getcrc64 (combined_token);
-            lht_hit (freq, crc, combined_token, 0, 0);
+            ds_diction_touch(diction, crc, combined_token, 0);
             urltoken = strtok_r (NULL, DELIMITERS, &ptrurl2);
           }
 
@@ -1022,7 +1025,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
             snprintf (combined_token, sizeof (combined_token), "Url*%s",
                       urlind);
             crc = _ds_getcrc64 (combined_token);
-            lht_hit (freq, crc, combined_token, 0, 0);
+            ds_diction_touch(diction, crc, combined_token, 0);
             urlind = strtok_r (NULL, DELIMITERS, &ptrind);
           }
 
@@ -1058,7 +1061,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
           {
             if (!_ds_process_body_token
                 (CTX, joined_token,
-                 previous_token, freq) && (CTX->flags & DSF_CHAINED))
+                 previous_token, diction) && (CTX->flags & DSF_CHAINED))
             {
               alloc_joined = 1;
               previous_token = strdup (joined_token);
@@ -1066,14 +1069,14 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
                                                                                 
             /* Map joined token */
             if (CTX->flags & DSF_SBPH)
-              _ds_map_body_token (CTX, joined_token, previous_tokens, freq);
+              _ds_map_body_token (CTX, joined_token, previous_tokens, diction);
 
           }
           joined_token[0] = 0;
         }
 
         if (!_ds_process_body_token
-            (CTX, token, previous_token, freq) && (CTX->flags & DSF_CHAINED))
+            (CTX, token, previous_token, diction) && (CTX->flags & DSF_CHAINED))
         {
           if (alloc_joined)
           {
@@ -1084,7 +1087,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         }
 
         if (CTX->flags & DSF_SBPH)
-          _ds_map_body_token (CTX, token, previous_tokens, freq);
+          _ds_map_body_token (CTX, token, previous_tokens, diction);
       }
 
       else if (l == 1
@@ -1104,17 +1107,17 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     {
       if (strlen (joined_token) < 25 && joined_token[1] != 0)
       {
-        _ds_process_body_token (CTX, joined_token, previous_token, freq);
+        _ds_process_body_token (CTX, joined_token, previous_token, diction);
                                                                                 
         /* Map joined token */
         if (CTX->flags & DSF_SBPH)
-          _ds_map_body_token (CTX, joined_token, previous_tokens, freq);
+          _ds_map_body_token (CTX, joined_token, previous_tokens, diction);
       }
     }
   }
 
   /* Load all token statistics */
-  if (_ds_getall_spamrecords (CTX, freq))
+  if (_ds_getall_spamrecords (CTX, diction))
   {
     LOGDEBUG ("_ds_getall_spamrecords() failed");
     errcode = EUNKNOWN;
@@ -1130,8 +1133,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   if (CTX->flags & DSF_NOISE)
   {
-    struct lht_node *node_lht;
-    struct lht_c c_lht;
     struct _ds_spam_stat bnr_tot;
     unsigned long long crc;
     BNR_CTX *BTX_S, *BTX_C;
@@ -1153,13 +1154,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     BTX_S->window_size = BNR_SIZE;
     BTX_C->window_size = BNR_SIZE;
 
-    _ds_instantiate_bnr_patterns(CTX, bnr_patterns, freq->order, 's');
-    _ds_instantiate_bnr_patterns(CTX, bnr_patterns, freq->chained_order, 'c');
+    _ds_instantiate_bnr(CTX, bnr_patterns, diction->order, 's');
+    _ds_instantiate_bnr(CTX, bnr_patterns, diction->chained_order, 'c');
 
     /* Add BNR totals to the list of load elements */
     memset(&bnr_tot, 0, sizeof(struct _ds_spam_stat));
     crc = _ds_getcrc64("bnr.t|");
-    lht_hit(bnr_patterns, crc, "bnr.t|", 0, 0);
+    ds_diction_touch(bnr_patterns, crc, "bnr.t|", 0);
 
     /* Load BNR patterns */
     LOGDEBUG("Loading %ld BNR patterns", bnr_patterns->items);
@@ -1167,14 +1168,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       LOGDEBUG ("_ds_getall_spamrecords() failed");
       errcode = EUNKNOWN;
       goto bail;
-    }
-
-    /* Calculate p-values for patterns */
-    lht_getspamstat(bnr_patterns, crc, &bnr_tot);
-    node_lht = c_lht_first(bnr_patterns, &c_lht);
-    while(node_lht != NULL) {
-      _ds_calc_stat(CTX, node_lht->key, &node_lht->s, DTT_BNR, &bnr_tot);
-      node_lht = c_lht_next(bnr_patterns, &c_lht);
     }
 
     /* Perform BNR Processing */
@@ -1189,54 +1182,58 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       FILE *file;
 #endif
 
-      node_nt = c_nt_first(freq->order, &c_nt);
+      node_nt = c_nt_first(diction->order, &c_nt);
       while(node_nt != NULL) {
-        node_lht = node_nt->ptr;
-        bnr_add(BTX_S, node_lht->token_name, node_lht->s.probability);
-        node_nt = c_nt_next(freq->order, &c_nt);
+        ds_term = node_nt->ptr;
+        bnr_add(BTX_S, ds_term->name, ds_term->s.probability);
+        node_nt = c_nt_next(diction->order, &c_nt);
       }
 
-      node_nt = c_nt_first(freq->chained_order, &c_nt);
+      node_nt = c_nt_first(diction->chained_order, &c_nt);
       while(node_nt != NULL) {
-        node_lht = node_nt->ptr;
-        bnr_add(BTX_C, node_lht->token_name, node_lht->s.probability);
-        node_nt = c_nt_next(freq->chained_order, &c_nt);
+        ds_term = node_nt->ptr;
+        bnr_add(BTX_C, ds_term->name, ds_term->s.probability);
+        node_nt = c_nt_next(diction->chained_order, &c_nt);
       }
 
       bnr_instantiate(BTX_S);
       bnr_instantiate(BTX_C);
 
-      node_lht = c_lht_first(bnr_patterns, &c_lht);
-      while(node_lht != NULL) {
-        if (node_lht->token_name[4] == 's')
-          bnr_set_pattern(BTX_S, node_lht->token_name, node_lht->s.probability);
-        else if (node_lht->token_name[4] == 'c')
-          bnr_set_pattern(BTX_C, node_lht->token_name, node_lht->s.probability);
-        node_lht = c_lht_next(bnr_patterns, &c_lht); 
-      }
+      /* Calculate pattern p-values */
+      ds_diction_getstat(bnr_patterns, crc, &bnr_tot);
+      ds_c = ds_diction_cursor(bnr_patterns);
+      ds_term = ds_diction_next(ds_c);
+      while(ds_term) {
+        _ds_calc_stat(CTX, ds_term->key, &ds_term->s, DTT_BNR, &bnr_tot);
+        if (ds_term->name[4] == 's')
+          bnr_set_pattern(BTX_S, ds_term->name, ds_term->s.probability);
+        else if (ds_term->name[4] == 'c')
+          bnr_set_pattern(BTX_C, ds_term->name, ds_term->s.probability);
+        ds_term = ds_diction_next(ds_c);
+      } 
+      ds_diction_close(ds_c);
 
       bnr_finalize(BTX_S);
       bnr_finalize(BTX_C);
 
       /* Propagate eliminations to DSPAM */
 
-      node_nt = c_nt_first(freq->order, &c_nt);
+      node_nt = c_nt_first(diction->order, &c_nt);
       while(node_nt != NULL) {
-        node_lht = (struct lht_node *) node_nt->ptr;
+        ds_term = node_nt->ptr;
         bnr_get_token(BTX_S, &elim);
-        if (elim) {
-          node_lht->frequency--;
-        }
-        node_nt = c_nt_next(freq->order, &c_nt);
+        if (elim) 
+          ds_term->frequency--;
+        node_nt = c_nt_next(diction->order, &c_nt);
       }
 
-      node_nt = c_nt_first(freq->chained_order, &c_nt);
+      node_nt = c_nt_first(diction->chained_order, &c_nt);
       while(node_nt != NULL) {
-        node_lht = (struct lht_node *) node_nt->ptr;
+        ds_term = node_nt->ptr;
         bnr_get_token(BTX_C, &elim);
         if (elim)
-          node_lht->frequency--;
-        node_nt = c_nt_next(freq->chained_order, &c_nt);
+          ds_term->frequency--;
+        node_nt = c_nt_next(diction->chained_order, &c_nt);
       }
 
 #ifdef BNR_DEBUG
@@ -1257,77 +1254,76 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       if (file != NULL) {
         fprintf(file, "-- BNR Filter Process Results --\n");
         fprintf(file, "Eliminations:\n");
-        node_nt = c_nt_first(freq->order, &c_nt);
+        node_nt = c_nt_first(diction->order, &c_nt);
         while(node_nt != NULL) {
-          node_lht = (struct lht_node *) node_nt->ptr;
-          if (node_lht->frequency <= 0)
-            fprintf(file, "%s ", node_lht->token_name);
-          node_nt = c_nt_next(freq->order, &c_nt);
+          ds_term = node_nt->ptr;
+          if (ds_term->frequency <= 0)
+            fprintf(file, "%s ", ds_term->name);
+          node_nt = c_nt_next(diction->order, &c_nt);
         }
         fprintf(file, "\n[");
-        node_nt = c_nt_first(freq->order, &c_nt);
+        node_nt = c_nt_first(diction->order, &c_nt);
         while(node_nt != NULL) {
-          node_lht = (struct lht_node *) node_nt->ptr;
-          if (node_lht->frequency <= 0)
-            fprintf(file, "%1.2f ", node_lht->s.probability);
-          node_nt = c_nt_next(freq->order, &c_nt);
+          ds_term = node_nt->ptr;
+          if (ds_term->frequency <= 0)
+            fprintf(file, "%1.2f ", ds_term->s.probability);
+          node_nt = c_nt_next(diction->order, &c_nt);
         }
   
         fprintf(file, "]\n\nRemaining:\n");
-        node_nt = c_nt_first(freq->order, &c_nt);
+        node_nt = c_nt_first(diction->order, &c_nt);
         while(node_nt != NULL) {
-          node_lht = (struct lht_node *) node_nt->ptr;
-          if (node_lht->frequency > 0)
-            fprintf(file, "%s ", node_lht->token_name);
-          node_nt = c_nt_next(freq->order, &c_nt);
+          ds_term = node_nt->ptr;
+          if (ds_term->frequency > 0)
+            fprintf(file, "%s ", ds_term->name);
+          node_nt = c_nt_next(diction->order, &c_nt);
         }
         fprintf(file, "\n[");
-         node_nt = c_nt_first(freq->order, &c_nt);
-         while(node_nt != NULL) {
-           node_lht = (struct lht_node *) node_nt->ptr;
-           if (node_lht->frequency > 0)
-    
-            fprintf(file, "%1.2f ", node_lht->s.probability);
-           node_nt = c_nt_next(freq->order, &c_nt);
+        node_nt = c_nt_first(diction->order, &c_nt);
+        while(node_nt != NULL) {
+          ds_term = node_nt->ptr;
+          if (ds_term->frequency > 0)
+            fprintf(file, "%1.2f ", ds_term->s.probability);
+          node_nt = c_nt_next(diction->order, &c_nt);
         }
 
         fprintf(file, "]\nProcessed for: %s\n\n", CTX->username);
 
         fprintf(file, "-- Chained Tokens --\n");
         fprintf(file, "Eliminations:\n");
-        node_nt = c_nt_first(freq->chained_order, &c_nt);
+        node_nt = c_nt_first(diction->chained_order, &c_nt);
         while(node_nt != NULL) {
-          node_lht = (struct lht_node *) node_nt->ptr;
-          if (node_lht->frequency <= 0)
-            fprintf(file, "%s ", node_lht->token_name);
-          node_nt = c_nt_next(freq->chained_order, &c_nt);
+          ds_term = node_nt->ptr;
+          if (ds_term->frequency <= 0)
+            fprintf(file, "%s ", ds_term->name);
+          node_nt = c_nt_next(diction->chained_order, &c_nt);
         }
         fprintf(file, "\n[");
-        node_nt = c_nt_first(freq->chained_order, &c_nt);
+        node_nt = c_nt_first(diction->chained_order, &c_nt);
         while(node_nt != NULL) {
-          node_lht = (struct lht_node *) node_nt->ptr;
-          if (node_lht->frequency <= 0)
-            fprintf(file, "%1.2f ", node_lht->s.probability);
-          node_nt = c_nt_next(freq->chained_order, &c_nt);
+          ds_term = node_nt->ptr;
+          if (ds_term->frequency <= 0)
+            fprintf(file, "%1.2f ", ds_term->s.probability);
+          node_nt = c_nt_next(diction->chained_order, &c_nt);
         }
 
         fprintf(file, "]\n\nRemaining:\n");
-        node_nt = c_nt_first(freq->chained_order, &c_nt);
+        node_nt = c_nt_first(diction->chained_order, &c_nt);
         while(node_nt != NULL) {
-          node_lht = (struct lht_node *) node_nt->ptr;
-          if (node_lht->frequency > 0)
-            fprintf(file, "%s ", node_lht->token_name);
-          node_nt = c_nt_next(freq->chained_order, &c_nt);
+          ds_term = node_nt->ptr;
+          if (ds_term->frequency > 0)
+            fprintf(file, "%s ", ds_term->name);
+          node_nt = c_nt_next(diction->chained_order, &c_nt);
         }
         fprintf(file, "\n[");
-         node_nt = c_nt_first(freq->chained_order, &c_nt);
-         while(node_nt != NULL) {
-           node_lht = (struct lht_node *) node_nt->ptr;
-           if (node_lht->frequency > 0)
-
-            fprintf(file, "%1.2f ", node_lht->s.probability);
-           node_nt = c_nt_next(freq->chained_order, &c_nt);
+        node_nt = c_nt_first(diction->chained_order, &c_nt);
+        while(node_nt != NULL) {
+          ds_term = node_nt->ptr;
+          if (ds_term->frequency > 0)
+            fprintf(file, "%1.2f ", ds_term->s.probability);
+          node_nt = c_nt_next(diction->chained_order, &c_nt);
         }
+
 
         fprintf(file, "]\nProcessed for: %s\n\n", CTX->username);
         fclose(file);
@@ -1341,24 +1337,27 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     /* Add BNR pattern to token hash */
     if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350) {
-      node_lht = c_lht_first (bnr_patterns, &c_lht);
-      while(node_lht != NULL) {
-        lht_hit(freq, node_lht->key, node_lht->token_name, 0, 0);
-        lht_setspamstat(freq, node_lht->key, &node_lht->s);
-        lht_setfrequency(freq, node_lht->key, 1);
+      ds_c = ds_diction_cursor(bnr_patterns);
+      ds_term = ds_diction_next(ds_c);
+      while(ds_term) {
+        ds_term_t t = ds_diction_touch(diction, ds_term->key, ds_term->name, 0);
+        ds_diction_setstat(diction, ds_term->key, &ds_term->s);
+        if (t)
+          t->frequency = 1;
   
 #ifdef BNR_DEBUG
-        if (fabs(0.5-node_lht->s.probability)>0.25) {
+        if (fabs(0.5-ds_term->s.probability)>0.25) {
           LOGDEBUG("Interesting BNR Pattern: %s %01.5f %lds %ldi",
-                   node_lht->token_name,
-                   node_lht->s.probability,
-                   node_lht->s.spam_hits,
-                   node_lht->s.innocent_hits);
+                   ds_term->name,
+                   ds_term->s.probability,
+                   ds_term->s.spam_hits,
+                   ds_term->s.innocent_hits);
         }
 #endif
   
-        node_lht = c_lht_next(bnr_patterns, &c_lht);
+        ds_term = ds_diction_next(ds_c);
       }
+      ds_diction_close(ds_c);
     }
   }
 
@@ -1368,16 +1367,17 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   }
 
   /* Create a heap sort based on the token's delta from .5 */
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while(ds_term)
   {
-    if (node_lht->s.probability == 0.00000 || CTX->classification != DSR_NONE)
-      _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT, NULL);
+    if (ds_term->s.probability == 0.00000 || CTX->classification != DSR_NONE)
+      _ds_calc_stat (CTX, ds_term->key, &ds_term->s, DTT_DEFAULT, NULL);
 
     if (CTX->flags & DSF_WHITELIST) {
-      if (node_lht->key == whitelist_token              && 
-          node_lht->s.spam_hits == 0                    && 
-          node_lht->s.innocent_hits > CTX->wh_threshold && 
+      if (ds_term->key == whitelist_token              && 
+          ds_term->s.spam_hits == 0                    && 
+          ds_term->s.innocent_hits > CTX->wh_threshold && 
           CTX->classification == DSR_NONE)
       {
         do_whitelist = 1;
@@ -1385,29 +1385,30 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     }
 
     if (CTX->flags & DSF_SBPH)
-      node_lht->frequency = 1;
+      ds_term->frequency = 1;
 
-    if (node_lht->frequency > 0 && (!node_lht->token_name || strncmp(node_lht->token_name, "bnr.", 4)))
+    if (ds_term->frequency > 0 && 
+       (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
     {
-      heap_insert (heap_sort, node_lht->s.probability, node_lht->key,
-             node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
+      heap_insert (heap_sort, ds_term->s.probability, ds_term->key,
+             ds_term->frequency, _ds_compute_complexity(ds_term->name));
     }
 
 #ifdef BNR_DEBUG
-    if (!node_lht->token_name || strncmp(node_lht->token_name, "bnr.", 4))
+    if (!ds_term->name || strncmp(ds_term->name, "bnr.", 4))
     {
-      heap_insert (heap_nobnr, node_lht->s.probability, node_lht->key,
-             node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
+      heap_insert (heap_nobnr, ds_term->s.probability, ds_term->key,
+             ds_term->frequency, _ds_compute_complexity(ds_term->name));
     }
 #endif
 
 #ifdef VERBOSE
-    LOGDEBUG ("Token: %s [%f]", node_lht->token_name,
-              node_lht->s.probability);
+    LOGDEBUG ("Token: %s [%f]", ds_term->name, ds_term->s.probability);
 #endif
 
-    node_lht = c_lht_next (freq, &c_lht);
+    ds_term = ds_diction_next(ds_c);
   }
+  ds_diction_close(ds_c);
 
   /* Take the 15 most interesting tokens and generate a score */
 
@@ -1433,7 +1434,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     }
 
     CTX->signature->length =
-      sizeof (struct _ds_signature_token) * freq->items;
+      sizeof (struct _ds_signature_token) * diction->items;
     CTX->signature->data = malloc (CTX->signature->length);
     if (CTX->signature->data == NULL)
     {
@@ -1448,7 +1449,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 #ifdef BNR_DEBUG
   {
     int x = CTX->result;
-    int nobnr_result = _ds_calc_result(CTX, heap_nobnr, freq);
+    int nobnr_result = _ds_calc_result(CTX, heap_nobnr, diction);
 
     if (CTX->factors) 
       _ds_factor_destroy(CTX->factors);
@@ -1456,7 +1457,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     CTX->probability = -1;
 #endif
 
-  result = _ds_calc_result(CTX, heap_sort, freq);
+  result = _ds_calc_result(CTX, heap_sort, diction);
 
 #ifdef BNR_DEBUG
 
@@ -1534,12 +1535,12 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   /* Increment and Store Tokens */
 
   i = 0;
-  node_lht = c_lht_first(freq, &c_lht);
-  while (node_lht != NULL)
-  {
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while(ds_term) {
     unsigned long long crc;
 
-    crc = node_lht->key;
+    crc = ds_term->key;
 
     /* Create a signature if we're processing a message */
 
@@ -1551,7 +1552,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
       memset(&t, 0, sizeof(t));
       t.token = crc;
-      t.frequency = lht_getfrequency (freq, t.token);
+      t.frequency = ds_term->frequency;
       memcpy ((char *) CTX->signature->data +
               (i * sizeof (struct _ds_signature_token)), &t,
               sizeof (struct _ds_signature_token));
@@ -1559,33 +1560,25 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     /* If classification was provided, force probabilities */
     if (CTX->classification == DSR_ISSPAM)
-      node_lht->s.probability = 1.00;
+      ds_term->s.probability = 1.00;
     else if (CTX->classification == DSR_ISINNOCENT) 
-      node_lht->s.probability = 0.00;
+      ds_term->s.probability = 0.00;
 
-    if ((node_lht == NULL || 
-         node_lht->token_name == NULL || 
-         strncmp(node_lht->token_name, "bnr.", 4)) &&
+    if ((! ds_term->name || strncmp(ds_term->name, "bnr.", 4)) &&
         ( CTX->training_mode != DST_TUM  || 
           CTX->source == DSS_ERROR       ||
           CTX->source == DSS_INOCULATION ||
-          node_lht->s.spam_hits + node_lht->s.innocent_hits < 50)) 
+          ds_term->s.spam_hits + ds_term->s.innocent_hits < 50)) 
     {
-      node_lht->s.status |= TST_DIRTY;
+      ds_term->s.status |= TST_DIRTY;
     }
 
-    if (node_lht && node_lht->token_name &&
-        !strncmp(node_lht->token_name, "bnr.", 4))
+    if (ds_term->name && !strncmp(ds_term->name, "bnr.", 4) &&
+        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350 &&
+        CTX->flags & DSF_NOISE &&
+        CTX->_sig_provided == 0)
     {
-
-      if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350 &&
-//          ((CTX->confidence < 0.75 && CTX->result == DSR_ISSPAM) ||
-//           (CTX->confidence < 0.60 && CTX->result == DSR_ISINNOCENT)) &&
-          CTX->flags & DSF_NOISE &&
-          CTX->_sig_provided == 0)
-      {
-        node_lht->s.status |= TST_DIRTY;
-      }
+      ds_term->s.status |= TST_DIRTY;
     }
 
     /* SPAM */
@@ -1594,10 +1587,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       /* Inoculations increase token count considerably */
       if (CTX->source == DSS_INOCULATION)
       {
-        if (node_lht->s.innocent_hits < 2 && node_lht->s.spam_hits < 5)
-          node_lht->s.spam_hits += 5;
+        if (ds_term->s.innocent_hits < 2 && ds_term->s.spam_hits < 5)
+          ds_term->s.spam_hits += 5;
         else
-          node_lht->s.spam_hits += 2;
+          ds_term->s.spam_hits += 2;
       }
 
       /* Standard increase */
@@ -1605,17 +1598,14 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       {
         if (CTX->flags & DSF_UNLEARN) {
           if (CTX->classification == DSR_ISSPAM)
-            node_lht->s.spam_hits -= (node_lht->s.spam_hits>0) ? 1:0;
+            ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
         } else {
-          node_lht->s.spam_hits++;
+          ds_term->s.spam_hits++;
         }
       }
 
       if (SPAM_MISS(CTX) && !(CTX->flags & DSF_UNLEARN)) { 
-        node_lht->s.innocent_hits-= 1;//(node_lht->s.innocent_hits>0) ? 1:0;
-//        if (node_lht->s.innocent_hits < 0)
-//          node_lht->s.innocent_hits = 0;
-
+        ds_term->s.innocent_hits-= 1;
       }
     }
 
@@ -1625,34 +1615,33 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     {
       if (CTX->flags & DSF_UNLEARN) { 
         if (CTX->classification == DSR_ISINNOCENT)
-          node_lht->s.innocent_hits-= (node_lht->s.innocent_hits>0) ? 1:0;
+          ds_term->s.innocent_hits-= (ds_term->s.innocent_hits>0) ? 1:0;
       } else {
-        node_lht->s.innocent_hits++;
+        ds_term->s.innocent_hits++;
       }
 
       if (FALSE_POSITIVE(CTX) && !(CTX->flags & DSF_UNLEARN))
       {
 
-        node_lht->s.spam_hits-= 1;//(node_lht->s.spam_hits>0) ? 1:0;
-//        if (node_lht->s.spam_hits < 0)
-//          node_lht->s.spam_hits = 0;
+        ds_term->s.spam_hits-= 1;
       }
     }
 
-    node_lht = c_lht_next(freq, &c_lht);
+    ds_term = ds_diction_next(ds_c);
     i++;
   }
+  ds_diction_close(ds_c);
 
   /* Store all tokens */
-  if (_ds_setall_spamrecords (CTX, freq))
+  if (_ds_setall_spamrecords (CTX, diction))
   {
     LOGDEBUG ("_ds_setall_spamrecords() failed");
     errcode = EUNKNOWN;
     goto bail;
   }
 
-  lht_destroy (freq);
-  lht_destroy (bnr_patterns);
+  ds_diction_destroy (diction);
+  ds_diction_destroy (bnr_patterns);
   heap_destroy (heap_sort);
 
   /* One final sanity check */
@@ -1672,8 +1661,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
 bail:
   heap_destroy (heap_sort);
-  lht_destroy (freq);
-  lht_destroy (bnr_patterns);
+  ds_diction_destroy(diction);
+  ds_diction_destroy(bnr_patterns);
   return errcode;
 }
 
@@ -1690,20 +1679,19 @@ _ds_process_signature (DSPAM_CTX * CTX)
 {
   struct _ds_signature_token t;
   int num_tokens, i;
-  struct lht *freq = lht_create (24593);
-  struct lht_node *node_lht;
-  struct lht_c c_lht;
+  ds_diction_t diction = ds_diction_create(24593);
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
 
-  if (CTX->signature == NULL)
-  {
-    LOG(LOG_WARNING, "DSF_SIGNATURE specified, but no signature provided.");
-    return EINVAL;
-  }
-
-  if (freq == NULL)
-  {
+  if (diction == NULL) {
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
+  }
+
+  if (CTX->signature == NULL) {
+    LOG(LOG_WARNING, "DSF_SIGNATURE specified, but no signature provided.");
+    ds_diction_destroy(diction);
+    return EINVAL;
   }
 
   LOGDEBUG ("processing signature.  length: %ld", CTX->signature->length);
@@ -1761,28 +1749,32 @@ _ds_process_signature (DSPAM_CTX * CTX)
             (char *) CTX->signature->data +
             (i * sizeof (struct _ds_signature_token)),
             sizeof (struct _ds_signature_token));
-    lht_hit (freq, t.token, "-", 0, 0);
-    lht_setfrequency (freq, t.token, t.frequency);
+    ds_term = ds_diction_touch (diction, t.token, "-", 0);
+    if (ds_term)
+      ds_term->frequency = t.frequency;
   }
 
-  if (_ds_getall_spamrecords (CTX, freq))
+  if (_ds_getall_spamrecords (CTX, diction)) {
+    ds_diction_destroy(diction);
     return EUNKNOWN;
+  }
 
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while(ds_term)
   {
     /* INNOCENT */
     if (CTX->classification == DSR_ISINNOCENT)
     {
       if (CTX->flags & DSF_UNLEARN) {
-        node_lht->s.innocent_hits-= (node_lht->s.innocent_hits>0) ? 1:0;
+        ds_term->s.innocent_hits-= (ds_term->s.innocent_hits>0) ? 1:0;
       } else {
-        node_lht->s.innocent_hits++;
+        ds_term->s.innocent_hits++;
         if (CTX->source == DSS_ERROR &&
           (CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 100)
           && CTX->training_mode != DST_NOTRAIN)
 
-          node_lht->s.spam_hits -= (node_lht->s.spam_hits > 0) ? 1 : 0;
+          ds_term->s.spam_hits -= (ds_term->s.spam_hits > 0) ? 1 : 0;
       }
     }
 
@@ -1790,32 +1782,35 @@ _ds_process_signature (DSPAM_CTX * CTX)
     else if (CTX->classification == DSR_ISSPAM)
     {
       if (CTX->flags & DSF_UNLEARN) {
-        node_lht->s.spam_hits -= (node_lht->s.spam_hits>0) ? 1 :0;
+        ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1 :0;
       } else {
        if (CTX->source == DSS_ERROR &&
           (CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 100)
           && CTX->training_mode != DST_NOTRAIN)
 
-          node_lht->s.innocent_hits -= (node_lht->s.innocent_hits > 0) ? 1 : 0;
+          ds_term->s.innocent_hits -= (ds_term->s.innocent_hits > 0) ? 1 : 0;
 
         if (CTX->source == DSS_INOCULATION)
         {
-          if (node_lht->s.innocent_hits < 2 && node_lht->s.spam_hits < 5)
-            node_lht->s.spam_hits += 5;
+          if (ds_term->s.innocent_hits < 2 && ds_term->s.spam_hits < 5)
+            ds_term->s.spam_hits += 5;
           else
-            node_lht->s.spam_hits += 2;
+            ds_term->s.spam_hits += 2;
         } else /* ERROR or CORPUS */
         {
-          node_lht->s.spam_hits++;
+          ds_term->s.spam_hits++;
         }
       }
     }
-    node_lht->s.status |= TST_DIRTY;
-    node_lht = c_lht_next (freq, &c_lht);
+    ds_term->s.status |= TST_DIRTY;
+    ds_term = ds_diction_next(ds_c);
   }
+  ds_diction_close(ds_c);
 
-  if (_ds_setall_spamrecords (CTX, freq))
+  if (_ds_setall_spamrecords (CTX, diction)) {
+    ds_diction_destroy(diction);
     return EUNKNOWN;
+  }
 
   if (CTX->classification == DSR_ISSPAM)
   {
@@ -1828,7 +1823,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
     CTX->result = DSR_ISINNOCENT;
   }
 
-  lht_destroy(freq);
+  ds_diction_destroy(diction);
   return 0;
 }
 
@@ -1968,7 +1963,7 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
  
 int
 _ds_process_header_token (DSPAM_CTX * CTX, char *token,
-                          const char *previous_token, struct lht *freq,
+                          const char *previous_token, ds_diction_t diction,
                           const char *heading)
 {
   int all_num = 1, i;
@@ -2032,7 +2027,7 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
 #ifdef VERBOSE
   LOGDEBUG ("Token Hit: '%s'", combined_token);
 #endif
-  lht_hit (freq, crc, combined_token, 0, 0); 
+  ds_diction_touch(diction, crc, combined_token, 0);
 
   if ((CTX->flags & DSF_CHAINED) && previous_token != NULL && !is_received)
   {
@@ -2046,7 +2041,7 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
               "%s*%s+%s", heading, tweaked_previous, tweaked_token);
     crc = _ds_getcrc64 (combined_token);
 
-    lht_hit (freq, crc, combined_token, 1, 0);
+    ds_diction_touch(diction, crc, combined_token, DSD_CHAINED);
     free(tweaked_previous);
   }
 
@@ -2056,7 +2051,7 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
 
 int
 _ds_process_body_token (DSPAM_CTX * CTX, char *token,
-                        const char *previous_token, struct lht *freq)
+                        const char *previous_token, ds_diction_t diction)
 {
   int all_num = 1, i;
   char combined_token[256];
@@ -2096,7 +2091,7 @@ _ds_process_body_token (DSPAM_CTX * CTX, char *token,
 
   crc = _ds_getcrc64 (tweaked_token);
 
-  lht_hit (freq, crc, tweaked_token, 0, 1);
+  ds_diction_touch(diction, crc, tweaked_token, DSD_CONTEXT);
 
   if ((CTX->flags & DSF_CHAINED) && previous_token != NULL)
   {
@@ -2108,7 +2103,7 @@ _ds_process_body_token (DSPAM_CTX * CTX, char *token,
               tweaked_previous, tweaked_token);
     crc = _ds_getcrc64 (combined_token);
 
-    lht_hit (freq, crc, combined_token, 1, 1);
+    ds_diction_touch(diction, crc, combined_token, DSD_CHAINED | DSD_CONTEXT);
     free(tweaked_previous);
   }
   free(tweaked_token);
@@ -2119,7 +2114,7 @@ _ds_process_body_token (DSPAM_CTX * CTX, char *token,
 
 int
 _ds_map_header_token (DSPAM_CTX * CTX, char *token,
-                      char **previous_tokens, struct lht *freq,
+                      char **previous_tokens, ds_diction_t diction,
                       const char *heading)
 {
   int all_num = 1, i, mask, t;
@@ -2181,7 +2176,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
     /* If the bucket has at least 2 literals, hit it */
     if (t>=2) {
       crc = _ds_getcrc64(key);
-      lht_hit (freq, crc, key, 0, 1);
+      ds_diction_touch(diction, crc, key, DSD_CONTEXT);
     }
   }
 
@@ -2190,7 +2185,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
 
 int
 _ds_map_body_token (DSPAM_CTX * CTX, char *token,
-                        char **previous_tokens, struct lht *freq)
+                        char **previous_tokens, ds_diction_t diction)
 {
   int all_num = 1, i,  mask, t;
   int len;
@@ -2253,7 +2248,7 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
         key[strlen(key)-1] = 0;
 
       crc = _ds_getcrc64(key);
-      lht_hit (freq, crc, key, 0, 1);
+      ds_diction_touch(diction, crc, key, DSD_CONTEXT);
     }
   }
 
@@ -2485,7 +2480,9 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
  *  provided message sample.
  */
 
-int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
+int
+_ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, ds_diction_t diction)
+{
   struct _ds_spam_stat stat;
   struct heap_node *node_heap;
   struct heap_node *heap_list[heap_sort->items];
@@ -2528,16 +2525,20 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
 
   node_heap = heap_sort->root;
 
-  for(i=0;i<heap_sort->items;i++) 
+  /* BEGIN Combine Token Values */
+  for(i=0;i<heap_sort->items;i++)
   {
-    unsigned long long crc;
     char *token_name;
+    ds_term_t ds_term = ds_diction_find(diction, node_heap->token);
+
     node_heap = heap_list[i];
 
-    crc = node_heap->token;
-    token_name = lht_gettoken (freq, crc);
+    if (!ds_term) 
+      continue;
 
-    if (lht_getspamstat (freq, crc, &stat) || token_name == NULL)
+    token_name = ds_term->name;
+
+    if (ds_diction_getstat(diction, node_heap->token, &stat) || !token_name)
       continue;
 
     /* Skip BNR patterns */
@@ -2550,13 +2551,11 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
     else if (CTX->classification == DSR_ISINNOCENT)
       stat.probability = 0.00;
 
-    /* BEGIN Combine Token Values */
-
     /* Graham-Bayesian */
     if (CTX->algorithms & DSA_GRAHAM && bay_used < 15)
     {
         LOGDEBUG ("[graham] [%2.6f] %s (%dfrq, %lds, %ldi)",
-                  stat.probability, token_name, lht_getfrequency (freq, crc),
+                  stat.probability, token_name, ds_term->frequency,
                   stat.spam_hits, stat.innocent_hits);
 
       _ds_factor(factor_bayes, token_name, stat.probability);
@@ -2579,7 +2578,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
     if (CTX->algorithms & DSA_BURTON && abay_used < 27)
     {
         LOGDEBUG ("[burton] [%2.6f] %s (%dfrq, %lds, %ldi)",
-                  stat.probability, token_name, lht_getfrequency (freq, crc),
+                  stat.probability, token_name, ds_term->frequency,
                   stat.spam_hits, stat.innocent_hits);
 
       _ds_factor(factor_altbayes, token_name, stat.probability);
@@ -2597,11 +2596,10 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
 
       abay_used++;
 
-      if (abay_used < 27 && lht_getfrequency (freq, crc) > 1 )
+      if (abay_used < 27 && ds_term->frequency > 1 )
       {
           LOGDEBUG ("[burton] [%2.6f] %s (%dfrq, %lds, %ldi)",
-                    stat.probability, token_name, lht_getfrequency (freq,
-                                                                    crc),
+                    stat.probability, token_name, ds_term->frequency,
                     stat.spam_hits, stat.innocent_hits);
 
         _ds_factor(factor_altbayes, token_name, stat.probability);
@@ -2632,7 +2630,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
       {
 #endif
         LOGDEBUG ("[rob] [%2.6f] %s (%dfrq, %lds, %ldi)",
-                  stat.probability, token_name, lht_getfrequency (freq, crc),
+                  stat.probability, token_name, ds_term->frequency,
                   stat.spam_hits, stat.innocent_hits);
 #ifndef VERBOSE
       }
@@ -2657,7 +2655,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
 
         rob_used++;
 
-        if (rob_used < 25 && lht_getfrequency (freq, crc) > 1)
+        if (rob_used < 25 && ds_term->frequency > 1)
         {
 #ifdef ROBINSON
 #ifndef VERBOSE
@@ -2665,8 +2663,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
           {
 #endif
             LOGDEBUG ("[rob] [%2.6f] %s (%dfrq, %lds, %ldi)",
-                      stat.probability, token_name, lht_getfrequency (freq,
-                                                                      crc),
+                      stat.probability, token_name, ds_term->frequency,
                       stat.spam_hits, stat.innocent_hits);
 
 #ifndef VERBOSE
@@ -2682,10 +2679,9 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
         }
       }
     }
-
-    /* END Combine Token Values */
-
   }
+
+  /* END Combine Token Values */
 
   /* Fisher-Robinson's Inverse Chi-Square */
 #define CHI_CUTOFF	0.5010	/* Ham/Spam Cutoff */
@@ -2694,29 +2690,30 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
 
   if (CTX->algorithms & DSA_CHI_SQUARE)
   {
-    struct lht_node *node_lht;
-    struct lht_c c_lht;
+    ds_term_t ds_term;
+    ds_cursor_t ds_c;
     double fw;
     int n, exp;
 
-    node_lht = c_lht_first(freq, &c_lht);
-    while(node_lht != NULL) {
+    ds_c = ds_diction_cursor(diction);
+    ds_term = ds_diction_next(ds_c);
+    while(ds_term) {
 
       /* Skip BNR Tokens */
-      if (node_lht->token_name && !strncmp(node_lht->token_name, "bnr.", 4))
+      if (ds_term->name && !strncmp(ds_term->name, "bnr.", 4))
         goto CHI_NEXT;
 
       /* Convert the p-value */
 
       if (CTX->algorithms & DSP_ROBINSON) {
-        fw = node_lht->s.probability;
+        fw = ds_term->s.probability;
       } else {
-        n = node_lht->s.spam_hits + node_lht->s.innocent_hits;
-        fw = ((CHI_S * CHI_X) + (n * node_lht->s.probability))/(CHI_S + n);
+        n = ds_term->s.spam_hits + ds_term->s.innocent_hits;
+        fw = ((CHI_S * CHI_X) + (n * ds_term->s.probability))/(CHI_S + n);
       }
 
       if (fabs(0.5-fw)>CHI_EXCR) {
-        int iter = _ds_compute_complexity(node_lht->token_name);
+        int iter = _ds_compute_complexity(ds_term->name);
 
         iter = 1;
         while(iter>0) {
@@ -2727,13 +2724,13 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
           {
 #endif
             LOGDEBUG ("[chi-sq] [%2.6f] %s (%dfrq, %lds, %ldi)",
-                      fw, node_lht->token_name, node_lht->frequency,
-                      node_lht->s.spam_hits, node_lht->s.innocent_hits);
+                      fw, ds_term->name, ds_term->frequency,
+                      ds_term->s.spam_hits, ds_term->s.innocent_hits);
 #ifndef VERBOSE
           }
 #endif
 
-          _ds_factor(factor_chi, node_lht->token_name, node_lht->s.probability);
+          _ds_factor(factor_chi, ds_term->name, ds_term->s.probability);
 
           chi_used++;
           chi_s *= (1.0 - fw);
@@ -2750,8 +2747,9 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
       }
 
 CHI_NEXT:
-      node_lht = c_lht_next(freq, &c_lht);
+      ds_term = ds_diction_next(ds_c);
     }
+    ds_diction_close(ds_c);
   }
 
   /* BEGIN Calculate Individual Probabilities */
@@ -3016,14 +3014,14 @@ int libdspam_shutdown(void) {
   return 0;
 }
 
-int _ds_instantiate_bnr_patterns(
+int _ds_instantiate_bnr(
   DSPAM_CTX *CTX,
-  struct lht *pfreq,
-  struct nt *order,
+  ds_diction_t patterns,
+  struct nt *stream,
   char identifier)
 {
   float previous_bnr_probs[BNR_SIZE];
-  struct lht_node *node_lht;
+  ds_term_t ds_term;
   struct nt_node *node_nt;
   struct nt_c c_nt;
   unsigned long long crc;
@@ -3033,17 +3031,16 @@ int _ds_instantiate_bnr_patterns(
   for(i=0;i<BNR_SIZE;i++)
     previous_bnr_probs[i] = 0.00000;
 
-  node_nt = c_nt_first(order, &c_nt);
+  node_nt = c_nt_first(stream, &c_nt);
   while(node_nt != NULL) {
-    node_lht = (struct lht_node *) node_nt->ptr;
+    ds_term = node_nt->ptr;
 
-    _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT, NULL);
+    _ds_calc_stat (CTX, ds_term->key, &ds_term->s, DTT_DEFAULT, NULL);
 
-    for(i=0;i<BNR_SIZE-1;i++) {
+    for(i=0;i<BNR_SIZE-1;i++) 
       previous_bnr_probs[i] = previous_bnr_probs[i+1];
-    }
 
-    previous_bnr_probs[BNR_SIZE-1] = _ds_round(node_lht->s.probability);
+    previous_bnr_probs[BNR_SIZE-1] = _ds_round(ds_term->s.probability);
     sprintf(bnr_token, "bnr.%c|", identifier);
     for(i=0;i<BNR_SIZE;i++) {
       char x[6];
@@ -3055,8 +3052,8 @@ int _ds_instantiate_bnr_patterns(
 #ifdef VERBOSE
     LOGDEBUG ("BNR pattern instantiated: '%s'", bnr_token);
 #endif
-    lht_hit (pfreq, crc, bnr_token, 0, 0);
-    node_nt = c_nt_next(order, &c_nt);
+    ds_diction_touch(patterns, crc, bnr_token, 0);
+    node_nt = c_nt_next(stream, &c_nt);
   }
   return 0;
 }

@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.9 2004/12/29 04:03:21 jonz Exp $ */
+/* $Id: libdspam.h,v 1.10 2005/01/03 03:06:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -24,16 +24,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <auto-config.h>
 #endif
 
-#include "lht.h"
+#ifndef _LIBDSPAM_H
+#  define _LIBDSPAM_H
+
+#include "diction.h"
 #include "nodetree.h"
 #include "error.h"
 #include "storage_driver.h"
 #include "decode.h"
 #include "libdspam_objects.h"
 #include "heap.h"
-
-#ifndef _LIBDSPAM_H
-#  define _LIBDSPAM_H
 
 #define LIBDSPAM_VERSION_MAJOR	3
 #define LIBDSPAM_VERSION_MINOR	3
@@ -72,44 +72,23 @@ int dspam_clearattributes (DSPAM_CTX * CTX);
 
 /* Private functions */
 
-int _ds_calc_stat		(DSPAM_CTX * CTX, 
-				 unsigned long long token,
-				 struct _ds_spam_stat *,
-                                 int token_type,
-                                 struct _ds_spam_stat *bnr_tot);
+int _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token, struct _ds_spam_stat *, int type, struct _ds_spam_stat *bnr_tot);
 
-int _ds_calc_result		(DSPAM_CTX * CTX,
-                                 struct heap *heap_sort,
-                                 struct lht *freq);
+int _ds_calc_result		(DSPAM_CTX * CTX, struct heap *heap_sort, ds_diction_t diction); 
 
-int _ds_process_header_token	(DSPAM_CTX * CTX, 
-				 char *joined_token,
-				 const char *previous_token,
-				 struct lht *tokens,
-				 const char *heading);
+int _ds_process_header_token	(DSPAM_CTX * CTX, char *joined_token, const char *previous_token, ds_diction_t diction, const char *heading);
 
-int _ds_process_body_token	(DSPAM_CTX * CTX,
-				 char *joined_token,
-				 const char *previous_token,
-				 struct lht *tokens);
+int _ds_process_body_token	(DSPAM_CTX * CTX, char *joined_token, const char *previous_token, ds_diction_t diction);
 
-int _ds_map_header_token        (DSPAM_CTX * CTX,
-                                 char *token,
-                                 char **previous_tokens,
-                                 struct lht *freq,
-                                 const char *heading);
+int _ds_map_header_token        (DSPAM_CTX * CTX, char *token, char **previous_tokens, ds_diction_t diction, const char *heading);
                                                                                 
-int _ds_map_body_token          (DSPAM_CTX * CTX,
-                                 char *token,
-                                 char **previous_tokens,
-                                 struct lht *freq);
+int _ds_map_body_token          (DSPAM_CTX * CTX, char *token, char **previous_tokens, ds_diction_t diction);
                                                                                 
 int  _ds_operate               (DSPAM_CTX * CTX, char *headers, char *body);
 int  _ds_process_signature     (DSPAM_CTX * CTX);
 int  _ds_degenerate_message    (DSPAM_CTX *CTX, buffer *header, buffer *body);
 int  _ds_factor                (struct nt *set, char *token_name, float value);
-int _ds_instantiate_bnr_patterns(DSPAM_CTX *CTX, struct lht *pfreq,
-   struct nt *order, char identifier);
+int _ds_instantiate_bnr        (DSPAM_CTX *CTX, ds_diction_t patterns, struct nt *order, char identifier);
 void _ds_sbph_clear            (char **previous_tokens);
 void _ds_factor_destroy        (struct nt *factors);
 

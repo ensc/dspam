@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.9 2004/12/27 01:06:04 jonz Exp $ */
+/* $Id: dspam_clean.c,v 1.10 2005/01/03 03:06:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -342,14 +342,14 @@ process_sigs (DSPAM_CTX * CTX, int age)
 int process_probs (DSPAM_CTX *CTX, int age) {
   struct _ds_storage_record *sr;
   struct _ds_spam_stat s;
-  struct lht *del;
+  ds_diction_t del;
   int delta;
 
 #ifdef DEBUG
   printf("Processing probabilities; age: %d\n", age);
 #endif 
 
-  del = lht_create(1543);
+  del = ds_diction_create(196613);
   if (del == NULL)
     return -1;
   sr = _ds_get_nexttoken (CTX);
@@ -362,21 +362,21 @@ int process_probs (DSPAM_CTX *CTX, int age) {
     if (s.probability >= 0.3500 && s.probability <= 0.6500) {
       delta = (((time (NULL) - sr->last_hit) / 60) / 60) / 24;
       if (age == 0 || delta > age)
-        lht_hit(del, sr->token, "", 0, 0);
+        ds_diction_touch(del, sr->token, "", 0);
     }
     free (sr);
     sr = _ds_get_nexttoken (CTX);
   }
  
   _ds_delall_spamrecords(CTX, del);
-  lht_destroy(del);
+  ds_diction_destroy(del);
 
   return 0;
 }
 
 int process_unused (DSPAM_CTX *CTX, int any, int quota, int nospam, int onehit) {
   struct _ds_storage_record *sr;
-  struct lht *del;
+  ds_diction_t del;
   time_t t = time(NULL);
   int delta, toe = 0, tum = 0;
   AGENT_PREF PTX;
@@ -411,7 +411,7 @@ int process_unused (DSPAM_CTX *CTX, int any, int quota, int nospam, int onehit) 
   if (PTX)
     _ds_pref_free(PTX);
 
-  del = lht_create(1543);
+  del = ds_diction_create(196613);
   if (del == NULL)
     return -1;
   sr = _ds_get_nexttoken (CTX);
@@ -421,23 +421,23 @@ int process_unused (DSPAM_CTX *CTX, int any, int quota, int nospam, int onehit) 
     if (!toe && (any == 0 || delta > any))
     { 
       if (!tum || sr->innocent_hits + sr->spam_hits < 50)
-        lht_hit(del, sr->token, "", 0, 0);
+        ds_diction_touch(del, sr->token, "", 0);
     }
     else if ((sr->innocent_hits*2) + sr->spam_hits < 5)
     { 
       if (quota == 0 || delta > quota)
       {
-        lht_hit(del, sr->token, "", 0, 0);
+        ds_diction_touch(del, sr->token, "", 0);
       }
       else if (sr->innocent_hits == 0 && sr->spam_hits == 1 &&
           (nospam == 0 || delta > nospam))
       {
-        lht_hit(del, sr->token, "", 0, 0);
+        ds_diction_touch(del, sr->token, "", 0);
       }
       else if (sr->innocent_hits == 1 && sr->spam_hits == 0 &&
           (onehit == 0 || delta > onehit))
       {
-        lht_hit(del, sr->token, "", 0, 0);
+        ds_diction_touch(del, sr->token, "", 0);
       }
     }
  
@@ -446,7 +446,7 @@ int process_unused (DSPAM_CTX *CTX, int any, int quota, int nospam, int onehit) 
   }
                                                                                 
   _ds_delall_spamrecords(CTX, del);
-  lht_destroy(del);
+  ds_diction_destroy(del);
                                                                                 
   return 0;
 }

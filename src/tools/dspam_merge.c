@@ -1,4 +1,4 @@
-/* $Id: dspam_merge.c,v 1.3 2004/12/03 01:30:33 jonz Exp $ */
+/* $Id: dspam_merge.c,v 1.4 2005/01/03 03:06:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -57,7 +57,7 @@ main (int argc, char **argv)
   struct nt_c c_nt;
   struct _ds_storage_record *token;
   struct _ds_spam_stat s;
-  struct lht *freq = NULL;
+  ds_diction_t merge;
   DSPAM_CTX *CTX, *MTX;
   long i;
 #ifndef _WIN32
@@ -105,9 +105,9 @@ main (int argc, char **argv)
 
   dspam_init_driver (NULL);
   users = nt_create (NT_CHAR);
-  freq = lht_create (1543);
+  merge = ds_diction_create(196613);
 
-  if (users == NULL || freq == NULL)
+  if (users == NULL || merge == NULL)
   {
     fprintf (stderr, ERROR_MEM_ALLOC);
     goto bail;
@@ -182,7 +182,7 @@ main (int argc, char **argv)
     token = _ds_get_nexttoken (MTX);
     while (token != NULL)
     {
-      if (lht_getspamstat (freq, token->token, &s))
+      if (ds_diction_getstat (merge, token->token, &s))
       {
         s.spam_hits = token->spam_hits;
         s.innocent_hits = token->innocent_hits;
@@ -193,7 +193,7 @@ main (int argc, char **argv)
         s.spam_hits += token->spam_hits;
         s.innocent_hits += token->innocent_hits;
       }
-      lht_setspamstat (freq, token->token, &s);
+      ds_diction_setstat (merge, token->token, &s);
       free (token);
       i++;
       token = _ds_get_nexttoken (MTX);
@@ -209,12 +209,12 @@ main (int argc, char **argv)
 #ifdef DEBUG
   printf ("storing merged tokens...\n");
 #endif
-  _ds_setall_spamrecords (CTX, freq);
+  _ds_setall_spamrecords (CTX, merge);
 #ifdef DEBUG
   printf ("completed.\n");
 #endif
   nt_destroy (users);
-  lht_destroy (freq);
+  ds_diction_destroy(merge);
   dspam_destroy (CTX);
   open_ctx = NULL;
   dspam_shutdown_driver (NULL);
@@ -228,7 +228,7 @@ bail:
     dspam_destroy (open_mtx);
   dspam_shutdown_driver (NULL);
   nt_destroy(users);
-  lht_destroy (freq);
+  ds_diction_destroy(merge);
   _ds_destroy_attributes(agent_config);
   exit (EXIT_FAILURE);
 }
