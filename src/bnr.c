@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.5 2004/11/23 21:27:18 jonz Exp $ */
+/* $Id: bnr.c,v 1.6 2004/11/23 21:59:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -199,7 +199,6 @@ int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
             previous_bnr_tokens[i]->frequency -= 2;
             dub = 3;
             if (!dub || suspect) {
-              dub = 3;
               dub_prob = s.probability;
             }
 #ifdef BNR_VERBOSE_DEBUG

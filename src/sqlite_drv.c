@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.7 2004/11/23 21:27:18 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.8 2004/11/23 21:59:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -358,8 +358,9 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
     return EINVAL;
   }
 
-  if (CTX->operating_mode == DSM_CLASSIFY && 
-        (CTX->training_mode != DST_TOE || freq->whitelist_token == 0))
+  if (CTX->operating_mode == DSM_CLASSIFY &&
+        (CTX->training_mode != DST_TOE ||
+          (freq->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
     return 0;
 
   query = buffer_create (NULL);
@@ -407,7 +408,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
     if (CTX->training_mode == DST_TOE           && 
         CTX->classification == DSR_NONE         &&
 	CTX->operating_mode == DSM_CLASSIFY	&&
-        freq->whitelist_token != node_lht->key) 
+        freq->whitelist_token != node_lht->key  &&
+        (!node_lht->token_name || strncmp(node_lht->token_name, "bnr.", 4)))  
     {
       node_lht = c_lht_next(freq, &c_lht);
       continue;
