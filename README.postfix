@@ -1,4 +1,4 @@
-$Id: README.postfix,v 1.1 2004/10/24 20:47:30 jonz Exp $
+$Id: README.postfix,v 1.2 2004/11/24 03:47:26 jonz Exp $
 
 POSTFIX INTEGRATION
 
@@ -35,7 +35,12 @@ Once you have configured a local delivery agent into DSPAM, the simplest way
 to configure postfix for local users is to set the mailbox_command directive 
 to point to DSPAM. This can be done by editing /etc/postfix/main.cf:
 
-mailbox_command = /usr/local/bin/dspam --deliver=innocent --user $USER -d %u
+mailbox_command = /usr/local/bin/dspam --deliver=innocent --user $USER -- -d %u
+
+If you're running a delivery agent (such as cyrdeliver) that has a problem
+with the top 'From' header, you may need to perform some sed magic:
+
+mailbox_command = mailbox_command = sed '1{/^From /d;}' | /usr/local/bin/dspam --deliver=innocent --user $USER -- -d %u
 
 Now, configure the aliases as prescribed in the README and you're good to go!
 
