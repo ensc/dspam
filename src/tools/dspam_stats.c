@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.8 2005/03/24 15:31:32 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.9 2005/04/06 15:35:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -321,9 +321,9 @@ stat_user (const char *username)
   else
   {
 #ifdef LONG_USERNAMES
-    printf ("%s\n    TS:% 6ld TI:% 6ld SM:% 6ld IM:% 6ld SC:% 6ld IC:% 6ld\n",
+    printf ("%s\n    TS:%6ld TI:%6ld SM:%6ld IM:%6ld SC:%6ld IC:%6ld\n",
 #else
-    printf ("%-16s  TS:% 6ld TI:% 6ld SM:% 6ld IM:% 6ld SC:% 6ld IC:% 6ld\n",
+    printf ("%-16s  TS:%6ld TI:%6ld SM:%6ld IM:%6ld SC:%6ld IC:%6ld\n",
 #endif
             username,
             total_spam, total_innocent,
