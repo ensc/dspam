@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.8 2005/01/12 03:12:26 jonz Exp $ */
+/* $Id: pref.c,v 1.9 2005/01/14 14:16:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -188,13 +188,6 @@ agent_pref_t _ds_pref_load(
       q = p + strlen(p)+1;
 
       LOGDEBUG("Loading preference '%s' = '%s'", p, q);
-
-      pref = malloc(sizeof(struct _ds_agent_attribute));
-      if (pref == NULL) {
-        LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-        fclose(file);
-        return PTX;
-      }
 
       PTX[i] = _ds_pref_new(p, q);
       PTX[i+1] = NULL;
