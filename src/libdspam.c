@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.54 2004/12/23 20:07:33 jonz Exp $ */
+/* $Id: libdspam.c,v 1.55 2004/12/23 20:52:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -1330,7 +1330,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     if (CTX->flags & DSF_SBPH)
       node_lht->frequency = 1;
 
-    if (node_lht->frequency > 0 && strncmp(node_lht->token_name, "bnr.", 4))
+    if (node_lht->frequency > 0 && (!node_lht->token_name || strncmp(node_lht->token_name, "bnr.", 4)))
     {
       heap_insert (heap_sort, node_lht->s.probability, node_lht->key,
              node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
@@ -1477,8 +1477,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     else if (CTX->classification == DSR_ISINNOCENT) 
       node_lht->s.probability = 0.00;
 
-    if ((node_lht == NULL || node_lht->token_name == NULL || 
-        strncmp(node_lht->token_name, "bnr.", 4)) &&
+    if ((node_lht == NULL || 
+         node_lht->token_name == NULL || 
+         strncmp(node_lht->token_name, "bnr.", 4)) &&
         ( CTX->training_mode != DST_TUM  || 
           CTX->source == DSS_ERROR       ||
           CTX->source == DSS_INOCULATION ||
@@ -2469,7 +2470,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
       continue;
 
     /* Skip BNR patterns */
-    if (!strncmp(token_name, "bnr.", 4))
+    if (token_name && !strncmp(token_name, "bnr.", 4))
       continue;
 
     /* Set the probability if we've provided a classification */
