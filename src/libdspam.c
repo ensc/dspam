@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.53 2004/12/19 23:18:19 jonz Exp $ */
+/* $Id: libdspam.c,v 1.54 2004/12/23 20:07:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -939,7 +939,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       int url_length;
       unsigned long long crc;
 
-      token = strstr (url_ptr, "http://");
+      token = strcasestr (url_ptr, "http://");
       while (token != NULL)
       {
         char *ptrurl;
@@ -970,7 +970,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 	  if (url_ptr >= url_end)
             token = NULL;
 	  else
-            token = strstr (url_ptr, "http://");
+            token = strcasestr (url_ptr, "http://");
         }
         else
           token = NULL;
@@ -990,7 +990,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       unsigned long long crc;
 
       url_ptr = url_body;
-      token = strstr (url_ptr, "href=\"");
+      token = strcasestr (url_ptr, "href=\"");
       while (token != NULL)
       {
         char *urltoken;
@@ -1019,7 +1019,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
           memset (body + ((token + 6) - url_body), 32, url_length);
 
           url_ptr += url_length + 1;
-          token = strstr (url_ptr, "href=\"");
+          token = strcasestr (url_ptr, "href=\"");
         }
         else
           token = NULL;

@@ -1,4 +1,12 @@
-$Id: CHANGELOG,v 1.85 2004/12/23 16:57:52 jonz Exp $
+$Id: CHANGELOG,v 1.86 2004/12/23 20:07:33 jonz Exp $
+
+Version NEXT
+------------
+
+[20041223.1504] jonz: made url and tag scans case insensitive
+
+url and tag scans now case-insensitive, so HTTP:// and HREF= should also be
+detected and tokenized
 
 Version 3.3.1
 -------------
