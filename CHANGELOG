@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.185 2005/03/01 18:53:19 jonz Exp $
+$Id: CHANGELOG,v 1.186 2005/03/01 19:06:27 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050301.0700] jonz: fix for segfault on malformatted MAIL FROM
+
+fixed a bug causing a segfault when MAIL FROM was malformatted in DLMTP mode
 
 [20050301.0700] jonz: fix for pgsql double-innocent bug
 
