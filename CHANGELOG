@@ -1,4 +1,12 @@
-$Id: CHANGELOG,v 1.81 2004/12/20 12:25:33 jonz Exp $
+$Id: CHANGELOG,v 1.82 2004/12/21 12:51:21 jonz Exp $
+
+Version NEXT
+------------
+
+[20041220.0600] jonz: fix for trusted user security and daemon mode
+
+fixed bug where daemon mode would not start without trusted user security
+compiled in.
 
 Version 3.3.0
 -------------
