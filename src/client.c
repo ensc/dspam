@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.39 2005/03/15 22:48:05 jonz Exp $ */
+/* $Id: client.c,v 1.40 2005/03/15 22:52:00 jonz Exp $ */
 
 /*
 
@@ -176,11 +176,13 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
             exitcode = 0;
           exitcode--;
         } else {
-          x = strtok(NULL, ":");
-          if (x)
+          if (_ds_match_attribute(agent_config, "Broken", "returnCodes")) {
             x = strtok(NULL, ":");
-          if (x && strstr(x, "SPAM") && exitcode == 0)
-            exitcode = 99;
+            if (x)
+              x = strtok(NULL, ":");
+            if (x && strstr(x, "SPAM") && exitcode == 0)
+              exitcode = 99;
+          }
         }
       }
     }
