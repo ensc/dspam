@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.36 2005/02/24 22:04:06 jonz Exp $ */
+/* $Id: daemon.c,v 1.37 2005/02/24 22:28:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -234,7 +234,7 @@ void *process_connection(void *ptr) {
   THREAD_CTX *TTX = (THREAD_CTX *) ptr;
   AGENT_CTX *ATX = NULL;
   buffer *message = NULL;
-  char *input, *cmdline = NULL, *token, *ptrptr;
+  char *input, *cmdline = NULL, *token, *ptrptr, *oldcmd = NULL;
   char *argv[32];
   char buf[1024];
   int tries = 0;
@@ -336,11 +336,6 @@ void *process_connection(void *ptr) {
   
     snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
 
-    /* RCPT TO (Userlist and arguments) */
-
-    cmdline = daemon_expect(TTX, "RCPT TO:");
-    if (cmdline == NULL)
-      goto CLOSE;
 
     /* Configure agent context */
     ATX = calloc(1, sizeof(AGENT_CTX));
@@ -350,7 +345,7 @@ void *process_connection(void *ptr) {
       goto CLOSE;
     }
 
-    if (initialize_atx(ATX)) 
+    if (initialize_atx(ATX))
     {
       report_error(ERROR_INITIALIZE_ATX);
       snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INITIALIZE_ATX);
@@ -358,43 +353,59 @@ void *process_connection(void *ptr) {
       goto CLOSE;
     }
 
-    if (server_mode == SSM_DSPAM) {
-      /* Tokenize arguments */
-      chomp(cmdline);
-      argv[argc] = "--user";
-      argc++;
-      token = strtok_r(cmdline+8, " ", &ptrptr);
-      while(token != NULL) {
-        argv[argc] = token;
+    /* RCPT TO (Userlist and arguments) */
+
+    cmdline = daemon_getline(TTX, 300);
+    while(cmdline && !strncasecmp(cmdline, "RCPT TO:", 8)) {
+
+      if (server_mode == SSM_DSPAM) {
+        /* Tokenize arguments */
+        chomp(cmdline);
+        argv[argc] = "--user";
         argc++;
-        token = strtok_r(NULL, " ", &ptrptr);
-      }
-  
-    } else {
-      char *username = strchr(cmdline, '<');
-      char *parms = _ds_read_attribute(agent_config, "ServerParameters");
-      char *x;
-
-      if (username == NULL) {
-        snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INVALID_RCPT);
-        send_socket(TTX, buf);
-        goto CLOSE;
-      }
-      x = strchr(username, '>');
-      if (x) x[0] = 0;
-      nt_add(ATX->users, username+1);
-      strlcpy(ATX->recipient, username+1, sizeof(ATX->recipient));
-
-      argc = 0;
-      if (parms) {
-        token = strtok_r(parms, " ", &ptrptr);
+        token = strtok_r(cmdline+8, " ", &ptrptr);
         while(token != NULL) {
           argv[argc] = token;
           argc++;
           token = strtok_r(NULL, " ", &ptrptr);
         }
+    
+      } else {
+
+        char *username = strchr(cmdline, '<');
+        char *parms = _ds_read_attribute(agent_config, "ServerParameters");
+        char *x;
+  
+        if (username == NULL) {
+          snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INVALID_RCPT);
+          send_socket(TTX, buf);
+          goto CLOSE;
+        }
+        x = strchr(username, '>');
+        if (x) x[0] = 0;
+        nt_add(ATX->users, username+1);
+        strlcpy(ATX->recipient, username+1, sizeof(ATX->recipient));
+  
+        argc = 0;
+        if (parms) {
+          token = strtok_r(parms, " ", &ptrptr);
+          while(token != NULL) {
+            argv[argc] = token;
+            argc++;
+            token = strtok_r(NULL, " ", &ptrptr);
+          }
+        }
       }
+      snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
+      if (send_socket(TTX, buf)<=0)
+        goto CLOSE;
+
+      oldcmd = cmdline;
+      cmdline = daemon_getline(TTX, 300);
     }
+  
+    if (cmdline == NULL) 
+      goto CLOSE;
 
     if (process_arguments(ATX, argc, argv) || apply_defaults(ATX))
     {
@@ -410,7 +421,7 @@ void *process_connection(void *ptr) {
     /* Determine which database handle to use */
     i = (TTX->sockfd % TTX->DTX->connection_cache);
     LOGDEBUG("using database handle id %d", i);
-
+  
     pthread_mutex_lock(&TTX->DTX->connections[i]->lock);
     ATX->dbh = TTX->DTX->connections[i]->dbh;
     locked = i;
@@ -428,11 +439,23 @@ void *process_connection(void *ptr) {
 
     /* DATA */
   
-    input = daemon_expect(TTX, "DATA");
-    if (input == NULL)
+    /* Check for at least one recipient */
+
+    if (ATX->users->items == 0)
+    {
+      LOG (LOG_ERR, ERROR_USER_UNDEFINED);
+      snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_USER_UNDEFINED);
+      send_socket(TTX, buf);
       goto CLOSE;
-    free(input);
-  
+    }
+
+    if (strncasecmp(cmdline, "DATA", 4)) {
+      snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, "Need DATA Here");
+      input = daemon_expect(TTX, "LHLO");
+      if (input == NULL)
+        goto CLOSE;
+    }
+
     if (daemon_reply(TTX, LMTP_DATA, DAEMON_DATA)<=0)
       goto CLOSE;
   

@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.20 2005/02/24 19:33:53 jonz Exp $ */
+/* $Id: client.c,v 1.21 2005/02/24 22:28:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -346,6 +346,7 @@ char *client_getline(THREAD_CTX *TTX, int timeout) {
 #ifdef VERBOSE
   LOGDEBUG("RECV: %s", pop);
 #endif
+
   return pop;
 }
 

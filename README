@@ -1,4 +1,4 @@
-$Id: README,v 1.39 2005/02/24 22:04:06 jonz Exp $
+$Id: README,v 1.40 2005/02/24 22:28:49 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1795,16 +1795,33 @@ DATA
   The ServerMode can be set in dspam.conf. Each mode has its own custom
   tweaks and configurations that will need to be set in dspam.conf. 
 
-  If you are setting up DSPAM to act as a standard LMTP server, then you will
-  need to configure the ServerParameters flag in dspam.conf to reflect the
-  commandline parameters you would normally want to pass to DSPAM. Then, just
-  point your mail server at DSPAM. 
+  "dspam" mode settings.
+  In "dspam" mode, you'll need to set up authentication for each dspam client
+  relay. This involves configuring the relay ident and password. Examples are
+  provided.
+  
+  "dspam" mode notes.
+  In dspam mode, only the dspam client will be connecting to your LMTP server.
+  This can be dspamc (a thin-client) or the dspam binary. In either case,
+  you'll need to specify --client to tell DSPAM to act as a client. DLMTP 
+  allows the client to pass in any commandline arguments provided, so it should
+  function identical to if you were running it as a dedicated (non-stateful)
+  process.
 
+  "standard" mode settings.
+  In "standard" mode, you will need to configure the ServerParameters flag to
+  reflect the commandline parameters you would normally want to pass to DSPAM. 
+
+  "standard" mode notes.
   One thing to watch out for is that the recipient you're sending via LMTP is
   unique to a specific user. This means that all of your aliases should be
-  resolved before the MTA relays to DSPAM. Because DSPAM uses the address in
-  the RCPT TO as the username, _not_ resolving any aliases will result in
-  multiple databases being created for one user.
+  resolved before the MTA relays to DSPAM. Because DSPAM uses the addresses in
+  the RCPT TO as usernames, _not_ resolving any aliases will result in
+  multiple databases being created for one user. Since the signature will be
+  different for each user, and since the message must be processed 
+  differently for each user, DSPAM demultiplexes a multi-recipient email. This
+  means that while it can receive an email with multiple RCPT TO's specified, it
+  will perform delivery individually.
 
 3.0 BUGS, PORTS, AND THE LIKE
 
