@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.62 2004/12/03 13:35:50 jonz Exp $
+$Id: CHANGELOG,v 1.63 2004/12/03 13:38:21 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041203.0800] jonz: added patch to sort by subject or from in CGI
+
+applied patch adding hotlinks to subject/from fields in dspam.cgi for
+sorting.
 
 [20041202.2024] jonz: added dspamc thin client
 
