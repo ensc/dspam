@@ -1,4 +1,10 @@
-$Id: UPGRADING,v 1.5 2005/01/03 22:55:25 jonz Exp $
+$Id: UPGRADING,v 1.6 2005/01/04 00:37:57 jonz Exp $
+
+UPGRADING FROM 3.0
+
+Please download a version of 3.2's UPGRADING and follow the steps to upgrade
+from 3.0 to 3.2, then follow the steps below to upgrade from 3.2 to this 
+release. 
 
 UPGRADING FROM 3.2 
 
@@ -8,7 +14,7 @@ configure && make && make install
 
 ...over your old copy. You may, however, wish to scan for differences in
 the included dspam.conf to ensure they're propagated into your production
-configuration.
+configuration, as many new features have been added.
 
 If you have not already done so from 3.2.4, you may wish to create the following
 index if you are using PostgreSQL. This index is unnecessary, but prevents
