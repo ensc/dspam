@@ -1,4 +1,4 @@
-/* $Id: config_shared.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: config_shared.c,v 1.2 2004/12/24 02:19:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -115,6 +115,9 @@ int _ds_overwrite_attribute(attribute_t **attrib, const char *key, const char *v
 char *_ds_read_attribute(attribute_t **attrib, const char *key) {
   int i;
                                                                                 
+  if (attrib == NULL)
+    return NULL;
+
   for(i=0;attrib[i];i++) {
     attribute_t *x = attrib[i];
     if (!strcasecmp(x->key, key)) {

@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.86 2004/12/23 20:07:33 jonz Exp $
+$Id: CHANGELOG,v 1.87 2004/12/24 02:19:06 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041223.2106] jonz: fixed segfault on unreadable dspam.conf
+
+fixed a bug causing a segfault when dspam.conf is unreadable
 
 [20041223.1504] jonz: made url and tag scans case insensitive
 
