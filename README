@@ -1,4 +1,4 @@
-$Id: README,v 1.52 2005/03/19 00:12:04 jonz Exp $
+$Id: README,v 1.53 2005/03/19 00:15:52 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Network Dweebs Corporation
@@ -1727,8 +1727,8 @@ CLIENT> Subject: Cheap Viagra!
 CLIENT>
 CLIENT> Click Here: http://www.cheapviagra.com
 CLIENT> .
-SERVER> 250 2.0.0 <dick> Message accepted for delivery
-SERVER> 250 2.0.0 <jane> Message accepted for delivery
+SERVER> 250 2.0.0 <dick> Message accepted for delivery: INNOCENT
+SERVER> 250 2.0.0 <jane> Message accepted for delivery: SPAM
  
   Optionally, if you'd like the clients to perform delivery, you can use
   DSPAM's --stdout or --classify functionality to obtain a dump of the message
