@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.52 2004/12/18 03:51:31 jonz Exp $ */
+/* $Id: libdspam.c,v 1.53 2004/12/19 23:18:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -1253,11 +1253,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         lht_setspamstat(freq, node_lht->key, &node_lht->s);
         lht_setfrequency(freq, node_lht->key, 1);
   
+#ifdef VERBOSE
         LOGDEBUG("BNR Pattern L1: %s %01.5f %lds %ldi",
                  node_lht->token_name,
                  node_lht->s.probability,
                  node_lht->s.spam_hits,
                  node_lht->s.innocent_hits);
+#endif
   
         node_lht = c_lht_next(bnr_layer1, &c_lht);
       }
@@ -1268,11 +1270,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       while(node_lht != NULL) {
         lht_hit(freq, node_lht->key, node_lht->token_name, 0);
 
+#ifdef VERBOSE
        LOGDEBUG("BNR Pattern L2: %s %01.5f %lds %ldi",
                  node_lht->token_name,
                  node_lht->s.probability,
                  node_lht->s.spam_hits,
                  node_lht->s.innocent_hits);
+#endif
 
         lht_setspamstat(freq, node_lht->key, &node_lht->s);
         lht_setfrequency(freq, node_lht->key, 1);
@@ -1288,11 +1292,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         lht_setspamstat(freq, node_lht->key, &node_lht->s);
         lht_setfrequency(freq, node_lht->key, 1);
 
+#ifdef VERBOSE
         LOGDEBUG("BNR Pattern L3: %s %01.5f %lds %ldi",
                  node_lht->token_name,
                  node_lht->s.probability,
                  node_lht->s.spam_hits,
                  node_lht->s.innocent_hits);
+#endif
 
         node_lht = c_lht_next(bnr_layer3, &c_lht);
       }
