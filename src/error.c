@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.2 2004/11/30 19:46:09 jonz Exp $ */
+/* $Id: error.c,v 1.3 2005/03/15 17:37:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -150,7 +150,7 @@ LOG (int priority, char *text, ...)
   va_list args;
 
   va_start (args, text);
-  openlog ("dspam", LOG_PID, LOG_MAIL);
+  openlog ("dspam", LOG_PID | LOG_NOWAIT, LOG_MAIL);
   syslog (priority, text, args);
   closelog ();
   LOGDEBUG (text, args);

@@ -1,4 +1,4 @@
-/* $Id: error.h,v 1.2 2004/12/03 01:30:33 jonz Exp $ */
+/* $Id: error.h,v 1.3 2005/03/15 17:37:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -64,7 +64,8 @@ void debug (const char *text);
 #	define	LOG( ... )
 #else
 #	define	LOG( A, ... ) \
-	{ openlog("dspam", LOG_PID, LOG_MAIL); syslog( A, __VA_ARGS__ ); \
+	{ openlog("dspam", LOG_PID | LOG_NOWAIT, LOG_MAIL); \
+          syslog( A, __VA_ARGS__ ); \
 	  closelog(); LOGDEBUG( __VA_ARGS__ ); \
           report_error_printf( __VA_ARGS__ ); \
         }
