@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.7 2005/03/24 15:29:57 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.8 2005/03/24 15:31:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -331,7 +331,12 @@ stat_user (const char *username)
             spam_corpusfed, innocent_corpusfed);
 
     if (opt_stats) 
-      printf ("                  "
+      printf (
+#ifdef LONG_USERNAMES
+"    "
+#else
+"                  "
+#endif
               "SR: % 7.2f%%        IR: % 7.2f%%        OR: % 7.2f%%\n",
         (all_spam) ?
           (100.0-((float)spam_misclassified / (float)all_spam )*100.0) 
