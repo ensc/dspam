@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.98 2005/03/15 20:34:14 jonz Exp $ */
+/* $Id: dspam.c,v 1.99 2005/03/15 21:01:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -3052,6 +3052,7 @@ int daemon_start(AGENT_CTX *ATX) {
 
     if (daemon_listen(&DTX)) {
       LOG(LOG_CRIT, "daemon_listen() failed");
+      __daemon_run = 0;
     } else {
 
       LOGDEBUG("waiting for processing threads to exit");
