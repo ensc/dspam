@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.42 2004/12/16 19:56:17 jonz Exp $ */
+/* $Id: libdspam.c,v 1.43 2004/12/16 20:17:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -74,6 +74,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef DEBUG
 int DO_DEBUG = 0;
 char debug_text[1024];
+#endif
+
+#ifdef NCORE
+nc_dev_t _ncdevice;
 #endif
 
 /*
@@ -2919,3 +2923,28 @@ void _ds_factor_destroy(struct nt *factors) {
 
   return;
 } 
+
+int libdspam_init(void) {
+
+#ifdef NCORE
+  if (ncInit(0, &_ncdevice)) {
+    LOG(LOG_CRIT, "unable to initialize NodalCore(tm) hardware");
+    return EFAILURE;
+  }
+#endif
+
+  return 0;
+}
+
+int libdspam_shutdown(void) {
+
+#ifdef NCORE
+  if (ncTerminate(_ncdevice)) {
+    LOG(LOG_CRIT, "unable to shutdown NodalCore(tm) hardware");
+    return EFAILURE;
+  }
+#endif
+
+  return 0;
+}
+

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.41 2004/12/16 19:56:17 jonz Exp $ */
+/* $Id: dspam.c,v 1.42 2004/12/16 20:17:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -113,6 +113,8 @@ main (int argc, char *argv[])
 #ifdef DEBUG
   DO_DEBUG = 0;
 #endif
+
+  libdspam_init();
 
   /* Read dspam.conf */
   agent_config = read_config(NULL);
@@ -267,6 +269,8 @@ bail:
 
   if (agent_config)
     _ds_destroy_attributes(agent_config);
+
+  libdspam_shutdown();
 
   exit (exitcode);
 }

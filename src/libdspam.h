@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.5 2004/12/09 18:25:32 jonz Exp $ */
+/* $Id: libdspam.h,v 1.6 2004/12/16 20:17:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -40,6 +40,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define LIBDSPAM_VERSION_PATCH	0
 
 /* Public functions */
+
+int libdspam_init(void);
+int libdspam_shutdown(void);
 
 DSPAM_CTX * dspam_init	(const char *username, 
 			 const char *group,
