@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.69 2004/12/13 22:58:45 jonz Exp $
+$Id: CHANGELOG,v 1.70 2004/12/15 23:46:16 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041215.1845] jonz: added sqlite3_drv 
+
+added sqlite3 storage driver, use --with-storage-driver=sqlite3_drv
 
 [20041213.0600] jonz: added build hooks for NodalCore(tm) C-Series Accelerator
 

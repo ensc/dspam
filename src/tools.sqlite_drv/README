@@ -1,4 +1,5 @@
-sqlite_drv: SQLite storage driver for DSPAM <jonathan@nuclearelephant.com>
+ sqlite_drv: SQLite storage driver for DSPAM <jonathan@nuclearelephant.com>
+sqlite3_drv: SQLite3 storage driver for DSPAM <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
 http://www.nuclearelephant.com/projects/dspam/
 
@@ -20,20 +21,24 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 ABOUT
 
-sqlite_drv is a SQLite storage driver for DSPAM v3.0 and above.  This driver
-enables DSPAM to read and write all token, signature, and statistics data
-from individual SQLite databases created for each user.
+sqlite_drv and sqlite3_drv are SQLite storage drivers for DSPAM v3.0 and above.
+These drivers enables DSPAM to read and write all token, signature, and 
+statistics data from individual SQLite databases created for each user.
 
 WARNING: SQLite is not designed to function over NFS. If your system is large            enough to require NFS, it is strongly recommended you use a stateful
          SQL driver, such as MySQL or PostgreSQL.
 
 1. CONFIGURING DSPAM
 
-To configure DSPAM to use sqlite_drv, use the following arguments while running
+To configure DSPAM to use a driver, use the following arguments while running
 DSPAM's configure:
 
 --with-storage-driver=sqlite_drv 
 Tells DSPAM to use the sqlite_drv driver
+
+--with-storage-driver=sqlite3_drv
+Tells DSPAM to use the sqlite3_drv driver (for SQLite v3.x)
+
 
 --with-sqlite-libraries=/path/to/libs
 Tells DSPAM where to find the SQLite library (libsqlite.so).
@@ -46,7 +51,7 @@ instructions from DSPAM's readme.
 
 2. OBJECT CREATION
 
-sqlite_drv will automatically create the necessary database objects for each
+The drivers will automatically create the necessary database objects for each
 user upon first use of DSPAM by that user.
 
 3. PURGING
@@ -56,6 +61,8 @@ way to do this is to use a find recipe such as:
 
 find /var/dspam/data -name "*.sdb" -exec sqlite {} < /var/dspam/purge.sql \;
 
+or sqlite3, if you're running sqlite3_drv.
+
 You may also wish to occasionally compact your databases. This should only
 be run once in a great while, and is not entirely necessary as sqlite will
 automatically reclaim space the next time it is used.  Nevertheless, some
@@ -64,6 +71,8 @@ recipe such as the one below can be used to compact all databases on a
 system.
 
 find /var/dspam/data -name "*.sdb" -exec echo 'vacuum;' \| sqlite {} \;
+
+or sqlite3, if you're running sqlite3_drv.
 
 4. TUNING
 

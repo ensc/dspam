@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.10 2004/12/13 22:58:45 jonz Exp $
+dnl $Id: configure.ac,v 1.11 2004/12/15 23:46:16 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -984,6 +984,38 @@ then
                                             # instead.
     is_storagedrv_handled=yes
 fi
+
+if test x"$storagedrv" = xsqlite3_drv
+then
+    DS_SQLITE3(SQLITE3_CPPFLAGS, SQLITE3_LDFLAGS, SQLITE3_LIBS,
+              [sqlite_version_major], [], [],
+              [success=yes], [success=no])
+    if test x"$success" != xyes
+    then
+        AC_MSG_ERROR([Required version of libsqlite not found])
+    fi
+    if test x"$sqlite_version_major" != x3
+    then
+        AC_MSG_ERROR([Version mismatch: sqlite3_drv requires libsqlite version 3])
+    fi
+
+    CPPFLAGS="$SQLITE3_CPPFLAGS $CPPFLAGS"
+    LIBS="$SQLITE3_LIBS $LIBS"
+    LDFLAGS="$SQLITE3_LDFLAGS $LDFLAGS"
+
+    storage_drv_subdirs='tools.sqlite_drv'
+    storage_drv_objects='sqlite3_drv.lo'    # Please note: because storage
+                                            # drives is part of libdspam,
+                                            # which builded/linked by libtool,
+                                            # then object file have `.lo'
+                                            # suffix.  In case for plain
+                                            # objects (for executables or
+                                            # non-libtool libraries)
+                                            # `$(OBJEXT)' should be used
+                                            # instead.
+    is_storagedrv_handled=yes
+fi
+
 
 if test x"$is_storagedrv_handled" != xyes
 then

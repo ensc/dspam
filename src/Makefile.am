@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.9 2004/12/13 22:58:45 jonz Exp $
+# $Id: Makefile.am,v 1.10 2004/12/15 23:46:17 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -70,6 +70,7 @@ EXTRA_libdspam_la_SOURCES = \
 	pgsql_drv.c pgsql_drv.h \
         ora_drv.c ora_drv.h \
 	sqlite_drv.c sqlite_drv.h \
+	sqlite3_drv.c sqlite3_drv.h \
 	ncore_adp.cpp ncore_adp.h
 
 # Libtools veriooning scheme is:
