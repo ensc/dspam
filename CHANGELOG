@@ -1,7 +1,16 @@
-$Id: CHANGELOG,v 1.248 2005/03/28 13:47:05 jonz Exp $
+$Id: CHANGELOG,v 1.249 2005/03/28 14:06:34 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050327.2330] jonz: updates to cgi
+
+added retrain log to keep track of messages retrained, which allows the cgi
+to display 'Retrained' in the history next to messages that have already been
+retrained. history retraining and quarantine retraining both log this info.
+
+made top and bottom row of buttons symmetric in quarantine view (deliver
+checked, delete checked, delete all)
 
 [20050327.2330] jonz: no logs when using --classify
 
