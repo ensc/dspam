@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.62 2005/01/11 17:45:03 jonz Exp $ */
+/* $Id: dspam.c,v 1.63 2005/01/11 18:08:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -1189,6 +1189,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
   while (node_nt != NULL)
   {
     AGENT_PREF PTX;
+    AGENT_PREF UTX;
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
     int result, optin, optout;
@@ -1280,18 +1281,26 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
 #endif
 
     LOGDEBUG("Loading preferences for user %s", (const char *) node_nt->ptr);
-    PTX = _ds_pref_load(agent_config, 
+    UTX = _ds_pref_load(agent_config, 
                         node_nt->ptr, 
                         _ds_read_attribute(agent_config, "Home"), ATX->dbh);
 
-    if (PTX && PTX[0] == 0) {
-      _ds_pref_free(PTX);
-      free(PTX);
-      PTX = NULL;
+    if (UTX && UTX[0] == 0) {
+      _ds_pref_free(UTX);
+      free(UTX);
+      UTX = NULL;
     }
 
+    PTX = pref_config();
+
     if (PTX == NULL) 
-      PTX = pref_config();
+      PTX = UTX;
+    else {
+      if (!_ds_pref_aggregate(PTX, UTX)) {
+        _ds_pref_free(UTX);
+        free(UTX);
+      }
+    }
 
 #ifdef VERBOSE
     {
@@ -1299,7 +1308,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
       int j;
       for(j=0;PTX[j];j++) {
         t = PTX[j]; 
-        LOGDEBUG("Preference '%s' => '%s'", t->attribute, t->value);
+        LOGDEBUG("Aggregated Preference '%s' => '%s'", t->attribute, t->value);
       }
     }
 #endif

@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.3 2004/12/18 23:38:08 jonz Exp $ */
+/* $Id: pref.c,v 1.4 2005/01/11 18:08:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -44,9 +44,60 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "language.h"
 #include "read_config.h"
 
+int _ds_pref_aggregate(AGENT_PREF system, AGENT_PREF user) {
+  AGENT_ATTRIB *pref, *syspref;
+  int i, j, size;
+
+  if (!user)
+    return 0;
+
+  system = realloc(system, sizeof(AGENT_ATTRIB *)*PREF_MAX); 
+  if (system == NULL) {
+    report_error(ERROR_MEM_ALLOC);
+    return EUNKNOWN;
+  }
+
+  for(size=0;system[size];size++) { }
+
+  for(i=0;user[i];i++) {
+    pref = user[i];
+
+    if (_ds_match_attribute(agent_config, "AllowOverride", pref->attribute)) {
+      int find = 0;
+      for(j=0;system[j];j++) {
+        syspref = system[j];
+        if (!strcasecmp(syspref->attribute, pref->attribute)) {
+          find = 1;
+          free(syspref->value);
+          syspref->value = strdup(pref->value);
+          break;
+        }
+      }
+      if (!find) {
+        size = j;
+        system[j+1] = NULL;
+        system[j] = _ds_pref_new(pref->attribute, pref->value);
+        size++;
+      }
+    } else {
+      report_error_printf(ERROR_IGNORING_PREF, pref->attribute);
+    }
+  }
+
+  system = realloc(system, sizeof(AGENT_ATTRIB *)*size);
+  if (system == NULL) {
+    report_error(ERROR_MEM_ALLOC);
+    return EUNKNOWN;
+  }
+  return 0;
+}
+
 int _ds_pref_free(AGENT_PREF PTX) {
   AGENT_ATTRIB *pref;
   int i;
+
+  if (!PTX)
+    return 0;
 
   for(i=0;PTX[i];i++) {
     pref = PTX[i];
@@ -152,14 +203,9 @@ AGENT_PREF _ds_pref_load(
         return PTX;
       }
 
-      if (_ds_match_attribute(agent_config, "AllowOverride", p)) {
-        PTX[i] = _ds_pref_new(p, q);
-        PTX[i+1] = NULL;
-        i++;
-      } else {
-        report_error_printf(ERROR_IGNORING_PREF, p);
-      }
-
+      PTX[i] = _ds_pref_new(p, q);
+      PTX[i+1] = NULL;
+      i++;
     }
     fclose(file);
   }

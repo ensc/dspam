@@ -1,4 +1,4 @@
-/* $Id: pref.h,v 1.3 2004/12/18 15:02:52 jonz Exp $ */
+/* $Id: pref.h,v 1.4 2005/01/11 18:08:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -49,6 +49,7 @@ typedef struct {
 
 const char *	_ds_pref_val (AGENT_PREF PTX, const char *attrib);
 int             _ds_pref_free (AGENT_PREF PTX);
+int		_ds_pref_aggregate(AGENT_PREF system, AGENT_PREF user);
 AGENT_ATTRIB	*_ds_pref_new(const char *attribute, const char *value);
 
 #ifndef PREFERENCES_EXTENSION
