@@ -1,13 +1,13 @@
-$Id: CHANGELOG,v 1.225 2005/03/16 19:49:24 jonz Exp $
+$Id: CHANGELOG,v 1.226 2005/03/16 19:49:48 jonz Exp $
    
 Version NEXT
 ------------
   
-[20050316.0100] jonz: reclassification failures should not deliver
+[20050316.0100] jonz: reclassification failures should not deliver on failure
 
-false positive reclassification failures shouldn't deliver, as a spammer could 
-take advantage of a system using false positive aliases and send mail
-through them.
+false positive reclassification failures shouldn't deliver when a signature
+isn't found, as a spammer could take advantage of a system using false 
+positive aliases and send mail through them.
 
 [20050316.0100] jonz: changed fp- to notspam-
 
