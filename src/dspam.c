@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.21 2004/12/01 00:32:15 jonz Exp $ */
+/* $Id: dspam.c,v 1.22 2004/12/01 02:13:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -1707,7 +1707,6 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
   if (ATX->sockfd > 0) {
     fout = fdopen(ATX->sockfd, "w");
-    ATX->sockfd_output = 1;
   }
   else
     fout = stdout;
@@ -1867,6 +1866,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                             node_nt->ptr, fout);
         if (retcode && exitcode == EXIT_SUCCESS)
           exitcode = retcode;
+        if (ATX->sockfd && ATX->flags & DAF_STDOUT)
+          ATX->sockfd_output = 1;
       }
     }
 
@@ -1912,6 +1913,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
             (message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
              node_nt->ptr, fout);
+          if (ATX->sockfd && ATX->flags & DAF_STDOUT)
+            ATX->sockfd_output = 1;
           if (retcode) {
             exitcode = retcode;
             if ((result == DSR_ISINNOCENT || result == DSR_ISWHITELISTED) && 
@@ -1955,11 +1958,15 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                     (message->data,
                      (ATX->flags & DAF_STDOUT) ? NULL : ATX->spam_args, 
                      node_nt->ptr, fout);
+                  if (ATX->sockfd && ATX->flags & DAF_STDOUT)
+                    ATX->sockfd_output = 1;
                 } else {
                   retcode = deliver_message
                     (message->data,
                      (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
                      node_nt->ptr, fout);
+                  if (ATX->sockfd && ATX->flags & DAF_STDOUT)
+                    ATX->sockfd_output = 1;
                 }
               }
             }
@@ -1994,6 +2001,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
         else
         {
+          if (ATX->sockfd && ATX->flags & DAF_STDOUT)
+            ATX->sockfd_output = 1;
           retcode = deliver_message
             (message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
