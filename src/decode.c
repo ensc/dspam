@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: decode.c,v 1.2 2004/10/24 23:21:43 jonz Exp $ */
 
 /*
  DSPAM
@@ -502,8 +502,8 @@ _ds_create_header_field (const char *heading)
       if (in == NULL)
       {
         LOGDEBUG
-          ("%s:%u: unexpected data: header string doesn't contains `:' character",
-           __FILE__, __LINE__);
+        ("%s:%u: unexpected data: header string '%s' doesn't contains `:' character",
+           __FILE__, __LINE__, header->heading);
         /* use empty string as data as fallback for comtinue processing. */
         in = "";
       }
