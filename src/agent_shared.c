@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.14 2005/02/25 14:52:13 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.15 2005/02/28 18:47:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -594,7 +594,7 @@ int check_configuration(AGENT_CTX *ATX) {
     return EINVAL;
   }
 
-  if (ATX->classification != -1 && ATX->source == -1)
+  if (ATX->classification != -1 && ATX->source == -1 && !(ATX->flags & DAF_UNLEARN))
   {
     report_error(ERROR_NO_SOURCE);
     return EINVAL;
