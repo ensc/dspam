@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.32 2004/12/06 13:47:08 jonz Exp $ */
+/* $Id: libdspam.c,v 1.33 2004/12/07 15:08:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -1735,8 +1735,10 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
     }
   }
 
-  if (min_hits < (token_type == DTT_BNR) ? 25 : 5)
-    min_hits = (token_type == DTT_BNR) ? 25 : 5;
+  if (token_type == DTT_DEFAULT) {
+    if (min_hits < 5)
+      min_hits = 5;
+  }
 
   if (CTX->training_mode == DST_TUM) {
     if (min_hits>20)
@@ -1755,6 +1757,13 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
   {
 
   if (token_type == DTT_BNR) {
+
+    if (s->spam_hits > bnr_tot->spam_hits)
+      s->spam_hits = bnr_tot->spam_hits;
+
+    if (s->innocent_hits > bnr_tot->innocent_hits)
+      s->innocent_hits = bnr_tot->innocent_hits;
+
     s->probability =
       (s->spam_hits * 1.0 / bnr_tot->spam_hits * 1.0) /
       ((s->spam_hits * 1.0 / bnr_tot->spam_hits * 1.0) +
@@ -1806,7 +1815,7 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
   if (s->probability > 0.9999)
     s->probability = 0.9999;
 
-  if (CTX->algorithms & DSP_ROBINSON)
+  if (token_type != DTT_BNR && CTX->algorithms & DSP_ROBINSON)
   {
     int n = s->spam_hits + s->innocent_hits;
     double fw = ((CHI_S * CHI_X) + (n * s->probability))/(CHI_S + n);
