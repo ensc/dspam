@@ -1,4 +1,11 @@
-$Id: CHANGELOG,v 1.102 2004/12/27 15:26:36 jonz Exp $
+$Id: CHANGELOG,v 1.103 2004/12/29 04:03:21 jonz Exp $
+
+Version 3.3.6
+-------------
+
+[20041228.2300] jonz: integrated libbnr
+
+integrated bayesian noise reduction in DSPAM with libbnr sources
 
 Version 3.3.5
 -------------

@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.8 2004/12/24 04:05:42 jonz Exp $ */
+/* $Id: libdspam.h,v 1.9 2004/12/29 04:03:21 jonz Exp $ */
 
 /*
  DSPAM
@@ -108,6 +108,8 @@ int  _ds_operate               (DSPAM_CTX * CTX, char *headers, char *body);
 int  _ds_process_signature     (DSPAM_CTX * CTX);
 int  _ds_degenerate_message    (DSPAM_CTX *CTX, buffer *header, buffer *body);
 int  _ds_factor                (struct nt *set, char *token_name, float value);
+int _ds_instantiate_bnr_patterns(DSPAM_CTX *CTX, struct lht *pfreq,
+   struct nt *order, char identifier);
 void _ds_sbph_clear            (char **previous_tokens);
 void _ds_factor_destroy        (struct nt *factors);
 

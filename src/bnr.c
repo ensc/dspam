@@ -1,22 +1,21 @@
-/* $Id: bnr.c,v 1.17 2004/12/27 01:06:03 jonz Exp $ */
-
 /*
- DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+  Bayesian Noise Reduction - Contextual Symmetry Logic
+  http://bnr.nuclearelephant.com
+  Copyright (c) 2004 Jonathan A. Zdziarski
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+  This program is free software; you can redistribute it and/or
+  modify it under the terms of the GNU General Public License
+  as published by the Free Software Foundation; either version 2
+  of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
@@ -34,164 +33,284 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 #include "bnr.h"
-#include "config.h"
-#include "libdspam_objects.h"
-#include "libdspam.h"
-#include "nodetree.h"
-#include "config.h"
-#include "util.h"
-#include "lht.h"
-#include "tbt.h"
-#include "error.h"
 
 /*
-   Bayesian Noise Reduction - Progressive Noise Logic
-   http://www.nuclearelephant.com/papers/bnr.html
-*/
+ * bnr_init(): Create and initialize a new noise reduction context
+ * parameters:	type (int)	BNR_CHAR:  Token identifier as character arrays
+ *				BNR_INDEX: Token identifiers as pointers
+ * 		identifier (char)	An identifier to add to the pattern
+ *					name to identify the type of stream
+ *				
+ * returns:	pointer to the new context
+ */
 
-
-/*
-  bnr_pattern_instantiate() - Instantiate BNR patterns found within the message
-  
-  bnr_pattern_instantiate() scans the order of tokens in the message, 
-  calculates their probability, then creates a series of BNR patterns based
-  on the bands each token falls into. 
-
-  CTX (in)       The DSPAM Context
-  pfreq (in/out) The long hash tree to write the patterns to
-  order (in)     The ordered stream of tokens
-*/
-  
-int bnr_pattern_instantiate(
-  DSPAM_CTX *CTX, 
-  struct lht *pfreq, 
-  struct nt *order, 
-  char identifier,
-  int type,
-  struct _ds_spam_stat *bnr_tot)
+BNR_CTX *bnr_init(int type, char identifier)
 {
-  float previous_bnr_probs[BNR_SIZE];
-  struct lht_node *node_lht;
-  struct nt_node *node_nt;
-  struct nt_c c_nt;
-  unsigned long long crc;
-  char bnr_token[64];
-  int i;
- 
-  for(i=0;i<BNR_SIZE;i++) 
-    previous_bnr_probs[i] = 0.00000;
+  BNR_CTX *BTX;
 
-  node_nt = c_nt_first(order, &c_nt);
-  while(node_nt != NULL) {
-    node_lht = (struct lht_node *) node_nt->ptr;
-
-    _ds_calc_stat (CTX, node_lht->key, &node_lht->s, type, bnr_tot);
-
-    for(i=0;i<BNR_SIZE-1;i++) {
-      previous_bnr_probs[i] = previous_bnr_probs[i+1];
-    }
-
-    previous_bnr_probs[BNR_SIZE-1] = _ds_round(node_lht->s.probability);
-    sprintf(bnr_token, "bnr.%c|", identifier);
-    for(i=0;i<BNR_SIZE;i++) {
-      char x[6];
-      snprintf(x, 6, "%01.2f_", previous_bnr_probs[i]);
-      strlcat(bnr_token, x, sizeof(bnr_token));
-    }
-
-    crc = _ds_getcrc64 (bnr_token);
-#ifdef VERBOSE
-    LOGDEBUG ("BNR pattern instantiated: '%s'", bnr_token);
-#endif
-    lht_hit (pfreq, crc, bnr_token, 0, 0);
-    node_nt = c_nt_next(order, &c_nt);
+  BTX = calloc(1, sizeof(BNR_CTX));
+  if (BTX == NULL) {
+    perror("memory allocation error: bnr_init() failed");
+    return NULL;
   }
+
+  BTX->identifier  = identifier;
+  BTX->window_size = 3;
+  BTX->ex_radius   = 0.25;
+  BTX->in_radius   = 0.30;
+  BTX->stream     = list_create(type);
+  BTX->patterns   = hash_create(1543ul);
+  if (BTX->stream == NULL || BTX->patterns == NULL) {
+    perror("memory allocation error: bnr_init() failed");
+    list_destroy(BTX->stream);
+    hash_destroy(BTX->patterns);
+    free(BTX);
+    return NULL;
+  }
+
+  return BTX;
+}
+
+/*
+ * bnr_destroy(): Destroys a noise reduction context no longer being used
+ * parameters:	BTX (BNR_CTX *)	The context to destroy
+ * returns:	0 on success
+ */
+
+int bnr_destroy(BNR_CTX *BTX) {
+  list_destroy(BTX->stream);
+  hash_destroy(BTX->patterns);
+  free(BTX);
   return 0;
 }
 
 /*
-  bnr_filter_process() - Identify pattern inconsistencies
+ * bnr_add(): Adds a token to the noise reduction stream. This function
+ *   should be called once for each token in the message body (in order).
+ *
+ * parameters:	BTX (BNR_CTX *)	The noise reduction context to use
+ *		token (void *)	The token's name, or pointer if NT_INDEX
+ *		value (float)	The token's probability
+ * returns:	0 on success
+ */
 
-  bnr_filter_process() analyzes tokens contained within interesting patterns 
-  whose disposition is inconsistent with that of the pattern (e.g. falls 
-  outside of the inclusionary radius of the pattern's p-value). 
+int bnr_add(BNR_CTX *BTX, void *token, float value) {
 
-  CTX (in)     DSPAM Context
-  BTX (in/out) BNR Context
+  return (list_insert(BTX->stream, token, value) != NULL) ? 0 : EFAILURE;
+}
 
-*/
+/*
+ * bnr_instantiate(): Instantiates a series of patterns for the given stream.
+ *   This function should be called after all tokens are added to the stream.
+ *
+ * parameters:	BTX (BNR_CTX *)		The noise reduction context to use
+ * returns:	0 on success
+ */
 
-int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
-  struct lht_node * previous_bnr_tokens[BNR_SIZE];
+int bnr_instantiate(BNR_CTX *BTX) {
+  int BNR_SIZE = BTX->window_size;
   float previous_bnr_probs[BNR_SIZE];
-  struct lht_node *node_lht;
-  struct _ds_spam_stat s;
-  struct nt_node *node_nt;
-  struct nt_c c_nt;
-  unsigned long long crc;
+  struct list_node *node_list;
+  struct list_c c_list;
   char bnr_token[64];
-  int i, suspect;
+  int i;
+
+  for(i=0;i<BNR_SIZE;i++)
+    previous_bnr_probs[i] = 0.00000;
+
+  node_list = c_list_first(BTX->stream, &c_list);
+  while(node_list != NULL) {
+    
+    for(i=0;i<BNR_SIZE-1;i++) {
+      previous_bnr_probs[i] = previous_bnr_probs[i+1];
+    }
+
+    previous_bnr_probs[BNR_SIZE-1] = _bnr_round(node_list->value);
+    sprintf(bnr_token, "bnr.%c|", BTX->identifier);
+    for(i=0;i<BNR_SIZE;i++) {
+      char x[6];
+      snprintf(x, 6, "%01.2f_", previous_bnr_probs[i]);
+      strcat(bnr_token, x);
+    }
+
+#ifdef LIBBNR_VERBOSE_DEBUG
+    fprintf(stderr, "libbnr: instantiating pattern '%s'\n", bnr_token);
+#endif
+
+    hash_hit (BTX->patterns, bnr_token);
+    node_list = c_list_next(BTX->stream, &c_list);
+  }
+
+  return 0;
+}
+
+/*
+ * bnr_get_pattern(): Retrieves the next instantiated pattern.
+ *   This function should be called after a call to bnr_instantiate(). Each
+ *   call to bnr_get_pattern() will return the next instantiated pattern, which
+ *   should then be looked up by your classifier and assigned a value using
+ *   bnr_set_pattern().
+ *
+ * parameters:	BTX (BNR_CTX *)	The noise reduction context to use
+ * returns:	The name of the next instantiated pattern in the context
+ */
+ 
+char *bnr_get_pattern(BNR_CTX *BTX) {
+  struct hash_node *node;
+ 
+  if (!BTX->pattern_iter) {
+    node = c_hash_first(BTX->patterns, &BTX->c_pattern);
+    BTX->pattern_iter = 1;
+  } else {
+    node = c_hash_next(BTX->patterns, &BTX->c_pattern);
+  }
+
+  if (node)
+    return node->name;
+
+  BTX->pattern_iter = 0;
+  return NULL;
+}
+
+/*
+ * bnr_set_pattern(): Sets the value of a pattern
+ *   This function should be called once for each pattern instantiated. The
+ *   name of the patterns can be retrieved using repeated calls to
+ *   bnr_get_pattern(). The value of the pattern should then be looked up by
+ *   the classifier and set in the context using this function.
+ *
+ * parameters:	BTX (BNR_CTX *)		The noise reduction context to use
+ * 		name (const char *)	The name of the pattern to set
+ *		value (float)		The p-value of the pattern
+ * returns:	0 on success
+ */
+
+int bnr_set_pattern(BNR_CTX *BTX, const char *name, float value) {
+  return hash_set(BTX->patterns, name, value);
+}
+
+/*
+ * bnr_get_token() Retrieves the next token from the stream.
+ *   This function should be called after a call to bnr_finalize(). Each
+ *   call to bnr_get_token() will return the next non-eliminated token in
+ *   the stream until NULL is returned.
+ * parameters:	BTX (BNR_CTX *)		The noise reduction context to use
+ * returns:	The name (or pointer) of the next non-eliminated token
+ */
+
+void *bnr_get_token(BNR_CTX *BTX, int *eliminated) {
+  struct list_node *node;
+
+  if (BTX->stream_iter == 0) {
+    BTX->stream_iter = 1;
+    node = c_list_first(BTX->stream, &BTX->c_stream);
+  } else {
+    node = c_list_next(BTX->stream, &BTX->c_stream);
+  }
+
+  if (node) {
+    if (node->eliminated) 
+      *eliminated = 1;
+    else 
+      *eliminated = 0;
+    return node;
+  }
+
+  BTX->stream_iter = 0;
+  return NULL;
+}
+
+/*
+ * _bnr_round(): [internal] Round value to the nearest 0.05
+ * parameters:	value (float)	Value to be rounded
+ * returns:	Rounded value as a float
+ */
+
+float _bnr_round(float n) {
+  int r = (n*100);
+  while(r % 5)
+    r++;
+  return (r/100.0);
+}
+
+/*
+ * bnr_finalize() Finalizes the noise reduction context and performs dubbing
+ *   This function should be called after all calls to bnr_set_pattern() have
+ *   completed. This function performs the actual noise reduction process
+ *   after which calls to bnr_get_token() may be called.
+ *
+ * parameters:	BTX (BNR_CTX *)	The noise reduction context to use
+ * returns:	0 on success
+ */
+
+int bnr_finalize(BNR_CTX *BTX) {
+  int BNR_SIZE = BTX->window_size;
+  struct list_node * previous_bnr_tokens[BNR_SIZE];
+  float previous_bnr_probs[BNR_SIZE];
+  struct list_node *node_list;
+  struct list_c c_list;
+  char bnr_token[64];
+  int i, interesting;
 
   for(i=0;i<BNR_SIZE;i++) {
     previous_bnr_probs[i] = 0.00000;
     previous_bnr_tokens[i] = NULL;
   } 
 
-  node_nt = c_nt_first(BTX->stream, &c_nt);
-  while(node_nt != NULL) {
-    node_lht = (struct lht_node *) node_nt->ptr;
-
-    _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT, NULL);
+  node_list = c_list_first(BTX->stream, &c_list);
+  while(node_list != NULL) {
+    float pattern_value;
 
     for(i=0;i<BNR_SIZE-1;i++) {
       previous_bnr_probs[i] = previous_bnr_probs[i+1];
       previous_bnr_tokens[i] = previous_bnr_tokens[i+1];
     }
 
-    previous_bnr_probs[BNR_SIZE-1] = _ds_round(node_lht->s.probability);
-    previous_bnr_tokens[BNR_SIZE-1] = node_lht;
+    previous_bnr_probs[BNR_SIZE-1] = _bnr_round(node_list->value);
+    previous_bnr_tokens[BNR_SIZE-1] = node_list;
 
-    sprintf(bnr_token, "bnr.%c|", BTX->type);
+    sprintf(bnr_token, "bnr.%c|", BTX->identifier);
     for(i=0;i<BNR_SIZE;i++) {
       char x[6];
       snprintf(x, 6, "%01.2f_", previous_bnr_probs[i]);
-      strlcat(bnr_token, x, sizeof(bnr_token));
+      strcat(bnr_token, x);
     }
-
-    crc = _ds_getcrc64 (bnr_token);
 
     /* Identify interesting patterns */
     
-    suspect = ((!lht_getspamstat(BTX->patterns, crc, &s) && 
-                 fabs(0.5-s.probability) > EX_RADIUS)); 
+    pattern_value = hash_value(BTX->patterns, bnr_token);
+    interesting = (fabs(0.5-pattern_value) > BTX->ex_radius);
 
-    if (suspect)
-    {
+    if (interesting) {
 
-#ifdef BNR_VERBOSE_DEBUG
-      LOGDEBUG("%s PATTERN: %s (%1.2f) %ld %ld\n", suspect ? "SUSPECT" : "DUB", bnr_token, s.probability, s.spam_hits, s.innocent_hits);
+#ifdef LIBBNR_DEBUG
+      fprintf(stderr, "Analyzing Pattern '%s' P-Value: %1.5f\n", bnr_token, 
+        pattern_value);
 #endif
 
       /* Eliminate inconsistent tokens */
       for(i=0;i<BNR_SIZE;i++) {
         if (previous_bnr_tokens[i]) {
 
-          /* If the token is inconsistent with the current or dubbing window */
-          if (fabs(s.probability-previous_bnr_tokens[i]->s.probability)
-                 > IN_RADIUS) 
+          /* If the token is inconsistent with the current pattern */
+          if (fabs(previous_bnr_tokens[i]->value - pattern_value) > BTX->in_radius)
           {
-            BTX->total_eliminations++;
-            previous_bnr_tokens[i]->frequency --;
-          } else {
-            BTX->total_clean++;
+#ifdef LIBBNR_DEBUG
+            fprintf(stderr, "\tEliminating '%s' P-Value: %1.5f\n", 
+              (const char *) previous_bnr_tokens[i]->ptr, 
+              previous_bnr_tokens[i]->value);
+#endif
+            BTX->eliminations++;
+            previous_bnr_tokens[i]->eliminated = 1;
           }
         }
       }
     }
 
-    node_nt = c_nt_next(BTX->stream, &c_nt);
+    node_list = c_list_next(BTX->stream, &c_list);
   }
 
   return 0;

@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.70 2004/12/27 15:10:27 jonz Exp $ */
+/* $Id: libdspam.c,v 1.71 2004/12/29 04:03:21 jonz Exp $ */
 
 /*
  DSPAM
@@ -660,7 +660,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Long Hashed Token Tree: Track tokens, frequencies, and stats */
   struct lht *freq = lht_create (24593);
-  struct lht *bnr_layer1 = lht_create (1543);
+  struct lht *bnr_patterns = lht_create (1543);
   struct lht_node *node_lht;
   struct lht_c c_lht;
 
@@ -1122,9 +1122,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   }
 
   /*
-     Bayesian Noise Reduction - Progressive Noise Logic
-     http://www.nuclearelephant.com/papers/bnr.html
+     Bayesian Noise Reduction - Contextual Symmetry Logic
+     http://bnr.nuclearelephant.com
   */
+
+#define BNR_SIZE 4
 
   if (CTX->flags & DSF_NOISE)
   {
@@ -1132,70 +1134,127 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     struct lht_c c_lht;
     struct _ds_spam_stat bnr_tot;
     unsigned long long crc;
-    BNR_CTX BTX;
+    BNR_CTX *BTX_S, *BTX_C;
+#ifdef BNR_DEBUG
     float snr;
+#endif
 
+    BTX_S = bnr_init(BNR_INDEX, 's');
+    BTX_C = bnr_init(BNR_INDEX, 'c');
+
+    if (!BTX_S || !BTX_C) {
+      LOGDEBUG("bnr_init() failed");
+      bnr_destroy(BTX_S);
+      bnr_destroy(BTX_C);
+      errcode = EFAILURE;
+      goto bail;
+    }
+
+    BTX_S->window_size = BNR_SIZE;
+    BTX_C->window_size = BNR_SIZE;
+
+    _ds_instantiate_bnr_patterns(CTX, bnr_patterns, freq->order, 's');
+    _ds_instantiate_bnr_patterns(CTX, bnr_patterns, freq->chained_order, 'c');
+
+    /* Add BNR totals to the list of load elements */
     memset(&bnr_tot, 0, sizeof(struct _ds_spam_stat));
+    crc = _ds_getcrc64("bnr.t|");
+    lht_hit(bnr_patterns, crc, "bnr.t|", 0, 0);
 
-    /* BNR LAYER 1 PATTERNS (Patterns of tokens) */
+    /* Load BNR patterns */
+    LOGDEBUG("Loading %ld BNR patterns", bnr_patterns->items);
+    if (_ds_getall_spamrecords (CTX, bnr_patterns)) {
+      LOGDEBUG ("_ds_getall_spamrecords() failed");
+      errcode = EUNKNOWN;
+      goto bail;
+    }
 
-    if (CTX->flags & DSF_NOISE) {
-      bnr_pattern_instantiate(CTX, bnr_layer1, freq->order, 's', DTT_DEFAULT, NULL);
-      bnr_pattern_instantiate(CTX, bnr_layer1, freq->chained_order, 'c', DTT_DEFAULT, NULL);
-
-      crc = _ds_getcrc64("bnr.t|");
-      lht_hit(bnr_layer1, crc, "bnr.t|", 0, 0);
-
-      LOGDEBUG("Loading %ld BNR patterns at layer 1", bnr_layer1->items);
-
-      if (_ds_getall_spamrecords (CTX, bnr_layer1))
-      {
-        LOGDEBUG ("_ds_getall_spamrecords() failed");
-        errcode = EUNKNOWN;
-        goto bail;
-      }
-
-      lht_getspamstat(bnr_layer1, crc, &bnr_tot);
-
-      node_lht = c_lht_first(bnr_layer1, &c_lht);
-      while(node_lht != NULL) {
-        _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_BNR, &bnr_tot);
-        node_lht = c_lht_next(bnr_layer1, &c_lht);
-      }
+    /* Calculate p-values for patterns */
+    lht_getspamstat(bnr_patterns, crc, &bnr_tot);
+    node_lht = c_lht_first(bnr_patterns, &c_lht);
+    while(node_lht != NULL) {
+      _ds_calc_stat(CTX, node_lht->key, &node_lht->s, DTT_BNR, &bnr_tot);
+      node_lht = c_lht_next(bnr_patterns, &c_lht);
     }
 
     /* Perform BNR Processing */
 
-    if (CTX->classification == DSR_NONE &&
-        CTX->flags & DSF_NOISE &&
-        CTX->_sig_provided == 0 &&
-        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000) {
+    if (CTX->classification == DSR_NONE	&&
+        CTX->_sig_provided == 0		&&
+        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000)
+    {
+      int elim;
 #ifdef BNR_DEBUG
       char fn[MAX_FILENAME_LENGTH];
       FILE *file;
 #endif
-      BTX.stream = freq->order;
-      BTX.total_eliminations = 0;
-      BTX.total_clean = 0;
-      BTX.patterns = bnr_layer1;
-      BTX.type = 's';
-      bnr_filter_process(CTX, &BTX);
 
-      BTX.stream = freq->chained_order;
-      BTX.type = 'c';
-      bnr_filter_process(CTX, &BTX);
+      node_nt = c_nt_first(freq->order, &c_nt);
+      while(node_nt != NULL) {
+        node_lht = node_nt->ptr;
+        bnr_add(BTX_S, node_lht->token_name, node_lht->s.probability);
+        node_nt = c_nt_next(freq->order, &c_nt);
+      }
 
-      if (BTX.total_clean + BTX.total_eliminations > 0)
-        snr = 100.0*((BTX.total_eliminations+0.0)/
-              (BTX.total_clean+BTX.total_eliminations));
-      else
-        snr = 0;
+      node_nt = c_nt_first(freq->chained_order, &c_nt);
+      while(node_nt != NULL) {
+        node_lht = node_nt->ptr;
+        bnr_add(BTX_C, node_lht->token_name, node_lht->s.probability);
+        node_nt = c_nt_next(freq->chained_order, &c_nt);
+      }
 
-      LOGDEBUG("bnr_filter_process() reported snr of %02.3f (%ld %ld)", 
-               snr, BTX.total_eliminations, BTX.total_clean); 
+      bnr_instantiate(BTX_S);
+      bnr_instantiate(BTX_C);
 
+      node_lht = c_lht_first(bnr_patterns, &c_lht);
+      while(node_lht != NULL) {
+        if (node_lht->token_name[4] == 's')
+          bnr_set_pattern(BTX_S, node_lht->token_name, node_lht->s.probability);
+        else if (node_lht->token_name[4] == 'c')
+          bnr_set_pattern(BTX_C, node_lht->token_name, node_lht->s.probability);
+        node_lht = c_lht_next(bnr_patterns, &c_lht); 
+      }
+
+      bnr_finalize(BTX_S);
+      bnr_finalize(BTX_C);
+
+      /* Propagate eliminations to DSPAM */
+
+      node_nt = c_nt_first(freq->order, &c_nt);
+      while(node_nt != NULL) {
+        node_lht = (struct lht_node *) node_nt->ptr;
+        bnr_get_token(BTX_S, &elim);
+        if (elim) {
+          node_lht->frequency--;
+        }
+        node_nt = c_nt_next(freq->order, &c_nt);
+      }
+
+      node_nt = c_nt_first(freq->chained_order, &c_nt);
+      while(node_nt != NULL) {
+        node_lht = (struct lht_node *) node_nt->ptr;
+        bnr_get_token(BTX_C, &elim);
+        if (elim)
+          node_lht->frequency--;
+        node_nt = c_nt_next(freq->chained_order, &c_nt);
+      }
+
+      bnr_destroy(BTX_S);
+      bnr_destroy(BTX_C);
 
 #ifdef BNR_DEBUG
+      if (BTX_S->stream->items + BTX_C->stream->items +
+          BTX_S->eliminations  + BTX_C->eliminations > 0)
+      {
+        snr = 100.0*((BTX_S->eliminations + BTX_C->eliminations + 0.0)/
+              (BTX_S->stream->items + BTX_C->stream->items +
+               BTX_S->eliminations  + BTX_C->eliminations)); 
+      } else {
+        snr = 0;
+      }
+
+      LOGDEBUG("bnr reported snr of %02.3f", snr);
+
       snprintf(fn, sizeof(fn), "%s/bnr.log", LOGDIR);
       file = fopen(fn, "a");
       if (file != NULL) {
@@ -1282,7 +1341,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     /* Add BNR pattern to token hash */
     if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350) {
-      node_lht = c_lht_first (bnr_layer1, &c_lht);
+      node_lht = c_lht_first (bnr_patterns, &c_lht);
       while(node_lht != NULL) {
         lht_hit(freq, node_lht->key, node_lht->token_name, 0, 0);
         lht_setspamstat(freq, node_lht->key, &node_lht->s);
@@ -1296,7 +1355,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
                  node_lht->s.innocent_hits);
 #endif
   
-        node_lht = c_lht_next(bnr_layer1, &c_lht);
+        node_lht = c_lht_next(bnr_patterns, &c_lht);
       }
     }
   }
@@ -1593,7 +1652,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   }
 
   lht_destroy (freq);
-  lht_destroy (bnr_layer1);
+  lht_destroy (bnr_patterns);
   heap_destroy (heap_sort);
 
   /* One final sanity check */
@@ -1614,7 +1673,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 bail:
   heap_destroy (heap_sort);
   lht_destroy (freq);
-  lht_destroy (bnr_layer1);
+  lht_destroy (bnr_patterns);
   return errcode;
 }
 
@@ -2954,6 +3013,51 @@ int libdspam_shutdown(void) {
   _nccleanup();
 #endif
 
+  return 0;
+}
+
+int _ds_instantiate_bnr_patterns(
+  DSPAM_CTX *CTX,
+  struct lht *pfreq,
+  struct nt *order,
+  char identifier)
+{
+  float previous_bnr_probs[BNR_SIZE];
+  struct lht_node *node_lht;
+  struct nt_node *node_nt;
+  struct nt_c c_nt;
+  unsigned long long crc;
+  char bnr_token[64];
+  int i;
+
+  for(i=0;i<BNR_SIZE;i++)
+    previous_bnr_probs[i] = 0.00000;
+
+  node_nt = c_nt_first(order, &c_nt);
+  while(node_nt != NULL) {
+    node_lht = (struct lht_node *) node_nt->ptr;
+
+    _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT, NULL);
+
+    for(i=0;i<BNR_SIZE-1;i++) {
+      previous_bnr_probs[i] = previous_bnr_probs[i+1];
+    }
+
+    previous_bnr_probs[BNR_SIZE-1] = _ds_round(node_lht->s.probability);
+    sprintf(bnr_token, "bnr.%c|", identifier);
+    for(i=0;i<BNR_SIZE;i++) {
+      char x[6];
+      snprintf(x, 6, "%01.2f_", previous_bnr_probs[i]);
+      strlcat(bnr_token, x, sizeof(bnr_token));
+    }
+
+    crc = _ds_getcrc64 (bnr_token);
+#ifdef VERBOSE
+    LOGDEBUG ("BNR pattern instantiated: '%s'", bnr_token);
+#endif
+    lht_hit (pfreq, crc, bnr_token, 0, 0);
+    node_nt = c_nt_next(order, &c_nt);
+  }
   return 0;
 }
 

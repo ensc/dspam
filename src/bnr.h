@@ -1,8 +1,9 @@
-/* $Id: bnr.h,v 1.4 2004/12/06 13:47:08 jonz Exp $ */
+/* $Id */
 
 /*
- DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+  Bayesian Noise Reduction - Contextual Symmetry Logic
+  http://bnr.nuclearelephant.com
+  Copyright (c) 2004 Jonathan A. Zdziarski
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,9 +21,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#ifdef HAVE_CONFIG_H
-#include <auto-config.h>
-#endif
+#ifndef __BNR_H
+#define	__BNR_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,27 +35,51 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "config.h"
-#include "libdspam.h"
-#include "lht.h"
-
-/*
-   Bayesian Noise Reduction - Progressive Noise Logic
-   http://www.nuclearelephant.com/projects/dspam/bnr.html 
-*/
-
-#define BNR_SIZE	3    /* Pattern Window-Size */ 
-#define EX_RADIUS	0.25 /* Exclusionary Radius (Pattern Disposition) */
-#define IN_RADIUS	0.30 /* Inclusionary Radius (Token Disposition) */ 
+#include "list.h"
+#include "hash.h"
 
 typedef struct {
-  long total_eliminations;
-  long total_clean;
-  struct nt *stream;
-  struct lht *patterns;
-  char type;
+  long eliminations;
+  struct list *stream;
+  struct hash *patterns;
+  char identifier;
+
+  struct list_c c_stream;
+  struct hash_c c_pattern;
+  int stream_iter;
+  int pattern_iter;
+  int window_size;
+  float ex_radius;
+  float in_radius;
 } BNR_CTX;
 
-int bnr_pattern_instantiate(DSPAM_CTX *, struct lht *, struct nt *, char, int, struct _ds_spam_stat *bnr_tot);
-int bnr_filter_process(DSPAM_CTX *, BNR_CTX *);
+BNR_CTX *bnr_init(int type, char identifier);
+int bnr_destroy(BNR_CTX *BTX);
 
+int bnr_add		(BNR_CTX *BTX, void *token, float value);
+int bnr_instantiate	(BNR_CTX *BTX);
+int bnr_set_pattern	(BNR_CTX *BTX, const char *name, float value);
+int bnr_finalize	(BNR_CTX *BTX);
+
+void * bnr_get_token	(BNR_CTX *BTX, int *eliminated);
+char * bnr_get_pattern	(BNR_CTX *BTX);
+
+float _bnr_round(float n);
+
+/*
+ BTX_CHAR       Character-Based Context
+                Treats the passed token identifier as a const char * and
+		creates new storage space for each string (strdup)
+
+ BTX_INDEX      Pointer-Based Context
+                Treats the passed token identifier as a void * to your own
+		token structure, whose pointers are used only for indexing
+*/
+
+#define BNR_CHAR	0x00
+#define BNR_INDEX	0x01
+
+#ifndef EFAILURE
+#define EFAILURE	-0x01
+#endif
+#endif
