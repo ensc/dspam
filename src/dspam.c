@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.44 2004/12/18 15:02:52 jonz Exp $ */
+/* $Id: dspam.c,v 1.45 2004/12/20 12:25:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -145,7 +145,11 @@ main (int argc, char *argv[])
   }
 
 #ifdef DAEMON
+#ifdef TRUSTED_USER_SECURITY
   if (ATX.operating_mode == DSM_DAEMON && ATX.trusted) {
+#else
+  if (ATX.operating_mode == DSM_DAEMON) {
+#endif
     DRIVER_CTX DTX;
     char *pidfile = _ds_read_attribute(agent_config, "ServerPID");
 
