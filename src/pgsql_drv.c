@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.2 2004/10/24 22:47:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -58,6 +58,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "lht.h"
 #ifdef PREFERENCES_EXTENSION
 #include "pref.h"
+#endif
+
+
+#ifdef HAVE_PQFREEMEM
+#	define PQFREEMEM(A) PQfreemem(A)
+#else
+#	define PQFREEMEM(A) free(A)
 #endif
 
 int
@@ -1097,13 +1104,13 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   SIG->length = strtol (PQgetvalue(result,0,1), NULL, 0);
   mem2 = calloc(1, length+1);
   if (!mem2) {
-    PQfreemem(mem);
+    PQFREEMEM(mem);
     report_error(ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
   memcpy(mem2, mem, length);
-  PQfreemem(mem);
+  PQFREEMEM(mem);
   SIG->data = mem2;
 
   if (result) PQclear(result);
@@ -1162,11 +1169,11 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     _pgsql_drv_query_error (PQresultErrorMessage(result), query->data);
     if (result) PQclear(result);
     buffer_destroy(query);
-    PQfreemem(mem);
+    PQFREEMEM(mem);
     return EFAILURE;
   }
 
-  PQfreemem(mem);
+  PQFREEMEM(mem);
   buffer_destroy(query);
   if (result) PQclear(result);
   return 0;
@@ -1566,7 +1573,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   st->data = malloc(length);
   if (st->data == NULL) {
     LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-    PQfreemem(mem);
+    PQFREEMEM(mem);
     if (s->iter_sig) PQclear(s->iter_sig);
     return NULL;
   }
@@ -1576,7 +1583,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   st->length = strtol (PQgetvalue(s->iter_sig, 0, 2), NULL, 0);
   st->created_on = (time_t) strtol (PQgetvalue(s->iter_sig, 0, 3), NULL, 0);
 
-  PQfreemem(mem);
+  PQFREEMEM(mem);
   if (s->iter_sig) PQclear(s->iter_sig);
 
   return st;
@@ -2128,15 +2135,15 @@ int _ds_pref_set (
 
   PQclear(result);
   dspam_destroy(CTX);
-  PQfreemem(m1);
-  PQfreemem(m2);
+  PQFREEMEM(m1);
+  PQFREEMEM(m2);
   return 0;
 
 FAIL:
   if (m1)
-    PQfreemem(m1);
+    PQFREEMEM(m1);
   if (m2)
-    PQfreemem(m2);
+    PQFREEMEM(m2);
   dspam_destroy(CTX);
   return EFAILURE;
 }
@@ -2204,11 +2211,11 @@ int _ds_pref_del (
 
   PQclear(result);
   dspam_destroy(CTX);
-  PQfreemem(m1);
+  PQFREEMEM(m1);
   return 0;
                                                                                 
 FAIL:
-  PQfreemem(m1);
+  PQFREEMEM(m1);
   dspam_destroy(CTX);
   return EFAILURE;
 }
@@ -2284,8 +2291,8 @@ int _ds_pref_save(
     snprintf(query, sizeof(query), "INSERT INTO dspam_preferences "
       "(uid, attribute, value) VALUES ('%d', '%s', '%s')", uid, m1, m2);
 
-    PQfreemem(m1);
-    PQfreemem(m2);
+    PQFREEMEM(m1);
+    PQFREEMEM(m2);
     result = PQexec(s->dbh, query);
     if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
     {
@@ -2518,14 +2525,14 @@ _ds_get_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
 
   mem2 = calloc(1, length+1);
   if (!mem2) {
-    PQfreemem(mem);
+    PQFREEMEM(mem);
     report_error(ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
   memcpy(mem2, mem, length);
   DEC->data = mem2;
-  PQfreemem(mem);
+  PQFREEMEM(mem);
 
   if (result) PQclear(result);
 
@@ -2584,13 +2591,13 @@ _ds_set_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
     _pgsql_drv_query_error (PQresultErrorMessage(result), query->data);
     if (result) PQclear(result);
     buffer_destroy(query);
-    PQfreemem(mem);
+    PQFREEMEM(mem);
     return EFAILURE;
   }
 
   if (result) PQclear(result);
   buffer_destroy(query);
-  PQfreemem(mem);
+  PQFREEMEM(mem);
   return 0;
 }
 

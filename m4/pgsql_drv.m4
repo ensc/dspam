@@ -1,4 +1,4 @@
-# $Id: pgsql_drv.m4,v 1.1 2004/10/24 20:48:37 jonz Exp $
+# $Id: pgsql_drv.m4,v 1.2 2004/10/24 22:47:28 jonz Exp $
 # Autuconf macroses for checking for PostgreSQL
 # Rustam Aliyev <rustam@azernews.com>
 # Jonathan Zdziarski <jonathan@nuclearelephant.com>
@@ -116,6 +116,7 @@ pgsql_libs_save_LIBS="$LIBS"
 pgsql_libs_LDFLAGS=''
 pgsql_libs_LIBS=''
 pgsql_libs_success=no
+pgsql_freemem_success=no
 pgsql_libs_netlibs=''
 
 AC_ARG_WITH(pgsql-libraries,
@@ -157,7 +158,30 @@ then
         [ pgsql_libs_success=no ]
         )
     AC_MSG_RESULT([$pgsql_libs_success])
+
 fi
+
+if test x"$pgsql_libs_success" = xyes
+then
+    AC_MSG_CHECKING([if this version of Postgres supports PQfreemem])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+            #include <stdlib.h>
+            #include <libpq-fe.h>
+        ]],
+        [[
+            PQfreemem(NULL);
+        ]])],
+        [ pgsql_freemem_success=yes ],
+        [ pgsql_freemem_success=no ]
+        )
+    AC_MSG_RESULT([$pgsql_freemem_success])
+fi
+
+if test x"$pgsql_freemem_success" = xyes
+then
+  AC_DEFINE([HAVE_PQFREEMEM], 1, [Defined if PQfreemem is supported])
+fi
+
 LIBS="$pgsql_libs_save_LIBS"
 LDFLAGS="$pgsql_libs_save_LDFLAGS"
 if test x"$pgsql_libs_success" = xyes

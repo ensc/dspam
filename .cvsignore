@@ -9,4 +9,5 @@ libtool
 stamp-h1
 dspam-*.tar.gz
 configure-dspam.sh
+config
 gmon.out
