@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.29 2005/01/10 14:09:39 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.30 2005/01/11 19:38:55 jonz Exp $ */
 
 /*
  DSPAM
@@ -2602,10 +2602,10 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
   FILE *file;
   char filename[MAX_FILENAME_LENGTH];
   char buffer[128];
-  char hostname[128] = "";
-  char user[64] = "";
-  char password[32] = "";
-  char db[64] = "";
+  char hostname[128] = { 0 };
+  char user[64] = { 0 };
+  char password[32] = { 0 };
+  char db[64] = { 0 };
   int port = 3306, i = 0, real_connect_flag = 0;
 
   /* Read storage attributes */

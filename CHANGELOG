@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.133 2005/01/11 18:08:12 jonz Exp $
+$Id: CHANGELOG,v 1.134 2005/01/11 19:38:55 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
@@ -10,6 +10,8 @@ Version 3.3.NEXT
 
 fixed preferences so that system prefs and user prefs are aggregated, instead
 of either-or.
+
+also fixed a bug causing AllowOverrides to not work in preferences extension
 
 [20040111.0700] jonz: fixed spam tagging
 

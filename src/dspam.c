@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.64 2005/01/11 19:24:30 jonz Exp $ */
+/* $Id: dspam.c,v 1.65 2005/01/11 19:38:55 jonz Exp $ */
 
 /*
  DSPAM
@@ -1188,9 +1188,9 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
   node_nt = c_nt_first (ATX->users, &c_nt);
   while (node_nt != NULL)
   {
-    AGENT_PREF PTX;
-    AGENT_PREF STX;
-    AGENT_PREF UTX;
+    AGENT_PREF PTX = NULL;
+    AGENT_PREF STX = NULL;
+    AGENT_PREF UTX = NULL;
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
     int result, optin, optout;
@@ -1296,11 +1296,9 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
 
 #ifdef VERBOSE
     if (PTX) {
-      AGENT_ATTRIB *t;
       int j;
       for(j=0;PTX[j];j++) {
-        t = PTX[j]; 
-        LOGDEBUG("Aggregated Preference '%s' => '%s'", t->attribute, t->value);
+        LOGDEBUG("Aggregated Preference '%s' => '%s'", PTX[j]->attribute, PTX[j]->value);
       }
     }
 #endif

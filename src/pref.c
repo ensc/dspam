@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.5 2005/01/11 19:24:30 jonz Exp $ */
+/* $Id: pref.c,v 1.6 2005/01/11 19:38:55 jonz Exp $ */
 
 /*
  DSPAM
@@ -45,12 +45,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "read_config.h"
 
 AGENT_PREF _ds_pref_aggregate(AGENT_PREF STX, AGENT_PREF UTX) {
-  AGENT_PREF PTX = calloc(PREF_MAX, sizeof(AGENT_ATTRIB *));
+  AGENT_PREF PTX = malloc(PREF_MAX*sizeof(AGENT_ATTRIB *));
   int i, j, size = 0;
 
   if (STX) {
     for(i=0;STX[i];i++) {
       PTX[i] = _ds_pref_new(STX[i]->attribute, STX[i]->value);
+      PTX[i+1] = NULL;
       size++;
     }
   }
@@ -72,18 +73,13 @@ AGENT_PREF _ds_pref_aggregate(AGENT_PREF STX, AGENT_PREF UTX) {
   
         if (!found) {
           PTX[size] = _ds_pref_new(UTX[i]->attribute, UTX[i]->value);
+          PTX[size+1] = NULL;
           size++;
         }
       } else {
         report_error_printf(ERROR_IGNORING_PREF, UTX[i]->attribute);
       }
     }
-  }
-
-  PTX = realloc(PTX, sizeof(AGENT_ATTRIB *)*size+1);
-  if (PTX == NULL) {
-    report_error(ERROR_MEM_ALLOC);
-    return NULL;
   }
 
   return PTX;
