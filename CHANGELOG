@@ -1,5 +1,13 @@
-$Id: CHANGELOG,v 1.183 2005/02/28 15:43:56 jonz Exp $
+$Id: CHANGELOG,v 1.184 2005/03/01 14:53:30 jonz Exp $
 
+Version NEXT
+------------
+
+[20050301.0600] jonz: rewrote flat file preference code
+
+rewrote flat file preference code after discovering many bugs with patches
+submitted over past few months
+ 
 Version 3.4.rc2
 ---------------
 
@@ -26,7 +34,7 @@ in ServerParameters:
 
 %r - the RCPT TO provided via LMTP
 %s - the MAIL FROM provided via LMTP
-
+ 
 in both cases, only the content between < > is actually used
 
 [20050225.0500] jonz: added pass-through of mail from

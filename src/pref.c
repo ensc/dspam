@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.15 2005/03/01 13:56:19 jonz Exp $ */
+/* $Id: pref.c,v 1.16 2005/03/01 14:53:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -44,6 +44,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "language.h"
 #include "read_config.h"
 
+/*
+   _ds_pref_aggregate: aggregate system preferences and user preferences
+
+   This function takes a set of system preferences and a set of user 
+   preferences as input and returns an aggregated set of preferences based on 
+   the system's override rules.
+*/
+
 agent_pref_t _ds_pref_aggregate(agent_pref_t STX, agent_pref_t UTX) {
   agent_pref_t PTX = malloc(PREF_MAX*sizeof(agent_attrib_t ));
   int i, j, size = 0;
@@ -85,6 +93,8 @@ agent_pref_t _ds_pref_aggregate(agent_pref_t STX, agent_pref_t UTX) {
   return PTX;
 }
 
+/* _ds_pref_free: destroys a preference set */
+
 int _ds_pref_free(agent_pref_t PTX) {
   agent_attrib_t pref;
   int i;
@@ -102,6 +112,13 @@ int _ds_pref_free(agent_pref_t PTX) {
 
   return 0;
 }
+
+/*
+   _ds_pref_val: returns the value of an attribute within a preference set
+
+   To allow this function to work with string operations, "" will be returned 
+   if the value isn't found, insttead of NULL
+*/
 
 const char *_ds_pref_val(
   agent_pref_t PTX,
@@ -122,6 +139,8 @@ const char *_ds_pref_val(
   return "";
 }
 
+/* _ds_pref_new: creates a new preference attribute/value pair */
+
 agent_attrib_t _ds_pref_new(const char *attribute, const char *value) {
   agent_attrib_t pref;
                                                                                 
@@ -137,6 +156,8 @@ agent_attrib_t _ds_pref_new(const char *attribute, const char *value) {
 
   return pref;
 }
+
+/* ifndef PREFERENCES_EXTENSION: Driver independent flat file operations */
 
 #ifndef PREFERENCES_EXTENSION
 agent_pref_t _ds_pref_load(
@@ -194,69 +215,83 @@ agent_pref_t _ds_pref_load(
   return PTX;
 }
 
-static int _ds_pref_process_file (
-  const char *username,
-  const char *home,
-  const char *preference,
-  char *filename,
-  char *out_filename,
-  FILE **out_file)
-{
-  char line[1024];
-  int lineno = 0, plen = strlen(preference);
-  FILE *in_file;
+/*
+  _ds_pref_prepare_file: prepares a backup copy of a preference file
 
-  if (username == NULL) {
-    snprintf(filename, MAX_FILENAME_LENGTH, "%s/default.prefs", home);
-  } else {
-    _ds_userdir_path (filename, home, username, "prefs");
-  }
+  This operation prepares a backup copy of a given preference file, using a
+  .bak extension and returns an open filehandle to it at the end of the file.
+  This function also allows for an omission to be passed in, which is the name
+  of a preference that should be omitted from the file (if that preference
+  is to be overwritten or deleted. If nlines is provided, it will be set to
+  the number of lines in the file.
+*/
+ 
+FILE *_ds_pref_prepare_file (
+  const char *filename,
+  const char *omission,
+  int *nlines)
+{
+  char line[1024], out_filename[MAX_FILENAME_LENGTH];
+  int lineno = 0, omission_len;
+  FILE *in_file, *out_file;
+  char omission_pref[1024];
+
+  snprintf(omission_pref, sizeof(omission_pref), "%s=", omission);
+  omission_len = strlen(omission_pref);
 
   snprintf(out_filename, MAX_FILENAME_LENGTH, "%s.bak", filename);
+  out_file = fopen(out_filename, "w");
+
+  if (out_file == NULL) {
+    file_error(ERROR_FILE_OPEN, out_filename, strerror(errno));
+    return NULL;
+  }
 
   in_file = fopen(filename, "r");
-  *out_file = fopen(out_filename, "w");
-
-  if (*out_file == NULL) {
-    file_error("open", out_filename, strerror(errno));
-    return -1;
-  }
 
   if (in_file) {
     while (fgets(line, sizeof(line), in_file)) {
-      if (!strncmp(line, preference, plen))
+      if (!strncmp(line, omission_pref, omission_len)) 
         continue;
+
+      lineno++;
   
-      ++lineno;
-  
-      if (fputs(line, *out_file)) {
-        file_error("write", out_filename, strerror(errno));
-        fclose(*out_file);
+      if (fputs(line, out_file)) {
+        file_error(ERROR_FILE_WRITE, out_filename, strerror(errno));
+        fclose(in_file);
+        fclose(out_file);
         unlink(out_filename);
-        return -1;
+        return NULL;
       }
     }
     fclose(in_file);
   }
 
-  return lineno;
+  if (nlines != NULL)
+    *nlines = lineno;
+  return out_file;
 }
 
-static int _ds_pref_save_file (
+/*
+   _ds_pref_commit: close scratch copy and commit it as the new live copy
+*/
+
+int _ds_pref_commit (
   const char *filename,
-  const char *out_filename,
   FILE *out_file)
 {
+  char backup[MAX_FILENAME_LENGTH];
+
+  snprintf(backup, sizeof(backup), "%s.bak", filename);
   if (fclose(out_file)) {
-    file_error("close", out_filename, strerror(errno));
-    return -1;
+    file_error(ERROR_FILE_CLOSE, backup, strerror(errno));
+    return EFAILURE;
   }
 
-  if (rename(out_filename, filename)) {
-    report_error_printf("rename %s to %s: %s\n",
-                out_filename, filename, strerror(errno));
-    unlink(out_filename);
-    return -1;
+  if (rename(backup, filename)) {
+    file_error(ERROR_FILE_RENAME, backup, strerror(errno));
+    unlink(backup);
+    return EFAILURE;
   }
 
   return 0;
@@ -271,19 +306,22 @@ int _ds_pref_set (
   void *ignore)
 {
   char filename[MAX_FILENAME_LENGTH];
-  char out_filename[MAX_FILENAME_LENGTH];
   FILE *out_file;
-  int r;
 
-  r = _ds_pref_process_file(username, home, preference,
-            filename, out_filename, &out_file);
+  if (username == NULL) {
+    snprintf(filename, MAX_FILENAME_LENGTH, "%s/default.prefs", home);
+  } else {
+    _ds_userdir_path (filename, home, username, "prefs");
+  }
 
-  if (r == -1)
-    return -1;
+  out_file = _ds_pref_prepare_file(filename, preference, NULL);
+
+  if (out_file == NULL)
+    return EFAILURE;
 
   fprintf(out_file, "%s=%s\n", preference, value);
 
-  return _ds_pref_save_file(filename, out_filename, out_file);
+  return _ds_pref_commit(filename, out_file);
 }
 
 int _ds_pref_del (
@@ -294,22 +332,28 @@ int _ds_pref_del (
   void *ignore)
 {
   char filename[MAX_FILENAME_LENGTH];
-  char out_filename[MAX_FILENAME_LENGTH];
   FILE *out_file;
-  int r;
+  int nlines; 
 
-  r = _ds_pref_process_file(username, home, preference,
-            filename, out_filename, &out_file);
+  if (username == NULL) {
+    snprintf(filename, MAX_FILENAME_LENGTH, "%s/default.prefs", home);
+  } else {
+    _ds_userdir_path (filename, home, username, "prefs");
+  }
 
-  if (r == -1)
-    return -1;
-  else if (r == 0) {
+  out_file = _ds_pref_prepare_file(filename, preference, &nlines);
+
+  if (out_file == NULL)
+    return EFAILURE;
+
+  if (!nlines) {
+    char backup[MAX_FILENAME_LENGTH];
     fclose(out_file);
-    unlink(out_filename);
+    snprintf(backup, sizeof(backup), "%s.bak", filename);
+    unlink(backup);
     return unlink(filename);
   }
 
-  return _ds_pref_save_file(filename, out_filename, out_file);
+  return _ds_pref_commit(filename, out_file);
 }
-
 #endif

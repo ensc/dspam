@@ -1,4 +1,4 @@
-/* $Id: pref.h,v 1.7 2005/01/18 15:06:08 jonz Exp $ */
+/* $Id: pref.h,v 1.8 2005/03/01 14:53:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -56,6 +56,10 @@ agent_attrib_t	_ds_pref_new(const char *attribute, const char *value);
 agent_pref_t      _ds_pref_load(attribute_t **config, const char *user, const char *home, void *ignore);
 int               _ds_pref_set(attribute_t **config, const char *user, const char *home, const char *preference, const char *value, void *ignore);
 int               _ds_pref_del(attribute_t **config, const char *user, const char *home, const char *preference, void *ignore);
+
+FILE *_ds_pref_prepare_file (const char *filename,const char *omission,
+  int *nlines);
+int _ds_pref_commit (const char *filename, FILE *out_file);
 #endif
 
 #endif /* _PREF_H */

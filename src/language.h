@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.13 2005/02/27 21:01:06 jonz Exp $ */
+/* $Id: language.h,v 1.14 2005/03/01 14:53:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -31,6 +31,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ERROR_MEM_ALLOC         "Memory allocation error"
 #define ERROR_FILE_OPEN		"Unable to open file for reading"
 #define ERROR_FILE_WRITE	"Unable to open file for writing"
+#define ERROR_FILE_CLOSE	"Unable to close file"
+#define ERROR_FILE_RENAME	"Unable to rename file" 
 #define ERROR_DIR_CREATE	"Unable to create directory"
 #define ERROR_READ_CONFIG	"Unable to read dspam.conf"
 #define ERROR_DSPAM_HOME	"DSPAM Home must be defined in dspam.conf"
