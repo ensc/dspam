@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.101 2004/12/27 01:27:30 jonz Exp $
+$Id: CHANGELOG,v 1.102 2004/12/27 15:26:36 jonz Exp $
 
-Version NEXT
-------------
+Version 3.3.5
+-------------
+
+[20041227.1000] jonz: bayesian noise reduction 2.0 stability
+
+BNR v2.0 stabilized, fully implemented and in testing. So far, the results
+appear quite promising; debugging shows that it has already prevented a few
+false positives. 
 
 Version 3.3.4
 -------------
