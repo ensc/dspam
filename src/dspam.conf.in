@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.10 2004/12/03 16:17:09 jonz Exp $
+## $Id: dspam.conf.in,v 1.11 2004/12/08 18:01:18 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -348,6 +348,7 @@ Opt out
 #ServerQueueSize	32
 #ServerPass.Relay1	"secret"
 #ServerPass.Relay2	"password"
+#ServerPID		/var/run/dspam.pid
 
 # If you wish to use a local domain socket instead of a TCP socket, uncomment
 # the following. It is strongly recommended you use local domain sockets if

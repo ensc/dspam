@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.38 2004/12/07 15:06:51 jonz Exp $ */
+/* $Id: dspam.c,v 1.39 2004/12/08 18:01:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -147,6 +147,7 @@ main (int argc, char *argv[])
 #ifdef DAEMON
   if (ATX.operating_mode == DSM_DAEMON && ATX.trusted) {
     DRIVER_CTX DTX;
+    char *pidfile = _ds_read_attribute(agent_config, "ServerPID");
 
     DTX.CTX = dspam_create (NULL, NULL,
                       _ds_read_attribute(agent_config, "Home"),
@@ -170,8 +171,25 @@ main (int argc, char *argv[])
       exit(EXIT_FAILURE);
     }
     LOGDEBUG(DAEMON_START);
+
+    if (pidfile) {
+      FILE *file;
+      file = fopen(pidfile, "w");
+      if (file == NULL) {
+        file_error(ERROR_FILE_WRITE, pidfile, strerror(errno));
+      } else {
+        fprintf(file, "%ld\n", (long) getpid());
+        fclose(file);
+      }
+    }
+
     daemon_listen(&DTX);
+
     LOGDEBUG(DAEMON_EXIT);
+
+    if (pidfile)
+      unlink(pidfile);
+
     dspam_shutdown_driver(&DTX);
     pthread_exit(EXIT_SUCCESS);
     exit(EXIT_SUCCESS);
