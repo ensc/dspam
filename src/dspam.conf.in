@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.25 2005/02/27 21:01:06 jonz Exp $
+## $Id: dspam.conf.in,v 1.26 2005/02/28 21:05:57 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -418,12 +418,15 @@ Opt out
 #ServerPass.Relay2	"password"
 
 # If supporting standard LMTP mode, server parameters will need to be specified
-# here, as they will not be passed in by the mail server
+# here, as they will not be passed in by the mail server. The ServerIdent
+# specifies the 250 response code ident sent back to connecting clients and
+# should be set to the hostname of your server, or an alias.
 #
 # NOTE: If you specify --user in ServerParameters, the RCPT TO will be
 #       used only for delivery, and not set as the active user for processing.
 #
 #ServerParameters	"--deliver=innocent -d %u"
+#ServerIdent		"localhost.localdomain"
 
 # If you wish to use a local domain socket instead of a TCP socket, uncomment
 # the following. It is strongly recommended you use local domain sockets if

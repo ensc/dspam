@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.47 2005/02/28 15:44:35 jonz Exp $ */
+/* $Id: daemon.c,v 1.48 2005/02/28 21:05:57 jonz Exp $ */
 
 /*
  DSPAM
@@ -236,6 +236,7 @@ void *process_connection(void *ptr) {
   buffer *message = NULL;
   char *input, *cmdline = NULL, *token, *ptrptr;
   char *oldcmd = NULL, *parms=NULL, *p=NULL;
+  char *server_ident = _ds_read_attribute(agent_config, "ServerIdent");
   char *argv[32];
   char buf[1024];
   int tries = 0;
@@ -292,6 +293,8 @@ void *process_connection(void *ptr) {
   }
 
   free(input);
+  if (daemon_extension(TTX, (server_ident) ? server_ident : "localhost.localdomain")<=0)
+    goto CLOSE;
   if (daemon_extension(TTX, "PIPELINING")<=0)
     goto CLOSE;
   if (daemon_extension(TTX, "ENHANCEDSTATUSCODES")<=0)
