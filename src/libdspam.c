@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.34 2004/12/09 18:25:32 jonz Exp $ */
+/* $Id: libdspam.c,v 1.35 2004/12/11 19:30:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -1158,7 +1158,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     /* Perform BNR Processing */
 
     if (CTX->classification == DSR_NONE &&
-        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 2500) {
+        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000) {
       BTX.stream = freq->order;
       BTX.total_eliminations = 0;
       BTX.total_clean = 0;
@@ -1476,7 +1476,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     if (node_lht && node_lht->token_name &&
         !strncmp(node_lht->token_name, "bnr.", 4) &&
-        CTX->confidence < 0.70) 
+        CTX->confidence < 0.70 &&
+        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 200)
     {
       node_lht->s.status |= TST_DIRTY;
     }
@@ -1755,13 +1756,13 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
 
   if (CTX->training_buffer) {
 
-    if (ti < 1000 && ti < ts)
+    if (ti < 500 && ti < ts)
     {
       min_hits = min_hits+(CTX->training_buffer/2)+
                    (CTX->training_buffer*((ts-ti)/200));
     }
 
-    if (ti < 2500 && ti >=1000 && ts > ti)
+    if (ti < 1000 && ti >=500 && ts > ti)
     {
       float spams = (ts * 1.0 / (ts * 1.0 + ti * 1.0)) * 100;
       min_hits = min_hits+(CTX->training_buffer/2)+
