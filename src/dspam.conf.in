@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.5 2004/11/30 19:46:09 jonz Exp $
+## $Id: dspam.conf.in,v 1.6 2004/12/01 02:05:23 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -326,18 +326,23 @@ Opt out
 
 #
 # Daemonized Server: If you are running DSPAM as a daemonized server using
-# --daemon, the following parameters will override the default.
+# --daemon, the following parameters will override the default. Use the
+# ServerPass option to set up accounts for each client machine. The DSPAM
+# server will process and deliver the message based on the parameters 
+# specified. If you want the client machine to perform delivery, use
+# the --stdout option in conjunction with a local setup.
 #
-#ServerPort		1900
+#ServerPort		24
 #ServerQueueSize	32
-#ServerPass		"secret"
+#ServerPass.Relay1	"secret"
+#ServerPass.Relay2	"password"
 
 #
 # Client Mode: If you are running DSPAM in client mode using --client, the
 # following parameters will be used.
 #
 #ClientHost	1.2.3.4
-#ClientPort	1900
-#ClientPass	"secret"
+#ClientPort	24
+#ClientIdent	"secret@Relay1"
 
 ## EOF

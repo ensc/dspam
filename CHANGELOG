@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.42 2004/12/01 00:32:15 jonz Exp $
+$Id: CHANGELOG,v 1.43 2004/12/01 02:05:23 jonz Exp $
 
 Version NEXT
 ------------
@@ -10,13 +10,14 @@ CVS notes:
 set up daemonized dspam in daemon.c, compile with --enable-daemon, then call
 dspam --daemon. initial protocol uses LMTP:
 
-LHLO [server password]
-MAIL FROM: [commandline arguments]
-RCPT TO: [list of DSPAM users]
+LHLO 
+MAIL FROM: [password]@[server id]
+RCPT TO: [list of DSPAM users] [DSPAM parameters] [delivery agent parameters]
 DATA
 [message]
 .
-daemon processes *and* delivers at the moment 9including to stdout)
+daemon processes *and* delivers at the moment (including to stdout). For
+client-side delivery, use --stdout and configure your MTA to deliver.
 
 next: client
 then: stateful db connections

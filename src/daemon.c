@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.10 2004/12/01 00:32:15 jonz Exp $ */
+/* $Id: daemon.c,v 1.11 2004/12/01 02:05:23 jonz Exp $ */
 
 /*
  DSPAM
@@ -58,7 +58,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "language.h"
 
 int daemon_listen() {
-  int port = 1900;
+  int port = 24;
   int queue = 32;
   struct sockaddr_in local_addr;
   struct sockaddr_in remote_addr;
@@ -182,7 +182,6 @@ void *process_connection(void *ptr) {
   THREAD_CTX *TTX = (THREAD_CTX *) ptr;
   AGENT_CTX *ATX = NULL;
   buffer *message = NULL;
-  char *serverpass = _ds_read_attribute(agent_config, "ServerPass");
   char *input, *cmdline = NULL, *token, *ptrptr;
   char *argv[32];
   char buf[1024];
@@ -200,79 +199,70 @@ void *process_connection(void *ptr) {
 
   TTX->authenticated = 0;
 
-  /* Echo until authenticated */
+  /* LHLO */
+
+  cmdline = socket_expect(TTX, "LHLO");
+  if (cmdline == NULL)
+    goto CLOSE;
+
+  if (socket_reply(TTX, LMTP_OK, "OK")<=0)
+    goto CLOSE;
+
+  /* MAIL FROM (Authentication) */
 
   while(!TTX->authenticated) {
-    struct timeval tv;
-
-    input = socket_getline(TTX, 300);
+    input = socket_expect(TTX, "MAIL FROM:");
     if (input == NULL) 
       goto CLOSE;
     else {
-      char *t, *pass;
+      char *ptr, *pass, *ident;
       chomp(input);
 
-      t = strtok_r(input, " ", &ptrptr);
-      if (t) {
-        if (!strncasecmp(t, "QUIT", 4)) {
-          snprintf(buf, sizeof(buf), "%d OK", LMTP_QUIT);
-          socket_send(TTX, buf);
+      ptr = strtok_r(input+10, " ", &ptrptr);
+      pass = strtok_r(ptr, "@", &ptrptr);
+      ident = strtok_r(NULL, "@", &ptrptr);
+
+      if (pass && ident) {
+        snprintf(buf, sizeof(buf), "ServerPass.%s", ident);
+        char *serverpass = _ds_read_attribute(agent_config, buf);
+        if (serverpass && !strcmp(pass, serverpass)) {
+          TTX->authenticated = 1;
+          if (socket_reply(TTX, LMTP_OK, "OK")<=0)
+            goto CLOSE;
+        } else {
+          if (socket_reply(TTX, LMTP_AUTH_ERROR, "Authentication Required")<=0)
+           goto CLOSE;
+        } 
+      }
+
+      if (!TTX->authenticated) {
+        LOGDEBUG("fd %d remote_addr %s authentication failure.", TTX->sockfd,
+                  inet_ntoa(TTX->remote_addr.sin_addr));
+        tries++;
+        if (tries>=3) {
+          struct timeval tv;
+          tv.tv_sec = 5;
+          tv.tv_usec = 0;
+          select(0, NULL, NULL, NULL, &tv);
           goto CLOSE;
         }
-
-        pass = strtok_r(NULL, " ", &ptrptr);
-      }
-      if (t == NULL || strcasecmp(t, "LHLO") || (serverpass && (!pass || strcmp(pass, serverpass)))) {
-        snprintf(buf, sizeof(buf), "%d Authentication Required", LMTP_AUTH_ERROR);
-        if (socket_send(TTX, buf)<=0)
-          goto CLOSE;
-      } else {
-        LOGDEBUG("fd %d remote_addr %s authenticated.", TTX->sockfd, 
-                  inet_ntoa(TTX->remote_addr.sin_addr));
-        TTX->authenticated = 1;
-        snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
-        if (socket_send(TTX, buf)<=0)
-          goto CLOSE;
-      } 
-    }
-      
-    if (!TTX->authenticated) {
-
-      LOGDEBUG("fd %d remote_addr %s authentication failure.", TTX->sockfd,
-                inet_ntoa(TTX->remote_addr.sin_addr));
-      tries++;
-      if (tries>=3) {
-        tv.tv_sec = 5;
-        tv.tv_usec = 0;
-        select(0, NULL, NULL, NULL, &tv);
-        goto CLOSE;
       }
     }
   }
 
   snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
 
-  /* Client is authenticated, receive parameters */
-  cmdline = socket_getline(TTX, 300);
+  /* RCPT TO (Userlist and arguments) */
+
+  cmdline = socket_expect(TTX, "RCPT TO:");
   if (cmdline == NULL)
     goto CLOSE;
 
-  while(strncasecmp(cmdline, "MAIL FROM:", 10)) {
-    if (!strncasecmp(cmdline, "QUIT", 4)) {
-      snprintf(buf, sizeof(buf), "%d OK", LMTP_QUIT);
-      socket_send(TTX, buf);
-    }
-    if (cmdline == NULL || !strncasecmp(cmdline, "QUIT", 4))
-      goto CLOSE;
-    snprintf(buf, sizeof(buf), "%d Need MAIL here", LMTP_BAD_CMD);
-    if (socket_send(TTX, buf)<=0)
-      goto CLOSE;
-    cmdline = socket_getline(TTX, 300);
-  }
-
-  chomp(cmdline);
   /* Tokenize arguments */
-  token = strtok_r(cmdline+10, " ", &ptrptr);
+  chomp(cmdline);
+  argv[argc] = "--user";
+  argc++;
+  token = strtok_r(cmdline+8, " ", &ptrptr);
   while(token != NULL) {
     argv[argc] = token;
     argc++;
@@ -299,36 +289,6 @@ void *process_connection(void *ptr) {
   ATX->sockfd = TTX->sockfd;
   ATX->sockfd_output = 0;
 
-  /* Get recipients */
-  snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
-  if (socket_send(TTX, buf)<=0)
-    goto CLOSE;
- 
-  cmdline = socket_getline(TTX, 300);
-  if (cmdline == NULL)
-    goto CLOSE;
-
-  while(strncasecmp(cmdline, "RCPT TO:", 8)) {
-    if (!strncasecmp(cmdline, "QUIT", 4)) {
-      snprintf(buf, sizeof(buf), "%d OK", LMTP_QUIT);
-      socket_send(TTX, buf);
-    }
-    if (cmdline == NULL || !strncasecmp(cmdline, "QUIT", 4))
-      goto CLOSE;
-    snprintf(buf, sizeof(buf), "%d Need RCPT here", LMTP_BAD_CMD);
-    if (socket_send(TTX, buf)<=0)
-      goto CLOSE;
-    cmdline = socket_getline(TTX, 300);
-  }
-
-  /* Tokenize arguments */
-  chomp(cmdline);
-  token = strtok_r(cmdline+8, " ", &ptrptr);
-  while(token != NULL) {
-    nt_add(ATX->users, token);
-    token = strtok_r(NULL, " ", &ptrptr);
-  }
-
   if (check_configuration(ATX)) {
     report_error(ERROR_DSPAM_MISCONFIGURED);
     snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_DSPAM_MISCONFIGURED);
@@ -336,30 +296,17 @@ void *process_connection(void *ptr) {
     goto CLOSE;
   }
 
-  /* Get DATA */
   snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
   if (socket_send(TTX, buf)<=0)
     goto CLOSE;
 
-  cmdline = socket_getline(TTX, 300);
-  if (cmdline == NULL)
+  /* DATA */
+
+  input = socket_expect(TTX, "DATA");
+  if (input == NULL)
     goto CLOSE;
 
-  while(strncasecmp(cmdline, "DATA", 4)) {
-    if (!strncasecmp(cmdline, "QUIT", 4)) {
-      snprintf(buf, sizeof(buf), "%d OK", LMTP_QUIT);
-      socket_send(TTX, buf);
-    }
-    if (cmdline == NULL || !strncasecmp(cmdline, "QUIT", 4))
-      goto CLOSE;
-    snprintf(buf, sizeof(buf), "%d Need RCPT here", LMTP_BAD_CMD);
-    if (socket_send(TTX, buf)<=0)
-      goto CLOSE;
-    cmdline = socket_getline(TTX, 300);
-  }
-
-  snprintf(buf, sizeof(buf), "%d Enter mail, end with \".\" on a line by itself", LMTP_DATA);
-  if (socket_send(TTX, buf)<=0)
+  if (socket_reply(TTX, LMTP_DATA, "Enter mail, end with \".\" on a line by itself")<=0)
     goto CLOSE;
 
   message = read_sock(TTX, ATX);
@@ -553,6 +500,35 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
 bail:
   buffer_destroy(message);
   return NULL;
+}
+
+char *socket_expect(THREAD_CTX *TTX, const char *ptr) {
+  char buf[128];
+  char *cmd;
+
+  cmd = socket_getline(TTX, 300); 
+  if (cmd == NULL)
+    return NULL;
+
+  while(strncasecmp(cmd, ptr, strlen(ptr))) {
+    if (!strncasecmp(cmd, "QUIT", 4)) {
+      socket_reply(TTX, LMTP_QUIT, "OK"); 
+      return NULL;
+    }
+    snprintf(buf, sizeof(buf), "%d Need %s here.", LMTP_BAD_CMD, ptr);
+    if (socket_send(TTX, buf)<=0)
+      return NULL;
+    cmd = socket_getline(TTX, 300);
+    if (cmd == NULL)
+      return NULL;
+  } 
+  return cmd;
+}
+
+int socket_reply(THREAD_CTX *TTX, int reply, const char *txt) {
+  char buf[128];
+  snprintf(buf, sizeof(buf), "%d %s", reply, txt);
+  return socket_send(TTX, buf);
 }
 
 #endif
