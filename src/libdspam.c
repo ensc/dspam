@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.69 2004/12/27 03:07:16 jonz Exp $ */
+/* $Id: libdspam.c,v 1.70 2004/12/27 15:10:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -1386,11 +1386,12 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
 #ifdef BNR_DEBUG
   {
+    int x = CTX->result;
     int nobnr_result = _ds_calc_result(CTX, heap_nobnr, freq);
 
     if (CTX->factors) 
       _ds_factor_destroy(CTX->factors);
-    CTX->result = 0;
+    CTX->result = x;
     CTX->probability = -1;
 #endif
 
