@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.9 2004/11/21 23:57:13 jonz Exp $ */
+/* $Id: libdspam.c,v 1.10 2004/11/22 00:38:43 jonz Exp $ */
 
 /*
  DSPAM
@@ -1076,10 +1076,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         CTX->totals.innocent_learned  +		/* At least 2500 innocent */
         CTX->totals.innocent_classified > 2500)
   {
+/*
     BNR_CTX BTX;
     float snr = 0.00000;
     long total_clean;
-
+*/
     for(i=0;i<BNR_SIZE;i++)
       previous_probs[i] = 0.00000;
 
@@ -1109,6 +1110,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       node_nt = c_nt_next(freq->order, &c_nt);
     }
 
+    LOGDEBUG("Loading %d BNR Patterns", pfreq->items);
     if (_ds_getall_spamrecords (CTX, pfreq))
     {
       LOGDEBUG ("_ds_getall_spamrecords() failed");
@@ -1118,6 +1120,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       return EUNKNOWN;
     }
 
+/*
     BTX.stream = freq->order;
     bnr_filter_process(CTX, &BTX);
     total_eliminations = BTX.total_eliminations;
@@ -1128,7 +1131,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     total_eliminations += BTX.total_eliminations;
     total_clean += BTX.total_clean;
 
-    /* Check and make sure our noise ratio is within range */
     snr = 100.0*((total_eliminations+0.0)/(total_clean+total_eliminations));
     if ((snr > 77.5 && body_length>3500) || (snr > 93.0 && body_length<=3500)) {
       total_eliminations = 0;
@@ -1137,6 +1139,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     LOGDEBUG("BNR noise ratio: %2.2f Noisy Tokens: %ld",
              snr, total_eliminations);
+*/
+    total_eliminations = 0;
+
   } else {
     total_eliminations = -1;
   }
@@ -1150,6 +1155,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   if (CTX->flags & DSF_NOISE) {
     node_lht = c_lht_first (pfreq, &c_lht);
     while(node_lht != NULL) {
+#ifdef BNR_VERBOSE_DEBUG
+      if (!(node_lht->s.status & TST_DISK)) {
+        LOGDEBUG("pattern %s not on disk", node_lht->token_name);
+      }
+#endif
       _ds_calc_stat(CTX, node_lht->key, &node_lht->s, DTT_BNR);
       lht_hit(freq, node_lht->key, node_lht->token_name);
       lht_setspamstat(freq, node_lht->key, &node_lht->s);
