@@ -1,4 +1,4 @@
-$Id: README,v 1.18 2004/12/03 16:12:50 jonz Exp $
+$Id: README,v 1.19 2004/12/03 16:32:32 jonz Exp $
 
 DSPAM v3.3 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1614,13 +1614,16 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
     which should enhance performance on some systems by eliminating the need
     to establish a new database connection for every message processed.
 
-  - Having one server perform all processing and delivery, while having
-    multiple thin clients on your mail servers may be more desirable than
-    having multiple agents performing processing and delivery on all your
-    servers.
+  - Providing a central point of processing. Having one server perform all 
+    processing and delivery, while having multiple thin clients on your mail 
+    servers may be more desirable than having multiple agents performing 
+    processing and delivery on all your servers.
 
   - The DSPAM server speaks LMTP, which some implementations may be able to
     take advantage of, eliminating the need for the DSPAM client all together.
+
+  If you've already got DSPAM set up, client/server mode won't require any
+  changes to your mail server's configuration - it's completely transparent.
 
   The DSPAM agent can be compiled with client/server support by configuring
   with --enable-daemon. You will need to use a multithread-safe storage driver
@@ -1687,7 +1690,7 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
   The conversation that takes place between the client/server is LMTP-based,
   and will look like this:
 
-SERVER> 220 DSPAM LMTP 3.4.0 Authentication Required
+SERVER> 220 DSPAM LMTP 3.3.0 Authentication Required
 CLIENT> LHLO
 SERVER> 250 OK
 CLIENT> MAIL FROM: secret@Relay1
