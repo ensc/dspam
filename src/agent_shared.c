@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.20 2005/03/09 13:33:35 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.21 2005/03/09 13:34:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -180,7 +180,6 @@ int initialize_atx(AGENT_CTX *ATX) {
 #if defined(_REENTRANT) && defined(HAVE_GETPWUID_R)
   if (getpwuid_r(getuid(), &ATX->pwbuf, buf, sizeof(buf), &ATX->p))
     ATX->p = NULL;
-printf("OK!\n");
 #else
   ATX->p = getpwuid (getuid());
 #endif
