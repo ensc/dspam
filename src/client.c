@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.37 2005/03/14 21:42:50 jonz Exp $ */
+/* $Id: client.c,v 1.38 2005/03/15 14:06:32 jonz Exp $ */
 
 /*
 
@@ -451,7 +451,6 @@ int send_socket(THREAD_CTX *TTX, const char *ptr) {
 #ifdef VERBOSE
   LOGDEBUG("SEND: %s", ptr);
 #endif
-printf("SEND: %s\n", ptr);
 
   msglen = strlen(ptr);
   while(i<msglen) {
