@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.16 2005/03/02 20:07:01 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.17 2005/03/02 21:52:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -212,7 +212,9 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
   int clienthost = (_ds_read_attribute(agent_config, "ClientHost") || _ds_read_attribute(agent_config, "ServerDomainSocketPath"));
   char *ptrptr;
 
+#ifdef DEBUG
   ATX->debug_args[0] = 0;
+#endif
   ATX->client_args[0] = 0;
 
   for (i = 0; i < argc; i++)
