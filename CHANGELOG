@@ -1,8 +1,8 @@
-$Id: CHANGELOG,v 1.147 2005/01/18 18:28:27 jonz Exp $
+$Id: CHANGELOG,v 1.148 2005/01/19 04:46:04 jonz Exp $
 
 Version NEXT
 ------------
-
+  
 [20040118.0730] jonz: removed requirement for dspam_home in dspam_create()
 
 some storage drivers don't require dspam_home
