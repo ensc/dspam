@@ -1,4 +1,4 @@
-$Id: README,v 1.30 2005/01/18 18:28:27 jonz Exp $
+$Id: README,v 1.31 2005/01/19 22:33:45 jonz Exp $
 
 DSPAM v3.3 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -732,10 +732,10 @@ First you will need to download a few prerequisite tools:
    LOG ROTATION
 
    The system log and user logs can fill up fairly quickly, when all that's
-   really needed to generate graphs are the last two weeks of data. You can
-   configure a nightly log cleanup using a simple find recipe:
+   really needed to generate graphs are the last two to three weeks of data. 
+   You can configure a nightly log cleanup using a simple find recipe:
 
-   0 0 * * * dspam_logrotate -a 14 /usr/local/var/dspam/system.log `find /usr/local/var/dspam/data -name "*.log"`
+   0 0 * * * dspam_logrotate -a 30 /usr/local/var/dspam/system.log `find /usr/local/var/dspam/data -name "*.log"`
 
 7. NOTIFICATIONS
 
