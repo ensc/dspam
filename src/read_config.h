@@ -1,4 +1,4 @@
-/* $Id: read_config.h,v 1.2 2004/12/03 01:30:33 jonz Exp $ */
+/* $Id: read_config.h,v 1.3 2005/01/12 03:12:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -35,7 +35,7 @@ struct attribute **read_config(const char *path);
 
 int configure_algorithms    (DSPAM_CTX * CTX);
 
-AGENT_PREF pref_config(void);
+agent_pref_t pref_config(void);
 
 attribute_t **agent_config;
 

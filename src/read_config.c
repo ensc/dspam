@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.4 2004/12/03 01:30:33 jonz Exp $ */
+/* $Id: read_config.c,v 1.5 2005/01/12 03:12:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -180,9 +180,9 @@ int configure_algorithms(DSPAM_CTX *CTX) {
   return 0;
 }
 
-AGENT_PREF pref_config(void)
+agent_pref_t pref_config(void)
 {
-  AGENT_PREF PTX = malloc(sizeof(AGENT_ATTRIB *)*PREF_MAX);
+  agent_pref_t PTX = malloc(sizeof(agent_attrib_t)*PREF_MAX);
   attribute_t *attrib;
   char *p, *q;
   char *ptrptr;
@@ -218,7 +218,7 @@ AGENT_PREF pref_config(void)
     free(pcopy);
   }
 
-  PTX = realloc(PTX, sizeof(AGENT_ATTRIB *)*(i+1));
+  PTX = realloc(PTX, sizeof(agent_attrib_t)*(i+1));
 
   return PTX;
 }

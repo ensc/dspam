@@ -1,4 +1,4 @@
-/* $Id: pref.h,v 1.5 2005/01/11 19:24:30 jonz Exp $ */
+/* $Id: pref.h,v 1.6 2005/01/12 03:12:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -38,22 +38,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /* a single preference attribute */
 
-typedef struct {
+typedef struct _ds_agent_attribute {
   char *attribute;
   char *value;
-} AGENT_ATTRIB;
+} *agent_attrib_t;
 
-#define AGENT_PREF AGENT_ATTRIB**
+typedef agent_attrib_t *agent_pref_t;
 
 /* preference utilities */
 
-const char *	_ds_pref_val (AGENT_PREF PTX, const char *attrib);
-int             _ds_pref_free (AGENT_PREF PTX);
-AGENT_PREF	_ds_pref_aggregate(AGENT_PREF, AGENT_PREF);
-AGENT_ATTRIB	*_ds_pref_new(const char *attribute, const char *value);
+const char *	_ds_pref_val (agent_pref_t PTX, const char *attrib);
+int             _ds_pref_free (agent_pref_t PTX);
+agent_pref_t	_ds_pref_aggregate(agent_pref_t, agent_pref_t);
+agent_attrib_t	_ds_pref_new(const char *attribute, const char *value);
 
 #ifndef PREFERENCES_EXTENSION
-AGENT_PREF      _ds_pref_load(attribute_t **config, const char *user, const char *home, void *ignore);
+agent_pref_t      _ds_pref_load(attribute_t **config, const char *user, const char *home, void *ignore);
 #endif
 
 #endif /* _PREF_H */

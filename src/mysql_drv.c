@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.30 2005/01/11 19:38:55 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.31 2005/01/12 03:12:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -1903,7 +1903,7 @@ BAIL:
   return NULL;
 }
 
-AGENT_PREF _ds_pref_load(
+agent_pref_t _ds_pref_load(
   attribute_t **config,  
   const char *username, 
   const char *home,
@@ -1915,8 +1915,8 @@ AGENT_PREF _ds_pref_load(
   MYSQL_RES *result;
   MYSQL_ROW row; 
   DSPAM_CTX *CTX;
-  AGENT_PREF PTX;
-  AGENT_ATTRIB *pref;
+  agent_pref_t PTX;
+  agent_attrib_t pref;
   int uid, i = 0;
 
   CTX = _mysql_drv_init_tools(home, config, dbh);
@@ -1964,7 +1964,7 @@ AGENT_PREF _ds_pref_load(
     return _ds_pref_load(config, NULL, home, dbh);
   }
 
-  PTX = malloc(sizeof(AGENT_ATTRIB *)*(mysql_num_rows(result)+1));
+  PTX = malloc(sizeof(agent_attrib_t )*(mysql_num_rows(result)+1));
   if (PTX == NULL) {
     LOG(LOG_CRIT, ERROR_MEM_ALLOC); 
     dspam_destroy(CTX);
@@ -1988,7 +1988,7 @@ AGENT_PREF _ds_pref_load(
     char *p = row[0];
     char *q = row[1];
 
-    pref = malloc(sizeof(AGENT_ATTRIB));
+    pref = malloc(sizeof(struct _ds_agent_attribute));
     if (pref == NULL) {
       LOG(LOG_CRIT, ERROR_MEM_ALLOC);
       dspam_destroy(CTX);
@@ -2167,14 +2167,14 @@ int _ds_pref_save(
   attribute_t **config,
   const char *username,  
   const char *home, 
-  AGENT_PREF PTX,
+  agent_pref_t PTX,
   void *dbh) 
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
   char query[128];
   DSPAM_CTX *CTX;
-  AGENT_ATTRIB *pref;
+  agent_attrib_t pref;
   int uid, i = 0;
   char m1[257], m2[257];
 

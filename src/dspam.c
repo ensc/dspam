@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.65 2005/01/11 19:38:55 jonz Exp $ */
+/* $Id: dspam.c,v 1.66 2005/01/12 03:12:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -261,7 +261,7 @@ bail:
 
 int
 process_message (AGENT_CTX *ATX, 
-                 AGENT_PREF PTX, 
+                 agent_pref_t PTX, 
                  buffer * message, 
                  const char *username)
 {
@@ -728,7 +728,7 @@ deliver_message (const char *message, const char *mailer_args,
     PTX		preferences
 */
 
-int tag_message(struct _ds_message_block *block, AGENT_PREF PTX)
+int tag_message(struct _ds_message_block *block, agent_pref_t PTX)
 {
   struct nt_node *node_header = block->headers->first; 
   char spam_subject[16];
@@ -1188,9 +1188,9 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
   node_nt = c_nt_first (ATX->users, &c_nt);
   while (node_nt != NULL)
   {
-    AGENT_PREF PTX = NULL;
-    AGENT_PREF STX = NULL;
-    AGENT_PREF UTX = NULL;
+    agent_pref_t PTX = NULL;
+    agent_pref_t STX = NULL;
+    agent_pref_t UTX = NULL;
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
     int result, optin, optout;
@@ -1526,7 +1526,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
 
 /* find_signature: find, parse, and strip DSPAM signature */
 
-int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
+int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
   struct nt_node *node_nt, *prev_node = NULL;
   struct nt_c c;
   struct _ds_message_block *block = NULL;
@@ -1754,7 +1754,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
 
 /* ctx_init: initialize a DSPAM context from an agent context */
 
-DSPAM_CTX *ctx_init(AGENT_CTX *ATX, AGENT_PREF PTX, const char *username) {
+DSPAM_CTX *ctx_init(AGENT_CTX *ATX, agent_pref_t PTX, const char *username) {
   DSPAM_CTX *CTX;
   char filename[MAX_FILENAME_LENGTH];
   char ctx_group[128] = { 0 };
@@ -2409,7 +2409,7 @@ int log_events(DSPAM_CTX *CTX) {
 
 /* add_xdspam_headers: add headers from this round of processing */
 
-int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
+int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
   struct nt_node *node_nt;
   struct nt_c c_nt;
 
@@ -2542,7 +2542,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
 
 /* embed_signature: embed the signature in all relevant parts of the message */
 
-int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
+int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
   struct nt_node *node_nt;
   struct nt_c c_nt;
   char toplevel_boundary[128] = { 0 };
@@ -2657,7 +2657,7 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
 
 /* embed_signed: reformat a signed message to include a signature */
 
-int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
+int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
   struct nt_node *node_nt, *node_block, *parent;
   struct nt_c c_nt;
   struct _ds_message_block *block, *newblock;

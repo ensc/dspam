@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.24 2005/01/03 03:29:32 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.25 2005/01/12 03:12:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -1975,7 +1975,7 @@ BAIL:
   return NULL;
 }
 
-AGENT_PREF _ds_pref_load(
+agent_pref_t _ds_pref_load(
   attribute_t **config,
   const char *username, 
   const char *home,
@@ -1986,8 +1986,8 @@ AGENT_PREF _ds_pref_load(
   char query[128];
   PGresult *result;
   DSPAM_CTX *CTX;
-  AGENT_PREF PTX;
-  AGENT_ATTRIB *pref;
+  agent_pref_t PTX;
+  agent_attrib_t pref;
   int uid, ntuples, i = 0;
 
   CTX = _pgsql_drv_init_tools(home, config, dbh);
@@ -2037,7 +2037,7 @@ AGENT_PREF _ds_pref_load(
     return _ds_pref_load(config, NULL, home, dbh);
   }
 
-  PTX = malloc(sizeof(AGENT_ATTRIB *)*(PQntuples(result)+1));
+  PTX = malloc(sizeof(agent_attrib_t )*(PQntuples(result)+1));
   if (PTX == NULL) {
     LOG(LOG_CRIT, ERROR_MEM_ALLOC); 
     dspam_destroy(CTX);
@@ -2062,7 +2062,7 @@ AGENT_PREF _ds_pref_load(
     char *p = PQgetvalue(result,i,0);
     char *q = PQgetvalue(result,i,1);
 
-    pref = malloc(sizeof(AGENT_ATTRIB));
+    pref = malloc(sizeof(struct _ds_agent_attribute));
     if (pref == NULL) {
       LOG(LOG_CRIT, ERROR_MEM_ALLOC);
       dspam_destroy(CTX);
@@ -2231,14 +2231,14 @@ int _ds_pref_save(
   attribute_t **config,
   const char *username, 
   const char *home, 
-  AGENT_PREF PTX, 
+  agent_pref_t PTX, 
   void *dbh) 
 {
   struct _pgsql_drv_storage *s;
   struct passwd *p;
   char query[128];
   DSPAM_CTX *CTX;
-  AGENT_ATTRIB *pref;
+  agent_attrib_t pref;
   int uid, i = 0;
   char *m1, *m2;
   size_t length;

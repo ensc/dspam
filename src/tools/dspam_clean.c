@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.10 2005/01/03 03:06:16 jonz Exp $ */
+/* $Id: dspam_clean.c,v 1.11 2005/01/12 03:12:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -379,7 +379,7 @@ int process_unused (DSPAM_CTX *CTX, int any, int quota, int nospam, int onehit) 
   ds_diction_t del;
   time_t t = time(NULL);
   int delta, toe = 0, tum = 0;
-  AGENT_PREF PTX;
+  agent_pref_t PTX;
                                                                                 
 #ifdef DEBUG
   printf("Processing unused; any: %d quota: %d nospam: %d onehit: %d\n",

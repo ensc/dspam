@@ -1,4 +1,4 @@
-/* $Id: dspam_admin.c,v 1.3 2004/12/18 15:02:52 jonz Exp $ */
+/* $Id: dspam_admin.c,v 1.4 2005/01/12 03:12:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -232,8 +232,8 @@ int del_preference_attribute(
 
 int list_preference_attributes(const char *username)
 {
-  AGENT_PREF PTX;
-  AGENT_ATTRIB *pref;
+  agent_pref_t PTX;
+  agent_attrib_t pref;
   int i;
   
   if (username[0] == 0)

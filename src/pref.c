@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.7 2005/01/11 19:41:45 jonz Exp $ */
+/* $Id: pref.c,v 1.8 2005/01/12 03:12:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -44,8 +44,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "language.h"
 #include "read_config.h"
 
-AGENT_PREF _ds_pref_aggregate(AGENT_PREF STX, AGENT_PREF UTX) {
-  AGENT_PREF PTX = malloc(PREF_MAX*sizeof(AGENT_ATTRIB *));
+agent_pref_t _ds_pref_aggregate(agent_pref_t STX, agent_pref_t UTX) {
+  agent_pref_t PTX = malloc(PREF_MAX*sizeof(agent_attrib_t ));
   int i, j, size = 0;
 
   if (STX) {
@@ -85,8 +85,8 @@ AGENT_PREF _ds_pref_aggregate(AGENT_PREF STX, AGENT_PREF UTX) {
   return PTX;
 }
 
-int _ds_pref_free(AGENT_PREF PTX) {
-  AGENT_ATTRIB *pref;
+int _ds_pref_free(agent_pref_t PTX) {
+  agent_attrib_t pref;
   int i;
 
   if (!PTX)
@@ -104,10 +104,10 @@ int _ds_pref_free(AGENT_PREF PTX) {
 }
 
 const char *_ds_pref_val(
-  AGENT_PREF PTX,
+  agent_pref_t PTX,
   const char *attrib)
 {
-  AGENT_ATTRIB *pref;
+  agent_attrib_t pref;
   int i;
 
   if (PTX == NULL)
@@ -122,10 +122,10 @@ const char *_ds_pref_val(
   return "";
 }
 
-AGENT_ATTRIB *_ds_pref_new(const char *attribute, const char *value) {
-  AGENT_ATTRIB *pref;
+agent_attrib_t _ds_pref_new(const char *attribute, const char *value) {
+  agent_attrib_t pref;
                                                                                 
-  pref = malloc(sizeof(AGENT_ATTRIB));
+  pref = malloc(sizeof(struct _ds_agent_attribute));
                                                                                 
   if (pref == NULL) {
     LOG(LOG_CRIT, ERROR_MEM_ALLOC);
@@ -139,15 +139,15 @@ AGENT_ATTRIB *_ds_pref_new(const char *attribute, const char *value) {
 }
 
 #ifndef PREFERENCES_EXTENSION
-AGENT_PREF _ds_pref_load(
+agent_pref_t _ds_pref_load(
   attribute_t **config,
   const char *user, 
   const char *home,
   void *ignore)
 {
   char filename[MAX_FILENAME_LENGTH];
-  AGENT_PREF PTX = malloc(sizeof(AGENT_ATTRIB *)*PREF_MAX);
-  AGENT_ATTRIB *pref;
+  agent_pref_t PTX = malloc(sizeof(agent_attrib_t )*PREF_MAX);
+  agent_attrib_t pref;
   char buff[258];
   FILE *file;
   char *p, *q, *bufptr;
@@ -189,7 +189,7 @@ AGENT_PREF _ds_pref_load(
 
       LOGDEBUG("Loading preference '%s' = '%s'", p, q);
 
-      pref = malloc(sizeof(AGENT_ATTRIB));
+      pref = malloc(sizeof(struct _ds_agent_attribute));
       if (pref == NULL) {
         LOG(LOG_CRIT, ERROR_MEM_ALLOC);
         fclose(file);
