@@ -1,4 +1,4 @@
-$Id: README,v 1.20 2004/12/04 11:13:17 jonz Exp $
+$Id: README,v 1.21 2004/12/15 19:32:02 jonz Exp $
 
 DSPAM v3.3 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -65,7 +65,7 @@ Miscellaneous
 
 DSPAM is an open-source, freely available anti-spam solution designed to combat
 unsolicited commercial email using advanced statistical analysis. In short,
-DSPAM filters spam by learning what spam is and isn't by learning
+DSPAM filters spam by learning what spam is and isn't. It does this by learning
 each user's individual mail behavior. This allows DSPAM to provide 
 highly-accurate, personalized filtering for each user on even a large system 
 and provides an administratively maintenance free solution capable of learning 
@@ -75,55 +75,44 @@ DSPAM is rapidly gaining a large support forum and being used in many large-
 scale implementations. Contributions to the project are welcome via the 
 dspam-dev mailing list or in the form of financial contributions. 
 
-DSPAM can be implemented in one of two ways:
+Many of the foundational principles incorporated into this software were
+contributed by Paul Graham's white paper on combatting spam, which can be
+found at http://paulgraham.com/spam.html.  Much research and development has
+resulted in many new approaches being added ont othe DPSAM project as well,
+some of which are explained in white papers on the DSPAM home page.
 
-1. AS A MAILER AGENT
-
-The DSPAM mailer-agent provides server-side spam filtering, quarantine
-box, and a mechanism for forwarding spams into the system to be automatically
-analyzed.  Advanced features, such as opt-in/opt-out filtering, inoculation,
-and shared groups are supported. Third-party tools such as pop3proxy can
-be integrated with the agent to extend functionality.
-
-2. AS A LIBRARY
-
-Developers may link their projects to the dspam core engine (libdspam) in
-accordance with the GPL license agreement.  This enables developers to
-incorporate libdspam as a "drop-in" for instant spam filtering within their
-applications - such as mail clients, other anti-spam tools, and so on.
+DSPAM can be implemented as a total solution, or as a library which developers 
+may link their projects to the dspam core engine (libdspam) in accordance with 
+the GPL license agreement.  This enables developers to incorporate libdspam as 
+a "drop-in" for instant spam filtering within their applications - such as mail 
+clients, other anti-spam tools, and so on.
 
 PLEASE NOTE: DSPAM and libdspam are distributed under the GPL license, not the 
 LGPL. Commercial licensing is available for those who seek to redistribute
 DSPAM or some of DSPAM's components/libraries in their non-GPL products.
 Please contact jonathan@nuclearelephant.com for more information.
 
-Many of the foundational principles incorporated into this agent were 
-contributed by Paul Graham's white paper on combatting spam, which can be 
-found at http://paulgraham.com/spam.html.  Many new approaches have been 
-layered on top of the original core, some of which may be explained in
-white papers on the DSPAM home page.
-
 The DSPAM Solution is split up into the following pieces:
 
 LIBDSPAM: CORE PROCESSING ENGINE
 
-The DSPAM core processing engine, also known as libdspam, provides all primary 
-spam filtering functions.  The engine is linked to other dspam components (or
-shells) to provide functionality. libdspam is capable of being linked
-in with any other application as a "drop-in" to provide spam filtering to
+The DSPAM core processing engine, also known as libdspam, provides all critical
+spam filtering functions.  The engine is linked to other dspam components (such
+as a commandline agent) to provide functionality. libdspam is capable of being 
+linked in with any other application as a "drop-in" to provide spam filtering to
 mail clients, other anti-spam tools, and other such type projects that
 would benefit from its use.  Both static and shared versions are built by
 libtool and installed upon 'make install'.
 
 libdspam provides a storage driver abstraction layer, enabling developers to 
-easily change how information is stored on the system (for example Berkeley 
-DB, MySQL, Oracle, etc.) with enough flexibility to write a storage
+easily change how information is stored on the system (for example MySQL,
+PostgreSQL, Oracle, etc.) with enough flexibility to write a storage
 driver utilizing stone tablets and chisels. An attribute API is also available
 for advanced configuration management.  
 
 DSPAM AGENT
 
-The DSPAM agent is a shell for libdspam providing a direct interface to
+The DSPAM agent is a front-end for libdspam providing a direct interface to
 mail servers or other tools for server-side spam filtering. The agent 
 is normally integrated into one of two places:
 
