@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.28 2005/03/11 21:47:47 jonz Exp $
+## $Id: dspam.conf.in,v 1.29 2005/03/12 15:47:42 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -363,9 +363,12 @@ Opt out
 # as *@spam.yourdomain.com to intercept all missed spam. If you do this,
 # you'll need to enable this option so that the username is assigned based
 # on the To: address of the message; for example spam-bob will assign the
-# username to bob.
+# username to bob. If you want DSPAM to automatically set the processing 
+# mode (class=spam/innocent, source=error) based on this address, enable
+# ChangeModeOnParse. This will remove the need for aliases in such a setup.
 #
 #ParseToHeaders on
+#ChangeModeOnParse on
 
 #
 # Broken MTA Options: Some MTAs don't support the proper functionality

@@ -1,4 +1,13 @@
-$Id: CHANGELOG,v 1.201 2005/03/12 04:06:00 jonz Exp $
+$Id: CHANGELOG,v 1.202 2005/03/12 15:47:42 jonz Exp $
+
+Version NEXT
+------------
+
+[20050312.1035] jonz: added ChangeModeOnParse functionality
+
+added ChangeModeOnParse option to set the proper --class and --source when
+ParseToHeaders deteects a spam- or fp- address. This allows a system to be
+implemented without aliases, as all requests can be passed to dspam.
 
 Version 3.4.0
 -------------
