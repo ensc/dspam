@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.44 2004/12/01 03:17:14 jonz Exp $
+$Id: CHANGELOG,v 1.45 2004/12/01 03:24:34 jonz Exp $
 
 Version NEXT
 ------------
@@ -20,7 +20,7 @@ daemon processes *and* delivers at the moment (including to stdout). For
 client-side delivery, use --stdout and configure your MTA to deliver.
 removed some memory leaks.
 it may be necessary to perform all delivery in the client, as using fork &&
-pipe in a MT app is bad
+pipe in a MT app may be bad
 
 next: client
 then: stateful db connections

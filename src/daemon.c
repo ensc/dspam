@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.12 2004/12/01 03:17:14 jonz Exp $ */
+/* $Id: daemon.c,v 1.13 2004/12/01 03:24:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -227,8 +227,9 @@ void *process_connection(void *ptr) {
         ident = strtok_r(NULL, "@", &ptrptr);
 
         if (pass && ident) {
-          snprintf(buf, sizeof(buf), "ServerPass.%s", ident);
           char *serverpass = _ds_read_attribute(agent_config, buf);
+
+          snprintf(buf, sizeof(buf), "ServerPass.%s", ident);
           if (serverpass && !strcmp(pass, serverpass)) {
             TTX->authenticated = 1;
             if (socket_reply(TTX, LMTP_OK, "OK")<=0) {
