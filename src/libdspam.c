@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.59 2004/12/26 20:43:11 jonz Exp $ */
+/* $Id: libdspam.c,v 1.60 2004/12/26 20:51:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -665,9 +665,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   struct lht_c c_lht;
 
   struct heap *heap_sort = NULL; /* Heap sort for top N tokens */
-#ifdef BNR_DEBUG
-  struct heap *heap_nobnr = NULL; /* Heap sort for comparison calculation */
-#endif
 
   struct nt *header = NULL;      /* Header array */
   struct nt_node *node_nt;
@@ -733,10 +730,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     errcode = EUNKNOWN;
     goto bail;
   }
-
-#ifdef BNR_DEBUG
-  heap_nobnr = heap_create(heap_sort->size);
-#endif
 
   CTX->result = 
     (CTX->classification == DSR_ISSPAM) ? DSR_ISSPAM : DSR_ISINNOCENT;
@@ -1278,14 +1271,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
              node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
     }
 
-#ifdef BNR_DEBUG
-    if (!node_lht->token_name || strncmp(node_lht->token_name, "bnr.", 4)) 
-    {
-      heap_insert (heap_nobnr, node_lht->s.probability, node_lht->key,
-             node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
-    }
-#endif
-
 #ifdef VERBOSE
     LOGDEBUG ("Token: %s [%f]", node_lht->token_name,
               node_lht->s.probability);
@@ -1331,13 +1316,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   }
 
   result = _ds_calc_result(CTX, heap_sort, freq);
-#ifdef BNR_DEBUG
-  {
-    int bnr_result = _ds_calc_result(CTX, heap_nobnr, freq);
-    if (result != bnr_result)
-      LOGDEBUG("BNR CATCH: %d/%d", result, bnr_result);
-  }
-#endif
 
   if (CTX->flags & DSF_WHITELIST && do_whitelist) {
     LOGDEBUG("auto-whitelisting this message");
@@ -1536,9 +1514,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   lht_destroy (freq);
   lht_destroy (bnr_layer1);
   heap_destroy (heap_sort);
-#ifdef BNR_DEBUG
-  heap_destroy (heap_nobnr);
-#endif
 
   /* One final sanity check */
 
@@ -1557,9 +1532,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
 bail:
   heap_destroy (heap_sort);
-#ifdef BNR_DEBUG
-  heap_destroy (heap_nobnr);
-#endif
   lht_destroy (freq);
   lht_destroy (bnr_layer1);
   return errcode;
