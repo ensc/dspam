@@ -1,10 +1,15 @@
-$Id: RELEASE.NOTES,v 1.23 2005/01/14 14:15:55 jonz Exp $
+$Id: RELEASE.NOTES,v 1.24 2005/01/19 04:45:45 jonz Exp $
 
 RELEASE 3.4 (Beta 1)
 
 DSPAM CORE ENGINE (libdspam)
 
 Enhancements:
+
+Accuracy Enhancements
+Many small bug fixes and enhancements have been made to the core engine,
+resulting in a significant improvement in accuracy. Please see the UPGRADING
+document for the results of a comparison test using the SpamAssassin corpus.
 
 Bayesian Noise Reduction v2.0
 http://bnr.nuclearelephant.com
