@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.1 2004/10/24 20:47:30 jonz Exp $
+# $Id: Makefile.am,v 1.2 2005/01/03 22:37:43 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -15,7 +15,7 @@ DIST_SUBDIRS = . cgi m4 txt man src
 
 EXTRA_DIST = autogen.sh RELEASE.NOTES CHANGELOG LICENSE \
   README README.sendmail README.exim README.courier README.postfix \
-  README.pop3filter README.qmail
+  README.pop3filter README.qmail UPGRADING
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 auto-config.h.in \
 	config.guess config.sub configure depcomp install-sh   \
