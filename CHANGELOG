@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.245 2005/03/27 18:59:45 jonz Exp $
+$Id: CHANGELOG,v 1.246 2005/03/27 19:48:36 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050327.1400] jonz: fix for history retraining
+
+fix for history based retraining that allows non-admins to use the feature
 
 [20050327.1400] jonz: applied pgsql patch
 
