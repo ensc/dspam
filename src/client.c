@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.18 2005/02/24 17:28:16 jonz Exp $ */
+/* $Id: client.c,v 1.19 2005/02/24 17:56:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -303,6 +303,12 @@ int client_getcode(THREAD_CTX *TTX) {
   input = client_getline(TTX, 300);
   if (input == NULL)
     return EFAILURE;
+
+  while(input != NULL && !strncmp(input, "250-", 4)) {
+    free(input);
+    input = client_getline(TTX, 300);
+  }
+
   ptr = strtok_r(input, " ", &ptrptr);
   if (ptr == NULL)
     return EFAILURE;
@@ -370,17 +376,19 @@ int send_socket(THREAD_CTX *TTX, const char *ptr) {
     r = send(TTX->sockfd, ptr+i, msglen-i, 0);
     if (r <= 0) {
       return r;
-}
+    }
     i += r;
   }
 
-  r = send(TTX->sockfd, "\n", 2, 0);
+  r = send(TTX->sockfd, "\n", 1, 0);
+/*
   if (r == 1) {
     send(TTX->sockfd, "", 1, 0);
     r++;
   }
+*/
 
-  return i+2;
+  return i+1;
 }
 
 /* deliver_lmtp: delivers via LMTP instead of TrustedDeliveryAgent */
@@ -411,7 +419,7 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
 
   strcpy(buff, "LHLO localhost");
   if (_ds_read_attribute(agent_config, "LMTPDeliveryIdent")) {
-    snprintf(buff, sizeof(buff), "LHLO %s", _ds_read_attribute(agent_config, "LMTPDeliveryHost"));
+    snprintf(buff, sizeof(buff), "LHLO %s", _ds_read_attribute(agent_config, "LMTPDeliveryIdent"));
   }
 
   if (send_socket(&TTX, buff)<=0)
@@ -419,6 +427,11 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
 
   /* RCPT TO - Send recipient information */
   /* ------------------------------------ */
+
+  input = client_expect(&TTX, LMTP_OK);
+  if (input == NULL)
+    goto BAIL;
+  free(input);
 
   snprintf(buff, sizeof(buff), "MAIL FROM:<> SIZE=%ld", strlen(message));
   if (send_socket(&TTX, buff)<=0)
@@ -434,7 +447,7 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
   if (client_getcode(&TTX)!=LMTP_OK) 
     goto QUIT;
 
-  /* DATA - Send message */
+  /* DATA - Send Message */
   /* ------------------- */
 
   if (send_socket(&TTX, "DATA")<=0) 
@@ -461,34 +474,6 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
 
   /* Server Response */
   /* --------------- */
-
-  if (ATX->flags & DAF_STDOUT || ATX->operating_mode == DSM_CLASSIFY) {
-    char *line = NULL;
-
-    line = client_getline(&TTX, 300);
-    if (line)
-      chomp(line);
-
-    while(line != NULL && strcmp(line, ".")) {
-      chomp(line);
-      printf("%s\n", line);
-      free(line);
-      line = client_getline(&TTX, 300);
-      if (line) chomp(line);
-    }
-    free(line);
-    if (line == NULL)
-      goto BAIL;
-  } else {
-    for(i=0;i<ATX->users->items;i++) {
-      int c = client_getcode(&TTX);
-      if (c<0) 
-        goto BAIL;
-      if (c != LMTP_OK) {
-        exitcode--;
-      }
-    }
-  }
 
   send_socket(&TTX, "QUIT");
   client_getcode(&TTX);
