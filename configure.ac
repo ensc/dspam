@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.19 2004/12/30 23:30:08 jonz Exp $
+dnl $Id: configure.ac,v 1.20 2005/01/01 02:05:05 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -414,15 +414,14 @@ AC_MSG_RESULT([$enable_mysql4_initialization])
 
 #
 #   DCLASSIFY Storage Driver Extension
-#   Enables the DCLASSIFY extension in supporting storage drivers.
-#   For use with DCLASSIFY (http://dclassify.nuclearelephant.com)
+#   Enables the dclassify extension in supporting storage drivers.
+#   For use with dclassify (http://dclassify.nuclearelephant.com)
 #
 AC_ARG_ENABLE(dclassify-extension,
     [AS_HELP_STRING(--enable-dclassify-extension,
-                        Enables the DCLASSIFY extension in supported storage 
-                        drivers. For use with DSPAM's DCLASSIFY module.
+                        Enables the dclassify extension in supported storage
+                        drivers. For use with DSPAM's libdclassify module.
                     )])
-AC_MSG_CHECKING([whether to enable DCLASSIFY storage driver extension])
 case x"$enable_dclassify_extension" in
     xyes)   # enabled explicity
             ;;
@@ -439,9 +438,23 @@ then
     enable_dclassify_extension=no
 else
     enable_dclassify_extension=yes    # overkill, but convenient
+
+    DCLASSIFY_CPPFLAGS=''
+    DCLASSIFY_LDFLAGS=''
+    DCLASSIFY_LIBS=''
+    success=yes
+    DS_DCLASSIFY(DCLASSIFY_CPPFLAGS, DCLASSIFY_LDFLAGS, DCLASSIFY_LIBS,
+             [success=yes], [success=no])
+    if test x"$success" != xyes
+    then
+        AC_MSG_ERROR([Required version of libdclassify was not found])
+    fi
+    CPPFLAGS="$DCLASSIFY_CPPFLAGS $CPPFLAGS"
+    LIBS="$DCLASSIFY_LIBS $LIBS"
+    LDFLAGS="$DCLASSIFY_LDFLAGS $LDFLAGS"
+
     AC_DEFINE(DCLASSIFY_EXTENSION, 1, [Defined if storage driver supports the DCLASSIFY extension])
 fi
-AC_MSG_RESULT([$enable_dclassify_extension])
 
 #
 #   Preferences Extension
