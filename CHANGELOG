@@ -1,5 +1,13 @@
-$Id: CHANGELOG,v 1.187 2005/03/01 19:16:50 jonz Exp $
+$Id: CHANGELOG,v 1.188 2005/03/02 17:48:02 jonz Exp $
 
+Version NEXT
+------------
+
+[20050302.0700] jonz: fixed unknown token value bug
+
+fixed a bug where unknown tokens would be assigned an innocent value rather
+than neutral
+ 
 Version 3.4.rc2a
 ----------------
 

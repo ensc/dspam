@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.95 2005/02/04 14:53:13 jonz Exp $ */
+/* $Id: libdspam.c,v 1.96 2005/03/02 17:48:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -1593,6 +1593,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
           CTX->source == DSS_ERROR       ||
           CTX->source == DSS_INOCULATION ||
           ds_term->s.spam_hits + ds_term->s.innocent_hits < 50 ||
+          ds_term->key == diction->whitelist_token             ||
           CTX->confidence < 0.70))
     {
       ds_term->s.status |= TST_DIRTY;
@@ -1961,12 +1962,10 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
   }
 
 #ifdef BIAS
-  if ((s->spam_hits + (2 * s->innocent_hits) < min_hits
-      || CTX->totals.innocent_learned < min_hits) 
-      && s->probability > 0.5000)
+  if (s->spam_hits + (2 * s->innocent_hits) < min_hits
+      || CTX->totals.innocent_learned < min_hits)
 #else
-  if ((s->spam_hits + s->innocent_hits < min_hits
-      && s->probability > 0.5000)
+  if (s->spam_hits + s->innocent_hits < min_hits
       || CTX->totals.innocent_learned < min_hits)
 #endif
     s->probability = .4;
