@@ -1,4 +1,4 @@
-$Id: README,v 1.37 2005/02/24 16:33:37 jonz Exp $
+$Id: README,v 1.38 2005/02/24 17:25:04 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1759,15 +1759,16 @@ SERVER> 250 <jane> Message accepted for delivery
   2. Configure your LMTPDeliveryHost and LMTPDeliveryIdent in dspam.conf
 
   3. Add the --lmtp-recipient flag to the arguments passed into DSPAM. This is
-     used to specify the destination address for the message. For example:
+     used to specify the destination address for the message. For example, in
+     postfix:
 
-     --lmtp-recipient=$RECIPIENT
+     --lmtp-recipient=${recipient}
  
   DSPAM will then connect to the specified host, and deliver using a standard
   LMTP looking like:
 
 LHLO [ident]
-MAIL FROM: <>
+MAIL FROM:<> SIZE=[message_length]
 RCPT TO: <recipient>
 DATA
 [Message]

@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.16 2005/02/24 16:36:51 jonz Exp $ */
+/* $Id: client.c,v 1.17 2005/02/24 17:25:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -183,7 +183,6 @@ int client_connect(int flags) {
   char *host;
 
   if (flags & CCF_LMTPHOST) {
-
     host = _ds_read_attribute(agent_config, "LMTPDeliveryHost");
 
     if (_ds_read_attribute(agent_config, "LMTPDeliveryPort"))
@@ -232,7 +231,6 @@ int client_connect(int flags) {
       report_error_printf(ERROR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
       return EFAILURE;
     }
-
   }
 
   LOGDEBUG(CLIENT_CONNECTED);
@@ -282,12 +280,14 @@ char * client_expect(THREAD_CTX *TTX, int response_code) {
       LOG(LOG_CRIT, ERROR_MEM_ALLOC);
       return NULL;
     }
-    ptr = strtok_r(dup, " ", &ptrptr);
-    if (ptr) 
-      code = atoi(ptr);
-    free(dup);
-    if (code == response_code) 
-      return input;
+    if (strncmp(dup, "250-", 4)) {
+      ptr = strtok_r(dup, " ", &ptrptr);
+      if (ptr) 
+        code = atoi(ptr);
+      free(dup);
+      if (code == response_code) 
+        return input;
+    }
     
     free(input);
     input = client_getline(TTX, 300);
