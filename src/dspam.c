@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.35 2004/12/03 01:30:32 jonz Exp $ */
+/* $Id: dspam.c,v 1.36 2004/12/03 01:37:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -144,6 +144,7 @@ main (int argc, char *argv[])
     goto bail;
   }
 
+#ifdef DAEMON
   if (ATX.operating_mode == DSM_DAEMON && ATX.trusted) {
     DRIVER_CTX DTX;
 
@@ -175,6 +176,7 @@ main (int argc, char *argv[])
     pthread_exit(EXIT_SUCCESS);
     exit(EXIT_SUCCESS);
   }
+#endif
 
   /* Set defaults if an option wasn't specified on the commandline */
   if (apply_defaults(&ATX)) {
@@ -205,9 +207,11 @@ main (int argc, char *argv[])
     goto bail;
   }
 
+#ifdef DAEMON
   if (_ds_read_attribute(agent_config, "ClientIdent")) {
     exitcode = client_process(&ATX, message);
   } else {
+#endif
  
     if (dspam_init_driver (NULL))
     {
@@ -226,7 +230,9 @@ main (int argc, char *argv[])
         free(results[i]);
     }
     free(results);
+#ifdef DAEMON
   }
+#endif
 
 bail:
 

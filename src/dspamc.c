@@ -1,4 +1,4 @@
-/* $Id: dspamc.c,v 1.1 2004/12/03 01:30:32 jonz Exp $ */
+/* $Id: dspamc.c,v 1.2 2004/12/03 01:37:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -114,6 +114,11 @@ main (int argc, char *argv[])
   DO_DEBUG = 0;
 #endif
 
+#ifndef DAEMON
+  report_error(ERROR_NO_DAEMON);
+  exit(EXIT_FAILURE);
+#endif
+
   /* Read dspam.conf */
   agent_config = read_config(NULL);
   if (!agent_config) {
@@ -173,12 +178,14 @@ main (int argc, char *argv[])
     goto bail;
   }
 
+#ifdef DAEMON
   if (_ds_read_attribute(agent_config, "ClientIdent")) {
     exitcode = client_process(&ATX, message);
   } else {
     report_error(ERROR_INVALID_CLIENT_CONFIG);
     exitcode = EINVAL;
   }
+#endif
 
 bail:
 

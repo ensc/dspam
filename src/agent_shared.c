@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.1 2004/12/03 01:30:32 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.2 2004/12/03 01:37:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -65,6 +65,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #   endif
 #endif
 
+#include "agent_shared.h"
 #include "pref.h"
 #include "libdspam.h"
 #include "language.h"
