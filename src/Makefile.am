@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.4 2004/11/10 19:52:01 jonz Exp $
+# $Id: Makefile.am,v 1.5 2004/11/21 02:47:55 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -81,7 +81,9 @@ dspam_SOURCES = \
         buffer.h \
 	storage_driver.h \
 	md5.c md5.h \
-	read_config.c read_config.h 
+	read_config.c read_config.h \
+	daemon.c daemon.h \
+	client.c client.h
 
 dspam_LDADD = libdspam.la
 dspam_LDFLAGS = -static
