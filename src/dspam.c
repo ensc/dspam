@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.14 2004/11/27 22:10:58 jonz Exp $ */
+/* $Id: dspam.c,v 1.15 2004/11/27 22:38:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -211,14 +211,11 @@ process_message (AGENT_CTX *ATX,
 {
   DSPAM_CTX *CTX = NULL;		/* dspam context */
   struct _ds_message *components;
-  struct _ds_neural_decision DEC;	/* neural decision */
 
   char *copyback;
   int have_signature = 0;
   int have_decision = 0;
   int result, i;
-
-  DEC.length = 0;
 
   /* Create a DSPAM context based on the agent context */
   CTX = ctx_init(ATX, PTX, username);
@@ -270,7 +267,7 @@ process_message (AGENT_CTX *ATX,
       CTX->signature = &ATX->SIG;
     }
 #ifdef NEURAL
-    if (_ds_get_decision (CTX, &DEC, ATX->signature))
+    if (_ds_get_decision (CTX, &ATX->DEC, ATX->signature))
       have_decision = 0;
 #endif
   } else if (CTX->operating_mode == DSM_CLASSIFY || 
@@ -287,7 +284,7 @@ process_message (AGENT_CTX *ATX,
       CTX->classification != DSR_NONE && 
       CTX->source == DSS_ERROR)
   {
-    process_neural_decision(CTX, &DEC);
+    process_neural_decision(CTX, &ATX->DEC);
   }
 #endif
 
@@ -381,6 +378,7 @@ process_message (AGENT_CTX *ATX,
     }
     inoculate_user (username, NULL, message->data, ATX);
     result = DSR_ISSPAM;
+    CTX->result = DSR_ISSPAM;
     
     goto RETURN;
   }
@@ -411,8 +409,8 @@ process_message (AGENT_CTX *ATX,
         }
       }
 #ifdef NEURAL
-      if (DEC.length != 0)
-        _ds_set_decision(CTX, &DEC, ATX->signature);
+      if (ATX->DEC.length != 0)
+        _ds_set_decision(CTX, &ATX->DEC, ATX->signature);
 #endif
       }
   }
@@ -503,8 +501,14 @@ RETURN:
   if (CTX)
     dspam_destroy (CTX);
   return result;
-
 }
+
+/*
+    deliver_message: delivers the message to the delivery agent
+    message	message to be delivered
+    mailer_args	args to pass to the delivery agent
+    username	username of the user being processed
+*/
 
 int
 deliver_message (const char *message, const char *mailer_args,
@@ -605,6 +609,12 @@ deliver_message (const char *message, const char *mailer_args,
   return 0;
 }
 
+/*
+    tag_message: tags a message's subject line as spam
+    block	message block to tag
+    PTX		preferences
+*/
+
 int tag_message(struct _ds_message_block *block, AGENT_PREF PTX)
 {
   struct nt_node *node_header = block->headers->first; 
@@ -686,6 +696,12 @@ int tag_message(struct _ds_message_block *block, AGENT_PREF PTX)
   return 0;
 }
 
+/*
+    quarantine_message: place a message in the user's quarantine
+    message	message to quarantine
+    username	user being processed
+*/
+
 int
 quarantine_message (const char *message, const char *username)
 {
@@ -748,6 +764,13 @@ quarantine_message (const char *message, const char *username)
   free (omsg);
   return 0;
 }
+
+/* 
+    write_web_stats: writes a .stats file to user.stats for CGI
+    username	user being processed
+    group	name of shared group to create .stats file within
+    totals	user's processing totals
+*/
 
 int
 write_web_stats (
@@ -970,6 +993,13 @@ user_classify (const char *username, struct _ds_spam_signature *SIG,
   return result;
 }
 
+/*
+    send_notice: deliver a notification to the user's mailbox
+    filename	filename of notification
+    mailer_args	arguments to pass to delivery agent
+    username	user being processed
+*/
+	
 int send_notice(const char *filename, const char *mailer_args, 
                 const char *username) {
   FILE *f;
@@ -1015,6 +1045,13 @@ int send_notice(const char *filename, const char *mailer_args,
   return 0;
 }
 
+/*
+    process_features: convert a plain text feature line into agent context 
+                      values
+    ATX		agent context
+    features	plain text list of features to parse
+*/
+ 
 int process_features(AGENT_CTX *ATX, const char *features) {
   char *s, *d;
   int ret = 0;
@@ -1058,6 +1095,12 @@ int process_features(AGENT_CTX *ATX, const char *features) {
   return ret;
 }
 
+/*
+    process_mode: reads plain text mode into an agent context
+    ATX		agent context
+    mode	plain text name of mode
+*/
+
 int process_mode(AGENT_CTX *ATX, const char *mode) {
   if (!strcmp(mode, "toe"))
     ATX->training_mode = DST_TOE;
@@ -1079,6 +1122,11 @@ int process_mode(AGENT_CTX *ATX, const char *mode) {
 
   return 0;
 }
+
+/*
+    initialize_atx: initialize an agent context
+    ATX		agent context to initialize
+*/
 
 int initialize_atx(AGENT_CTX *ATX) {
 
@@ -1400,7 +1448,11 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
   return 0;
 }
 
-/* Apply default values from dspam.conf in absence of other options */
+/*
+   Apply default values from dspam.conf in absence of other options 
+   ATX	agent context
+
+*/
 
 int apply_defaults(AGENT_CTX *ATX) {
 
@@ -1615,6 +1667,12 @@ bail:
   buffer_destroy(message);
   return NULL;
 }
+
+/*
+    process_users: cycle through each user and process
+    ATX		agent context containing userlist
+    message	message to process for each user
+*/
 
 int process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_node *node_nt;
@@ -1930,9 +1988,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 }
 
 
+/* find_signature: find, parse, and strip DSPAM signature */
 
-
-  /* Find, parse, and strip DSPAM signature */
 int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
   struct nt_node *node_nt, *prev_node = NULL;
   struct nt_c c;
@@ -2158,6 +2215,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
   return have_signature;
 }
 
+/* ctx_init: initialize a DSPAM context from an agent context */
 
 DSPAM_CTX *ctx_init(AGENT_CTX *ATX, AGENT_PREF PTX, const char *username) {
   DSPAM_CTX *CTX;
@@ -2398,6 +2456,9 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, AGENT_PREF PTX, const char *username) {
   return CTX;
 }
 
+/* process_neural_decision: determine reliability based on which nodes
+   correcly marked a message */
+
 #ifdef NEURAL
 int process_neural_decision(DSPAM_CTX *CTX, struct _ds_neural_decision *DEC) { 
   struct _ds_neural_record r;
@@ -2417,8 +2478,11 @@ int process_neural_decision(DSPAM_CTX *CTX, struct _ds_neural_decision *DEC) {
      }
   }
   free(DEC->data);
+  return 0;
 }
 #endif
+
+/* retrain_message: reclassify a message, perform iterative training */
 
 int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   int result;
@@ -2499,6 +2563,9 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   return 0;
 }
 
+/* ensure_confident_result: consult global group, neural network, or
+   clasification network if the user isn't confident in their result */
+
 int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
   int was_spam = 0;
 
@@ -2538,13 +2605,12 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       int bay_used = 0;
       int res, i = 0;
 
-      DEC.length = (total_nodes * (sizeof(uid_t)+1));
-      DEC.data = calloc(1, DEC.length);
+      ATX->DEC.length = (total_nodes * (sizeof(uid_t)+1));
+      ATX->DEC.data = calloc(1, ATX->DEC.length);
       
-      if (DEC.data == NULL) {
+      if (ATX->DEC.data == NULL) {
         LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-        result = EUNKNOWN;
-        goto RETURN;
+        return EUNKNOWN;
       }
 
       t = tbt_create();
@@ -2555,8 +2621,8 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       {
         res = _ds_get_node(CTX, node_int->ptr, &r);
         if (!res) {
-          memcpy(DEC.data+(i*(sizeof(uid_t)+1)), &r.uid, sizeof(uid_t));
-          memset(DEC.data+(i*(sizeof(uid_t)+1))+sizeof(uid_t), 'E', 1);
+          memcpy(ATX->DEC.data+(i*(sizeof(uid_t)+1)), &r.uid, sizeof(uid_t));
+          memset(ATX->DEC.data+(i*(sizeof(uid_t)+1))+sizeof(uid_t), 'E', 1);
        
           LOGDEBUG ("querying node %s", (const char *) node_int->ptr);
           res = user_classify ((const char *) node_int->ptr,
@@ -2575,9 +2641,9 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
           _ds_set_node(CTX, NULL, &r);
 
           if (res == DSR_ISSPAM)
-            memset(DEC.data+(i*(sizeof(uid_t)+1))+sizeof(uid_t), 'S', 1);
+            memset(ATX->DEC.data+(i*(sizeof(uid_t)+1))+sizeof(uid_t), 'S', 1);
           else if (res == DSR_ISINNOCENT)
-            memset(DEC.data+(i*(sizeof(uid_t)+1))+sizeof(uid_t), 'I', 1);
+            memset(ATX->DEC.data+(i*(sizeof(uid_t)+1))+sizeof(uid_t), 'I', 1);
 
           i++;
         }
@@ -2694,6 +2760,8 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
   return result;
 }
 
+/* log_events: write journal to system.log and user.log */
+
 int log_events(DSPAM_CTX *CTX) {
   char filename[MAX_FILENAME_LENGTH];
   char *subject = NULL, *from = NULL;
@@ -2799,6 +2867,8 @@ int log_events(DSPAM_CTX *CTX) {
   return 0;
 }
 
+/* strip_xdspam_headers: strips old x-dspam headers from the message */
+
 int strip_xdspam_headers(DSPAM_CTX *CTX, AGENT_PREF PTX) {
   struct nt_node *node_nt;
   struct nt_c c_nt;
@@ -2860,6 +2930,8 @@ int strip_xdspam_headers(DSPAM_CTX *CTX, AGENT_PREF PTX) {
   }
   return 0;
 }
+
+/* add_xdspam_headers: add headers from this round of processing */
 
 int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
   struct nt_node *node_nt;
@@ -2991,6 +3063,8 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
   }
   return 0;
 }
+
+/* embed_signature: embed the signature in all relevant parts of the message */
 
 int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
   struct nt_node *node_nt;
@@ -3268,6 +3342,8 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
   }
   return 0;
 }
+
+/* tracksource: report spam/ham sources as requested, log to SBL */
 
 int tracksource(DSPAM_CTX *CTX) {
   char ip[32];

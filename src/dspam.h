@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.4 2004/11/27 22:08:03 jonz Exp $ */
+/* $Id: dspam.h,v 1.5 2004/11/27 22:38:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -50,28 +50,31 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 /* Agent Context: Agent Configuration */
 
 typedef struct {
-  int operating_mode;   /* DSM_ */
-  int training_mode;    /* DST_ */
-  int classification;   /* DSR_ */
-  int source;           /* DSS_ */
-  int spam_action;	/* DSA_ */
-  int trusted;		    /* Trusted User?         IN  */
-  int feature;		    /* Feature Overridden?   IN  */
-  u_int32_t flags;          /* Flags DAF_            IN  */
-  int training_buffer;	    /* Sedation Level 0-10   IN  */
-  char mailer_args[256];        /* Delivery Args     IN  */
-  char spam_args[256];          /* Quarantine Args   IN  */
-  char managed_group[256];      /* Managed Groupname IN  */
-  char profile[32];	        /* Storage Profile   IN  */
-  char signature[128];          /* Signature Serial  IN  */
-  struct nt *users;	        /* Destination Users IN  */
-  struct nt *inoc_users;        /* Inoculate list    OUT */
-  struct nt *classify_users;    /* Classify list     OUT */
-  struct _ds_spam_signature SIG;/* signature object  OUT */ 
-  int learned;                  /* Message learned?  OUT  */
+  int operating_mode;       /* Processing Mode       IN DSM_ */
+  int training_mode;        /* Training Mode         IN DST_ */
+  int classification;       /* Classification        IN DSR_ */
+  int source;               /* Classification Source IN DSS_ */
+  int spam_action;	    /* Action on Spam        IN DSA_ */
+  int trusted;		    /* Trusted User?         IN      */
+  int feature;		    /* Feature Overridden?   IN      */
+  u_int32_t flags;          /* Flags DAF_            IN      */
+  int training_buffer;	    /* Sedation Level 0-10   IN      */
+  char mailer_args[256];        /* Delivery Args     IN      */
+  char spam_args[256];          /* Quarantine Args   IN      */
+  char managed_group[256];      /* Managed Groupname IN      */
+  char profile[32];	        /* Storage Profile   IN      */
+  char signature[128];          /* Signature Serial  IN/OUT  */
+  struct nt *users;	        /* Destination Users IN      */
+  struct nt *inoc_users;        /* Inoculate list    OUT     */
+  struct nt *classify_users;    /* Classify list     OUT     */
+  struct _ds_spam_signature SIG;/* signature object  OUT     */ 
+  int learned;                  /* Message learned?  OUT     */
 
 #ifdef DEBUG
   char debug_args[1024];
+#endif
+#ifdef NEURAL
+  struct _ds_neural_decision DEC;       /* neural decision */
 #endif
 #ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
@@ -82,31 +85,22 @@ typedef struct {
 
 /* Public agent functions */
 
-int deliver_message	(const char *message, 
-			 const char *mailer_args,
+int deliver_message	(const char *message, const char *mailer_args,
 			 const char *username);
 
-int process_message	(AGENT_CTX *ATX, 
-                         AGENT_PREF PTX,
-			 buffer *message,
+int process_message	(AGENT_CTX *ATX, AGENT_PREF PTX,
+			 buffer *message, const char *username);
+
+int inoculate_user	(const char *username, struct _ds_spam_signature *SIG,
+			 const char *message, AGENT_CTX *ATX);
+
+int user_classify	(const char *username, struct _ds_spam_signature *SIG,
+			 const char *message, AGENT_CTX *ATX);
+
+int send_notice		(const char *filename, const char *mailer_args,
 			 const char *username);
 
-int inoculate_user	(const char *username,
-			 struct _ds_spam_signature *SIG,
-			 const char *message,
-                         AGENT_CTX *ATX);
-
-int user_classify	(const char *username,
-			 struct _ds_spam_signature *SIG,
-			 const char *message,
-                         AGENT_CTX *ATX);
-
-int send_notice		(const char *filename,
-			 const char *mailer_args,
-			 const char *username);
-
-int write_web_stats     (const char *username, 
-                         const char *group, 
+int write_web_stats     (const char *username, const char *group, 
                          struct _ds_spam_totals *totals);
 
 int ensure_confident_result	(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result);
@@ -128,6 +122,10 @@ int add_xdspam_headers	(DSPAM_CTX *CTX, AGENT_CTX *ATX,  AGENT_PREF PTX);
 int embed_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX);
 int tracksource		(DSPAM_CTX *CTX);
 buffer *read_stdin	(AGENT_CTX *ATX);
+
+#ifdef NEURAL
+int process_neural_decision(DSPAM_CTX *CTX, struct _ds_neural_decision *DEC);
+#endif
 
 #ifndef MIN
 #   define MAX(a,b)  ((a)>(b)?(a):(b))
