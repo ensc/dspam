@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.15 2004/11/22 16:48:32 jonz Exp $ */
+/* $Id: libdspam.c,v 1.16 2004/11/22 20:57:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -1094,7 +1094,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       _ds_calc_stat (CTX, node->key, &node->s, DTT_DEFAULT);
 
       previous_probs[BNR_SIZE-1] = _ds_round(node->s.probability);
-      bnr_token[0] = 0;
+      strcpy(bnr_token, "bnr.s");
       for(i=0;i<BNR_SIZE;i++) {
         char x[8];
         snprintf(x, 8, "%01.2f.", previous_probs[i]);
@@ -1120,7 +1120,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       _ds_calc_stat (CTX, node->key, &node->s, DTT_DEFAULT);
 
       previous_probs[BNR_SIZE-1] = _ds_round(node->s.probability);
-      strcpy(bnr_token, "c");
+      strcpy(bnr_token, "bnr.c");
       for(i=0;i<BNR_SIZE;i++) {
         char x[8];
         snprintf(x, 8, "%01.2f.", previous_probs[i]);
@@ -1192,6 +1192,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       lht_setspamstat(freq, node_lht->key, &node_lht->s);
       lht_setfrequency(freq, node_lht->key, 1);
 
+      LOGDEBUG("BNR Pattern: %s %01.5f %lds %ldi", node_lht->token_name, node_lht->s.probability, node_lht->s.spam_hits, node_lht->s.innocent_hits);
 #ifdef BNR_DEBUG
       tbt_add (pindex, node_lht->s.probability, node_lht->key,
              node_lht->frequency, 1);
@@ -1403,7 +1404,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     if (CTX->training_mode != DST_TUM  || 
         CTX->source == DSS_ERROR       ||
         CTX->source == DSS_INOCULATION ||
-        node_lht->s.spam_hits + node_lht->s.innocent_hits < 50)
+        node_lht->s.spam_hits + node_lht->s.innocent_hits < 50 ||
+        !strncmp(node_lht->token_name, "bnr.", 4))
     {
       node_lht->s.status |= TST_DIRTY;
     }
@@ -2352,7 +2354,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct tbt *index, struct lht *freq) {
     }
 
     /* Skip BNR patterns if still training */
-    if (strlen(token_name) == 15 && token_name[14] == '.') {
+    if (!strncmp(token_name, "bnr.", 4)) {
       if (CTX->classification != DSR_NONE ||
           CTX->totals.innocent_learned + CTX->totals.innocent_classified 
             <= 2500)
