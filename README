@@ -1,4 +1,4 @@
-$Id: README,v 1.44 2005/03/02 22:08:47 jonz Exp $
+$Id: README,v 1.45 2005/03/04 16:00:45 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1862,29 +1862,8 @@ DATA
 
 3.1 KNOWN BUGS
 
-  - DSPAM presently does _not_ handle a mass forward of emails, but only one
-    forward at a time.  Be sure to tell your users not to select multiple
-    messages and forward them...this results in a single message being sent
-    into DSPAM instead.  Users should individually forward each spam.  
-
-    DSPAM can be made to support this with the help of a little script that
-    extracts the signatures from a stream, and calls DSPAM once with every
-    signature. The script would call dspam with --signature=[signature] once
-    for each found in the message.
-
-  - The Oracle storage driver is slow; this is primarily due to the fact that
-    the agent has to establish a new connection with Oracle every time it is
-    run.  This adds another 0.5 - 1.5 seconds of delay. Future versions may
-    support stateful daemon mode, but for now if you are looking for speed,
-    consider the MySQL storage driver.
-
-  - Neural networking is only supported by the MySQL driver presently, but
-    configure will allow you to proceed (to a broken make) using any
-    storage driver.  Neural networking is still EXPERIMENTAL and is not yet
-    complete.
-
-  - If a misclassification is reported, it appears in the graphs under the hour
-    it was reported, rather than the hour the original message came in
+  Please see http://dspam.nuclearelephant.com/bugs.txt for information
+  about known bugs.
 
 3.2 ADDING THE DSPAM LOGO BUTTON TO YOUR WEBSITE
 
