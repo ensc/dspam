@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.37 2004/12/05 22:14:45 jonz Exp $ */
+/* $Id: dspam.c,v 1.38 2004/12/07 15:06:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -2545,6 +2545,8 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
          node_nt != NULL)
   {
     char *body_close = NULL, *dup = NULL;
+
+    block = node_nt->ptr;
 
     /* Append signature to subject of multipart/signed messages */
     if (block != NULL && block->media_type == MT_MULTIPART && 
