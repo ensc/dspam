@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.41 2005/02/25 15:09:08 jonz Exp $ */
+/* $Id: daemon.c,v 1.42 2005/02/27 20:20:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -394,7 +394,8 @@ void *process_connection(void *ptr) {
           send_socket(TTX, buf);
           goto CLOSE;
         }
-        nt_add(ATX->users, username);
+        if (!parms || !strstr(parms, "--user "))
+          nt_add(ATX->users, username);
         strlcpy(ATX->recipient, username, sizeof(ATX->recipient));
       }
 

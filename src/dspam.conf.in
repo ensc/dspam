@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.23 2005/02/25 23:19:35 jonz Exp $
+## $Id: dspam.conf.in,v 1.24 2005/02/27 20:20:04 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -414,6 +414,9 @@ Opt out
 
 # If running in standard mode, server parameters will need to be specified
 # here, as they will not be passed in by the mail server
+#
+# NOTE: If you specify --user in ServerParameters, the RCPT TO will be
+#       used only for delivery, and not set as the active user for processing.
 #
 #ServerMode		standard
 #ServerParameters	"--deliver=innocent -d %u"

@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.177 2005/02/25 23:19:35 jonz Exp $
+$Id: CHANGELOG,v 1.178 2005/02/27 20:20:04 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050227.1515] jonz: LMTP enhancement: --user to ignore RCPT TO
+
+if --user is specified in ServerParameters when DSPAM is running in standard
+LMTP mode, then RCPT TO will be used only for delivery, and not processing
 
 [20050225.0700] jonz: added support for LMTP delivery via domai socket
 
