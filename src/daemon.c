@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.64 2005/03/15 20:57:15 jonz Exp $ */
+/* $Id: daemon.c,v 1.65 2005/03/15 22:48:05 jonz Exp $ */
 
 /*
 
@@ -298,7 +298,6 @@ void *process_connection(void *ptr) {
   char buf[1024];
   int tries = 0;
   int argc = 0;
-  int **results, *result;
   int i, locked = -1;
   FILE *fd = fdopen(TTX->sockfd, "w");
   int server_mode = SSM_DSPAM;
@@ -605,7 +604,12 @@ void *process_connection(void *ptr) {
     locked = i;
 
     /* Process the message using the existing agent functions */
-    results = process_users(ATX, message);
+    ATX->results = nt_create(NT_PTR);
+    if (ATX->results == NULL) {
+      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      goto CLOSE;
+    } 
+    process_users(ATX, message);
   
     /*
        Unlock the database handle as soon as we're done. We also need to
@@ -625,59 +629,61 @@ void *process_connection(void *ptr) {
 
     /* Otherwise, produce standard delivery results */
     } else {
-      struct nt_node *node_nt;
+      struct nt_node *node_nt, *node_res = NULL;
       struct nt_c c_nt;
       if (ATX->recipients)
         node_nt = c_nt_first(ATX->recipients, &c_nt);
       else
         node_nt = c_nt_next(ATX->users, &c_nt);
 
-      i = 0;
+      if (ATX->results)
+        node_res = ATX->results->first;
 
       while(node_nt != NULL) {
-        int r = 0;
-        result = results[i];
-        if (result) 
-          r = *result; 
-        if (result == NULL || r == 0)
+        agent_result_t result = (agent_result_t) node_res->ptr;
+
+        if (result != NULL && result->exitcode == ERC_SUCCESS)
         {
-          snprintf(buf, sizeof(buf),
-                  "%d 2.6.0 <%s> Message accepted for delivery",
-                  LMTP_OK, (char *) node_nt->ptr);
+          if (server_mode == SSM_DSPAM) {
+            snprintf(buf, sizeof(buf),
+                    "%d 2.6.0 <%s> Message accepted for delivery: %s",
+                    LMTP_OK, (char *) node_nt->ptr, 
+              (result->classification == DSR_ISSPAM) ? "SPAM" : "INNOCENT");
+          } else {
+            snprintf(buf, sizeof(buf),
+                    "%d 2.6.0 <%s> Message accepted for delivery",
+                    LMTP_OK, (char *) node_nt->ptr);
+          }
         } 
         else
         {
           snprintf(buf, sizeof(buf),
-                   "%d 5.3.0 <%s> Error occured during processing", 
-                   LMTP_ERROR_PROCESS, (char *) node_nt->ptr);
+                   "%d 5.3.0 <%s> Error occured during %s", 
+                   LMTP_ERROR_PROCESS, (char *) node_nt->ptr,
+            (result->exitcode == ERC_DELIVERY) ? "delivery" : "processing");
         }
 
-        if (send_socket(TTX, buf)<=0) {
-          for(;i<=ATX->users->items;i++)
-            free(results[i]);
-          free(results);
+        if (send_socket(TTX, buf)<=0) 
           goto CLOSE;
-        }
         if (ATX->recipients)
           node_nt = c_nt_next(ATX->recipients, &c_nt);
         else
           node_nt = c_nt_next(ATX->users, &c_nt);
-        i++;
+        if (node_res)
+          node_res = node_res->next;
       }
     }
 
     /* Cleanup and get ready for another message */
 
     fflush(fd);
-    for(i=0;i<=ATX->users->items;i++)
-      free(results[i]);
-    free(results);
 
     buffer_destroy(message);
     message = NULL;
     if (ATX != NULL) {
       nt_destroy(ATX->users);
       nt_destroy(ATX->recipients);
+      nt_destroy(ATX->results);
       free(ATX);
       ATX = NULL;
       free(cmdline);
@@ -703,6 +709,7 @@ CLOSE:
   if (ATX != NULL) {
     nt_destroy(ATX->users);
     nt_destroy(ATX->recipients);
+    nt_destroy(ATX->results);
   }
   free(ATX);
   free(cmdline);

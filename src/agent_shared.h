@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.11 2005/03/14 21:20:00 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.12 2005/03/15 22:48:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -74,6 +74,7 @@ typedef struct {
   struct nt *inoc_users;        /* Inoculate list    OUT     */
   struct nt *classify_users;    /* Classify list     OUT     */
   struct nt *recipients;	/* Recipients        IN      */
+  struct nt *results;		/* Process Results   OUT    */
   struct _ds_spam_signature SIG;/* signature object  OUT     */ 
   int learned;                  /* Message learned?  OUT     */
   FILE *sockfd;			/* Socket FD if not STDOUT   */

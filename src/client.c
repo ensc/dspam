@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.38 2005/03/15 14:06:32 jonz Exp $ */
+/* $Id: client.c,v 1.39 2005/03/15 22:48:05 jonz Exp $ */
 
 /*
 
@@ -160,11 +160,28 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
       goto BAIL;
   } else {
     for(i=0;i<ATX->users->items;i++) {
-      int c = client_getcode(&TTX);
-      if (c<0) 
+      char *input = client_getline(&TTX, 300);
+      char *x;
+      int code = 500;
+
+      if (!input) {
+        exitcode = EFAILURE;
         goto BAIL;
-      if (c != LMTP_OK) {
-        exitcode--;
+      }
+      x = strtok(input, " ");
+      if (x) {
+        code = atoi(x);
+        if (code != LMTP_OK) {
+          if (exitcode > 0) 
+            exitcode = 0;
+          exitcode--;
+        } else {
+          x = strtok(NULL, ":");
+          if (x)
+            x = strtok(NULL, ":");
+          if (x && strstr(x, "SPAM") && exitcode == 0)
+            exitcode = 99;
+        }
       }
     }
   }

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.99 2005/03/15 21:01:07 jonz Exp $ */
+/* $Id: dspam.c,v 1.100 2005/03/15 22:48:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -107,10 +107,11 @@ main (int argc, char *argv[])
   AGENT_CTX ATX;		/* Agent configuration */
   buffer *message = NULL;       /* Input Message */
   int exitcode = EXIT_SUCCESS;
-  int **results;
   int agent_init = 0;		/* Agent is initialized */
   int driver_init = 0;
   int i = 0;
+  struct nt_node *node_nt;
+  struct nt_c c_nt;
 
   timestart = gettime();	/* Set tick count to calculate run time */
   srand (getpid ());		/* Random numbers for signature creation */
@@ -208,7 +209,7 @@ main (int argc, char *argv[])
        _ds_read_attribute(agent_config, "ServerDomainSocketPath")))
   {
     exitcode = client_process(&ATX, message);
-    if (exitcode)
+    if (exitcode<0)
       report_error_printf(ERROR_CLIENT_EXIT, exitcode);
   } else {
 #endif
@@ -224,13 +225,28 @@ main (int argc, char *argv[])
     }
   
     /* Process the message once for each destination user */
-    results = process_users(&ATX, message);
-    exitcode = *results[ATX.users->items];
-    for(i=0;i<=ATX.users->items;i++) {
-      if (results[i] != NULL) 
-        free(results[i]);
+    ATX.results = nt_create(NT_PTR);
+    if (ATX.results == NULL) {
+      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      exitcode = EUNKNOWN;
+      goto bail;
     }
-    free(results);
+
+    exitcode = process_users(&ATX, message);
+    if (exitcode) {
+      LOGDEBUG("process_users() failed on error %d", i);
+    } else {
+      exitcode = 0;
+      node_nt = c_nt_first(ATX.results, &c_nt);
+      while(node_nt) {
+        agent_result_t result = (agent_result_t) node_nt->ptr;
+        if (result->exitcode)
+          exitcode--;
+        node_nt = c_nt_next(ATX.results, &c_nt);
+      }
+    }
+    nt_destroy(ATX.results);
+
 #ifdef DAEMON
   }
 #endif
@@ -1230,19 +1246,15 @@ int send_notice(AGENT_CTX *ATX, const char *filename, const char *mailer_args,
     message	message to process for each user
 */
 
-int **process_users(AGENT_CTX *ATX, buffer *message) {
+int process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_node *node_nt;
   struct nt_node *node_rcpt = NULL;
   struct nt_c c_nt, c_rcpt;
   int retcode = 0, exitcode = EXIT_SUCCESS;
-  int **x = malloc(sizeof(int *)*(ATX->users->items+1));
-  int i = 0, have_rcpts = 0;
-  int *code;
+  int i = 0, have_rcpts = 0, return_code = 0;
   FILE *fout;
   buffer *parse_message;
-
-  if (x == NULL)
-    return NULL;
+  agent_result_t presult;
 
   if (ATX->sockfd) {
     fout = ATX->sockfd;
@@ -1254,7 +1266,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
   node_nt = c_nt_first (ATX->users, &c_nt);
   if (ATX->recipients) {
     node_rcpt = c_nt_first (ATX->recipients, &c_rcpt);
-    have_rcpts = 1;
+    have_rcpts = ATX->recipients->items;
   }
 
   while (node_nt || node_rcpt)
@@ -1266,19 +1278,16 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     char filename[MAX_FILENAME_LENGTH];
     int result, optin, optout;
 
-    code = malloc(sizeof(int));
-    *code = 0;
-    x[i] = code;
-
     /* If ServerParameters specifies a --user, there will only be one 
        instance on the stack, but possible multiple recipients. */
 
     if (node_nt == NULL) 
       node_nt = ATX->users->first;
 
-    /* Set the "current recipient" to either the next item on the rcpt stack
-       or the current user if not present */
+    /* Set the "current recipient" to either the next item on the rcpt stack 
+       or the current user if not present.  */
        
+    presult = calloc(1, sizeof(struct agent_result));
     if (node_rcpt) { 
       ATX->recipient = node_rcpt->ptr;
       node_rcpt = c_nt_next (ATX->recipients, &c_rcpt);
@@ -1291,8 +1300,11 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     parse_message = buffer_create(message->data);
     if (parse_message == NULL) {
       LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-      x[i] = NULL;
-      i++;
+      presult->exitcode = ERC_PROCESS;
+
+      if (ATX->results)
+        nt_add(ATX->results, presult);
+
       continue;
     }
 
@@ -1442,11 +1454,9 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
                            (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
                             node_nt->ptr, fout);
 
-        if (retcode) {
-          *code = retcode;
-          if (exitcode == EXIT_SUCCESS)
-            exitcode = retcode;
-        }
+        if (retcode) 
+          presult->exitcode = ERC_DELIVERY;
+
         if (ATX->sockfd && ATX->flags & DAF_STDOUT)
           ATX->sockfd_output = 1;
       }
@@ -1457,9 +1467,10 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     else
     {
       result = process_message (ATX, PTX, parse_message, node_nt->ptr);
+      presult->classification = result;
       if (_ds_match_attribute(agent_config, "Broken", "returnCodes")) {
-        if (result == DSR_ISSPAM)
-          exitcode = 99;
+        if (result == DSR_ISSPAM) 
+          return_code = 99;
       }
 
       /* Classify Only */
@@ -1487,6 +1498,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
           LOG (LOG_WARNING,
                "process_message returned error %d.  delivering message.",
                result);
+          presult->exitcode = ERC_PROCESS;
         }
 
         /* Deliver */
@@ -1500,9 +1512,8 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
           if (ATX->sockfd && ATX->flags & DAF_STDOUT)
             ATX->sockfd_output = 1;
           if (retcode) {
-            *code = retcode;
-            if (exitcode == EXIT_SUCCESS)
-              exitcode = retcode;
+            presult->exitcode = ERC_DELIVERY;
+
             if ((result == DSR_ISINNOCENT || result == DSR_ISWHITELISTED) && 
                 _ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                 ATX->learned)
@@ -1554,11 +1565,8 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
                     ATX->sockfd_output = 1;
                 }
 
-                if (retcode) {
-                  *code = retcode;
-                  if (exitcode == EXIT_SUCCESS)
-                    exitcode = retcode;
-                }
+                if (retcode) 
+                  presult->exitcode = ERC_DELIVERY;
               }
             }
             else
@@ -1573,8 +1581,8 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
             }
 
             if (retcode) {
-              exitcode = retcode;
-                                                                                
+              presult->exitcode = ERC_DELIVERY;
+
               /* Unlearn the message on a local delivery failure */
               if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                   ATX->learned) {
@@ -1598,11 +1606,9 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
             (ATX, parse_message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
              node_nt->ptr, fout);
-          if (retcode) {
 
-            *code = retcode;
-            if (exitcode == EXIT_SUCCESS)
-              exitcode = retcode;
+          if (retcode) {
+            presult->exitcode = ERC_DELIVERY;
 
             if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                 ATX->learned) {
@@ -1621,17 +1627,16 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     free(PTX);
     node_nt = c_nt_next (ATX->users, &c_nt);
 
-    i++;
+    if (ATX->results) 
+      nt_add(ATX->results, presult);
+    else
+      free(presult);
     LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", exitcode);
     buffer_destroy(parse_message);
   }
 
-  code = malloc(sizeof(int));
-  *code = exitcode;
-  x[ATX->users->items] = code;
-  return x;
+  return return_code;
 }
-
 
 /* find_signature: find, parse, and strip DSPAM signature */
 

@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.216 2005/03/15 20:57:41 jonz Exp $
+$Id: CHANGELOG,v 1.217 2005/03/15 22:48:04 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050315.0800] jonz: fixed broken returnCodes when using dspamc
+
+fixed broken return codes when using dspamc, which involved rewriting the
+return code reporting pieces of the agent to include a classification. when
+running in 'DSPAM' mode, : CLASSIFICATION is sent back with each response.
 
 [20050315.0800] jonz: applied patch to fix file descriptor problems
 

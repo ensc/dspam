@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.18 2005/02/24 16:33:37 jonz Exp $ */
+/* $Id: dspam.h,v 1.19 2005/03/15 22:48:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -68,7 +68,7 @@ int log_events		(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int retrain_message	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int tag_message		(struct _ds_message_block *block, agent_pref_t PTX);
 int quarantine_message  (const char *message, const char *username);
-int **process_users     (AGENT_CTX *ATX, buffer *message);
+int process_users       (AGENT_CTX *ATX, buffer *message);
 int find_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX);
 int add_xdspam_headers	(DSPAM_CTX *CTX, AGENT_CTX *ATX,  agent_pref_t PTX);
 int embed_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX);
@@ -86,6 +86,15 @@ int process_neural_decision(DSPAM_CTX *CTX, struct _ds_neural_decision *DEC);
 #endif
 
 #define DSM_DAEMON	0xFE
+
+typedef struct agent_result {
+  int exitcode;
+  int classification;
+} *agent_result_t; 
+
+#define ERC_SUCCESS		0x00
+#define ERC_PROCESS		-0x01
+#define ERC_DELIVERY		-0x02
 
 #endif /* _DSPAM_H */
 
