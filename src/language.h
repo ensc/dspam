@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.9 2004/12/24 16:02:03 jonz Exp $ */
+/* $Id: language.h,v 1.10 2004/12/25 02:38:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -54,6 +54,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ERROR_FAILOVER_OUT      "Could not fail over: out of failover servers"
 #define ERROR_CLEAR_ATTRIBUTES  "dspam_clearattributes() failed"
 #define ERROR_FAILING_OVER	"Failing over to profile '%s'"
+#define ERROR_CLIENT_EXIT	"Client exited with error %d"
 
 /* Delivery Agent Failures */
 

@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.30 2004/12/24 18:59:07 jonz Exp $ */
+/* $Id: daemon.c,v 1.31 2004/12/25 02:38:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -240,7 +240,9 @@ void *process_connection(void *ptr) {
   int argc = 0;
   int **results, *result;
   int i, locked = -1;
-  FILE *sockfd = fdopen(TTX->sockfd, "w");
+  FILE *fd = fdopen(TTX->sockfd, "w");
+
+  setbuf(fd, NULL);
 
   TTX->packet_buffer = buffer_create(NULL);
   if (TTX->packet_buffer == NULL)
@@ -353,7 +355,7 @@ void *process_connection(void *ptr) {
       goto CLOSE;
     } 
 
-    ATX->sockfd = sockfd;
+    ATX->sockfd = fd;
     ATX->sockfd_output = 0;
 
     /* Determine which database handle to use */
@@ -432,6 +434,7 @@ void *process_connection(void *ptr) {
       }
     }
 
+    fflush(fd);
     for(i=0;i<=ATX->users->items;i++)
       free(results[i]);
     free(results);
@@ -454,7 +457,7 @@ void *process_connection(void *ptr) {
 CLOSE:
   if (locked>=0)
     pthread_mutex_unlock(&TTX->DTX->connections[locked]->lock);
-  fclose(sockfd);
+  fclose(fd);
 //  close(TTX->sockfd);
   buffer_destroy(TTX->packet_buffer);
   if (message) 

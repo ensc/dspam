@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.52 2004/12/24 18:59:07 jonz Exp $ */
+/* $Id: dspam.c,v 1.53 2004/12/25 02:38:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -199,6 +199,8 @@ main (int argc, char *argv[])
 #ifdef DAEMON
   if (_ds_read_attribute(agent_config, "ClientIdent")) {
     exitcode = client_process(&ATX, message);
+    if (exitcode)
+      report_error_printf(ERROR_CLIENT_EXIT, exitcode);
   } else {
 #endif
     libdspam_init();
@@ -575,8 +577,6 @@ process_message (AGENT_CTX *ATX,
     else {
       fout = stdout;
     }
-
-    setbuf(fout, NULL);
 
     fprintf(fout, "X-DSPAM-Result: %s; result=\"%s\"; probability=%01.4f; "
            "confidence=%02.2f\n",
@@ -1168,8 +1168,6 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
   } else {
     fout = stdout;
   }
-
-  setbuf(fout, NULL);
 
   /* Process message for each user */
   node_nt = c_nt_first (ATX->users, &c_nt);

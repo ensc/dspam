@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.9 2004/12/24 16:02:03 jonz Exp $ */
+/* $Id: client.c,v 1.10 2004/12/25 02:38:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -64,7 +64,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
 
   TTX.sockfd = client_connect();
   if (TTX.sockfd <0) {
-    LOGDEBUG(ERROR_CLIENT_CONNECT);
+    report_error(ERROR_CLIENT_CONNECT);
     return TTX.sockfd;
   }
 
@@ -73,7 +73,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     goto BAIL;
 
   if (client_authenticate(&TTX)<0) {
-    LOGDEBUG(ERROR_CLIENT_AUTH_FAILED);
+    report_error(ERROR_CLIENT_AUTH_FAILED);
     goto QUIT;
   }
 
@@ -192,7 +192,7 @@ int client_connect(void) {
 
     LOGDEBUG(CLIENT_CONNECT, host, port);
     if(connect(sockfd, (struct sockaddr *)&saun, addr_len)<0) {
-      LOGDEBUG(ERROR_CLIENT_CONNECT_HOST, address, port, strerror(errno));
+      report_error_printf(ERROR_CLIENT_CONNECT_HOST, address, port, strerror(errno));
       return EFAILURE;
     }
      
@@ -206,7 +206,7 @@ int client_connect(void) {
 
     LOGDEBUG(CLIENT_CONNECT, host, port);
     if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
-      LOGDEBUG(ERROR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+      report_error_printf(ERROR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
       return EFAILURE;
     }
 
