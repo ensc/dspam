@@ -1,4 +1,30 @@
-$Id: UPGRADING,v 1.12 2005/03/05 23:54:23 jonz Exp $
+$Id: UPGRADING,v 1.13 2005/03/14 21:23:48 jonz Exp $
+
+UPGRADING FROM 3.4.0
+--------------------
+
+Due to some oversight in  commandline -> lmtp compatibility, some commandline
+and dspam.conf options have changed from 3.4.0:
+
+--lmtp-rcpt-to=/--lmtp-recipient= has been replaced with --rcpt-to. The 
+--rcpt-to flag takes multiple arguments, and each argument should reresent
+the respective user specified with --user. If no --rcpt-to is specified,
+the username will be used by default. For example:
+
+--user dick jane spot --rcpt-to dick@domain.com jane@domain.com spot@domain.com
+
+The --lmtp-mail-from= command argument has been changed to simply --mail-from=.
+
+In dspam.conf, LMTP Delivery host information has been changed to the 
+following format in order to allow SMTP delivery:
+
+DeliveryHost        127.0.0.1
+DeliveryPort        24
+DeliveryIdent       localhost
+DeliveryProto       LMTP
+
+It will be necessary to remove your old LMTPDelivery* information and
+replace it with the new format.
 
 UPGRADING FROM 3.2
 ------------------
