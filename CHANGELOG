@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.251 2005/03/28 22:16:24 jonz Exp $
+$Id: CHANGELOG,v 1.252 2005/03/29 22:36:10 jonz Exp $
    
-Version NEXT
-------------
+Version 3.4.2
+-------------
 
 [20050328.0600] jonz: memory leak fix for chained token
 
