@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.88 2004/12/24 16:02:03 jonz Exp $
+$Id: CHANGELOG,v 1.89 2004/12/24 17:25:13 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041224.1222] jonz: fixed database handle corruption in daemon mode
+
+fixed a bug causing mutex locks to corrupt database handles, leading to an
+occasional segfault
 
 [20041224.1059] jonz: cleaned up reachable memory and memory leaks in daemon
 
