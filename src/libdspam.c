@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.61 2004/12/26 22:03:03 jonz Exp $ */
+/* $Id: libdspam.c,v 1.62 2004/12/26 22:43:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -1153,8 +1153,16 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       errcode = EUNKNOWN;
       goto bail;
     }
+// HERE
 
     lht_getspamstat(bnr_layer1, crc, &bnr_tot);
+
+
+    node_lht = c_lht_first(bnr_layer1, &c_lht);
+    while(node_lht != NULL) {
+      _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_BNR, &bnr_tot);
+      node_lht = c_lht_next(bnr_layer1, &c_lht);
+    }
 
     /* Perform BNR Processing */
 
@@ -1226,9 +1234,48 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         }
 
         fprintf(file, "]\nProcessed for: %s\n\n", CTX->username);
+
+        fprintf(file, "-- Chained Tokens --\n");
+        fprintf(file, "Eliminations:\n");
+        node_nt = c_nt_first(freq->chained_order, &c_nt);
+        while(node_nt != NULL) {
+          node_lht = (struct lht_node *) node_nt->ptr;
+          if (node_lht->frequency <= 0)
+            fprintf(file, "%s ", node_lht->token_name);
+          node_nt = c_nt_next(freq->chained_order, &c_nt);
+        }
+        fprintf(file, "\n[");
+        node_nt = c_nt_first(freq->chained_order, &c_nt);
+        while(node_nt != NULL) {
+          node_lht = (struct lht_node *) node_nt->ptr;
+          if (node_lht->frequency <= 0)
+            fprintf(file, "%1.2f ", node_lht->s.probability);
+          node_nt = c_nt_next(freq->chained_order, &c_nt);
+        }
+
+        fprintf(file, "]\n\nRemaining:\n");
+        node_nt = c_nt_first(freq->chained_order, &c_nt);
+        while(node_nt != NULL) {
+          node_lht = (struct lht_node *) node_nt->ptr;
+          if (node_lht->frequency > 0)
+            fprintf(file, "%s ", node_lht->token_name);
+          node_nt = c_nt_next(freq->chained_order, &c_nt);
+        }
+        fprintf(file, "\n[");
+         node_nt = c_nt_first(freq->chained_order, &c_nt);
+         while(node_nt != NULL) {
+           node_lht = (struct lht_node *) node_nt->ptr;
+           if (node_lht->frequency > 0)
+
+            fprintf(file, "%1.2f ", node_lht->s.probability);
+           node_nt = c_nt_next(freq->chained_order, &c_nt);
+        }
+
+        fprintf(file, "]\nProcessed for: %s\n\n", CTX->username);
         fclose(file);
       }
 #endif
+
     }
 
     /* Add BNR pattern to token hash */

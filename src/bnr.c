@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.15 2004/12/26 22:03:03 jonz Exp $ */
+/* $Id: bnr.c,v 1.16 2004/12/26 22:43:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -166,6 +166,7 @@ int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
     
     suspect = ((!lht_getspamstat(BTX->patterns, crc, &s) && 
                  fabs(0.5-s.probability) > EX_RADIUS)); 
+
     if (suspect)
     {
 
