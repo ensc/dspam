@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.50 2004/12/24 17:24:25 jonz Exp $ */
+/* $Id: dspam.c,v 1.51 2004/12/24 17:27:41 jonz Exp $ */
 
 /*
  DSPAM
@@ -204,7 +204,6 @@ main (int argc, char *argv[])
       tv.tv_sec = 1;
       tv.tv_usec = 0;
       select(0, NULL, NULL, NULL, &tv);
-printf("num threads: %d\n", __num_threads);
     }
 
     LOG(LOG_INFO, DAEMON_EXIT);
