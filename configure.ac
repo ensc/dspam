@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.12 2004/12/18 15:41:06 jonz Exp $
+dnl $Id: configure.ac,v 1.13 2004/12/19 00:49:25 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -66,6 +66,8 @@ AC_CHECK_FUNCS(getpwnam_r)
 AC_CHECK_FUNCS(getpwuid_r)
 AC_CHECK_FUNCS([memcpy memset])
 AC_CHECK_FUNCS(localtime_r)
+
+LIBS="-lm"
 
 #   Daemon support
 #
