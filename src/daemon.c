@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.34 2005/01/03 03:55:48 jonz Exp $ */
+/* $Id: daemon.c,v 1.35 2005/01/18 13:54:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -187,9 +187,11 @@ int daemon_listen(DRIVER_CTX *DTX) {
             {
               LOG(LOG_WARNING, ERROR_DAEMON_ACCEPT, strerror(errno));
             } else if (!domain) {
+#ifdef DEBUG
               char buff[32];
               LOGDEBUG("connection id %d from %s.", newfd, 
                        inet_ntoa_r(remote_addr.sin_addr, buff, sizeof(buff)));
+#endif
             }
             fcntl(newfd, F_SETFL, O_RDWR);
             setsockopt(newfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
