@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.71 2005/03/17 17:35:47 jonz Exp $ */
+/* $Id: daemon.c,v 1.72 2005/03/18 21:13:57 jonz Exp $ */
 
 /*
 
@@ -474,7 +474,7 @@ void *process_connection(void *ptr) {
         p = strdup(parms);
         if (p) {
           token = strtok_r(p, " ", &ptrptr);
-          while(token != NULL) {
+          while(token != NULL && argc<31) {
             argv[argc] = token;
             argc++;
             token = strtok_r(NULL, " ", &ptrptr);
@@ -497,7 +497,7 @@ void *process_connection(void *ptr) {
           argv[argc] = "--user";
           argc++;
           token = strtok_r(cmdline+8, " ", &ptrptr);
-          while(token != NULL) {
+          while(token != NULL && argc<31) {
             argv[argc] = token;
             argc++;
             token = strtok_r(NULL, " ", &ptrptr);
