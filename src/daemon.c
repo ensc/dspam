@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.7 2004/11/30 22:32:22 jonz Exp $ */
+/* $Id: daemon.c,v 1.8 2004/11/30 23:52:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -183,6 +183,7 @@ void *process_connection(void *ptr) {
   char *serverpass = _ds_read_attribute(agent_config, "ServerPass");
   char *input, *cmdline = NULL, *token, *ptrptr;
   char *argv[32];
+  char buf[1024];
   int tries = 0;
   int argc = 0;
   int exitcode;
@@ -191,25 +192,39 @@ void *process_connection(void *ptr) {
   if (TTX->packet_buffer == NULL)
     goto CLOSE;
 
-  TTX->authenticated = (serverpass) ? 0 : 1;
+  snprintf(buf, sizeof(buf), "%d DSPAM LMTP %s Authentication Required", LMTP_GREETING, VERSION);
+  if (socket_send(TTX, buf)<=0) 
+    goto CLOSE;
+
+  TTX->authenticated = 0;
 
   /* Echo until authenticated */
 
   while(!TTX->authenticated) {
     struct timeval tv;
 
-    input = socket_getline(TTX, 10);
+    input = socket_getline(TTX, 300);
     if (input == NULL) 
       goto CLOSE;
     else {
+      char *t, *pass;
       chomp(input);
-      if (!strcmp(input, serverpass)) {
+
+      t = strtok_r(input, " ", &ptrptr);
+      if (t) 
+        pass = strtok_r(NULL, " ", &ptrptr);
+      if (t == NULL || strcasecmp(t, "LHLO") || !pass || strcmp(pass, serverpass)) {
+        snprintf(buf, sizeof(buf), "%d Authentication Required", LMTP_AUTH_ERROR);
+        if (socket_send(TTX, buf)<=0)
+          goto CLOSE;
+      } else {
         LOGDEBUG("fd %d remote_addr %s authenticated.", TTX->sockfd, 
                   inet_ntoa(TTX->remote_addr.sin_addr));
         TTX->authenticated = 1;
+        snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
+        if (socket_send(TTX, buf)<=0)
+          goto CLOSE;
       } 
-      else if (socket_send(TTX, input)<0) 
-        goto CLOSE;
     }
       
     if (!TTX->authenticated) {
@@ -226,21 +241,35 @@ void *process_connection(void *ptr) {
     }
   }
 
-  /* Client is authenticated, receive username */
-  cmdline = socket_getline(TTX, 60);
-  if (cmdline == NULL) 
-    goto CLOSE;
-  chomp(cmdline);
+  snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
 
-  token = strtok_r(cmdline, " ", &ptrptr);
+  /* Client is authenticated, receive parameters */
+  cmdline = socket_getline(TTX, 300);
+  if (cmdline == NULL)
+    goto CLOSE;
+
+  while(strncasecmp(cmdline, "MAIL FROM:", 10)) {
+    snprintf(buf, sizeof(buf), "%d Need MAIL here", LMTP_BAD_CMD);
+    if (socket_send(TTX, buf)<=0)
+      goto CLOSE;
+    cmdline = socket_getline(TTX, 300);
+    if (!strncasecmp(cmdline, "QUIT", 4)) {
+      snprintf(buf, sizeof(buf), "%d OK", LMTP_QUIT);
+      socket_send(TTX, buf);
+    }
+    if (cmdline == NULL || !strncasecmp(cmdline, "QUIT", 4))
+      goto CLOSE;
+  }
+
+  chomp(cmdline);
+  /* Tokenize arguments */
+  token = strtok_r(cmdline+10, " ", &ptrptr);
   while(token != NULL) {
     argv[argc] = token;
     argc++;
     token = strtok_r(NULL, " ", &ptrptr);
   }
 
-  /* Tokenize commandline */
-  
   /* Configure agent context */
   ATX = calloc(1, sizeof(AGENT_CTX));
   if (ATX == NULL) {
@@ -253,24 +282,83 @@ void *process_connection(void *ptr) {
       apply_defaults(ATX))
   {
     report_error(ERROR_INITIALIZE_ATX);
-    socket_send(TTX, ERROR_INITIALIZE_ATX);
+    snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INITIALIZE_ATX);
+    socket_send(TTX, buf);
     goto CLOSE;
   } 
 
   ATX->sockfd = TTX->sockfd;
 
+  /* Get recipients */
+  snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
+  if (socket_send(TTX, buf)<=0)
+    goto CLOSE;
+ 
+  cmdline = socket_getline(TTX, 300);
+  if (cmdline == NULL)
+    goto CLOSE;
+
+  while(strncasecmp(cmdline, "RCPT TO:", 8)) {
+    snprintf(buf, sizeof(buf), "%d Need RCPT here", LMTP_BAD_CMD);
+    if (socket_send(TTX, buf)<=0)
+      goto CLOSE;
+    cmdline = socket_getline(TTX, 300);
+    if (!strncasecmp(cmdline, "QUIT", 4)) {
+      snprintf(buf, sizeof(buf), "%d OK", LMTP_QUIT);
+      socket_send(TTX, buf);
+    }
+    if (cmdline == NULL || !strncasecmp(cmdline, "QUIT", 4))
+      goto CLOSE;
+  }
+
+  /* Tokenize arguments */
+  chomp(cmdline);
+  token = strtok_r(cmdline+8, " ", &ptrptr);
+  while(token != NULL) {
+    nt_add(ATX->users, token);
+    token = strtok_r(NULL, " ", &ptrptr);
+  }
+
   if (check_configuration(ATX)) {
     report_error(ERROR_DSPAM_MISCONFIGURED);
-    socket_send(TTX, ERROR_DSPAM_MISCONFIGURED);
+    snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_DSPAM_MISCONFIGURED);
+    socket_send(TTX, buf);
     goto CLOSE;
   }
+
+  /* Get DATA */
+  snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
+  if (socket_send(TTX, buf)<=0)
+    goto CLOSE;
+
+  cmdline = socket_getline(TTX, 300);
+  if (cmdline == NULL)
+    goto CLOSE;
+
+  while(strncasecmp(cmdline, "DATA", 4)) {
+    snprintf(buf, sizeof(buf), "%d Need DATA here", LMTP_BAD_CMD);
+    if (socket_send(TTX, buf)<=0)
+      goto CLOSE;
+    cmdline = socket_getline(TTX, 300);
+    if (!strncasecmp(cmdline, "QUIT", 4)) {
+      snprintf(buf, sizeof(buf), "%d OK", LMTP_QUIT);
+      socket_send(TTX, buf);
+    }
+    if (cmdline == NULL || !strncasecmp(cmdline, "QUIT", 4))
+      goto CLOSE;
+  }
+
+  snprintf(buf, sizeof(buf), "%d Enter mail, end with \".\" on a line by itself", LMTP_DATA);
+  if (socket_send(TTX, buf)<=0)
+    goto CLOSE;
 
   message = read_sock(TTX, ATX);
 
   if (ATX->users->items == 0)
   {
     LOG (LOG_ERR, ERROR_USER_UNDEFINED);
-    socket_send(TTX, ERROR_USER_UNDEFINED);
+    snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_USER_UNDEFINED);
+    socket_send(TTX, buf);
     goto CLOSE;
   }
 
@@ -278,10 +366,11 @@ void *process_connection(void *ptr) {
   LOGDEBUG("process_users() returned with exit code %d", exitcode);
 
   if (!exitcode) {
-    socket_send(TTX, "250 Message accepted for delivery");
+    snprintf(buf, sizeof(buf), "%d 2.5.0 Message accepted for delivery", LMTP_OK);
   } else {
-    socket_send(TTX, "550 Error occurred during processing."); 
+    snprintf(buf, sizeof(buf), "%d Error occured during processing.", LMTP_ERROR);
   }
+  socket_send(TTX, buf);
 
   /* Close connection and return */
 
@@ -369,7 +458,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
     return NULL;
   }
 
-  while ((buff = socket_getline(TTX, 60))!=NULL) {
+  while ((buff = socket_getline(TTX, 300))!=NULL) {
     chomp(buff);
     if (!strcmp(buff, ".")) {
       return message;

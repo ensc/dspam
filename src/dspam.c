@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.19 2004/11/30 22:32:22 jonz Exp $ */
+/* $Id: dspam.c,v 1.20 2004/11/30 23:52:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -487,7 +487,7 @@ process_message (AGENT_CTX *ATX,
         break;
     }
 
-   out = (ATX->sockfd) ? fdopen(ATX->sockfd, "w") : stdout;
+   out = (ATX->sockfd) ? fdopen(ATX->sockfd, "r+") : stdout;
     
     fprintf(out, "X-DSPAM-Result: %s; result=\"%s\"; probability=%01.4f; "
            "confidence=%02.2f\n",
@@ -496,8 +496,8 @@ process_message (AGENT_CTX *ATX,
            CTX->probability,
            CTX->confidence);
 
-   if (ATX->sockfd)
-     fclose(out);
+//   if (ATX->sockfd)
+//     fclose(out);
   }
 
   ATX->learned = CTX->learned;
@@ -531,6 +531,8 @@ deliver_message (const char *message, const char *mailer_args,
   if (mailer_args == NULL)
   {
     fputs (message, stream);
+    if (stream != stdout) 
+      fputs(".\n", stream);
     return 0;
   }
 
@@ -1698,7 +1700,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
   int retcode, exitcode = EXIT_SUCCESS;
   FILE *out;
 
-  out = (ATX->sockfd) ? fdopen(ATX->sockfd, "w") : stdout;
+  out = (ATX->sockfd) ? fdopen(ATX->sockfd, "r+") : stdout;
 
   /* Process message for each user */
   node_nt = c_nt_first (ATX->users, &c_nt);
@@ -2006,8 +2008,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", exitcode);
   }
 
-  if (ATX->sockfd)
-    fclose(out);
+//  if (ATX->sockfd)
+//    fclose(out);
 
   return exitcode;
 }
@@ -2245,7 +2247,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
 DSPAM_CTX *ctx_init(AGENT_CTX *ATX, AGENT_PREF PTX, const char *username) {
   DSPAM_CTX *CTX;
   char filename[MAX_FILENAME_LENGTH];
-  char ctx_group[128];
+  char ctx_group[128] = { 0 };
   int f_all = 0, f_mode = DSM_PROCESS;
   FILE *file;
 

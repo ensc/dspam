@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.8 2004/11/24 17:57:47 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.9 2004/11/30 23:52:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -122,9 +122,9 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
   memset(&CTX->totals, 0, sizeof(struct _ds_spam_totals));
   memset(&user, 0, sizeof(struct _ds_spam_totals));
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) 
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+  else 
     p = _mysql_drv_getpwnam (CTX, CTX->group);
 
   if (p == NULL)

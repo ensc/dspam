@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.6 2004/11/30 21:46:55 jonz Exp $ */
+/* $Id: daemon.h,v 1.7 2004/11/30 23:52:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -57,6 +57,14 @@ char *pop_buffer(THREAD_CTX *TTX);
 int socket_send(THREAD_CTX *TTX, const char *ptr);
 buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
 int process_users_daemon(THREAD_CTX *TTX, AGENT_CTX *ATX, buffer *message);
+
+#define LMTP_GREETING	220
+#define LMTP_QUIT	221
+#define LMTP_OK		250
+#define LMTP_DATA	354
+#define LMTP_ERROR	500
+#define LMTP_AUTH_ERROR	503
+#define LMTP_BAD_CMD	503
 
 #endif
 #endif /* _DAEMON_H */

@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.40 2004/11/30 21:05:37 jonz Exp $
+$Id: CHANGELOG,v 1.41 2004/11/30 23:52:35 jonz Exp $
 
 Version NEXT
 ------------
@@ -8,13 +8,14 @@ Version NEXT
 CVS notes:
 
 set up daemonized dspam in daemon.c, compile with --enable-daemon, then call
-dspam --daemon. initial protocol is:
+dspam --daemon. initial protocol uses LMTP:
 
-[secret password]
-[commandline arguments]
+LHLO [server password]
+MAIL FROM: [commandline arguments]
+RCPT TO: [list of DSPAM users]
+DATA
 [message]
 .
-
 daemon processes *and* delivers at the moment
 
 next: client
