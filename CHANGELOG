@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.91 2004/12/24 18:59:07 jonz Exp $
+$Id: CHANGELOG,v 1.92 2004/12/25 19:11:22 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041225.1400] jonz: added support for trainPristine as user preference
+
+Set trainPristine to 'on' in a user's preference to enable for that user. If
+master configuration has TrainPristine on, this will override the preference
+option.
 
 [20041224.1400] jonz: implemented daemon SIGHUP reload
 

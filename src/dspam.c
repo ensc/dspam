@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.53 2004/12/25 02:38:22 jonz Exp $ */
+/* $Id: dspam.c,v 1.54 2004/12/25 19:11:24 jonz Exp $ */
 
 /*
  DSPAM
@@ -381,7 +381,8 @@ process_message (AGENT_CTX *ATX,
     retrain_message(CTX, ATX);
   } else {
     CTX->signature = NULL;
-    if (!_ds_match_attribute(agent_config, "TrainPristine", "on")) {
+    if (!_ds_match_attribute(agent_config, "TrainPristine", "on") && 
+        strcmp(_ds_pref_val(PTX, "trainPristine"), "on")) {
       if (CTX->classification != DSR_NONE && CTX->source == DSS_ERROR) {
         LOGDEBUG("unable to find signature; bailing.");
         result = EFAILURE;
@@ -489,7 +490,8 @@ process_message (AGENT_CTX *ATX,
 
     if (CTX->classification == DSR_NONE && CTX->training_mode != DST_NOTRAIN)
     {
-      if (!_ds_match_attribute(agent_config, "TrainPristine", "on")) {
+      if (!_ds_match_attribute(agent_config, "TrainPristine", "on") && 
+          strcmp(_ds_pref_val(PTX, "trainPristine"), "on")) {
 
         int x = _ds_set_signature (CTX, CTX->signature, ATX->signature);
         if (x) {
@@ -526,11 +528,13 @@ process_message (AGENT_CTX *ATX,
   if (CTX->message == NULL)
     goto RETURN;
 
-  if (!_ds_match_attribute(agent_config, "TrainPristine", "on")) 
+  if (!_ds_match_attribute(agent_config, "TrainPristine", "on") && 
+        strcmp(_ds_pref_val(PTX, "trainPristine"), "on"))
     add_xdspam_headers(CTX, ATX, PTX);
 
   if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers") &&
-      !_ds_match_attribute(agent_config, "TrainPristine", "on")) 
+      !_ds_match_attribute(agent_config, "TrainPristine", "on") &&
+        strcmp(_ds_pref_val(PTX, "trainPristine"), "on"))
   {
     i = embed_signature(CTX, ATX, PTX);
     if (i<0) {
@@ -1672,7 +1676,8 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX) {
         }
       }
 
-      if (!_ds_match_attribute(agent_config, "TrainPristine", "on")) {
+      if (!_ds_match_attribute(agent_config, "TrainPristine", "on") &&
+        strcmp(_ds_pref_val(PTX, "trainPristine"), "on")) {
         /* Look for signature */
         if (body != NULL)
         {
