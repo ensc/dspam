@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.26 2004/11/28 15:01:48 jonz Exp $ */
+/* $Id: libdspam.c,v 1.27 2004/12/02 21:48:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -1355,7 +1355,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     else if (CTX->classification == DSR_ISINNOCENT) 
       node_lht->s.probability = 0.00;
 
-    if (strncmp(node_lht->token_name, "bnr.", 4) &&
+    if ((node_lht == NULL || node_lht->token_name == NULL || 
+        strncmp(node_lht->token_name, "bnr.", 4)) &&
         ( CTX->training_mode != DST_TUM  || 
           CTX->source == DSS_ERROR       ||
           CTX->source == DSS_INOCULATION ||
@@ -1364,7 +1365,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       node_lht->s.status |= TST_DIRTY;
     }
 
-    if (!strncmp(node_lht->token_name, "bnr.", 4) &&
+    if (node_lht && node_lht->token_name &&
+        !strncmp(node_lht->token_name, "bnr.", 4) &&
         CTX->confidence < 0.80) 
     {
       node_lht->s.status |= TST_DIRTY;

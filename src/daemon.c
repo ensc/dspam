@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.17 2004/12/02 17:55:51 jonz Exp $ */
+/* $Id: daemon.c,v 1.18 2004/12/02 21:48:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -39,6 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -70,6 +71,8 @@ int daemon_listen(DRIVER_CTX *DTX) {
   int i;
   pthread_attr_t attr;
   fd_set master, read_fds;
+
+  signal(SIGPIPE, SIG_IGN);
 
   /* Set Defaults */
   if (_ds_read_attribute(agent_config, "ServerPort"))
@@ -305,8 +308,9 @@ void *process_connection(void *ptr) {
     ATX->sockfd_output = 0;
 
     /* Determine which database handle to use */
-    i = (TTX->sockfd % TTX->DTX->connection_cache) - 1;
+    i = (TTX->sockfd % TTX->DTX->connection_cache);
     LOGDEBUG("using database handle id %d", i);
+
     ATX->dbh = TTX->DTX->connections[i]->dbh;
  
     if (check_configuration(ATX)) {
@@ -331,7 +335,7 @@ void *process_connection(void *ptr) {
       goto CLOSE;
   
     message = read_sock(TTX, ATX);
-    if (message == NULL) {
+    if (message == NULL || message->data == NULL || message->used == 0) {
       daemon_reply(TTX, LMTP_FAILURE, ERROR_MESSAGE_NULL);
       goto CLOSE;
     }

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.31 2004/12/02 19:41:31 jonz Exp $ */
+/* $Id: dspam.c,v 1.32 2004/12/02 21:48:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -554,6 +554,9 @@ deliver_message (const char *message, const char *mailer_args,
   char *margs, *mmargs, *arg;
   FILE *file;
   int rc;
+
+  if (message == NULL)
+    return EINVAL;
 
   if (mailer_args == NULL)
   {
@@ -1259,7 +1262,8 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       DTX.flags |= DRF_STATEFUL;
      
 #ifdef DEBUG
-      DO_DEBUG = 2;
+      if (DO_DEBUG)
+        DO_DEBUG = 2;
 #endif
       if (dspam_init_driver (&DTX))
       {
