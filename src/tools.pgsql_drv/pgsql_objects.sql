@@ -1,4 +1,4 @@
-/* $Id: pgsql_objects.sql,v 1.4 2005/03/27 18:59:45 jonz Exp $ */
+/* $Id: pgsql_objects.sql,v 1.5 2005/03/29 13:37:07 jonz Exp $ */
 
 CREATE TABLE dspam_token_data (
   uid smallint,
@@ -10,6 +10,7 @@ CREATE TABLE dspam_token_data (
 ) WITHOUT OIDS;
 
 CREATE INDEX id_token_data_03 ON dspam_token_data(token);
+CREATE INDEX id_token_data_04 ON dspam_token_data(uid);
 
 CREATE TABLE dspam_signature_data (
   uid smallint,

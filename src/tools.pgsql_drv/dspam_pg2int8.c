@@ -1,4 +1,4 @@
-/* $Id: dspam_pg2int8.c,v 1.3 2005/03/27 18:59:45 jonz Exp $ */
+/* $Id: dspam_pg2int8.c,v 1.4 2005/03/29 13:37:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -299,6 +299,7 @@ GenSQL (PGconn *dbh,const char *file)
                "COMMIT;\n"
                "BEGIN;\n"
                "CREATE INDEX id_token_data_03 ON dspam_token_data(token);\n"
+               "CREATE INDEX id_token_data_04 ON dspam_token_data(uid);\n"
                "COMMIT;\n"
                "ANALYSE;\n");
 }
