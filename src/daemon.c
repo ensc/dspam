@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.55 2005/03/05 02:00:36 jonz Exp $ */
+/* $Id: daemon.c,v 1.56 2005/03/12 16:15:30 jonz Exp $ */
 
 /*
 
@@ -745,11 +745,23 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
             if (x != NULL) {
               y = strdup(x+5);
             }
+
+             if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+                ATX->classification = DSR_ISSPAM;
+                ATX->source = DSS_ERROR;
+             }
+
           } else {
             char *x = strstr(buff, "fp-");
             if (x != NULL) {
               y = strdup(x+3);
             }
+
+            if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+               ATX->classification = DSR_ISINNOCENT;
+               ATX->source = DSS_ERROR;
+             }
+
           }
   
           if (y) {
