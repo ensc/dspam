@@ -1,10 +1,6 @@
-$Id: RELEASE.NOTES,v 1.22 2005/01/13 17:34:49 jonz Exp $
+$Id: RELEASE.NOTES,v 1.23 2005/01/14 14:15:55 jonz Exp $
 
-RELEASE 3.3.13 (Development)
-
-All odd-numbered releases are considered development releases. Development
-releases are for pre-production testing and are likely to contain bugs. Please
-provide all feedback to dspam-dev@nuclearelephant.com.
+RELEASE 3.4 (Beta 1)
 
 DSPAM CORE ENGINE (libdspam)
 

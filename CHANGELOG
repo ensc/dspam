@@ -1,17 +1,11 @@
-$Id: CHANGELOG,v 1.138 2005/01/13 17:34:49 jonz Exp $
+$Id: CHANGELOG,v 1.139 2005/01/14 14:15:55 jonz Exp $
 
-Rapid Development Changes - To be consolidated at stable release time
----------------------------------------------------------------------
-
-Version 3.3.13
---------------
+Version 3.4.beta.1
+------------------
 
 [20040113.0500] jonz: fixed sqlite shared group bug
 
 fixed a bug where sqlite was ignoring shared groups
-
-Version 3.3.12
---------------
 
 [20040112.0600] jonz: added stats functionality to dspam_stats
 
@@ -29,26 +23,12 @@ NOTE: dspam_stats -r uses the same .rstats file as the CGI, so resetting
 stats in either will affect the other. this is the desired behavior at
 the moment, rather than have two snapshots running around.
 
-Version 3.3.11
---------------
-
 [20040111.0700] jonz: fixed preferences to aggregate
 
 fixed preferences so that system prefs and user prefs are aggregated, instead
 of either-or.
 
 also fixed a bug causing AllowOverrides to not work in preferences extension
-
-[20040111.0700] jonz: fixed spam tagging
-
-fixed spam tagging, which was never called
-
-[20040111.0700] jonz: fixed compile error
-
-fixed compile error in freebsd
-
-Version 3.3.10
---------------
 
 [20040106.1800] jonz: added SBLQueue dspam.conf option
 
@@ -66,10 +46,6 @@ to configure.pl in the cgi.
 
 made training mode preference (toe, tum, etc) to be case insensitive
 
-[20040105.0800] jonz: adjusted training thresholds
-
-training threshold back to 2500, bnr learning starts at 1000
-
 [20050102.1800] jonz: added --client flag for client operations
 
 added --client flag for client operations. failure to use --client causes
@@ -78,33 +54,11 @@ dspam to operate in independent mode
 IMPORTANT: --client should be added to the client arguments on daemon-based
            setups
 
-Version 3.3.9
--------------
-
-[20050103.0600] jonz: fixed invalid memory read in hash.c
-
-fixed invalid memory read causing segfault in BNR
-
-[20050003.0500] jonz: updated example
-
-updated example code for libdspam 
-
-[20050102.2300] jonz: fixed some more reachable memory on daemon exit
-
-fixed some additional bytes of unfreed memory on daemon exit
-
 [20050102.2100] jonz: rewrite hash-code into 'diction' and 'term' structures
 
 rewrote the lht code (long-hash-token) into a more specialized 'diction'
 structure, which has terms. a diction represents a subset of lexical data
 within the user's dataset (namely, the data representing a message).
-
-[20050102.1645] jonz: bayesian noise reduction training tweaks
-
-bnr seems to preform best when trained on everything
-
-Version 3.3.8
--------------
 
 [20041230.0800] jonz: memory leak and thread-safe cleanup
 
@@ -112,56 +66,9 @@ Version 3.3.8
 - fixed use of inet_ntoa, which is not thread-safe, replaced with inet_ntoa_r
 - inet_ntoa_r should never be called if using domain sockets
 
-Version 3.3.7
--------------
-
-[20041229.1928] jonz: more bnr tweaks
-
-bnr window size of 4 didn't appear very useful
-adjusted when-to-train
- 
-[20041229.0600] jonz: increased training threshold to 2000
-
-threshold was lowered to 1000 in previous devel versions
-
-Version 3.3.6
--------------
-
-[20041228.2300] jonz: increased bnr pattern window to 4
-
-as a test to increase efficiency, pattern window was increased to 4 tokens
-
 [20041228.2300] jonz: integrated libbnr
 
 integrated bayesian noise reduction in DSPAM with libbnr sources
-
-Version 3.3.5
--------------
-
-[20041227.1000] jonz: bayesian noise reduction 2.0 stability
-
-BNR v2.0 stabilized, fully implemented and in testing. So far, the results
-appear quite promising; debugging shows that it has already prevented a few
-false positives. 
-
-Version 3.3.4
--------------
-
-[20041225.2045] jonz: fixed compile for non-daemon build
-
-fixed some critical compile bugs so that devel can build without daemon
-
-Version 3.3.3
--------------
-
-[20041225.1750] jonz: fixed minor bugs in daemon mode
-
-BUGFIX: if using ServerDomainSocketPath and ClientHost is not specified, 
-        commandline arguments are never passed in for processing
-
-BUGFIX: *BSD operating systems truncate last character of domain socket file
-
-BUGFIX: fixed some memory leaks in client code
 
 [20041225.1400] jonz: added support for trainPristine as user preference
 
@@ -179,23 +86,6 @@ upon receiving SIGHUP, daemon will:
 - reestablish all connections to the database
 - start listening for new requests
 
-Version 3.3.2
--------------
-
-[20041224.1222] jonz: fixed database handle corruption in daemon mode
-
-fixed a bug causing mutex locks to corrupt database handles, leading to an
-occasional segfault
-
-[20041224.1059] jonz: cleaned up reachable memory and memory leaks in daemon
-
-cleaned up reachable memory and some memory leaks in daemon mode
-
-[20041224.1033] jonz: added proper cleanup to daemon mode
-
-added proper cleanup functionality to daemon mode; all sockets closed, socket
-file unlinked, etc.
-
 [20041223.2106] jonz: fixed segfault on unreadable dspam.conf
 
 fixed a bug causing a segfault when dspam.conf is unreadable
@@ -204,9 +94,6 @@ fixed a bug causing a segfault when dspam.conf is unreadable
 
 url and tag scans now case-insensitive, so HTTP:// and HREF= should also be
 detected and tokenized
-
-Version 3.3.1
--------------
 
 [20041221.2230] jonz: rewrote signature embedding code
 
@@ -224,18 +111,6 @@ streamlined blackhole list, see http://www.nuclearelephant.com/projects/sbl/
 
 fixed preferences extensions so that they will work with storage profiles
 
-[20041220.0600] jonz: fix for trusted user security and daemon mode
-
-fixed bug where daemon mode would not start without trusted user security
-compiled in.
-
-Version 3.3.0
--------------
-
-[20041217.1900] jonz: additional optimizations in code
-
-additional optimizations in code for slight performance increase
-
 [20041217.0700] jonz: replaced btree sort with heap sort, major speedup
 
 replaced btree sort of tokens by delta with a heap window-size sort, major
@@ -251,10 +126,6 @@ added build hooks for the NodalCore(tm) C-Series Accelerator Card, the
 hardware platform used for Accelerated DSPAM(R). actual adapter code remains
 proprietary, so build hooks are only useful if you've licensed the
 accelerator.
-
-[20041211.1430] jonz: lowered initial training loop
-
-lowered initial learning threshold from 2500 to 1000
 
 [20041209.0800] jonz: added profile failover
 
@@ -281,39 +152,13 @@ database connections. --stdout and --classify supported.
 NOTE: Daemon mode is multithreaded, and therefore requires a multithreaded
       driver: mysql_drv or pgsql_drv.
 
-TODO: Better database handle locking; don't just mutex lock on your assigned
-      handle (as it is now), but try to find another one that's free.
-
-CVS Notes:
-
-12/18 - Big problem solved; must start locking database handles when in use or
-        do some transactional processing; mysql won't execute some queries
-        with "you can't do that now" error.
-
-12/18 - Fixed problem where new connection was initiated for preferences,
-        making performance increase kind of nonexistent
-
-12/19 - Fixed many non-MT safe functions such as strtok()
-12/20 - Fixed daemon mode to run without trusted user security (not recommended)
-
 [20041127.1700] jonz: normalized process_message()
 
 normalized process_message() by breaking up code into many smaller subroutines
 
-[20041121.1530] jonz: implemented initial test case for BNR v2.0
+[20041121.1530] jonz: implemented bayesian noise reduction 2.0
 
-CVS notes:
-
-implemented initial testing case for Bayesian Noise Reduction v2.0.
-additional tweaks 11/25
-11/28 - no bias for bnr patterns
-12/5 - implemented pattern layers 2 and 3 which may provide a concrete
-  approach to dubbing
-12/11 - only train when > 200 innocent messages
-12/26 - removed layering, stuck with standard dubbing for testing
-        shouldn't be forced on
-        no headers used in bnr, body only
- 
+see http://bnr.nuclearelephant.com
 
 [20041101.0700] jonz: added MaxMessageSize option to dspam.conf
 
@@ -340,9 +185,6 @@ longer necessary. this helps tum outperform teft in resources.
 [20041020.1400] jonz: normalized main()
 
 normalized main() by breaking up code into smaller subroutines
-
-Stable Version Changes
-----------------------
 
 Version 3.2.4
 -------------
