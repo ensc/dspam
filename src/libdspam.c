@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.41 2004/12/16 02:33:47 jonz Exp $ */
+/* $Id: libdspam.c,v 1.42 2004/12/16 19:56:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -63,6 +63,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "error.h"
 #include "decode.h"
 #include "language.h"
+#ifdef NCORE
+#include "ncore_adp.h"
+#endif
 
 /* Fisher-Robinson's Inverse Chi-Square Constants */
 #define CHI_S           0.1     /* Strength */
@@ -635,6 +638,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   char joined_token[32];		/* used for de-obfuscating tokens */
   char *previous_token = NULL;		/* used for chained tokens */
   char *previous_tokens[SBPH_SIZE];	/* used for k-mapped tokens */
+#ifdef NCORE
+  nc_strtok_t NTX;
+#endif
 
   /* Variables for Bayesian Noise Reduction */
 #ifdef BNR_DEBUG
@@ -1015,8 +1021,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     /* BODY: Split up the text into tokens, count frequency */
     joined_token[0] = 0;
     alloc_joined = 0;
-    
+#ifdef NCORE
+    token = strtok_n (body, DELIMITERS_NCORE, &NTX);
+#else
     token = strtok_r (body, DELIMITERS, &ptrptr);
+#endif
     while (token != NULL)
     {
       int l = strlen (token);
@@ -1063,7 +1072,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       {
         strlcat (joined_token, token, sizeof (joined_token));
       }
-      token = strtok_r (NULL, DELIMITERS, &ptrptr);
+#ifdef NCORE
+      token = strtok_n (NULL, NULL, &NTX);
+#else
+      token = strtok_r (body, DELIMITERS, &ptrptr);
+#endif
     }
 
 

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.40 2004/12/09 18:25:32 jonz Exp $ */
+/* $Id: dspam.c,v 1.41 2004/12/16 19:56:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -67,7 +67,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "dspam.h"
 #include "agent_shared.h"
-#include "config_api.h"
 #include "pref.h"
 #include "libdspam.h"
 #include "language.h"
@@ -75,6 +74,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "base64.h"
 #include "tbt.h"
 #include "pref.h"
+#include "config_api.h"
 
 static double timestart;
 

@@ -1,4 +1,4 @@
-# $Id: ncore.m4,v 1.1 2004/12/13 22:58:45 jonz Exp $
+# $Id: ncore.m4,v 1.2 2004/12/16 19:56:17 jonz Exp $
 # m4/ncore.m4
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
 #
@@ -33,7 +33,7 @@ AC_DEFUN([DS_NCORE],
       AC_DEFINE(NCORE, 1, [Defined if nodalcore output is enabled])
 
       adapter_objects=ncore_adp.lo
-      NCORELIBS="-lncore -lncorefw"
+      NCORELIBS="-lncore -lncorefw -lpthread"
 
       AC_SUBST(NCORELIBS)
       AC_SUBST(adapter_objects)
