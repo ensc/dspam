@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.43 2005/02/27 20:27:11 jonz Exp $ */
+/* $Id: daemon.c,v 1.44 2005/02/27 21:01:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -245,9 +245,15 @@ void *process_connection(void *ptr) {
   int server_mode = SSM_DSPAM;
 
   if (_ds_read_attribute(agent_config, "ServerMode") &&
-      !strcmp(_ds_read_attribute(agent_config, "ServerMode"), "standard"))
+      !strcasecmp(_ds_read_attribute(agent_config, "ServerMode"), "standard"))
   {
     server_mode = SSM_STANDARD;
+  }
+
+  if (_ds_read_attribute(agent_config, "ServerMode") &&
+      !strcasecmp(_ds_read_attribute(agent_config, "ServerMode"), "auto"))
+  {
+    server_mode = SSM_AUTO;
   }
 
   setbuf(fd, NULL);
@@ -255,6 +261,8 @@ void *process_connection(void *ptr) {
   TTX->packet_buffer = buffer_create(NULL);
   if (TTX->packet_buffer == NULL)
     goto CLOSE;
+
+  // In auto mode, look like a regular LMTP server so they recognize it
 
   snprintf(buf, sizeof(buf), "%d DSPAM %sLMTP %s %s", 
     LMTP_GREETING, 
@@ -271,6 +279,16 @@ void *process_connection(void *ptr) {
   input = daemon_expect(TTX, "LHLO");
   if (input == NULL)
     goto CLOSE;
+  if (server_mode == SSM_AUTO && input[4]) {
+    char buff[128];
+
+    snprintf(buff, sizeof(buff), "ServerPass.%s", input + 5);
+    chomp(buff);
+    if (_ds_read_attribute(agent_config, buff))
+      server_mode = SSM_DSPAM;
+    else
+      server_mode = SSM_STANDARD;
+  }
 
   free(input);
   if (daemon_reply(TTX, LMTP_OK, "OK")<=0)
@@ -362,13 +380,15 @@ void *process_connection(void *ptr) {
     argc = 0;
     if (parms) {
       char *p = strdup(parms);
-      token = strtok_r(p, " ", &ptrptr);
-      while(token != NULL) {
-        argv[argc] = token;
-        argc++;
-        token = strtok_r(NULL, " ", &ptrptr);
+      if (p) {
+        token = strtok_r(p, " ", &ptrptr);
+        while(token != NULL) {
+          argv[argc] = token;
+          argc++;
+          token = strtok_r(NULL, " ", &ptrptr);
+        }
+        free(p);  
       }
-      free(p);  
     }
 
     /* RCPT TO (Userlist and arguments) */

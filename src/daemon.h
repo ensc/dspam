@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.15 2005/02/24 22:04:06 jonz Exp $ */
+/* $Id: daemon.h,v 1.16 2005/02/27 21:01:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -79,7 +79,7 @@ buffer *read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
 
 #define SSM_DSPAM	0x00
 #define SSM_STANDARD	0x01
-
+#define SSM_AUTO	0x02
 
 #endif
 #endif /* _DAEMON_H */

@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.26 2005/02/25 23:19:35 jonz Exp $ */
+/* $Id: client.c,v 1.27 2005/02/27 21:01:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -250,19 +250,26 @@ int client_connect(int flags) {
 int client_authenticate(THREAD_CTX *TTX) {
   char buff[1024];
   char *input;
+  char *ident = _ds_read_attribute(agent_config, "ClientIdent");
+
+  if (ident == NULL || !strchr(ident, '@')) {
+    report_error(ERROR_CLIENT_IDENT);
+    return EINVAL;
+  }
 
   input = client_expect(TTX, LMTP_GREETING);
   if (input == NULL) 
     return EFAILURE;
   free(input);
 
-  if (send_socket(TTX, "LHLO")<=0) 
+  snprintf(buff, sizeof(buff), "LHLO %s", strchr(ident, '@')+1);
+  if (send_socket(TTX, buff)<=0) 
     return EFAILURE;
 
   if (client_getcode(TTX)!=LMTP_OK) 
     return EFAILURE;
 
-  snprintf(buff, sizeof(buff), "MAIL FROM: %s", _ds_read_attribute(agent_config, "ClientIdent"));
+  snprintf(buff, sizeof(buff), "MAIL FROM: %s", ident);
   if (send_socket(TTX, buff)<=0)
     return EFAILURE;
 

@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.24 2005/02/27 20:20:04 jonz Exp $
+## $Id: dspam.conf.in,v 1.25 2005/02/27 21:01:06 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -401,24 +401,28 @@ Opt out
 
 #
 # ServerMode specifies the type of LMTP server to start. This can be one of:
-#     dspam: DSPAM-proprietary LMTP server, for communicating with dspamc
+#     dspam: DSPAM-proprietary DLMTP server, for communicating with dspamc
 #  standard: Standard LMTP server, for communicating with Postfix or other MTA
+#      auto: Speak both DLMTP and LMTP; auto-detect by ServerPass.IDENT
 #
+#ServerMode dspam
 
-# If running in dspam mode, dspam clients will require authentication as
-# they will be passing in parameters
+# If supporting DLMTP (dspam) mode, dspam clients will require authentication 
+# as they will be passing in parameters. The idents below will be used to
+# determine which clients will be speaking DLMTP, so if you will be using
+# both LMTP and DLMTP from the same host, be sure to use something other
+# than the server's hostname below (which will be sent by the MTA during a 
+# standard LMTP LHLO).
 # 
-#ServerMode		dspam
 #ServerPass.Relay1	"secret"
 #ServerPass.Relay2	"password"
 
-# If running in standard mode, server parameters will need to be specified
+# If supporting standard LMTP mode, server parameters will need to be specified
 # here, as they will not be passed in by the mail server
 #
 # NOTE: If you specify --user in ServerParameters, the RCPT TO will be
 #       used only for delivery, and not set as the active user for processing.
 #
-#ServerMode		standard
 #ServerParameters	"--deliver=innocent -d %u"
 
 # If you wish to use a local domain socket instead of a TCP socket, uncomment
