@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.9 2004/12/03 00:36:48 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.10 2004/12/03 13:32:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -134,13 +134,23 @@ _pgsql_drv_get_spamtotals (DSPAM_CTX * CTX)
 
   gid = p->pw_uid;
 
-  snprintf (query, sizeof (query),
-            "SELECT uid, spam_learned, innocent_learned, "
-            "spam_misclassified, innocent_misclassified, "
-            "spam_corpusfed, innocent_corpusfed, "
-            "spam_classified, innocent_classified "
-            "FROM dspam_stats WHERE uid IN ('%d', '%d')",
-            uid, gid);
+  if (gid != uid) {
+    snprintf (query, sizeof (query),
+	      "SELECT uid, spam_learned, innocent_learned, "
+	      "spam_misclassified, innocent_misclassified, "
+	      "spam_corpusfed, innocent_corpusfed, "
+	      "spam_classified, innocent_classified "
+	      "FROM dspam_stats WHERE uid IN ('%d', '%d')",
+	      uid, gid);
+  } else {
+    snprintf (query, sizeof (query),
+	      "SELECT uid, spam_learned, innocent_learned, "
+	      "spam_misclassified, innocent_misclassified, "
+	      "spam_corpusfed, innocent_corpusfed, "
+	      "spam_classified, innocent_classified "
+	      "FROM dspam_stats WHERE uid = '%d'",
+	      uid);
+  }
 
   result = PQexec(s->dbh, query);
 
@@ -413,10 +423,18 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
     return EUNKNOWN;
   }
 
-  snprintf (scratch, sizeof (scratch),
-            "SELECT uid, token, spam_hits, innocent_hits "
-            "FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
-            uid, gid);
+  if (gid != uid) {
+    snprintf (scratch, sizeof (scratch),
+	      "SELECT uid, token, spam_hits, innocent_hits "
+	      "FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
+	      uid, gid);
+  } else {
+    snprintf (scratch, sizeof (scratch),
+	      "SELECT uid, token, spam_hits, innocent_hits "
+	      "FROM dspam_token_data WHERE uid = '%d' AND token IN (",
+	      uid);
+  }
+
   buffer_cat (query, scratch);
   node_lht = c_lht_first (freq, &c_lht);
   while (node_lht != NULL)

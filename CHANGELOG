@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.60 2004/12/03 13:16:20 jonz Exp $
+$Id: CHANGELOG,v 1.61 2004/12/03 13:32:03 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041203.0800] jonz: performance fixes for pgsql_drv
+
+minor performance fixed for pgsql_drv that may have a big effect on some
+implementations
 
 [20041202.2024] jonz: added dspamc thin client
 

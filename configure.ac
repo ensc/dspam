@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.6 2004/12/01 18:26:12 jonz Exp $
+dnl $Id: configure.ac,v 1.7 2004/12/03 13:32:03 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -66,6 +66,8 @@ AC_CHECK_FUNCS(getpwnam_r)
 AC_CHECK_FUNCS(getpwuid_r)
 AC_CHECK_FUNCS([memcpy memset])
 AC_CHECK_FUNCS(localtime_r)
+
+LIBS="$LIBS -lm"
 
 #   Multithreaded support
 #
