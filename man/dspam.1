@@ -1,4 +1,4 @@
-.\" $Id: dspam.1,v 1.1 2004/10/24 20:48:46 jonz Exp $
+.\" $Id: dspam.1,v 1.2 2004/11/30 18:37:28 jonz Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam3.2
@@ -60,6 +60,9 @@ user2\ ...\ userN\fR\c
 ]
 [\c
 .BI \--debug \c
+]
+[\c
+.BI \--daemon \c
 ]
 [\c
 .I \ delivery\_arguments \fR\c
@@ -229,6 +232,16 @@ If
 was compiled with
 .B --enable-debug
 then using --debug will turn on debugging messages to /tmp/dspam.debug.
+
+.ne 3
+.TP
+.BI \--daemon\c
+If
+.B DSPAM
+was compiled with
+.B --enable-daemon
+then using --daemon will cause DSPAM to enter daemon mode, where it will listen
+for DSPAM clients to connect and actively service requests.
 
 .SH EXIT VALUE
 .LP

@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.2 2004/11/24 17:57:47 jonz Exp $ */
+/* $Id: daemon.h,v 1.3 2004/11/30 18:37:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -32,18 +32,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <auto-config.h>
 #endif
 
+#include <pthread.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+
 #ifdef DAEMON
 
 int daemon_listen(void);
+void *process_connection(void *ptr);
 
 typedef struct {
-  int operating_mode;   /* DTM_ */
-  pthread_mutex_t lock;
+  int sockfd;
+  pthread_t thread;
+  struct sockaddr_in remote_addr;
 } THREAD_CTX;
-
-#define DTM_RUN         0x00
-#define DTM_STOP        0x01
-#define DTM_RELOAD      0x02
 
 #endif /* _DAEMON_H */
 

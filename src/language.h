@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.2 2004/11/24 17:57:47 jonz Exp $ */
+/* $Id: language.h,v 1.3 2004/11/30 18:37:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -76,6 +76,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 /* daemon process */
 
 #define DAEMON_START		"Daemon process starting"
-#define DAEMON_EXIT		"Daemon process exiting"
+#define DAEMON_EXIT             "Daemon process exiting"
+#define DAEMON_BINDING		"Binding to :%d"
+
+#define ERROR_DAEMON_BIND		"Could not bind to :%d (%s)"
+#define ERROR_DAEMON_SOCKET		"Could not create socket: %s"
+#define ERROR_DAEMON_SOCKOPT		"Could not set sockopt %s: %s"
+#define ERROR_DAEMON_LISTEN		"listen() failed: %s"
+#define ERROR_DAEMON_ACCEPT		"accept() failed: %s"
+#define ERROR_DAEMON_THREAD		"pthread_create() failed: %s"
 
 #endif /* _LANGUAGE_H */

@@ -1,13 +1,25 @@
-$Id: CHANGELOG,v 1.37 2004/11/28 15:01:48 jonz Exp $
+$Id: CHANGELOG,v 1.38 2004/11/30 18:37:28 jonz Exp $
 
 Version NEXT
 ------------
 
+[20041130.0800] jonz: dspam daemonization
+
+CVS notes:
+
+current status: initial daemonization code to launch into daemon mode and 
+listen for new connections.
+
+next: code authentication, parameters, and process
+then: client
+ 
 [20041127.1700] jonz: normalized process_message()
 
 normalized process_message() by breaking up code into many smaller subroutines
 
 [20041121.1530] jonz: implemented initial test case for BNR v2.0
+
+CVS notes:
 
 implemented initial testing case for Bayesian Noise Reduction v2.0.
 additional tweaks 11/25

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.15 2004/11/27 22:38:15 jonz Exp $ */
+/* $Id: dspam.c,v 1.16 2004/11/30 18:37:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -49,6 +49,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "config.h"
 #include "util.h"
 #include "read_config.h"
+#ifdef DAEMON
+#include "daemon.h"
+#endif
 
 #ifdef TIME_WITH_SYS_TIME
 #   include <sys/time.h>
@@ -1201,11 +1204,12 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     /* Launch into daemon mode */
 
     if (!strcmp (argv[i], "--daemon") && ATX->trusted) {
-      fprintf(stderr, DAEMON_START);
+      fprintf(stderr, "%s\n", DAEMON_START);
       LOGDEBUG(DAEMON_START);
       daemon_listen();
-      fprintf(stderr, DAEMON_EXIT);
+      fprintf(stderr, "%s\n", DAEMON_EXIT);
       LOGDEBUG(DAEMON_EXIT);
+      pthread_exit(EXIT_SUCCESS);
       exit(EXIT_SUCCESS);
     }
 #endif
