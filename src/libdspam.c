@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.35 2004/12/11 19:30:06 jonz Exp $ */
+/* $Id: libdspam.c,v 1.36 2004/12/13 03:08:58 jonz Exp $ */
 
 /*
  DSPAM
@@ -1110,7 +1110,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     bnr_pattern_instantiate(CTX, bnr_layer1, freq->order, 's', DTT_DEFAULT, NULL);
     bnr_pattern_instantiate(CTX, bnr_layer1, freq->chained_order, 'c', DTT_DEFAULT, NULL);
 
-    lht_hit(bnr_layer1, _ds_getcrc64("bnr.t."), "bnr.t.");
+    lht_hit(bnr_layer1, _ds_getcrc64("bnr.t_"), "bnr.t_");
 
     LOGDEBUG("Loading %ld BNR patterns at layer 1", bnr_layer1->items);
 
@@ -1121,7 +1121,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       goto bail;
     }
 
-    lht_getspamstat(bnr_layer1, _ds_getcrc64("bnr.t."), &bnr_tot);
+    lht_getspamstat(bnr_layer1, _ds_getcrc64("bnr.t_"), &bnr_tot);
 
     /* BNR LAYER 2 PATTERNS (Patterns of patterns of tokens) */
 
@@ -1476,11 +1476,27 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     if (node_lht && node_lht->token_name &&
         !strncmp(node_lht->token_name, "bnr.", 4) &&
-        CTX->confidence < 0.70 &&
-        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 200)
-    {
-      node_lht->s.status |= TST_DIRTY;
+        CTX->confidence < 0.60) {
+
+      if ((node_lht->token_name[4] == 'c' || node_lht->token_name[4] == 's') &&
+          CTX->totals.innocent_learned + CTX->totals.innocent_classified > 250)
+      {
+        node_lht->s.status |= TST_DIRTY;
+      }
+
+      if (node_lht->token_name[4] == '2' && 
+          CTX->totals.innocent_learned + CTX->totals.innocent_classified > 500)
+      {
+        node_lht->s.status |= TST_DIRTY;
+      }
+
+      if (node_lht->token_name[4] == '3' &&
+          CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000)
+      {
+        node_lht->s.status |= TST_DIRTY;
+      }
     }
+
 
     /* SPAM */
     if (CTX->result == DSR_ISSPAM)
