@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.57 2005/03/12 16:30:56 jonz Exp $ */
+/* $Id: daemon.c,v 1.58 2005/03/12 18:54:48 jonz Exp $ */
 
 /*
 
@@ -760,7 +760,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
             }
           }
              
-          if (y) {
+          if (y && !strcmp(_ds_read_attribute(agent_config, "ChangeUserOnParse"), "on")) {
             char *ptrptr;
             char *z = strtok_r(y, "@", &ptrptr);
             nt_destroy(ATX->users);

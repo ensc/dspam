@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.29 2005/03/12 15:47:42 jonz Exp $
+## $Id: dspam.conf.in,v 1.30 2005/03/12 18:54:48 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -359,16 +359,30 @@ Opt out
 #TrackSources spam nonspam
 
 #
-# ParseToHeaders: When retraining, it's possible to set up a wildcard such
-# as *@spam.yourdomain.com to intercept all missed spam. If you do this,
-# you'll need to enable this option so that the username is assigned based
-# on the To: address of the message; for example spam-bob will assign the
-# username to bob. If you want DSPAM to automatically set the processing 
-# mode (class=spam/innocent, source=error) based on this address, enable
-# ChangeModeOnParse. This will remove the need for aliases in such a setup.
+# ParseToHeaders: In lieu of setting up individual aliases for each user,
+# DSPAM can be configured to automatically parse the To: address for spam and
+# false positive forwards. From there, it can be configured to either set the
+# DSPAM user based on the username specified in the header and/or change the
+# training class and source accordingly. The options below can be used to 
+# customize most common types of header parsing behavior to avoid the need for
+# multiple aliases, or if using LMTP, aliases entirely..
+#
+# ParseToHeader: Parse the To: headers of an incoming message. This must be
+#                set to 'on' to use either of the following features.
+# 
+# ChangeModeOnParse: Automatically change the class (to spam or innocent)
+#   depending on whether spam- or fp- was specified, and change the source
+#   to 'error'. This is convenient if you're not using aliases at all, but
+#   are delivering via LMTP.
+#
+# ChangeUserOnParse: Automatically change the username to match that specified
+#   in the To: header. For example, spam-bob@domain.tld will set the username
+#   to bob, ignoring any --user passed in. This may not always be desirable if
+#   you are using virtual email addresses as usernames.
 #
 #ParseToHeaders on
 #ChangeModeOnParse on
+#ChangeUserOnParse on
 
 #
 # Broken MTA Options: Some MTAs don't support the proper functionality
