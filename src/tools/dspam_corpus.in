@@ -1,0 +1,138 @@
+#!/usr/bin/perl
+# $Id: dspam_corpus.in,v 1.1 2004/10/24 20:53:29 jonz Exp $
+# dspam_corpus: small tool to automatically add a corpus of mail to a dictionary
+
+use Getopt::Long;
+use strict;
+
+my $USER = '';
+my $MODE = 'teft';
+my $FEATURE = 'chained,noise';
+my $file = '';
+my $IS_SPAM = '';
+my $quiet = 0;
+my ($line, $msg_count, $total_msgs, $tprev, $mprev, $ave_rate) = 0;
+my $tstart;
+
+sub usage
+{
+  print STDERR <<HELP_EOF;
+usage: $0 [--addspam] [--quiet] username filename
+        --addspam       corpus is known spam
+        --quiet         suppress progress report and summary
+        username        build the corpus for this user
+        filename        build the corpus using this file (in mbox format)
+HELP_EOF
+  exit 1;
+}
+
+sub DSPAM_BINARY { '@bindir@/@dspam_transformed@'; }
+
+my $check_opts = GetOptions ('a|addspam' => sub { $IS_SPAM = 'YES'; },
+	                     'q|quiet' => \$quiet,
+	                     'h|?|help' => \&usage);
+if (@ARGV != 2)
+  {
+    print STDERR "Too " . ((@ARGV < 2) ? 'few' : 'many') . " arguments.\n";
+    usage ();
+  }
+($USER, $file) = @ARGV;
+if (!$check_opts || $USER eq '' || $file eq '')
+  {
+    usage();
+  }
+
+my $show_progress = !$quiet && -t STDOUT;
+my $dspam_cmd;
+
+if ($IS_SPAM eq "YES") {
+  $dspam_cmd = "'".DSPAM_BINARY."' --class=spam --source=corpus  --user '$USER' --mode=$MODE --feature=$FEATURE";
+} else {
+  $dspam_cmd = "'".DSPAM_BINARY."' --class=innocent --source=corpus --user '$USER' --mode=$MODE --feature=$FEATURE";
+}
+
+init_progress_report() if ($show_progress);
+open(FILE, "<$file") || die "$file: $!";
+$tstart = time();
+$tprev = $tstart;
+if (!$quiet && !eof (FILE))
+  {
+    print "command: $dspam_cmd\n";
+  }
+while(<FILE>)
+  {
+    s/\r$//;
+    if (/^From /)
+      {
+        end_of_message();
+        open(PIPE, "|".$dspam_cmd);
+      }
+    print PIPE $_;
+    $line++;
+  }
+end_of_message();
+close(FILE);
+print_summary() if (!$quiet);
+exit 0;
+
+sub end_of_message
+{
+  if ($line > 0)
+    {
+      close(PIPE);
+      ++$msg_count;
+      progress_report() if ($show_progress);
+    }
+}
+
+sub init_progress_report
+{
+  my $block;
+  select STDOUT; $| = 1;
+  open(FILE, "<$file") || die "$file: $!";
+  while (read(FILE,$block,4095) && ($block .= <FILE>))
+    {
+      $total_msgs += scalar (my @f = $block =~ m/^From /mg);
+    }
+}
+
+sub progress_report
+{
+  my ($tnow, $telapsed, $trem, $tsince, $msince, $hh, $mm, $ss);
+  $tnow = time();
+  $telapsed = ($tnow - $tstart);
+  $tsince = $tnow - $tprev;
+  $msince = $msg_count - $mprev;
+  if ($tsince > 1.0 && $msince > 1)
+  {
+    my ($pct, $rate);
+    $pct = int (100 * $msg_count/$total_msgs) if ($total_msgs != 0);
+    $pct = 0 if ($total_msgs == 0);
+    $rate = $msince / $tsince;
+    $ave_rate = 0.5 * $rate + 0.5 * $ave_rate;
+    $trem = ($total_msgs - $msg_count)/$ave_rate;
+    my ($hh, $mm, $ss) = (int($trem/3600), int($trem/60) % 60, $trem % 60);
+    printf " %3d%% [%-25s] ETA: %02d:%02d:%02d RATE: %5.2f msgs./sec.\r", 
+        $pct, '*' x ($pct/4), $hh, $mm, $ss, $ave_rate;
+    $tprev = $tnow;
+    $mprev = $msg_count;
+  }
+}
+
+sub print_summary
+{
+  my ($tnow, $telapsed, $trem, $rate, $hh, $mm, $ss);
+  $tnow = time();
+  $telapsed = ($tnow - $tstart);
+  $telapsed = 1 if ($telapsed == 0);
+  $rate = $msg_count / $telapsed;
+  my ($hh, $mm, $ss) = (int($telapsed/3600),
+                        int($telapsed/60) % 60,
+			$telapsed % 60);
+  if ($show_progress)
+    {
+      print ' ' x 76 . "\r";
+    }
+  printf "$0: %d messages, %02d:%02d:%02d elapsed, %5.2f msgs./sec.\n", 
+    $msg_count, $hh, $mm, $ss, $rate;
+}

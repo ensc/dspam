@@ -1,0 +1,194 @@
+#!/usr/bin/perl -w
+# $Id: dspam_genaliases.in,v 1.1 2004/10/24 20:53:29 jonz Exp $
+
+use strict;
+use File::Basename;
+use Getopt::Long;
+use IO::File;
+
+sub PROGNAME { 'dspam_genaliases'; }
+
+sub PACKAGE_STRING  { '@PACKAGE_STRING@'; }
+sub PACKAGE_BUGREPORT { '@PACKAGE_BUGREPORT@'; }
+
+sub DSPAM_BINARY { '@bindir@/@dspam_transformed@'; }
+
+sub FALSE   { 0; }
+sub TRUE    { !FALSE; }
+sub EXIT_SUCCESS    { 0; }
+sub EXIT_FAILURE    { 1; }
+
+my $PROG = basename($0);
+
+sub Help()
+{
+    show_version();
+    printf("Script that uses passwd data to output a dspam aliases\n");
+    printf("table which can be included in the master aliases table.\n");
+    printf("\n");
+    printf("Usage:\n");
+    printf("    %s [options]\n", $PROG);
+    printf("\n");
+    printf("Options:\n");
+    printf("    -h, --help             This help\n");
+    printf("        --version          Show version info\n");
+    printf("        --nospam           Generate `nospam-USER' aliases for reporting a false\n");
+    printf("                           positives (in addition to the `spam-USER' aliases)\n");
+    printf("    -o, --output FILE      Output generated aliases to the FILE.\n");
+    printf("                           Special filename `-' is allowed and points\n");
+    printf("                           to the stdout.\n");
+    printf("                           [default: stdout]\n");
+    printf("        --exclude NAME     Do not generate an alias for username NAME. Specify\n");
+    printf("                           multiple times to exclude multiple user names.\n");
+    printf("        --excludeuid NUM   Do not generate an alias for UID. Specify multiple\n");
+    printf("                           times to exclude multiple UIDs.\n");
+    printf("        --minuid NUM       Minimum UID for which to generate an alias.\n");
+    printf("        --maxuid NUM       Maximum UID for which to generate an alias.\n");
+###    printf("        --salt STR         \"Salt\" aliases.  Generate aliases like\n");
+###    printf("                           `spam-USER-STR' instead of `spam-USER'\n");
+###    printf("                           and `nospam-USER-STR' instead of `nospam-USER-STR'\n");
+###    printf("                           (last if generating of `nospam-USER' aliases is\n");
+###    printf("                           enabled only.)\n");
+    printf("\n");
+    printf("Report bugs to <%s>.\n", PACKAGE_BUGREPORT);
+}
+
+sub UseHelp()
+{
+    printf(STDERR "%s: try `%s --help' for help\n", $PROG, $PROG);
+}
+
+sub show_version()
+{
+    printf("%s (%s)\n", PROGNAME, PACKAGE_STRING);
+    printf("Copyright (C) 2002-2004 Network Dweebs Corporation\n");
+    printf("This is free software; see the source for copying conditions.  There is NO\n");
+    printf("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n");
+    printf("\n");
+}
+
+sub main()
+{
+    my $success;
+    my $username;
+    my $passwd;
+    my $uid;
+    my $opt_help;
+    my $opt_version;
+    my $opt_minuid;
+    my $opt_maxuid;
+    my %excludename;
+    my %excludeuid;
+    my $outfile;
+    my $outhandle;
+    my $salt;
+    my $opt_generate_nospam = FALSE;
+
+    Getopt::Long::config("no_auto_abbrev",
+                         "no_ignore_case",
+                         "bundling");
+    $success = GetOptions("help|h" => \$opt_help,
+                          "version" => \$opt_version,
+                          "nospam" => \$opt_generate_nospam,
+                          "output|o=s" => \$outfile,
+			  "minuid=i" => \$opt_minuid,
+                          "maxuid=i" => \$opt_maxuid,
+                          "exclude=s" => sub { $excludename{$_[1]} = 1 },
+                          "excludeuid=i" => sub { $excludeuid{$_[1]} = 1 }
+###                          "salt=s" => \$salt
+                          );
+
+    if (!$success)
+    {
+        UseHelp();
+        return EXIT_FAILURE;
+    }
+    if ($opt_help)
+    {
+        Help();
+        return EXIT_SUCCESS;
+    }
+    if ($opt_version)
+    {
+        show_version();
+        return EXIT_SUCCESS;
+    }
+    
+    if (@ARGV)
+    {
+        printf(STDERR "%s: too many command line arguments\n", $PROG);
+        UseHelp();
+        return EXIT_FAILURE;
+    }
+
+###    if (!defined($salt) || $salt eq '')
+###    {
+###        printf("%s: warning: no salt specified, therefore your spam/nospam aliases can be guessed and abused by spammers.  YOU ARE WARNED.\n", $PROG);
+###        $salt='';
+###    }
+
+    # open output file.
+    if (!defined($outfile) || $outfile eq '-')
+    {
+        $outfile = '';
+        $outhandle = *STDOUT{IO};
+    }
+    else
+    {
+        $outhandle = IO::File->new($outfile, 'w');
+        if (!$outhandle)
+        {
+            printf(STDERR "%s: error opening output file `%s' for writing: %s\n",
+                   $PROG, $outfile, $!);
+            return EXIT_FAILURE;
+        }
+    }
+
+
+    # do real work
+###    my $alias_suffix = $salt eq '' ? '' : '-'.$salt;
+    my $alias_suffix = '';
+    setpwent();
+    while (($username, $passwd, $uid) = getpwent)
+    {
+        next if $opt_minuid && $uid < $opt_minuid;
+        next if $opt_maxuid && $uid > $opt_maxuid;
+        next if exists $excludeuid{$uid} || $excludename{$username};
+        $success = 
+            $outhandle->printf("spam-%s%s:\t\"|'%s' --user '%s' --class=spam --source=error --mode=teft\"\n",
+                               $username, $alias_suffix,
+                               DSPAM_BINARY, $username);
+        if (!$success)
+        {
+            printf(STDERR "%s: error writing to the `%s': %s\n",
+                   $PROG, $outfile ? $outfile : '(stdout)', $!);
+            return EXIT_FAILURE;
+        }
+        if ($opt_generate_nospam)
+        {
+            $success = $outhandle->printf("nospam-%s%s:\t\"|'%s' --user '%s' --class=innocent --source=error --mode=teft --deliver=innocent\"\n",
+                                          $username, $alias_suffix,
+                                          DSPAM_BINARY, $username)
+            ;
+            if (!$success)
+            {
+                printf(STDERR "%s: error writing to the `%s': %s\n",
+                       $PROG, $outfile ? $outfile : '(stdout)', $!);
+                return EXIT_FAILURE;
+            }
+        }
+    }
+    $success = $outhandle->close();
+    if (!$success)
+    {
+        printf(STDERR "%s: error writing to the `%s': %s\n",
+               $PROG, $outfile ? $outfile : '(stdout)', $!);
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+my $rc;
+$rc = main();
+exit($rc);

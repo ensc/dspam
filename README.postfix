@@ -1,0 +1,52 @@
+$Id: README.postfix,v 1.1 2004/10/24 20:47:30 jonz Exp $
+
+POSTFIX INTEGRATION
+
+Please follow the instructions in the README for building DSPAM. Once DSPAM
+has been built, the following instructions may be used to integrate it with
+postfix.
+
+Postfix can be configured to integrate with DSPAM, however you'll need to use
+a separate delivery agent for final delivery to your mailbox.  Two good LDAs 
+to use for this purpose are Procmail and Maildrop. The first step in getting 
+DSPAM to work is to get mail delivery to work with one of these external LDAs
+before integrating DSPAM with postfix.
+
+Procmail is pretty standard on most Linux distributions. It works fine for 
+delivery to local users, but if you need to support virtual users (email 
+accounts that do not correspond to a local Unix user), it can be difficult to 
+figure out how to get Procmail to deliver to the right place.
+
+You can configure DSPAM with the appropriate LDA using --with-delivery-agent=
+at configure time or by specifying TrustedDeliveryAgent in dspam.conf. 
+For example:
+
+TrustedDeliveryAgent "/usr/bin/procmail" 
+
+You'll also want to configure the untrusted delivery agent in a similar
+fashion:
+
+UntrustedDeliveryAgent "/usr/bin/procmail -d %u"
+
+If you are using maildrop, you'll need to be sure you've compiled maildrop to
+trust the user that dspam is running as.
+
+Once you have configured a local delivery agent into DSPAM, the simplest way 
+to configure postfix for local users is to set the mailbox_command directive 
+to point to DSPAM. This can be done by editing /etc/postfix/main.cf:
+
+mailbox_command = /usr/local/bin/dspam --deliver=innocent --user $USER -d %u
+
+Now, configure the aliases as prescribed in the README and you're good to go!
+
+CYRUS INTEGRATION
+
+If you're using Cyrus to deliver mail locally, you'll want to specify the
+following in dspam.conf:
+
+TrustedDeliveryAgent "/usr/sbin/cyrdeliver $u"
+
+Then use the following in Postfix:
+
+mailbox_command = /usr/local/bin/dspam --user ${user} --deliver=innocent
+

@@ -1,0 +1,1000 @@
+/* $Id: decode.c,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+
+/*
+ DSPAM
+ COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+*/
+
+#ifdef HAVE_CONFIG_H
+#include <auto-config.h>
+#endif
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#include "decode.h"
+#include "error.h"
+#include "util.h"
+#include "language.h"
+#include "buffer.h"
+#include "base64.h"
+#include "libdspam.h"
+
+/* decode structures and functions
+   this section of code is designed for a twofold purpose:
+
+   - actualize the message into an organized internal array of data where
+     the message's components can be easily identified and processed by
+     the software (e.g. without parsing) to a degree where the entire
+     message can be reconstructed from scratch.
+
+   - decode any encoded segments of the message (base64, quoted-printable)
+*/
+
+
+struct _ds_message *
+_ds_actualize_message (const char *message)
+{
+  char *line, *in = strdup (message), *m_in;
+  struct _ds_message_block *current_block;
+  struct _ds_header_field *current_heading = NULL;
+  struct nt *boundaries = nt_create (NT_CHAR);
+  struct _ds_message *out;
+  int block_position = BP_HEADER;
+  int in_content = 0;
+
+  m_in = in;
+
+  /* duplicate of our message; used for parsing */
+  if (in == NULL || boundaries == NULL)
+  {
+    free (m_in);
+    nt_destroy (boundaries);
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+
+  /* initialize our message structure */
+  out = (struct _ds_message *) malloc (sizeof (struct _ds_message));
+  if (out == NULL)
+  {
+    free (m_in);
+    nt_destroy (boundaries);
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+
+  /* initialize the components array of our message */
+  out->components = nt_create (NT_PTR);
+  if (out->components == NULL)
+  {
+    free (m_in);
+    nt_destroy (boundaries);
+    free (out);
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+
+  /* initialize the first block of our message */
+  current_block = _ds_create_message_block ();
+  if (current_block == NULL)
+  {
+    nt_destroy (out->components);
+    free (out);
+    free (m_in);
+    nt_destroy (boundaries);
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+
+  if (nt_add (out->components, (void *) current_block) == NULL)
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+
+  line = strsep (&in, "\n");
+  while (line != NULL)
+  {
+
+    /* Header Processing */
+    if (block_position == BP_HEADER)
+    {
+
+      /* If we see two boundaries converged on top of one another */
+      if (_ds_match_boundary (boundaries, line))
+      {
+        /* Add the boundary as the terminating boundary */
+        current_block->terminating_boundary = strdup (line + 2);
+        current_block->original_encoding = current_block->encoding;
+
+        _ds_decode_headers(current_block);
+        current_block = _ds_create_message_block ();
+
+        if (current_block == NULL)
+        {
+          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+          _ds_destroy_message (out);
+          free (m_in);
+          nt_destroy (boundaries);
+          return NULL;
+        }
+
+        if (nt_add (out->components, (void *) current_block) == NULL)
+          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+
+        block_position = BP_HEADER;
+      }
+
+      /* Concatenate multiline headers to the original header field data */
+      else if (line[0] == 32 || line[0] == '\t')
+      {
+
+        if (current_heading != NULL)
+        {
+          char *eow;
+
+          current_heading->data =
+            realloc (current_heading->data,
+                     strlen (current_heading->data) + strlen (line) + 2);
+          if (current_heading->data != NULL)
+          {
+            strcat (current_heading->data, "\n");
+            strcat (current_heading->data, line);
+          }
+
+          /* Our concatenated data doesn't have any whitespace between lines */
+          for(eow=line;eow[0] && isspace((int) eow[0]);eow++) { }
+
+          current_heading->concatenated_data =
+           realloc (current_heading->concatenated_data,
+             strlen (current_heading->concatenated_data) + strlen (eow) + 1);
+          if (current_heading->concatenated_data != NULL)
+          {
+            strcat (current_heading->concatenated_data, eow);
+          }
+
+          if (current_heading->original_data != NULL) {
+
+            current_heading->original_data =
+              realloc (current_heading->original_data,
+                       strlen (current_heading->original_data) +
+                               strlen (line) + 2);
+            if (current_heading->original_data != NULL)
+            {
+              strcat (current_heading->original_data, "\n");
+              strcat (current_heading->original_data, line);
+            }
+          }
+
+          _ds_analyze_header (current_block, current_heading, boundaries);
+        }
+
+        /* New header field */
+      }
+      else if (line[0] != 0)
+      {
+        struct _ds_header_field *header = _ds_create_header_field (line);
+
+        if (header != NULL)
+        {
+          _ds_analyze_header (current_block, header, boundaries);
+          current_heading = header;
+          nt_add (current_block->headers, header);
+        }
+
+        /* line[0] == 0; switch to body */
+      }
+      else
+      {
+        block_position = BP_BODY;
+      }
+
+      /* Message body processing */
+    }
+    else if (block_position == BP_BODY)
+    {
+
+      /* If this is a message/rfc822, look for a boundary in the header */
+/*      if (current_block->media_type == MT_MESSAGE) */
+      {
+        /* Check for multipart boundary definition */
+
+        if (!strncasecmp (line, "Content-Type", 12)
+            || ((line[0] == 32 || line[0] == 9) && in_content))
+        {
+          char *h = strdup (line);
+
+          in_content = 1;
+          if (h == NULL)
+          {
+            _ds_destroy_message(out);
+            nt_destroy(boundaries);
+            free(m_in);
+            LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+            return NULL;
+          }
+
+          lc (h, h);
+
+          if (strstr (h, "boundary"))
+          {
+            char *x;
+            long pos, len;
+
+            if (strchr (h, '=') && strchr (h, '"'))
+            {
+              char *ptrptr;
+              x = strtok_r (strstr (h, "boundary"), "\"", &ptrptr);
+              x = strtok_r (NULL, "\"", &ptrptr);
+            }
+            else
+            {
+              x = strchr (strstr (h, "boundary"), '=') + 1;
+            }
+
+            /* Copy the case sensitive version back */
+            if (x != NULL && x != (char *) 1)
+            {
+              pos = x - h;
+              len = strlen (x);
+              memcpy (x, line + pos, len);
+
+              if (!_ds_match_boundary (boundaries, x))
+              {
+                _ds_push_boundary (boundaries, x);
+ 
+                free(current_block->boundary);
+                current_block->boundary = strdup (x);
+              }
+            } else if (x == NULL) {
+              _ds_push_boundary (boundaries, "");
+            }
+          }
+          free (h);
+        }
+        else
+        {
+          in_content = 0;
+        }
+      }
+
+      /* Multipart boundary was reached; move onto next block */
+      if (_ds_match_boundary (boundaries, line))
+      {
+
+        /* Add the boundary as the terminating boundary */
+        current_block->terminating_boundary = strdup (line + 2);
+        current_block->original_encoding = current_block->encoding;
+
+        _ds_decode_headers(current_block);
+        current_block = _ds_create_message_block ();
+
+        if (current_block == NULL)
+        {
+          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+          _ds_destroy_message (out);
+          free (m_in);
+          nt_destroy (boundaries);
+          return NULL;
+        }
+
+        if (nt_add (out->components, (void *) current_block) == NULL)
+          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+
+        block_position = BP_HEADER;
+
+        /* Message Body */
+      }
+      else
+      {
+        buffer_cat (current_block->body, line);
+
+        /* Don't add extra \n at the end of message's body */
+        if (in != NULL)
+          buffer_cat (current_block->body, "\n");
+      }
+    }
+
+    line = strsep (&in, "\n");
+  }
+
+  _ds_decode_headers(current_block);
+
+// HERE
+  free (m_in);
+  nt_destroy (boundaries);
+  return out;
+}
+
+struct _ds_message_block *
+_ds_create_message_block (void)
+{
+  struct _ds_message_block *block =
+    (struct _ds_message_block *) malloc (sizeof (struct _ds_message_block));
+  if (block == NULL)
+  {
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+
+  block->headers = nt_create (NT_PTR);
+  if (block->headers == NULL)
+  {
+    free (block);
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+
+  block->body = buffer_create (NULL);
+
+  if (block->body == NULL)
+  {
+    nt_destroy (block->headers);
+    free (block);
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+
+  block->boundary = NULL;
+  block->terminating_boundary = NULL;
+  block->encoding = EN_UNKNOWN;
+  block->original_encoding = EN_UNKNOWN;
+  block->media_type = MT_UNKNOWN;
+  block->media_subtype = MST_UNKNOWN;
+  block->original_signed_body = NULL;
+
+  return block;
+}
+
+int
+_ds_decode_headers (struct _ds_message_block *block) {
+  struct _ds_header_field *header;
+  struct nt_node *node_nt;
+  struct nt_c c_nt;
+  char *ptr, *dptr, *rest, *enc;
+  long decoded_len;
+
+  node_nt = c_nt_first(block->headers, &c_nt);
+  while(node_nt != NULL) {
+    long enc_offset;
+    header = (struct _ds_header_field *) node_nt->ptr;
+
+    for(enc_offset = 0; header->concatenated_data[enc_offset]; enc_offset++)
+    {
+      enc = header->concatenated_data + enc_offset;
+
+//      if (!strncasecmp(enc, "=?iso-8859-1", 12)) {
+      if (!strncmp(enc, "=?", 2)) {
+        int was_null = 0;
+        char *ptrptr, *decoded = NULL;
+        long offset = (long) enc - (long) header->concatenated_data;
+
+        if (header->original_data == NULL) {
+          header->original_data = strdup(header->data);
+          was_null = 1;
+        }
+
+//        data = strdup(header->concatenated_data);
+        ptr = strtok_r (enc, "?", &ptrptr);
+        ptr = strtok_r (NULL, "?", &ptrptr);
+        ptr = strtok_r (NULL, "?", &ptrptr);
+        dptr = strtok_r (NULL, "?", &ptrptr);
+        if (!dptr) {
+          if (was_null) 
+            header->original_data = NULL;
+          continue;
+        }
+
+        rest = dptr + strlen (dptr) + 1;
+        if (rest[0]!=0)
+          rest++;
+
+        if (ptr != NULL && (ptr[0] == 'b' || ptr[0] == 'B'))
+          decoded = _ds_decode_base64 (dptr);
+        else if (ptr != NULL && (ptr[0] == 'q' || ptr[0] == 'Q')) 
+          decoded = _ds_decode_quoted (dptr);
+
+        decoded_len = 0;
+
+        /* Append the rest of the message */
+        if (decoded)
+        {
+          char *new_alloc;
+
+          decoded_len = strlen(decoded);
+
+          new_alloc =
+            calloc (1, offset + decoded_len + strlen (rest) + 2);
+          if (new_alloc == NULL)
+          {
+            LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+          }
+          else
+          {
+ 
+            if (offset)
+              strncpy(new_alloc, header->concatenated_data, offset);
+
+            strcat(new_alloc, decoded);
+            strcat(new_alloc, rest);
+            free(decoded); 
+            decoded = new_alloc;
+          }
+        }
+
+        if (decoded) { 
+          enc_offset += (decoded_len-1);
+          free(header->concatenated_data);
+          header->concatenated_data = decoded;
+        }
+        else if (was_null) {
+          header->original_data = NULL;
+        }
+      }
+    }
+
+    if (header->original_data != NULL) {
+      free(header->data);
+      header->data = strdup(header->concatenated_data);
+    }
+
+    node_nt = c_nt_next(block->headers, &c_nt);
+  }
+
+  return 0;
+}
+
+struct _ds_header_field *
+_ds_create_header_field (const char *heading)
+{
+  struct _ds_header_field *header =
+    (struct _ds_header_field *) malloc (sizeof (struct _ds_header_field));
+  char *in, *ptr, *m, *data;
+
+  if (header == NULL)
+  {
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+
+  in = strdup (heading);
+  m = in;
+  if (in == NULL)
+  {
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    free (header);
+    return NULL;
+  }
+
+  header->heading = NULL;
+  header->data = NULL;
+  header->original_data = NULL;
+  header->concatenated_data = NULL;
+
+  ptr = strsep (&in, ":");
+  if (ptr != NULL)
+  {
+    header->heading = strdup (ptr);
+    if (!header->heading)
+    {
+      LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+      free (header);
+      free (m);
+      return NULL;
+    }
+    else
+    {
+      if (in == NULL)
+      {
+        LOGDEBUG
+          ("%s:%u: unexpected data: header string doesn't contains `:' character",
+           __FILE__, __LINE__);
+        /* use empty string as data as fallback for comtinue processing. */
+        in = "";
+      }
+      else
+      {
+        /* skip white space */
+        while (*in == 32 || *in == 9)
+        {
+          ++in;
+        }
+      }
+
+      data = strdup (in);
+      if (!data)
+      {
+        LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+        free (header);
+        free (m);
+        return NULL;
+      }
+
+      header->data = data;
+      header->concatenated_data = strdup(data);
+    }
+  }
+
+  free (m);
+  return header;
+}
+
+void
+_ds_analyze_header (struct _ds_message_block *block,
+                    struct _ds_header_field *header, struct nt *boundaries)
+{
+  if (header == NULL)
+    return;
+
+  if (block == NULL || header == NULL || header->data == NULL)
+    return;
+
+  /* Review media type */
+  if (!strcasecmp (header->heading, "Content-Type"))
+  {
+
+    if (!strncasecmp (header->data, "text", 4))
+    {
+      block->media_type = MT_TEXT;
+      if (!strncasecmp (header->data + 5, "plain", 5))
+        block->media_subtype = MST_PLAIN;
+      else if (!strncasecmp (header->data + 5, "html", 4))
+        block->media_subtype = MST_HTML;
+      else
+        block->media_subtype = MST_OTHER;
+    }
+
+    else if (!strncasecmp (header->data, "application", 11))
+    {
+      block->media_type = MT_APPLICATION;
+      if (!strncasecmp (header->data + 12, "dspam-signature", 15))
+        block->media_subtype = MST_DSPAM_SIGNATURE;
+      else
+        block->media_subtype = MST_OTHER;
+    }
+
+    else if (!strncasecmp (header->data, "message", 7))
+    {
+      block->media_type = MT_MESSAGE;
+      if (!strncasecmp (header->data + 8, "rfc822", 6))
+        block->media_subtype = MST_RFC822;
+      else if (!strncasecmp (header->data + 8, "inoculation", 11))
+        block->media_subtype = MST_INOCULATION;
+      else
+        block->media_subtype = MST_OTHER;
+    }
+
+    else if (!strncasecmp (header->data, "multipart", 9))
+    {
+      char *h = strdup (header->data);
+      lc (h, h);
+
+      if (h == NULL)
+      {
+        LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+        return;
+      }
+
+      block->media_type = MT_MULTIPART;
+      if (!strncasecmp (header->data + 10, "mixed", 5))
+        block->media_subtype = MST_MIXED;
+      else if (!strncasecmp (header->data + 10, "alternative", 11))
+        block->media_subtype = MST_ALTERNATIVE;
+      else if (!strncasecmp (header->data + 10, "signed", 6))
+        block->media_subtype = MST_SIGNED;
+      else if (!strncasecmp (header->data + 10, "encrypted", 9))
+        block->media_subtype = MST_ENCRYPTED;
+      else
+        block->media_subtype = MST_OTHER;
+
+      /* Check for multipart boundary definition */
+      if (strstr (h, "boundary"))
+      {
+        char *x;
+        long pos, len;
+
+        if (strchr (h, '=') && strchr (h, '"'))
+        {
+          char *ptrptr;
+          x = strtok_r (strstr (h, "boundary"), "\"", &ptrptr);
+          x = strtok_r (NULL, "\"", &ptrptr);
+        }
+        else
+        {
+          x = strchr (strstr (h, "boundary"), '=') + 1;
+        }
+
+        /* Copy the case-sensitive version back */
+        pos = x - h;
+        if (x != NULL) {
+          len = strlen (x);
+          memcpy (x, header->data + pos, len);
+
+          if (!_ds_match_boundary (boundaries, x))
+          {
+            _ds_push_boundary (boundaries, x);
+            free(block->boundary);
+            block->boundary = strdup (x);
+          }
+        } else {
+          _ds_push_boundary (boundaries, "");
+        }
+      }
+
+      free (h);
+    }
+    else {
+      block->media_type = MT_OTHER;
+    }
+
+  }
+  else if (!strcasecmp (header->heading, "Content-Transfer-Encoding"))
+  {
+    if (!strncasecmp (header->data, "7bit", 4))
+      block->encoding = EN_7BIT;
+    else if (!strncasecmp (header->data, "8bit", 4))
+      block->encoding = EN_8BIT;
+    else if (!strncasecmp (header->data, "quoted-printable", 16))
+      block->encoding = EN_QUOTED_PRINTABLE;
+    else if (!strncasecmp (header->data, "base64", 6))
+      block->encoding = EN_BASE64;
+    else if (!strncasecmp (header->data, "binary", 6))
+      block->encoding = EN_BINARY;
+    else
+      block->encoding = EN_OTHER;
+  }
+
+  return;
+}
+
+int
+_ds_destroy_message (struct _ds_message *m)
+{
+  struct nt_node *node_nt;
+  struct nt_c c;
+  int i = 0;
+
+  if (m == NULL)
+    return 0;
+
+  node_nt = c_nt_first (m->components, &c);
+  while (node_nt != NULL)
+  {
+    struct _ds_message_block *block =
+      (struct _ds_message_block *) node_nt->ptr;
+
+    if (block->headers != NULL && block->headers->items > 0)
+      _ds_destroy_headers (block);
+
+    free (block->boundary);
+    free (block->terminating_boundary);
+    buffer_destroy (block->body);
+    buffer_destroy (block->original_signed_body);
+    nt_destroy (block->headers);
+
+    node_nt = c_nt_next (m->components, &c);
+    i++;
+  }
+  nt_destroy (m->components);
+  free (m);
+  return 0;
+}
+
+/* Destroys the heading/data pairs in a message header.
+   Does not touch the structures themselves; these will be free'd on nt_destroy */
+
+int
+_ds_destroy_headers (struct _ds_message_block *block)
+{
+  struct nt_node *node_nt;
+  struct nt_c c;
+
+  node_nt = c_nt_first (block->headers, &c);
+  while (node_nt != NULL)
+  {
+    struct _ds_header_field *field = (struct _ds_header_field *) node_nt->ptr;
+
+    if (field != NULL)
+    {
+      free (field->original_data);
+      free (field->heading);
+      free (field->concatenated_data);
+      free (field->data);
+    }
+    node_nt = c_nt_next (block->headers, &c);
+  }
+
+  return 0;
+}
+
+int
+_ds_destroy_block (struct _ds_message_block *block)
+{
+  if (block->headers != NULL)
+  {
+    _ds_destroy_headers (block);
+    nt_destroy (block->headers);
+  }
+  buffer_destroy (block->body);
+  buffer_destroy (block->original_signed_body);
+  free (block->boundary);
+  free (block->terminating_boundary);
+  free (block);
+  return 0;
+}
+
+
+char *
+_ds_decode_block (struct _ds_message_block *block)
+{
+  if (block->encoding == EN_BASE64)
+    return _ds_decode_base64 (block->body->data);
+  else if (block->encoding == EN_QUOTED_PRINTABLE)
+    return _ds_decode_quoted (block->body->data);
+
+  LOG (LOG_WARNING, "decoding of block encoding type %d not supported",
+       block->encoding);
+  return NULL;
+}
+
+char *
+_ds_decode_base64 (const char *body)
+{
+  if (body == NULL)
+    return NULL;
+
+  return base64decode (body);
+}
+
+char *
+_ds_decode_quoted (const char *body)
+{
+  char *out, *x;
+
+  if (body == NULL)
+    return NULL;
+
+  out = strdup (body);
+  if (out == NULL)
+  {
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+
+  x = strchr (out, '=');
+  while (x != NULL)
+  {
+    char hex[3];
+    int val;
+    hex[2] = 0;
+    hex[0] = x[1];
+    hex[1] = x[2];
+    if (x[1] == '\n')
+    {
+      memmove(x, x+2, strlen(x+2)+1);
+      x = strchr (x, '=');
+    }
+    else
+    {
+      if (((hex[0] >= 'A' && hex[0] <= 'F')
+           || (hex[0] >= 'a' && hex[0] <= 'f')
+           || (hex[0] >= '0' && hex[0] <= '9'))
+          && ((hex[1] >= 'A' && hex[1] <= 'F')
+              || (hex[1] >= 'a' && hex[1] <= 'f')
+              || (hex[1] >= '0' && hex[1] <= '9')))
+      {
+        val = (int) strtol (hex, NULL, 16);
+        x[0] = val;
+        memmove(x+1, x+3, strlen(x+3)+1);
+//strcpy (x + 1, x + 3);
+      }
+      x = strchr (x + 1, '=');
+    }
+  }
+  return out;
+}
+
+int
+_ds_encode_block (struct _ds_message_block *block, int encoding)
+{
+
+  /* We can't encode a block with the same encoding */
+  if (block->encoding == encoding)
+    return -1;
+
+  /* We can't encode a block that's already encoded */
+  if (block->encoding == EN_BASE64 || block->encoding == EN_QUOTED_PRINTABLE)
+    return -2;
+
+  if (encoding == EN_BASE64)
+  {
+    char *encoded = _ds_encode_base64 (block->body->data);
+    buffer_destroy (block->body);
+    block->body = buffer_create (encoded);
+    free (encoded);
+    block->encoding = EN_BASE64;
+  }
+  else if (encoding == EN_QUOTED_PRINTABLE)
+  {
+
+    /* TODO */
+    return 0;
+  }
+
+  return 0;
+}
+
+char *
+_ds_encode_base64 (const char *body)
+{
+  return base64encode (body);
+}
+
+/* Assemble the message from the individual components */
+
+char *
+_ds_assemble_message (struct _ds_message *message)
+{
+  buffer *out = buffer_create (NULL);
+  char *copyback;
+  struct nt_node *node_nt, *node_header;
+  struct nt_c c_nt, c_nt2;
+  char heading[4096];
+  int i = 0;
+
+  if (out == NULL)
+  {
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    return NULL;
+  }
+
+  node_nt = c_nt_first (message->components, &c_nt);
+  while (node_nt != NULL && node_nt->ptr != NULL)
+  {
+    struct _ds_message_block *block =
+      (struct _ds_message_block *) node_nt->ptr;
+#ifdef VERBOSE
+    LOGDEBUG ("Assembling component %d", i);
+#endif
+
+    /* Assemble the headers */
+    if (block->headers != NULL && block->headers->items > 0)
+    {
+      node_header = c_nt_first (block->headers, &c_nt2);
+      while (node_header != NULL)
+      {
+        char *data;
+        struct _ds_header_field *current_header =
+          (struct _ds_header_field *) node_header->ptr;
+
+        data = (current_header->original_data == NULL) ? current_header->data :
+               current_header->original_data;
+
+        if (current_header->heading != NULL &&
+            (!strncmp (current_header->heading, "From ", 5)
+            || !strncmp (current_header->heading, "--", 2)))
+          snprintf (heading, sizeof (heading),
+                    "%s:%s\n", 
+            (current_header->heading == NULL) ? "" : current_header->heading,
+            (data == NULL) ? "" : data);
+        else
+          snprintf (heading, sizeof (heading),
+                    "%s: %s\n",
+            (current_header->heading == NULL) ? "" : current_header->heading,
+            (data == NULL) ? "" : data);
+
+        buffer_cat (out, heading);
+        node_header = c_nt_next (block->headers, &c_nt2);
+      }
+    }
+
+    buffer_cat (out, "\n");
+
+    /* Assemble the bodies */
+    if (block->original_signed_body != NULL)
+      buffer_cat (out, block->original_signed_body->data);
+    else
+      buffer_cat (out, block->body->data);
+
+#ifdef SIGNATURE_IN_HEADERS
+    if (block->original_encoding == EN_BASE64) {
+      buffer_cat (out, "\n");
+    }
+#endif
+    
+    if (block->terminating_boundary != NULL)
+    {
+      buffer_cat (out, "--");
+      buffer_cat (out, block->terminating_boundary);
+    }
+   
+    node_nt = c_nt_next (message->components, &c_nt);
+    i++;
+
+    if (node_nt != NULL && node_nt->ptr != NULL)
+      buffer_cat (out, "\n");
+  }
+
+  copyback = out->data;
+  out->data = NULL;
+  buffer_destroy (out);
+  return copyback;
+}
+
+int
+_ds_push_boundary (struct nt *stack, const char *boundary)
+{
+  char *y = malloc (strlen (boundary) + 3);
+  if (y == NULL)
+    return EUNKNOWN;
+                                                                                
+  sprintf (y, "--%s", boundary);
+  nt_add (stack, (char *) y);
+  free(y);
+
+  return 0;
+}
+                                                                                
+char *
+_ds_pop_boundary (struct nt *stack)
+{
+  struct nt_node *node, *last_node = NULL, *parent_node = NULL;
+  struct nt_c c;
+  char *boundary = NULL;
+                                                                                
+  node = c_nt_first (stack, &c);
+  while (node != NULL)
+  {
+    parent_node = last_node;
+    last_node = node;
+    node = c_nt_next (stack, &c);
+  }
+  if (parent_node != NULL)
+    parent_node->next = NULL;
+  else
+    stack->first = NULL;
+                                                                                
+  if (last_node == NULL)
+    return NULL;
+                                                                                
+  boundary = strdup (last_node->ptr);
+                                                                                
+  free (last_node->ptr);
+  free (last_node);
+                                                                                
+  return boundary;
+}
+                                                                                
+int
+_ds_match_boundary (struct nt *stack, const char *buff)
+{
+  struct nt_node *node;
+  struct nt_c c;
+                                                                                
+  node = c_nt_first (stack, &c);
+  while (node != NULL)
+  {
+    if (!strncmp (buff, node->ptr, strlen (node->ptr)))
+    {
+      return 1;
+    }
+    node = c_nt_next (stack, &c);
+  }
+  return 0;
+}
+

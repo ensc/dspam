@@ -1,0 +1,319 @@
+## $Id: dspam.conf.in,v 1.1 2004/10/24 20:53:29 jonz Exp $
+## dspam.conf -- DSPAM configuration file
+##
+
+#
+# DSPAM Home: Specifies the base directory to be used for DSPAM storage
+#
+Home @dspam_home@
+
+#
+# Trusted Delivery Agent: Specifies the local delivery agent DSPAM should call 
+# when delivering mail as a trusted user. Use %u to specify the user DSPAM is 
+# processing mail for. It is generally a good idea to allow the MTA to specify 
+# the pass-through arguments at run-time, but they may also be specified here.
+#
+# Most operating system defaults:
+#TrustedDeliveryAgent "/usr/bin/procmail"       # Linux
+#TrustedDeliveryAgent "/usr/bin/mail"           # Solaris
+#TrustedDeliveryAgent "/usr/libexec/mail.local" # FreeBSD
+#TrustedDeliveryAgent "/usr/bin/procmail"       # Cygwin
+#
+# Other popular configurations:
+#TrustedDeliveryAgent "/usr/cyrus/bin/deliver"	# Cyrus
+#TrustedDeliveryAgent "/bin/maildrop"		# Maildrop
+#TrustedDeliveryAgent "/usr/local/sbin/exim -oMr spam-scanned $u" # Exim
+#
+TrustedDeliveryAgent "@delivery_agent@"
+
+#
+# Untrusted Delivery Agent: Specifies the local delivery agent and arguments
+# DSPAM should use when delivering mail and running in untrusted user mode.
+# Because DSPAM will not allow pass-through arguments to be specified to 
+# untrusted users, all arguments should be specified here. Use %u to specify
+# the user DSPAM is processing mail for. This configuration parameter is only 
+# necessary if you plan on allowing untrusted processing.
+#
+#UntrustedDeliveryAgent "/usr/bin/procmail -d %u"
+
+#
+# Quarantine Agent: DSPAM's default behavior is to quarantine all mail it 
+# thinks is spam. If you wish to override this behavior, you may specify
+# a quarantine agent which will be called with all messages DSPAM thinks is
+# spam. Use %u to specify the user DSPAM is processing mail for.
+#
+#QuarantineAgent	"/usr/bin/procmail -d spam"
+
+#
+# OnFail: What to do if local delivery or quarantine should fail. If set
+# to "unlearn", DSPAM will unlearn the message prior to exiting with an
+# un successful return code. The default option, "error" will not unlearn
+# the message but return the appropriate error code. The unlearn option
+# is use-ful on some systems where local delivery failures will cause the
+# message to be requeued for delivery, and could result in the message
+# being processed multiple times. During a very large failure, however, 
+# this could cause a significant load increase.
+#
+OnFail error
+
+# Trusted Users: Only the users specified below will be allowed to perform
+# administrative functions in DSPAM such as setting the active user and
+# accessing tools. All other users attempting to run DSPAM will be restricted;
+# their uids will be forced to match the active username and they will not be
+# able to specify delivery agent privileges or use tools.
+#
+Trust root
+Trust mail
+Trust mailnull 
+Trust smmsp
+Trust daemon
+#Trust nobody
+#Trust majordomo
+
+#
+# Debugging: Enables debugging for some or all users. IMPORTANT: DSPAM must
+# be compiled with debug support in order to use this option. DSPAM should
+# never be running in production with debug active unless you are 
+# troubleshooting problems.
+#
+# DebugOpt: One or more of: process, classify, spam, fp, inoculation, corpus
+#   process     standard message processing
+#   classify    message classification using --classify
+#   spam        error correction of missed spam
+#   fp          error correction of false positives
+#   inoculation message inoculations (source=inoculation)
+#   corpus      corpusfed messages (source=corpus)
+#
+#Debug *
+#Debug bob bill
+#
+#DebugOpt process spam fp
+
+#
+# Training Mode: The default training mode to use for all operations, when
+# one has not been specified on the commandline or in the user's preferences.
+# Acceptable values are: toe, tum, teft, notrain
+#
+TrainingMode teft
+
+#
+# Features: Specify features to activate by default; can also be specified
+# on the commandline. See the documentation for a list of available features.
+# If _any_ features are specified on the commandline, these are ignored.
+#
+#Feature sbph
+Feature chained
+Feature tb=4
+Feature whitelist
+Feature noise
+
+#
+# Algorithms: Specify the statistical algorithms to use, overriding any
+# defaults configured in the build. The options are:
+#    graham      Graham-Bayesian ("A Plan for Spam")
+#    burton      Burton-Bayesian (SpamProbe)
+#    robinson    Robinson's Geometric Mean Test (Obsolete)
+#    chi-square  Fisher-Robinson's Chi-Square Algorithm
+#
+# You may have multiple algorithms active simultaneously, but it is strongly
+# recommended that you group Bayesian algorithms with other Bayesian
+# algorithms, and any use of Chi-Square remain exclusive.
+#
+# Don't mess with this unless you know what you're doing
+#
+#Algorithm chi-square
+Algorithm graham burton
+
+#
+# PValue: Specify the technique used for calculating PValues, overriding any
+# defaults configured in the build. These options are:
+#    graham      Graham's Technique ("A Plan for Spam")
+#    robinson    Robinson's Technique 
+#
+# Unlike algorithms, you may only have one of these defined. Use of the
+# chi-square algorithm automatically changes this to robinson.
+#
+# Don't mess with this unless you know what you're doing.
+#
+#PValue robinson
+PValue graham
+
+#
+# Preferences: Specify any preferences to set by default, unless otherwise
+# overridden by the user (see next section) or a default.prefs file.
+# If user or default.prefs are found, none of these preferences are
+# loaded.
+#
+Preference "spamAction=quarantine"
+Preference "signatureLocation=message"	# 'message' or 'headers'
+Preference "showFactors=on"
+#Preference "spamAction=tag"
+#Preference "spamSubject=SPAM"
+
+#
+# Overrides: Specifies the user preferences which may override configuration
+# and commandline defaults. Any other preferences supplied by an untrusted user
+# will be ignored.
+#
+AllowOverride trainingMode
+AllowOverride spamAction spamSubject
+AllowOverride statisticalSedation
+AllowOverride enableBNR
+AllowOverride enableWhitelist
+AllowOverride signatureLocation
+AllowOverride showFactors
+AllowOverride optIn optOut
+AllowOverride whitelistThreshold
+
+#
+# Storage driver settings: Specific to a particular storage driver. Uncomment
+# the configuration specific to your installation, if applicable.
+#
+#MySQLServer    /var/lib/mysql/mysql.sock
+#MySQLPort
+#MySQLUser      dspam
+#MySQLPass      changeme
+#MySQLDb        dspam
+#MySQLCompress  true
+
+#PgSQLServer    127.0.0.1
+#PgSQLPort      5432
+#PgSQLUser      dspam
+#PgSQLPass      changeme
+#PgSQLDb        dspam
+
+#OraServer       "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SID=PROD)))"
+#OraUser         dspam
+#OraPass         changeme
+#OraSchema       dspam
+
+#SQLitePragma   "synchronous = OFF"
+
+#
+# Optionally, you can specify storage profiles, and specify the server to
+# use on the commandline with --profile. For example:
+#
+#Profile DECAlpha
+#MySQLServer.DECAlpha   10.0.0.1
+#MySQLPort.DECAlpha     3306
+#MySQLUser.DECAlpha     dspam
+#MySQLPass.DECAlpha     changeme
+#MySQLDb.DECAlpha       dspam
+#MySQLCompress.DECAlpha true
+#
+#Profile Sun420R
+#MySQLServer.Sun420R    10.0.0.2
+#MySQLPort.Sun420R      3306
+#MySQLUser.Sun420R      dspam
+#MySQLPass.Sun420R      changeme
+#MySQLDb.Sun420R        dspam
+#MySQLCompress.Sun420R  false
+#
+#DefaultProfile DECAlpha
+
+#
+# Ignored headers: If DSPAM is behind other tools which may add a header to
+# incoming emails, it may be beneficial to ignore these headers - especially
+# if they are coming from another spam filter. If you are _not_ using one of
+# these tools, however, leaving the appropriate headers commented out will
+# allow DSPAM to use them as telltale signs of forged email.
+#
+#IgnoreHeader X-Spam-Status
+#IgnoreHeader X-Spam-Scanned
+#IgnoreHeader X-Virus-Scanner-Result
+
+#
+# Notifications: Enable the sending of notification emails to users (first
+# message, quarantine full, etc.)
+#
+Notifications	on
+
+#
+# Purge configuration: Set dspam_clean purge default options, if not otherwise
+# specified on the commandline
+#
+PurgeSignatures 14          # Stale signatures
+PurgeNeutral    30          # Tokens with neutralish probabilities
+PurgeUnused     60          # Unused tokens
+PurgeHapaxes    15          # Tokens with less than 5 hits (hapaxes)
+PurgeHits1S	10          # Tokens with only 1 spam hit
+PurgeHits1I	10          # Tokens with only 1 innocent hit
+
+#
+# Purge configuration for SQL-based installations using purge.sql
+#
+#PurgeSignature	off # Specified in purge.sql
+#PurgeNeutral   30
+#PurgeUnused    off # Specified in purge.sql
+#PurgeHapaxes   off # Specified in purge.sql
+#PurgeHits1S    off # Specified in purge.sql
+#PurgeHits1I    off # Specified in purge.sql
+
+#
+# Local Mail Exchangers: Used for source address tracking, tells DSPAM which
+# mail exchangers are local and therefore should be ignored in the Received:
+# header when tracking the source of an email. Note: you should use the address
+# of the host as appears between brackets [ ] in the Received header.
+#
+LocalMX 127.0.0.1
+
+#
+# Logging: Disabling logging for users will make usage graphs unavailable to
+# them. Disabling system logging will make admin graphs unavailable.
+#
+SystemLog on
+UserLog   on
+
+#
+# TrainPristine: for systems where the original message remains server side 
+# and can therefore be presented in pristine format for retraining. This option
+# will cause DSPAM to cease all writing of signatures and DSPAM headers to the 
+# message, and deliver the message in as pristine format as possible. This mode
+# REQUIRES that the original message in its pristine format (as of delivery) 
+# be presented for retraining, as in the case of webmail, imap, or other 
+# applications where the message is actually kept server-side during reading, 
+# and is preserved. DO NOT use this switch unless the original message can be 
+# presented for retraining with the ORIGINAL HEADERS and NO MODIFICATIONS.
+#
+#TrainPristine on
+
+#
+# Opt: in or out; determines DSPAM's default filtering behavior. If this value
+# is set to in, users must opt-in to filtering by dropping a .optin file in
+# /var/dspam/opt-in/user.optin (or if you have homedirs configured, in their
+# home directory). The default is opt-out, which means all users will be 
+# filtered unless a .optout file is dropped in /var/dspam/opt-out/user.optout
+#
+Opt out
+
+#
+# TrackSources: specify which (if any) source addresses to track and report
+# them to syslog (mail.info). This is useful if you're running a firewall or
+# blacklist and would like to use this information. Spam reporting also drops
+# SBL blacklist files (see http://www.nuclearelephant.com/projects/sbl/). 
+#
+#TrackSources spam ham
+
+#
+# ParseToHeaders: When retraining, it's possible to set up a wildcard such
+# as *@spam.yourdomain.com to intercept all missed spam. If you do this,
+# you'll need to enable this option so that the username is assigned based
+# on the To: address of the message; for example spam-bob will assign the
+# username to bob.
+#
+#ParseToHeaders on
+
+#
+# Broken MTA Options: Some MTAs don't support the proper functionality
+# necessary. In these cases you can activate certain features in DSPAM to
+# compensate. 'returnCodes' causes DSPAM to return an exit code of 99 if
+# the message is spam, 0 if not, or a negative code if an error has occured.
+# Specifying 'case' causes DSPAM to force the input usernames to lowercase.
+# Spceifying 'lineStripping' causes DSPAM to strip ^M's from messages passed
+# in.
+#
+#Broken returnCodes
+#Broken case
+#Broken lineStripping
+
+## EOF

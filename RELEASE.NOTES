@@ -1,0 +1,255 @@
+$Id: RELEASE.NOTES,v 1.1 2004/10/24 20:47:30 jonz Exp $
+
+RELEASE 3.2
+
+IMPORTANT:
+
+Please read the UPGRADING section of the README for instructions about
+upgrading from 3.0 to 3.2, as some configuration options have changed.
+
+The default DSPAM home has changed to $(prefix)/var/dspam. The default is
+/usr/local/var/dspam. Please make the necessary changes to your filesystem
+or use --with-dspam-home to change this.
+
+Version 3.2 Change Summary
+--------------------------
+
+Version 3.2 adds many significant enhancements. These include the introduction
+of a dspam.conf master configuration, an aesthetically redesigned web 
+interface, support for SQLite, support for Windows, and many other enhancements.
+A summary of notable changes is below. A full list of changes from version 
+3.0.0 can be found in the CHANGELOG.
+
+DSPAM CORE ENGINE
+
+  Interface
+
+  A few minor (and backward-compatible) additions to the API have been made.
+  These include:
+
+  - Addition of a whitelist threshold variable (defaulted to 10) in the DSPAM
+    context, which specify the number of clean accepts a sender must have in 
+    order to be automatically whitelisted.
+
+  - Addition of a preference extensions API. Storage drivers supporting
+    preferences extensions may be compiled with --enable-preferences-extensions
+    and will store preferences in the storage driver's space instead of flat
+    files. The DSPAM CGI has been modified to look for extensions and use
+    the dspam_admin command if they exist. Presently only the MySQL and
+    PostgreSQL drivers supports preference extensions.
+
+  - Attributes API. Added an attributes API to set configuration attributes 
+    in libdspam. See dspam_create(), dspam_addattribute(), dspam_attach()
+    as a replacement for dspam_init(). The original init function remains 
+    to stay backward-compatible with other applications. The attributes API
+    allows advanced options such as 'IgnoreHeader' attributes to be passed
+    into libdspam, and also allows database connect information to be 
+    relayed without the use of .data files.
+
+  - Addition of a dspam_detach() function to complement dspam_attach(). Can
+    be used optionally to detach storage without destroying the context.
+
+  - Addition of an algorithms context member. The original configure-time
+    algorithm choices are still available for backward compatibility, but
+    developers wishing to override this functionality may set the
+    algorithms variable within the context. Please see libdspam_objects.h
+    for a complete list of DSA_ and DSP_ flags which can be used.
+
+  Features Dropped
+
+  DSF_COPYBACK
+  The DSF_COPYBACK flag no longer exists. This flag was originally used by
+  the DSPAM agent to copy back the decoded message. In refining libdspam to
+  be a language classifier and not message decoding tool, this code was
+  moved into the DSPAM agent and removed from libdspam.
+
+  Enhancements
+
+  Multithread Support.
+  libdspam has been audited and made thread-safe as far as we can tell. This,
+  of course, is very dependent upon the storage driver being used as not all
+  storage drivers have support for concurrent sessions. Presently only the
+  mysql_drv and pgsql_drv drivers are MT-safe.
+ 
+  Win32 Support.
+  libdspam has been modified to support win32 builds. A win32 build supplement 
+  has been provided with instructions for building libdspam, the agent, and 
+  some tools. Win32 is not yet officially supported.
+
+  Storage driver enhancements. 
+  Some changes have been made to some of the storage drivers to enhance 
+  performance and stability:
+
+  - sqlite_drv: SQLite is now the default storage driver. 
+  - pgsql_drv:  Bugfixes and significant performance enhancements.
+  - mysql_drv:  Bugfixes and significant performance enhancements, 4.1 support
+  - libdbX_drv: Locking was entirely rewritten for the BDB drivers.
+
+  Purging has also been refined for many of the SQL-based storage drivers to
+  provide safer purging of TOE and TUM-based users.
+
+  Man Pages and Code Cleanup
+  A man page for all public-facing libdspam functions is now available. You
+  should be able to 'man libdspam' or 'man [function]'. Much of libdspam's 
+  code has also been cleaned up and well-commented. 
+
+  Attaching of open database handles
+  The mysql_drv, pgsql_drv, and sqlite_drv drivers now support the ability to 
+  attach an open database handle, rather than establish a new connection for 
+  each context.
+
+  Sparse Binary Polynomial Hashing
+  Implemented Bill Yerazunis' Sparse Binary Polynomial Hashing (tokenizer
+  method only) from CRM114. See the features section for more information.
+
+  Ignore Header Support
+  An attributes API function allowing libdspam to ignore specific headers in
+  emails which are assigned by other applications functioning on the system. 
+  This is very useful if you don't want SpamAssassin's results to interfere
+  with DSPAM.
+
+  Bugfixes
+
+    - BUGFIX: BerkeleyDB's locking mechanism unreliable
+    - BUGFIX: Error reporting with snprintf has problems (change to vsnprintf)
+    - BUGFIX: Some emails with an empty body cause a segfault 
+    - BUGFIX: Multi-line encoded headers can become mangled
+    - BUGFIX: PostgreSQL calls do not cast smallints, indexes not used
+    - BUGFIX: Various memory leaks
+    - BUGFIX: Negative totals when using merged groups
+    - BUGFIX: PostgreSQL driver slow; doesn't use indexing
+    - BUGFIX: Inoculation and Classification groups don't use chained feature
+    - BUGFIX: Using TOE, some signatures would be full of zero's, hindering
+              DSPAM's learning capabilities
+    - BUGFIX: Message inoculations are sometimes over or under-inoculated
+    - BUGFIX: dspam_admin segfaults when given incorrect parameters
+    - BUGFIX: Statistical sedation doesn't completely deactivate when tb=0
+    - BUGFIX: Several memory leaks present
+
+DSPAM AGENT
+
+  Dropped Features
+
+  Signature-Attachments
+  This was a very rare feature to find in production, and every attempt was
+  made to carry it in through several versions. Unfortunately, it complicated
+  the code quite a bit and broke several times. It became such a maintenance
+  headache that the decision was finally made to drop the feature. For those
+  of you who didn't know, this feature converted all single-part messages into
+  multi-part and added the DSPAM signature as an attachment. This caused
+  every message to appear with a little paper clip next to it, which is one
+  reason it was rarely ever used.
+
+  Enhancements
+
+  Centralized Configuration
+  Many configuration options are now set in dspam.conf, installed in 
+  $(prefix)/etc by defaul. A complete list of feature changes are provided in 
+  the UPGRADING section of the readme. Many features have been moved into 
+  dspam.conf and out of configure, to make package creation and administration
+  much easier.
+
+  Original encoding preserved when signatures used in header
+  For implementations where the signature is stored in the message header,
+  the original encoded body and encoding type is now preserved throughout the
+  email.
+
+  Header support for automatic whitelisting. 
+  Instead of specifying X-DSPAM-Probability: -2.00000, the probability of the 
+  classification is provided, and X-DSPAM-Result: Whitelisted is used instead
+  to identify whitelisted messages.  Some procmail recipes may need a tweak to 
+  support this behavior.
+
+  Home-directory storage (--enable-homedir).
+  The new home directory storage setting will allow the storage of actual
+  data in ~/.dspam. This will allow large systems with quotas to better
+  manage user data. Unfortunately, this is not compatible with the DSPAM CGI
+  as the CGI requires access to read this information.
+
+  Signature location is now a preference. 
+  The preference 'signatureLocation' can be  used to specify 'message', 
+  or 'headers' allowing each user to specify where they'd like the DSPAM 
+  signature stored. Of course, each location requires a specific training 
+  behavior (e.g. header signatures must be bounced, not forwarded). 
+
+  Additional preference options. 
+  Additional preferences have been added including whitelistThreshold 
+  (default is 10), trainingMode = 'NOTRAIN', ignoreGroups (to ignore any group 
+  memberships), and signautreLocation (as discussed). DSPAM agent supports 
+  preferences extensions if configured with --enable-preferences-extensions to 
+  store the preferences in the database instead of flat files.
+
+  Preference optIn and optOut support has been added; although not present
+  in the CGI - see the README for instructions on adding the correct
+  preference. 
+
+  Untraining on Delivery Failure
+  DSPAM now supports the ability to have messages untrained in the event of
+  delivery (or quarantine) failure. This is useful on systems where the
+  message is processed a second time by DSPAM upon fail.
+
+  Command-line debug activation.
+  If DSPAM is compiled with debug support enabled, it can be activated using
+  --debug on the commandline in lieu of specifying it in dspam.conf.
+
+  Configure arguments in --version output.
+  The arguments DSPAM was configured with are now displayed as part of the
+  --version output, as long as the user is considered trusted by DSPAM.
+
+  Added X-DSPAM-Factors header.
+  X-DSPAM-Factors header provides tokens and values of the determine factors
+  in the calculation. 
+
+  Broken MTA Functionality.
+  Some new features to support broken MTAs/Configurations have been added.
+  These include --enable-broken-return-codes, --enable-broken-case, and
+  --enable-broken-mta. See the readme for more information. 
+
+  Signature on Commandline
+  Some admins prefer to feed DSPAM just the signature for training
+  misclassified messages. A commandline option has been provided to do this
+  without needing to pass DSPAM any stdin.
+
+  Bugfixes
+  - BUGFIX: Last character of subject truncated when using spam tags 
+  - BUGFIX: Spam tags would not be prepended to subject lines with encoding
+  - BUGFIX: Feature tb=N ignored when specified on the commandline
+
+TOOLS
+
+  Trusted Users.
+  All tools now require trusted user access to function.
+
+  Win32 Support.
+  Many tools have been updated to support win32 builds.
+ 
+  dspam_dump
+
+  added support for SQL-formatted output using -d [driver]. The only driver
+  presently supported is sqlite_drv, as it's the only user-oriented driver.
+  For all other SQL-based drivers (which are system-oriented), use dspam_2sql.
+ 
+CGI
+
+  Facelift.
+  The CGI has been given an aesthetic facelift, and is much more attractive
+  than the previous version.
+
+  Rating Sort.
+  A rating sort is now available to sort the quarantine by rating instead of
+  date.
+
+  Administration.
+  The administration tab is now more dynamic and only shows up if the user
+  has administrative access.
+
+  Bugfixes:
+  - BUGFIX: domain-scale filesystem broken in CGI
+  - BUGFIX: large-scale filesystem flag misspelled in CGI, appearing broken
+  - BUGFIX: delete-all not present at bottom of quarantine display
+  - BUGFIX: preferences-extension support completely b0rked
+  - BUGFIX: user totals are incremented by merged totals on display
+
+Jonathan Zdziarski
+<jonathan@nuclearelephant.com>
+
