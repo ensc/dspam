@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.50 2004/12/02 17:55:51 jonz Exp $
+$Id: CHANGELOG,v 1.51 2004/12/02 18:06:07 jonz Exp $
 
 Version NEXT
 ------------
@@ -9,6 +9,8 @@ added --daemon functionality to put DSPAM into daemonized LMTP server mode;
 configure client in dspam.conf to talk to daemon, or speak LMTP without the
 client. authentication configurable in dspam.conf. implemented stateful
 database connections. 
+
+TODO: support for --stdout and --classify
 
 [20041127.1700] jonz: normalized process_message()
 
