@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.77 2005/03/19 00:15:08 jonz Exp $ */
+/* $Id: daemon.c,v 1.78 2005/03/19 19:43:29 jonz Exp $ */
 
 /*
 
@@ -452,8 +452,10 @@ void *process_connection(void *ptr) {
  
               ptr = strstr(input, "DSPAMPROCESSMODE=\"");
               if (ptr) {
+                char *mode;
+                int i;
                 ptr2 = strchr(ptr, '"')+1;
-                char *mode = ptr2;
+                mode = ptr2;
                 while((ptr3 = strstr(ptr2, "\\\""))) 
                   ptr2 = ptr3+2;
                 ptr3 = strchr(ptr2+2, '"');
@@ -462,9 +464,9 @@ void *process_connection(void *ptr) {
                 strlcpy(processmode, mode, sizeof(processmode)); 
                 
                 ptr = processmode;
-                for(;*ptr;*ptr++) {
-                  if (ptr[0] == '\\') {
-                    strcpy(ptr, ptr+1);
+                for(i=0;ptr[i];i++) {
+                  if (ptr[i] == '\\' && ptr[i+1] == '"') {
+                    strcpy(ptr+i, ptr+i+1);
                   }
                 }
                 LOGDEBUG("process mode: '%s'", processmode);
