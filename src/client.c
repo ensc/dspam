@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.10 2004/12/25 02:38:22 jonz Exp $ */
+/* $Id: client.c,v 1.11 2004/12/25 22:22:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -181,6 +181,11 @@ int client_connect(void) {
 
   if (_ds_read_attribute(agent_config, "ServerDomainSocketPath"))
     domain = 1;
+
+  if (!domain && host == NULL) {
+    report_error(ERROR_INVALID_CLIENT_CONFIG);
+    return EINVAL;
+  }
 
   if (domain) {
     char *address = _ds_read_attribute(agent_config, "ServerDomainSocketPath");

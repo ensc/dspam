@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.54 2004/12/25 19:11:24 jonz Exp $ */
+/* $Id: dspam.c,v 1.55 2004/12/25 22:22:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -197,7 +197,10 @@ main (int argc, char *argv[])
   }
 
 #ifdef DAEMON
-  if (_ds_read_attribute(agent_config, "ClientIdent")) {
+  if (_ds_read_attribute(agent_config, "ClientIdent") &&
+      (_ds_read_attribute(agent_config, "ClientHost") ||
+       _ds_read_attribute(agent_config, "ServerDomainSocketPath")))
+  {
     exitcode = client_process(&ATX, message);
     if (exitcode)
       report_error_printf(ERROR_CLIENT_EXIT, exitcode);
