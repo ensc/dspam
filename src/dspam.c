@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.49 2004/12/24 16:02:03 jonz Exp $ */
+/* $Id: dspam.c,v 1.50 2004/12/24 17:24:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -50,7 +50,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "config.h"
 #include "util.h"
 #include "read_config.h"
+
 #ifdef DAEMON
+#include <pthread.h>
 #include "daemon.h"
 #include "client.h"
 #endif
@@ -166,6 +168,10 @@ main (int argc, char *argv[])
     set_libdspam_attributes(DTX.CTX);
     DTX.flags |= DRF_STATEFUL;
 
+    __daemon_run  = 1;
+    __num_threads = 0;
+    pthread_mutex_init(&__lock, NULL);
+
 #ifdef DEBUG
     if (DO_DEBUG)
       DO_DEBUG = 2;
@@ -176,7 +182,7 @@ main (int argc, char *argv[])
       LOG (LOG_WARNING, "unable to initialize storage driver");
       exit(EXIT_FAILURE);
     }
-    LOGDEBUG(DAEMON_START);
+    LOG(LOG_INFO, DAEMON_START);
 
     if (pidfile) {
       FILE *file;
@@ -191,7 +197,19 @@ main (int argc, char *argv[])
 
     daemon_listen(&DTX);
 
-    LOGDEBUG(DAEMON_EXIT);
+    LOGDEBUG("waiting for process threads to exit");
+
+    while(__num_threads) { 
+      struct timeval tv;
+      tv.tv_sec = 1;
+      tv.tv_usec = 0;
+      select(0, NULL, NULL, NULL, &tv);
+printf("num threads: %d\n", __num_threads);
+    }
+
+    LOG(LOG_INFO, DAEMON_EXIT);
+
+    pthread_mutex_destroy(&__lock);
 
     if (pidfile)
       unlink(pidfile);
@@ -205,7 +223,6 @@ main (int argc, char *argv[])
     if (agent_config)
       _ds_destroy_attributes(agent_config);
 
-    pthread_exit(EXIT_SUCCESS);
     exit(EXIT_SUCCESS);
   }
 #endif

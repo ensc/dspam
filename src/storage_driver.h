@@ -1,4 +1,4 @@
-/* $Id: storage_driver.h,v 1.6 2004/12/18 15:41:06 jonz Exp $ */
+/* $Id: storage_driver.h,v 1.7 2004/12/24 17:24:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -19,6 +19,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+
+#ifdef HAVE_CONFIG_H
+#include <auto-config.h>
+#endif
 
 #ifndef _STORAGE_DRIVER_H
 #  define _STORAGE_DRIVER_H

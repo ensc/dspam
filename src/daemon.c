@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.28 2004/12/24 16:02:03 jonz Exp $ */
+/* $Id: daemon.c,v 1.29 2004/12/24 17:24:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -60,8 +60,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "buffer.h"
 #include "language.h"
 
-int __daemon_run;
-
 int daemon_listen(DRIVER_CTX *DTX) {
   int port = 24;
   int queue = 32;
@@ -75,8 +73,6 @@ int daemon_listen(DRIVER_CTX *DTX) {
   int i, domain = 0;
   pthread_attr_t attr;
   fd_set master, read_fds;
-
-  __daemon_run = 1;
 
   signal(SIGPIPE, SIG_IGN);
   signal(SIGINT, die);
@@ -207,6 +203,8 @@ int daemon_listen(DRIVER_CTX *DTX) {
               TTX->sockfd = newfd;
               TTX->DTX = DTX;
               memcpy(&TTX->remote_addr, &remote_addr, sizeof(remote_addr));
+
+              inc_lock();
               if (pthread_create(&TTX->thread, 
                                  &attr, process_connection, (void *) TTX))
               {
@@ -465,6 +463,7 @@ CLOSE:
   free(ATX);
   free(cmdline);
   free(TTX);
+  dec_lock();
   pthread_exit(0);
   return 0;
 }
@@ -636,6 +635,18 @@ char *daemon_getline(THREAD_CTX *TTX, int timeout) {
   }
 
   return pop;
+}
+
+void inc_lock(void) {
+  pthread_mutex_lock(&__lock);
+  __num_threads++;
+  pthread_mutex_unlock(&__lock);
+}
+
+void dec_lock(void) {
+  pthread_mutex_lock(&__lock);
+  __num_threads--;
+  pthread_mutex_unlock(&__lock);
 }
 
 #endif

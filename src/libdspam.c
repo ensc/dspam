@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.55 2004/12/23 20:52:35 jonz Exp $ */
+/* $Id: libdspam.c,v 1.56 2004/12/24 17:24:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -81,7 +81,7 @@ char debug_text[1024];
 #ifdef NCORE
 nc_dev_t g_ncDevice;
 
-nc_active_db_t	g_ncDbDelimiters;
+NC_STREAM_CTX	g_ncDelimiters;
 #endif
 
 /*
@@ -1032,7 +1032,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     joined_token[0] = 0;
     alloc_joined = 0;
 #ifdef NCORE
-    token = strtok_n (body, &g_ncDbDelimiters, &NTX);
+    token = strtok_n (body, &g_ncDelimiters, &NTX);
 #else
     token = strtok_r (body, DELIMITERS, &ptrptr);
 #endif

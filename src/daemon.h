@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.12 2004/12/24 16:02:03 jonz Exp $ */
+/* $Id: daemon.h,v 1.13 2004/12/24 17:24:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -43,6 +43,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #ifdef DAEMON
 
+int __daemon_run;
+int __num_threads;
+pthread_mutex_t __lock;
+
 typedef struct {
   int sockfd;
   char authenticated;
@@ -59,6 +63,8 @@ void *	process_connection(void *ptr);
 char *	daemon_expect(THREAD_CTX *TTX, const char *ptr);
 char *	daemon_getline(THREAD_CTX *TTX, int timeout);
 void	die(int signal);
+void	inc_lock(void);
+void	dec_lock(void);
 buffer *read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
 
 #define LMTP_GREETING		220

@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.22 2004/12/21 13:42:20 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.23 2004/12/24 17:24:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -103,8 +103,9 @@ dspam_init_driver (DRIVER_CTX *DTX)
     }
 
     for(i=0;i<connection_cache;i++) {
-      DTX->connections[i] = calloc(1, sizeof(struct _ds_drv_connection *));
+      DTX->connections[i] = calloc(1, sizeof(struct _ds_drv_connection));
       if (DTX->connections[i]) {
+        pthread_mutex_init(&DTX->connections[i]->lock, NULL);
         DTX->connections[i]->dbh = (void *) _mysql_drv_connect(DTX->CTX);
       }
     }
@@ -122,9 +123,12 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
       int i;
 
       for(i=0;i<DTX->connection_cache;i++) {
-        if (DTX->connections && DTX->connections[i]->dbh)
+        if (DTX->connections && DTX->connections[i] && DTX->connections[i]->dbh)
+        {
           mysql_close((MYSQL *) DTX->connections[i]->dbh);
-        free(DTX->connections[i]);
+          pthread_mutex_destroy(&DTX->connections[i]->lock);
+          free(DTX->connections[i]);
+        }
       }
 
       free(DTX->connections);
@@ -1009,8 +1013,9 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
       _mysql_drv_set_spamtotals (CTX);
   }
 
-  if (! s->dbh_attached)
+  if (! s->dbh_attached) {
     mysql_close (s->dbh);
+  }
   s->dbh = NULL;
 
   if (s->p_getpwnam.pw_name)

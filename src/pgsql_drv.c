@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.17 2004/12/21 13:42:20 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.18 2004/12/24 17:24:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -90,8 +90,9 @@ dspam_init_driver (DRIVER_CTX *DTX)
     }
 
     for(i=0;i<connection_cache;i++) {
-      DTX->connections[i] = calloc(1, sizeof(struct _ds_drv_connection *));
+      DTX->connections[i] = calloc(1, sizeof(struct _ds_drv_connection));
       if (DTX->connections[i]) {
+        pthread_mutex_init(&DTX->connections[i]->lock, NULL);
         DTX->connections[i]->dbh = (void *) _pgsql_drv_connect(DTX->CTX);
       }
     }
@@ -111,6 +112,7 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
       for(i=0;i<DTX->connection_cache;i++) {
         if (DTX->connections && DTX->connections[i]->dbh)
           PQfinish((PGconn *)DTX->connections[i]->dbh);
+        pthread_mutex_destroy(&DTX->connections[i]->lock);
         free(DTX->connections[i]);
       }
 
