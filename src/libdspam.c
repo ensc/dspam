@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.85 2005/01/11 06:27:10 jonz Exp $ */
+/* $Id: libdspam.c,v 1.86 2005/01/14 21:11:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -664,7 +664,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   ds_heap_t heap_sort = NULL; /* Heap sort for top N tokens */
 
-#ifdef BNR_DEBUG
+#ifdef LIBBNR_DEBUG
   ds_heap_t heap_nobnr = NULL;
 #endif
 
@@ -735,7 +735,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     goto bail;
   }
 
-#ifdef BNR_DEBUG
+#ifdef LIBBNR_DEBUG
   heap_nobnr = ds_heap_create (heap_sort->size, HP_DELTA);
   if (heap_nobnr == NULL) {
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
@@ -1133,7 +1133,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     struct _ds_spam_stat bnr_tot;
     unsigned long long crc;
     BNR_CTX *BTX_S, *BTX_C;
-#ifdef BNR_DEBUG
+#ifdef LIBBNR_DEBUG
     float snr;
 #endif
 
@@ -1174,7 +1174,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         CTX->totals.innocent_learned + CTX->totals.innocent_classified > 2500)
     {
       int elim;
-#ifdef BNR_DEBUG
+#ifdef LIBBNR_DEBUG
       char fn[MAX_FILENAME_LENGTH];
       FILE *file;
 #endif
@@ -1233,7 +1233,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         node_nt = c_nt_next(diction->chained_order, &c_nt);
       }
 
-#ifdef BNR_DEBUG
+#ifdef LIBBNR_DEBUG
       if (BTX_S->stream->items + BTX_C->stream->items +
           BTX_S->eliminations  + BTX_C->eliminations > 0)
       {
@@ -1363,7 +1363,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         if (t)
           t->frequency = 1;
   
-#ifdef BNR_DEBUG
+#ifdef LIBBNR_DEBUG
         if (fabs(0.5-ds_term->s.probability)>0.25) {
           LOGDEBUG("Interesting BNR Pattern: %s %01.5f %lds %ldi",
                    ds_term->name,
@@ -1412,7 +1412,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
              ds_term->frequency, _ds_compute_complexity(ds_term->name));
     }
 
-#ifdef BNR_DEBUG
+#ifdef LIBBNR_DEBUG
     if (!ds_term->name || strncmp(ds_term->name, "bnr.", 4))
     {
       ds_heap_insert (heap_nobnr, ds_term->s.probability, ds_term->key,
@@ -1464,7 +1464,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     }
   }
 
-#ifdef BNR_DEBUG
+#ifdef LIBBNR_DEBUG
   {
     int x = CTX->result;
     int nobnr_result = _ds_calc_result(CTX, heap_nobnr, diction);
@@ -1477,7 +1477,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   result = _ds_calc_result(CTX, heap_sort, diction);
 
-#ifdef BNR_DEBUG
+#ifdef LIBBNR_DEBUG
 
     if (nobnr_result == result) {
       LOGDEBUG("BNR Decision Concurs");
@@ -1661,7 +1661,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   ds_diction_destroy (diction);
   ds_diction_destroy (bnr_patterns);
   ds_heap_destroy (heap_sort);
-#ifdef BNR_DEBUG
+#ifdef LIBBNR_DEBUG
   ds_heap_destroy (heap_nobnr);
 #endif
 
@@ -1682,7 +1682,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
 bail:
   ds_heap_destroy (heap_sort);
-#ifdef BNR_DEBUG
+#ifdef LIBBNR_DEBUG
   ds_heap_destroy (heap_nobnr);
 #endif
   ds_diction_destroy(diction);

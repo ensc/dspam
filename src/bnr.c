@@ -286,7 +286,7 @@ int bnr_finalize(BNR_CTX *BTX) {
 
     if (interesting) {
 
-#ifdef LIBBNR_DEBUG
+#ifdef LIBBNR_VERBOSE_DEBUG
       fprintf(stderr, "Analyzing Pattern '%s' P-Value: %1.5f\n", bnr_token, 
         pattern_value);
 #endif
@@ -298,7 +298,7 @@ int bnr_finalize(BNR_CTX *BTX) {
           /* If the token is inconsistent with the current pattern */
           if (fabs(previous_bnr_tokens[i]->value - pattern_value) > BTX->in_radius)
           {
-#ifdef LIBBNR_DEBUG
+#ifdef LIBBNR_VERBOSE_DEBUG
             fprintf(stderr, "\tEliminating '%s' P-Value: %1.5f\n", 
               (const char *) previous_bnr_tokens[i]->ptr, 
               previous_bnr_tokens[i]->value);
