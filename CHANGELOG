@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.158 2005/01/30 00:39:50 jonz Exp $
+$Id: CHANGELOG,v 1.159 2005/01/30 00:48:45 jonz Exp $
 
 Version 3.4.beta.2
 ------------------
+
+[20040129.1945] jonz: applied cgi patch for delivery failure
+
+applied patch submitted by Martin Forssen <maf@appgate.com> to avoid losing
+mail in the event of a FP delivery failure within the CGI
 
 [20050129.0000] jonz: added doc for osx builds
 
