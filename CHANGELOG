@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.246 2005/03/27 19:48:36 jonz Exp $
+$Id: CHANGELOG,v 1.247 2005/03/28 13:37:41 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050327.2330] jonz: users with signatureLocation=headers should prefer header
+
+users using signatureLocation=headers should prefer the X-DSPAM-Signature
+header over any signature in the body (this can apparently cause problems 
+when conversing with another dspam user)
 
 [20050327.1400] jonz: fix for history retraining
 

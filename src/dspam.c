@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.115 2005/03/27 19:09:56 jonz Exp $ */
+/* $Id: dspam.c,v 1.116 2005/03/28 13:37:41 jonz Exp $ */
 
 /*
  DSPAM
@@ -1805,7 +1805,13 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
       }
 
       if (!_ds_match_attribute(agent_config, "TrainPristine", "on") &&
-        strcmp(_ds_pref_val(PTX, "trainPristine"), "on")) {
+        strcmp(_ds_pref_val(PTX, "trainPristine"), "on") && 
+
+        /* Don't keep searching if we've already found the signature in the
+           headers, and we're using signatureLocation=headers */
+        (!have_signature || 
+         strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers")))
+      {
         /* Look for signature */
         if (body != NULL)
         {
