@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.15 2004/12/18 16:02:53 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.16 2004/12/19 00:49:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -1922,6 +1922,36 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 }
 
 #ifdef PREFERENCES_EXTENSION
+DSPAM_CTX *_pgsql_drv_init_tools(
+ const char *home,
+ attribute_t **config,
+ void *dbh)
+{
+  DSPAM_CTX *CTX;
+
+  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
+
+  if (CTX == NULL)
+    return NULL;
+
+  _pgsql_drv_set_attributes(CTX, config);
+
+  if (!dbh)
+    dbh = _pgsql_drv_connect(CTX);
+
+  if (!dbh)
+    goto BAIL;
+
+  if (dspam_attach(CTX, dbh))
+    goto BAIL;
+
+  return CTX;
+
+BAIL:
+  dspam_destroy(CTX);
+  return NULL;
+}
+
 AGENT_PREF _ds_pref_load(
   attribute_t **config,
   const char *username, 
@@ -2681,35 +2711,5 @@ PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX)
   }
 
   return dbh;
-}
-
-DSPAM_CTX *_pgsql_drv_init_tools(
- const char *home,
- attribute_t **config,
- void *dbh)
-{
-  DSPAM_CTX *CTX;
-
-  CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
-
-  if (CTX == NULL)
-    return NULL;
-
-  _pgsql_drv_set_attributes(CTX, config);
-
-  if (!dbh)
-    dbh = _pgsql_drv_connect(CTX);
-
-  if (!dbh)
-    goto BAIL;
-
-  if (dspam_attach(CTX, dbh))
-    goto BAIL;
-
-  return CTX;
-
-BAIL:
-  dspam_destroy(CTX);
-  return NULL;
 }
 
