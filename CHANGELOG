@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.79 2004/12/19 20:50:47 jonz Exp $
+$Id: CHANGELOG,v 1.80 2004/12/20 03:39:44 jonz Exp $
 
-Version NEXT
-------------
+Version 3.3.0
+-------------
 
 [20041217.1900] jonz: additional optimizations in code
 
