@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.4 2004/11/03 13:48:33 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.5 2004/11/04 23:09:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -814,14 +814,14 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   if (nrow<1 || row == NULL)
     return EFAILURE;
 
-  length = strtol(row[ncolumn+1], NULL, 0);
+  length = strlen(row[ncolumn]);
   if (length == 0)
   {
     sqlite_free_table(row);
     return EFAILURE;
   }
 
- mem = malloc(length+1);
+  mem = malloc(length+1);
   if (mem == NULL) {
    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
    sqlite_free_table(row);
@@ -829,7 +829,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   }
 
   length = sqlite_decode_binary(row[ncolumn], mem);
-  if (length<0) {
+  if (length<=0) {
     report_error_printf("sqlite_decode_binary() failed with error %d", length);
     return EFAILURE;
   }
