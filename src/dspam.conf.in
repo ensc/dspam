@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.9 2004/12/02 23:33:08 jonz Exp $
+## $Id: dspam.conf.in,v 1.10 2004/12/03 16:17:09 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -175,6 +175,11 @@ AllowOverride whitelistThreshold
 #MySQLPass    		changeme
 #MySQLDb      	  	dspam
 #MySQLCompress		true
+
+# If you're running DSPAM in client/server (daemon) mode, uncomment the
+# setting below to override the default connection cache size (the number
+# of connections the server pools between all clients).
+#
 #MySQLConnectionCache	3
 
 #PgSQLServer    	127.0.0.1
@@ -182,6 +187,11 @@ AllowOverride whitelistThreshold
 #PgSQLUser      	dspam
 #PgSQLPass      	changeme
 #PgSQLDb        	dspam
+
+# If you're running DSPAM in client/server (daemon) mode, uncomment the
+# setting below to override the default connection cache size (the number
+# of connections the server pools between all clients).
+#
 #PgSQLConnectionCache	3
 
 #OraServer       "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SID=PROD)))"
@@ -340,7 +350,10 @@ Opt out
 #ServerPass.Relay2	"password"
 
 # If you wish to use a local domain socket instead of a TCP socket, uncomment
-# the following
+# the following. It is strongly recommended you use local domain sockets if
+# you are running the client and server on the same machine, as it eliminates
+# much of the bandwidth overhead.
+#
 #ServerDomainSocketPath  "/tmp/dspam.sock"
 
 #

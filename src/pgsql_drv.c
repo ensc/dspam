@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.11 2004/12/03 16:12:50 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.12 2004/12/03 16:17:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -77,7 +77,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
   /* Establish a series of stateful connections */
 
   if (DTX->flags & DRF_STATEFUL) {
-    int i, connection_cache = 1;
+    int i, connection_cache = 3;
 
     if (_ds_read_attribute(DTX->CTX->config->attributes, "PgSQLConnectionCache"))
       connection_cache = atoi(_ds_read_attribute(DTX->CTX->config->attributes, "PgSQLConnectionCache"));

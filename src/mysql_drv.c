@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.14 2004/12/03 00:36:48 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.15 2004/12/03 16:17:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -90,7 +90,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
   /* Establish a series of stateful connections */
 
   if (DTX->flags & DRF_STATEFUL) {
-    int i, connection_cache = 1;
+    int i, connection_cache = 3;
 
     if (_ds_read_attribute(DTX->CTX->config->attributes, "MySQLConnectionCache"))
       connection_cache = atoi(_ds_read_attribute(DTX->CTX->config->attributes, "MySQLConnectionCache"));
