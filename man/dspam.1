@@ -1,4 +1,4 @@
-.\" $Id: dspam.1,v 1.4 2005/03/03 16:11:10 jonz Exp $
+.\" $Id: dspam.1,v 1.5 2005/03/15 12:59:08 jonz Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam3.2
@@ -66,6 +66,12 @@ user2\ ...\ userN\fR\c
 ]
 [\c
 .BI \--client \c
+]
+[\c
+.BI \--rcpt-to \c
+]
+[\c
+.BI \--mail-from \c
 ]
 [\c
 .I \ delivery\_arguments \fR\c
@@ -256,6 +262,21 @@ was compiled with
 then using --client will cause DSPAM to act as a client and attempt to connect to the DSPAM server specified in the client's configuration within dspam.conf. If client behavior is desired, this option
 .B must
 be specified, otherwise the agent simply operate as self-contained and processes the message on its own, eliminating any benefit of using the daemon.
+
+.ne 3
+.TP
+.BI \--rcpt-to\c
+If
+.B DSPAM
+will be configured to deliver via LMTP or SMTP, this flag may be used to define the RCPT TOs which will be used for the delivery of each user specified with --user. If no recipients are provided, the RCPT TOs will match the username.
+NOTE: The recipient list should always be balanced with the user list, or empty. Specifying an unbalanced number of recipients to users will result in undefined behavior.
+
+.ne 3
+.TP
+.BI \--mail-from\c
+If
+.B DSPAM
+will be cofigured to deliver via LMTP or SMTP, this flag will set the MAIL FROM sent on delivery of the message. The default MAIL FROM depends on how the message was originally relayed to DSPAM. If it was relayed via the commandline, an empty MAIL FROM will be used. If it was relayed via LMTP, the original MAIL FROM will be used. 
 
 .SH EXIT VALUE
 .LP

@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.210 2005/03/14 21:42:49 jonz Exp $
+$Id: CHANGELOG,v 1.211 2005/03/15 12:59:08 jonz Exp $
 
 Version NEXT
 ------------
@@ -18,7 +18,7 @@ takes a list of users like --user does. For example:
 --user spot dick jane --rcpt-to spot@domain.com dick@domain.com jane@domain.com
 
 This allows for each user to be assigned its own unique recipient. If the
-recipient is not provided, it will default to the username being processed
+recipient is not provided, it will default to the username being processed.
 
 --lmtp-mail-from has been changed to --mail-from
 
