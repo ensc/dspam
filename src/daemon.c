@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.6 2004/11/30 21:46:55 jonz Exp $ */
+/* $Id: daemon.c,v 1.7 2004/11/30 22:32:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -257,7 +257,7 @@ void *process_connection(void *ptr) {
     goto CLOSE;
   } 
 
-  ATX->daemon = 1;
+  ATX->sockfd = TTX->sockfd;
 
   if (check_configuration(ATX)) {
     report_error(ERROR_DSPAM_MISCONFIGURED);
@@ -276,6 +276,12 @@ void *process_connection(void *ptr) {
 
   exitcode = process_users(ATX, message);
   LOGDEBUG("process_users() returned with exit code %d", exitcode);
+
+  if (!exitcode) {
+    socket_send(TTX, "250 Message accepted for delivery");
+  } else {
+    socket_send(TTX, "550 Error occurred during processing."); 
+  }
 
   /* Close connection and return */
 

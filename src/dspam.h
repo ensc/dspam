@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.6 2004/11/30 21:05:37 jonz Exp $ */
+/* $Id: dspam.h,v 1.7 2004/11/30 22:32:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -69,7 +69,7 @@ typedef struct {
   struct nt *classify_users;    /* Classify list     OUT     */
   struct _ds_spam_signature SIG;/* signature object  OUT     */ 
   int learned;                  /* Message learned?  OUT     */
-  int daemon;			/* In daemon mode?   IN      */
+  int sockfd;			/* Socket FD if not STDOUT */
 
 #ifdef DEBUG
   char debug_args[1024];
@@ -87,7 +87,7 @@ typedef struct {
 /* Public agent functions */
 
 int deliver_message	(const char *message, const char *mailer_args,
-			 const char *username);
+			 const char *username, FILE *out);
 
 int process_message	(AGENT_CTX *ATX, AGENT_PREF PTX,
 			 buffer *message, const char *username);
