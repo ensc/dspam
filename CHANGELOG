@@ -1,11 +1,11 @@
-$Id: CHANGELOG,v 1.73 2004/12/18 00:33:44 jonz Exp $
+$Id: CHANGELOG,v 1.74 2004/12/18 03:45:05 jonz Exp $
 
 Version NEXT
 ------------
 
-[20041217.1900] jonz: additional optimizations to lht structure
+[20041217.1900] jonz: additional optimizations in code
 
-additional optimizations to lht code for slight performance increase
+additional optimizations in code for slight performance increase
 
 [20041217.0700] jonz: replaced btree sort with heap sort, major speedup
 

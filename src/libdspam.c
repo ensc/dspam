@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.50 2004/12/18 03:38:32 jonz Exp $ */
+/* $Id: libdspam.c,v 1.51 2004/12/18 03:45:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -2473,7 +2473,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
     /* BEGIN Combine Token Values */
 
     /* Graham-Bayesian */
-    if (CTX->algorithms & DSA_GRAHAM && bay_used < 15 && i>=heap_sort->items-15)
+    if (CTX->algorithms & DSA_GRAHAM && bay_used < 15)
     {
         LOGDEBUG ("[graham] [%2.6f] %s (%dfrq, %lds, %ldi)",
                   stat.probability, token_name, lht_getfrequency (freq, crc),
@@ -2496,7 +2496,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
     }
 
     /* Burton Bayesian */
-    if (CTX->algorithms & DSA_BURTON && abay_used < 27 && i>=heap_sort->items-27)
+    if (CTX->algorithms & DSA_BURTON && abay_used < 27)
     {
         LOGDEBUG ("[burton] [%2.6f] %s (%dfrq, %lds, %ldi)",
                   stat.probability, token_name, lht_getfrequency (freq, crc),
@@ -2539,7 +2539,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
 #define ROB_X	0.415           /* Value to use when N = 0 */
 #define ROB_CUTOFF	0.54
 
-    if (rob_used < 25 && i>=heap_sort->items-25)
+    if (rob_used < 25)
     {
       float probability;
       long n = (heap_sort->items > 25) ? 25 : heap_sort->items;
