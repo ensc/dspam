@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.34 2005/03/19 00:12:04 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.35 2005/03/19 00:15:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -218,8 +218,6 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 
   for (i = 0; i < argc; i++)
   {
-
-printf("ARG: %s\n", argv[i]);
 
 #ifdef DEBUG
     strlcat (ATX->debug_args, argv[i], sizeof (ATX->debug_args));

@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.76 2005/03/19 00:12:04 jonz Exp $ */
+/* $Id: daemon.c,v 1.77 2005/03/19 00:15:08 jonz Exp $ */
 
 /*
 
@@ -467,7 +467,6 @@ void *process_connection(void *ptr) {
                     strcpy(ptr, ptr+1);
                   }
                 }
-printf("PROCESSMODE: %s\n", processmode);
                 LOGDEBUG("process mode: '%s'", processmode);
               }
                 
@@ -598,7 +597,6 @@ GETCMD:
       if (server_mode == SSM_DSPAM && processmode[0] != 0) {
         token = strtok_r(processmode, " ", &ptrptr);
         while(token != NULL && argc<63) {
-printf("SETTING: %d %s\n", argc, token);
           argv[argc] = token;
           argc++;
           argv[argc] = 0;

@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.42 2005/03/19 00:12:04 jonz Exp $ */
+/* $Id: client.c,v 1.43 2005/03/19 00:15:08 jonz Exp $ */
 
 /*
 
@@ -315,7 +315,6 @@ int client_authenticate(THREAD_CTX *TTX, const char *processmode) {
     }
     pmode[pos] = 0;
   }
-printf("PMODE: '%s'\n", pmode);
 
   if (ident == NULL || !strchr(ident, '@')) {
     report_error(ERROR_CLIENT_IDENT);
