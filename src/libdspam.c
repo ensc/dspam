@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.84 2005/01/10 14:09:29 jonz Exp $ */
+/* $Id: libdspam.c,v 1.85 2005/01/11 06:27:10 jonz Exp $ */
 
 /*
  DSPAM
@@ -620,7 +620,6 @@ dspam_getsource (DSPAM_CTX * CTX,
     node_nt = c_nt_next (current_block->headers, &c);
   }
 
-  LOGDEBUG("dspam_getsource() failed")
   return EFAILURE;
 }
 
