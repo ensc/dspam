@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.103 2004/12/29 04:03:21 jonz Exp $
+$Id: CHANGELOG,v 1.104 2004/12/29 04:17:03 jonz Exp $
 
 Version 3.3.6
 -------------
+
+[20041228.2300] jonz: increased bnr pattern window to 4
+
+as a test to increase efficiency, pattern window was increased to 4 tokens
 
 [20041228.2300] jonz: integrated libbnr
 
