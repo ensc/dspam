@@ -1,8 +1,13 @@
-$Id: CHANGELOG,v 1.230 2005/03/18 12:51:58 jonz Exp $
+$Id: CHANGELOG,v 1.231 2005/03/18 13:46:12 jonz Exp $
    
 Version NEXT
 ------------
   
+[20050318.0700] jonz: added localStore preference for storage
+
+added localStore preference to set local storage username, which can override
+the DSPAM username (ideal for managing aliases)
+
 [20050318.0700] jonz: fixed bug related to corpusfeeding and signatures
 
 normally you're not supposed to corpus traini with email containing dspam

@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.19 2005/03/15 22:48:05 jonz Exp $ */
+/* $Id: dspam.h,v 1.20 2005/03/18 13:46:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -59,15 +59,15 @@ int user_classify	(const char *username, struct _ds_spam_signature *SIG,
 int send_notice		(AGENT_CTX *ATX, const char *filename, const char *mailer_args,
 			 const char *username);
 
-int write_web_stats     (const char *username, const char *group, 
+int write_web_stats     (agent_pref_t PTX, const char *username, const char *group, 
                          struct _ds_spam_totals *totals);
 
 int ensure_confident_result	(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result);
 DSPAM_CTX *ctx_init	(AGENT_CTX *ATX, agent_pref_t PTX, const char *username);
-int log_events		(DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int log_events		(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX);
 int retrain_message	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int tag_message		(struct _ds_message_block *block, agent_pref_t PTX);
-int quarantine_message  (const char *message, const char *username);
+int quarantine_message  (agent_pref_t PTX, const char *message, const char *username);
 int process_users       (AGENT_CTX *ATX, buffer *message);
 int find_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX);
 int add_xdspam_headers	(DSPAM_CTX *CTX, AGENT_CTX *ATX,  agent_pref_t PTX);

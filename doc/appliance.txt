@@ -97,7 +97,24 @@ virtual_transport = lmtp:unix:/tmp/dspam.sock
 virtual_mailbox_domains = mydomain.com
 virtual_mailbox_maps = mysql:/etc/postfix/vmailbox.cf
 
-Step 6: Configure user aliases in dspam_virtual_uids
+Step 6: Add a localStore preference for each user
+
+If your users will have aliases, you'll want to specify a common local store
+for each user, so that they don't end up with one set of logs+quarantine
+for each alias. To do this, you'll first need to allow the localStore
+override in dspam.conf:
+
+AllowOverride	localStore
+
+Next, set the localStore preference for that user to their uid or some other
+unique identifier:
+
+dspam_admin ch pref jonathan@nuclearelephant.com localStore 1 
+
+Now, whenever any address pertaining to this user is emailed, information
+will be stored in $DSPAM_HOME/data/1
+
+Step 7: Configure user aliases for dspam_virtual_uids 
 
 Postfix is now set up to do a lookup in dspam_virtual_uids. It _must_ find a
 valid address in this table in order to accept the message. What you'll need

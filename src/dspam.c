@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.106 2005/03/18 12:51:59 jonz Exp $ */
+/* $Id: dspam.c,v 1.107 2005/03/18 13:46:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -81,6 +81,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define USE_LMTP        (_ds_read_attribute(agent_config, "DeliveryProto") && !strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "LMTP"))
 #define USE_SMTP        (_ds_read_attribute(agent_config, "DeliveryProto") && !strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "SMTP"))
+#define LOOKUP(A)	((_ds_pref_val(PTX, "localStore")[0]) ? _ds_pref_val(PTX, "localStore") : A)
 
 static double timestart;
 
@@ -436,11 +437,11 @@ process_message (AGENT_CTX *ATX,
     char qfile[MAX_FILENAME_LENGTH];
 
     _ds_userdir_path(qfile, _ds_read_attribute(agent_config, "Home"), 
-                     username, "mbox");
+                     LOOKUP(username), "mbox");
 
     if (!stat(qfile, &s) && s.st_size > 1024*1024*2) {
       _ds_userdir_path(qfile, _ds_read_attribute(agent_config, "Home"), 
-                       username, "mboxwarn");
+                       LOOKUP(username), "mboxwarn");
       if (stat(qfile, &s)) {
         FILE *f;
 
@@ -535,6 +536,7 @@ process_message (AGENT_CTX *ATX,
   /* Write .stats file for CGI */
   if (CTX->training_mode != DST_NOTRAIN) {
     write_web_stats (
+      PTX,
       (CTX->group == NULL || CTX->flags & DSF_MERGED) ?  username : CTX->group, 
       (CTX->group != NULL && CTX->flags & DSF_MERGED) ? CTX->group: NULL,
       &CTX->totals);
@@ -548,7 +550,7 @@ process_message (AGENT_CTX *ATX,
   if ((_ds_match_attribute(agent_config, "SystemLog", "on") ||
       _ds_match_attribute(agent_config, "UserLog", "on")))
   {
-    log_events(CTX, ATX);
+    log_events(CTX, ATX, PTX);
   }
 
   if (PTX != NULL && !strcmp(_ds_pref_val(PTX, "makeCorpus"), "on")) {
@@ -558,7 +560,7 @@ process_message (AGENT_CTX *ATX,
       FILE *file;
 
       _ds_userdir_path(dirname, _ds_read_attribute(agent_config, "Home"),
-                   CTX->username, "corpus");
+                   LOOKUP(CTX->username), "corpus");
       snprintf(corpusfile, MAX_FILENAME_LENGTH, "%s/%s/%s.msg",
         dirname, (result == DSR_ISSPAM) ? "spam" : "nonspam",
         ATX->signature);
@@ -577,7 +579,7 @@ process_message (AGENT_CTX *ATX,
       char corpusdest[MAX_FILENAME_LENGTH];
 
       _ds_userdir_path(dirname, _ds_read_attribute(agent_config, "Home"),
-                   CTX->username, "corpus");
+                   LOOKUP(CTX->username), "corpus");
       snprintf(corpusdest, MAX_FILENAME_LENGTH, "%s/%s/%s.msg",
         dirname, (result == DSR_ISSPAM) ? "spam" : "nonspam",
         ATX->signature);
@@ -899,7 +901,7 @@ int tag_message(struct _ds_message_block *block, agent_pref_t PTX)
 */
 
 int
-quarantine_message (const char *message, const char *username)
+quarantine_message (agent_pref_t PTX, const char *message, const char *username)
 {
   char filename[MAX_FILENAME_LENGTH];
   FILE *file;
@@ -908,7 +910,7 @@ quarantine_message (const char *message, const char *username)
   int i;
 
   _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), 
-                   username, "mbox");
+                   LOOKUP(username), "mbox");
   _ds_prepare_path_for(filename);
   file = fopen (filename, "a");
   if (file == NULL)
@@ -970,6 +972,7 @@ quarantine_message (const char *message, const char *username)
 
 int
 write_web_stats (
+  agent_pref_t PTX,
   const char *username, 
   const char *group, 
   struct _ds_spam_totals *totals)
@@ -983,7 +986,7 @@ write_web_stats (
     return EINVAL;
   }
 
-  _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), username, "stats");
+  _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(username), "stats");
   _ds_prepare_path_for (filename);
   file = fopen (filename, "w");
   if (file == NULL)
@@ -1414,7 +1417,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
     _ds_userdir_path(filename, 
                      _ds_read_attribute(agent_config, "Home"), 
-                     node_nt->ptr, "dspam");
+                     LOOKUP(node_nt->ptr), "dspam");
     optin = stat(filename, &s);
 
 #ifdef HOMEDIR
@@ -1426,7 +1429,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
     _ds_userdir_path(filename, 
                      _ds_read_attribute(agent_config, "Home"), 
-                     node_nt->ptr, "nodspam");
+                     LOOKUP(node_nt->ptr), "nodspam");
     optout = stat(filename, &s);
 
     /* If the message is too big to process, just deliver it */
@@ -1585,9 +1588,9 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
               /* Use standard quarantine procedure */
               if (ATX->source == DSS_INOCULATION || ATX->classification == -1) {
                 if (ATX->managed_group[0] == 0)
-                  retcode = quarantine_message (parse_message->data, node_nt->ptr);
+                  retcode = quarantine_message (PTX, parse_message->data, node_nt->ptr);
                 else
-                  retcode = quarantine_message (parse_message->data, ATX->managed_group);
+                  retcode = quarantine_message (PTX, parse_message->data, ATX->managed_group);
               }
             }
 
@@ -2424,7 +2427,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
 
 /* log_events: write journal to system.log and user.log */
 
-int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
+int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
   char filename[MAX_FILENAME_LENGTH];
   char *subject = NULL, *from = NULL;
   struct nt_node *node_nt;
@@ -2434,7 +2437,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   char x[1024];
   size_t y;
 
-  _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), CTX->username, "log");
+  _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(CTX->username), "log");
 
   node_nt = c_nt_first (CTX->message->components, &c_nt);
   if (node_nt != NULL)
