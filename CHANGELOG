@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.1 2004/10/24 20:47:30 jonz Exp $
+$Id: CHANGELOG,v 1.2 2004/10/24 21:08:48 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041024.1700] jonz: moved sources to src/
+
+moved all build sources to src/ for easier management
 
 [20041024.1545] jonz: repeat linestripping as necessary
 

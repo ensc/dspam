@@ -1,0 +1,12 @@
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache
+config.log
+config.status
+configure
+libtool
+stamp-h1
+dspam-*.tar.gz
+configure-dspam.sh
+gmon.out

@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.1 2004/10/24 20:47:30 jonz Exp $
+dnl $Id: configure.ac,v 1.2 2004/10/24 21:08:48 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -956,7 +956,7 @@ fi
 #
 GCC_BUILD_OPTIONS
 
-AC_CONFIG_HEADERS(auto-config.h)
+AC_CONFIG_HEADERS(src/auto-config.h)
 AH_TOP([
 #ifndef __auto_config_h
 #define __auto_config_h
