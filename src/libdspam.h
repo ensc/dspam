@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.2 2004/11/01 15:07:22 jonz Exp $ */
+/* $Id: libdspam.h,v 1.3 2004/11/21 22:13:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -69,7 +69,8 @@ int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value);
 
 int _ds_calc_stat		(DSPAM_CTX * CTX, 
 				 unsigned long long token,
-				 struct _ds_spam_stat *);
+				 struct _ds_spam_stat *,
+                                 int token_type);
 
 int _ds_calc_result		(DSPAM_CTX * CTX,
                                  struct tbt *index,

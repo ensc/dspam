@@ -1,4 +1,4 @@
-/* $Id: dspam_dump.c,v 1.1 2004/10/24 20:51:55 jonz Exp $ */
+/* $Id: dspam_dump.c,v 1.2 2004/11/21 22:13:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -188,7 +188,7 @@ dump_database (DSPAM_CTX * CTX, const char *token, int sql)
       s.innocent_hits = sr->innocent_hits;
       s.spam_hits = sr->spam_hits;
       s.probability = 0.00000;
-      _ds_calc_stat(CTX, sr->token, &s);
+      _ds_calc_stat(CTX, sr->token, &s, DTT_DEFAULT);
       if (!sql) {
         printf ("%-20"LLU_FMT_SPEC" S: %05ld  I: %05ld  P: %0.4f LH: %s", sr->token,
                 sr->spam_hits, sr->innocent_hits, s.probability, 
@@ -207,7 +207,7 @@ dump_database (DSPAM_CTX * CTX, const char *token, int sql)
       return -1;
      }
   
-    _ds_calc_stat(CTX, crc, &s);
+    _ds_calc_stat(CTX, crc, &s, DTT_DEFAULT);
     printf ("%-20"LLU_FMT_SPEC" S: %05ld  I: %05ld  P: %0.4f\n", crc,
             s.spam_hits, s.innocent_hits, s.probability);
 

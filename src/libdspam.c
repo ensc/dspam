@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.7 2004/11/21 21:18:59 jonz Exp $ */
+/* $Id: libdspam.c,v 1.8 2004/11/21 22:13:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -1086,7 +1086,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       unsigned long long crc;
       char bnr_token[64];
  
-      _ds_calc_stat (CTX, node->key, &node->s);
+      _ds_calc_stat (CTX, node->key, &node->s, DTT_DEFAULT);
 
       previous_probs[BNR_SIZE-1] = _ds_round(node->s.probability);
       bnr_token[0] = 0;
@@ -1147,10 +1147,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   if (CTX->flags & DSF_NOISE) {
     node_lht = c_lht_first (pfreq, &c_lht);
     while(node_lht != NULL) {
-      _ds_calc_stat(CTX, node_lht->key, &node_lht->s);
+      _ds_calc_stat(CTX, node_lht->key, &node_lht->s, DTT_BNR);
       lht_hit(freq, node_lht->key, node_lht->token_name);
       lht_setspamstat(freq, node_lht->key, &node_lht->s);
-      lht_setfrequency(freq, node_lht->key, node_lht->frequency);
+      lht_setfrequency(freq, node_lht->key, 1);
       node_lht = c_lht_next(pfreq, &c_lht);
     }
   }
@@ -1160,7 +1160,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   while (node_lht != NULL)
   {
     if (total_eliminations == -1 && !(CTX->flags & DSF_NOISE))
-      _ds_calc_stat (CTX, node_lht->key, &node_lht->s);
+      _ds_calc_stat (CTX, node_lht->key, &node_lht->s, DTT_DEFAULT);
 
     if (CTX->flags & DSF_WHITELIST) {
       if (node_lht->key == whitelist_token              && 
@@ -1610,11 +1610,14 @@ _ds_process_signature (DSPAM_CTX * CTX)
 
 int
 _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
-               struct _ds_spam_stat *s)
+               struct _ds_spam_stat *s, int token_type)
 {
 
   int min_hits = 5;
   long ti, ts;
+
+  if (token_type == DTT_BNR)
+    min_hits = 25;
 
   ti = CTX->totals.innocent_learned + CTX->totals.innocent_classified;
   ts = CTX->totals.spam_learned + CTX->totals.spam_classified;
@@ -1623,20 +1626,22 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
 
     if (ti < 1000 && ti < ts)
     {
-      min_hits = 5+(CTX->training_buffer/2)+
+      min_hits = min_hits+(CTX->training_buffer/2)+
                    (CTX->training_buffer*((ts-ti)/200));
     }
 
     if (ti < 2500 && ti >=1000 && ts > ti)
     {
       float spams = (ts * 1.0 / (ts * 1.0 + ti * 1.0)) * 100;
-      min_hits = 5+(CTX->training_buffer/2)+
+      min_hits = min_hits+(CTX->training_buffer/2)+
                    (CTX->training_buffer*(spams/20));
     }
   }
 
   if (min_hits < 5)
     min_hits = 5;
+  if (token_type == DTT_BNR && min_hits < 25)
+    min_hits = 25;
 
   if (CTX->training_mode == DST_TUM) {
     if (min_hits>20)

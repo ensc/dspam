@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.2 2004/11/21 22:13:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -422,5 +422,9 @@ typedef struct
 /* Statuses for token-status bit */
 #define TST_DISK	0x01
 #define TST_DIRTY	0x02
+
+/* Token Types */
+#define DTT_DEFAULT	0x00
+#define DTT_BNR		0x01
 
 #endif /* _LIBDSPAM_OBJECTS */

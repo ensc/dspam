@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.1 2004/10/24 20:49:33 jonz Exp $ */
+/* $Id: bnr.c,v 1.2 2004/11/21 22:13:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -92,10 +92,10 @@ int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
 
     /* Calculate probability for current node, if necessary */
     if (node_previous == NULL)
-      _ds_calc_stat (CTX, node_current->key, &node_current->s);
+      _ds_calc_stat (CTX, node_current->key, &node_current->s, DTT_DEFAULT);
 
     /* Calculate probability for next node */
-    _ds_calc_stat (CTX, node_next->key, &node_next->s);
+    _ds_calc_stat (CTX, node_next->key, &node_next->s, DTT_DEFAULT);
 
     /* If dubbing is on, turn it off if we come to an end-of-noise marker */
     if (
