@@ -1,4 +1,4 @@
-$Id: README,v 1.13 2004/12/02 17:55:51 jonz Exp $
+$Id: README,v 1.14 2004/12/02 23:33:08 jonz Exp $
 
 DSPAM v3.2 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -55,6 +55,7 @@ Advanced DSPAM functionality
   2.0 Linking with libdspam
   2.1 Configuring groups
   2.2 External Inoculation Theory
+  2.3 Client/Server Mode
 
 Miscellaneous
 
@@ -1272,6 +1273,7 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
   the client connection data in dspam.conf so that DSPAM (when not in
   daemon mode) will connect to the server.
 
+
 2.0 LINKING WITH LIBDSPAM
 
   Developers are able to link to the DSPAM core engine (libdspam) to provide 
@@ -1603,6 +1605,109 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
    plain too dumb to tell the difference (the spammers themselves couldn't tell
    if mine was or not).  This could, best case scenario, put an end to
    harvester bots, making them obsolete as counter-productive tools.
+
+2.3 CLIENT/SERVER MODE
+
+  DSPAM supports two different modes of operation.  In standard operating
+  mode, the DSPAM agent is called by the MTA (or pop3 proxy) and each
+  agent process establishes its own connections to a database and performs
+  delivery on its own. The second operating mode, client/server mode, allows
+  the DSPAM agent to act more like a thin client, which connects to the
+  DSPAM server process. The DSPAM server process then performs the necessary
+  analysis and delivery/quarantine of the message.  The advantages to using
+  DSPAM in client/server mode are:
+
+  - Maintaining a set of stateful database connections (within the server),
+    which should enhance performance on some systems by eliminating the need
+    to establish a new database connection for every message processed.
+
+  - Having one server perform all processing and delivery, while having
+    multiple thin clients on your mail servers may be more desirable than
+    having multiple agents performing processing and delivery on all your
+    servers.
+
+  - The DSPAM server speaks LMTP, which some implementations may be able to
+    take advantage of, eliminating the need for the DSPAM client all together.
+
+  The DSPAM agent can be compiled with client/server support by configuring
+  with --enable-daemon. Once you have configured with daemon support, you'll
+  need to modify your dspam.conf to provide the settings necessary for
+  client/server mode:
+
+	ServerPort             24
+
+  The port to listen on. The default is 24, the LMTP port.
+
+	ServerQueueSize        32
+
+  The maximum number of connections which may remain backlogged before they 
+  are accepted.
+
+	ServerPass.Relay1      "secret"
+	ServerPass.Relay2      "password"
+
+  Each client server allowed to connect should have its own password. They
+  can be defined here.
+
+  The DSPAM server can listen on either a network socket or a local unix
+  domain socket. If you're running the client and server on the same machine,
+  a domain socket should be used as it eliminates additional overhead. To use
+  a domain socket, you'll also need to add the following option:
+
+	ServerDomainSocketPath  "/tmp/dspam.sock"
+
+  Once you've configured the server config, you'll want to set the client
+  configuration on all client machines. If you are using network sockets,
+  set the following to appropriate values:
+
+	ClientHost     127.0.0.1
+	ClientPort     24
+
+  If you're using domain sockets, DSPAM will see the ServerDomainSocketPath
+  setting and use it to connect the client. In either case, you'll need to
+  set the client's authentication ident:
+
+	ClientIdent    "secret@Relay1"
+
+  Now you're ready to go. To start the DSPAM server, run:
+
+	dspam --daemon &
+
+  Or alternatively, if you have debugging enabled:
+
+	dspam --debug --daemon &
+
+  The DSPAM agent can then be called the same as if you were running in
+  standard (non-client/server) mode. The client settings will be automatically
+  detected in dspam.conf, and the agent will act as a thin client instead. For
+  example:
+
+	dspam --user dick jane --deliver=innocent -d %u
+
+  The conversation that takes place between the client/server is LMTP-based,
+  and will look like this:
+
+SERVER> 220 DSPAM LMTP 3.4.0 Authentication Required
+CLIENT> LHLO
+SERVER> 250 OK
+CLIENT> MAIL FROM: secret@Relay1
+SERVER> 250 OK
+CLIENT> RCPT TO: dick jane --deliver=innocent -d %u
+SERVER> 250 OK
+CLIENT> DATA
+SERVER> 354 Enter mail, end with "." on a line by itself
+CLIENT> Subject: Cheap Viagra!
+CLIENT>
+CLIENT> Click Here: http://www.cheapviagra.com
+CLIENT> .
+SERVER> 250 <dick> Message accepted for delivery
+SERVER> 250 <jane> Message accepted for delivery
+ 
+  Optionally, if you'd like the clients to perform delivery, you can use
+  DSPAM's --stdout or --classify functionality to obtain a dump of the message
+  or results, respectively. From there, it's up to you and your MTA to
+  deliver the message. The DSPAM client will output the results to stdout in
+  this case, just as it would in standard operating mode.
 
 3.0 BUGS, PORTS, AND THE LIKE
 

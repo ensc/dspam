@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.4 2004/12/02 17:55:51 jonz Exp $ */
+/* $Id: language.h,v 1.5 2004/12/02 23:33:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -78,9 +78,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define DAEMON_START		"Daemon process starting"
 #define DAEMON_EXIT             "Daemon process exiting"
 #define DAEMON_BINDING		"Binding to :%d"
+#define DAEMON_DOMAIN		"Creating local domain socket %s"
 #define DAEMON_DATA		"Enter mail, end with \".\" on a line by itself"
 
 #define ERROR_DAEMON_BIND		"Could not bind to :%d (%s)"
+#define ERROR_DAEMON_DOMAIN		"Could not bind to %s: %s"
 #define ERROR_DAEMON_SOCKET		"Could not create socket: %s"
 #define ERROR_DAEMON_SOCKOPT		"Could not set sockopt %s: %s"
 #define ERROR_DAEMON_LISTEN		"listen() failed: %s"

@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.5 2004/12/02 22:45:49 jonz Exp $ */
+/* $Id: client.c,v 1.6 2004/12/02 23:33:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <error.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/un.h>
 #ifndef _WIN32
 #include <unistd.h>
 #include <pwd.h>
@@ -162,26 +163,49 @@ BAIL:
 
 int client_connect(void) {
   struct sockaddr_in addr;
+  struct sockaddr_un saun;
   int yes = 1;
   int sockfd;
   int port = 24;
+  int domain = 0;
+  int addr_len;
   char *host = _ds_read_attribute(agent_config, "ClientHost");
 
   if (_ds_read_attribute(agent_config, "ClientPort"))
     port = atoi(_ds_read_attribute(agent_config, "ClientPort"));
 
-  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (_ds_read_attribute(agent_config, "ServerDomainSocketPath"))
+    domain = 1;
 
-  memset(&addr, 0, sizeof(struct sockaddr_in));
-  addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = inet_addr(host);
-  addr.sin_port = htons(port);
+  if (domain) {
+    char *address = _ds_read_attribute(agent_config, "ServerDomainSocketPath");
 
-  LOGDEBUG(CLIENT_CONNECT, host, port);
-  if(connect(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in))<0) {
-    LOGDEBUG(ERROR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
-    return EFAILURE;
-  } 
+    sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    saun.sun_family = AF_UNIX;
+    strcpy(saun.sun_path, address); 
+    addr_len = sizeof(saun.sun_family) + strlen(saun.sun_path);
+
+    LOGDEBUG(CLIENT_CONNECT, host, port);
+    if(connect(sockfd, (struct sockaddr *)&saun, addr_len)<0) {
+      LOGDEBUG(ERROR_CLIENT_CONNECT_HOST, address, port, strerror(errno));
+      return EFAILURE;
+    }
+     
+  } else {
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    memset(&addr, 0, sizeof(struct sockaddr_in));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = inet_addr(host);
+    addr.sin_port = htons(port);
+    addr_len = sizeof(struct sockaddr_in);
+
+    LOGDEBUG(CLIENT_CONNECT, host, port);
+    if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
+      LOGDEBUG(ERROR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+      return EFAILURE;
+    }
+
+  }
 
   LOGDEBUG(CLIENT_CONNECTED);
   setsockopt(sockfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));

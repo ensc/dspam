@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.19 2004/12/02 22:45:49 jonz Exp $ */
+/* $Id: daemon.c,v 1.20 2004/12/02 23:33:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -35,6 +35,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/resource.h>
+#include <sys/un.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -68,7 +69,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
   int fdmax;
   int listener;
   int yes = 1;
-  int i;
+  int i, domain = 0;
   pthread_attr_t attr;
   fd_set master, read_fds;
 
@@ -81,6 +82,9 @@ int daemon_listen(DRIVER_CTX *DTX) {
   if (_ds_read_attribute(agent_config, "ServerQueueSize"))
     queue = atoi(_ds_read_attribute(agent_config, "ServerQueueSize"));
 
+  if (_ds_read_attribute(agent_config, "ServerDomainSocketPath"))
+    domain = 1;
+
   FD_ZERO(&master);
   FD_ZERO(&read_fds);
 
@@ -89,27 +93,54 @@ int daemon_listen(DRIVER_CTX *DTX) {
 
   LOGDEBUG("creating listening socket on port %d", port);
 
-  listener = socket(AF_INET, SOCK_STREAM, 0);
-  if (listener == -1) {
-    LOG(LOG_CRIT, ERROR_DAEMON_SOCKET, strerror(errno));
-    return(EFAILURE);
-  }
+  if (domain) {
+    struct sockaddr_un saun;
+    char *address = _ds_read_attribute(agent_config, "ServerDomainSocketPath");
+    int len;
 
-  if (setsockopt(listener,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) == -1) {
-    LOG(LOG_CRIT, ERROR_DAEMON_SOCKOPT, "SO_REUSEADDR", strerror(errno));
-    return(EFAILURE);
-  }
+    listener = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (listener == -1) {
+      LOG(LOG_CRIT, ERROR_DAEMON_SOCKET, strerror(errno));
+      return(EFAILURE);
+    }
 
-  memset(&local_addr, 0, sizeof(struct sockaddr_in));
-  local_addr.sin_family = AF_INET;
-  local_addr.sin_port = htons(port);
-  local_addr.sin_addr.s_addr = INADDR_ANY;
+    memset(&saun, 0, sizeof(struct sockaddr_un));
+    saun.sun_family = AF_UNIX;
+    strcpy(saun.sun_path, address);
 
-  LOGDEBUG(DAEMON_BINDING, port);
+    unlink(address);
+    len = sizeof(saun.sun_family) + strlen(saun.sun_path);
 
-  if (bind(listener, (struct sockaddr *)&local_addr, sizeof(struct sockaddr)) == -1) {
-    LOG(LOG_CRIT, ERROR_DAEMON_BIND, port, strerror(errno));
-    return(EFAILURE);
+    LOGDEBUG(DAEMON_DOMAIN, address);
+  
+    if (bind(listener, (struct sockaddr *) &saun, len)<0) {
+      LOG(LOG_CRIT, ERROR_DAEMON_DOMAIN, address, strerror(errno));
+      return EFAILURE;
+    }    
+
+  } else {
+    listener = socket(AF_INET, SOCK_STREAM, 0);
+    if (listener == -1) {
+      LOG(LOG_CRIT, ERROR_DAEMON_SOCKET, strerror(errno));
+      return(EFAILURE);
+    }
+
+    if (setsockopt(listener,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) == -1) {
+      LOG(LOG_CRIT, ERROR_DAEMON_SOCKOPT, "SO_REUSEADDR", strerror(errno));
+      return(EFAILURE);
+    }
+
+    memset(&local_addr, 0, sizeof(struct sockaddr_in));
+    local_addr.sin_family = AF_INET;
+    local_addr.sin_port = htons(port);
+    local_addr.sin_addr.s_addr = INADDR_ANY;
+
+    LOGDEBUG(DAEMON_BINDING, port);
+
+    if (bind(listener, (struct sockaddr *)&local_addr, sizeof(struct sockaddr)) == -1) {
+      LOG(LOG_CRIT, ERROR_DAEMON_BIND, port, strerror(errno));
+      return(EFAILURE);
+    }
   }
 
   if (listen(listener, queue) == -1) {
@@ -138,6 +169,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
           if (i == listener) {
             int newfd;
             int addrlen = sizeof(remote_addr);
+
             if ((newfd = accept(listener, 
                                 (struct sockaddr *)&remote_addr, 
                                 &addrlen)) == -1)
@@ -146,27 +178,26 @@ int daemon_listen(DRIVER_CTX *DTX) {
             } else {
               LOGDEBUG("connection id %d from %s.", newfd, 
                        inet_ntoa(remote_addr.sin_addr));
-                fcntl(newfd, F_SETFL, O_RDWR);
-//              fcntl(newfd, F_SETFL, O_NONBLOCK);
-              setsockopt(newfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
+            }
+            fcntl(newfd, F_SETFL, O_RDWR);
+            setsockopt(newfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
 
-              TTX = calloc(1, sizeof(THREAD_CTX));
-              if (TTX == NULL) {
-                LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-                close(newfd);
+            TTX = calloc(1, sizeof(THREAD_CTX));
+            if (TTX == NULL) {
+              LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+              close(newfd);
+              continue;
+            } else {
+              TTX->sockfd = newfd;
+              TTX->DTX = DTX;
+              memcpy(&TTX->remote_addr, &remote_addr, sizeof(remote_addr));
+              if (pthread_create(&TTX->thread, 
+                                 &attr, process_connection, (void *) TTX))
+              {
+                LOG(LOG_CRIT, ERROR_DAEMON_THREAD, strerror(errno));
+                close(TTX->sockfd);
+                free(TTX);
                 continue;
-              } else {
-                TTX->sockfd = newfd;
-                TTX->DTX = DTX;
-                memcpy(&TTX->remote_addr, &remote_addr, sizeof(remote_addr));
-                if (pthread_create(&TTX->thread, 
-                                   &attr, process_connection, (void *) TTX))
-                {
-                  LOG(LOG_CRIT, ERROR_DAEMON_THREAD, strerror(errno));
-                  close(TTX->sockfd);
-                  free(TTX);
-                  continue;
-                }
               }
             }
           } /* if i == listener */

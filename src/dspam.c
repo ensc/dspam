@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.32 2004/12/02 21:48:17 jonz Exp $ */
+/* $Id: dspam.c,v 1.33 2004/12/02 23:33:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -171,8 +171,7 @@ main (int argc, char *argv[])
     goto bail;
   }
 
-  if (_ds_read_attribute(agent_config, "ClientHost")   &&
-      _ds_read_attribute(agent_config, "ClientIdent")) {
+  if (_ds_read_attribute(agent_config, "ClientIdent")) {
     exitcode = client_process(&ATX, message);
   } else {
  
