@@ -1,4 +1,4 @@
-$Id: README,v 1.1 2004/10/24 20:51:55 jonz Exp $
+$Id: README,v 1.2 2005/01/22 14:14:29 jonz Exp $
 
 pgsql_drv: PostgreSQL storage driver for DSPAM
 API v3.0
@@ -34,7 +34,7 @@ REQUIREMENTS
 
 pgsql_drv storage driver requires PostgreSQL version 7.3 or higher.
 
-CONFIGURING DSPAM
+1. CONFIGURING DSPAM
 
 To configure DSPAM to use pgsql_drv, use the following arguments while running
 DSPAM's configure:
@@ -58,7 +58,7 @@ something weird like sharing uids.
 After configure has successfully finished, build and install DSPAM using the
 instructions from DSPAM's readme.
 
-CREATING PGSQL OBJECTS
+2. CREATING PGSQL OBJECTS
 
 Before pgsql_drv will function, you must run pgsql_objects.sql file
 (located in the same directory as this readme) to create the table objects
@@ -70,7 +70,7 @@ don't actually exist on your system), also run virtual_users.sql.
 NOTE: If you plan on having more than 32,768 users, you'll want to change
 smallint to int for all uid fields.
 
-CREATING A CONNECT DATA FILE
+3. CREATING A CONNECT DATA FILE
 
 pgsql_drv needs to know how to connect to your PostgreSQL database. You will
 need to specify this in dspam.conf. The file should already contain an example
@@ -93,7 +93,7 @@ PgSQLDb        dspam
 DSPAM checks to see if the first character of the HOSTNAME field is a slash,
 and if so will treat it like a socket file.
 
-NIGHTLY PURGE
+4. NIGHTLY PURGE
 
 If you would like to purge the many stale tokens DSPAM will have lying around 
 the database, you should run one of the provided purge scripts nightly. The 
@@ -132,9 +132,21 @@ of the following:
 If you will NOT be supporting TOE users on your system, you may simply run
 the purge.sql script nightly, as-is.
 
+5. TUNING
+
+PostgreSQL use sequential scan for newly created objects which will slow 
+down everything. To use index scan force statistics collection by executing
+"ANALYSE" query manually, right after training first few mails. "ANALYSE" is
+included in purge.sql script. Thus new statistics will be collected daily.
+
+By default PostgreSQL sets tuneable parameters to minimum (i.e. shared memory
+size). To increase performance change "shared_buffers" and other values in 
+postgresql.conf file. Kernel's shared memory related parameters also need to 
+be tuned.
+
 ERRORS
 
-Any SQL errors will be reported to /tmp/sql.errors as well as the standard
+Any SQL errors will be reported to LOGDIR/sql.errors as well as the standard
 syslog facilities (although the query will be truncated).
 
 QUESTIONS

@@ -1,10 +1,24 @@
-$Id: UPGRADING,v 1.8 2005/01/19 17:55:27 jonz Exp $
+$Id: UPGRADING,v 1.9 2005/01/22 14:14:29 jonz Exp $
 
-UPGRADING FROM 3.0
+UPGRADING TO 3.4 BETA 2
 
-Please download a version of 3.2's UPGRADING and follow the steps to upgrade
-from 3.0 to 3.2, then follow the steps below to upgrade from 3.2 to this 
-release. 
+As of 3.4 Beta 2, the PostgreSQL driver uses BIGINT instead of NUMERIC(20)
+type to store tokens in database. This change speedup driver and reduce 
+storage space used by dspam.
+
+The new version is fully backward compatible. The new driver will automatically
+detect field type, thus it's possible to use new driver with NUMERIC(20) field 
+too. For those who would like to upgrade, however, a migration tool called
+dspam_pg2int8 will build and install with your distribution. To migrate, run 
+the migration tool and then follow the instructions.
+
+Example:
+    % dspam_pg2int8 /tmp/dspam_mig.sql
+
+
+Great thanks to:
+    Simon Burr <simes@bpfh.net>
+    Kenneth Marshall <ktm@it.is.rice.edu>
 
 UPGRADING FROM 3.2 
 
@@ -22,6 +36,12 @@ PostgreSQL's query builder from getting confused, which leads to more time
 consuming queries:
 
 CREATE INDEX id_token_data_04 ON dspam_token_data(uid);
+
+UPGRADING FROM 3.0
+
+Please download a version of 3.2's UPGRADING and follow the steps to upgrade
+from 3.0 to 3.2, then follow the steps below to upgrade from 3.2 to this
+release.
 
 PRE-PRODUCTION TEST REPORT
 

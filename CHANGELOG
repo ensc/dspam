@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.152 2005/01/19 19:26:42 jonz Exp $
+$Id: CHANGELOG,v 1.153 2005/01/22 14:14:28 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050122.0900] jonz: applied latest postgresql patches
+
+applied latest patches upgrade postgresql drivers. significant change is the 
+use of BIGINT to improve performance. while backward compatible, a migration
+tool has been provided (see UPGRADING).
 
 [20050119.0300] jonz: set default training buffer to off
 

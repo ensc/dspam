@@ -1,8 +1,8 @@
-/* $Id: pgsql_objects.sql,v 1.2 2004/12/03 13:19:52 jonz Exp $ */
+/* $Id: pgsql_objects.sql,v 1.3 2005/01/22 14:14:29 jonz Exp $ */
 
 CREATE TABLE dspam_token_data (
   uid smallint,
-  token numeric(20),
+  token bigint,
   spam_hits int,
   innocent_hits int,
   last_hit date,

@@ -1,6 +1,10 @@
-$Id: RELEASE.NOTES,v 1.24 2005/01/19 04:45:45 jonz Exp $
+$Id: RELEASE.NOTES,v 1.25 2005/01/22 14:14:29 jonz Exp $
 
-RELEASE 3.4 (Beta 1)
+RELEASE 3.4 (Beta 2)
+
+------------------------------------------------------
+PLEASE SEE THE FILE 'UPGRADING' PRIOR TO INSTALLATION!
+------------------------------------------------------
 
 DSPAM CORE ENGINE (libdspam)
 
@@ -40,6 +44,11 @@ NOTE: The necessary DSPAM adapter code is only available under license.
 SQLite3 Storage Driver Support
 The SQLite3 storage driver (sqlite3_drv) has been added to support the
 latest stable production version of sqlite.
+
+PostgreSQL Storage Driver Enhancements
+The PostgreSQL storage drivers have been updated with many improvements. 
+While backward compatible, some users may wish to migrate using the
+instructions outlined in UPGRADING.
 
 DSPAM AGENT
 
