@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.2 2004/12/18 15:02:52 jonz Exp $ */
+/* $Id: pref.c,v 1.3 2004/12/18 23:38:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -123,7 +123,7 @@ AGENT_PREF _ds_pref_load(
   file = fopen(filename, "r");
   if (file == NULL && user != NULL) { 
     free(PTX);
-    return _ds_pref_load(config, NULL, home);
+    return _ds_pref_load(config, NULL, home, NULL);
   }
  
   /* Apply default preferences from dspam.conf */
