@@ -97,6 +97,18 @@ virtual_transport = lmtp:unix:/tmp/dspam.sock
 virtual_mailbox_domains = mydomain.com
 virtual_mailbox_maps = mysql:/etc/postfix/vmailbox.cf
 
+vmailbox.cf should look something like:
+
+user = [mysql username]
+password = [mysql password]
+dbname = [mysql db]
+query = SELECT username FROM dspam_virtual_uids WHERE username='%s'
+table = dspam_virtual_uids
+host = 127.0.0.1
+select_field = username
+where_field = username
+additiona_conditions =
+
 Step 6: Add a localStore preference for each user
 
 If your users will have aliases, you'll want to specify a common local store
@@ -148,3 +160,21 @@ one change to dspam.conf to accomodate this configuration. Add
 --user [globaluser] to your ServerParameters property. This will cause all
 mail to be processed using this user, but will still deliver using the
 recipient information.
+
+ALIASES
+
+If you have some aliases, you'll need to also set them up on your relay
+appliance so that DSPAM can process the individual users. To do this, add the
+following lines to postfix's main.cf:
+
+virtual_alias_domains =
+virtual_alias_maps = mysql:/etc/postfix/valiases.cf
+
+now create a valiases.cf similar to vmailbox.cf, only you'll want to create
+a new table just for aliases. the field pulled from should be a list of
+recipient addresses, for example:
+
+list@domain.com		jonz@domain.com,bob@domain.com
+
+postfix will now deliver to each of these mailboxes instead of an alias address
+
