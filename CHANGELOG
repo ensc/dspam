@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.156 2005/01/28 19:53:29 jonz Exp $
+$Id: CHANGELOG,v 1.157 2005/01/29 06:10:05 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050129.0000] jonz: added doc for osx builds
+
+added doc for building dspam on osx
 
 [20050128.0245] jonz: fixed segfault on post-signature failure
 
