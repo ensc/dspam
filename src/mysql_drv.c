@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.2 2004/10/26 13:24:51 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.3 2004/10/28 14:11:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -520,6 +520,10 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
   char scratch[1024];
   struct passwd *p;
   int update_one = 0;
+#if MYSQL_VERSION_ID >= 40100
+  buffer *insert;
+  int insert_one = 0;
+#endif
 
   if (s->dbh == NULL)
   {
@@ -549,6 +553,16 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
+
+#if MYSQL_VERSION_ID >= 40100
+  insert = buffer_create(NULL);
+  if (insert == NULL)
+  {
+    buffer_destroy(query);
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    return EUNKNOWN;
+  }
+#endif
 
   if (s->control_token == 0)
   {
@@ -581,6 +595,11 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
   buffer_cat (query, scratch);
 
+#if MYSQL_VERSION_ID >= 40100
+  buffer_copy (insert, "insert into dspam_token_data(uid, token, spam_hits, "
+                       "innocent_hits, last_hit) values");
+#endif
+
   node_lht = c_lht_first (freq, &c_lht);
   while (node_lht != NULL)
   {
@@ -605,7 +624,38 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
     if (!(stat2.status & TST_DISK))
     {
-     char insert[1024];
+#if MYSQL_VERSION_ID >= 40100
+      char ins[1024];
+
+      /* If we're processing a message with a MERGED group, assign it based on
+         an empty count and not the current count (since the current count
+         also includes the global group's tokens).
+
+         If we're not using MERGED, or if a tool is running, assign it based
+         on the actual count (so that tools like dspam_merge don't break) */
+
+      if (CTX->flags & DSF_MERGED) {
+        snprintf (ins, sizeof (ins),
+                  "%s(%d, '%llu', %d, %d, current_date())",
+                   (insert_one) ? ", " : "",
+                   p->pw_uid,
+                   node_lht->key,
+                   stat.spam_hits > s->control_sh ? 1 : 0,
+                   stat.innocent_hits > s->control_ih ? 1 : 0);
+      } else {
+        snprintf (ins, sizeof (ins),
+                  "%s(%d, '%llu', %ld, %ld, current_date())",
+                   (insert_one) ? ", " : "",
+                   p->pw_uid,
+                   node_lht->key,
+                   stat2.spam_hits,
+                   stat2.innocent_hits);
+      }
+
+      insert_one = 1;
+      buffer_cat(insert, ins);
+#else
+      char insert[1024];
 
       /* If we're processing a message with a MERGED group, assign it based on
          an empty count and not the current count (since the current count
@@ -636,6 +686,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
 
       if (MYSQL_RUN_QUERY (s->dbh, insert))
         stat2.status |= TST_DISK;
+#endif
     }
 
     if (stat2.status & TST_DISK) {
@@ -672,6 +723,31 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
       return EFAILURE;
     }
   }
+
+#if MYSQL_VERSION_ID >= 40100
+  if (insert_one)
+  {
+     snprintf (scratch, sizeof (scratch),
+            " ON DUPLICATE KEY UPDATE last_hit = current_date(), "
+            "spam_hits = greatest(0, spam_hits %s %d), "
+            "innocent_hits = greatest(0, innocent_hits %s %d) ",
+            (stat.spam_hits > s->control_sh) ? "+" : "-",
+            abs (stat.spam_hits - s->control_sh),
+            (stat.innocent_hits > s->control_ih) ? "+" : "-",
+            abs (stat.innocent_hits - s->control_ih));
+
+    buffer_cat(insert, scratch);
+
+    if (MYSQL_RUN_QUERY (s->dbh, insert->data))
+    {
+      _mysql_drv_query_error (mysql_error (s->dbh), insert->data);
+      buffer_destroy(insert);
+      return EFAILURE;
+    }
+  }
+
+  buffer_destroy(insert);
+#endif
 
   buffer_destroy (query);
   return 0;

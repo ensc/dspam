@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.6 2004/10/25 22:22:17 jonz Exp $
+$Id: CHANGELOG,v 1.7 2004/10/28 14:11:28 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041028.0700] jonz: support for mysql 4.1's ON DUPLICATE KEY
+
+added support for mysql 4.1's ON DUPLICATE KEY functionality, so that compiling
+with 4.1+ will perform a single insert query without causing duplicate key
+failures
 
 [20041025.0600] jonz: fixed memory leak in dspam_clean
 

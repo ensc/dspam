@@ -1,4 +1,4 @@
-$Id: README,v 1.1 2004/10/24 20:53:29 jonz Exp $
+$Id: README,v 1.2 2004/10/28 14:11:28 jonz Exp $
 
 mysql_drv: MySQL storage driver for DSPAM <jonathan@nuclearelephant.com>
 Copyright (c) 2003 Network Dweebs Corporation
@@ -43,6 +43,11 @@ some critical issues were addressed including:
   - Support for subqueries
     This allows purge-4.1.sql to conditionally purge based on the user's
     training mode, which allows a cleaner and more granular purge.
+
+  - Insert Speed
+    4.1 Supports the use of ON DUPLICATE KEY which allows us to perform all
+    token inserts with a single query. As a result, MySQL 4.1 is about 20%
+    faster.
 
 1. CONFIGURING DSPAM
 
