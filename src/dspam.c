@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.113 2005/03/21 19:21:30 jonz Exp $ */
+/* $Id: dspam.c,v 1.114 2005/03/26 04:52:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -83,25 +83,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define USE_SMTP        (_ds_read_attribute(agent_config, "DeliveryProto") && !strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "SMTP"))
 #define LOOKUP(A)	((_ds_pref_val(PTX, "localStore")[0]) ? _ds_pref_val(PTX, "localStore") : A)
 
-static double timestart;
-
-static double gettime()
-{
-  double t;
-
-#ifdef _WIN32
-  t = GetTickCount()/1000.;
-#else /* !_WIN32 */
-  struct timeval tv;
-  if (gettimeofday(&tv, NULL) != -1 )
-    t = tv.tv_usec/1000000.0 + tv.tv_sec;
-  else
-    t = 0.;
-#endif /* _WIN32/!_WIN32 */
-
-  return t;
-}
-
 int
 main (int argc, char *argv[])
 {
@@ -113,7 +94,6 @@ main (int argc, char *argv[])
   struct nt_node *node_nt;
   struct nt_c c_nt;
 
-  timestart = gettime();	/* Set tick count to calculate run time */
   srand (getpid ());		/* Random numbers for signature creation */
   umask (006);                  /* rw-rw---- */
   setbuf (stdout, NULL);	/* Unbuffered output */
@@ -295,6 +275,8 @@ process_message (AGENT_CTX *ATX,
   int have_signature = 0;
   int have_decision = 0;
   int result, i;
+
+  ATX->timestart = gettime();        /* Set tick count to calculate run time */
 
   /* Create a DSPAM context based on the agent context */
   CTX = ctx_init(ATX, PTX, username);
@@ -2525,7 +2507,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
       if (!i) {
         char s[1024];
 
-        snprintf(s, sizeof(s), "%s\t%f\n", x, gettime()-timestart);
+        snprintf(s, sizeof(s), "%s\t%f\n", x, gettime()-ATX->timestart);
         fputs(s, file);
         _ds_free_fcntl_lock(fileno(file));
       } else {
@@ -3118,3 +3100,21 @@ int daemon_start(AGENT_CTX *ATX) {
   return 0;
 }
 #endif
+
+double gettime(void)
+{
+  double t;
+
+#ifdef _WIN32
+  t = GetTickCount()/1000.;
+#else /* !_WIN32 */
+  struct timeval tv;
+  if (gettimeofday(&tv, NULL) != -1 )
+    t = tv.tv_usec/1000000.0 + tv.tv_sec;
+  else
+    t = 0.;
+#endif /* _WIN32/!_WIN32 */
+
+  return t;
+}
+

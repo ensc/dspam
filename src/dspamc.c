@@ -1,4 +1,4 @@
-/* $Id: dspamc.c,v 1.3 2004/12/25 22:22:34 jonz Exp $ */
+/* $Id: dspamc.c,v 1.4 2005/03/26 04:52:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -79,25 +79,6 @@ int DO_DEBUG;
 char debug_text[1024];
 #endif
 
-static double timestart;
-
-static double gettime()
-{
-  double t;
-
-#ifdef _WIN32
-  t = GetTickCount()/1000.;
-#else /* !_WIN32 */
-  struct timeval tv;
-  if (gettimeofday(&tv, NULL) != -1 )
-    t = tv.tv_usec/1000000.0 + tv.tv_sec;
-  else
-    t = 0.;
-#endif /* _WIN32/!_WIN32 */
-
-  return t;
-}
-
 int
 main (int argc, char *argv[])
 {
@@ -106,7 +87,6 @@ main (int argc, char *argv[])
   int exitcode = EXIT_SUCCESS;
   int agent_init = 0;		/* Agent is initialized */
 
-  timestart = gettime();	/* Set tick count to calculate run time */
   srand (getpid ());		/* Random numbers for signature creation */
   umask (006);                  /* rw-rw---- */
   setbuf (stdout, NULL);	/* Unbuffered output */
@@ -202,5 +182,22 @@ bail:
     _ds_destroy_attributes(agent_config);
 
   exit (exitcode);
+}
+
+double gettime()
+{
+  double t;
+
+#ifdef _WIN32
+  t = GetTickCount()/1000.;
+#else /* !_WIN32 */
+  struct timeval tv;
+  if (gettimeofday(&tv, NULL) != -1 )
+    t = tv.tv_usec/1000000.0 + tv.tv_sec;
+  else
+    t = 0.;
+#endif /* _WIN32/!_WIN32 */
+
+  return t;
 }
 

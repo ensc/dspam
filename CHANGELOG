@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.242 2005/03/24 18:24:15 jonz Exp $
+$Id: CHANGELOG,v 1.243 2005/03/26 04:52:05 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050325.2345] jonz: fixed avg. processing time reporting
+
+fixed avg. processing time reporting in daemon mode; was previously reporting
+time since daemon start
 
 [20050324.0730] jonz: added ChangeUserOnParse 'full' option
 
