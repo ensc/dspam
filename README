@@ -1,4 +1,4 @@
-$Id: README,v 1.7 2004/11/16 13:46:49 jonz Exp $
+$Id: README,v 1.8 2004/11/16 14:17:10 jonz Exp $
 
 DSPAM v3.2 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1473,6 +1473,21 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
   merged groups are only used with TOE-mode training so that only corrective 
   data is stored, but systems with ample amounts of disk may wish to run in
   TUM mode to learn the user's behavior dynamically.
+
+  The group's data is merged with the user's data in real-time, so if you have:
+
+  Group: Viagra = 10 Spam Hits, 0 Innocent Hits
+   User: Viagra = 5 Spam Hits, 15 Innocent Hits
+
+  Then the token is loaded as: 15 Spam Hits, 15 Innocent Hits = 0.50 (50%)
+
+  No data is written to the group by DSPAM; only the user's data. This then
+  offsets the group's data without affecting other users. Because of the way
+  this data is merged, it's not recommended that you update the merged group
+  with more than a handful of messages periodically, as it affects how all
+  stats are defined for each user.
+
+  To set up a merged group, use something like this in your group file:
 
   groupname:merged:*
   groupname:merged:user1,user2,userN
