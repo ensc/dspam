@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.105 2004/12/29 05:54:21 jonz Exp $
+$Id: CHANGELOG,v 1.106 2004/12/29 22:06:57 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041229.0600] jonz: increased training threshold to 2000
+
+threshold was lowered to 1000 in previous devel versions
 
 Version 3.3.6
 -------------
