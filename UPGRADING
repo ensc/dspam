@@ -1,26 +1,7 @@
-$Id: UPGRADING,v 1.11 2005/02/16 14:31:16 jonz Exp $
+$Id: UPGRADING,v 1.12 2005/03/05 23:54:23 jonz Exp $
 
-UPGRADING TO 3.4 
-
-As of 3.4 Beta 2, the PostgreSQL driver uses BIGINT instead of NUMERIC(20)
-type to store tokens in database. This change speedup driver and reduce 
-storage space used by dspam.
-
-The new version is fully backward compatible. The new driver will automatically
-detect field type, thus it's possible to use new driver with NUMERIC(20) field 
-too. For those who would like to upgrade, however, a migration tool called
-dspam_pg2int8 will build and install with your distribution. To migrate, run 
-the migration tool and then follow the instructions.
-
-Example:
-    % dspam_pg2int8 /tmp/dspam_mig.sql
-
-
-Great thanks to:
-    Simon Burr <simes@bpfh.net>
-    Kenneth Marshall <ktm@it.is.rice.edu>
-
-UPGRADING FROM 3.2 
+UPGRADING FROM 3.2
+------------------
 
 At the moment, no critical changes to the installation. Just...
 
@@ -30,20 +11,48 @@ configure && make && make install
 the included dspam.conf to ensure they're propagated into your production
 configuration, as many new features have been added.
 
-If you have not already done so from 3.2.4, you may wish to create the following
-index if you are using PostgreSQL. This index is unnecessary, but prevents
-PostgreSQL's query builder from getting confused, which leads to more time
-consuming queries:
+SPECIAL NOTES FOR POSTGRESQL SYSTEMS
+
+The PostgreSQL driver now uses BIGINT instead of NUMERIC(20) type to store 
+tokens in database. This change speedup driver and reduce storage space used 
+by dspam. The new version is fully backward compatible with 3.2. The new 
+driver will automatically detect field type, thus it's possible to use new 
+driver with NUMERIC(20) field too. For those who would like to upgrade, 
+however, a migration tool called dspam_pg2int8 will build and install with 
+your distribution. To migrate, run the migration tool and then follow the
+instructions.
+
+Example:
+    % dspam_pg2int8 /tmp/dspam_mig.sql
+
+If you have not already done so from 3.2.4, you may also wish to create the 
+following index if you are using PostgreSQL. This index is unnecessary, but 
+prevents PostgreSQL's query builder from getting confused, which leads to more 
+time consuming queries:
 
 CREATE INDEX id_token_data_04 ON dspam_token_data(uid);
 
-UPGRADING FROM 3.0
+Great thanks to:
+    Simon Burr <simes@bpfh.net>
+    Kenneth Marshall <ktm@it.is.rice.edu>
 
-Please download a version of 3.2's UPGRADING and follow the steps to upgrade
-from 3.0 to 3.2, then follow the steps below to upgrade from 3.2 to this
-release.
+UPGRADING FROM VERSIONS PRIOR TO 3.2
+------------------------------------
+
+In order to upgrade to 3.4, it is necessary to perform an incremental upgrade
+from version to version:
+
+If you are running 3.0, please download a version of 3.2's UPGRADING and follow
+the steps to upgrade from 3.0 to 3.2, then follow the steps below to upgrade 
+from 3.2 to this release.
+
+
+If you are running 2.10, please download a version of 3.0 and 3.2's UPGRADING
+files, then follow the steps to first upgrade from 2.10 to 3.0, then 3.0 to
+3.2, and finally consult these notes to upgrade from 3.2 to 3.4. 
 
 PRE-PRODUCTION TEST REPORT
+--------------------------
 
 DSPAM v3.4 Pre-Production Test
 Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
