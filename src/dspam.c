@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.78 2005/02/24 16:33:37 jonz Exp $ */
+/* $Id: dspam.c,v 1.79 2005/02/24 23:10:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -1218,7 +1218,7 @@ int send_notice(AGENT_CTX *ATX, const char *filename, const char *mailer_args,
 int **process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_node *node_nt;
   struct nt_c c_nt;
-  int retcode, exitcode = EXIT_SUCCESS;
+  int retcode = 0, exitcode = EXIT_SUCCESS;
   int **x = malloc(sizeof(int *)*(ATX->users->items+1));
   int i = 0;
   int *code;
@@ -1228,6 +1228,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
   if (x == NULL)
     return NULL;
 
+printf("IN PROCESS USERS\n");
   if (ATX->sockfd) {
     fout = ATX->sockfd;
   } else {
@@ -1245,6 +1246,12 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     char filename[MAX_FILENAME_LENGTH];
     int result, optin, optout;
 
+printf("USER %d\n", i);
+
+    code = malloc(sizeof(int));
+    *code = 0;
+    x[i] = code;
+
     parse_message = buffer_create(message->data);
     if (parse_message == NULL) {
       LOG(LOG_CRIT, ERROR_MEM_ALLOC);
@@ -1252,9 +1259,6 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
       i++;
       continue;
     }
-
-    x[i] = NULL;
-
 
 #ifdef DEBUG
     if (!DO_DEBUG &&
@@ -1401,8 +1405,12 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
           deliver_message (ATX, parse_message->data,
                            (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
                             node_nt->ptr, fout);
-        if (retcode && exitcode == EXIT_SUCCESS)
-          exitcode = retcode;
+
+        if (retcode) {
+          *code = retcode;
+          if (exitcode == EXIT_SUCCESS)
+            exitcode = retcode;
+        }
         if (ATX->sockfd && ATX->flags & DAF_STDOUT)
           ATX->sockfd_output = 1;
       }
@@ -1417,9 +1425,6 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
         if (result == DSR_ISSPAM)
           exitcode = 99;
       }
-      code = malloc(sizeof(int));
-      *code = result;
-      x[i] = code;
 
       /* Classify Only */
 
@@ -1455,10 +1460,13 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
             (ATX, parse_message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
              node_nt->ptr, fout);
+
           if (ATX->sockfd && ATX->flags & DAF_STDOUT)
             ATX->sockfd_output = 1;
           if (retcode) {
-            exitcode = retcode;
+            *code = retcode;
+            if (exitcode == EXIT_SUCCESS)
+              exitcode = retcode;
             if ((result == DSR_ISINNOCENT || result == DSR_ISWHITELISTED) && 
                 _ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                 ATX->learned)
@@ -1481,7 +1489,6 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
 
         if (! (ATX->flags & DAF_DELIVER_SPAM))
         {
-
           retcode = 0;
 
           /* If a specific quarantine has been configured, use it */
@@ -1509,6 +1516,12 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
                      node_nt->ptr, fout);
                   if (ATX->sockfd && ATX->flags & DAF_STDOUT)
                     ATX->sockfd_output = 1;
+                }
+
+                if (retcode) {
+                  *code = retcode;
+                  if (exitcode == EXIT_SUCCESS)
+                    exitcode = retcode;
                 }
               }
             }
@@ -1550,7 +1563,11 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
              node_nt->ptr, fout);
           if (retcode) {
-            exitcode = retcode;
+
+            *code = retcode;
+            if (exitcode == EXIT_SUCCESS)
+              exitcode = retcode;
+
             if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                 ATX->learned) {
               ATX->classification =
@@ -1568,8 +1585,8 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     free(PTX);
     node_nt = c_nt_next (ATX->users, &c_nt);
 
-    LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", exitcode);
     i++;
+    LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", exitcode);
     buffer_destroy(parse_message);
   }
 

@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.37 2005/02/24 22:28:49 jonz Exp $ */
+/* $Id: daemon.c,v 1.38 2005/02/24 23:10:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -256,7 +256,11 @@ void *process_connection(void *ptr) {
   if (TTX->packet_buffer == NULL)
     goto CLOSE;
 
-  snprintf(buf, sizeof(buf), "%d DSPAM LMTP %s %s", LMTP_GREETING, VERSION, (server_mode == SSM_DSPAM) ? "Authentication Required" : "Ready");
+  snprintf(buf, sizeof(buf), "%d DSPAM %sLMTP %s %s", 
+    LMTP_GREETING, 
+    (server_mode == SSM_DSPAM) ? "D" : "",
+    VERSION, 
+    (server_mode == SSM_DSPAM) ? "Authentication Required" : "Ready");
   if (send_socket(TTX, buf)<=0) 
     goto CLOSE;
 
@@ -396,12 +400,15 @@ void *process_connection(void *ptr) {
           }
         }
       }
+
       snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
       if (send_socket(TTX, buf)<=0)
         goto CLOSE;
 
       oldcmd = cmdline;
       cmdline = daemon_getline(TTX, 300);
+      if  (server_mode == SSM_DSPAM)
+        break;
     }
   
     if (cmdline == NULL) 
@@ -433,10 +440,6 @@ void *process_connection(void *ptr) {
       goto CLOSE;
     }
 
-    snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
-    if (send_socket(TTX, buf)<=0)
-      goto CLOSE;
-
     /* DATA */
   
     /* Check for at least one recipient */
@@ -451,10 +454,14 @@ void *process_connection(void *ptr) {
 
     if (strncasecmp(cmdline, "DATA", 4)) {
       snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, "Need DATA Here");
+      if (send_socket(TTX, buf)<=0)
+        goto CLOSE;
       input = daemon_expect(TTX, "LHLO");
       if (input == NULL)
         goto CLOSE;
     }
+
+    cmdline = oldcmd;
 
     if (daemon_reply(TTX, LMTP_DATA, DAEMON_DATA)<=0)
       goto CLOSE;
