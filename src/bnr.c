@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.11 2004/12/13 16:02:08 jonz Exp $ */
+/* $Id: bnr.c,v 1.12 2004/12/15 19:03:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -48,7 +48,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
    Bayesian Noise Reduction - Progressive Noise Logic
-   http://www.nuclearelephant.com/projects/dspam/bnr.html 
+   http://www.nuclearelephant.com/papers/bnr.html
 */
 
 
@@ -94,7 +94,7 @@ int bnr_pattern_instantiate(
     }
 
     previous_bnr_probs[BNR_SIZE-1] = _ds_round(node_lht->s.probability);
-    sprintf(bnr_token, "bnr.%c:", identifier);
+    sprintf(bnr_token, "bnr.%c|", identifier);
     for(i=0;i<BNR_SIZE;i++) {
       char x[6];
       snprintf(x, 6, "%01.2f_", previous_bnr_probs[i]);
@@ -155,7 +155,7 @@ int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
     previous_bnr_probs[BNR_SIZE-1] = _ds_round(node_lht->s.probability);
     previous_bnr_tokens[BNR_SIZE-1] = node_lht;
 
-    sprintf(bnr_token, "bnr.%c:", BTX->type);
+    sprintf(bnr_token, "bnr.%c|", BTX->type);
     for(i=0;i<BNR_SIZE;i++) {
       char x[6];
       snprintf(x, 6, "%01.2f_", previous_bnr_probs[i]);

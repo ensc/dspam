@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.38 2004/12/13 22:21:58 jonz Exp $ */
+/* $Id: libdspam.c,v 1.39 2004/12/15 19:03:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -1090,7 +1090,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /*
      Bayesian Noise Reduction - Progressive Noise Logic
-     http://www.nuclearelephant.com/projects/dspam/bnr.html 
+     http://www.nuclearelephant.com/papers/bnr.html
   */
 
   if (CTX->flags & DSF_NOISE)
@@ -1108,7 +1108,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     bnr_pattern_instantiate(CTX, bnr_layer1, freq->order, 's', DTT_DEFAULT, NULL);
     bnr_pattern_instantiate(CTX, bnr_layer1, freq->chained_order, 'c', DTT_DEFAULT, NULL);
 
-    lht_hit(bnr_layer1, _ds_getcrc64("bnr.t:"), "bnr.t:");
+    lht_hit(bnr_layer1, _ds_getcrc64("bnr.t|"), "bnr.t|");
 
     LOGDEBUG("Loading %ld BNR patterns at layer 1", bnr_layer1->items);
 
@@ -1119,7 +1119,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       goto bail;
     }
 
-    lht_getspamstat(bnr_layer1, _ds_getcrc64("bnr.t:"), &bnr_tot);
+    lht_getspamstat(bnr_layer1, _ds_getcrc64("bnr.t|"), &bnr_tot);
 
     /* BNR LAYER 2 PATTERNS (Patterns of patterns of tokens) */
 
@@ -1480,7 +1480,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         !strncmp(node_lht->token_name, "bnr.", 4) &&
         CTX->confidence < 0.60) {
 
-      if ((node_lht->token_name[4] == 'c' || node_lht->token_name[4] == 's') &&
+      if ((node_lht->token_name[4] == 'c' || 
+           node_lht->token_name[4] == 's' ||
+           node_lht->token_name[4] == 't') &&
           CTX->totals.innocent_learned + CTX->totals.innocent_classified > 250)
       {
         node_lht->s.status |= TST_DIRTY;
@@ -1808,12 +1810,6 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
   {
 
   if (token_type == DTT_BNR) {
-
-    if (s->spam_hits > bnr_tot->spam_hits)
-      s->spam_hits = bnr_tot->spam_hits;
-
-    if (s->innocent_hits > bnr_tot->innocent_hits)
-      s->innocent_hits = bnr_tot->innocent_hits;
 
     s->probability =
       (s->spam_hits * 1.0 / bnr_tot->spam_hits * 1.0) /
