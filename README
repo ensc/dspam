@@ -1,4 +1,4 @@
-$Id: README,v 1.53 2005/03/19 00:15:52 jonz Exp $
+$Id: README,v 1.54 2005/03/24 18:45:41 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Network Dweebs Corporation
@@ -626,7 +626,7 @@ First you will need to download a few prerequisite tools:
 
 4. MAIL SERVER INTEGRATION
 
-   There are two primary ways the DSPAM agent can be integrated:
+   There are three primary ways the DSPAM agent can be integrated:
 
    Mail Server: The default approach integrates DSPAM directly with the mail 
         server and filters spam as mail comes in. Please see the appropriate
@@ -639,63 +639,79 @@ First you will need to download a few prerequisite tools:
         for implementing DSPAM on Exchange, etcetera). Please see the file
         doc/pop3filter.txt.
 
+   SMTP Relay: DSPAM can be configured as an SMTP relay, a.k.a appliance. You
+        can set it up to sit in front of your real mail server and then point
+        your MX records at it. DSPAM will then pass along the good mail to
+        your real SMTP server. See doc/appliance.txt for more information. The
+        example provided uses Postfix and MySQL.
+
 5. ALIASES
 
    Users must have an alias to forward/bounce spams to in order for DSPAM to
    learn. Since DSPAM learns each user's specific email behavior, it is
    necessary to identify the end-user to program their specific dictionary.  
+
    This can be done in two ways:
 
-   System-Wide Alias
-   -----------------
+   The easy way
+   ------------
 
-   DSPAM can be configured with ParseToHeaders (on)  which will parse the
-   To: header of all messages forwarded by a user to obtain their username.
-   This can be configured in conjunction with a wildcard subdomain, such
-   as spam.yourdomain.com, so that only one alias will be necessary for the
-   entire system.
+   DSPAM has an option called ParseToHeaders which can be used to automatically
+   parse the To: header of forwarded spam and/or false positives, so when a
+   user emails:
 
-   For example, if @spam.yourdomain.com is configured to be delivered to
-   'spamuser', then spamuser can be configured to pipe into DSPAM without
-   a user:
+   spam-bob@domain.tld
 
-   spamuser:	"|/usr/local/bin/dspam --class=spam --source=error"
+   DSPAM can set the training mode to "learn spam" and set the username to
+   either 'bob' or 'bob@domain.tld' automatically. This is ideal if you don't
+   want to set up a separate alias for each user on your system. The catch is
+   that you have to tell your mail server to pass along all email to
+   spam-[whatever] or notspam-[whatever] to DSPAM. This may be difficult, and
+   so you can alternatively set up a subdomain as a catch-all. For example:
 
-   When a user forwards a message in as spam, they will email 
-   spam-username@spam.yourdomain.com. For example:
+   @relearn.domain.tld	"|/usr/local/bin/dspam"
 
-   To: Spam Account <spam-bob@spam.yourdomain.com>
+   Then, when user 'bob' forwards an email to spam-bob@relearn.domain.tld, 
+   DSPAM will automatically know to retrain the message as spam for user
+   'bob'. 
 
-   DSPAM will then parse 'bob' from the To: header and identify that the user
-   reporting the spam is bob. This is protected from spoofing because the
-   signature in the message is looked up in the database. If the signature
-   doesn't exist under that user's name, the message is ignored.
+   Just set up the catch-all, then add these lines to dspam.conf:
 
-   Per-User Aliases
-   ----------------
+   ParseToHeaders on
+   ChangeUserOnParse user
+   ChangeModeOnParse on
+
+   You can also configure DSPAM to use the entire email address as the user
+   name, instead of just the part that comes before the @ sign. This is
+   useful if you are using the full email address as the DSPAM username 
+   instead of just the local part. The caveat to this is that you can't use 
+   subdomains, so if you plan on doing this then you'll have to finesse your 
+   MTA into passing along anything with spam- or notspam- in the To: header. 
+   Once you've got that set up, use this configuration in dspam.conf:
+
+   ParseToHeaders on
+   ChangeUserOnParse full
+   ChangeModeOnParse on
+
+   The hard way
+   ------------
 
    Sometimes it may be more appropriate to set up an alias for each user on the
-   system instead of having a system-wide alias. For each user, you will need 
-   to create an email address the user can send spam to, so that DSPAM can 
-   analyze and learn.  The easiest way to do this is to create a new alias.  
-   For example:
+   system instead of having a system-wide configuration. To do this, you will
+   need to create an email address for each user, so that DSPAM can 
+   analyze and learn for that specific user.  For example:
 
    spam-bob: "|/usr/local/bin/dspam --user bob --class=spam --source=error"
 
-   You will end up having one alias per mail user on the system.  Be sure the
-   aliases are unique and each username matches the name after the --user flag.
-   A tool has been provided called dspam_genaliases.  This tool will read the
-   /etc/passwd file and write out a dspam aliases file that can be included
-   in your master aliases table.  
+   You will end up having one alias per mail user on the system, two if you
+   do not use DSPAM's CGI quarantine (an additional one using notspam-). Be 
+   sure the aliases are unique and each username matches the name after the 
+   --user flag.  A tool has been provided called dspam_genaliases.  This tool 
+   will read the /etc/passwd file and write out a dspam aliases file that can 
+   be included in your master aliases table.  
 
    To report spams, the user should be instructed to forward each spam to
    spam-user@yourhost
-
-   If you will be using the --enable-spam-delivery mechanism, you will also
-   need an alias to forward false positives into.  The following example should
-   suffice:
-
-   notspam-bob: "|/usr/local/bin/dspam --user bob --class=innocent --source=error --deliver=innocent"
 
    It doesn't really matter what you name these aliases, so long as the flags
    being passed to dspam are correct for each user.  It might be a good idea
@@ -937,27 +953,6 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
   things.
 
 1.3 TROUBLESHOOTING
-
-    Problem: I get an error similar to 'cannot find -ldb-4.1'
-   Solution: Your compiler can't locate your db libraries.  Try installing
-             them into /usr/lib, or add them to your (and your MTA's)
-             LD_LIBRARY_PATH.  You may also use --with-db4-includes and
-             --with-db4-libraries as configure flags.  If you are using libdb3,
-             use the db3-specific configure parameters.
- 
-    Problem: Dictionary isn't updating
-   Solution: Check the file permissions of both the .dict and the .mbox files.
-             These files will need to be writable by the dspam agent as well
-             as the CGI user.
- 
-   Solution: Check your MTA configuration and ensure that you are passing the
-             local username of the recipient to DSPAM. If you are passing
-             the To: address, you may run into problems if you fail to first
-             resolve any aliases (such as creating a new user for every To: 
-             address used). The easy fix for this is to A. resolve all aliases
-             before passing to DSPAM and B. ensure the recipient's address is
-             converted to lowercase so that case indifferences don't spawn new
-             users
 
     Problem: No files are being created in the user directory
    Solution: Check the directory permissions of the directory.  The user 
