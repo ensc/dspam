@@ -1,4 +1,4 @@
-$Id: README,v 1.42 2005/02/27 21:04:15 jonz Exp $
+$Id: README,v 1.43 2005/02/28 02:12:31 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1706,21 +1706,23 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
   The conversation that takes place between the client/server is LMTP-based,
   and will look like this:
 
-SERVER> 220 DSPAM LMTP 3.3.0 Authentication Required
-CLIENT> LHLO
-SERVER> 250 OK
-CLIENT> MAIL FROM: secret@Relay1
-SERVER> 250 OK
+SERVER> 220 DSPAM DLMTP 3.4.0 Authentication Required
+CLIENT> LHLO Relay1
+SERVER> 250-PIPELINING
+SERVER> 250-ENHANCEDSTATUSCODES
+SERVER> 250 SIZE
+CLIENT> MAIL FROM: <secret@Relay1>
+SERVER> 250 2.1.0 OK
 CLIENT> RCPT TO: dick jane --deliver=innocent -d %u
-SERVER> 250 OK
+SERVER> 250 2.1.5 OK
 CLIENT> DATA
 SERVER> 354 Enter mail, end with "." on a line by itself
 CLIENT> Subject: Cheap Viagra!
 CLIENT>
 CLIENT> Click Here: http://www.cheapviagra.com
 CLIENT> .
-SERVER> 250 <dick> Message accepted for delivery
-SERVER> 250 <jane> Message accepted for delivery
+SERVER> 250 2.0.0 <dick> Message accepted for delivery
+SERVER> 250 2.0.0 <jane> Message accepted for delivery
  
   Optionally, if you'd like the clients to perform delivery, you can use
   DSPAM's --stdout or --classify functionality to obtain a dump of the message

@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.45 2005/02/28 01:53:07 jonz Exp $ */
+/* $Id: daemon.c,v 1.46 2005/02/28 02:12:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -234,7 +234,8 @@ void *process_connection(void *ptr) {
   THREAD_CTX *TTX = (THREAD_CTX *) ptr;
   AGENT_CTX *ATX = NULL;
   buffer *message = NULL;
-  char *input, *cmdline = NULL, *token, *ptrptr, *oldcmd = NULL, *parms, *p=NULL;
+  char *input, *cmdline = NULL, *token, *ptrptr;
+  char *oldcmd = NULL, *parms=NULL, *p=NULL;
   char *argv[32];
   char buf[1024];
   int tries = 0;
@@ -300,6 +301,7 @@ void *process_connection(void *ptr) {
 
   /* Loop here */
   while(1) {
+    parms = NULL;
 
     /* Configure agent context */
     ATX = calloc(1, sizeof(AGENT_CTX));
@@ -324,7 +326,7 @@ void *process_connection(void *ptr) {
       if (input == NULL) 
         goto CLOSE;
       else {
-        char *ptr, *pass, *ident;
+        char *pass, *ident;
         chomp(input);
 
         if (server_mode == SSM_STANDARD) {
@@ -336,8 +338,9 @@ void *process_connection(void *ptr) {
             goto CLOSE;
           }
         } else {
-          ptr = strtok_r(input+10, " ", &ptrptr);
-          pass = strtok_r(ptr, "@", &ptrptr);
+          char id[256];
+          _ds_extract_address(id, input, sizeof(id));
+          pass = strtok_r(id, "@", &ptrptr);
           ident = strtok_r(NULL, "@", &ptrptr);
 
           if (pass && ident) {
@@ -380,16 +383,18 @@ void *process_connection(void *ptr) {
   
     snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
 
-    parms = _ds_read_attribute(agent_config, "ServerParameters");
-    argc = 0;
-    if (parms) {
-      p = strdup(parms);
-      if (p) {
-        token = strtok_r(p, " ", &ptrptr);
-        while(token != NULL) {
-          argv[argc] = token;
-          argc++;
-          token = strtok_r(NULL, " ", &ptrptr);
+    if (server_mode == SSM_STANDARD) {
+      parms = _ds_read_attribute(agent_config, "ServerParameters");
+      argc = 0;
+      if (parms) {
+        p = strdup(parms);
+        if (p) {
+          token = strtok_r(p, " ", &ptrptr);
+          while(token != NULL) {
+            argv[argc] = token;
+            argc++;
+            token = strtok_r(NULL, " ", &ptrptr);
+          }
         }
       }
     }
@@ -398,7 +403,6 @@ void *process_connection(void *ptr) {
 
     cmdline = daemon_getline(TTX, 300);
     while(cmdline && !strncasecmp(cmdline, "RCPT TO:", 8)) {
-
       if (server_mode == SSM_DSPAM) {
         /* Tokenize arguments */
         chomp(cmdline);
@@ -444,6 +448,11 @@ void *process_connection(void *ptr) {
       goto CLOSE;
     }
 
+    if (ATX->users->items == 0) {
+      daemon_reply(TTX, LMTP_BAD_CMD, "5.0.0", "No recipients specified. Good bye!");
+      goto CLOSE;
+    }
+
     ATX->sockfd = fd;
     ATX->sockfd_output = 0;
 
@@ -475,8 +484,7 @@ void *process_connection(void *ptr) {
     }
 
     if (strncasecmp(cmdline, "DATA", 4)) {
-      snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, "Need DATA Here");
-      if (send_socket(TTX, buf)<=0)
+      if (daemon_reply(TTX, LMTP_BAD_CMD, "5.0.0", "Need DATA Here")<0) 
         goto CLOSE;
       input = daemon_expect(TTX, "LHLO");
       if (input == NULL)

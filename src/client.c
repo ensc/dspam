@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.28 2005/02/28 01:53:07 jonz Exp $ */
+/* $Id: client.c,v 1.29 2005/02/28 02:12:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -269,7 +269,7 @@ int client_authenticate(THREAD_CTX *TTX) {
   if (client_getcode(TTX)!=LMTP_OK) 
     return EFAILURE;
 
-  snprintf(buff, sizeof(buff), "MAIL FROM: %s", ident);
+  snprintf(buff, sizeof(buff), "MAIL FROM: <%s>", ident);
   if (send_socket(TTX, buff)<=0)
     return EFAILURE;
 

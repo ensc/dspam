@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.181 2005/02/28 01:53:07 jonz Exp $
+$Id: CHANGELOG,v 1.182 2005/02/28 02:12:31 jonz Exp $
 
 Version NEXT
 ------------
@@ -7,7 +7,7 @@ Version NEXT
 
 1.  if --user is specified in ServerParameters when DSPAM is running in 
 standard LMTP mode, then RCPT TO will be used only for delivery, and not 
-processing
+processing.
 
 2.  added 'auto' mode for server, to auto-detect DLMTP or LMTP based on
 the LHLO ident
