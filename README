@@ -1,4 +1,4 @@
-$Id: README,v 1.22 2004/12/16 14:07:24 jonz Exp $
+$Id: README,v 1.23 2004/12/21 12:49:52 jonz Exp $
 
 DSPAM v3.3 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -307,6 +307,10 @@ First you will need to download a few prerequisite tools:
          access to read each user's home directory. Therefore, only use this
          option if you will not be using the CGI or plan on doing something
          asinine like running it as root.
+
+   --enable-daemon
+   Builds DSPAM with support for daemon mode, and builds associated dspamc
+   thin client. Pthreads is required to build for daemon mode.
 
    DEBUGGING SWITCHES
 
