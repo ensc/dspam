@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.61 2005/03/14 22:02:18 jonz Exp $ */
+/* $Id: daemon.c,v 1.62 2005/03/15 19:31:23 jonz Exp $ */
 
 /*
 
@@ -130,6 +130,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
     LOGDEBUG(DAEMON_DOMAIN, address);
   
     if (bind(listener, (struct sockaddr *) &saun, len)<0) {
+      close(listener);
       LOG(LOG_CRIT, ERROR_DAEMON_DOMAIN, address, strerror(errno));
       return EFAILURE;
     }    
@@ -144,6 +145,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
     }
 
     if (setsockopt(listener,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) == -1) {
+      close(listener);
       LOG(LOG_CRIT, ERROR_DAEMON_SOCKOPT, "SO_REUSEADDR", strerror(errno));
       return(EFAILURE);
     }
@@ -156,6 +158,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
     LOGDEBUG(DAEMON_BINDING, port);
 
     if (bind(listener, (struct sockaddr *)&local_addr, sizeof(struct sockaddr)) == -1) {
+      close(listener);
       LOG(LOG_CRIT, ERROR_DAEMON_BIND, port, strerror(errno));
       return(EFAILURE);
     }
@@ -164,6 +167,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
   /* Listen */
 
   if (listen(listener, queue) == -1) {
+    close(listener);
     LOG(LOG_CRIT, ERROR_DAEMON_LISTEN, strerror(errno));
     return(EFAILURE);
   }

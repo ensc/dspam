@@ -1,7 +1,17 @@
-$Id: CHANGELOG,v 1.213 2005/03/15 14:15:36 jonz Exp $
+$Id: CHANGELOG,v 1.214 2005/03/15 19:31:23 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050315.0800] jonz: applied patch to fix file descriptor leaks
+
+when listener fails, file descriptor fails to close, causing a possibly
+fatal situation in the event of too many failures
+
+[20050315.0730] jonz: added LOG_NOWAIT to syslogging
+
+added LOG_NOWAIT to syslogging, to prevent dspam from hanging if syslog is
+nonresponsive
 
 [20050313.0700] jonz: fixed bugs handling multiple rcpt to's
  
