@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.24 2004/12/26 00:37:01 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.25 2004/12/26 01:08:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -108,7 +108,9 @@ dspam_init_driver (DRIVER_CTX *DTX)
     for(i=0;i<connection_cache;i++) {
       DTX->connections[i] = calloc(1, sizeof(struct _ds_drv_connection));
       if (DTX->connections[i]) {
+#ifdef DAEMON
         pthread_mutex_init(&DTX->connections[i]->lock, NULL);
+#endif
         DTX->connections[i]->dbh = (void *) _mysql_drv_connect(DTX->CTX);
       }
     }
@@ -129,7 +131,9 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
         if (DTX->connections && DTX->connections[i] && DTX->connections[i]->dbh)
         {
           mysql_close((MYSQL *) DTX->connections[i]->dbh);
+#ifdef DAEMON
           pthread_mutex_destroy(&DTX->connections[i]->lock);
+#endif
           free(DTX->connections[i]);
         }
       }
