@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.87 2005/03/08 17:41:04 jonz Exp $ */
+/* $Id: dspam.c,v 1.88 2005/03/09 15:52:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -2515,7 +2515,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
       if (head != NULL)
       {
 #ifdef VERBOSE
-        LOGDEBUG ("appending header %s: %s", head->heading, head->data)
+        LOGDEBUG ("appending header %s: %s", head->heading, head->data);
 #endif
         nt_add (block->headers, (void *) head);
       }
@@ -2545,7 +2545,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
         if (head != NULL)
         {
 #ifdef VERBOSE
-          LOGDEBUG ("appending header %s: %s", head->heading, head->data)
+          LOGDEBUG ("appending header %s: %s", head->heading, head->data);
 #endif
             nt_add (block->headers, (void *) head);
         }
@@ -2563,7 +2563,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
               LOGDEBUG("WARNING: Signature not generated, or invalid");
             }
 #ifdef VERBOSE
-            LOGDEBUG ("appending header %s: %s", head->heading, head->data)
+            LOGDEBUG ("appending header %s: %s", head->heading, head->data);
 #endif
             nt_add (block->headers, (void *) head);
           }
@@ -2578,7 +2578,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
           if (head != NULL)
           {
 #ifdef VERBOSE
-            LOGDEBUG ("appending header %s: %s", head->heading, head->data)
+            LOGDEBUG ("appending header %s: %s", head->heading, head->data);
 #endif
               nt_add (block->headers, (void *) head);
           }

@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.18 2005/03/09 14:08:18 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.19 2005/03/09 15:52:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -1229,7 +1229,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
  mem = malloc (length+1);
   if (mem == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC)
+    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     sqlite_finalize(s->iter_sig, &err);
     s->iter_sig = NULL;
     free(st);
