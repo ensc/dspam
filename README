@@ -1,4 +1,4 @@
-$Id: README,v 1.19 2004/12/03 16:32:32 jonz Exp $
+$Id: README,v 1.20 2004/12/04 11:13:17 jonz Exp $
 
 DSPAM v3.3 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1602,13 +1602,13 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
 2.3 CLIENT/SERVER MODE
 
   DSPAM supports two different modes of operation.  In standard operating
-  mode, the DSPAM agent is called by the MTA (or pop3 proxy) and each
-  agent process establishes its own connections to a database and performs
-  delivery on its own. The second operating mode, client/server mode, allows
-  the DSPAM agent to act more like a thin client, which connects to the
-  DSPAM server process. The DSPAM server process then performs the necessary
-  analysis and delivery/quarantine of the message.  The advantages to using
-  DSPAM in client/server mode are:
+  mode, the DSPAM agent is called by the MTA (or proxy) and each agent process 
+  performs independently, establishing its own connection to a database and 
+  performs delivery on its own. The second operating mode, client/server mode, 
+  allows the DSPAM agent to act more like a thin client, connecting to the
+  DSPAM server process which then does all the work of analyzing and delivering
+  or quarantining the message. The advantages to using DSPAM in client/server 
+  mode are:
 
   - Maintaining a set of stateful database connections (within the server),
     which should enhance performance on some systems by eliminating the need
@@ -1621,6 +1621,9 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
 
   - The DSPAM server speaks LMTP, which some implementations may be able to
     take advantage of, eliminating the need for the DSPAM client all together.
+
+  - Having a single multithreaded daemon should use less memory and other
+    resources than having independently operating clients.
 
   If you've already got DSPAM set up, client/server mode won't require any
   changes to your mail server's configuration - it's completely transparent.
