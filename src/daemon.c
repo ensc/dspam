@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.74 2005/03/18 21:44:05 jonz Exp $ */
+/* $Id: daemon.c,v 1.75 2005/03/18 21:49:08 jonz Exp $ */
 
 /*
 
@@ -551,6 +551,13 @@ void *process_connection(void *ptr) {
 
       if (cmdline == NULL)
         goto CLOSE;
+
+      if (!strncasecmp(cmdline, "RSET", 4)) {
+        snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
+        if (send_socket(TTX, buf)<=0)
+          goto CLOSE;
+        goto RSET;
+      }
 
       if (!strncasecmp(cmdline, "quit", 4)) {
         daemon_reply(TTX, LMTP_OK, "2.0.0", "OK");
