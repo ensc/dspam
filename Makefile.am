@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.4 2005/01/30 00:34:33 jonz Exp $
+# $Id: Makefile.am,v 1.5 2005/03/11 21:16:02 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -10,12 +10,11 @@
 
 includedir=@includedir@/dspam
 
-SUBDIRS = . cgi m4 man src
-DIST_SUBDIRS = . cgi m4 txt man src
+SUBDIRS = . cgi m4 man src 
+DIST_SUBDIRS = . cgi m4 txt man src doc
 
 EXTRA_DIST = autogen-glibtool.sh autogen.sh RELEASE.NOTES CHANGELOG LICENSE \
-  README README.sendmail README.exim README.courier README.postfix \
-  README.pop3filter README.qmail README.osx UPGRADING
+  README UPGRADING
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 auto-config.h.in \
 	config.guess config.sub configure depcomp install-sh   \

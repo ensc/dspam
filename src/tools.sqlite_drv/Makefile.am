@@ -1,6 +1,6 @@
-# $Id: Makefile.am,v 1.1 2004/10/24 20:51:55 jonz Exp $
+# $Id: Makefile.am,v 1.2 2005/03/11 21:16:03 jonz Exp $
 # tools.sqlite_drv/Makefile.am
 #
 
-EXTRA_DIST = purge.sql README
+EXTRA_DIST = purge.sql 
 

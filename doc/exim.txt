@@ -1,4 +1,4 @@
-$Id: README.exim,v 1.5 2005/01/07 06:05:57 jonz Exp $
+$Id: exim.txt,v 1.1 2005/03/11 21:16:03 jonz Exp $
 
 EXIM 4 INTEGRATION
 

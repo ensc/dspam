@@ -1,4 +1,4 @@
-$Id: README.osx,v 1.2 2005/03/05 23:55:41 jonz Exp $
+$Id: osx.txt,v 1.1 2005/03/11 21:16:03 jonz Exp $
 
 MAC OSX NOTES
 

@@ -1,4 +1,4 @@
-$Id: README,v 1.47 2005/03/05 23:57:33 jonz Exp $
+$Id: README,v 1.48 2005/03/11 21:16:02 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Network Dweebs Corporation
@@ -174,7 +174,7 @@ FRESH INSTALLATION
 -- Short Version
 
 ./configure && make && make install
-follow appropriate README for integration, then restart the MTA
+follow appropriate instructions in doc/ for integration, then restart the MTA
 dspam_genaliases >> /etc/mail/aliases (or equivalent)
 newaliases (or equivalent)
 
@@ -507,7 +507,7 @@ First you will need to download a few prerequisite tools:
      This option suppresses libdspam's calls to mysql_server_init and
      mysql_server_end.
      
-     NOTE: Please see the file tools.mysql_drv/README for more information
+     NOTE: Please see the file doc/mysql_drv.txt for more information
      about configuring the mysql_drv storage driver.
 
    pgsql_drv:
@@ -529,7 +529,7 @@ First you will need to download a few prerequisite tools:
      NOTE: If you have never created the dspam_preferences objects, you will
            need to re-run the objects creation script.
 
-     Please see the file tools.pgsql_drv/README for more information about 
+     Please see the file doc/pgsql_drv.txt for more information about 
      configuring the pgsql_drv storage driver.
 
    ora_drv:
@@ -539,7 +539,7 @@ First you will need to download a few prerequisite tools:
      --enable-virtual-users
      Tells DSPAM to create virtual user ids.  Use this if your users don't
      actually exist on the system (e.g. in /etc/passwd if using a password file)                                                                                
-     NOTE: Please see the file tools.ora_drv/README for more information
+     NOTE: Please see the file doc/ora_drv.txt for more information
      about configuring the ora_drv storage driver.
 
    sqlite_drv:
@@ -630,14 +630,14 @@ First you will need to download a few prerequisite tools:
 
    Mail Server: The default approach integrates DSPAM directly with the mail 
         server and filters spam as mail comes in. Please see the appropriate
-        README document pertaining to your MTA. 
+        instructions in doc/ pertaining to your MTA.
 
    POP3 Proxy: The alternative approach implements a POP3 proxy where users
         connect to the proxy to check their email, and email is filtered when
         being downloaded.  The POP3 proxy is a much easier approach, as it
         requires much less integration work with the mail server (and is ideal 
         for implementing DSPAM on Exchange, etcetera). Please see the file
-        README.pop3filter.
+        doc/pop3filter.txt.
 
 5. ALIASES
 

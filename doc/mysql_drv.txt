@@ -1,4 +1,4 @@
-$Id: README,v 1.2 2004/10/28 14:11:28 jonz Exp $
+$Id: mysql_drv.txt,v 1.1 2005/03/11 21:16:03 jonz Exp $
 
 mysql_drv: MySQL storage driver for DSPAM <jonathan@nuclearelephant.com>
 Copyright (c) 2003 Network Dweebs Corporation

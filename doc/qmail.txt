@@ -1,4 +1,4 @@
-$Id: README.qmail,v 1.1 2004/10/24 20:47:30 jonz Exp $
+$Id: qmail.txt,v 1.1 2005/03/11 21:16:03 jonz Exp $
 
 QMAIL and VPOPMAIL INTEGRATION
 

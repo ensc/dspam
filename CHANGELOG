@@ -1,4 +1,12 @@
-$Id: CHANGELOG,v 1.199 2005/03/09 15:54:59 jonz Exp $
+$Id: CHANGELOG,v 1.200 2005/03/11 21:16:02 jonz Exp $
+
+Version NEXT
+------------
+
+[20050311.0800] jonz: moved supplementary documentation into doc/
+
+moved all supplementary documentation into doc/ including storage driver,
+operating system, and mta configuration documentation.
 
 Version 3.4.pr1
 ---------------

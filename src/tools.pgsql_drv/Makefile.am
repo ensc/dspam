@@ -1,8 +1,8 @@
-# $Id: Makefile.am,v 1.2 2005/01/22 14:14:29 jonz Exp $
+# $Id: Makefile.am,v 1.3 2005/03/11 21:16:03 jonz Exp $
 # tools.pgsql_drv/Makefile.am
 #
 
-EXTRA_DIST = pgsql_objects.sql virtual_users.sql purge.sql README
+EXTRA_DIST = pgsql_objects.sql virtual_users.sql purge.sql 
 
 AM_CPPFLAGS = \
   -DLOGDIR=\"$(logdir)\" -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\" \

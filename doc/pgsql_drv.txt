@@ -1,4 +1,4 @@
-$Id: README,v 1.2 2005/01/22 14:14:29 jonz Exp $
+$Id: pgsql_drv.txt,v 1.1 2005/03/11 21:16:03 jonz Exp $
 
 pgsql_drv: PostgreSQL storage driver for DSPAM
 API v3.0

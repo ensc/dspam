@@ -1,0 +1,16 @@
+# $Id
+# doc/Makefile.am
+#
+
+EXTRA_DIST = 	courier.txt	\
+		exim.txt	\
+		mysql_drv.txt	\
+		ora_drv.txt	\
+		osx.txt		\
+		pgsql_drv.txt	\
+		pop3filter.txt	\
+		postfix.txt	\
+		qmail.txt	\
+		sendmail.txt	\
+		sqlite_drv.txt	\
+		win32.txt	
