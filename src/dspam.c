@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.110 2005/03/19 00:31:18 jonz Exp $ */
+/* $Id: dspam.c,v 1.111 2005/03/19 23:54:55 jonz Exp $ */
 
 /*
  DSPAM
@@ -110,7 +110,6 @@ main (int argc, char *argv[])
   int exitcode = EXIT_SUCCESS;
   int agent_init = 0;		/* Agent is initialized */
   int driver_init = 0;
-  int i = 0;
   struct nt_node *node_nt;
   struct nt_c c_nt;
 
@@ -235,7 +234,7 @@ main (int argc, char *argv[])
 
     exitcode = process_users(&ATX, message);
     if (exitcode) {
-      LOGDEBUG("process_users() failed on error %d", i);
+      LOGDEBUG("process_users() failed on error %d", exitcode);
     } else {
       exitcode = 0;
       node_nt = c_nt_first(ATX.results, &c_nt);
@@ -1256,7 +1255,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_node *node_nt;
   struct nt_node *node_rcpt = NULL;
   struct nt_c c_nt, c_rcpt;
-  int retcode = 0, exitcode = EXIT_SUCCESS;
+  int retcode = 0;
   int i = 0, have_rcpts = 0, return_code = 0;
   FILE *fout;
   buffer *parse_message;
@@ -1647,7 +1646,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       nt_add(ATX->results, presult);
     else
       free(presult);
-    LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", exitcode);
+    LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", return_code);
     buffer_destroy(parse_message);
   }
 
