@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.6 2004/12/03 12:59:31 jonz Exp $ */
+/* $Id: decode.c,v 1.7 2004/12/13 22:58:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -36,6 +36,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "buffer.h"
 #include "base64.h"
 #include "libdspam.h"
+#ifdef NCORE
+#include "ncore_adp.h"
+#endif
 
 /* decode structures and functions
    this section of code is designed for a twofold purpose:

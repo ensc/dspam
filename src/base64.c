@@ -1,4 +1,4 @@
-/* $Id: base64.c,v 1.1 2004/10/24 20:49:33 jonz Exp $ */
+/* $Id: base64.c,v 1.2 2004/12/13 22:58:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "error.h"
 #include "base64.h"
 
+#ifndef NCORE
 char *
 base64decode (const char *text)
 {
@@ -118,6 +119,7 @@ base64decode (const char *text)
   }
   return decoded;
 }
+#endif /* NCORE */
 
 char *
 base64encode (const char *text)

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.8 2004/12/03 13:54:02 jonz Exp $
+# $Id: Makefile.am,v 1.9 2004/12/13 22:58:45 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -59,9 +59,9 @@ libdspam_la_SOURCES = \
 	bnr.c bnr.h \
 	config_shared.c config_shared.h
  
-libdspam_la_LIBADD = $(storage_drv_objects)
-libdspam_la_LIBADD += -lm $(NETLIBS)
-libdspam_la_DEPENDENCIES = $(storage_drv_objects)
+libdspam_la_LIBADD = $(storage_drv_objects) $(adapter_objects)
+libdspam_la_LIBADD += -lm $(NETLIBS) $(NCORELIBS)
+libdspam_la_DEPENDENCIES = $(storage_drv_objects) $(adapter_objects)
 
 EXTRA_libdspam_la_SOURCES = \
 	libdb4_drv.c libdb4_drv.h \
@@ -69,7 +69,8 @@ EXTRA_libdspam_la_SOURCES = \
 	mysql_drv.c mysql_drv.h \
 	pgsql_drv.c pgsql_drv.h \
         ora_drv.c ora_drv.h \
-	sqlite_drv.c sqlite_drv.h
+	sqlite_drv.c sqlite_drv.h \
+	ncore_adp.cpp ncore_adp.h
 
 # Libtools veriooning scheme is:
 #   current:revision:age

@@ -1,7 +1,14 @@
-$Id: CHANGELOG,v 1.68 2004/12/11 19:31:27 jonz Exp $
+$Id: CHANGELOG,v 1.69 2004/12/13 22:58:45 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041213.0600] jonz: added build hooks for NodalCore(tm) C-Series Accelerator
+
+added build hooks for the NodalCore(tm) C-Series Accelerator Card, the
+hardware platform used for Accelerated DSPAM(R). actual adapter code remains
+proprietary, so build hooks are only useful if you've licensed the
+accelerator.
 
 [20041211.1430] jonz: lowered initial training loop
 

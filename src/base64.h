@@ -1,4 +1,4 @@
-/* $Id: base64.h,v 1.1 2004/10/24 20:49:33 jonz Exp $ */
+/* $Id: base64.h,v 1.2 2004/12/13 22:58:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -23,7 +23,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef _BASE64_H
 #  define _BASE64_H
 
+#ifndef NCORE
 char *base64decode (const char *);
+#endif
 char *base64encode (const char *);
 
 #endif /* _BASE64_H */

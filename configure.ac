@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.9 2004/12/03 16:12:50 jonz Exp $
+dnl $Id: configure.ac,v 1.10 2004/12/13 22:58:45 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -152,6 +152,11 @@ then
     AC_MSG_FAILURE([required libraries are not found or not usable])
 fi
 AC_SUBST(NETLIBS)
+
+#
+#   Support for NodalCore(tm) C-Series Hardware Extensions
+#
+DS_NCORE()
 
 #---------------------------------------------------------
 #   DSPAM features
