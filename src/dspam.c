@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.118 2005/03/28 21:38:21 jonz Exp $ */
+/* $Id: dspam.c,v 1.119 2005/03/29 18:41:43 jonz Exp $ */
 
 /*
  DSPAM
@@ -506,7 +506,7 @@ process_message (AGENT_CTX *ATX,
 
         int x = _ds_set_signature (CTX, CTX->signature, ATX->signature);
         if (x) {
-          LOGDEBUG("_ds_set_signature() failed with error %d", x);
+          LOG(LOG_WARNING, "_ds_set_signature() failed with error %d", x);
         }
       }
 #ifdef NEURAL
