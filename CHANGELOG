@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.169 2005/02/24 16:36:51 jonz Exp $
+$Id: CHANGELOG,v 1.170 2005/02/24 22:04:06 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050224.0700] jonz: added "standard" LMTP inbound support
+
+added a ServerMode option to dspam.conf allowing DSPAM to function in either
+"dspam" proprietary LMTP mode or "standard" LMTP server mode. see README 
+section 2.4 for more information 
 
 [20050224.0700] jonz: fixed dspamc hanging bug
 

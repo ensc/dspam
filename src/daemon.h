@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.14 2004/12/24 18:59:07 jonz Exp $ */
+/* $Id: daemon.h,v 1.15 2005/02/24 22:04:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -76,6 +76,10 @@ buffer *read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
 #define LMTP_FAILURE		530
 #define LMTP_AUTH_ERROR		503
 #define LMTP_BAD_CMD		503
+
+#define SSM_DSPAM	0x00
+#define SSM_STANDARD	0x01
+
 
 #endif
 #endif /* _DAEMON_H */

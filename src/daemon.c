@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.35 2005/01/18 13:54:50 jonz Exp $ */
+/* $Id: daemon.c,v 1.36 2005/02/24 22:04:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -242,6 +242,13 @@ void *process_connection(void *ptr) {
   int **results, *result;
   int i, locked = -1;
   FILE *fd = fdopen(TTX->sockfd, "w");
+  int server_mode = SSM_DSPAM;
+
+  if (_ds_read_attribute(agent_config, "ServerMode") &&
+      !strcmp(_ds_read_attribute(agent_config, "ServerMode"), "standard"))
+  {
+    server_mode = SSM_STANDARD;
+  }
 
   setbuf(fd, NULL);
 
@@ -249,7 +256,7 @@ void *process_connection(void *ptr) {
   if (TTX->packet_buffer == NULL)
     goto CLOSE;
 
-  snprintf(buf, sizeof(buf), "%d DSPAM LMTP %s Authentication Required", LMTP_GREETING, VERSION);
+  snprintf(buf, sizeof(buf), "%d DSPAM LMTP %s %s", LMTP_GREETING, VERSION, (server_mode == SSM_DSPAM) ? "Authentication Required" : "Ready");
   if (send_socket(TTX, buf)<=0) 
     goto CLOSE;
 
@@ -278,24 +285,32 @@ void *process_connection(void *ptr) {
         char *ptr, *pass, *ident;
         chomp(input);
 
-        ptr = strtok_r(input+10, " ", &ptrptr);
-        pass = strtok_r(ptr, "@", &ptrptr);
-        ident = strtok_r(NULL, "@", &ptrptr);
+        if (server_mode == SSM_STANDARD) {
+          TTX->authenticated = 1;
+          if (daemon_reply(TTX, LMTP_OK, "OK")<=0) {
+            free(input);
+            goto CLOSE;
+          }
+        } else {
+          ptr = strtok_r(input+10, " ", &ptrptr);
+          pass = strtok_r(ptr, "@", &ptrptr);
+          ident = strtok_r(NULL, "@", &ptrptr);
 
-        if (pass && ident) {
-          char *serverpass;
-
-          snprintf(buf, sizeof(buf), "ServerPass.%s", ident);
-          serverpass = _ds_read_attribute(agent_config, buf);
-
-          snprintf(buf, sizeof(buf), "ServerPass.%s", ident);
-          if (serverpass && !strcmp(pass, serverpass)) {
-            TTX->authenticated = 1;
-            if (daemon_reply(TTX, LMTP_OK, "OK")<=0) {
-              free(input);
-              goto CLOSE;
-            }
-          } 
+          if (pass && ident) {
+            char *serverpass;
+  
+            snprintf(buf, sizeof(buf), "ServerPass.%s", ident);
+            serverpass = _ds_read_attribute(agent_config, buf);
+  
+            snprintf(buf, sizeof(buf), "ServerPass.%s", ident);
+            if (serverpass && !strcmp(pass, serverpass)) {
+              TTX->authenticated = 1;
+              if (daemon_reply(TTX, LMTP_OK, "OK")<=0) {
+                free(input);
+                goto CLOSE;
+              }
+            } 
+          }
         }
 
         free(input);
@@ -327,17 +342,6 @@ void *process_connection(void *ptr) {
     if (cmdline == NULL)
       goto CLOSE;
 
-    /* Tokenize arguments */
-    chomp(cmdline);
-    argv[argc] = "--user";
-    argc++;
-    token = strtok_r(cmdline+8, " ", &ptrptr);
-    while(token != NULL) {
-      argv[argc] = token;
-      argc++;
-      token = strtok_r(NULL, " ", &ptrptr);
-    }
-
     /* Configure agent context */
     ATX = calloc(1, sizeof(AGENT_CTX));
     if (ATX == NULL) {
@@ -346,14 +350,59 @@ void *process_connection(void *ptr) {
       goto CLOSE;
     }
 
-    if (initialize_atx(ATX) || process_arguments(ATX, argc, argv) ||
-        apply_defaults(ATX))
+    if (initialize_atx(ATX)) 
     {
       report_error(ERROR_INITIALIZE_ATX);
       snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INITIALIZE_ATX);
       send_socket(TTX, buf);
       goto CLOSE;
-    } 
+    }
+
+    if (server_mode == SSM_DSPAM) {
+      /* Tokenize arguments */
+      chomp(cmdline);
+      argv[argc] = "--user";
+      argc++;
+      token = strtok_r(cmdline+8, " ", &ptrptr);
+      while(token != NULL) {
+        argv[argc] = token;
+        argc++;
+        token = strtok_r(NULL, " ", &ptrptr);
+      }
+  
+    } else {
+      char *username = strchr(cmdline, '<');
+      char *parms = _ds_read_attribute(agent_config, "ServerParameters");
+      char *x;
+
+      if (username == NULL) {
+        snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INVALID_RCPT);
+        send_socket(TTX, buf);
+        goto CLOSE;
+      }
+      x = strchr(username, '>');
+      if (x) x[0] = 0;
+      nt_add(ATX->users, username+1);
+      strlcpy(ATX->recipient, username+1, sizeof(ATX->recipient));
+
+      argc = 0;
+      if (parms) {
+        token = strtok_r(parms, " ", &ptrptr);
+        while(token != NULL) {
+          argv[argc] = token;
+          argc++;
+          token = strtok_r(NULL, " ", &ptrptr);
+        }
+      }
+    }
+
+    if (process_arguments(ATX, argc, argv) || apply_defaults(ATX))
+    {
+      report_error(ERROR_INITIALIZE_ATX);
+      snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_INITIALIZE_ATX);
+      send_socket(TTX, buf);
+      goto CLOSE;
+    }
 
     ATX->sockfd = fd;
     ATX->sockfd_output = 0;

@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.11 2005/01/22 14:19:29 jonz Exp $ */
+/* $Id: language.h,v 1.12 2005/02/24 22:04:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -95,6 +95,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ERROR_DAEMON_ACCEPT		"accept() failed: %s"
 #define ERROR_DAEMON_THREAD		"pthread_create() failed: %s"
 #define ERROR_MESSAGE_NULL		"Message is empty. Aborting."
+#define ERROR_INVALID_RCPT		"Invalid RCPT TO. Use RCPT TO:<recipient>"
 
 #define ERROR_INVALID_CLIENT_CONFIG	"Invalid client configuration"
 #define ERROR_CLIENT_CONNECT		"Could not connect to server"

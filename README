@@ -1,4 +1,4 @@
-$Id: README,v 1.38 2005/02/24 17:25:04 jonz Exp $
+$Id: README,v 1.39 2005/02/24 22:04:06 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -56,7 +56,7 @@ Advanced DSPAM functionality
   2.1 Configuring groups
   2.2 External Inoculation Theory
   2.3 Client/Server Mode
-  2.4 LMTP Delivery
+  2.4 LMTP 
 
 Miscellaneous
 
@@ -1746,7 +1746,13 @@ SERVER> 250 <jane> Message accepted for delivery
   fall back to queue or to bounce.
 
 
-2.4 LMTP DELIVERY
+2.4 LMTP 
+
+  DSPAM supports LMTP both on the front-end and back-end (delivery). This
+  section will briefly provide instructions for configuring either or both of
+  these advanced options.
+
+  LMTP DELIVERY
 
   DSPAM supports LMTP delivery for admins who would prefer to use this instead
   of local delivery. While LMTP delivery doesn't _require_ operating in
@@ -1773,6 +1779,32 @@ RCPT TO: <recipient>
 DATA
 [Message]
 .
+
+  LMTP SERVER
+
+  DSPAM supports a "daemon" mode where it will sit and listen for inbound
+  connections. Depending on how the server is configured, DSPAM can speak
+  either standard LMTP (for interaction with a mail server, such as postfix)
+  or DLMTP (DSPAM LMTP) which is a proprietary implementation of LMTP between
+  the DSPAM client and server. If you plan on calling DSPAM from the commandline
+  via dspamc, but wish to have a stateful daemon perform processing, then
+  you'll want to use the "dspam" server mode. If you want to call DSPAM by
+  having your mail server connect to it via LMTP, then you'll need to specify
+  the "standard" server mode.
+
+  The ServerMode can be set in dspam.conf. Each mode has its own custom
+  tweaks and configurations that will need to be set in dspam.conf. 
+
+  If you are setting up DSPAM to act as a standard LMTP server, then you will
+  need to configure the ServerParameters flag in dspam.conf to reflect the
+  commandline parameters you would normally want to pass to DSPAM. Then, just
+  point your mail server at DSPAM. 
+
+  One thing to watch out for is that the recipient you're sending via LMTP is
+  unique to a specific user. This means that all of your aliases should be
+  resolved before the MTA relays to DSPAM. Because DSPAM uses the address in
+  the RCPT TO as the username, _not_ resolving any aliases will result in
+  multiple databases being created for one user.
 
 3.0 BUGS, PORTS, AND THE LIKE
 
