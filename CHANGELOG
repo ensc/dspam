@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.190 2005/03/02 20:07:01 jonz Exp $
+$Id: CHANGELOG,v 1.191 2005/03/02 22:08:47 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050302.0730] jonz: ClientHost to be used for client domain sockets
+
+If connecting to DLMTP client via domain socket, ClientHost is now used as the
+path to the socket on the client side, and ServerDomainSocketPath on the 
+server side.
 
 [20050302.0730] jonz: minor lmtp protocol tweaks
 

@@ -1,4 +1,4 @@
-$Id: README,v 1.43 2005/02/28 02:12:31 jonz Exp $
+$Id: README,v 1.44 2005/03/02 22:08:47 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1674,9 +1674,11 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
 	ClientHost     127.0.0.1
 	ClientPort     24
 
-  If you're using domain sockets, DSPAM will see the ServerDomainSocketPath
-  setting and use it to connect the client. In either case, you'll need to
-  set the client's authentication ident:
+  Or if using a domain socket:
+
+        ClientHost     /tmp/dspam.sock
+
+  In both cases, you'll need to set the client's authentication ident:
 
 	ClientIdent    "secret@Relay1"
 
