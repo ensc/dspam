@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.18 2004/12/30 15:23:46 jonz Exp $
+dnl $Id: configure.ac,v 1.19 2004/12/30 23:30:08 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -411,6 +411,37 @@ else
     AC_DEFINE(MYSQL4_INITIALIZATION, 1, [Defined if mysql4-initialization is enabled])
 fi
 AC_MSG_RESULT([$enable_mysql4_initialization])
+
+#
+#   DCLASSIFY Storage Driver Extension
+#   Enables the DCLASSIFY extension in supporting storage drivers.
+#   For use with DCLASSIFY (http://dclassify.nuclearelephant.com)
+#
+AC_ARG_ENABLE(dclassify-extension,
+    [AS_HELP_STRING(--enable-dclassify-extension,
+                        Enables the DCLASSIFY extension in supported storage 
+                        drivers. For use with DSPAM's DCLASSIFY module.
+                    )])
+AC_MSG_CHECKING([whether to enable DCLASSIFY storage driver extension])
+case x"$enable_dclassify_extension" in
+    xyes)   # enabled explicity
+            ;;
+    xno)    # disabled explicity
+            ;;
+    x)      # disabled by default
+            enable_dclassify_extension=no
+            ;;
+    *)      AC_MSG_ERROR([unexpected value $enable_dclassify_extension for --{enable,disable}-dclassify-extension configure option])
+            ;;
+esac
+if test x"$enable_dclassify_extension" != xyes
+then
+    enable_dclassify_extension=no
+else
+    enable_dclassify_extension=yes    # overkill, but convenient
+    AC_DEFINE(DCLASSIFY_EXTENSION, 1, [Defined if storage driver supports the DCLASSIFY extension])
+fi
+AC_MSG_RESULT([$enable_dclassify_extension])
 
 #
 #   Preferences Extension
