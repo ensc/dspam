@@ -1,8 +1,13 @@
-$Id: CHANGELOG,v 1.227 2005/03/17 17:35:47 jonz Exp $
+$Id: CHANGELOG,v 1.228 2005/03/18 12:18:43 jonz Exp $
    
 Version NEXT
 ------------
   
+[20050318.0700] jonz: fixed track sources on report spam bug
+
+fixed a bug causing tracksources to report a spam from the user who forwarded
+it to correct the filter
+
 [20050317.0500] jonz: fix for 5.1.0's in daemon mode
 
 fixed condition where 5.1.0 error would occur if TrustedDeliveryAgent was

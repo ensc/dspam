@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.104 2005/03/16 22:47:41 jonz Exp $ */
+/* $Id: dspam.c,v 1.105 2005/03/18 12:18:43 jonz Exp $ */
 
 /*
  DSPAM
@@ -625,7 +625,8 @@ process_message (AGENT_CTX *ATX,
   /* Track source address and report to syslog, SBL */
   if ( _ds_read_attribute(agent_config, "TrackSources") &&
        CTX->operating_mode == DSM_PROCESS               &&
-       CTX->source != DSS_CORPUS)
+       CTX->source != DSS_CORPUS &&
+       CTX->source != DSS_ERROR)
   {
     tracksource(CTX);
   }
