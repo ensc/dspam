@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.2 2004/11/01 14:42:14 jonz Exp $
+## $Id: dspam.conf.in,v 1.3 2004/11/12 14:07:17 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -292,7 +292,7 @@ Opt out
 # blacklist and would like to use this information. Spam reporting also drops
 # SBL blacklist files (see http://www.nuclearelephant.com/projects/sbl/). 
 #
-#TrackSources spam ham
+#TrackSources spam nonspam
 
 #
 # ParseToHeaders: When retraining, it's possible to set up a wildcard such
