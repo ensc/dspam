@@ -1,4 +1,4 @@
-/* $Id: dspam_pg2int8.c,v 1.2 2005/02/04 16:40:23 jonz Exp $ */
+/* $Id: dspam_pg2int8.c,v 1.3 2005/03/27 18:59:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -278,7 +278,7 @@ GenSQL (PGconn *dbh,const char *file)
                   ") WITHOUT OIDS;\n"
                   "COMMIT;\n"
                   "BEGIN;\n"
-				  "COPY dspam_token_data (uid,token,spam_hits,innocent_hits,last_hit) FROM stdin;\n"
+                  "COPY dspam_token_data (uid,token,spam_hits,innocent_hits,last_hit) FROM stdin;\n"
                   , token_type);
     }
     if (!reverse) {
@@ -296,15 +296,11 @@ GenSQL (PGconn *dbh,const char *file)
   }
   if (result) PQclear(result);
   fprintf(out, "\\.\n\n"
-			   "COMMIT;\n"
-               "BEGIN;\n"
-               "CREATE INDEX id_token_data_01 ON dspam_token_data(innocent_hits);\n"
-               "CREATE INDEX id_token_data_02 ON dspam_token_data(spam_hits);\n"
-               "CREATE INDEX id_token_data_03 ON dspam_token_data(token);\n"
-               "CREATE INDEX id_token_data_04 ON dspam_token_data(uid);\n"
-               "-- ALTER TABLE dspam_token_data ALTER COLUMN token SET statistics 1000;\n"
                "COMMIT;\n"
-               "VACUUM ANALYSE;\n");
+               "BEGIN;\n"
+               "CREATE INDEX id_token_data_03 ON dspam_token_data(token);\n"
+               "COMMIT;\n"
+               "ANALYSE;\n");
 }
 
 /*
@@ -398,10 +394,9 @@ dieout (int signal)
 void
 usage (void)
 {
-  (void)fprintf (stderr, "Usage: dspam_pg2int8 [-hr] file\n"
-      "\tOutput SQL to migrate to or from using a BIGINT type in PostgreSQL.\n"
-      "\t-h: print this message\n"
-      "\t-r: reverse the migration\n");
+  (void)fprintf (stderr, "Usage: dspam_pg2int8 [-h] file\n"
+      "\tCreates SQL file to migrate from NUMERIC to BIGINT type and vice-versa in PostgreSQL.\n"
+      "\t-h: print this message\n");
   _ds_destroy_attributes(agent_config);
   exit(EXIT_FAILURE);
 }

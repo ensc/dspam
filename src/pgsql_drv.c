@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.31 2005/03/21 21:10:08 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.32 2005/03/27 18:59:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -598,13 +598,9 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   struct _ds_spam_stat stat, stat2;
   ds_term_t ds_term;
   ds_cursor_t ds_c = NULL;
+  buffer *prepare;
   buffer *update;
-  buffer *insert;
   int token_type = -1;
-  int transact_ok = 0;
-  int transact_run = 0;
-  int transact_pass = 0;
-  int transact_reset = 0;
   PGresult *result;
   char scratch[1024];
   struct passwd *p;
@@ -633,14 +629,14 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EINVAL;
   }
 
-  update = buffer_create (NULL);
-  if (update == NULL)
+  prepare = buffer_create (NULL);
+  if (prepare == NULL)
   {
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
-  insert = buffer_create (NULL);
-  if (insert == NULL)
+  update = buffer_create (NULL);
+  if (update == NULL)
   {
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
@@ -660,24 +656,24 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       stat.spam_hits = ds_term->s.spam_hits;
       stat.innocent_hits = ds_term->s.innocent_hits;
     }
-
     ds_diction_close(ds_c);
   }
-  else
-  {
+  else {
     ds_diction_getstat(diction, s->control_token, &stat);
   }
 
   if ((token_type = _pgsql_drv_token_type(s,NULL,0)) < 0)
   {
-    buffer_destroy(insert);
     buffer_destroy(update);
+    buffer_destroy(prepare);
     return EFAILURE;
   }
 
   snprintf (scratch, sizeof (scratch),
-            "UPDATE dspam_token_data SET last_hit = CURRENT_DATE");
-  buffer_cat (update, scratch);
+            "PREPARE dspam_update_plan (%s) AS UPDATE dspam_token_data "
+            "SET last_hit = CURRENT_DATE",
+            token_type == 0 ? "numeric" : "bigint");
+  buffer_cat (prepare, scratch);
 
 
   if ((abs (stat.spam_hits - s->control_sh)) != 0)
@@ -695,9 +691,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
                 abs (stat.spam_hits - s->control_sh),
                 abs (stat.spam_hits - s->control_sh) );
     }
-    buffer_cat (update, scratch);
+    buffer_cat (prepare, scratch);
   }
-
 
   if ((abs (stat.innocent_hits - s->control_ih)) != 0)
   {
@@ -714,158 +709,104 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
                 abs (stat.innocent_hits - s->control_ih),
                 abs (stat.innocent_hits - s->control_ih) );
     }
-    buffer_cat (update, scratch);
+    buffer_cat (prepare, scratch);
   }
 
+  snprintf (scratch, sizeof (scratch),
+            " WHERE uid = '%d' AND token = $1;",
+             p->pw_uid);
+  buffer_cat (prepare, scratch);
 
   snprintf (scratch, sizeof (scratch),
-            " WHERE uid = '%d' AND token IN (",
-             p->pw_uid);
-  buffer_cat (update, scratch);
+            "PREPARE dspam_insert_plan (%s, int, int) AS INSERT INTO dspam_token_data "
+            "(uid, token, spam_hits, innocent_hits, last_hit) VALUES "
+            "(%d, $1, $2, $3, CURRENT_DATE);", 
+            token_type == 0 ? "numeric" : "bigint", p->pw_uid);
 
-  buffer_cat (insert, "BEGIN;");
+  buffer_cat (prepare, scratch);
 
-  /*
-  ** transact_pass holds our state; it starts at zero and is incremented
-  ** at the *end* of each outer loop. Its values mean:
-  **  transact_pass == 0
-  **    We are building up the transaction for the items not on disk yet
-  **  transact_pass == 1
-  **    We run the query build up in the first loop and check its status.
-  **    We building up the token list (if needed) and dealing with
-  **    individual INSERTs if the main transaction failed
-  **  transact_pass == 2
-  **    We've finished and can stop the loop
-  */
-
-  while(transact_pass < 2)
+  /* prepare update and insert statement */
+  result = PQexec(s->dbh, prepare->data);
+  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
   {
-    if ((transact_pass == 1) && (transact_run == 1))
+    _pgsql_drv_query_error (PQresultErrorMessage(result), prepare->data);
+    if (result) PQclear(result);
+    buffer_destroy(update);
+    buffer_destroy(prepare);
+    return EFAILURE;
+  }
+
+  buffer_destroy(prepare);
+
+  buffer_cat (update, "BEGIN;");
+
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while(ds_term)
+  {
+    if (CTX->training_mode == DST_TOE             &&
+        CTX->classification == DSR_NONE           &&
+        CTX->operating_mode == DSM_CLASSIFY       &&
+        diction->whitelist_token != ds_term->key  &&
+        (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
     {
-      buffer_cat(insert, "COMMIT;");
-      result = PQexec(s->dbh, insert->data);
-      if (result) {
-        if (PQresultStatus(result) == PGRES_COMMAND_OK )
-          transact_ok = 1;
-        PQclear(result);
-      }
-      if (transact_ok == 0) {
-        result = PQexec(s->dbh, "ABORT");
-        if (result) {
-          if (PQresultStatus(result) != PGRES_COMMAND_OK )
-            transact_reset = 1;
-          PQclear(result);
-        }
-        if (transact_reset) PQreset(s->dbh); /* Needed to clear transaction lock */
-      }
+      ds_term = ds_diction_next(ds_c);
+      continue;
     }
 
-    ds_c = ds_diction_cursor(diction);
-    ds_term = ds_diction_next(ds_c);
-    while(ds_term)
+    ds_diction_getstat (diction, ds_term->key, &stat2);
+
+    if (!(stat2.status & TST_DIRTY)) {
+      ds_term = ds_diction_next(ds_c);
+      continue;
+    } else {
+      stat2.status &= ~TST_DIRTY;
+    }
+
+    if (!(stat2.status & TST_DISK))
     {
-      int wrote_this = 0;
+      char tok_buf[30];
+      const char *insertValues[3];
 
-      if (CTX->training_mode == DST_TOE             &&
-          CTX->classification == DSR_NONE           &&
-          CTX->operating_mode == DSM_CLASSIFY       &&
-          diction->whitelist_token != ds_term->key  &&
-          (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
-      {
-        ds_term = ds_diction_next(ds_c);
-        continue;
-      }
+      insertValues[0] = _pgsql_drv_token_write(token_type, ds_term->key, tok_buf, sizeof(tok_buf));
 
-      if (!(ds_term->s.status & TST_DIRTY)) {
-        ds_term = ds_diction_next(ds_c);
-        continue;
-      }
+      /* If we're processing a message with a MERGED group, assign it based on
+         an empty count and not the current count (since the current count
+         also includes the global group's tokens).
 
-      ds_diction_getstat (diction, ds_term->key, &stat2);
+         If we're not using MERGED, or if a tool is running, assign it based
+         on the actual count (so that tools like dspam_merge don't break) */
 
-      if (!(stat2.status & TST_DISK))
-      {
-        char single_insert[1024];
-        char tok_buf[30];
-
-       /* If we're processing a message with a MERGED group, assign it based on
-           an empty count and not the current count (since the current count
-           also includes the global group's tokens).
-
-           If we're not using MERGED, or if a tool is running, assign it based
-           on the actual count (so that tools like dspam_merge don't break) */
-
-        if (CTX->flags & DSF_MERGED) {
-          snprintf (single_insert, sizeof (single_insert),
-                    "INSERT INTO dspam_token_data(uid, token, spam_hits, "
-                    "innocent_hits, last_hit) VALUES (%d, %s, %d, %d, "
-                    "CURRENT_DATE);",
-                     p->pw_uid,
-                     _pgsql_drv_token_write(token_type, ds_term->key, tok_buf, sizeof(tok_buf)),
-                     stat.spam_hits > s->control_sh ? 1 : 0,
-                     stat.innocent_hits > s->control_ih ? 1 : 0);
-        } else {
-          snprintf(single_insert, sizeof (single_insert),
-                   "INSERT INTO dspam_token_data(uid, token, spam_hits, "
-                   "innocent_hits, last_hit) VALUES (%d, %s, %ld, %ld, "
-                   "CURRENT_DATE);",
-                   p->pw_uid,
-                   _pgsql_drv_token_write(token_type, ds_term->key, tok_buf, sizeof(tok_buf)),
-                   stat2.spam_hits > 0 ? (long) 1: (long) 0,
-                   stat2.innocent_hits > 0 ? (long) 1: (long) 0);
-        }
-
-        if (transact_pass == 0) {
-          transact_run = 1;
-          buffer_cat (insert, single_insert);
-        } else if (transact_pass == 1) {
-          if (transact_ok == 0) {
-            result = PQexec(s->dbh, single_insert);
-            if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK) {
-              wrote_this = 1;
-              stat2.status |= TST_DISK;
-            }
-            PQclear(result);
-          } else {
-            wrote_this = 1;
-            stat2.status |= TST_DISK;
-          }
-        }
-      }
-
-      if (transact_pass == 0)
-      {
-        ds_term = ds_diction_next(ds_c);
-      } else if (transact_pass == 1 && !wrote_this)
-      {
-        if ((stat2.status & TST_DISK))
-        {
-          _pgsql_drv_token_write(token_type, ds_term->key, scratch, sizeof(scratch));
-          buffer_cat (update, scratch);
-          update_one = 1;
-          wrote_this = 1;
-          ds_term->s.status |= TST_DISK;
-        }
-        ds_term = ds_diction_next(ds_c);
-
-        if (ds_term && wrote_this)
-          buffer_cat (update, ",");
+      if (CTX->flags & DSF_MERGED) {
+        insertValues[1] = stat.spam_hits > s->control_sh ? "1" : "0";
+        insertValues[2] = stat.innocent_hits > s->control_ih ? "1" : "0";
       } else {
-        ds_term = ds_diction_next(ds_c);
+        insertValues[1] = stat2.spam_hits > 0 ? "1" : "0";
+        insertValues[2] = stat2.innocent_hits > 0 ? "1" : "0";
       }
+
+      result = PQexecPrepared(s->dbh, "dspam_insert_plan", 3, insertValues, NULL, NULL, 1);
+      if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK) {
+        stat2.status |= TST_DISK;
+      }
+      PQclear(result);
     }
 
-    transact_pass++;
+    if ((stat2.status & TST_DISK)) {
+      _pgsql_drv_token_write(token_type, ds_term->key, scratch, sizeof(scratch));
+      buffer_cat (update, "EXECUTE dspam_update_plan (");
+      buffer_cat (update, scratch);
+      buffer_cat (update, ");");
+      update_one = 1;
+    }
+
+    ds_term->s.status |= TST_DISK;
+
+    ds_term = ds_diction_next(ds_c);
   }
   ds_diction_close(ds_c);
 
-  if (update->used && update->data[strlen (update->data) - 1] == ',')
-  {
-    update->used--;
-    update->data[strlen (update->data) - 1] = 0;
-  }
-
-  buffer_cat (update, ")");
+  buffer_cat (update, "COMMIT;");
 
   LOGDEBUG("Control: [%ld %ld] [%ld %ld]", s->control_sh, s->control_ih, stat.spam_hits, stat.innocent_hits);
 
@@ -876,15 +817,26 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     {
       _pgsql_drv_query_error (PQresultErrorMessage(result), update->data);
       if (result) PQclear(result);
-      buffer_destroy(insert);
       buffer_destroy(update);
       return EFAILURE;
     }
     PQclear(result);
   }
 
-  buffer_destroy(insert);
+  /* deallocate prepared update and insert statements */
+  snprintf (scratch, sizeof (scratch), "DEALLOCATE dspam_insert_plan;"
+                                       "DEALLOCATE dspam_update_plan;");
+
+  result = PQexec(s->dbh, scratch);
+  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+  {
+    _pgsql_drv_query_error (PQresultErrorMessage(result), scratch);
+    if (result) PQclear(result);
+    return EFAILURE;
+  }
+
   buffer_destroy(update);
+
   return 0;
 }
 
@@ -2975,7 +2927,7 @@ _pgsql_drv_token_write(int type, unsigned long long token, char *buffer, size_t 
 {
   memset((void *)buffer,0,bufsz);
   if (type == 1) {
-    snprintf(buffer, bufsz, "'%lld'", token);
+    snprintf(buffer, bufsz, "%lld", token);
   } else {
     snprintf(buffer, bufsz, "'%llu'", token);
   }
