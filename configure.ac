@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.2 2004/10/24 21:08:48 jonz Exp $
+dnl $Id: configure.ac,v 1.3 2004/11/20 22:49:35 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -66,6 +66,49 @@ AC_CHECK_FUNCS(getpwnam_r)
 AC_CHECK_FUNCS(getpwuid_r)
 AC_CHECK_FUNCS([memcpy memset])
 AC_CHECK_FUNCS(localtime_r)
+
+#   Daemon support
+#
+AC_ARG_ENABLE(daemon,
+    [AS_HELP_STRING(--enable-daemon,
+                        Enable support for DSPAM to run in --daemon mode
+                    )])
+AC_MSG_CHECKING([whether to enable daemon mode])
+case x"$enable_daemon" in
+    xyes)   # daemon output enabled explicity
+            ;;
+    xno)    # daemon output disabled explicity
+            ;;
+    x)      # daemon output disabled by default
+            enable_daemon=no
+            ;;
+    *)      AC_MSG_ERROR([unexpected value $enable_daemon for --{enable,disable}-daemon configure option])
+            ;;
+esac
+if test x"$enable_daemon" != xyes
+then
+    enable_daemon=no
+else
+    enable_daemon=yes    # overkill, but convenient
+    AC_DEFINE(DAEMON, 1, [Defined if daemon support is enabled])
+fi
+AC_MSG_RESULT([$enable_daemon])
+
+#
+#   Determine how to compile with pthreads support
+#
+if test x"$enable_daemon" = xyes
+then
+  DS_PTHREADS(PT_CPPFLAGS, PT_LDFLAGS, PT_LIBS, [success=yes], [success=np])
+  if test x"$success" != xyes
+  then
+    AC_MSG_FAILURE([unable to determine how to compile with pthreads])
+  fi
+fi
+
+CPPFLAGS="$CPPFLAGS $PT_CPPFLAGS"
+LDFLAGS="$LDFLAGS $PT_LDFLAGS"
+LIBS="$LIBS $PT_LIBS"
 
 #
 #   Network related libraries on Solaris is another game...
