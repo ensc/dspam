@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.51 2004/12/24 17:27:41 jonz Exp $ */
+/* $Id: dspam.c,v 1.52 2004/12/24 18:59:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -153,68 +153,8 @@ main (int argc, char *argv[])
 #else
   if (ATX.operating_mode == DSM_DAEMON) {
 #endif
-    DRIVER_CTX DTX;
-    char *pidfile = _ds_read_attribute(agent_config, "ServerPID");
+    daemon_start(&ATX);
 
-    DTX.CTX = dspam_create (NULL, NULL,
-                      _ds_read_attribute(agent_config, "Home"),
-                      DSM_TOOLS, 0);
-    if (!DTX.CTX)
-    {
-      LOGDEBUG("unable to initialize dspam context");
-      exit(EXIT_FAILURE);
-    }
-
-    set_libdspam_attributes(DTX.CTX);
-    DTX.flags |= DRF_STATEFUL;
-
-    __daemon_run  = 1;
-    __num_threads = 0;
-    pthread_mutex_init(&__lock, NULL);
-
-#ifdef DEBUG
-    if (DO_DEBUG)
-      DO_DEBUG = 2;
-#endif
-    libdspam_init();
-    if (dspam_init_driver (&DTX))
-    {
-      LOG (LOG_WARNING, "unable to initialize storage driver");
-      exit(EXIT_FAILURE);
-    }
-    LOG(LOG_INFO, DAEMON_START);
-
-    if (pidfile) {
-      FILE *file;
-      file = fopen(pidfile, "w");
-      if (file == NULL) {
-        file_error(ERROR_FILE_WRITE, pidfile, strerror(errno));
-      } else {
-        fprintf(file, "%ld\n", (long) getpid());
-        fclose(file);
-      }
-    }
-
-    daemon_listen(&DTX);
-
-    LOGDEBUG("waiting for process threads to exit");
-
-    while(__num_threads) { 
-      struct timeval tv;
-      tv.tv_sec = 1;
-      tv.tv_usec = 0;
-      select(0, NULL, NULL, NULL, &tv);
-    }
-
-    LOG(LOG_INFO, DAEMON_EXIT);
-
-    pthread_mutex_destroy(&__lock);
-
-    if (pidfile)
-      unlink(pidfile);
-
-    dspam_destroy(DTX.CTX);
-    dspam_shutdown_driver(&DTX);
     libdspam_shutdown();
     if (agent_init)
       nt_destroy(ATX.users);
@@ -224,6 +164,7 @@ main (int argc, char *argv[])
 
     exit(EXIT_SUCCESS);
   }
+ 
 #endif
 
   /* Set defaults if an option wasn't specified on the commandline */
@@ -2929,3 +2870,93 @@ int is_blacklisted(const char *ip) {
 
   return bad;
 }
+
+#ifdef DAEMON
+int daemon_start(AGENT_CTX *ATX) {
+  DRIVER_CTX DTX;
+  char *pidfile;
+
+  __daemon_run  = 1;
+  __num_threads = 0;
+  __hup = 0;
+  pthread_mutex_init(&__lock, NULL);
+  libdspam_init();
+  LOG(LOG_INFO, DAEMON_START);
+
+  while(__daemon_run) {
+    pidfile = _ds_read_attribute(agent_config, "ServerPID");
+
+    DTX.CTX = dspam_create (NULL, NULL,
+                      _ds_read_attribute(agent_config, "Home"),
+                      DSM_TOOLS, 0);
+    if (!DTX.CTX)
+    {
+      LOGDEBUG("unable to initialize dspam context");
+      exit(EXIT_FAILURE);
+    }
+
+    set_libdspam_attributes(DTX.CTX);
+    DTX.flags |= DRF_STATEFUL;
+
+#ifdef DEBUG
+    if (DO_DEBUG)
+      DO_DEBUG = 2;
+#endif
+    if (dspam_init_driver (&DTX))
+    {
+      LOG (LOG_WARNING, "unable to initialize storage driver");
+      exit(EXIT_FAILURE);
+    }
+
+    if (pidfile) {
+      FILE *file;
+      file = fopen(pidfile, "w");
+      if (file == NULL) {
+        file_error(ERROR_FILE_WRITE, pidfile, strerror(errno));
+      } else {
+        fprintf(file, "%ld\n", (long) getpid());
+        fclose(file);
+      }
+    }
+
+    LOGDEBUG("spawning daemon listener");
+
+    daemon_listen(&DTX);
+
+    LOGDEBUG("waiting for processing threads to exit");
+
+    while(__num_threads) { 
+      struct timeval tv;
+      tv.tv_sec = 1;
+      tv.tv_usec = 0;
+      select(0, NULL, NULL, NULL, &tv);
+    }
+
+    if (pidfile)
+      unlink(pidfile);
+
+    dspam_destroy(DTX.CTX);
+    dspam_shutdown_driver(&DTX);
+
+    /* Reload */
+    if (__hup) {
+      if (agent_config)
+        _ds_destroy_attributes(agent_config);
+
+      agent_config = read_config(NULL);
+      if (!agent_config) {
+        report_error(ERROR_READ_CONFIG);
+        exit(EXIT_FAILURE);
+      }
+
+      __daemon_run = 1;
+    }
+  }
+
+  LOG(LOG_INFO, DAEMON_EXIT);
+  pthread_mutex_destroy(&__lock);
+  libdspam_shutdown();
+
+  return 0;
+}
+#endif

@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.14 2004/12/22 03:36:40 jonz Exp $ */
+/* $Id: dspam.h,v 1.15 2004/12/24 18:59:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -72,6 +72,10 @@ int embed_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX);
 int embed_signed	(DSPAM_CTX *CTX, AGENT_CTX *ATX, AGENT_PREF PTX);
 int tracksource		(DSPAM_CTX *CTX);
 int is_blacklisted	(const char *ip);
+#ifdef DAEMON
+int daemon_start	(AGENT_CTX *ATX);
+#endif
+
 buffer *read_stdin	(AGENT_CTX *ATX);
 
 #ifdef NEURAL

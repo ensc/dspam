@@ -1,4 +1,17 @@
-$Id: CHANGELOG,v 1.90 2004/12/24 17:37:34 jonz Exp $
+$Id: CHANGELOG,v 1.91 2004/12/24 18:59:07 jonz Exp $
+
+Version NEXT
+------------
+
+[20041224.1400] jonz: implemented daemon SIGHUP reload
+
+upon receiving SIGHUP, daemon will:
+- stop listening for new requests
+- allow all threads to finish processing
+- terminate all connections to the database
+- reload dspam.conf
+- reestablish all connections to the database
+- start listening for new requests
 
 Version 3.3.2
 -------------

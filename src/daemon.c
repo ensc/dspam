@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.29 2004/12/24 17:24:25 jonz Exp $ */
+/* $Id: daemon.c,v 1.30 2004/12/24 18:59:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -75,8 +75,9 @@ int daemon_listen(DRIVER_CTX *DTX) {
   fd_set master, read_fds;
 
   signal(SIGPIPE, SIG_IGN);
-  signal(SIGINT, die);
-  signal(SIGTERM, die);
+  signal(SIGINT, process_signal);
+  signal(SIGTERM, process_signal);
+  signal(SIGHUP, process_signal);
 
   /* Set Defaults */
   if (_ds_read_attribute(agent_config, "ServerPort"))
@@ -598,9 +599,16 @@ int daemon_reply(THREAD_CTX *TTX, int reply, const char *txt) {
   return send_socket(TTX, buf);
 }
 
-void die(int sig) {
-  LOGDEBUG("cleaning up on signal %d", sig);
+void process_signal(int sig) {
   __daemon_run = 0;
+  if (sig == SIGHUP) {
+    LOGDEBUG("reloading");
+    __hup = 1;
+  } else {
+    LOGDEBUG("terminating on signal %d", sig);
+    __hup = 0;
+  } 
+
   return;
 }
 
