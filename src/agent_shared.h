@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.8 2005/03/09 13:33:35 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.9 2005/03/14 14:41:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -68,8 +68,8 @@ typedef struct {
   char managed_group[256];      /* Managed Groupname IN      */
   char profile[32];	        /* Storage Profile   IN      */
   char signature[128];          /* Signature Serial  IN/OUT  */
-  char recipient[256];		/* For LMTP */
-  char mailfrom[256];		/* For LMTP */
+  char recipient[256];		/* For LMTP or SMTP */
+  char mailfrom[256];		/* For LMTP or SMTP */
   struct nt *users;	        /* Destination Users IN      */
   struct nt *inoc_users;        /* Inoculate list    OUT     */
   struct nt *classify_users;    /* Classify list     OUT     */

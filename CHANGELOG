@@ -1,11 +1,17 @@
-$Id: CHANGELOG,v 1.205 2005/03/14 14:24:54 jonz Exp $
+$Id: CHANGELOG,v 1.206 2005/03/14 14:41:03 jonz Exp $
 
 Version NEXT
 ------------
 
-[20050313.0700] jonz: added \r to socket communications
+[20050313.0700] jonz: changed lmtp commandline options
 
-as per RFC 2822, \r\n should be sent to SMTP/LMTP 
+removed lmtp from commandline options to service lmtp and smtp. so...
+
+--lmtp-rcpt-to or --lmtp-recipient becomes --rcpt-to and --recipient
+--lmtp-mail-from becomes --mail-from
+
+also added ability to set --recipient=%u, which will cause the RCPT TO to
+match the username (useful if calling DSPAM from the commandline)
 
 [20050312.1600] jonz: added SMTP delivery support, changes delivery hosts
 
@@ -26,6 +32,13 @@ be added manually if this aliases approach is used.
 added ChangeModeOnParse option to set the proper --class and --source when
 ParseToHeaders deteects a spam- or fp- address. This allows a system to be
 implemented without aliases, as all requests can be passed to dspam.
+
+Version 3.4.1
+-------------
+
+[20050313.0700] jonz: added \r to socket communications
+
+as per RFC 2822, \r\n should be sent to SMTP/LMTP
 
 Version 3.4.0
 -------------
