@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.8 2004/12/14 00:25:45 jonz Exp $ */
+/* $Id: decode.c,v 1.9 2004/12/18 15:41:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -281,7 +281,6 @@ _ds_actualize_message (const char *message)
 
   _ds_decode_headers(current_block);
 
-// HERE
   free (m_in);
   nt_destroy (boundaries);
   return out;

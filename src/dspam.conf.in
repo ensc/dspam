@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.13 2004/12/09 18:28:12 jonz Exp $
+## $Id: dspam.conf.in,v 1.14 2004/12/18 15:41:06 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -178,9 +178,13 @@ AllowOverride whitelistThreshold
 
 # If you're running DSPAM in client/server (daemon) mode, uncomment the
 # setting below to override the default connection cache size (the number
-# of connections the server pools between all clients).
+# of connections the server pools between all clients). The connection cache
+# represents the maximum number of database connections *available* and should
+# be set based on the maximum number of concurrent connections you're likely
+# to have. Each connection may be used by only one thread at a time, so all
+# other threads _will block_ until another connection becomes available.
 #
-#MySQLConnectionCache	3
+#MySQLConnectionCache	10
 
 #PgSQLServer    	127.0.0.1
 #PgSQLPort      	5432

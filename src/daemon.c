@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.23 2004/12/18 15:02:52 jonz Exp $ */
+/* $Id: daemon.c,v 1.24 2004/12/18 15:41:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -343,6 +343,7 @@ void *process_connection(void *ptr) {
     i = (TTX->sockfd % TTX->DTX->connection_cache);
     LOGDEBUG("using database handle id %d", i);
 
+    pthread_mutex_lock(&TTX->DTX->connections[i]->lock);
     ATX->dbh = TTX->DTX->connections[i]->dbh;
 
     if (check_configuration(ATX)) {
@@ -384,6 +385,8 @@ void *process_connection(void *ptr) {
     
     if (TTX->DTX->connections[i]->dbh != ATX->dbh) 
       TTX->DTX->connections[i]->dbh = ATX->dbh;
+
+    pthread_mutex_unlock(&TTX->DTX->connections[i]->lock);
 
     if (ATX->sockfd_output) {
       if (send_socket(TTX, ".")<=0)
@@ -434,12 +437,12 @@ CLOSE:
   buffer_destroy(TTX->packet_buffer);
   if (message) 
     buffer_destroy(message);
-  free(TTX);
   if (ATX != NULL)
     nt_destroy(ATX->users);
   free(ATX);
   free(cmdline);
-  return NULL;
+  free(TTX);
+  pthread_exit(0);
 }
 
 buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {

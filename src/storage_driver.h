@@ -1,4 +1,4 @@
-/* $Id: storage_driver.h,v 1.5 2004/12/18 15:02:52 jonz Exp $ */
+/* $Id: storage_driver.h,v 1.6 2004/12/18 15:41:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -29,14 +29,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "pref.h"
 #include "config_shared.h"
 #endif
-#ifdef MULTITHREADED
+#ifdef DAEMON
 #include <pthread.h>
 #endif
 
 struct _ds_drv_connection
 {
   void *dbh;
-#ifdef MULTITHREADED
+#ifdef DAEMON
   pthread_mutex_t lock;
 #endif
 };
@@ -47,9 +47,6 @@ typedef struct {
   int flags;					/* IN */
   int connection_cache;				/* IN */
   struct _ds_drv_connection **connections;	/* OUT */
-#ifdef MULTITHREADED
-  pthread_mutex_t lock;				/* UNUSED */
-#endif
 } DRIVER_CTX;
 
 struct _ds_storage_record

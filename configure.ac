@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.11 2004/12/15 23:46:16 jonz Exp $
+dnl $Id: configure.ac,v 1.12 2004/12/18 15:41:06 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -67,35 +67,6 @@ AC_CHECK_FUNCS(getpwuid_r)
 AC_CHECK_FUNCS([memcpy memset])
 AC_CHECK_FUNCS(localtime_r)
 
-#   Multithreaded support
-#
-AC_ARG_ENABLE(multithreaded,
-    [AS_HELP_STRING(--enable-multithreaded,
-                        Build libdspam with multithreaded support
-                    )])
-AC_MSG_CHECKING([whether to enable multithreaded mode])
-case x"$enable_multithreaded" in
-    xyes)   # multithreaded output enabled explicity
-            enable_multithreaded=yes
-            ;;
-    xno)    # multithreaded output disabled explicity
-            enable_multithreaded=no
-            ;;
-    x)      # multithreaded output disabled by default
-            enable_multithreaded=yes
-            ;;
-    *)      AC_MSG_ERROR([unexpected value $enable_multithreaded for --{enable,disable}-multithreaded configure option])
-            ;;
-esac
-if test x"$enable_multithreaded" != xyes
-then
-    enable_multithreaded=no
-else
-    enable_multithreaded=yes    # overkill, but convenient
-    AC_DEFINE(MULTITHREADED, 1, [Defined if library should be compiled with multithreaded support])
-fi
-AC_MSG_RESULT([$enable_multithreaded])
-
 #   Daemon support
 #
 AC_ARG_ENABLE(daemon,
@@ -120,7 +91,6 @@ then
 else
     enable_daemon=yes    # overkill, but convenient
     AC_DEFINE(DAEMON, 1, [Defined if daemon support is enabled])
-    AC_DEFINE(MULTITHREADED, 1, [Defined if library should be compiled with  multithreaded support])
 fi
 AC_MSG_RESULT([$enable_daemon])
 

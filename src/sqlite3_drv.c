@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.1 2004/12/15 23:46:17 jonz Exp $ */
+/* $Id: sqlite3_drv.c,v 1.2 2004/12/18 15:41:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -869,12 +869,9 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   if ((r = sqlite3_prepare(s->dbh, scratch, -1, &stmt, &query_tail))
         !=SQLITE_OK)
   {
-printf("R = %d\n", r);
     _sqlite_drv_query_error ("sqlite3_prepare() failed", scratch);
     return EFAILURE;
   }
-
-// HERE
 
   sqlite3_bind_blob(stmt, 1, SIG->data, SIG->length, SQLITE_STATIC);
 
