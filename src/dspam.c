@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.101 2005/03/16 18:22:33 jonz Exp $ */
+/* $Id: dspam.c,v 1.102 2005/03/16 18:31:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -1440,12 +1440,6 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
     /* Deliver the message if the user has opted not to be filtered */
 
-    if (_ds_match_attribute(agent_config, "PassThruAtUsers", "on") &&
-        ((const char *) (node_nt->ptr))[0] == '@')
-    {
-      optout = 0;
-    }
-
     if (!optout ||
         !strcmp(_ds_pref_val(PTX, "optOut"), "on") ||
 
@@ -1504,7 +1498,6 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
           LOG (LOG_WARNING,
                "process_message returned error %d.  delivering message.",
                result);
-          presult->exitcode = ERC_PROCESS;
         }
 
         /* Deliver */
