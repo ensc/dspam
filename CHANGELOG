@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.182 2005/02/28 02:12:31 jonz Exp $
+$Id: CHANGELOG,v 1.183 2005/02/28 15:43:56 jonz Exp $
 
-Version NEXT
-------------
+Version 3.4.rc2
+---------------
 
 [20050227.1515] jonz: LMTP enhancements
 

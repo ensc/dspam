@@ -1,6 +1,6 @@
-$Id: RELEASE.NOTES,v 1.30 2005/02/25 14:56:22 jonz Exp $
+$Id: RELEASE.NOTES,v 1.31 2005/02/28 15:43:56 jonz Exp $
 
-RELEASE 3.4 (Release Candidate 1)
+RELEASE 3.4 (Release Candidate 2)
 
 ------------------------------------------------------
 PLEASE SEE THE FILE 'UPGRADING' PRIOR TO INSTALLATION!
@@ -64,9 +64,10 @@ useful data to be ignored.
 Daemonized LMTP Server
 The agent can be placed into daemon mode (using --daemon) to run a single
 stateful processing core for DSPAM in a multi-threaded environment. The
-agent can run in one of two modes:
+agent can run in one of three modes:
   1. A standard, MTA-compatible LMTP server -or-
   2. A proprietary, DSPAM-proprietary DLMTP server
+  3. Auto detect of 1 and 2 
 This allows the daemon to service either MTAs or the DSPAM thin-client, 
 depending on your needs.  Use the --enable-daemon compile flag to activate. 
 A thin-client (dspamc) has also been added to the build, which is basically a 
