@@ -1,4 +1,4 @@
-# $Id: pthread.m4,v 1.1 2004/11/20 22:49:35 jonz Exp $
+# $Id: pthread.m4,v 1.2 2004/11/20 23:21:28 jonz Exp $
 # Autuconf macros for checking how to compile with pthreads
 # Jonathan Zdziarski <jonathan@nuclearelephant.com>
 #
@@ -7,8 +7,7 @@
 #                   [pthreads_ldflags_out],
 #                   [pthreads_libs_out],
 #                   [additional-action-if-found],
-#                   [additional-action-if-not-found]
-#                   )
+#                   [additional-action-if-not-found])
 #
 AC_DEFUN([DS_PTHREADS],
 [
@@ -23,15 +22,23 @@ ds_pthreads_LIBS=""
 AC_MSG_CHECKING([how you like your pthreads])
 pthreads_success="no"
 
-LIBS="$LIBS -pthread"
+LIBS="$ds_pthreads_save_LIBS -pthread"
 
 AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
- ##include <pthread.h>
- pthread_exit(0);
+ #include <pthread.h>
+ #include <stdlib.h>
+
+ int main() {
+   pthread_mutex_t m;
+   pthread_mutex_init(&m, NULL);
+   pthread_exit(0);
+   exit(EXIT_FAILURE);
+ }
+
 ]])],
   [
     pthreads_success="yes"
-    ds_pthreads_LDFLAGS="-pthread"
+    ds_pthreads_LIBS="-pthread"
     AC_MSG_RESULT([-pthread])
   ],
   [ ])
@@ -41,8 +48,15 @@ then
   LIBS="$ds_pthreads_save_LIBS -lpthread" 
 
 AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
- ##include <pthread.h>
- pthread_exit(0);
+#include <pthread.h>
+
+int main() {
+  pthread_mutex_t m;
+  pthread_mutex_init(&m, NULL);
+  pthread_exit(0);
+  exit(-1);
+}
+
 ]])],
   [
     pthreads_success="yes"
@@ -54,11 +68,18 @@ fi
 
 if test x"$pthreads_success" = xno
 then
-  LIBS="$ds_pthreads_save_LDFLAGS -lpthread -mt" 
+  LIBS="$ds_pthreads_save_LIBS -lpthread -mt" 
 
 AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
- ##include <pthread.h>
- pthread_exit(0);
+#include <pthread.h>
+
+int main() {
+  pthread_mutex_t m;
+  pthread_mutex_init(&m, NULL);
+  pthread_exit(0);
+  exit(-1);
+}
+
 ]])],
   [
     pthreads_success="yes"
