@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.89 2004/12/24 17:25:13 jonz Exp $
+$Id: CHANGELOG,v 1.90 2004/12/24 17:37:34 jonz Exp $
 
-Version NEXT
-------------
+Version 3.3.2
+-------------
 
 [20041224.1222] jonz: fixed database handle corruption in daemon mode
 
