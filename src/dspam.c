@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.27 2004/12/01 23:10:15 jonz Exp $ */
+/* $Id: dspam.c,v 1.28 2004/12/01 23:29:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -182,10 +182,8 @@ main (int argc, char *argv[])
   /* Process the message once for each destination user */
   results = process_users(&ATX, message);
   exitcode = *results[ATX.users->items];
-  for(i=0;i<=ATX.users->items;i++) {
-    int *x = results[i];
-    free(x);
-  }
+  for(i=0;i<=ATX.users->items;i++) 
+    free(results[i]);
   free(results);
 
 bail:
