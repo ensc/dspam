@@ -1,4 +1,4 @@
-$Id: README,v 1.50 2005/03/16 19:37:58 jonz Exp $
+$Id: README,v 1.51 2005/03/17 14:36:43 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Network Dweebs Corporation
@@ -841,6 +841,7 @@ showFactors=off
      . GD-Graph3d
      . GDGraph
      . GDTextUtil
+     . CGI
 
   NOTE ON CGI USERS: It is far more secure to create a separate virtual
   host for the DSPAM CGI running as a different user than any other
