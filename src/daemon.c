@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.52 2005/03/02 21:23:50 jonz Exp $ */
+/* $Id: daemon.c,v 1.53 2005/03/02 21:29:31 jonz Exp $ */
 
 /*
 
@@ -480,11 +480,6 @@ void *process_connection(void *ptr) {
  
       while(cmdline && !strncasecmp(cmdline, "RCPT TO:", 8)) {
 
-        if (!strcasecmp(cmdline, "quit")) {
-          daemon_reply(TTX, LMTP_OK, "2.0.0", "OK"); 
-          goto CLOSE;
-        }
-
         if (server_mode == SSM_DSPAM) {
           /* Tokenize arguments */
           chomp(cmdline);
@@ -500,7 +495,9 @@ void *process_connection(void *ptr) {
         } else {
           char username[256];
     
-          if (_ds_extract_address(username, cmdline, sizeof(username))) {
+          if (_ds_extract_address(username, cmdline, sizeof(username)) ||
+              username[0] == 0) 
+          {
             daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERROR_INVALID_RCPT);
             bad_response = 1;
             break;
@@ -519,9 +516,14 @@ void *process_connection(void *ptr) {
         if  (server_mode == SSM_DSPAM)
           break;
       }
-  
+
       if (cmdline == NULL) 
         goto CLOSE;
+
+      if (!strncasecmp(cmdline, "quit", 4)) {
+        daemon_reply(TTX, LMTP_OK, "2.0.0", "OK");
+        goto CLOSE;
+      }
 
       if (bad_response) 
         continue;
