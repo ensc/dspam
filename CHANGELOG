@@ -1,13 +1,12 @@
-$Id: CHANGELOG,v 1.232 2005/03/18 21:13:57 jonz Exp $
+$Id: CHANGELOG,v 1.233 2005/03/18 21:44:05 jonz Exp $
    
 Version NEXT
 ------------
 
-[20050316.0700] jonz: fixed crash on long argv list
+[20050318.0700] jonz: added RSET functionality
 
-fixed a crash/potential arg list overflow for authentication DSPAM clients
-sending too many arguments.
-  
+added RSET functionality to daemon 
+
 [20050318.0700] jonz: added localStore preference for storage
 
 added localStore preference to set local storage username, which can override
@@ -37,6 +36,11 @@ not specified, even if DeliveryHost was.
 
 fixed condition where 5.1.0 error would be followed by 354 (response to DATA)
 instead of failing
+
+[20050316.0700] jonz: fixed crash on long argv list
+
+fixed a crash/potential arg list overflow for authentication DSPAM clients
+sending too many arguments.
 
 [20050316.0100] jonz: reclassification failures should not deliver on failure
 

@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.73 2005/03/18 21:31:50 jonz Exp $ */
+/* $Id: daemon.c,v 1.74 2005/03/18 21:44:05 jonz Exp $ */
 
 /*
 
@@ -26,6 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #ifdef DAEMON
+
+#define RSET(A)	( A && !strcmp(A, "RSET") )
 
 #include <string.h>
 #include <stdlib.h>
@@ -400,6 +402,10 @@ void *process_connection(void *ptr) {
 
     while(!TTX->authenticated) {
       input = daemon_expect(TTX, "MAIL FROM");
+
+      if (RSET(input))
+        goto RSET;
+
       if (input == NULL) 
         goto CLOSE;
       else {
@@ -489,7 +495,14 @@ void *process_connection(void *ptr) {
       int bad_response = 0;
       cmdline = daemon_getline(TTX, 300);
  
-      while(cmdline && !strncasecmp(cmdline, "RCPT TO:", 8)) {
+      while(cmdline && (!strncasecmp(cmdline, "RCPT TO:", 8) || (!strncasecmp(cmdline, "RSET", 4)))) {
+
+        if (!strncasecmp(cmdline, "RSET", 4)) {
+          snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
+          if (send_socket(TTX, buf)<=0)
+            goto CLOSE; 
+          goto RSET;
+        }
 
         if (server_mode == SSM_DSPAM) {
           /* Tokenize arguments */
@@ -536,7 +549,7 @@ void *process_connection(void *ptr) {
           break;
       }
 
-      if (cmdline == NULL) 
+      if (cmdline == NULL)
         goto CLOSE;
 
       if (!strncasecmp(cmdline, "quit", 4)) {
@@ -577,6 +590,8 @@ void *process_connection(void *ptr) {
       input = daemon_expect(TTX, "DATA");
       if (input == NULL)
         goto CLOSE;
+      if (RSET(input)) 
+        goto RSET;
     }
 
     cmdline = oldcmd;
@@ -684,6 +699,7 @@ void *process_connection(void *ptr) {
 
     /* Cleanup and get ready for another message */
 
+RSET:
     fflush(fd);
 
     buffer_destroy(message);
@@ -891,10 +907,15 @@ char *daemon_expect(THREAD_CTX *TTX, const char *ptr) {
       daemon_reply(TTX, LMTP_QUIT, "2.0.0", "OK"); 
       return NULL;
     }
-    if (!strcmp(ptr, "MAIL FROM") && !strncasecmp(cmd, "RSET", 4)) 
+    if (!strncasecmp(cmd, "RSET", 4)) { 
       snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
-    else
-      snprintf(buf, sizeof(buf), "%d 5.0.0 Need %s here.", LMTP_BAD_CMD, ptr);
+      if (send_socket(TTX, buf)<=0)
+        return NULL;
+      free(cmd);
+      return "RSET";
+    }
+
+    snprintf(buf, sizeof(buf), "%d 5.0.0 Need %s here.", LMTP_BAD_CMD, ptr);
 
     if (send_socket(TTX, buf)<=0)
       return NULL;
