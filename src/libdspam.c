@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.81 2005/01/03 21:57:06 jonz Exp $ */
+/* $Id: libdspam.c,v 1.82 2005/01/05 18:48:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -1172,7 +1172,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     if (CTX->classification == DSR_NONE	&&
         CTX->_sig_provided == 0		&&
-        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 2000)
+        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 2500)
     {
       int elim;
 #ifdef BNR_DEBUG
@@ -1334,7 +1334,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     bnr_destroy(BTX_C);
 
     /* Add BNR pattern to token hash */
-    if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350) {
+    if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000) {
       ds_c = ds_diction_cursor(bnr_patterns);
       ds_term = ds_diction_next(ds_c);
       while(ds_term) {
@@ -1862,7 +1862,7 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
                    (CTX->training_buffer*((ts-ti)/200));
     }
 
-    if (ti < 2000 && ti >=1000 && ts > ti)
+    if (ti < 2500 && ti >=1000 && ts > ti)
     {
       float spams = (ts * 1.0 / (ts * 1.0 + ti * 1.0)) * 100;
       min_hits = min_hits+(CTX->training_buffer/2)+

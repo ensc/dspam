@@ -1,10 +1,14 @@
-$Id: CHANGELOG,v 1.123 2005/01/03 22:55:25 jonz Exp $
+$Id: CHANGELOG,v 1.124 2005/01/05 18:48:48 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
  
 Version NEXT
 ------------
+
+[20040105.0800] jonz: adjusted training thresholds
+
+training threshold back to 2500, bnr learning starts at 1000
 
 [20050102.1800] jonz: added --client flag for client operations
 
