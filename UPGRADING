@@ -1,4 +1,4 @@
-$Id: UPGRADING,v 1.4 2004/12/30 17:43:48 jonz Exp $
+$Id: UPGRADING,v 1.5 2005/01/03 22:55:25 jonz Exp $
 
 UPGRADING FROM 3.2 
 
@@ -10,9 +10,10 @@ configure && make && make install
 the included dspam.conf to ensure they're propagated into your production
 configuration.
 
-If you have no already done so from 3.2.4, you may wish to create the following
+If you have not already done so from 3.2.4, you may wish to create the following
 index if you are using PostgreSQL. This index is unnecessary, but prevents
 PostgreSQL's query builder from getting confused, which leads to more time
 consuming queries:
 
 CREATE INDEX id_token_data_04 ON dspam_token_data(uid);
+

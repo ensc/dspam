@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.9 2005/01/03 21:57:05 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.10 2005/01/03 22:55:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -245,6 +245,11 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 
 #if defined(DAEMON) && !defined(_DSPAMC_H)
     /* Launch into daemon mode */
+
+    if (!strcmp (argv[i], "--client")) {
+      ATX->client_mode = 1;
+      continue;
+    }
 
 #ifdef TRUSTED_USER_SECURITY
     if (!strcmp (argv[i], "--daemon") && ATX->trusted) {

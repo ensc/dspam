@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.4 2004/12/24 16:02:03 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.5 2005/01/03 22:55:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -51,6 +51,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 typedef struct {
   int operating_mode;       /* Processing Mode       IN DSM_ */
+  int client_mode;          /* Client Mode: 1:0 */
   int training_mode;        /* Training Mode         IN DST_ */
   int classification;       /* Classification        IN DSR_ */
   int source;               /* Classification Source IN DSS_ */

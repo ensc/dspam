@@ -1,30 +1,41 @@
-$Id: CHANGELOG,v 1.122 2005/01/03 21:57:04 jonz Exp $
+$Id: CHANGELOG,v 1.123 2005/01/03 22:55:25 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
  
+Version NEXT
+------------
+
+[20050102.1800] jonz: added --client flag for client operations
+
+added --client flag for client operations. failure to use --client causes
+dspam to operate in independent mode
+
+IMPORTANT: --client should be added to the client arguments on daemon-based
+           setups
+
 Version 3.3.9
 -------------
 
-[20041013.0600] jonz: fixed invalid memory read in hash.c
+[20050103.0600] jonz: fixed invalid memory read in hash.c
 
 fixed invalid memory read causing segfault in BNR
 
-[20041013.0500] jonz: updated example
+[20050003.0500] jonz: updated example
 
 updated example code for libdspam 
 
-[20040102.2300] jonz: fixed some more reachable memory on daemon exit
+[20050102.2300] jonz: fixed some more reachable memory on daemon exit
 
 fixed some additional bytes of unfreed memory on daemon exit
 
-[20040102.2100] jonz: rewrite hash-code into 'diction' and 'term' structures
+[20050102.2100] jonz: rewrite hash-code into 'diction' and 'term' structures
 
 rewrote the lht code (long-hash-token) into a more specialized 'diction'
 structure, which has terms. a diction represents a subset of lexical data
 within the user's dataset (namely, the data representing a message).
 
-[20040102.1645] jonz: bayesian noise reduction training tweaks
+[20050102.1645] jonz: bayesian noise reduction training tweaks
 
 bnr seems to preform best when trained on everything
 

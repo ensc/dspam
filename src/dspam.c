@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.56 2005/01/03 21:57:05 jonz Exp $ */
+/* $Id: dspam.c,v 1.57 2005/01/03 22:55:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -197,7 +197,8 @@ main (int argc, char *argv[])
   }
 
 #ifdef DAEMON
-  if (_ds_read_attribute(agent_config, "ClientIdent") &&
+  if (ATX.client_mode &&
+      _ds_read_attribute(agent_config, "ClientIdent") &&
       (_ds_read_attribute(agent_config, "ClientHost") ||
        _ds_read_attribute(agent_config, "ServerDomainSocketPath")))
   {
