@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.86 2005/03/23 17:07:40 jonz Exp $ */
+/* $Id: daemon.c,v 1.87 2005/03/24 18:24:15 jonz Exp $ */
 
 /*
 
@@ -878,11 +878,24 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
             }
           }
 
-          if (y && _ds_match_attribute(agent_config,
-                                       "ChangeUserOnParse", "on"))
+           if (y && (_ds_match_attribute(agent_config,
+                                          "ChangeUserOnParse", "on") ||
+                      _ds_match_attribute(agent_config,
+                                          "ChangeUserOnParse", "full") ||
+                      _ds_match_attribute(agent_config,
+                                          "ChangeUserOnParse", "user")))
           {
             char *ptrptr;
-            char *z = strtok_r(y, "@", &ptrptr);
+            char *z;
+
+            if (_ds_match_attribute(agent_config,
+                                    "ChangeUserOnParse", "full"))
+            {
+              z = strtok_r(y, "> \n", &ptrptr);
+            } else {
+              z = strtok_r(y, "@", &ptrptr);
+            } 
+
             nt_destroy(ATX->users);
             ATX->users = nt_create(NT_CHAR);
             if (!ATX->users)

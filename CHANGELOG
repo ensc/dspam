@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.241 2005/03/24 15:28:49 jonz Exp $
+$Id: CHANGELOG,v 1.242 2005/03/24 18:24:15 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050324.0730] jonz: added ChangeUserOnParse 'full' option
+
+setting ChangeUserOnParse to 'full' now uses the entire email address after
+the initial {spam,notspam}- identifier allowing the domain to be used. 
+using 'on' or 'user' continues to default to just username.
 
 [20050324.0700] jonz: added long usernames support to dspam stats
 

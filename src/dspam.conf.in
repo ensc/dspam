@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.32 2005/03/16 19:37:59 jonz Exp $
+## $Id: dspam.conf.in,v 1.33 2005/03/24 18:24:15 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -379,7 +379,9 @@ Opt out
 # ChangeUserOnParse: Automatically change the username to match that specified
 #   in the To: header. For example, spam-bob@domain.tld will set the username
 #   to bob, ignoring any --user passed in. This may not always be desirable if
-#   you are using virtual email addresses as usernames.
+#   you are using virtual email addresses as usernames. Options:
+#     on or user	take the portion before the @ sign only
+#     full		take everything after the initial {spam,notspam}-.
 #
 #ParseToHeaders on
 #ChangeModeOnParse on

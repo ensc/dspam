@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.35 2005/03/19 00:15:08 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.36 2005/03/24 18:24:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -747,11 +747,24 @@ buffer * read_stdin(AGENT_CTX *ATX) {
               }
             }
 
-            if (y && _ds_match_attribute(agent_config,
-                                         "ChangeUserOnParse", "on")) 
+            if (y && (_ds_match_attribute(agent_config,
+                                          "ChangeUserOnParse", "on") ||
+                      _ds_match_attribute(agent_config,
+                                          "ChangeUserOnParse", "full") ||
+                      _ds_match_attribute(agent_config,
+                                          "ChangeUserOnParse", "user"))) 
             {
               char *ptrptr;
-              char *z = strtok_r(y, "@", &ptrptr);
+              char *z;
+
+              if (_ds_match_attribute(agent_config, 
+                                      "ChangeUserOnParse", "full")) 
+              {
+                z = strtok_r(y, "> \n", &ptrptr);
+              } else {
+                z = strtok_r(y, "@", &ptrptr);
+              }
+
               nt_destroy(ATX->users);
               ATX->users = nt_create(NT_CHAR);
               if (!ATX->users)
