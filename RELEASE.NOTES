@@ -1,4 +1,4 @@
-$Id: RELEASE.NOTES,v 1.4 2004/11/12 16:18:51 jonz Exp $
+$Id: RELEASE.NOTES,v 1.5 2004/12/01 05:00:06 jonz Exp $
 
 This release includes much code and directory structure cleanup.
 
@@ -6,7 +6,12 @@ DSPAM CORE ENGINE (libdspam)
 
 Enhancements:
 
-TUM-Mode Enhancements TUM-Mode training has been enhanced to use fewer database resources than
+Bayesian Noise Reduction v2.0
+Bayesian Noise Reduction v2.0 has been implemented, using more of a statistical
+means of pattern identification specific to each user's email.
+
+TUM-Mode Enhancements
+TUM-Mode training has been enhanced to use fewer database resources than
 TEFT (instead of more), and is now a good balance between TEFT and TOE from
 a resource perspective. Each token has a 'dirty' bit set now, and only those
 which are to be updated in TUM are written. 
@@ -20,6 +25,12 @@ A MaxMessageSize option has been added to dspam.conf allowing systems
 administrators to choose the largest size file DSPAM should process. Admins
 should be careful not to set this value too low as it could cause potentially
 useful data to be ignored.
+
+Daemonized LMTP Server
+The agent can be placed into daemon mode (using --daemon) to run a single
+stateful processing core for DSPAM in a multi-threaded environment. The
+agent uses a proprietary LMTP dialog to accept and process inbound messages,
+meaning it can be tied closely to the MTA or the DSPAM agent in client mode.
 
 Bug Fixes:
 
