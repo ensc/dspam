@@ -1,4 +1,4 @@
-$Id: RELEASE.NOTES,v 1.31 2005/02/28 15:43:56 jonz Exp $
+$Id: RELEASE.NOTES,v 1.32 2005/03/02 22:18:22 jonz Exp $
 
 RELEASE 3.4 (Release Candidate 2)
 
@@ -99,7 +99,7 @@ corrected, the file is moved to the appropriate corpus. To activate, set
 makeCorpus "on" in a user's preferences and add it to your list of allowable
 overrides.
 
-Bug Fixes:
+Bug fixes from version 3.2-FINAL:
 
 BUGFIX: Linestripping fails to remove multiple ^Ms on a single line
 BUGFIX: Signed messages are malformatted and appear blank in some MUAs
