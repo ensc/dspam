@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.65 2004/12/05 22:14:45 jonz Exp $
+$Id: CHANGELOG,v 1.66 2004/12/07 21:49:05 jonz Exp $
 
 Version NEXT
 ------------
@@ -82,7 +82,9 @@ fixed a bug causing tools to fail to build when CFLAGS was specified
 [20041203.0745] jonz: fixed addition of spurious colons after delimiter
 
 fixed bug causing a colon to be added to lines after -- delimiters that
-were not actual boundary delimiters.
+were not actual boundary delimiters. this also caused certain encoded portions
+of the body to not be decoded, giving the appearance of equal signs (=) in
+message bodies.
 
 Version 3.2.3
 -------------
