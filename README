@@ -1,4 +1,4 @@
-$Id: README,v 1.23 2004/12/21 12:49:52 jonz Exp $
+$Id: README,v 1.24 2004/12/24 14:45:30 jonz Exp $
 
 DSPAM v3.3 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -78,7 +78,7 @@ dspam-dev mailing list or in the form of financial contributions.
 Many of the foundational principles incorporated into this software were
 contributed by Paul Graham's white paper on combatting spam, which can be
 found at http://paulgraham.com/spam.html.  Much research and development has
-resulted in many new approaches being added ont othe DPSAM project as well,
+resulted in many new approaches being added onto the DPSAM project as well,
 some of which are explained in white papers on the DSPAM home page.
 
 DSPAM can be implemented as a total solution, or as a library which developers 
@@ -1288,7 +1288,6 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
 
   -- COMMERCIAL LICENSING --
 
-
   To link to libdspam, follow the instructions for compiling and installing 
   DSPAM. When compiled, the libdspam static and shared libraries are also 
   built. This library contains all the functions necessary to use dspam's 
@@ -1740,8 +1739,8 @@ SERVER> 250 <jane> Message accepted for delivery
   - The Oracle storage driver is slow; this is primarily due to the fact that
     the agent has to establish a new connection with Oracle every time it is
     run.  This adds another 0.5 - 1.5 seconds of delay. Future versions may
-    incorporate a proxy type service, but for now if you are looking for
-    speed consider the MySQL storage driver.
+    support stateful daemon mode, but for now if you are looking for speed,
+    consider the MySQL storage driver.
 
   - Neural networking is only supported by the MySQL driver presently, but
     configure will allow you to proceed (to a broken make) using any
