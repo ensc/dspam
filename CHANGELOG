@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.194 2005/03/05 02:00:36 jonz Exp $
+$Id: CHANGELOG,v 1.195 2005/03/05 14:18:37 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050305.0900] jonz: fixed bug in cgi autodetect of extensions
+
+fixed bug causing extensions detection to fail in cgi for users with older
+configure.pl scripts lacking AUTODETECT property. also propagated ability to
+"not" autodetect to admin.cgi
 
 [20050304.2100] jonz: fixed user duplicate bug in ParseToHeaders+Daemon combo
 
