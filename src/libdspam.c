@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.49 2004/12/18 00:21:17 jonz Exp $ */
+/* $Id: libdspam.c,v 1.50 2004/12/18 03:38:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -2408,6 +2408,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
   struct _ds_spam_stat stat;
   struct heap_node *node_heap;
+  struct heap_node *heap_list[heap_sort->items];
 
   /* Graham-Bayesian */
   float bay_top = 0.0; 
@@ -2436,24 +2437,32 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
   long chi_used  = 0, chi_sx = 0, chi_hx = 0;
   double chi_s = 1.0, chi_h = 1.0;
   struct nt *factor_chi = nt_create(NT_PTR);
-  int i = 0;
+  int i;
+
+  /* Invert the heap */
+  node_heap = heap_sort->root;
+  for(i=0;i<heap_sort->items;i++) {
+    heap_list[(heap_sort->items-i)-1] = node_heap;
+    node_heap = node_heap->next;
+  }
 
   node_heap = heap_sort->root;
 
-  while(node_heap)
+  for(i=0;i<heap_sort->items;i++) 
   {
     unsigned long long crc;
     char *token_name;
+    node_heap = heap_list[i];
 
     crc = node_heap->token;
     token_name = lht_gettoken (freq, crc);
 
     if (lht_getspamstat (freq, crc, &stat) || token_name == NULL)
-      goto HEAP_NEXT;
+      continue;
 
     /* Skip BNR patterns */
     if (!strncmp(token_name, "bnr.", 4))
-      goto HEAP_NEXT;
+      continue;
 
     /* Set the probability if we've provided a classification */
     if (CTX->classification == DSR_ISSPAM)
@@ -2596,9 +2605,6 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct heap *heap_sort, struct lht *freq) {
 
     /* END Combine Token Values */
 
-HEAP_NEXT:
-    node_heap = node_heap->next;
-    i++;
   }
 
   /* Fisher-Robinson's Inverse Chi-Square */
