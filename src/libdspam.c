@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.79 2005/01/03 03:06:13 jonz Exp $ */
+/* $Id: libdspam.c,v 1.80 2005/01/03 20:46:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -58,7 +58,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "util.h"
 #include "storage_driver.h"
 #include "buffer.h"
-#include "diction.h"
 #include "heap.h"
 #include "error.h"
 #include "decode.h"
@@ -660,7 +659,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Create our diction (lexical data in message) and patterns */
   ds_diction_t diction = ds_diction_create(24593);
-  ds_diction_t bnr_patterns = ds_diction_create(1543);
+  ds_diction_t bnr_patterns = ds_diction_create(3079);
   ds_term_t ds_term;
   ds_cursor_t ds_c;
 
@@ -870,8 +869,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
             if (strlen (joined_token) < 25 && joined_token[1] != 0)
             {
               if (!_ds_process_header_token
-                  (CTX, joined_token,
-                   previous_token, diction, heading)
+                  (CTX, joined_token, previous_token, diction, heading)
                   && (CTX->flags & DSF_CHAINED))
               {
                 alloc_joined = 1;
@@ -885,8 +883,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
           }
 
           if (!_ds_process_header_token
-              (CTX, token, previous_token, diction,
-               heading) && (CTX->flags & DSF_CHAINED))
+              (CTX, token, previous_token, diction, heading) && 
+              (CTX->flags & DSF_CHAINED))
           {
             if (alloc_joined)
             {
@@ -917,8 +915,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       {
         if (strlen (joined_token) < 25 && joined_token[1] != 0)
         {
-          _ds_process_header_token (CTX, joined_token,
-                                    previous_token, diction, heading);
+          _ds_process_header_token (CTX, joined_token, previous_token, diction, heading);
           /* Map the joined token */
           if (CTX->flags & DSF_SBPH)
             _ds_map_header_token (CTX, joined_token, previous_tokens, diction, heading);
@@ -1060,8 +1057,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
           if (strlen (joined_token) < 25 && joined_token[1] != 0)
           {
             if (!_ds_process_body_token
-                (CTX, joined_token,
-                 previous_token, diction) && (CTX->flags & DSF_CHAINED))
+                (CTX, joined_token, previous_token, diction) && 
+                (CTX->flags & DSF_CHAINED))
             {
               alloc_joined = 1;
               previous_token = strdup (joined_token);
