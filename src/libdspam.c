@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.94 2005/01/26 18:51:54 jonz Exp $ */
+/* $Id: libdspam.c,v 1.95 2005/02/04 14:53:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -2861,6 +2861,7 @@ CHI_NEXT:
         CTX->result = DSR_ISSPAM;
         CTX->probability = bay_result;
         CTX->factors = factor;
+        LOGDEBUG("using Graham factors");
       }
     }
 
@@ -2870,8 +2871,10 @@ CHI_NEXT:
       {
         CTX->result = DSR_ISSPAM;
         CTX->probability = abay_result;
-        if (!CTX->factors)
+        if (!CTX->factors) {
           CTX->factors = factor;
+          LOGDEBUG("using Burton factors");
+        }
       }
     }
 
@@ -2882,8 +2885,10 @@ CHI_NEXT:
         CTX->result = DSR_ISSPAM;
         if (CTX->probability < 0)
           CTX->probability = rob_result;
-        if (!CTX->factors)
+        if (!CTX->factors) {
           CTX->factors = factor;
+          LOGDEBUG("using Robinson-Geom factors");
+        }
       }
     }
 
@@ -2894,13 +2899,17 @@ CHI_NEXT:
        CTX->result = DSR_ISSPAM;
        if (CTX->probability < 0)
          CTX->probability = chi_result;
-       if (!CTX->factors)
+       if (!CTX->factors) {
          CTX->factors = factor;
+         LOGDEBUG("using Chi-Square factors");
        }
+      }
     }
 
-    if (!CTX->factors)
+    if (!CTX->factors) {
       CTX->factors = factor;
+      LOGDEBUG("no factors specified; using default");
+    }
   }
 
   if (CTX->factors != factor_bayes)
