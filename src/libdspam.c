@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.72 2004/12/29 05:54:21 jonz Exp $ */
+/* $Id: libdspam.c,v 1.73 2004/12/29 22:06:23 jonz Exp $ */
 
 /*
  DSPAM
@@ -1181,7 +1181,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     if (CTX->classification == DSR_NONE	&&
         CTX->_sig_provided == 0		&&
-        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000)
+        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 2000)
     {
       int elim;
 #ifdef BNR_DEBUG
@@ -1854,13 +1854,13 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
 
   if (CTX->training_buffer) {
 
-    if (ti < 500 && ti < ts)
+    if (ti < 1000 && ti < ts)
     {
       min_hits = min_hits+(CTX->training_buffer/2)+
                    (CTX->training_buffer*((ts-ti)/200));
     }
 
-    if (ti < 1000 && ti >=500 && ts > ti)
+    if (ti < 2000 && ti >=1000 && ts > ti)
     {
       float spams = (ts * 1.0 / (ts * 1.0 + ti * 1.0)) * 100;
       min_hits = min_hits+(CTX->training_buffer/2)+
