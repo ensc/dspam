@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.5 2004/11/01 14:42:14 jonz Exp $ */
+/* $Id: dspam.c,v 1.6 2004/11/03 19:57:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -841,20 +841,23 @@ process_message (AGENT_CTX *ATX,
             if (signature_begin != NULL)
             {
               erase_begin = signature_begin;
-              signature_begin =
-                strstr
-                (signature_begin,
-                 SIGNATURE_DELIMITER) + strlen (SIGNATURE_DELIMITER);
+	      if (!strncmp(signature_begin, SIGNATURE_BEGIN, strlen(SIGNATURE_BEGIN))) 
+		signature_begin += strlen(SIGNATURE_BEGIN);
+	      else
+		signature_begin =
+		  strstr
+		  (signature_begin,
+		   SIGNATURE_DELIMITER) + strlen (SIGNATURE_DELIMITER);
               signature_end = signature_begin;
   
               /* Find the signature's end character */
               while (signature_end != NULL
-                     && signature_end[0] !=
-                     0
-                     &&
-                     (isalnum
+                     && signature_end[0] != 0
+                     && (isalnum
                       ((int) signature_end[0]) || signature_end[0] == 32))
+              {
                 signature_end++;
+              }
   
               if (signature_end != NULL)
               {

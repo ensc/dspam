@@ -1,4 +1,4 @@
-$Id: README,v 1.4 2004/11/01 14:42:14 jonz Exp $
+$Id: README,v 1.5 2004/11/03 19:57:49 jonz Exp $
 
 DSPAM v3.2 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -33,9 +33,9 @@ Win32 Build Supplement Maintainer
   Vadim Zeitlin <vz-dspam@zeitlins.org>
 
 Patch Contributors (Past 6 Months)
+  Nov/2004 Denis Shaposhnikov <dsh@vlink.ru>
   Oct/2004 Simon Tellini <simone@tellini.info>
   Oct/2004 Jack Greenbaum <j.greenbaum@computer.org>
-  Oct/2004 Denis Shaposhnikov <dsh@vlink.ru>
   Oct/2004 Leandro Santi <lesanti@fiuba7504.com.ar>
   Oct/2004 Thomas Lostaunau <tpl@cox.net>
   Jun/2004 Craig Hockenberry <craig@iconfactory.com>

@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.13 2004/11/03 13:48:33 jonz Exp $
+$Id: CHANGELOG,v 1.14 2004/11/03 19:57:49 jonz Exp $
 
 Version NEXT
 ------------
@@ -36,6 +36,10 @@ normalized main() by breaking up code into smaller subroutines
 
 Version 3.2.2
 -------------
+
+[20041103.0745] jonz: fixed segfault on signature scan
+
+fixed a bug causing segfault during scanning of some messages for a signature
 
 [20041103.0745] jonz: fixed signature encoding bug in sqlite_drv
 
