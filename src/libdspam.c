@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.28 2004/12/05 22:14:45 jonz Exp $ */
+/* $Id: libdspam.c,v 1.29 2004/12/06 00:09:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -1068,33 +1068,14 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     BNR_CTX BTX;
     float snr;
 
+    /* BNR LAYER 1 PATTERNS (Patterns of tokens) */
+
     bnr_pattern_instantiate(CTX, bnr_layer1, freq->order, 's');
     bnr_pattern_instantiate(CTX, bnr_layer1, freq->chained_order, 'c');
-
-    bnr_pattern_instantiate(CTX, bnr_layer2, bnr_layer1->order, '2');
-    bnr_pattern_instantiate(CTX, bnr_layer3, bnr_layer2->order, '3');
 
     LOGDEBUG("Loading %ld BNR patterns at layer 1", bnr_layer1->items);
 
     if (_ds_getall_spamrecords (CTX, bnr_layer1))
-    {
-      LOGDEBUG ("_ds_getall_spamrecords() failed");
-      errcode = EUNKNOWN;
-      goto bail;
-    }
-
-    LOGDEBUG("Loading %ld BNR patterns at layer 2", bnr_layer2->items);
-
-    if (_ds_getall_spamrecords (CTX, bnr_layer2))
-    {
-      LOGDEBUG ("_ds_getall_spamrecords() failed");
-      errcode = EUNKNOWN;
-      goto bail;
-    }
-
-    LOGDEBUG("Loading %ld BNR patterns at layer 3", bnr_layer3->items);
-
-    if (_ds_getall_spamrecords (CTX, bnr_layer3))
     {
       LOGDEBUG ("_ds_getall_spamrecords() failed");
       errcode = EUNKNOWN;
@@ -1108,12 +1089,37 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       node_lht = c_lht_next(bnr_layer1, &c_lht);
     }
 
+    /* BNR LAYER 2 PATTERNS (Patterns of patterns of tokens) */
+
+    bnr_pattern_instantiate(CTX, bnr_layer2, bnr_layer1->order, '2'); 
+    LOGDEBUG("Loading %ld BNR patterns at layer 2", bnr_layer2->items);
+
+    if (_ds_getall_spamrecords (CTX, bnr_layer2))
+    {
+      LOGDEBUG ("_ds_getall_spamrecords() failed");
+      errcode = EUNKNOWN;
+      goto bail;
+    }
+
     /* Calculate BNR pattern probability */
     node_lht = c_lht_first (bnr_layer2, &c_lht);
     while(node_lht != NULL) {
       _ds_calc_stat(CTX, node_lht->key, &node_lht->s, DTT_BNR);
       node_lht = c_lht_next(bnr_layer2, &c_lht);
     }
+
+    /* BNR LAYER 3 PATTERNS (Patterns of patterns of patterns of tokens) */
+
+    bnr_pattern_instantiate(CTX, bnr_layer3, bnr_layer2->order, '3');
+    LOGDEBUG("Loading %ld BNR patterns at layer 3", bnr_layer3->items);
+
+    if (_ds_getall_spamrecords (CTX, bnr_layer3))
+    {
+      LOGDEBUG ("_ds_getall_spamrecords() failed");
+      errcode = EUNKNOWN;
+      goto bail;
+    }
+
 
     /* Calculate BNR pattern probability */
     node_lht = c_lht_first (bnr_layer3, &c_lht);
@@ -1209,6 +1215,44 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
                node_lht->frequency, 1);
 #endif
         node_lht = c_lht_next(bnr_layer1, &c_lht);
+      }
+
+      node_lht = c_lht_first (bnr_layer2, &c_lht);
+      while(node_lht != NULL) {
+        lht_hit(freq, node_lht->key, node_lht->token_name);
+        lht_setspamstat(freq, node_lht->key, &node_lht->s);
+        lht_setfrequency(freq, node_lht->key, 1);
+
+        LOGDEBUG("BNR Pattern L2: %s %01.5f %lds %ldi",
+                 node_lht->token_name,
+                 node_lht->s.probability,
+                 node_lht->s.spam_hits,
+                 node_lht->s.innocent_hits);
+
+#ifdef BNR_DEBUG
+        tbt_add (pindex, node_lht->s.probability, node_lht->key,
+               node_lht->frequency, 1);
+#endif
+        node_lht = c_lht_next(bnr_layer2, &c_lht);
+      }
+
+      node_lht = c_lht_first (bnr_layer3, &c_lht);
+      while(node_lht != NULL) {
+        lht_hit(freq, node_lht->key, node_lht->token_name);
+        lht_setspamstat(freq, node_lht->key, &node_lht->s);
+        lht_setfrequency(freq, node_lht->key, 1);
+
+        LOGDEBUG("BNR Pattern L3: %s %01.5f %lds %ldi",
+                 node_lht->token_name,
+                 node_lht->s.probability,
+                 node_lht->s.spam_hits,
+                 node_lht->s.innocent_hits);
+
+#ifdef BNR_DEBUG
+        tbt_add (pindex, node_lht->s.probability, node_lht->key,
+               node_lht->frequency, 1);
+#endif
+        node_lht = c_lht_next(bnr_layer3, &c_lht);
       }
     }
   }
