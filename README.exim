@@ -1,4 +1,4 @@
-$Id: README.exim,v 1.3 2005/01/06 22:45:14 jonz Exp $
+$Id: README.exim,v 1.4 2005/01/07 03:34:03 jonz Exp $
 
 EXIM INTEGRATION
 
@@ -11,7 +11,7 @@ configuration.  First, add the following code to the directors :
 
 spamscan:
   no_verify
-  condition = "${if and { {!eq {$received_protocol}{spam-scanned}} } {1}{0}}"
+  condition = "${if and {{!eq {$received_protocol}{spam-scanned}} {!eq {$received_protocol}{local}} } {1}{0}}"
   driver = localuser
   transport = spamcheck
   require_files = ${local_part}:\
