@@ -1,4 +1,4 @@
-$Id: RELEASE.NOTES,v 1.25 2005/01/22 14:14:29 jonz Exp $
+$Id: RELEASE.NOTES,v 1.26 2005/01/30 00:39:50 jonz Exp $
 
 RELEASE 3.4 (Beta 2)
 
@@ -24,7 +24,8 @@ TUM-Mode Enhancements
 TUM-Mode training has been enhanced to use fewer database resources than
 TEFT (instead of more), and is now a good balance between TEFT and TOE from
 a resource perspective. Each token has a 'dirty' bit set now, and only those
-which are to be updated in TUM are written. 
+which are to be updated in TUM are written. TUM now also trains on low
+confidence. 
 
 Library Performance Enhancements
 Many algorithms have been optimized and/or completely rewritten. These include
@@ -82,6 +83,14 @@ automated temporary blacklisting system which bases its decisions on how
 many networks report a particular network address. The DSPAM agent can now
 perform lookups on an SBL server and learn messages as spam which originate
 from blacklisted addresses.
+
+Corpus Maker
+Added makeCorpus preference which makes it seemless to build a corpus with
+DSPAM. The makeCorpus feature records all messages processed for the user
+to dspam_home/data/username/username.corpus/[spam|nonspam]. when an error is
+corrected, the file is moved to the appropriate corpus. To activate, set
+makeCorpus "on" in a user's preferences and add it to your list of allowable
+overrides.
 
 Bug Fixes:
 
