@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.13 2004/12/25 23:07:49 jonz Exp $ */
+/* $Id: client.c,v 1.14 2005/01/22 14:19:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -199,7 +199,7 @@ int client_connect(void) {
 
     LOGDEBUG(CLIENT_CONNECT, address, 0);
     if(connect(sockfd, (struct sockaddr *)&saun, addr_len)<0) {
-      report_error_printf(ERROR_CLIENT_CONNECT_HOST, address, port, strerror(errno));
+      report_error_printf(ERROR_CLIENT_CONNECT_SOCKET, address, strerror(errno));
       return EFAILURE;
     }
      

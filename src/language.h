@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.10 2004/12/25 02:38:22 jonz Exp $ */
+/* $Id: language.h,v 1.11 2005/01/22 14:19:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -98,6 +98,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define ERROR_INVALID_CLIENT_CONFIG	"Invalid client configuration"
 #define ERROR_CLIENT_CONNECT		"Could not connect to server"
+#define ERROR_CLIENT_CONNECT_SOCKET	"Connection to socket %s failed: %s"
 #define ERROR_CLIENT_CONNECT_HOST	"Connection to %s:%d failed: %s"
 #define ERROR_CLIENT_AUTH_FAILED	"Unable to authenticate client"
 #define ERROR_CLIENT_AUTHENTICATE	"Authentication rejected"
