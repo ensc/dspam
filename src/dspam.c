@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.3 2004/10/26 13:27:38 jonz Exp $ */
+/* $Id: dspam.c,v 1.4 2004/10/29 18:10:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -1792,6 +1792,39 @@ if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers")) {
             /* Add the new block */
     
             nt_add (CTX->message->components, (void *) newblock);
+
+            /* New empty block with c/r */
+
+            newblock =
+              (struct _ds_message_block *)
+              malloc (sizeof (struct _ds_message_block));
+            if (newblock == NULL)
+            {
+              LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+              result = EUNKNOWN;
+              goto RETURN;
+            }
+
+            newblock->headers = nt_create (NT_PTR);
+            if (newblock->headers == NULL)
+            {
+              free (newblock);
+              LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+              result = EUNKNOWN;
+              goto RETURN;
+            }
+
+            /* Create new block information */
+            newblock->boundary = NULL;
+            newblock->terminating_boundary = NULL;
+            newblock->encoding = EN_7BIT;
+            newblock->original_encoding = EN_7BIT;
+            newblock->media_type = MT_TEXT;
+            newblock->media_subtype = MST_PLAIN;
+            newblock->body = buffer_create ("\n");
+            newblock->original_signed_body = NULL;
+            nt_add (CTX->message->components, (void *) newblock);
+
           }
     
           free(term);
