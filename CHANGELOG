@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.259 2005/04/03 00:55:11 jonz Exp $
+$Id: CHANGELOG,v 1.260 2005/04/04 14:53:43 jonz Exp $
    
 Version NEXT
 ------------
@@ -34,6 +34,13 @@ preference when provsioned. To use:
 
 Version 3.4.3
 -------------
+
+[20050404.0700] jonz: applied various cgi patches
+
+applied various cgi patches to fix:
+- showFactors preference not setting/showing correctly in admin.cgi
+- empty spamSubject raised errors when writing preferences
+- global default.prefs file should not be written with pref extensions
 
 [20050402.1000] jonz: changed log status of signature errors
 

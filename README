@@ -1,4 +1,4 @@
-$Id: README,v 1.56 2005/03/28 22:37:21 jonz Exp $
+$Id: README,v 1.57 2005/04/04 14:53:43 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Network Dweebs Corporation
@@ -29,15 +29,13 @@ PostgreSQL Driver Maintainer
   Rustam Aliyev <rustam@azernews.com>
 
 Patch Contributors (Past 6 Months)
+  Mar/2005 Rob Bickers <rbickers@logicetc.com>
   Mar/2005 Denis Shaposhnikov <dsh@vlink.ru>
   Mar/2005 Leandro Santi <lesanti@fiuba7504.com.ar>
   Jan/2005 Ben Reser <ben@reser.org>
   Jan/2005 Martin Forssen <maf@appgate.com>
   Jan/2005 Philip Champon <flah@hell.com>
   Dec/2004 Bernard Quartermass <bernard@quartermass.co.uk>
-  Oct/2004 Simon Tellini <simone@tellini.info>
-  Oct/2004 Jack Greenbaum <j.greenbaum@computer.org>
-  Oct/2004 Thomas Lostaunau <tpl@cox.net>
 
 TABLE OF CONTENTS
 
