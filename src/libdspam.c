@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.17 2004/11/23 14:20:47 jonz Exp $ */
+/* $Id: libdspam.c,v 1.18 2004/11/23 15:17:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -606,7 +606,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Variables for Bayesian Noise Reduction */
 #ifdef BNR_DEBUG
-  struct tbt *pindex = tbt_create();;
+  struct tbt *pindex = tbt_create();
 #endif
 
   char *line = NULL;			/* header broken up into lines */
@@ -1059,7 +1059,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
      http://www.nuclearelephant.com/projects/dspam/bnr.html 
   */
 
-  if (CTX->flags & DSF_NOISE && CTX->classification == DSR_NONE)
+  if (CTX->flags & DSF_NOISE)
   {
     struct lht_node *node_lht;
     struct lht_c c_lht;
@@ -1077,46 +1077,101 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       goto bail;
     }
 
-    /* Calculate BNR pattern probability and add to primary token hash */
+    /* Calculate BNR pattern probability */
     node_lht = c_lht_first (pfreq, &c_lht);
     while(node_lht != NULL) {
       _ds_calc_stat(CTX, node_lht->key, &node_lht->s, DTT_BNR);
-      lht_hit(freq, node_lht->key, node_lht->token_name);
-      lht_setspamstat(freq, node_lht->key, &node_lht->s);
-      lht_setfrequency(freq, node_lht->key, 1);
-
-      LOGDEBUG("BNR Pattern: %s %01.5f %lds %ldi", 
-               node_lht->token_name, 
-               node_lht->s.probability, 
-               node_lht->s.spam_hits, 
-               node_lht->s.innocent_hits);
-
-#ifdef BNR_DEBUG
-      tbt_add (pindex, node_lht->s.probability, node_lht->key,
-             node_lht->frequency, 1);
-#endif
       node_lht = c_lht_next(pfreq, &c_lht);
     }
 
     /* Perform BNR Processing */
 
-    BTX.stream = freq->order;
-    BTX.total_eliminations = 0;
-    BTX.total_clean = 0;
-    BTX.patterns = pfreq;
-    bnr_filter_process(CTX, &BTX);
+    if (CTX->classification == DSR_NONE &&
+        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 2500) {
+      BTX.stream = freq->order;
+      BTX.total_eliminations = 0;
+      BTX.total_clean = 0;
+      BTX.patterns = pfreq;
+      BTX.type = 's';
+      bnr_filter_process(CTX, &BTX);
 
-    BTX.stream = freq->chained_order;
-    bnr_filter_process(CTX, &BTX);
+      BTX.stream = freq->chained_order;
+      BTX.type = 'c';
+      bnr_filter_process(CTX, &BTX);
 
-    if (BTX.total_clean + BTX.total_eliminations > 0)
-      snr = 100.0*((BTX.total_eliminations+0.0)/
-            (BTX.total_clean+BTX.total_eliminations));
-    else
-      snr = 0;
+      if (BTX.total_clean + BTX.total_eliminations > 0)
+        snr = 100.0*((BTX.total_eliminations+0.0)/
+              (BTX.total_clean+BTX.total_eliminations));
+      else
+        snr = 0;
 
-    LOGDEBUG("bnr_filter_process() reported snr of %02.3f (%ld %ld)", 
-             snr, BTX.total_eliminations, BTX.total_clean); 
+      LOGDEBUG("bnr_filter_process() reported snr of %02.3f (%ld %ld)", 
+               snr, BTX.total_eliminations, BTX.total_clean); 
+
+
+#ifdef BNR_VERBOSE_DEBUG
+      printf("BNR FILTER PROCESS RESULTS:\n");
+      printf("Eliminations:\n");
+      node_nt = c_nt_first(freq->order, &c_nt);
+      while(node_nt != NULL) {
+        node_lht = (struct lht_node *) node_nt->ptr;
+        if (node_lht->frequency <= 0)
+          printf("%s ", node_lht->token_name);
+        node_nt = c_nt_next(freq->order, &c_nt);
+      }
+      printf("\n[");
+      node_nt = c_nt_first(freq->order, &c_nt);
+      while(node_nt != NULL) {
+        node_lht = (struct lht_node *) node_nt->ptr;
+        if (node_lht->frequency <= 0)
+          printf("%1.2f ", node_lht->s.probability);
+        node_nt = c_nt_next(freq->order, &c_nt);
+      }
+  
+      printf("]\n\nRemaining:\n");
+      node_nt = c_nt_first(freq->order, &c_nt);
+      while(node_nt != NULL) {
+        node_lht = (struct lht_node *) node_nt->ptr;
+        if (node_lht->frequency > 0)
+          printf("%s ", node_lht->token_name);
+        node_nt = c_nt_next(freq->order, &c_nt);
+      }
+      printf("\n[");
+       node_nt = c_nt_first(freq->order, &c_nt);
+       while(node_nt != NULL) {
+         node_lht = (struct lht_node *) node_nt->ptr;
+         if (node_lht->frequency > 0)
+  
+          printf("%1.2f ", node_lht->s.probability);
+         node_nt = c_nt_next(freq->order, &c_nt);
+      }
+
+      printf("]\n\n");
+#endif
+
+    }
+
+    /* Add BNR pattern to token hash only when training */
+    if (CTX->classification != DSR_NONE) {
+      node_lht = c_lht_first (pfreq, &c_lht);
+      while(node_lht != NULL) {
+        lht_hit(freq, node_lht->key, node_lht->token_name);
+        lht_setspamstat(freq, node_lht->key, &node_lht->s);
+        lht_setfrequency(freq, node_lht->key, 1);
+  
+        LOGDEBUG("BNR Pattern: %s %01.5f %lds %ldi",
+                 node_lht->token_name,
+                 node_lht->s.probability,
+                 node_lht->s.spam_hits,
+                 node_lht->s.innocent_hits);
+  
+#ifdef BNR_DEBUG
+        tbt_add (pindex, node_lht->s.probability, node_lht->key,
+               node_lht->frequency, 1);
+#endif
+        node_lht = c_lht_next(pfreq, &c_lht);
+      }
+    }
   }
 
   if (CTX->flags & DSF_WHITELIST)
@@ -1159,27 +1214,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     node_lht = c_lht_next (freq, &c_lht);
   }
 
-#ifdef BNR_VERBOSE_DEBUG
-  printf("BNR FILTER PROCESS RESULTS: %ld TOKENS PROCESSED\n", freq->items);
-  printf("TOKENS ELIMINATED: \n");
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
-  {
-    if (node_lht->frequency <=0) 
-      printf("%s ", node_lht->token_name);
-    node_lht = c_lht_next (freq, &c_lht);
-  }
-  printf("\n\nTOKENS REMAINING: \n");
-  node_lht = c_lht_first (freq, &c_lht);
-  while (node_lht != NULL)
-  {
-    if (node_lht->frequency >0)
-      printf("%s ", node_lht->token_name);
-    node_lht = c_lht_next (freq, &c_lht);
-  }
-  printf("\n\n");
-#endif
-
   /* Take the 15 most interesting tokens and generate a score */
 
   if (index->items == 0)
@@ -1215,7 +1249,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       goto bail;
     }
   }
-
 
 #ifdef BNR_DEBUG
   LOGDEBUG("Calculating BNR Result");
@@ -2723,4 +2756,3 @@ void _ds_factor_destroy(struct nt *factors) {
 
   return;
 } 
-

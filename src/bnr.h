@@ -1,4 +1,4 @@
-/* $Id: bnr.h,v 1.2 2004/11/23 14:20:47 jonz Exp $ */
+/* $Id: bnr.h,v 1.3 2004/11/23 15:17:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -44,15 +44,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
    http://www.nuclearelephant.com/projects/dspam/bnr.html 
 */
 
-/* BNR Pattern Window-Size */
-
-#define BNR_SIZE	3 
+#define BNR_SIZE	3    /* Pattern Window-Size */ 
+#define EX_RADIUS	0.25 /* Exclusionary Radius (Pattern Disposition) */
+#define IN_RADIUS	0.30 /* Inclusionary Radius (Token Disposition) */ 
 
 typedef struct {
   long total_eliminations;
   long total_clean;
   struct nt *stream;
   struct lht *patterns;
+  char type;
 } BNR_CTX;
 
 int bnr_pattern_instantiate(DSPAM_CTX *, struct lht *, struct nt *, char);

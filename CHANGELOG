@@ -1,12 +1,11 @@
-$Id: CHANGELOG,v 1.28 2004/11/23 14:20:46 jonz Exp $
+$Id: CHANGELOG,v 1.29 2004/11/23 15:17:46 jonz Exp $
 
 Version NEXT
 ------------
 
-[20041121.1530] jonz: implemented parts of Bayesian Noise Reduction v2.0
+[20041121.1530] jonz: implemented initial test case for BNR v2.0
 
-implemented parts of BNR v2.0, which tracks interesting patterns, and 
-presently inclues patterns in combination. step 2, performing eliminations.
+implemented initial testing case for Bayesian Noise Reduction v2.0.
 
 [20041101.0700] jonz: added MaxMessageSize option to dspam.conf
 
