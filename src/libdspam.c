@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.74 2004/12/30 00:23:10 jonz Exp $ */
+/* $Id: libdspam.c,v 1.75 2004/12/30 00:33:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -1577,7 +1577,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     {
 
       if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350 &&
-          CTX->confidence < 0.60 &&
+          ((CTX->confidence < 0.75 && CTX->result == DSR_ISSPAM) ||
+           (CTX->confidence < 0.60 && CTX->result == DSR_ISINNOCENT)) &&
           CTX->flags & DSF_NOISE &&
           CTX->_sig_provided == 0)
       {

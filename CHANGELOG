@@ -1,11 +1,12 @@
-$Id: CHANGELOG,v 1.108 2004/12/30 00:31:58 jonz Exp $
+$Id: CHANGELOG,v 1.109 2004/12/30 00:32:59 jonz Exp $
 
 Version NEXT
 ------------
 
-[20041229.1928] jonz: window size back to 3
+[20041229.1928] jonz: more bnr tweaks
 
 bnr window size of 4 didn't appear very useful
+adjusted when-to-train
  
 [20041229.0600] jonz: increased training threshold to 2000
 
