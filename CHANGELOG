@@ -1,8 +1,15 @@
-$Id: CHANGELOG,v 1.253 2005/03/31 16:56:24 jonz Exp $
+$Id: CHANGELOG,v 1.254 2005/03/31 21:32:59 jonz Exp $
    
 Version NEXT
 ------------
 
+[20050331.0600] jonz: bugfix: external default preferences not merged
+
+external preferences (default preferences stored in the database or .pref
+file) are not used when merging system and user preferences. fix changes
+behavior so that dspam.conf preferences are only loaded in absence of default
+preferences set in the database.
+ 
 [20050331.0600] jonz: added fallback domain support
 
 fallback domain support is for systems using a user's full email address as

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.120 2005/03/31 16:56:24 jonz Exp $ */
+/* $Id: dspam.c,v 1.121 2005/03/31 21:32:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -1408,7 +1408,19 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                           _ds_read_attribute(agent_config, "Home"), ATX->dbh);
     }
 
-    STX = pref_config();
+    STX =  _ds_pref_load(agent_config,
+                          NULL,
+                          _ds_read_attribute(agent_config, "Home"), ATX->dbh);
+
+    if (STX == NULL || STX[0] == 0) {
+      if (STX) {
+        _ds_pref_free(STX);
+      }
+      LOGDEBUG("default preferences empty. reverting to dspam.conf preferences.");
+      STX = pref_config();
+    } else {
+      LOGDEBUG("loaded default preferences externally");
+    }
 
     PTX = _ds_pref_aggregate(STX, UTX);
     _ds_pref_free(UTX);
