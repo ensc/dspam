@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.2 2004/12/02 17:55:51 jonz Exp $ */
+/* $Id: client.c,v 1.3 2004/12/02 19:41:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -113,10 +113,32 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   if (send_socket(&TTX, ".")<=0)
     goto BAIL;
 
-  for(i=0;i<ATX->users->items;i++) {
-    int c = client_getcode(&TTX);
-    if (c != LMTP_OK) {
-      exitcode--;
+  /* Server Response */
+  /* --------------- */
+
+  if (ATX->flags & DAF_STDOUT || ATX->operating_mode == DSM_CLASSIFY) {
+    char *line = NULL;
+
+    line = socket_getline(&TTX, 300);
+    if (line)
+      chomp(line);
+
+    while(line != NULL && strcmp(line, ".")) {
+      chomp(line);
+      printf("%s\n", line);
+      line = socket_getline(&TTX, 300);
+      if (line) chomp(line);
+    }
+    if (line == NULL)
+      goto BAIL;
+  } else {
+    for(i=0;i<ATX->users->items;i++) {
+      int c = client_getcode(&TTX);
+      if (c<0) 
+        goto BAIL;
+      if (c != LMTP_OK) {
+        exitcode--;
+      }
     }
   }
 

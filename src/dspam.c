@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.30 2004/12/02 17:55:51 jonz Exp $ */
+/* $Id: dspam.c,v 1.31 2004/12/02 19:41:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -463,10 +463,8 @@ process_message (AGENT_CTX *ATX,
   if (CTX->message == NULL)
     goto RETURN;
 
-  if (!_ds_match_attribute(agent_config, "TrainPristine", "on")) {
-    strip_xdspam_headers(CTX, PTX);
+  if (!_ds_match_attribute(agent_config, "TrainPristine", "on")) 
     add_xdspam_headers(CTX, ATX, PTX);
-  }
 
   if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers") &&
       !_ds_match_attribute(agent_config, "TrainPristine", "on")) 
@@ -1749,6 +1747,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
   int i = 0;
   int *code;
   FILE *fout;
+  buffer *parse_message;
 
   if (x == NULL)
     return NULL;
@@ -1769,6 +1768,14 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
     int result, optin, optout;
+
+    parse_message = buffer_create(message->data);
+    if (parse_message == NULL) {
+      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      x[i] = NULL;
+      i++;
+      continue;
+    }
 
     x[i] = NULL;
 
@@ -1841,7 +1848,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
         f = fopen (m, "a");
         if (f != NULL)
         {
-          fprintf (f, "%s\n", message->data);
+          fprintf (f, "%s\n", parse_message->data);
           fclose (f);
         }
       }
@@ -1892,7 +1899,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
 
     /* If the message is too big to process, just deliver it */
     if (_ds_read_attribute(agent_config, "MaxMessageSize")) {
-      if (message->used > 
+      if (parse_message->used > 
           atoi(_ds_read_attribute(agent_config, "MaxMessageSize")))
       {
         LOG (LOG_INFO, "message too big, delivering");
@@ -1912,7 +1919,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
       if (ATX->flags & DAF_DELIVER_INNOCENT)
       {
         retcode =
-          deliver_message (message->data,
+          deliver_message (parse_message->data,
                            (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
                             node_nt->ptr, fout);
         if (retcode && exitcode == EXIT_SUCCESS)
@@ -1926,7 +1933,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
 
     else
     {
-      result = process_message (ATX, PTX, message, node_nt->ptr);
+      result = process_message (ATX, PTX, parse_message, node_nt->ptr);
       if (_ds_match_attribute(agent_config, "Broken", "returnCodes")) {
         if (result == DSR_ISSPAM)
           exitcode = 99;
@@ -1942,6 +1949,8 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
         node_nt = c_nt_next (ATX->users, &c_nt);
         _ds_pref_free(PTX);
         free(PTX);
+        buffer_destroy(parse_message);
+        i++;
         continue;
       }
 
@@ -1964,7 +1973,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
         if (ATX->flags & DAF_DELIVER_INNOCENT) {
           LOGDEBUG ("delivering message");
           retcode = deliver_message
-            (message->data,
+            (parse_message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
              node_nt->ptr, fout);
           if (ATX->sockfd && ATX->flags & DAF_STDOUT)
@@ -1979,7 +1988,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
                 (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
               ATX->source = DSS_ERROR;
               ATX->flags |= DAF_UNLEARN;
-              process_message (ATX, PTX, message, node_nt->ptr);
+              process_message (ATX, PTX, parse_message, node_nt->ptr);
             }
           }
         }
@@ -2009,14 +2018,14 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
               if (ATX->classification == -1) {
                 if (ATX->spam_args[0] != 0) {
                   retcode = deliver_message
-                    (message->data,
+                    (parse_message->data,
                      (ATX->flags & DAF_STDOUT) ? NULL : ATX->spam_args, 
                      node_nt->ptr, fout);
                   if (ATX->sockfd && ATX->flags & DAF_STDOUT)
                     ATX->sockfd_output = 1;
                 } else {
                   retcode = deliver_message
-                    (message->data,
+                    (parse_message->data,
                      (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
                      node_nt->ptr, fout);
                   if (ATX->sockfd && ATX->flags & DAF_STDOUT)
@@ -2029,9 +2038,9 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
               /* Use standard quarantine procedure */
               if (ATX->source == DSS_INOCULATION || ATX->classification == -1) {
                 if (ATX->managed_group[0] == 0)
-                  retcode = quarantine_message (message->data, node_nt->ptr);
+                  retcode = quarantine_message (parse_message->data, node_nt->ptr);
                 else
-                  retcode = quarantine_message (message->data, ATX->managed_group);
+                  retcode = quarantine_message (parse_message->data, ATX->managed_group);
               }
             }
 
@@ -2045,7 +2054,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
                   (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
                 ATX->source = DSS_ERROR;
                 ATX->flags |= DAF_UNLEARN;
-                process_message (ATX, PTX, message, node_nt->ptr);
+                process_message (ATX, PTX, parse_message, node_nt->ptr);
               }
             }
           }
@@ -2058,7 +2067,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
           if (ATX->sockfd && ATX->flags & DAF_STDOUT)
             ATX->sockfd_output = 1;
           retcode = deliver_message
-            (message->data,
+            (parse_message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
              node_nt->ptr, fout);
           if (retcode) {
@@ -2069,7 +2078,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
                 (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
               ATX->source = DSS_ERROR;
               ATX->flags |= DAF_UNLEARN;
-              process_message (ATX, PTX, message, node_nt->ptr);
+              process_message (ATX, PTX, parse_message, node_nt->ptr);
             }
           }
         }
@@ -2082,6 +2091,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
 
     LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", exitcode);
     i++;
+    buffer_destroy(parse_message);
   }
 
   code = malloc(sizeof(int));
@@ -2965,70 +2975,6 @@ int log_events(DSPAM_CTX *CTX) {
                           strerror(errno));
       }
       fclose(file);
-    }
-  }
-  return 0;
-}
-
-/* strip_xdspam_headers: strips old x-dspam headers from the message */
-
-int strip_xdspam_headers(DSPAM_CTX *CTX, AGENT_PREF PTX) {
-  struct nt_node *node_nt;
-  struct nt_c c_nt;
-
-  /* Strip old X-DSPAM headers */
-  node_nt = c_nt_first (CTX->message->components, &c_nt);
-  if (node_nt != NULL && CTX->operating_mode == DSM_PROCESS)
-  {
-    struct _ds_message_block *block;
-
-    if (CTX->result == DSR_ISSPAM &&
-        PTX != NULL          &&
-        !strcmp(_ds_pref_val(PTX, "spamAction"), "tag"))
-    {
-      tag_message((struct _ds_message_block *) node_nt->ptr, PTX);
-    }
-
-    while (node_nt != NULL)
-    {
-      block = node_nt->ptr;
-      if (block->headers != NULL) {
-        struct _ds_header_field *head;
-        struct nt_node *node_header, *prev_node = block->headers->first, *old;
-        node_header = block->headers->first;
-        while(node_header != NULL) {
-          head = (struct _ds_header_field *) node_header->ptr;
-          if (head->heading && !strncmp(head->heading, "X-DSPAM", 7)) {
-
-/* NECESSARY?
-              && ((strcmp(head->heading, "X-DSPAM-Signature") ||
-                 (session[0] != 0 || ATX->source != DSS_ERROR)))) 
-*/
-          old = node_header;
-          free(head->heading);
-          free(head->data);
-          free(head->original_data);
-          free(head->concatenated_data);
-
-          if (node_header == block->headers->first) {
-            block->headers->first = node_header->next;
-            prev_node = node_header->next;
-            node_header = prev_node;
-          } else {
-            prev_node->next = node_header->next;
-            node_header = node_header->next;
-          }
-            free(old->ptr);
-            free(old);
-            block->headers->items--;
-            block->headers->insert = NULL;
-          } else {
-            prev_node = node_header;
-            node_header = node_header->next;
-          }
-        }
-      }
-      node_nt = c_nt_next (CTX->message->components, &c_nt);
     }
   }
   return 0;
