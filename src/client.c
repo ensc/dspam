@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.14 2005/01/22 14:19:29 jonz Exp $ */
+/* $Id: client.c,v 1.15 2005/02/24 16:33:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -62,7 +62,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   int exitcode = 0;
   int i, msglen;
 
-  TTX.sockfd = client_connect();
+  TTX.sockfd = client_connect(0);
   if (TTX.sockfd <0) {
     report_error(ERROR_CLIENT_CONNECT);
     return TTX.sockfd;
@@ -168,7 +168,7 @@ BAIL:
   return EFAILURE;
 }
 
-int client_connect(void) {
+int client_connect(int flags) {
   struct sockaddr_in addr;
   struct sockaddr_un saun;
   int yes = 1;
@@ -176,13 +176,25 @@ int client_connect(void) {
   int port = 24;
   int domain = 0;
   int addr_len;
-  char *host = _ds_read_attribute(agent_config, "ClientHost");
+  char *host;
 
-  if (_ds_read_attribute(agent_config, "ClientPort"))
-    port = atoi(_ds_read_attribute(agent_config, "ClientPort"));
+  if (flags & CCF_LMTPHOST) {
 
-  if (_ds_read_attribute(agent_config, "ServerDomainSocketPath"))
-    domain = 1;
+    host = _ds_read_attribute(agent_config, "LMTPDeliveryHost");
+
+    if (_ds_read_attribute(agent_config, "LMTPDeliveryPort"))
+      port = atoi(_ds_read_attribute(agent_config, "LMTPDeliveryPort"));
+
+  } else {
+
+    host = _ds_read_attribute(agent_config, "ClientHost");
+
+    if (_ds_read_attribute(agent_config, "ClientPort"))
+      port = atoi(_ds_read_attribute(agent_config, "ClientPort"));
+
+    if (_ds_read_attribute(agent_config, "ServerDomainSocketPath"))
+      domain = 1;
+  }
 
   if (!domain && host == NULL) {
     report_error(ERROR_INVALID_CLIENT_CONFIG);
@@ -367,5 +379,130 @@ int send_socket(THREAD_CTX *TTX, const char *ptr) {
   return i+2;
 }
 
+/* deliver_lmtp: delivers via LMTP instead of TrustedDeliveryAgent */
+
+int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
+  THREAD_CTX TTX;
+  char buff[1024];
+  char *input;
+  int exitcode = 0;
+  int i, msglen;
+
+  TTX.sockfd = client_connect(CCF_LMTPHOST);
+  if (TTX.sockfd <0) {
+    report_error(ERROR_CLIENT_CONNECT);
+    return TTX.sockfd;
+  }
+
+  TTX.packet_buffer = buffer_create(NULL);
+  if (TTX.packet_buffer == NULL) 
+    goto BAIL;
+
+  /* LHLO */
+
+  input = client_expect(&TTX, LMTP_GREETING);
+  if (input == NULL)
+    goto BAIL;
+  free(input);
+
+  strcpy(buff, "LHLO localhost");
+  if (_ds_read_attribute(agent_config, "LMTPDeliveryIdent")) {
+    snprintf(buff, sizeof(buff), "LHLO %s", _ds_read_attribute(agent_config, "LMTPDeliveryHost"));
+  }
+
+  if (send_socket(&TTX, buff)<=0)
+    goto BAIL;
+
+  /* RCPT TO - Send recipient information */
+  /* ------------------------------------ */
+
+  snprintf(buff, sizeof(buff), "MAIL FROM:<> SIZE=%ld", strlen(message));
+  if (send_socket(&TTX, buff)<=0)
+    goto BAIL;
+
+ if (client_getcode(&TTX)!=LMTP_OK)
+    goto QUIT;
+
+  snprintf(buff, sizeof(buff), "RCPT TO: <%s>", ATX->recipient);
+  if (send_socket(&TTX, buff)<=0) 
+    goto BAIL;
+
+  if (client_getcode(&TTX)!=LMTP_OK) 
+    goto QUIT;
+
+  /* DATA - Send message */
+  /* ------------------- */
+
+  if (send_socket(&TTX, "DATA")<=0) 
+    goto BAIL;
+
+  if (client_getcode(&TTX)!=LMTP_DATA)
+    goto QUIT;
+
+  i = 0;
+  msglen = strlen(message);
+  while(i<msglen) {
+    int r = send(TTX.sockfd, message+i, msglen - i, 0);
+    if (r <= 0) 
+      goto BAIL;
+    i += r;
+  }
+
+  if (message[strlen(message)-1]!= '\n')
+    if (send_socket(&TTX, "")<=0)
+     goto BAIL;
+
+  if (send_socket(&TTX, ".")<=0)
+    goto BAIL;
+
+  /* Server Response */
+  /* --------------- */
+
+  if (ATX->flags & DAF_STDOUT || ATX->operating_mode == DSM_CLASSIFY) {
+    char *line = NULL;
+
+    line = client_getline(&TTX, 300);
+    if (line)
+      chomp(line);
+
+    while(line != NULL && strcmp(line, ".")) {
+      chomp(line);
+      printf("%s\n", line);
+      free(line);
+      line = client_getline(&TTX, 300);
+      if (line) chomp(line);
+    }
+    free(line);
+    if (line == NULL)
+      goto BAIL;
+  } else {
+    for(i=0;i<ATX->users->items;i++) {
+      int c = client_getcode(&TTX);
+      if (c<0) 
+        goto BAIL;
+      if (c != LMTP_OK) {
+        exitcode--;
+      }
+    }
+  }
+
+  send_socket(&TTX, "QUIT");
+  client_getcode(&TTX);
+  close(TTX.sockfd);
+  buffer_destroy(TTX.packet_buffer);
+  return 0;
+
+QUIT:
+  send_socket(&TTX, "QUIT");
+  client_getcode(&TTX);
+
+BAIL:
+  exitcode = EFAILURE;
+  buffer_destroy(TTX.packet_buffer);
+  close(TTX.sockfd);
+  return EFAILURE;
+}
+
 #endif /* DAEMON */
+
 

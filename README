@@ -1,4 +1,4 @@
-$Id: README,v 1.36 2005/02/16 13:32:37 jonz Exp $
+$Id: README,v 1.37 2005/02/24 16:33:37 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -56,6 +56,7 @@ Advanced DSPAM functionality
   2.1 Configuring groups
   2.2 External Inoculation Theory
   2.3 Client/Server Mode
+  2.4 LMTP Delivery
 
 Miscellaneous
 
@@ -1743,6 +1744,34 @@ SERVER> 250 <jane> Message accepted for delivery
   NOTE: During the period of time the daemon is reloading, client connections
   will fail. Depending on how the MTA reacts, this may cause messages to
   fall back to queue or to bounce.
+
+
+2.4 LMTP DELIVERY
+
+  DSPAM supports LMTP delivery for admins who would prefer to use this instead
+  of local delivery. While LMTP delivery doesn't _require_ operating in
+  daemon mode, it is necessary to compile DSPAM with --enable-daemon to take
+  advantage of LMTP delivery. To configure LMTP delivery, perform the following
+  steps:
+
+  1. Compile DSPAM with --enable-daemon to enable LMTP delivery code
+
+  2. Configure your LMTPDeliveryHost and LMTPDeliveryIdent in dspam.conf
+
+  3. Add the --lmtp-recipient flag to the arguments passed into DSPAM. This is
+     used to specify the destination address for the message. For example:
+
+     --lmtp-recipient=$RECIPIENT
+ 
+  DSPAM will then connect to the specified host, and deliver using a standard
+  LMTP looking like:
+
+LHLO [ident]
+MAIL FROM: <>
+RCPT TO: <recipient>
+DATA
+[Message]
+.
 
 3.0 BUGS, PORTS, AND THE LIKE
 

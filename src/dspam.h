@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.17 2005/02/08 20:29:26 jonz Exp $ */
+/* $Id: dspam.h,v 1.18 2005/02/24 16:33:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -41,8 +41,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /* Public agent functions */
 
-int deliver_message	(const char *message, const char *mailer_args,
-			 const char *username, FILE *out);
+int deliver_message	(AGENT_CTX *ATX, 
+                         const char *message, 
+                         const char *mailer_args,
+                         const char *username, 
+                         FILE *out);
 
 int process_message	(AGENT_CTX *ATX, agent_pref_t PTX,
 			 buffer *message, const char *username);
@@ -53,7 +56,7 @@ int inoculate_user	(const char *username, struct _ds_spam_signature *SIG,
 int user_classify	(const char *username, struct _ds_spam_signature *SIG,
 			 const char *message, AGENT_CTX *ATX);
 
-int send_notice		(const char *filename, const char *mailer_args,
+int send_notice		(AGENT_CTX *ATX, const char *filename, const char *mailer_args,
 			 const char *username);
 
 int write_web_stats     (const char *username, const char *group, 

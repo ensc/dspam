@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.20 2005/01/19 18:14:12 jonz Exp $
+## $Id: dspam.conf.in,v 1.21 2005/02/24 16:33:37 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -35,6 +35,16 @@ TrustedDeliveryAgent "@delivery_agent@"
 # necessary if you plan on allowing untrusted processing.
 #
 #UntrustedDeliveryAgent "/usr/bin/procmail -d %u"
+
+#
+# LMTP Delivery: Alternatively, you may wish to use LMTP delivery to deliver
+# your message to the mail server. You will need to configure with 
+# --enable-daemon to use LMTP delivery, however you do not need to 
+# operate in daemon mode.
+#
+#LMTPDeliveryHost        127.0.0.1
+#LMTPDeliveryPort        24
+#LMTPDeliveryIdent       localhost
 
 #
 # Quarantine Agent: DSPAM's default behavior is to quarantine all mail it 

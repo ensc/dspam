@@ -1,4 +1,4 @@
-$Id: RELEASE.NOTES,v 1.28 2005/02/16 14:31:16 jonz Exp $
+$Id: RELEASE.NOTES,v 1.29 2005/02/24 16:33:37 jonz Exp $
 
 RELEASE 3.4 (Release Candidate 1)
 
@@ -71,6 +71,10 @@ also been added to the build, which is basically a scaled down version of
 the agent without libdspam linked in. The client process is called with
 --client.
 
+LMTP Delivery
+The agent can now deliver via LMTP instead of LDA by configuring an LMTP
+delivery host in dspam.conf.
+
 Storage Profile Failover
 The agent now supports failover of storage profiles. This allows you to
 select an alternative server (or chain of servers) to use in the event of
@@ -110,6 +114,10 @@ snapshot of the current activity (just like reset stats) and report on
 activity since the last snapshot.
 
 CGI
+
+Fast User Switching
+Added fast user switching for admins, allowing them to type in the username of
+the person they wish to "become" to manage their account
 
 Additional Sort Functionality
 Sorting by Subject and Sender options have been added to the quarantine view

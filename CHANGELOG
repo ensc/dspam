@@ -1,4 +1,13 @@
-$Id: CHANGELOG,v 1.167 2005/02/16 14:31:16 jonz Exp $
+$Id: CHANGELOG,v 1.168 2005/02/24 16:33:37 jonz Exp $
+
+Version NEXT
+------------
+
+[20050224.0700] jonz: added lmtp delivery support
+
+added support to deliver via LMTP instead of LDA. although this doesn't require
+operating in daemon mode, you must compile with --enable-daemon as the code
+uses some of the daemon's socket components.
 
 Version 3.4.rc1
 ---------------

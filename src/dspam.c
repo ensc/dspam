@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.77 2005/02/16 15:55:44 jonz Exp $ */
+/* $Id: dspam.c,v 1.78 2005/02/24 16:33:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -78,6 +78,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "heap.h"
 #include "pref.h"
 #include "config_api.h"
+
+#define USE_LMTP	_ds_read_attribute(agent_config, "LMTPDeliveryHost")
 
 static double timestart;
 
@@ -308,7 +310,7 @@ process_message (AGENT_CTX *ATX,
   /* First Run Message */
   if (! CTX->totals.innocent_learned && ! CTX->totals.spam_learned &&
       _ds_match_attribute(agent_config, "Notifications", "on")) { 
-    send_notice("firstrun.txt", ATX->mailer_args, username);
+    send_notice(ATX, "firstrun.txt", ATX->mailer_args, username);
   }
 
   /* Decode the message into a series of structures for easy processing */
@@ -404,7 +406,7 @@ process_message (AGENT_CTX *ATX,
         CTX->totals.spam_misclassified == 0 && 
        _ds_match_attribute(agent_config, "Notifications", "on")) 
   {
-    send_notice("firstspam.txt", ATX->mailer_args, username);
+    send_notice(ATX, "firstspam.txt", ATX->mailer_args, username);
   }
 
   /* Quarantine Size Check */
@@ -426,7 +428,7 @@ process_message (AGENT_CTX *ATX,
           fprintf(f, "%ld", (long) time(NULL));
           fclose(f);
 
-          send_notice("quarantinefull.txt", ATX->mailer_args, username);
+          send_notice(ATX, "quarantinefull.txt", ATX->mailer_args, username);
         }
       }
     }    
@@ -664,7 +666,7 @@ RETURN:
 */
 
 int
-deliver_message (const char *message, const char *mailer_args,
+deliver_message (AGENT_CTX *ATX, const char *message, const char *mailer_args,
                  const char *username, FILE *stream)
 {
   char args[1024];
@@ -672,6 +674,11 @@ deliver_message (const char *message, const char *mailer_args,
   FILE *file;
   int rc;
 
+#ifdef DAEMON
+  if (USE_LMTP) 
+    return deliver_lmtp(ATX, message);
+#endif
+ 
   if (message == NULL)
     return EINVAL;
 
@@ -1157,7 +1164,7 @@ user_classify (const char *username, struct _ds_spam_signature *SIG,
     username	user being processed
 */
 	
-int send_notice(const char *filename, const char *mailer_args, 
+int send_notice(AGENT_CTX *ATX, const char *filename, const char *mailer_args, 
                 const char *username) {
   FILE *f;
   char msgfile[MAX_FILENAME_LENGTH];
@@ -1195,7 +1202,7 @@ int send_notice(const char *filename, const char *mailer_args,
     buffer_cat(b, s);
   }
   fclose(f);
-  deliver_message(b->data, mailer_args, username, stdout);
+  deliver_message(ATX, b->data, mailer_args, username, stdout);
 
   buffer_destroy(b);
 
@@ -1391,7 +1398,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
       if (ATX->flags & DAF_DELIVER_INNOCENT)
       {
         retcode =
-          deliver_message (parse_message->data,
+          deliver_message (ATX, parse_message->data,
                            (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
                             node_nt->ptr, fout);
         if (retcode && exitcode == EXIT_SUCCESS)
@@ -1445,7 +1452,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
         if (ATX->flags & DAF_DELIVER_INNOCENT) {
           LOGDEBUG ("delivering message");
           retcode = deliver_message
-            (parse_message->data,
+            (ATX, parse_message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
              node_nt->ptr, fout);
           if (ATX->sockfd && ATX->flags & DAF_STDOUT)
@@ -1490,14 +1497,14 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
               if (ATX->classification == -1) {
                 if (ATX->spam_args[0] != 0) {
                   retcode = deliver_message
-                    (parse_message->data,
+                    (ATX, parse_message->data,
                      (ATX->flags & DAF_STDOUT) ? NULL : ATX->spam_args, 
                      node_nt->ptr, fout);
                   if (ATX->sockfd && ATX->flags & DAF_STDOUT)
                     ATX->sockfd_output = 1;
                 } else {
                   retcode = deliver_message
-                    (parse_message->data,
+                    (ATX, parse_message->data,
                      (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
                      node_nt->ptr, fout);
                   if (ATX->sockfd && ATX->flags & DAF_STDOUT)
@@ -1539,7 +1546,7 @@ int **process_users(AGENT_CTX *ATX, buffer *message) {
           if (ATX->sockfd && ATX->flags & DAF_STDOUT)
             ATX->sockfd_output = 1;
           retcode = deliver_message
-            (parse_message->data,
+            (ATX, parse_message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
              node_nt->ptr, fout);
           if (retcode) {

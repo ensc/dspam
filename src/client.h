@@ -1,4 +1,4 @@
-/* $Id: client.h,v 1.4 2004/12/24 16:02:03 jonz Exp $ */
+/* $Id: client.h,v 1.5 2005/02/24 16:33:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -38,15 +38,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "buffer.h"
 
 int client_process(AGENT_CTX *ATX, buffer *message);
-int client_connect(void);
+int client_connect(int flags);
 int client_authenticate(THREAD_CTX *TTX);
 int client_getcode(THREAD_CTX *TTX);
 char * client_expect(THREAD_CTX *TTX, int response_code);
 char * client_getline(THREAD_CTX *TTX, int timeout);
+int deliver_lmtp(AGENT_CTX *ATX, const char *message);
 
 /* Shared between client and server */
 char *pop_buffer(THREAD_CTX *TTX);
 int send_socket(THREAD_CTX *TTX, const char *ptr);
+
+#define CCF_LMTPHOST	0x01	/* Delivering to external LMTP host */
 
 #endif /* _CLIENT_H */
 
