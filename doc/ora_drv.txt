@@ -1,4 +1,4 @@
-$Id: ora_drv.txt,v 1.1 2005/03/11 21:16:03 jonz Exp $
+$Id: ora_drv.txt,v 1.2 2005/03/14 20:11:47 jonz Exp $
 
 ora_drv: Oracle storage driver for DSPAM <jonathan@nuclearelephant.com>
 Copyright (c) 2003 Network Dweebs Corporation
@@ -72,8 +72,8 @@ instructions from DSPAM's readme.
 CREATING ORACLE OBJECTS
 
 Before ora_drv will function, you must run ora_objects.sql (located in
-the same directory as this readme) to create the table objects required by
-the driver.  See your Oracle documentation for further information.
+src/tools.ora_drv) to create the table objects required by the driver.  See 
+your Oracle documentation for further information.
 
 If you plan on enabling virtual users (something you'll need to do if the users
 don't actually exist on your system), also run virtual_users.sql.

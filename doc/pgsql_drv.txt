@@ -1,4 +1,4 @@
-$Id: pgsql_drv.txt,v 1.1 2005/03/11 21:16:03 jonz Exp $
+$Id: pgsql_drv.txt,v 1.2 2005/03/14 20:11:47 jonz Exp $
 
 pgsql_drv: PostgreSQL storage driver for DSPAM
 API v3.0
@@ -61,8 +61,8 @@ instructions from DSPAM's readme.
 2. CREATING PGSQL OBJECTS
 
 Before pgsql_drv will function, you must run pgsql_objects.sql file
-(located in the same directory as this readme) to create the table objects
-required by the driver.
+(located in src/tools.pgsql_drv) to create the table objects required by the 
+driver.
 
 If you plan on enabling virtual users (something you'll need to do if the users
 don't actually exist on your system), also run virtual_users.sql.

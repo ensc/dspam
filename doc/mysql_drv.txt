@@ -1,4 +1,4 @@
-$Id: mysql_drv.txt,v 1.1 2005/03/11 21:16:03 jonz Exp $
+$Id: mysql_drv.txt,v 1.2 2005/03/14 20:11:47 jonz Exp $
 
 mysql_drv: MySQL storage driver for DSPAM <jonathan@nuclearelephant.com>
 Copyright (c) 2003 Network Dweebs Corporation
@@ -76,10 +76,10 @@ instructions from DSPAM's readme.
 2. CREATING MYSQL OBJECTS
 
 Before mysql_drv will function, you must run one of the mysql_objects.sql files
-(located in the same directory as this readme) to create the table objects 
-required by the driver.  Depending on whether you are looking to optimize for
-speed or disk space, you should run the appropriately named script.
-See your mysql documentation for further information.
+(located in src/tools.mysql_drv) to create the table objects required by the 
+driver.  Depending on whether you are looking to optimize for speed or disk 
+space, you should run the appropriately named script.  See your mysql 
+documentation for further information.
 
 This script assumes that you have already created a database for DSPAM objects
 and a user with full access to SELECT, INSERT, UPDATE, and DELETE.
