@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.6 2004/11/03 19:57:50 jonz Exp $ */
+/* $Id: dspam.c,v 1.7 2004/11/09 20:30:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -1929,7 +1929,6 @@ if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers")) {
   buffer_cat (message, copyback);
   free (copyback);
 
-#ifdef SOURCE_ADDRESS_TRACKING
   if (
        _ds_read_attribute(agent_config, "TrackSources") &&
        (
@@ -1940,7 +1939,7 @@ if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers")) {
   {
     char ip[32];
 
-    if (!dspam_getsource (CTX, ip, sizeof (ip), NULL))
+    if (!dspam_getsource (CTX, ip, sizeof (ip)))
     {
       if (CTX->totals.innocent_learned + CTX->totals.innocent_classified 
           > 2500) {
@@ -1962,7 +1961,6 @@ if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers")) {
       }
     }
   }
-#endif
 
   if (CTX->operating_mode == DSM_CLASSIFY || ATX->flags & DAF_SUMMARY)
   {

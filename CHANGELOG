@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.16 2004/11/09 14:52:29 jonz Exp $
+$Id: CHANGELOG,v 1.17 2004/11/09 20:30:33 jonz Exp $
 
 Version NEXT
 ------------
@@ -36,6 +36,11 @@ normalized main() by breaking up code into smaller subroutines
 
 Version 3.2.2
 -------------
+
+[20041109.0800] jonz: fixed source address tracking
+
+fixed source address tracking by removing an old #ifdef that never got
+defined in 3.2.
 
 [20041109.0800] jonz: adjusted chi-square cutoff
 
