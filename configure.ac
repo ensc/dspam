@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.5 2004/12/01 17:29:11 jonz Exp $
+dnl $Id: configure.ac,v 1.6 2004/12/01 18:26:12 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -984,6 +984,12 @@ if test x"$is_storagedrv_handled" != xyes
 then
     AC_MSG_ERROR([unknown storage driver requested: $storagedrv])
 fi
+
+if test x"$enable_daemon" = xyes && test x"$storagedrv" != xmysql_drv
+then
+  AC_MSG_ERROR([daemon mode requires one of the following storage drivers: mysql_drv])
+fi
+
 
 #---------------------------------------------------------
 #   Libraries (other)

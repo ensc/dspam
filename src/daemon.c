@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.14 2004/12/01 14:08:34 jonz Exp $ */
+/* $Id: daemon.c,v 1.15 2004/12/01 18:26:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -57,7 +57,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "buffer.h"
 #include "language.h"
 
-int daemon_listen() {
+int daemon_listen(DRIVER_CTX *DTX) {
   int port = 24;
   int queue = 32;
   struct sockaddr_in local_addr;
@@ -121,8 +121,7 @@ int daemon_listen() {
     read_fds = master;
 
     tv.tv_sec = 2;
-    tv.tv_usec = 1000;
-// HERE
+    tv.tv_usec = 0;
 
     if (select(fdmax+1, &read_fds, NULL, NULL, &tv)>0) {
 
@@ -155,6 +154,7 @@ int daemon_listen() {
                 continue;
               } else {
                 TTX->sockfd = newfd;
+                TTX->DTX = DTX;
                 memcpy(&TTX->remote_addr, &remote_addr, sizeof(remote_addr));
                 if (pthread_create(&TTX->thread, 
                                    &attr, process_connection, (void *) TTX))
@@ -226,7 +226,6 @@ void *process_connection(void *ptr) {
         ptr = strtok_r(input+10, " ", &ptrptr);
         pass = strtok_r(ptr, "@", &ptrptr);
         ident = strtok_r(NULL, "@", &ptrptr);
-printf("'%s' '%s'\n", pass, ident);
 
         if (pass && ident) {
           char *serverpass;
@@ -241,11 +240,6 @@ printf("'%s' '%s'\n", pass, ident);
               free(input);
               goto CLOSE;
             }
-          } else {
-            if (socket_reply(TTX, LMTP_AUTH_ERROR, "Authentication Required")<=0) {
-              free(input);
-              goto CLOSE;
-            }
           } 
         }
 
@@ -253,6 +247,12 @@ printf("'%s' '%s'\n", pass, ident);
         if (!TTX->authenticated) {
           LOGDEBUG("fd %d remote_addr %s authentication failure.", TTX->sockfd,
                     inet_ntoa(TTX->remote_addr.sin_addr));
+
+          if (socket_reply(TTX, LMTP_AUTH_ERROR, "Authentication Required")<=0) {
+            free(input);
+            goto CLOSE;
+          }
+         
           tries++;
           if (tries>=3) {
             struct timeval tv;
@@ -304,6 +304,11 @@ printf("'%s' '%s'\n", pass, ident);
     ATX->sockfd = TTX->sockfd;
     ATX->sockfd_output = 0;
 
+    /* Determine which database handle to use */
+    i = (TTX->sockfd % TTX->DTX->connection_cache) - 1;
+    LOGDEBUG("using database handle id %d", i);
+    ATX->dbh = TTX->DTX->connections[i]->dbh;
+ 
     if (check_configuration(ATX)) {
       report_error(ERROR_DSPAM_MISCONFIGURED);
       snprintf(buf, sizeof(buf), "%d %s", LMTP_BAD_CMD, ERROR_DSPAM_MISCONFIGURED);
@@ -355,7 +360,6 @@ printf("'%s' '%s'\n", pass, ident);
         else
           snprintf(buf, sizeof(buf), "%d <%s> %d Error occured during processing", LMTP_ERROR, (char *) node_nt->ptr, *result);
 
-        free(result);
         if (socket_send(TTX, buf)<=0)
           goto CLOSE;
         node_nt = c_nt_next(ATX->users, &c_nt);

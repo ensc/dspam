@@ -1,4 +1,4 @@
-/* $Id: storage_driver.h,v 1.2 2004/12/01 17:29:11 jonz Exp $ */
+/* $Id: storage_driver.h,v 1.3 2004/12/01 18:26:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -33,13 +33,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <pthread.h>
 #endif
 
-typedef struct {
-  DSPAM_CTX *CTX;
-  void *storage;
-  int status;
-  int flags;
+struct _ds_drv_connection
+{
+  void *dbh;
 #ifdef MULTITHREADED
   pthread_mutex_t lock;
+#endif
+};
+
+typedef struct {
+  DSPAM_CTX *CTX;				/* IN */
+  int status;					/* OUT */
+  int flags;					/* IN */
+  int connection_cache;				/* IN */
+  struct _ds_drv_connection **connections;	/* OUT */
+#ifdef MULTITHREADED
+  pthread_mutex_t lock;				/* UNUSED */
 #endif
 } DRIVER_CTX;
 

@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.11 2004/12/01 17:29:11 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.12 2004/12/01 18:26:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -91,29 +91,21 @@ dspam_init_driver (DRIVER_CTX *DTX)
 
   if (DTX->flags & DRF_STATEFUL) {
     int i, connection_cache = 1;
-    struct _mysql_drv_driver_storage *d;
 
     if (_ds_read_attribute(DTX->CTX->config->attributes, "MySQLConnectionCache"))
       connection_cache = atoi(_ds_read_attribute(DTX->CTX->config->attributes, "MySQLConnectionCache"));
 
-    DTX->storage = calloc(1, sizeof(struct _mysql_drv_driver_storage));
-    if (DTX->storage == NULL) {
+    DTX->connection_cache = connection_cache;
+    DTX->connections = calloc(1, sizeof(struct _ds_drv_connection *)*connection_cache); 
+    if (DTX->connections == NULL) {
       LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-      return EUNKNOWN;
-    }
-    d = DTX->storage;
-    d->connection_cache = connection_cache;
-    d->connections = calloc(1, sizeof(struct _mysql_drv_connection *)*connection_cache); 
-    if (d->connections == NULL) {
-      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-      free(DTX->storage);
       return EUNKNOWN;
     }
 
     for(i=0;i<connection_cache;i++) {
-      d->connections[i] = calloc(1, sizeof(struct _mysql_drv_connection *));
-      if (d->connections[i]) {
-        d->connections[i]->dbh = _mysql_drv_connect(DTX->CTX);
+      DTX->connections[i] = calloc(1, sizeof(struct _ds_drv_connection *));
+      if (DTX->connections[i]) {
+        DTX->connections[i]->dbh = (void *) _mysql_drv_connect(DTX->CTX);
       }
     }
   }
@@ -126,20 +118,17 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
 {
  
   if (DTX != NULL) {
-    if (DTX->flags & DRF_STATEFUL && DTX->storage) {
-      struct _mysql_drv_driver_storage *d;
+    if (DTX->flags & DRF_STATEFUL) {
       int i;
 
-      d = DTX->storage;
-      for(i=0;i<d->connection_cache;i++) {
-        struct _mysql_drv_connection *o = d->connections[i];
-        if (o && o->dbh)
-          mysql_close(o->dbh);
-        free(o);
+      for(i=0;i<DTX->connection_cache;i++) {
+        if (DTX->connections && DTX->connections[i]->dbh)
+          mysql_close((MYSQL *) DTX->connections[i]->dbh);
+        free(DTX->connections[i]);
       }
 
-      free(d->connections);
-      free(d);
+      free(DTX->connections);
+      DTX->connections = NULL;
     }
   }
 

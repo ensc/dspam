@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.h,v 1.2 2004/12/01 17:29:11 jonz Exp $ */
+/* $Id: mysql_drv.h,v 1.3 2004/12/01 18:26:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -31,20 +31,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef MULTITHREADED
 #include <pthread.h>
 #endif
-
-struct _mysql_drv_connection
-{
-  MYSQL *dbh;
-#ifdef MULTITHREADED
-  pthread_mutex_t lock;
-#endif
-};
-
-struct _mysql_drv_driver_storage
-{
-  int connection_cache;
-  struct _mysql_drv_connection **connections;
-};
 
 struct _mysql_drv_storage
 {

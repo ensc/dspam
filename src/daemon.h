@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.8 2004/12/01 02:05:23 jonz Exp $ */
+/* $Id: daemon.h,v 1.9 2004/12/01 18:26:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -39,6 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "buffer.h"
 #include "dspam.h"
+#include "libdspam.h"
 
 #ifdef DAEMON
 
@@ -48,9 +49,10 @@ typedef struct {
   pthread_t thread;
   struct sockaddr_in remote_addr;
   buffer *packet_buffer;
+  DRIVER_CTX *DTX;
 } THREAD_CTX;
 
-int daemon_listen(void);
+int daemon_listen(DRIVER_CTX *DTX);
 void *process_connection(void *ptr);
 char *socket_getline(THREAD_CTX *TTX, int timeout);
 char *pop_buffer(THREAD_CTX *TTX);

@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.9 2004/12/01 14:08:35 jonz Exp $ */
+/* $Id: dspam.h,v 1.10 2004/12/01 18:26:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -57,6 +57,7 @@ typedef struct {
   int spam_action;	    /* Action on Spam        IN DSA_ */
   int trusted;		    /* Trusted User?         IN      */
   int feature;		    /* Feature Overridden?   IN      */
+  void *dbh;                /* Database Handle       IN      */
   u_int32_t flags;          /* Flags DAF_            IN      */
   int training_buffer;	    /* Sedation Level 0-10   IN      */
   char mailer_args[256];        /* Delivery Args     IN      */
@@ -69,8 +70,8 @@ typedef struct {
   struct nt *classify_users;    /* Classify list     OUT     */
   struct _ds_spam_signature SIG;/* signature object  OUT     */ 
   int learned;                  /* Message learned?  OUT     */
-  int sockfd;			/* Socket FD if not STDOUT */
-  int sockfd_output;		/* Output sent to sockfd? */
+  int sockfd;			/* Socket FD if not STDOUT   */
+  int sockfd_output;		/* Output sent to sockfd?    */
 
 #ifdef DEBUG
   char debug_args[1024];

@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.47 2004/12/01 17:29:11 jonz Exp $
+$Id: CHANGELOG,v 1.48 2004/12/01 18:26:12 jonz Exp $
 
 Version NEXT
 ------------
@@ -22,9 +22,9 @@ DATA
   pipe in a MT app may be bad
 - implemented multiple responses per recipient
 - changed storage driver layer to use a driver context (for caching connections)
+- stateful db connections done for mysql driver
 
 next: client
-then: stateful db connections
  
 [20041127.1700] jonz: normalized process_message()
 

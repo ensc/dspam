@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.25 2004/12/01 17:29:11 jonz Exp $ */
+/* $Id: dspam.c,v 1.26 2004/12/01 18:26:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -239,7 +239,7 @@ process_message (AGENT_CTX *ATX,
 
   /* Pass any libdspam preferences through the API, then attach storage */
   set_libdspam_attributes(CTX);
-  if (dspam_attach(CTX, NULL)) {
+  if (dspam_attach(CTX, ATX->dbh)) {
     LOGDEBUG("unable to attach dspam context");
     result = EUNKNOWN;
     goto RETURN;
@@ -870,7 +870,7 @@ inoculate_user (const char *username, struct _ds_spam_signature *SIG,
   if (INOC)
   {
     set_libdspam_attributes(INOC);
-    if (dspam_attach(INOC, NULL)) {
+    if (dspam_attach(INOC, ATX->dbh)) {
       LOG (LOG_WARNING, "unable to attach dspam context");
       dspam_destroy(INOC);
       return EUNKNOWN;
@@ -922,7 +922,7 @@ inoculate_user (const char *username, struct _ds_spam_signature *SIG,
     if (INOC)
     {
       set_libdspam_attributes(INOC);
-      if (dspam_attach(INOC, NULL)) {
+      if (dspam_attach(INOC, ATX->dbh)) {
         LOG (LOG_WARNING, "unable to attach dspam context");
         dspam_destroy(INOC);
         return EUNKNOWN;
@@ -983,7 +983,7 @@ user_classify (const char *username, struct _ds_spam_signature *SIG,
   if (CLX)
   {
     set_libdspam_attributes(CLX);
-    if (dspam_attach(CLX, NULL)) {
+    if (dspam_attach(CLX, ATX->dbh)) {
       LOG (LOG_WARNING, "unable to attach dspam context");
       dspam_destroy(CLX);
       return EUNKNOWN;
@@ -1226,18 +1226,32 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     /* Launch into daemon mode */
 
     if (!strcmp (argv[i], "--daemon") && ATX->trusted) {
+      DRIVER_CTX DTX;
+
+      DTX.CTX = dspam_create (NULL, NULL, 
+                        _ds_read_attribute(agent_config, "Home"),
+                        DSM_TOOLS, 0);
+      if (!DTX.CTX)
+      {
+        LOGDEBUG("unable to initialize dspam context");
+        exit(EXIT_FAILURE);
+      }
+
+      set_libdspam_attributes(DTX.CTX);
+      DTX.flags |= DRF_STATEFUL;
+     
 #ifdef DEBUG
       DO_DEBUG = 2;
 #endif
-      if (dspam_init_driver (NULL))
+      if (dspam_init_driver (&DTX))
       {
         LOG (LOG_WARNING, "unable to initialize storage driver");
         exit(EXIT_FAILURE);
       }
       LOGDEBUG(DAEMON_START);
-      daemon_listen();
+      daemon_listen(&DTX);
       LOGDEBUG(DAEMON_EXIT);
-      dspam_shutdown_driver(NULL);
+      dspam_shutdown_driver(&DTX);
       pthread_exit(EXIT_SUCCESS);
       exit(EXIT_SUCCESS);
     }
@@ -2610,7 +2624,7 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       }
 
       set_libdspam_attributes(CLX);
-      if (dspam_attach(CLX, NULL)) {
+      if (dspam_attach(CLX, ATX->dbh)) {
         do_train = 0;
         dspam_destroy(CLX);
         break;
