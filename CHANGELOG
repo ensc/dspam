@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.67 2004/12/09 18:25:31 jonz Exp $
+$Id: CHANGELOG,v 1.68 2004/12/11 19:31:27 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041211.1430] jonz: lowered initial training loop
+
+lowered initial learning threshold from 2500 to 1000
 
 [20041209.0800] jonz: added profile failover
 
@@ -44,6 +48,7 @@ additional tweaks 11/25
 11/28 - no bias for bnr patterns
 12/5 - implemented pattern layers 2 and 3 which may provide a concrete
   approach to dubbing
+12/11 - only train when > 200 innocent messages
 
 [20041101.0700] jonz: added MaxMessageSize option to dspam.conf
 
