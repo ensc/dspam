@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.7 2004/10/28 14:11:28 jonz Exp $
+$Id: CHANGELOG,v 1.8 2004/10/29 13:31:21 jonz Exp $
 
 Version NEXT
 ------------
+
+[20041029.0800] jonz: fixed pragma bug in sqlite_drv
+
+fixed a bug in sqlite_drv causing pragma's in dspam.conf to be ignored
 
 [20041028.0700] jonz: support for mysql 4.1's ON DUPLICATE KEY
 
