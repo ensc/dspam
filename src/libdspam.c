@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.39 2004/12/15 19:03:04 jonz Exp $ */
+/* $Id: libdspam.c,v 1.40 2004/12/15 19:41:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -1221,7 +1221,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     }
 
     /* Add BNR pattern to token hash */
-    if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 250) {
+    if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350) {
       node_lht = c_lht_first (bnr_layer1, &c_lht);
       while(node_lht != NULL) {
         lht_hit(freq, node_lht->key, node_lht->token_name);
@@ -1242,7 +1242,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       }
     }
 
-    if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 500) {
+    if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 650) {
       node_lht = c_lht_first (bnr_layer2, &c_lht);
       while(node_lht != NULL) {
         lht_hit(freq, node_lht->key, node_lht->token_name);
@@ -1483,13 +1483,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       if ((node_lht->token_name[4] == 'c' || 
            node_lht->token_name[4] == 's' ||
            node_lht->token_name[4] == 't') &&
-          CTX->totals.innocent_learned + CTX->totals.innocent_classified > 250)
+          CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350)
       {
         node_lht->s.status |= TST_DIRTY;
       }
 
       if (node_lht->token_name[4] == '2' && 
-          CTX->totals.innocent_learned + CTX->totals.innocent_classified > 500)
+          CTX->totals.innocent_learned + CTX->totals.innocent_classified > 650)
       {
         node_lht->s.status |= TST_DIRTY;
       }
@@ -1807,25 +1807,28 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
       CTX->totals.innocent_learned > 0 &&
         ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
          (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0)) > 0)
+
   {
-
-  if (token_type == DTT_BNR) {
-
-    s->probability =
-      (s->spam_hits * 1.0 / bnr_tot->spam_hits * 1.0) /
-      ((s->spam_hits * 1.0 / bnr_tot->spam_hits * 1.0) +
-       (s->innocent_hits * 1.0 / bnr_tot->innocent_hits * 1.0));
+    if (token_type == DTT_BNR) {
+      /* Hit counts are step 5 */
+      int bnr_spam = (bnr_tot->spam_hits/5) * 5;
+      int bnr_innocent = (bnr_tot->innocent_hits/5) * 5;
+  
+      s->probability =
+        (s->spam_hits * 1.0 / bnr_spam * 1.0) /
+        ((s->spam_hits * 1.0 / bnr_spam * 1.0) +
+         (s->innocent_hits * 1.0 / bnr_innocent * 1.0));
     } else {
 #ifdef BIAS
-      s->probability =
-        (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
-        ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
-         (s->innocent_hits * 2.0 / CTX->totals.innocent_learned * 1.0));
+        s->probability =
+          (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
+          ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
+           (s->innocent_hits * 2.0 / CTX->totals.innocent_learned * 1.0));
 #else
-      s->probability =
-        (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
-        ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
-         (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0));
+        s->probability =
+          (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
+          ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
+           (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0));
 #endif
     }
   }
