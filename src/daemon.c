@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.62 2005/03/15 19:31:23 jonz Exp $ */
+/* $Id: daemon.c,v 1.63 2005/03/15 20:15:34 jonz Exp $ */
 
 /*
 
@@ -216,6 +216,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
               LOGDEBUG("connection id %d from %s.", newfd, 
                        inet_ntoa_r(remote_addr.sin_addr, buff, sizeof(buff)));
 #endif
+              continue;
             }
             fcntl(newfd, F_SETFL, O_RDWR);
             setsockopt(newfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
@@ -300,7 +301,7 @@ void *process_connection(void *ptr) {
   int argc = 0;
   int **results, *result;
   int i, locked = -1;
-  FILE *fd = fdopen(TTX->sockfd, "w");
+  FILE *fd;
   int server_mode = SSM_DSPAM;
 
   /* Set defaults */
@@ -319,6 +320,10 @@ void *process_connection(void *ptr) {
 
   /* Initialize */
 
+  fd = fdopen(TTX->sockfd, "w");
+  if (fd == NULL)
+    goto CLOSE;
+  
   setbuf(fd, NULL);
 
   TTX->packet_buffer = buffer_create(NULL);
@@ -696,7 +701,8 @@ void *process_connection(void *ptr) {
 CLOSE:
   if (locked>=0)
     pthread_mutex_unlock(&TTX->DTX->connections[locked]->lock);
-  fclose(fd);
+  if (fd)
+    fclose(fd);
   buffer_destroy(TTX->packet_buffer);
   if (message) 
     buffer_destroy(message);

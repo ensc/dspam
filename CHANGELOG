@@ -1,12 +1,15 @@
-$Id: CHANGELOG,v 1.214 2005/03/15 19:31:23 jonz Exp $
+$Id: CHANGELOG,v 1.215 2005/03/15 20:15:34 jonz Exp $
 
 Version NEXT
 ------------
 
-[20050315.0800] jonz: applied patch to fix file descriptor leaks
+[20050315.0800] jonz: applied patch to fix file descriptor problems
 
 when listener fails, file descriptor fails to close, causing a possibly
 fatal situation in the event of too many failures
+
+when fdopen close, a crash can occur because we're operating on an invalid
+file descriptor
 
 [20050315.0730] jonz: added LOG_NOWAIT to syslogging
 
