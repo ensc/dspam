@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.7 2004/12/05 22:14:45 jonz Exp $ */
+/* $Id: bnr.c,v 1.8 2004/12/06 00:13:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -92,10 +92,10 @@ int bnr_pattern_instantiate(
     }
 
     previous_bnr_probs[BNR_SIZE-1] = _ds_round(node_lht->s.probability);
-    sprintf(bnr_token, "bnr.%c", type);
+    sprintf(bnr_token, "bnr.%c.", type);
     for(i=0;i<BNR_SIZE;i++) {
       char x[6];
-      snprintf(x, 6, "%01.2f.", previous_bnr_probs[i]);
+      snprintf(x, 6, "%01.2f_", previous_bnr_probs[i]);
       strlcat(bnr_token, x, sizeof(bnr_token));
     }
 
