@@ -1,10 +1,10 @@
-$Id: CHANGELOG,v 1.129 2005/01/07 13:44:39 jonz Exp $
+$Id: CHANGELOG,v 1.130 2005/01/07 13:47:31 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
 
-Version NEXT
-------------
+Version 3.3.10
+--------------
 
 [20040106.1800] jonz: added SBLQueue dspam.conf option
 

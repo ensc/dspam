@@ -1,6 +1,6 @@
-$Id: RELEASE.NOTES,v 1.17 2005/01/03 21:00:35 jonz Exp $
+$Id: RELEASE.NOTES,v 1.18 2005/01/07 13:47:31 jonz Exp $
 
-RELEASE 3.3.9 (Development)
+RELEASE 3.3.10 (Development)
 
 All odd-numbered releases are considered development releases. Development
 releases are for pre-production testing and are likely to contain bugs. Please
@@ -11,7 +11,7 @@ DSPAM CORE ENGINE (libdspam)
 Enhancements:
 
 Bayesian Noise Reduction v2.0
-http://www.nuclearelephant.com/papers/bnr.html
+http://bnr.nuclearelephant.com
 Bayesian Noise Reduction v2.0 has been implemented, using a statistical pattern
 identification algorithm. 
 
@@ -25,7 +25,7 @@ Library Performance Enhancements
 Many algorithms have been optimized and/or completely rewritten. These include
 sorting algorithms and internal data structure functions. The resulting
 code is much faster (by a factor of 5 or more). This should make processing
-extremely fast for even large messages.
+extremely fast, even for large messages.
 
 NodalCore(tm) C-Series Hardware Build Support
 The NodalCore(tm) C-Series interface card is a high-speed coprocessor
@@ -39,10 +39,6 @@ NOTE: The necessary DSPAM adapter code is only available under license.
 SQLite3 Storage Driver Support
 The SQLite3 storage driver (sqlite3_drv) has been added to support the
 latest stable production version of sqlite.
-
-Training Loop Changes
-The training loop has been dropped from 2500 innocent messages to 1000 in
-light of the improved learning capabilities 3.x has shown.
 
 DSPAM AGENT
 
@@ -61,7 +57,8 @@ agent uses a proprietary LMTP dialog to accept and process inbound messages,
 meaning it can be tied closely to the MTA or the DSPAM agent in client mode.
 Use the --enable-daemon compile flag to activate. A thin-client (dspamc) has
 also been added to the build, which is basically a scaled down version of
-the agent without libdspam linked in.
+the agent without libdspam linked in. The client process is called with
+--client.
 
 Storage Profile Failover
 The agent now supports failover of storage profiles. This allows you to
@@ -85,6 +82,10 @@ CGI
 
 Additional Sort Functionality
 Sorting by Subject and Sender options have been added to the quarantine view
+
+Manual Override of Autodetectable Features
+Implementations where the CGI runs untrusted provide an override to manually
+set the features which would normally be autodetectable as a trusted user.
 
 Jonathan Zdziarski
 <jonathan@nuclearelephant.com>
