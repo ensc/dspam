@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.9 2005/01/14 14:16:33 jonz Exp $ */
+/* $Id: pref.c,v 1.10 2005/01/14 14:19:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -147,7 +147,6 @@ agent_pref_t _ds_pref_load(
 {
   char filename[MAX_FILENAME_LENGTH];
   agent_pref_t PTX = malloc(sizeof(agent_attrib_t )*PREF_MAX);
-  agent_attrib_t pref;
   char buff[258];
   FILE *file;
   char *p, *q, *bufptr;
