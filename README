@@ -1,4 +1,4 @@
-$Id: README,v 1.25 2004/12/24 19:03:05 jonz Exp $
+$Id: README,v 1.26 2005/01/03 23:03:35 jonz Exp $
 
 DSPAM v3.3 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1673,17 +1673,19 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
 	dspam --debug --daemon &
 
   The DSPAM agent can then be called the same as if you were running in
-  standard (non-client/server) mode. The client settings will be automatically
-  detected in dspam.conf, and the agent will act as a thin client instead. For
-  example:
+  standard (non-client/server) mode and adding --client to the set of
+  parameters. Running dspam without --client specified will cause DSPAM to
+  revert to its normal non-daemon behavior and establish database connections
+  on its own. The client settings will be loaded from dspam.conf, and the
+  agent will act as a thin client instead. For example:
 
-	dspam --user dick jane --deliver=innocent -d %u
+	dspam --client --user dick jane --deliver=innocent -d %u
 
   Alternatively, if you'd like to use a thinner client, dspamc is identical
   to the dspam binary in behavior, but has been stripped down to only include
   the lightweight client.
 
-	dspamc --user dick jane --deliver=innocent -d %u
+	dspamc --client --user dick jane --deliver=innocent -d %u
 
   The conversation that takes place between the client/server is LMTP-based,
   and will look like this:
