@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.1 2004/10/24 20:51:55 jonz Exp $ */
+/* $Id: dspam_clean.c,v 1.2 2004/10/25 22:15:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -386,9 +386,12 @@ int process_unused (DSPAM_CTX *CTX, int any, int quota, int nospam, int onehit) 
 #endif
 
   PTX = _ds_pref_load(agent_config, CTX->username, _ds_read_attribute(agent_config, "Home"));
-                                                                                
-  if (PTX == NULL || PTX[0] == 0)
+
+  if (PTX == NULL || PTX[0] == 0) {
+    if (PTX)
+      _ds_pref_free(PTX);
     PTX = pref_config();
+  }
                                                                                 
   if (!strcasecmp(_ds_pref_val(PTX, "trainingMode"), "toe")) {
 #ifdef DEBUG
@@ -403,6 +406,9 @@ int process_unused (DSPAM_CTX *CTX, int any, int quota, int nospam, int onehit) 
 #endif
     tum = 1;
   }
+
+  if (PTX)
+    _ds_pref_free(PTX);
 
   del = lht_create(1543);
   if (del == NULL)
