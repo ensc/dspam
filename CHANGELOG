@@ -1,8 +1,12 @@
-$Id: CHANGELOG,v 1.222 2005/03/16 18:31:26 jonz Exp $
+$Id: CHANGELOG,v 1.223 2005/03/16 18:40:58 jonz Exp $
    
 Version NEXT
 ------------
   
+[20050316.0030] jonz: added admin.cgi opt in/out preferences support
+
+added support for opt in/out to admin.cgi
+
 [20050315.0800] jonz: fixed broken returnCodes when using dspamc
 
 fixed broken return codes when using dspamc, which involved rewriting the
