@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.32 2004/12/25 22:53:57 jonz Exp $ */
+/* $Id: daemon.c,v 1.33 2004/12/30 15:23:46 jonz Exp $ */
 
 /*
  DSPAM
@@ -186,9 +186,10 @@ int daemon_listen(DRIVER_CTX *DTX) {
                                 &addrlen)) == -1)
             {
               LOG(LOG_WARNING, ERROR_DAEMON_ACCEPT, strerror(errno));
-            } else {
+            } else if (!domain) {
+              char buff[32];
               LOGDEBUG("connection id %d from %s.", newfd, 
-                       inet_ntoa(remote_addr.sin_addr));
+                       inet_ntoa_r(remote_addr.sin_addr, buff, sizeof(buff)));
             }
             fcntl(newfd, F_SETFL, O_RDWR);
             setsockopt(newfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
@@ -297,8 +298,7 @@ void *process_connection(void *ptr) {
 
         free(input);
         if (!TTX->authenticated) {
-          LOGDEBUG("fd %d remote_addr %s authentication failure.", TTX->sockfd,
-                    inet_ntoa(TTX->remote_addr.sin_addr));
+          LOGDEBUG("fd %d authentication failure.", TTX->sockfd);
 
           if (daemon_reply(TTX, LMTP_AUTH_ERROR, "Authentication Required")<=0) {
             free(input);

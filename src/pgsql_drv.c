@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.20 2004/12/26 01:08:06 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.21 2004/12/30 15:23:46 jonz Exp $ */
 
 /*
  DSPAM
@@ -111,16 +111,18 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
 {
 
   if (DTX != NULL) {
-    if (DTX->flags & DRF_STATEFUL) {
+    if (DTX->flags & DRF_STATEFUL && DTX->connections) {
       int i;
 
       for(i=0;i<DTX->connection_cache;i++) {
-        if (DTX->connections && DTX->connections[i]->dbh)
-          PQfinish((PGconn *)DTX->connections[i]->dbh);
+        if (DTX->connections[i]) {
+          if (DTX->connections[i]->dbh)
+            PQfinish((PGconn *)DTX->connections[i]->dbh);
 #ifdef DAEMON
-        pthread_mutex_destroy(&DTX->connections[i]->lock);
+          pthread_mutex_destroy(&DTX->connections[i]->lock);
 #endif
-        free(DTX->connections[i]);
+          free(DTX->connections[i]);
+        }
       }
 
       free(DTX->connections);

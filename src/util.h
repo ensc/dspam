@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.3 2004/12/22 03:36:40 jonz Exp $ */
+/* $Id: util.h,v 1.4 2004/12/30 15:23:46 jonz Exp $ */
 
 /*
  DSPAM
@@ -28,6 +28,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #ifndef _WIN32
 #include <pwd.h>
@@ -91,6 +94,11 @@ size_t strlcat (char *, const char *, size_t);
 
 #ifndef HAVE_STRTOK_R
 char * strtok_r(char *s1, const char *s2, char **lasts);
+#endif
+
+#ifndef HAVE_INET_NTOA_R
+unsigned int i2a(char* dest,unsigned int x);
+char *inet_ntoa_r(struct in_addr in, char *buf, int len);
 #endif
 
 const char *	_ds_userdir_path (char *buff, const char *home, const char *filename, const char *extension);

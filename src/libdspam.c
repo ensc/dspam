@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.75 2004/12/30 00:33:00 jonz Exp $ */
+/* $Id: libdspam.c,v 1.76 2004/12/30 15:23:46 jonz Exp $ */
 
 /*
  DSPAM
@@ -1239,9 +1239,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         node_nt = c_nt_next(freq->chained_order, &c_nt);
       }
 
-      bnr_destroy(BTX_S);
-      bnr_destroy(BTX_C);
-
 #ifdef BNR_DEBUG
       if (BTX_S->stream->items + BTX_C->stream->items +
           BTX_S->eliminations  + BTX_C->eliminations > 0)
@@ -1338,6 +1335,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 #endif
 
     }
+
+    bnr_destroy(BTX_S);
+    bnr_destroy(BTX_C);
 
     /* Add BNR pattern to token hash */
     if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350) {

@@ -1,7 +1,16 @@
-$Id: CHANGELOG,v 1.110 2004/12/30 04:14:53 jonz Exp $
+$Id: CHANGELOG,v 1.111 2004/12/30 15:23:46 jonz Exp $
 
 Rapid Development Changes - To be consolidated at stable release time
 ---------------------------------------------------------------------
+
+Version 3.3.8
+-------------
+
+[20041230.0800] jonz: memory leak and thread-safe cleanup
+
+- fixed memory leak related to bayesian noise reduction calls
+- fixed use of inet_ntoa, which is not thread-safe, replaced with inet_ntoa_r
+- inet_ntoa_r should never be called if using domain sockets
 
 Version 3.3.7
 -------------
