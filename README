@@ -1,4 +1,4 @@
-$Id: README,v 1.45 2005/03/04 16:00:45 jonz Exp $
+$Id: README,v 1.46 2005/03/04 16:23:52 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -1862,7 +1862,7 @@ DATA
 
 3.1 KNOWN BUGS
 
-  Please see http://dspam.nuclearelephant.com/bugs.txt for information
+  Please see http://dspam.nuclearelephant.com/bugs.shtml for information
   about known bugs.
 
 3.2 ADDING THE DSPAM LOGO BUTTON TO YOUR WEBSITE
