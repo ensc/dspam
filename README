@@ -1,4 +1,4 @@
-$Id: README,v 1.9 2004/11/16 17:07:50 jonz Exp $
+$Id: README,v 1.10 2004/11/18 15:52:31 jonz Exp $
 
 DSPAM v3.2 <jonathan@nuclearelephant.com>
 Copyright (c) 2004 Network Dweebs Corporation
@@ -239,10 +239,13 @@ First you will need to download a few prerequisite tools:
    PATH SWITCHES
 
    --prefix=DIR
-   Specify an alternative root prefix for installation.  The default is 
-   /usr/local, and dspam.conf will copy into /usr/local/etc/dspam.conf.
-   Changing the prefix will affect both the binary installation path and the
-   location of dspam.conf.  
+   Specify an alternative root prefix for installation.  The default is
+   /usr/local. This does not affect the location of dspam.conf (which defaults
+   to /usr/local/etc). Use --sysconfdir= for this.
+
+   --sysconfdir=DIR
+   Specify an alternative home for the dspam.conf file. The default is
+   /usr/local/etc.
 
    --with-dspam-home=DIR
    Specify an alternative DSPAM home for installation. This can alternatively
