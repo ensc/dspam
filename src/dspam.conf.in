@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.12 2004/12/09 18:25:32 jonz Exp $
+## $Id: dspam.conf.in,v 1.13 2004/12/09 18:28:12 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -225,6 +225,11 @@ AllowOverride whitelistThreshold
 
 #
 # If you're using storage profiles, you can set failovers for each profile.
+# Of course, if you'll be failing over to another database, that database
+# must have the same information as the first. If you're using a global
+# database with no training, this should be relatively simple. If you're
+# configuring per-user data, however, you'll need to set up some type of
+# replication between databases.
 #
 #Failover.DECAlpha      SUN420R
 #Failover.Sun420R       DECAlpha
