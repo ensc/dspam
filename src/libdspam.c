@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.62 2004/12/26 22:43:40 jonz Exp $ */
+/* $Id: libdspam.c,v 1.63 2004/12/26 22:49:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -1497,7 +1497,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
            node_lht->token_name[4] == 's' ||
            node_lht->token_name[4] == 't') &&
           CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000 &&
-          CTX->confidence < 0.90) 
+          CTX->confidence < 0.60) 
       {
         node_lht->s.status |= TST_DIRTY;
       }
