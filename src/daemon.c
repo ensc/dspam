@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.66 2005/03/16 14:09:11 jonz Exp $ */
+/* $Id: daemon.c,v 1.67 2005/03/16 14:33:19 jonz Exp $ */
 
 /*
 
@@ -319,8 +319,10 @@ void *process_connection(void *ptr) {
 
   /* Initialize */
   fd = fdopen(TTX->sockfd, "w");
-  if (!fd)
+  if (!fd) {
+    close(TTX->sockfd);
     goto CLOSE;
+  }
 
   setbuf(fd, NULL);
 
