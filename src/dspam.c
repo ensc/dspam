@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.96 2005/03/15 14:15:36 jonz Exp $ */
+/* $Id: dspam.c,v 1.97 2005/03/15 20:33:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -3050,7 +3050,10 @@ int daemon_start(AGENT_CTX *ATX) {
 
     LOGDEBUG("spawning daemon listener");
 
-    daemon_listen(&DTX);
+    if (daemon_listen(&DTX)) {
+      LOG(LOG_CRIT, "daemon_listen() failed");
+      goto BAIL;
+    }
 
     LOGDEBUG("waiting for processing threads to exit");
 
@@ -3061,6 +3064,7 @@ int daemon_start(AGENT_CTX *ATX) {
       select(0, NULL, NULL, NULL, &tv);
     }
 
+BAIL:
     if (pidfile)
       unlink(pidfile);
 
