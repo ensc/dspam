@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.59 2004/12/03 12:59:31 jonz Exp $
+$Id: CHANGELOG,v 1.60 2004/12/03 13:16:20 jonz Exp $
 
 Version NEXT
 ------------
@@ -59,6 +59,10 @@ normalized main() by breaking up code into smaller subroutines
 
 Version 3.2.4
 -------------
+
+[20041203.0800] jonz: applied patch to fix build fail when CFLAGS defined
+
+fixed a bug causing tools to fail to build when CFLAGS was specified
 
 [20041203.0745] jonz: fixed addition of spurious colons after delimiter
 
