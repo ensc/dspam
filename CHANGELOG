@@ -1,8 +1,16 @@
-$Id: CHANGELOG,v 1.226 2005/03/16 19:49:48 jonz Exp $
+$Id: CHANGELOG,v 1.227 2005/03/17 17:35:47 jonz Exp $
    
 Version NEXT
 ------------
   
+[20050317.0500] jonz: fix for 5.1.0's in daemon mode
+
+fixed condition where 5.1.0 error would occur if TrustedDeliveryAgent was
+not specified, even if DeliveryHost was.
+
+fixed condition where 5.1.0 error would be followed by 354 (response to DATA)
+instead of failing
+
 [20050316.0100] jonz: reclassification failures should not deliver on failure
 
 false positive reclassification failures shouldn't deliver when a signature

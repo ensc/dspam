@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.70 2005/03/16 19:37:59 jonz Exp $ */
+/* $Id: daemon.c,v 1.71 2005/03/17 17:35:47 jonz Exp $ */
 
 /*
 
@@ -299,7 +299,7 @@ void *process_connection(void *ptr) {
   char buf[1024];
   int tries = 0;
   int argc = 0;
-  int i, locked = -1;
+  int i, locked = -1, invalid = 0;
   FILE *fd = 0;
   int server_mode = SSM_DSPAM;
 
@@ -485,7 +485,7 @@ void *process_connection(void *ptr) {
 
     /* RCPT TO */
 
-    while(ATX->users->items == 0) {
+    while(ATX->users->items == 0 || invalid) {
       int bad_response = 0;
       cmdline = daemon_getline(TTX, 300);
  
@@ -547,10 +547,12 @@ void *process_connection(void *ptr) {
       if (bad_response) 
         continue;
  
+      invalid = 0;
       if (process_arguments(ATX, argc, argv) || apply_defaults(ATX))
       {
         report_error(ERROR_INITIALIZE_ATX);
         daemon_reply(TTX, LMTP_NO_RCPT, "5.1.0", ERROR_INITIALIZE_ATX);
+        invalid = 1;
       } else if (ATX->users->items == 0) {
         daemon_reply(TTX, LMTP_NO_RCPT, "5.1.1", ERROR_USER_UNDEFINED);
       }

@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.31 2005/03/16 19:37:59 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.32 2005/03/17 17:35:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -585,7 +585,7 @@ int apply_defaults(AGENT_CTX *ATX) {
 #endif
         strlcat(fmt, ATX->mailer_args, sizeof(fmt));
       strcpy(ATX->mailer_args, fmt);
-    } else {
+    } else if (!_ds_read_attribute(agent_config, "Deliveryhost")) {
       if (!(ATX->flags & DAF_STDOUT)) {
         report_error_printf(ERROR_NO_AGENT, key);
         return EINVAL;
