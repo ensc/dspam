@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.23 2004/11/23 23:28:42 jonz Exp $ */
+/* $Id: libdspam.c,v 1.24 2004/11/23 23:29:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -2319,7 +2319,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct tbt *index, struct lht *freq) {
         node_tbt = tbt_next (node_tbt);
         continue;
       }
-    }
+//    }
 
     /* Set the probability if we've provided a classification */
     if (CTX->classification == DSR_ISSPAM)
