@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.111 2005/03/19 23:54:55 jonz Exp $ */
+/* $Id: dspam.c,v 1.112 2005/03/20 22:19:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -691,7 +691,7 @@ RETURN:
 
 int
 deliver_message (AGENT_CTX *ATX, const char *message, const char *mailer_args,
-                 const char *username, FILE *stream)
+                 const char *username, FILE *stream, int result)
 {
   char args[1024];
   char *margs, *mmargs, *arg;
@@ -707,6 +707,11 @@ deliver_message (AGENT_CTX *ATX, const char *message, const char *mailer_args,
   if (message == NULL)
     return EINVAL;
 
+  /* If we're delivering to STDOUT, we need to provide a classification */
+
+  if (ATX->sockfd && ATX->flags & DAF_STDOUT) 
+    fprintf(stream, "X-Daemon-Classification: %s\n", (result == DSR_ISSPAM) ? "SPAM" : "INNOCENT");
+  
   if (mailer_args == NULL)
   {
     fputs (message, stream);
@@ -1238,7 +1243,7 @@ int send_notice(AGENT_CTX *ATX, const char *filename, const char *mailer_args,
     buffer_cat(b, s);
   }
   fclose(f);
-  deliver_message(ATX, b->data, mailer_args, username, stdout);
+  deliver_message(ATX, b->data, mailer_args, username, stdout, DSR_ISINNOCENT);
 
   buffer_destroy(b);
 
@@ -1457,7 +1462,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
         retcode =
           deliver_message (ATX, parse_message->data,
                            (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
-                            node_nt->ptr, fout);
+                            node_nt->ptr, fout, DSR_ISINNOCENT);
 
         if (retcode) 
           presult->exitcode = ERC_DELIVERY;
@@ -1522,7 +1527,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
           retcode = deliver_message
             (ATX, parse_message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
-             node_nt->ptr, fout);
+             node_nt->ptr, fout, DSR_ISINNOCENT);
 
           if (ATX->sockfd && ATX->flags & DAF_STDOUT)
             ATX->sockfd_output = 1;
@@ -1568,14 +1573,14 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                   retcode = deliver_message
                     (ATX, parse_message->data,
                      (ATX->flags & DAF_STDOUT) ? NULL : ATX->spam_args, 
-                     node_nt->ptr, fout);
+                     node_nt->ptr, fout, DSR_ISSPAM);
                   if (ATX->sockfd && ATX->flags & DAF_STDOUT)
                     ATX->sockfd_output = 1;
                 } else {
                   retcode = deliver_message
                     (ATX, parse_message->data,
                      (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
-                     node_nt->ptr, fout);
+                     node_nt->ptr, fout, DSR_ISSPAM);
                   if (ATX->sockfd && ATX->flags & DAF_STDOUT)
                     ATX->sockfd_output = 1;
                 }
@@ -1620,7 +1625,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
           retcode = deliver_message
             (ATX, parse_message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
-             node_nt->ptr, fout);
+             node_nt->ptr, fout, DSR_ISSPAM);
 
           if (retcode) {
             presult->exitcode = ERC_DELIVERY;

@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.235 2005/03/19 00:31:49 jonz Exp $
+$Id: CHANGELOG,v 1.236 2005/03/20 22:19:28 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050320.1700] jonz: fix for exit codes with daemon+stdout
+
+fixed a bug causing Broken returnCodes to fail when using daemon in 
+combination with --stdout.
 
 [20050318.1930] jonz: fixed transliteration of ""
 

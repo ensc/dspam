@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.43 2005/03/19 00:15:08 jonz Exp $ */
+/* $Id: client.c,v 1.44 2005/03/20 22:19:28 jonz Exp $ */
 
 /*
 
@@ -138,6 +138,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
 
   if (ATX->flags & DAF_STDOUT || ATX->operating_mode == DSM_CLASSIFY) {
     char *line = NULL;
+    int head = 0;
 
     line = client_getline(&TTX, 300);
     if (line)
@@ -145,11 +146,21 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
 
     while(line != NULL && strcmp(line, ".")) {
       chomp(line);
-      printf("%s\n", line);
-      if (strstr(line, "250")) {
-        free(line); 
-        goto QUIT; 
-      }
+      if (!head) {
+        head = 1;
+        if (!strncmp(line, "250 ", 4)) {
+          free(line);
+          goto QUIT;
+        }
+
+        if (!strcmp(line, "X-Daemon-Classification: SPAM") && 
+            _ds_match_attribute(agent_config, "Broken", "returnCodes")) 
+        {
+          exitcode = 99;
+        }
+      } else {
+        printf("%s\n", line);
+      } 
       free(line);
       line = client_getline(&TTX, 300);
       if (line) chomp(line);
