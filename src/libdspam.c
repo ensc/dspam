@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.76 2004/12/30 15:23:46 jonz Exp $ */
+/* $Id: libdspam.c,v 1.77 2004/12/31 17:00:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -1348,11 +1348,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         lht_setfrequency(freq, node_lht->key, 1);
   
 #ifdef BNR_DEBUG
-        LOGDEBUG("BNR Pattern L1: %s %01.5f %lds %ldi",
-                 node_lht->token_name,
-                 node_lht->s.probability,
-                 node_lht->s.spam_hits,
-                 node_lht->s.innocent_hits);
+        if (fabs(0.5-node_lht->s.probability)>0.25) {
+          LOGDEBUG("Interesting BNR Pattern: %s %01.5f %lds %ldi",
+                   node_lht->token_name,
+                   node_lht->s.probability,
+                   node_lht->s.spam_hits,
+                   node_lht->s.innocent_hits);
+        }
 #endif
   
         node_lht = c_lht_next(bnr_patterns, &c_lht);
