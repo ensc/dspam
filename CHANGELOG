@@ -1,4 +1,11 @@
-$Id: CHANGELOG,v 1.95 2004/12/25 23:42:02 jonz Exp $
+$Id: CHANGELOG,v 1.96 2004/12/26 02:01:00 jonz Exp $
+
+Version 3.3.4
+-------------
+
+[20041225.2045] jonz: fixed compile for non-daemon build
+
+fixed some critical compile bugs so that devel can build without daemon
 
 Version 3.3.3
 -------------
