@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.14 2004/12/26 20:05:08 jonz Exp $
+dnl $Id: configure.ac,v 1.15 2004/12/26 20:27:05 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -290,7 +290,6 @@ then
 else
     enable_bnr_debug=yes    # overkill, but convenient
     AC_DEFINE(BNR_DEBUG, 1, [Defined if BNR Debug is enabled])
-    AC_DEFINE(BNR_VERBOSE_DEBUG, 1, [Defined if BNR Verbose Debug is enabled])
 fi
 AC_MSG_RESULT([$enable_bnr_debug])
 

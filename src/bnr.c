@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.13 2004/12/18 00:21:17 jonz Exp $ */
+/* $Id: bnr.c,v 1.14 2004/12/26 20:27:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -172,7 +172,7 @@ int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
     {
 
 #ifdef BNR_VERBOSE_DEBUG
-      printf("%s PATTERN: %s (%1.2f) %ld %ld\n", suspect ? "SUSPECT" : "DUB", bnr_token, s.probability, s.spam_hits, s.innocent_hits);
+      LOGDEBUG("%s PATTERN: %s (%1.2f) %ld %ld\n", suspect ? "SUSPECT" : "DUB", bnr_token, s.probability, s.spam_hits, s.innocent_hits);
 #endif
 
       /* Eliminate inconsistent tokens */
@@ -203,7 +203,7 @@ int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
               dub_prob = s.probability;
             }
 #ifdef BNR_VERBOSE_DEBUG
-            printf("\tDUB: %d ELIMINATING: %s (%1.2f) RADIUS %1.2f %s\n",dub, 
+            LOGDEBUG("\tDUB: %d ELIMINATING: %s (%1.2f) RADIUS %1.2f %s\n",dub, 
                    previous_bnr_tokens[i]->token_name,
                    previous_bnr_tokens[i]->s.probability, 
                    fabs(s.probability-previous_bnr_tokens[i]->s.probability), 
@@ -211,7 +211,7 @@ int bnr_filter_process(DSPAM_CTX *CTX, BNR_CTX *BTX) {
 #endif
           } else {
 #ifdef BNR_VERBOSE_DEBUG
-            printf("\tOK: %s (%1.2f) RADIUS %1.2f\n",
+            LOGDEBUG("\tOK: %s (%1.2f) RADIUS %1.2f\n",
                    previous_bnr_tokens[i]->token_name,
                    previous_bnr_tokens[i]->s.probability,
                    fabs(s.probability-previous_bnr_tokens[i]->s.probability));

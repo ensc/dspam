@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.57 2004/12/26 20:01:25 jonz Exp $ */
+/* $Id: libdspam.c,v 1.58 2004/12/26 20:27:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -661,12 +661,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   /* Long Hashed Token Tree: Track tokens, frequencies, and stats */
   struct lht *freq = lht_create (24593);
   struct lht *bnr_layer1 = lht_create (1543);
-  struct lht *bnr_layer2 = lht_create (1543);
-  struct lht *bnr_layer3 = lht_create (1543);
   struct lht_node *node_lht;
   struct lht_c c_lht;
 
   struct heap *heap_sort = NULL; /* Heap sort for top N tokens */
+#ifdef BNR_DEBUG
+  struct heap *heap_nobnr = NULL; /* Heap sort for comparison calculation */
+#endif
 
   struct nt *header = NULL;      /* Header array */
   struct nt_node *node_nt;
@@ -732,6 +733,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     errcode = EUNKNOWN;
     goto bail;
   }
+
+#ifdef BNR_DEBUG
+  heap_nobnr = heap_create(heap_sort->size);
+#endif
 
   CTX->result = 
     (CTX->classification == DSR_ISSPAM) ? DSR_ISSPAM : DSR_ISINNOCENT;
@@ -1146,43 +1151,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     lht_getspamstat(bnr_layer1, crc, &bnr_tot);
 
-    /* BNR LAYER 2 PATTERNS (Patterns of patterns of tokens) */
-
-    bnr_pattern_instantiate(CTX, bnr_layer2, bnr_layer1->order, '2', DTT_BNR, &bnr_tot); 
-    LOGDEBUG("Loading %ld BNR patterns at layer 2", bnr_layer2->items);
-
-    if (_ds_getall_spamrecords (CTX, bnr_layer2))
-    {
-      LOGDEBUG ("_ds_getall_spamrecords() failed");
-      errcode = EUNKNOWN;
-      goto bail;
-    }
-
-    /* BNR LAYER 3 PATTERNS (Patterns of patterns of patterns of tokens) */
-
-    bnr_pattern_instantiate(CTX, bnr_layer3, bnr_layer2->order, '3', DTT_BNR, &bnr_tot);
-    LOGDEBUG("Loading %ld BNR patterns at layer 3", bnr_layer3->items);
-
-    if (_ds_getall_spamrecords (CTX, bnr_layer3))
-    {
-      LOGDEBUG ("_ds_getall_spamrecords() failed");
-      errcode = EUNKNOWN;
-      goto bail;
-    }
-
-
-    /* Calculate BNR pattern probability */
-    node_lht = c_lht_first (bnr_layer3, &c_lht);
-    while(node_lht != NULL) {
-      _ds_calc_stat(CTX, node_lht->key, &node_lht->s, DTT_BNR, &bnr_tot);
-      node_lht = c_lht_next(bnr_layer3, &c_lht);
-    }
-
     /* Perform BNR Processing */
 
     if (CTX->classification == DSR_NONE &&
         CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000) {
-#ifdef BNR_VERBOSE_DEBUG
+#ifdef BNR_DEBUG
       char fn[MAX_FILENAME_LENGTH];
       FILE *file;
 #endif
@@ -1207,12 +1180,12 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
                snr, BTX.total_eliminations, BTX.total_clean); 
 
 
-#ifdef BNR_VERBOSE_DEBUG
+#ifdef BNR_DEBUG
       snprintf(fn, sizeof(fn), "%s/bnr.log", LOGDIR);
       file = fopen(fn, "a");
       if (file != NULL) {
-        fprintf(file, "-- BNR Filter Process Results --");
-        fprintf(file, "Eliminations:");
+        fprintf(file, "-- BNR Filter Process Results --\n");
+        fprintf(file, "Eliminations:\n");
         node_nt = c_nt_first(freq->order, &c_nt);
         while(node_nt != NULL) {
           node_lht = (struct lht_node *) node_nt->ptr;
@@ -1248,6 +1221,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         }
 
         fprintf(file, "]\n\n");
+        fclose(file);
       }
 #endif
     }
@@ -1269,45 +1243,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 #endif
   
         node_lht = c_lht_next(bnr_layer1, &c_lht);
-      }
-    }
-
-    if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 650) {
-      node_lht = c_lht_first (bnr_layer2, &c_lht);
-      while(node_lht != NULL) {
-        lht_hit(freq, node_lht->key, node_lht->token_name, 0);
-
-#ifdef BNR_DEBUG
-       LOGDEBUG("BNR Pattern L2: %s %01.5f %lds %ldi",
-                 node_lht->token_name,
-                 node_lht->s.probability,
-                 node_lht->s.spam_hits,
-                 node_lht->s.innocent_hits);
-#endif
-
-        lht_setspamstat(freq, node_lht->key, &node_lht->s);
-        lht_setfrequency(freq, node_lht->key, 1);
-
-        node_lht = c_lht_next(bnr_layer2, &c_lht);
-      }
-    }
-
-    if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000) {
-      node_lht = c_lht_first (bnr_layer3, &c_lht);
-      while(node_lht != NULL) {
-        lht_hit(freq, node_lht->key, node_lht->token_name, 0);
-        lht_setspamstat(freq, node_lht->key, &node_lht->s);
-        lht_setfrequency(freq, node_lht->key, 1);
-
-#ifdef BNR_DEBUG
-        LOGDEBUG("BNR Pattern L3: %s %01.5f %lds %ldi",
-                 node_lht->token_name,
-                 node_lht->s.probability,
-                 node_lht->s.spam_hits,
-                 node_lht->s.innocent_hits);
-#endif
-
-        node_lht = c_lht_next(bnr_layer3, &c_lht);
       }
     }
   }
@@ -1342,7 +1277,15 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       heap_insert (heap_sort, node_lht->s.probability, node_lht->key,
              node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
     }
-     
+
+#ifdef BNR_DEBUG
+    if (!node_lht->token_name || strncmp(node_lht->token_name, "bnr.", 4)) 
+    {
+      heap_insert (heap_nobnr, node_lht->s.probability, node_lht->key,
+             node_lht->frequency, _ds_compute_complexity(node_lht->token_name));
+    }
+#endif
+
 #ifdef VERBOSE
     LOGDEBUG ("Token: %s [%f]", node_lht->token_name,
               node_lht->s.probability);
@@ -1388,6 +1331,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   }
 
   result = _ds_calc_result(CTX, heap_sort, freq);
+#ifdef BNR_DEBUG
+  if (result != _ds_calc_result(CTX, heap_nobnr, freq)) {
+    LOGDEBUG("BNR CATCH: %s", (result == DSR_ISINNOCENT) ? "Spam" : "Nonspam"); 
+  }
+#endif
 
   if (CTX->flags & DSF_WHITELIST && do_whitelist) {
     LOGDEBUG("auto-whitelisting this message");
@@ -1585,9 +1533,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   lht_destroy (freq);
   lht_destroy (bnr_layer1);
-  lht_destroy (bnr_layer2);
-  lht_destroy (bnr_layer3);
   heap_destroy (heap_sort);
+#ifdef BNR_DEBUG
+  heap_destroy (heap_nobnr);
+#endif
 
   /* One final sanity check */
 
@@ -1606,10 +1555,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
 bail:
   heap_destroy (heap_sort);
+#ifdef BNR_DEBUG
+  heap_destroy (heap_nobnr);
+#endif
   lht_destroy (freq);
   lht_destroy (bnr_layer1);
-  lht_destroy (bnr_layer2);
-  lht_destroy (bnr_layer3);
   return errcode;
 }
 
