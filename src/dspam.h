@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.2 2004/11/01 14:42:15 jonz Exp $ */
+/* $Id: dspam.h,v 1.3 2004/11/24 17:57:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "buffer.h"
 #include "pref.h"
 #include "read_config.h"
+#include "daemon.h"
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>

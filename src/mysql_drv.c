@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.7 2004/11/23 21:59:38 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.8 2004/11/24 17:57:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -645,8 +645,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, struct lht *freq)
                    (insert_one) ? ", " : "",
                    p->pw_uid,
                    node_lht->key,
-                   stat2.spam_hits > 0 ? 1 : 0,
-                   stat2.innocent_hits > 0 ? 1 : 0);
+                   stat2.spam_hits > 0 ? (long) 1 : (long) 0,
+                   stat2.innocent_hits > 0 ? (long) 1 : (long) 0);
       }
 
       insert_one = 1;

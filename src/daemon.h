@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.1 2004/11/21 02:47:55 jonz Exp $ */
+/* $Id: daemon.h,v 1.2 2004/11/24 17:57:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -20,8 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#ifdef DAEMON
-
 #ifndef _DAEMON_H
 #  define _DAEMON_H
 
@@ -33,6 +31,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
 #endif
+
+#ifdef DAEMON
+
+int daemon_listen(void);
+
+typedef struct {
+  int operating_mode;   /* DTM_ */
+  pthread_mutex_t lock;
+} THREAD_CTX;
+
+#define DTM_RUN         0x00
+#define DTM_STOP        0x01
+#define DTM_RELOAD      0x02
 
 #endif /* _DAEMON_H */
 

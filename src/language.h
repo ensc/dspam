@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.1 2004/10/24 20:49:34 jonz Exp $ */
+/* $Id: language.h,v 1.2 2004/11/24 17:57:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -72,5 +72,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define ERROR_NO_ATTACH		"Driver does not support attaching database handles. Second argument of dspam_attach() must be NULL."
 #define ERROR_NO_MERGED		"Driver does not support merged groups"
+
+/* daemon process */
+
+#define DAEMON_START		"Daemon process starting"
+#define DAEMON_EXIT		"Daemon process exiting"
 
 #endif /* _LANGUAGE_H */

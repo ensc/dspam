@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.1 2004/11/21 02:47:55 jonz Exp $ */
+/* $Id: daemon.c,v 1.2 2004/11/24 17:57:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -20,11 +20,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#ifdef DAEMON
-
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
 #endif
+
+#ifdef DAEMON
 
 #include <string.h>
 #include <stdlib.h>
@@ -40,10 +40,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "daemon.h"
+#include "dspam.h"
 #include "libdspam.h"
 #include "config.h"
 #include "util.h"
 #include "language.h"
 
-#endif /* DAEMON */
+int daemon_listen() {
 
+  return 0;
+}
+
+#endif /* DAEMON */
