@@ -1,4 +1,4 @@
-/* $Id: dspam_admin.c,v 1.6 2005/01/19 18:20:35 jonz Exp $ */
+/* $Id: dspam_admin.c,v 1.7 2005/03/20 01:51:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -200,7 +200,7 @@ int set_preference_attribute(
 {
   int i;
 
-  if (username[0] == 0 || !strncmp(username, "default", strlen(username))) 
+  if (username[0] == 0 || !strcmp(username, "default"))
     i = _ds_pref_set(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), attr, value, NULL);
   else
     i = _ds_pref_set(agent_config, username, _ds_read_attribute(agent_config, "Home"), attr, value, NULL);
