@@ -1,9 +1,16 @@
-$Id: CHANGELOG,v 1.159 2005/01/30 00:48:45 jonz Exp $
+$Id: CHANGELOG,v 1.160 2005/02/02 22:37:53 jonz Exp $
+
+Version NEXT
+------------
+
+[20050202.0530] jonz: miscellaneous cgi patches
+
+applied many miscellaneous cgi patches submitted by Ben Reser <ben@reser.org>
 
 Version 3.4.beta.2
 ------------------
 
-[20040129.1945] jonz: applied cgi patch for delivery failure
+[20050129.1945] jonz: applied cgi patch for delivery failure
 
 applied patch submitted by Martin Forssen <maf@appgate.com> to avoid losing
 mail in the event of a FP delivery failure within the CGI
@@ -17,7 +24,7 @@ added doc for building dspam on osx
 fixed a segfault that only occurs when dspam_process() fails after loading a
 signature
 
-[20040126.0100] jonz: fixed whitelist training bug with notrain
+[20050126.0100] jonz: fixed whitelist training bug with notrain
 
 when in notrain mode, whitelists were still trained
 
