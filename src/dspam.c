@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.75 2005/02/08 20:29:26 jonz Exp $ */
+/* $Id: dspam.c,v 1.76 2005/02/09 13:14:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -2566,10 +2566,12 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
           node_ft = c_nt_first(CTX->factors, &c_ft);
           while(node_ft != NULL) {
             struct dspam_factor *f = (struct dspam_factor *) node_ft->ptr;
-            strlcat(data, ",\n\t", sizeof(data));
-            snprintf(scratch, sizeof(scratch), "%s, %2.5f",
-                     f->token_name, f->value);
-            strlcat(data, scratch, sizeof(data));
+            if (f) {
+              strlcat(data, ",\n\t", sizeof(data));
+              snprintf(scratch, sizeof(scratch), "%s, %2.5f",
+                       f->token_name, f->value);
+              strlcat(data, scratch, sizeof(data));
+            }
             node_ft = c_nt_next(CTX->factors, &c_ft);
           }
           head = _ds_create_header_field(data);
