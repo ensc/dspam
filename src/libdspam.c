@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.73 2004/12/29 22:06:23 jonz Exp $ */
+/* $Id: libdspam.c,v 1.74 2004/12/30 00:23:10 jonz Exp $ */
 
 /*
  DSPAM
@@ -1126,7 +1126,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
      http://bnr.nuclearelephant.com
   */
 
-#define BNR_SIZE 4
+#define BNR_SIZE 3
 
   if (CTX->flags & DSF_NOISE)
   {
