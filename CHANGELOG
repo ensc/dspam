@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.15 2004/11/08 16:59:46 jonz Exp $
+$Id: CHANGELOG,v 1.16 2004/11/09 14:52:29 jonz Exp $
 
 Version NEXT
 ------------
@@ -36,6 +36,11 @@ normalized main() by breaking up code into smaller subroutines
 
 Version 3.2.2
 -------------
+
+[20041109.0800] jonz: adjusted chi-square cutoff
+
+changed chi-square cutoff from 0.5000 to 0.5010 to avoid erroneous 
+classifications when there is no data
 
 [20041108.0800] jonz: fixed multiline token bug
 

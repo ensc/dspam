@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.3 2004/11/08 16:59:46 jonz Exp $ */
+/* $Id: libdspam.c,v 1.4 2004/11/09 14:52:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -2386,7 +2386,7 @@ int _ds_calc_result(DSPAM_CTX *CTX, struct tbt *index, struct lht *freq) {
     }
 
     /* Fisher-Robinson's Inverse Chi-Square */
-#define CHI_CUTOFF	0.5000	/* Ham/Spam Cutoff */
+#define CHI_CUTOFF	0.5010	/* Ham/Spam Cutoff */
 #define CHI_EXCR	0.4500	/* Exclusionary Radius */
 #define LN2		0.69314718055994530942 /* log e2 */
     if (CTX->algorithms & DSA_CHI_SQUARE)
