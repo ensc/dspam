@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.90 2005/03/11 12:57:43 jonz Exp $ */
+/* $Id: dspam.c,v 1.91 2005/03/12 21:23:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -79,7 +79,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "pref.h"
 #include "config_api.h"
 
-#define USE_LMTP	_ds_read_attribute(agent_config, "LMTPDeliveryHost")
+#define USE_LMTP	!strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "LMTP")
+#define USE_SMTP	!strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "SMTP")
 
 static double timestart;
 
@@ -676,8 +677,8 @@ deliver_message (AGENT_CTX *ATX, const char *message, const char *mailer_args,
   int rc;
 
 #ifdef DAEMON
-  if (USE_LMTP && ! (ATX->flags & DAF_STDOUT)) {
-    return deliver_lmtp(ATX, message);
+  if ((USE_LMTP || USE_SMTP) && ! (ATX->flags & DAF_STDOUT)) {
+    return deliver_socket(ATX, message, (USE_LMTP) ? DDP_LMTP : DDP_SMTP);
 }
 #endif
  

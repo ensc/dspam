@@ -1,4 +1,4 @@
-/* $Id: client.h,v 1.6 2005/03/02 22:07:18 jonz Exp $ */
+/* $Id: client.h,v 1.7 2005/03/12 21:23:09 jonz Exp $ */
 
 /*
 
@@ -44,7 +44,7 @@ int client_authenticate (THREAD_CTX *TTX);
 int client_getcode      (THREAD_CTX *TTX);
 char * client_expect    (THREAD_CTX *TTX, int response_code);
 char * client_getline   (THREAD_CTX *TTX, int timeout);
-int deliver_lmtp        (AGENT_CTX *ATX, const char *message);
+int deliver_socket      (AGENT_CTX *ATX, const char *message, int proto);
 
 /* Shared between client and server */
 char *pop_buffer  (THREAD_CTX *TTX);
@@ -52,6 +52,9 @@ int   send_socket (THREAD_CTX *TTX, const char *ptr);
 
 #define CCF_PROCESS	0x00	/* Establish connection to process host */
 #define CCF_DELIVERY	0x01	/* Establish connection to delivery host */
+
+#define DDP_LMTP	0x00
+#define DDP_SMTP	0x01
 
 #endif /* _CLIENT_H */
 

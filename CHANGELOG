@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.203 2005/03/12 20:39:05 jonz Exp $
+$Id: CHANGELOG,v 1.204 2005/03/12 21:23:09 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050312.1600] jonz: added SMTP delivery support, changes delivery hosts
+
+added SMTP delivery support via DeliveryProto option in dspam.conf
+
+NOTE: configuration has changed for LMTP host delivery. See new dspam.conf
 
 [20050312.1530] jonz: added virtual_user_aliases.sql for mysql
 

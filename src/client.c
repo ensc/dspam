@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.33 2005/03/11 12:55:42 jonz Exp $ */
+/* $Id: client.c,v 1.34 2005/03/12 21:23:09 jonz Exp $ */
 
 /*
 
@@ -207,10 +207,10 @@ int client_connect(int flags) {
   char *host;
 
   if (flags & CCF_DELIVERY) {
-    host = _ds_read_attribute(agent_config, "LMTPDeliveryHost");
+    host = _ds_read_attribute(agent_config, "DeliveryHost");
 
-    if (_ds_read_attribute(agent_config, "LMTPDeliveryPort"))
-      port = atoi(_ds_read_attribute(agent_config, "LMTPDeliveryPort"));
+    if (_ds_read_attribute(agent_config, "DeliveryPort"))
+      port = atoi(_ds_read_attribute(agent_config, "DeliveryPort"));
 
     if (host[0] == '/') 
       domain = 1;
@@ -466,21 +466,21 @@ int send_socket(THREAD_CTX *TTX, const char *ptr) {
 }
 
 /*
-  deliver_lmtp: delivers via LMTP instead of TrustedDeliveryAgent 
+  deliver_socket: delivers via LMTP or SMTP instead of TrustedDeliveryAgent 
 
-  If LMTPDeliveryHost was specified in dspam.conf, this function will be 
-  called by deliver_message(). This function connects to and delivers the
-  message using standard LMTP. Depending on how DSPAM was originally called,
-  either the address supplied with the incoming RCPT TO or the address
+  If DeliveryProto was specified in dspam.conf, this function will be called 
+  by deliver_message(). This function connects to and delivers the message 
+  using standard LMTP or SMTP. Depending on how DSPAM was originally called, 
+  either the address supplied with the incoming RCPT TO or the address 
   supplied on the commandline with --lmtp-recipient will  be used. 
 
 */
 
-int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
+int deliver_socket(AGENT_CTX *ATX, const char *message, int proto) {
   THREAD_CTX TTX;
   char buff[1024];
   char *input;
-  char *ident = _ds_read_attribute(agent_config, "LMTPDeliveryIdent");
+  char *ident = _ds_read_attribute(agent_config, "DeliveryIdent");
   int exitcode = 0;
   int i, msglen;
 
@@ -501,7 +501,8 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
 
   /* LHLO */
 
-  snprintf(buff, sizeof(buff), "LHLO %s", (ident) ? ident : "localhost");
+  snprintf(buff, sizeof(buff), "%s %s", (proto == DDP_LMTP) ? "LHLO" : "HELO",
+           (ident) ? ident : "localhost");
   if (send_socket(&TTX, buff)<=0)
     goto BAIL;
 
@@ -513,8 +514,13 @@ int deliver_lmtp(AGENT_CTX *ATX, const char *message) {
     goto QUIT;
   free(input);
 
-  snprintf(buff, sizeof(buff), "MAIL FROM:<%s> SIZE=%ld", 
-           ATX->mailfrom, (long) strlen(message));
+  if (proto == DDP_LMTP) {
+    snprintf(buff, sizeof(buff), "MAIL FROM:<%s> SIZE=%ld", 
+             ATX->mailfrom, (long) strlen(message));
+  } else {
+    snprintf(buff, sizeof(buff), "MAIL FROM:<%s>", ATX->mailfrom);
+  }
+
   if (send_socket(&TTX, buff)<=0)
     goto BAIL;
 
@@ -575,7 +581,7 @@ QUIT:
   client_getcode(&TTX);
 
 BAIL:
-  LOGDEBUG("LMTP delivery failed");
+  LOGDEBUG("socket delivery failed");
   exitcode = EFAILURE;
   buffer_destroy(TTX.packet_buffer);
   close(TTX.sockfd);
