@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.29 2005/03/01 18:53:19 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.30 2005/03/21 21:02:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -2079,6 +2079,7 @@ DSPAM_CTX *_pgsql_drv_init_tools(
  void *dbh)
 {
   DSPAM_CTX *CTX;
+    struct _pgsql_drv_storage *s;
 
   CTX = dspam_create (NULL, NULL, home, DSM_TOOLS, 0);
 
@@ -2095,6 +2096,9 @@ DSPAM_CTX *_pgsql_drv_init_tools(
 
   if (dspam_attach(CTX, dbh))
     goto BAIL;
+
+  s = (struct _pgsql_drv_storage *) CTX->storage;
+  s->dbh_attached = 0;
 
   return CTX;
 

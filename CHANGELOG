@@ -1,5 +1,13 @@
-$Id: CHANGELOG,v 1.237 2005/03/21 04:28:25 jonz Exp $
+$Id: CHANGELOG,v 1.238 2005/03/21 21:02:19 jonz Exp $
    
+Version NEXT
+------------
+
+[20050320.0400] jonz: fixed pgsql_drv connection linger bug
+
+fixed a bug when using pgsql_drv and preferences extension that fails to
+close a pgsql database connection on exit, leaving connections lingering.
+
 Version 3.4.1
 -------------
 
