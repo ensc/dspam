@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.90 2005/01/17 21:00:42 jonz Exp $ */
+/* $Id: libdspam.c,v 1.91 2005/01/18 15:06:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -1599,9 +1599,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     }
 
     if (ds_term->name && !strncmp(ds_term->name, "bnr.", 4) &&
-        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 350 &&
+        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 500 &&
         CTX->flags & DSF_NOISE &&
-        CTX->_sig_provided == 0)
+        CTX->_sig_provided == 0) 
     {
       ds_term->s.status |= TST_DIRTY;
     }

@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.11 2005/01/15 14:56:15 jonz Exp $ */
+/* $Id: pref.c,v 1.12 2005/01/18 15:06:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -197,4 +197,121 @@ agent_pref_t _ds_pref_load(
 
   return PTX;
 }
+
+static int _ds_pref_process_file (
+  const char *username,
+  const char *home,
+  const char *preference,
+  char *filename,
+  char *out_filename,
+  FILE **out_file
+)
+{
+  char line[1024];
+  int plen = strlen(preference);
+  FILE *in_file;
+
+  if (username == NULL) {
+    snprintf(filename, MAX_FILENAME_LENGTH, "%s/default.prefs", home);
+  } else {
+    _ds_userdir_path (filename, home, username, "prefs");
+  }
+
+  snprintf(out_filename, MAX_FILENAME_LENGTH, "%s.bak", filename);
+
+  in_file = fopen(filename, "r");
+  *out_file = fopen(out_filename, "w");
+
+  if (in_file == NULL) {
+    file_error("open", filename, strerror(errno));
+    return -1;
+  }
+  if (*out_file == NULL) {
+    file_error("open", out_filename, strerror(errno));
+    return -1;
+  }
+
+  while (fgets(line, sizeof(line), in_file)) {
+    if (!strncmp(line, preference, plen))
+      continue;
+
+    if (fputs(line, *out_file)) {
+      file_error("write", out_filename, strerror(errno));
+      fclose(*out_file);
+      unlink(out_filename);
+      return -1;
+    }
+  }
+
+  fclose(in_file);
+
+  return 0;
+}
+
+static int _ds_pref_save_file (
+  const char *filename,
+  const char *out_filename,
+  FILE *out_file
+)
+{
+  if (fclose(out_file)) {
+    file_error("close", out_filename, strerror(errno));
+    return -1;
+  }
+
+  if (rename(out_filename, filename)) {
+    report_error_printf("rename %s to %s: %s\n",
+                out_filename, filename, strerror(errno));
+    unlink(out_filename);
+    return -1;
+  }
+
+  return 0;
+}
+
+int _ds_pref_set (
+  attribute_t **config,
+  const char *username,
+  const char *home,
+  const char *preference,
+  const char *value,
+  void *ignore)
+{
+  char filename[MAX_FILENAME_LENGTH];
+  char out_filename[MAX_FILENAME_LENGTH];
+  FILE *out_file;
+  int r;
+
+  r = _ds_pref_process_file(username, home, preference,
+            filename, out_filename, &out_file);
+
+  if (r)
+    return -1;
+
+  fprintf(out_file, "%s=%s\n", preference, value);
+
+  return _ds_pref_save_file(filename, out_filename, out_file);
+}
+
+int _ds_pref_del (
+  attribute_t **config,
+  const char *username,
+  const char *home,
+  const char *preference,
+  void *ignore)
+{
+  char filename[MAX_FILENAME_LENGTH];
+  char out_filename[MAX_FILENAME_LENGTH];
+  FILE *out_file;
+  int r;
+
+  r = _ds_pref_process_file(username, home, preference,
+            filename, out_filename, &out_file);
+
+  if (r)
+    return -1;
+
+  return _ds_pref_save_file(filename, out_filename, out_file);
+}
+
 #endif

@@ -1,4 +1,4 @@
-/* $Id: dspam_admin.c,v 1.4 2005/01/12 03:12:26 jonz Exp $ */
+/* $Id: dspam_admin.c,v 1.5 2005/01/18 15:06:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -40,9 +40,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "libdspam.h"
 #include "read_config.h"
 #include "language.h"
-#ifdef PREFERENCES_EXTENSION
 #include "pref.h"
-#endif 
 
 #define TSYNTAX	"syntax: dspam_admin [function] [arguments] [--profile=PROFILE]"
 
@@ -122,7 +120,6 @@ main (int argc, char **argv)
     usage();
   }
 
-#ifdef PREFERENCES_EXTENSION
   /* PREFERENCE FUNCTIONS */
   if (!strncmp(argv[2], "pref", 4)) {
  
@@ -147,7 +144,6 @@ main (int argc, char **argv)
       list_preference_attributes(argv[3]);
     }
   }
-#endif
 
   if (!valid) 
     usage();
@@ -170,12 +166,10 @@ usage (void)
 {
   fprintf(stderr, "%s\n", TSYNTAX);
 
-#ifdef PREFERENCES_EXTENSION
   fprintf(stderr, "\tadd preference [user] [attrib] [value]\n");
   fprintf(stderr, "\tchange preference [user] [attrib] [value]\n");
   fprintf(stderr, "\tdelete preference [user] [attrib] [value]\n");
   fprintf(stderr, "\tlist preference [user] [attrib] [value]\n");
-#endif
   _ds_destroy_attributes(agent_config);
   exit(EXIT_FAILURE);
 }
@@ -190,7 +184,6 @@ void min_args(int argc, int min) {
   return;
 }
 
-#ifdef PREFERENCES_EXTENSION
 int set_preference_attribute(
   const char *username, 
   const char *attr, 
@@ -198,7 +191,7 @@ int set_preference_attribute(
 {
   int i;
 
-  if (username[0] == 0) 
+  if (username[0] == 0 || !strncmp(username, "default", strlen(username))) 
     i = _ds_pref_set(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), attr, value, NULL);
   else
     i = _ds_pref_set(agent_config, username, _ds_read_attribute(agent_config, "Home"), attr, value, NULL);
@@ -217,7 +210,7 @@ int del_preference_attribute(
 {
   int i;
 
-  if (username[0] == 0)
+  if (username[0] == 0 || !strncmp(username, "default", strlen(username)))
     i = _ds_pref_del(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), attr, NULL);
   else
     i = _ds_pref_del(agent_config, username, _ds_read_attribute(agent_config, "Home"), attr, NULL);
@@ -236,7 +229,7 @@ int list_preference_attributes(const char *username)
   agent_attrib_t pref;
   int i;
   
-  if (username[0] == 0)
+  if (username[0] == 0 || !strncmp(username, "default", strlen(username)))
     PTX = _ds_pref_load(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), NULL);
   else
     PTX = _ds_pref_load(agent_config, username,  _ds_read_attribute(agent_config, "Home"), NULL);
@@ -252,4 +245,3 @@ int list_preference_attributes(const char *username)
   _ds_pref_free(PTX);
   return 0;
 }
-#endif

@@ -1,20 +1,30 @@
-$Id: CHANGELOG,v 1.145 2005/01/17 21:00:42 jonz Exp $
+$Id: CHANGELOG,v 1.146 2005/01/18 15:06:08 jonz Exp $
 
 Version NEXT
 ------------
 
-[20040116.2330] jonz: tweak to statistical sedation
+[20050118.0710] jonz: fixed negative values in web stats
+
+fixed a bug causing negative values to be written in web stats
+ 
+[20050118.0700] jonz: applied patch adding full preferences functionality
+
+applied a patch by Philip C. <flah@hell.com> adding full preferences
+functionality for installs without storage driver extensions. this allows
+preferences to be set through dspam_admin for flat file-based systems as well.
+
+[20050116.2330] jonz: tweak to statistical sedation
 
 added a tweak to statistical sedation so that only spammy tokens are
 sedated
 
-[20040116.2300] jonz: added makeCorpus preference
+[20050116.2300] jonz: added makeCorpus preference
 
 added makeCorpus preference which records all messages processed for the user
 to dspam_home/data/username/username.corpus/[spam|nonspam]. when an error is
 corrected, the file is moved to the appropriate corpus.
 
-[20040116.1800] jonz: change to TUM training mode
+[20050116.1800] jonz: change to TUM training mode
 
 TUM training mode to train also when confidence is low
 

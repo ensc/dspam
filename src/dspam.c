@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.67 2005/01/17 21:00:42 jonz Exp $ */
+/* $Id: dspam.c,v 1.68 2005/01/18 15:06:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -950,10 +950,10 @@ write_web_stats (
   }
 
   fprintf (file, "%ld,%ld,%ld,%ld,%ld,%ld\n",
-           (totals->spam_learned + totals->spam_classified) - 
-             (totals->spam_misclassified + totals->spam_corpusfed),
-           (totals->innocent_learned + totals->innocent_classified) -
-             (totals->innocent_misclassified + totals->innocent_corpusfed),
+           MAX(0, (totals->spam_learned + totals->spam_classified) - 
+             (totals->spam_misclassified + totals->spam_corpusfed)),
+           MAX(0, (totals->innocent_learned + totals->innocent_classified) -
+             (totals->innocent_misclassified + totals->innocent_corpusfed)),
            totals->spam_misclassified, totals->innocent_misclassified,
            totals->spam_corpusfed, totals->innocent_corpusfed);
 
