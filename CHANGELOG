@@ -1,7 +1,10 @@
-$Id: CHANGELOG,v 1.153 2005/01/22 14:14:28 jonz Exp $
+$Id: CHANGELOG,v 1.154 2005/01/23 02:26:13 jonz Exp $
 
 Version NEXT
 ------------
+[20050122.2115] jonz: applied bugfixes to sbl lookup
+
+fixed sbl lookups to use mt-safe functions, also fixed crashing
 
 [20050122.0900] jonz: applied latest postgresql patches
 
