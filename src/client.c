@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.15 2005/02/24 16:33:37 jonz Exp $ */
+/* $Id: client.c,v 1.16 2005/02/24 16:36:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -133,6 +133,10 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     while(line != NULL && strcmp(line, ".")) {
       chomp(line);
       printf("%s\n", line);
+      if (strstr(line, "250")) {
+        free(line); 
+        goto QUIT; 
+      }
       free(line);
       line = client_getline(&TTX, 300);
       if (line) chomp(line);

@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.168 2005/02/24 16:33:37 jonz Exp $
+$Id: CHANGELOG,v 1.169 2005/02/24 16:36:51 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050224.0700] jonz: fixed dspamc hanging bug
+
+applied fix contributed by Peter Santiago to prevent dspamc from hanging 
 
 [20050224.0700] jonz: added lmtp delivery support
 
