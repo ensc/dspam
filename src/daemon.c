@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.87 2005/03/24 18:24:15 jonz Exp $ */
+/* $Id: daemon.c,v 1.88 2005/04/07 07:41:04 jonz Exp $ */
 
 /*
 
@@ -116,9 +116,12 @@ int daemon_listen(DRIVER_CTX *DTX) {
     char *address = _ds_read_attribute(agent_config, "ServerDomainSocketPath");
     int len;
 
+    umask (000);
+
     listener = socket(AF_UNIX, SOCK_STREAM, 0);
     if (listener == -1) {
       LOG(LOG_CRIT, ERROR_DAEMON_SOCKET, strerror(errno));
+      umask (006);                  /* rw-rw---- */
       return(EFAILURE);
     }
 
@@ -134,8 +137,11 @@ int daemon_listen(DRIVER_CTX *DTX) {
     if (bind(listener, (struct sockaddr *) &saun, len)<0) {
       close(listener);
       LOG(LOG_CRIT, ERROR_DAEMON_DOMAIN, address, strerror(errno));
+      umask (006);                  /* rw-rw---- */
       return EFAILURE;
     }    
+
+    umask (006);                  /* rw-rw---- */
 
   /* Bind to a TCP socket */
 

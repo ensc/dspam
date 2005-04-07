@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.34 2005/04/06 13:25:12 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.35 2005/04/07 07:41:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -1920,6 +1920,7 @@ agent_pref_t _ds_pref_load(
   agent_attrib_t pref;
   int uid, i = 0;
 
+
   CTX = _mysql_drv_init_tools(home, config, dbh, DSM_TOOLS);
   if (CTX == NULL)
   {
@@ -1935,7 +1936,7 @@ agent_pref_t _ds_pref_load(
     if (p == NULL)
     {
       LOGDEBUG ("_ds_pref_load: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              username);
       dspam_destroy(CTX);
       return NULL;
     } else {
