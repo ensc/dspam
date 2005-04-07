@@ -1,11 +1,7 @@
-$Id: CHANGELOG,v 1.264 2005/04/07 03:00:20 jonz Exp $
+$Id: CHANGELOG,v 1.265 2005/04/07 03:20:52 jonz Exp $
    
 Version NEXT
 ------------
-
-[20050406.2300] jonz: fix for domain-scale and admin.cgi
-
-fix for admin.cgi when using domain-scale; could not previously find data dirs
 
 [20050405.1815] jonz: minor code cleanup
 
@@ -45,6 +41,10 @@ preference when provsioned. To use:
 
 Version 3.4.3
 -------------
+
+[20050406.2300] jonz: fix for domain-scale and admin.cgi
+
+fix for admin.cgi when using domain-scale; could not previously find data dirs
 
 [20050406.0700] jonz: fixed cygwin build errors
 
