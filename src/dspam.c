@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.130 2005/04/08 23:09:44 jonz Exp $ */
+/* $Id: dspam.c,v 1.131 2005/04/08 23:20:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -711,8 +711,9 @@ RETURN:
 */
 
 int
-deliver_message (AGENT_CTX *ATX, const char *message, const char *mailer_args,
-                 const char *username, FILE *stream, int result)
+deliver_message (AGENT_CTX *ATX, agent_pref_t PTX, const char *message, 
+                 const char *mailer_args, const char *username, FILE *stream, 
+                 int result)
 {
   char args[1024];
   char *margs, *mmargs, *arg;
@@ -722,9 +723,9 @@ deliver_message (AGENT_CTX *ATX, const char *message, const char *mailer_args,
 #ifdef DAEMON
   if (
     (USE_LMTP || USE_SMTP) && ! (ATX->flags & DAF_STDOUT) &&
-    (! (result == DSR_ISSPAM &&
+    (! PTX && (result == DSR_ISSPAM &&
          _ds_read_attribute(agent_config, "QuarantineAgent") &&
-         _ds_match_attribute(agent_config, "spamAction", "quarantine")))
+        !strcmp(_ds_pref_val(PTX, "spamAction"), "quarantine"))) 
   )
   {
     return deliver_socket(ATX, message, (USE_LMTP) ? DDP_LMTP : DDP_SMTP);
@@ -1270,7 +1271,7 @@ int send_notice(AGENT_CTX *ATX, const char *filename, const char *mailer_args,
     buffer_cat(b, s);
   }
   fclose(f);
-  deliver_message(ATX, b->data, mailer_args, username, stdout, DSR_ISINNOCENT);
+  deliver_message(ATX, NULL, b->data, mailer_args, username, stdout, DSR_ISINNOCENT);
 
   buffer_destroy(b);
 
@@ -1518,7 +1519,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       if (ATX->flags & DAF_DELIVER_INNOCENT)
       {
         retcode =
-          deliver_message (ATX, parse_message->data,
+          deliver_message (ATX, PTX, parse_message->data,
                            (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
                             node_nt->ptr, fout, DSR_ISINNOCENT);
 
@@ -1583,7 +1584,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
         if (deliver && ATX->flags & DAF_DELIVER_INNOCENT) {
           LOGDEBUG ("delivering message");
           retcode = deliver_message
-            (ATX, parse_message->data,
+            (ATX, PTX, parse_message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
              node_nt->ptr, fout, DSR_ISINNOCENT);
 
@@ -1629,14 +1630,14 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
               if (ATX->classification == DSR_NONE) {
                 if (ATX->spam_args[0] != 0) {
                   retcode = deliver_message
-                    (ATX, parse_message->data,
+                    (ATX, PTX, parse_message->data,
                      (ATX->flags & DAF_STDOUT) ? NULL : ATX->spam_args, 
                      node_nt->ptr, fout, DSR_ISSPAM);
                   if (ATX->sockfd && ATX->flags & DAF_STDOUT)
                     ATX->sockfd_output = 1;
                 } else {
                   retcode = deliver_message
-                    (ATX, parse_message->data,
+                    (ATX, PTX, parse_message->data,
                      (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
                      node_nt->ptr, fout, DSR_ISSPAM);
                   if (ATX->sockfd && ATX->flags & DAF_STDOUT)
@@ -1681,7 +1682,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
           if (ATX->sockfd && ATX->flags & DAF_STDOUT)
             ATX->sockfd_output = 1;
           retcode = deliver_message
-            (ATX, parse_message->data,
+            (ATX, PTX, parse_message->data,
              (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
              node_nt->ptr, fout, DSR_ISSPAM);
 

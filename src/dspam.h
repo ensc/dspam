@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.22 2005/03/26 04:52:06 jonz Exp $ */
+/* $Id: dspam.h,v 1.23 2005/04/08 23:20:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -44,6 +44,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 double gettime(void);
 
 int deliver_message	(AGENT_CTX *ATX, 
+                         agent_pref_t PTX,
                          const char *message, 
                          const char *mailer_args,
                          const char *username, 
