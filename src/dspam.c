@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.128 2005/04/06 13:29:56 jonz Exp $ */
+/* $Id: dspam.c,v 1.129 2005/04/08 18:39:21 jonz Exp $ */
 
 /*
  DSPAM
@@ -720,9 +720,14 @@ deliver_message (AGENT_CTX *ATX, const char *message, const char *mailer_args,
   int rc;
 
 #ifdef DAEMON
-  if ((USE_LMTP || USE_SMTP) && ! (ATX->flags & DAF_STDOUT)) {
+  if (
+    (USE_LMTP || USE_SMTP) && ! (ATX->flags & DAF_STDOUT) &&
+    (! (result == DSR_ISSPAM &&
+         _ds_read_attribute(agent_config, "QuarantineAgent")))
+  )
+  {
     return deliver_socket(ATX, message, (USE_LMTP) ? DDP_LMTP : DDP_SMTP);
-}
+  }
 #endif
  
   if (message == NULL)
@@ -3219,4 +3224,5 @@ double gettime(void)
 
   return t;
 }
+
 

@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.266 2005/04/07 07:40:42 jonz Exp $
+$Id: CHANGELOG,v 1.267 2005/04/08 18:39:21 jonz Exp $
    
 Version NEXT
 ------------
@@ -45,6 +45,11 @@ preference when provsioned. To use:
 
 Version 3.4.3
 -------------
+
+[20050407.0800] jonz: fix for LMTP and QuarantineAgent
+
+bugfix for bug causing spam to be delivered via LMTP when a quarantine
+agent is specified
 
 [20050406.2300] jonz: fix for domain-scale and admin.cgi
 
