@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.129 2005/04/08 18:39:21 jonz Exp $ */
+/* $Id: dspam.c,v 1.130 2005/04/08 23:09:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -723,7 +723,8 @@ deliver_message (AGENT_CTX *ATX, const char *message, const char *mailer_args,
   if (
     (USE_LMTP || USE_SMTP) && ! (ATX->flags & DAF_STDOUT) &&
     (! (result == DSR_ISSPAM &&
-         _ds_read_attribute(agent_config, "QuarantineAgent")))
+         _ds_read_attribute(agent_config, "QuarantineAgent") &&
+         _ds_match_attribute(agent_config, "spamAction", "quarantine")))
   )
   {
     return deliver_socket(ATX, message, (USE_LMTP) ? DDP_LMTP : DDP_SMTP);
