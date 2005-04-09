@@ -1,4 +1,4 @@
-/* $Id: dspam_admin.c,v 1.7 2005/03/20 01:51:16 jonz Exp $ */
+/* $Id: dspam_admin.c,v 1.8 2005/04/09 06:13:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -267,8 +267,12 @@ int list_aggregate_preference_attributes(const char *username)
 
   if (username[0] == 0 || !strncmp(username, "default", strlen(username)))
     UTX = _ds_pref_load(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), NULL);
-  else
+  else {
     UTX = _ds_pref_load(agent_config, username,  _ds_read_attribute(agent_config, "Home"), NULL);
+    if (!UTX) {
+      UTX = _ds_pref_load(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), NULL);
+    }
+  }
 
   if (UTX == NULL) 
     return 0;
