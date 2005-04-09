@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.131 2005/04/08 23:20:38 jonz Exp $ */
+/* $Id: dspam.c,v 1.132 2005/04/09 06:06:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -723,9 +723,9 @@ deliver_message (AGENT_CTX *ATX, agent_pref_t PTX, const char *message,
 #ifdef DAEMON
   if (
     (USE_LMTP || USE_SMTP) && ! (ATX->flags & DAF_STDOUT) &&
-    (! PTX && (result == DSR_ISSPAM &&
+    (! (result == DSR_ISSPAM &&
          _ds_read_attribute(agent_config, "QuarantineAgent") &&
-        !strcmp(_ds_pref_val(PTX, "spamAction"), "quarantine"))) 
+        PTX && !strcmp(_ds_pref_val(PTX, "spamAction"), "quarantine"))) 
   )
   {
     return deliver_socket(ATX, message, (USE_LMTP) ? DDP_LMTP : DDP_SMTP);
