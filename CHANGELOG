@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.267 2005/04/08 18:39:21 jonz Exp $
+$Id: CHANGELOG,v 1.268 2005/04/09 18:13:28 jonz Exp $
    
 Version NEXT
 ------------
+
+[02050409.1400] jonz: added 'date' to quarantine display, reversed ordering
+
+added 'date' field to quarantine display using X-DSPAM-Processed header.
+reversed 'Date' ordering to list most recent at top
 
 [20050408.0300] jonz: set proper permissions for socket file
 
