@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.11 2005/01/03 21:57:06 jonz Exp $ */
+/* $Id: libdspam.h,v 1.12 2005/04/09 13:33:55 jonz Exp $ */
 
 /*
  DSPAM
@@ -36,7 +36,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "heap.h"
 
 #define LIBDSPAM_VERSION_MAJOR	3
-#define LIBDSPAM_VERSION_MINOR	3
+#define LIBDSPAM_VERSION_MINOR	4
 #define LIBDSPAM_VERSION_PATCH	0
 
 /* Public functions */
