@@ -1,4 +1,4 @@
-/* $Id: dspam_admin.c,v 1.8 2005/04/09 06:13:49 jonz Exp $ */
+/* $Id: dspam_admin.c,v 1.9 2005/04/09 17:05:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -263,15 +263,24 @@ int list_aggregate_preference_attributes(const char *username)
   agent_attrib_t pref;
   int i;
   
-  STX = pref_config();
+  STX =  _ds_pref_load(agent_config,
+                       NULL,
+                       _ds_read_attribute(agent_config, "Home"), NULL);
+
+  if (STX == NULL || STX[0] == 0) {
+    if (STX) {
+      _ds_pref_free(STX);
+    }
+    LOGDEBUG("default preferences empty. reverting to dspam.conf preferences.");
+    STX = pref_config();
+  } else {
+    LOGDEBUG("loaded default preferences externally");
+  }
 
   if (username[0] == 0 || !strncmp(username, "default", strlen(username)))
     UTX = _ds_pref_load(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), NULL);
   else {
     UTX = _ds_pref_load(agent_config, username,  _ds_read_attribute(agent_config, "Home"), NULL);
-    if (!UTX) {
-      UTX = _ds_pref_load(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), NULL);
-    }
   }
 
   if (UTX == NULL) 
