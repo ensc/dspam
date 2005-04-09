@@ -1,4 +1,4 @@
-/* $Id: purge-pe.sql,v 1.2 2005/01/17 23:17:29 jonz Exp $ */
+/* $Id: purge-pe.sql,v 1.3 2005/04/09 16:43:01 jonz Exp $ */
 
 DELETE FROM dspam_token_data
   WHERE (innocent_hits*2) + spam_hits < 5
@@ -14,7 +14,7 @@ DELETE FROM dspam_token_data
   AND uid NOT IN
     (SELECT uid FROM dspam_preferences
      WHERE preference = 'trainingMode'
-     AND value IN('TOE','TUM'));
+     AND value IN('TOE','TUM','NOTRAIN'));
 
 DELETE FROM dspam_token_data
   WHERE uid IN
