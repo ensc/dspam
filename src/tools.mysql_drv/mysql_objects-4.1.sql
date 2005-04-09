@@ -1,4 +1,4 @@
-# $Id: mysql_objects-4.1.sql,v 1.1 2004/10/24 20:53:29 jonz Exp $
+# $Id: mysql_objects-4.1.sql,v 1.2 2005/04/09 14:52:37 jonz Exp $
 
 create table dspam_token_data (
   uid smallint unsigned not null,
@@ -18,7 +18,7 @@ create table dspam_signature_data (
   data blob not null,
   length smallint not null,
   created_on date not null
-) type=MyISAM;
+) type=MyISAM max_rows=2500000 avg_row_length=8096;
 
 create unique index id_signature_data_01 on dspam_signature_data(uid,signature);
 create index id_signature_data_02 on dspam_signature_data(created_on);
