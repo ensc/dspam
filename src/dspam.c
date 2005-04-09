@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.132 2005/04/09 06:06:07 jonz Exp $ */
+/* $Id: dspam.c,v 1.133 2005/04/09 17:58:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -2665,6 +2665,24 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
       }
       else {
         LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+      }
+
+      if (CTX->source == DSS_NONE) {
+        char buf[27];
+        time_t t = time(NULL);
+        ctime_r(&t, buf);
+        chomp(buf);
+        snprintf(data, sizeof(data), "X-DSPAM-Processed: %s", buf);
+        head = _ds_create_header_field(data);
+        if (head != NULL)
+        {
+#ifdef VERBOSE
+          LOGDEBUG("appending header %s: %s", head->heading, head->data);
+#endif
+          nt_add(block->headers, (void *) head);
+        }
+        else
+          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
       }
 
       if (CTX->source != DSS_ERROR) {
