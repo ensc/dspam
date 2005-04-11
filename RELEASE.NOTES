@@ -1,17 +1,33 @@
-$Id: RELEASE.NOTES,v 1.38 2005/03/29 22:46:19 jonz Exp $
+$Id: RELEASE.NOTES,v 1.39 2005/04/11 12:47:28 jonz Exp $
 
-RELEASE 3.4.2-STABLE
+RELEASE 3.4.3-STABLE
 
 This version is a maintenance release and contains bug fixes and minor
 enhancements.
 
 --------------------------------------------------------------------------
 Tired of managing DSPAM yourself? Be one of the first to pilot a new DSPAM
-relay appliance. A complete SMTP gateway solution with easy provisioning,
-user alias support, and a full featured UI! Made by the makers of DSPAM.
+relay appliance. A complete SMTP gateway solution with a completely new
+and feature rich user and administration interface. Perform real-time
+provisioning of new users, one-step backup and recovery, and much more.
+Made by the makers of DSPAM.
 
 e-mail jonathan@nuclearelephant.com for more information about the pilot
 --------------------------------------------------------------------------
+
+BUGFIX: When using LMTP/SMTP delivery, QuarantineAgent is ignored
+BUGFIX: Domain-scale uses wrong data path in admin script
+BUGFIX: DSPAM fails to build on Cygwin
+BUGFIX: optIn does not work when using preferences extensions
+BUGFIX: showFactors does not set/unset properly in user preferences
+BUGFIX: Supplying an empty spamSubject raises errors in user preferences
+BUGFIX: Signature-related errors are not reported (except to debug)
+BUGFIX: Formatting bug in system.log
+
+RELEASE 3.4.2-STABLE
+
+This version is a maintenance release and contains bug fixes and minor
+enhancements.
 
 BUGFIX: Minor memory leaks in multi-word tokenizer
 BUGFIX: When using --classify, the system/user log is appended to 
