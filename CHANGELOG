@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.268 2005/04/09 18:13:28 jonz Exp $
+$Id: CHANGELOG,v 1.269 2005/04/11 00:58:27 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050410.2000] jonz: adjusted mysql/pgsql objects/purge scripts for performance
+
+made adjustments based on performance without token counter indexes
 
 [02050409.1400] jonz: added 'date' to quarantine display, reversed ordering
 

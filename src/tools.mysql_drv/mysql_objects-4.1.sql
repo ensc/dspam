@@ -1,4 +1,4 @@
-# $Id: mysql_objects-4.1.sql,v 1.2 2005/04/09 14:52:37 jonz Exp $
+# $Id: mysql_objects-4.1.sql,v 1.3 2005/04/11 00:58:27 jonz Exp $
 
 create table dspam_token_data (
   uid smallint unsigned not null,
@@ -9,8 +9,6 @@ create table dspam_token_data (
 ) type=MyISAM PACK_KEYS=1;
 
 create unique index id_token_data_01 on dspam_token_data(uid,token);
-create index id_token_data_02 on dspam_token_data(innocent_hits);
-create index id_token_data_03 on dspam_token_data(spam_hits);
 
 create table dspam_signature_data (
   uid smallint unsigned not null,

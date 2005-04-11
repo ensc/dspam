@@ -1,12 +1,15 @@
-# $Id: purge-4.1.sql,v 1.3 2005/04/09 16:42:40 jonz Exp $
+# $Id: purge-4.1.sql,v 1.4 2005/04/11 00:58:27 jonz Exp $
 set @a=to_days(current_date());
 delete from dspam_token_data 
   where (innocent_hits*2) + spam_hits < 5
   and @a-to_days(last_hit) > 60;
 
 delete from dspam_token_data
-  where (innocent_hits = 1 or spam_hits = 1)
-  and (innocent_hits = 0 or spam_hits = 0)
+  where innocent_hits = 1 and spam_hits = 0
+  and @a-to_days(last_hit) > 15;
+
+delete from dspam_token_data
+  where innocent_hits = 0 and spam_hits = 1
   and @a-to_days(last_hit) > 15;
 
 delete from dspam_token_data
