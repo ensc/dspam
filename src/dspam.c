@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.134 2005/04/12 21:45:53 jonz Exp $ */
+/* $Id: dspam.c,v 1.135 2005/04/12 22:42:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -384,10 +384,13 @@ process_message (AGENT_CTX *ATX,
     }
   }
 
-  /* If a signature was provided, load it */
-  if (ATX->source != DSS_CORPUS && ATX->source != DSS_NONE) {
-    have_signature = find_signature(CTX, ATX, PTX);
-  }
+  /* If a signature was provided, load it. Also performs some important
+     decoding, so we must call it. */
+
+  have_signature = find_signature(CTX, ATX, PTX);
+  if (ATX->source == DSS_CORPUS || ATX->source == DSS_NONE)
+     have_signature = 0;
+
   if (have_signature && ATX->source != DSS_CORPUS)
   {
     have_decision = 1;
