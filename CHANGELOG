@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.270 2005/04/12 21:49:05 jonz Exp $
+$Id: CHANGELOG,v 1.271 2005/04/12 21:51:00 jonz Exp $
    
 Version NEXT
 ------------
@@ -59,6 +59,10 @@ Version 3.4.4
 
 fixed a critical bug that caused the signature to NOT be written to the
 message body on quoted-printable or base64 messages
+
+[20050412.0800] jonz: fix for cgi during time zone changes
+
+applied patch for cgi losing data during time zone changes
 
 Version 3.4.3
 -------------
