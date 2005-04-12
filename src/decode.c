@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.14 2005/04/01 18:28:16 jonz Exp $ */
+/* $Id: decode.c,v 1.15 2005/04/12 21:45:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -75,7 +75,7 @@ _ds_actualize_message (const char *message)
   }
 
   /* initialize our message structure */
-  out = (struct _ds_message *) malloc (sizeof (struct _ds_message));
+  out = (struct _ds_message *) calloc (1, sizeof (struct _ds_message));
   if (out == NULL)
   {
     free (m_in);
@@ -300,7 +300,7 @@ struct _ds_message_block *
 _ds_create_message_block (void)
 {
   struct _ds_message_block *block =
-    (struct _ds_message_block *) malloc (sizeof (struct _ds_message_block));
+    (struct _ds_message_block *) calloc (1, sizeof (struct _ds_message_block));
   if (block == NULL)
   {
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
@@ -851,7 +851,7 @@ _ds_assemble_message (struct _ds_message *message)
     buffer_cat (out, "\n");
 
     /* Assemble the bodies */
-    if (block->original_signed_body != NULL)
+    if (block->original_signed_body != NULL && message->protect)
       buffer_cat (out, block->original_signed_body->data);
     else
       buffer_cat (out, block->body->data);

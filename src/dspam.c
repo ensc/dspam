@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.133 2005/04/09 17:58:52 jonz Exp $ */
+/* $Id: dspam.c,v 1.134 2005/04/12 21:45:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -628,8 +628,8 @@ process_message (AGENT_CTX *ATX,
 
   if (strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers") &&
       !_ds_match_attribute(agent_config, "TrainPristine", "on") &&
-        strcmp(_ds_pref_val(PTX, "trainPristine"), "on") &&
-        CTX->classification == DSR_NONE)
+       strcmp(_ds_pref_val(PTX, "trainPristine"), "on") &&
+       CTX->classification == DSR_NONE)
   {
     i = embed_signature(CTX, ATX, PTX);
     if (i<0) {
@@ -1744,8 +1744,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
   {
     block = (struct _ds_message_block *) node_nt->ptr;
 
-    if (block->media_type == MT_MULTIPART
-        && block->media_subtype == MST_SIGNED)
+    if (block->media_type == MT_MULTIPART && block->media_subtype == MST_SIGNED)
       is_signed = 1;
 
     if (!strcmp(_ds_pref_val(PTX, "signatureLocation"), "headers"))
@@ -1948,6 +1947,9 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
     node_nt = c_nt_next (CTX->message->components, &c);
     i++;
   }
+
+  CTX->message->protect = is_signed;
+
   return have_signature;
 }
 
@@ -2839,7 +2841,9 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
         if (field != NULL && field->heading != NULL && field->data != NULL)
           if (!strncasecmp (field->heading, "Content-Disposition", 19))
             if (!strncasecmp (field->data, "attachment", 10))
+            {
               is_attachment = 1;
+}
         node_hnt = c_nt_next (block->headers, &c_hnt);
       }
 

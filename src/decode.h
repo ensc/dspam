@@ -1,4 +1,4 @@
-/* $Id: decode.h,v 1.4 2005/04/01 18:28:16 jonz Exp $ */
+/* $Id: decode.h,v 1.5 2005/04/12 21:45:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -100,6 +100,7 @@ struct _ds_message_block
 struct _ds_message
 {
   struct nt *	components; 
+  int protect;
 };
 
 /*
