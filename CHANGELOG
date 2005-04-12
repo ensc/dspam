@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.269 2005/04/11 00:58:27 jonz Exp $
+$Id: CHANGELOG,v 1.270 2005/04/12 21:49:05 jonz Exp $
    
 Version NEXT
 ------------
@@ -51,6 +51,14 @@ preference when provsioned. To use:
    1. Add "FallbackDomains on" to dspam.conf
    2. Create wildcard domains (@domain.tld) as users in dspam
    3. Set each wildcard domain with the "fallbackDomain on" preference
+
+Version 3.4.4
+-------------
+
+[20050412.0800] jonz: critical fix for signature-in-body
+
+fixed a critical bug that caused the signature to NOT be written to the
+message body on quoted-printable or base64 messages
 
 Version 3.4.3
 -------------
