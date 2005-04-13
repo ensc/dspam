@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.272 2005/04/13 01:36:02 jonz Exp $
+$Id: CHANGELOG,v 1.273 2005/04/13 22:05:37 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050413.2005] jonz: added MySQLUIDInSignature option
+
+for mysql users who want to put the user id in the signature (and effectively
+have only one spam address for all users), this feature uses uid,signature
+instead of just signature.
 
 [20050412.0800] jonz: fix for cgi during time zone changes
 

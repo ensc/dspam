@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.135 2005/04/12 22:42:53 jonz Exp $ */
+/* $Id: dspam.c,v 1.136 2005/04/13 22:05:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -1910,8 +1910,8 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX) {
             /* Find the signature's end character */
             while (signature_end != NULL
               && signature_end[0] != 0
-              && (isalnum
-                  ((int) signature_end[0]) || signature_end[0] == 32))
+              && (isalnum ((int) signature_end[0]) || signature_end[0] == 32 ||
+                  signature_end[0] == ','))
             {
               signature_end++;
             }

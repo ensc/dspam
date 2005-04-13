@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.88 2005/04/07 07:41:04 jonz Exp $ */
+/* $Id: daemon.c,v 1.89 2005/04/13 22:05:37 jonz Exp $ */
 
 /*
 
@@ -854,6 +854,12 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
             x = strstr(buff, " spam-");
           if (!x)
             x = strstr(buff, ":spam-");
+          if (!x)
+            x = strstr(buff, "<spam@");
+          if (!x)
+            x = strstr(buff, " spam@");
+          if (!x)
+            x = strstr(buff, ":spam@");
 
           if (x != NULL) {
             y = strdup(x+6);
@@ -872,6 +878,12 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
               x = strstr(buff, " notspam-");
             if (!x)
               x = strstr(buff, ":notspam-");
+            if (!x)
+               x = strstr(buff, "<notspam@");
+            if (!x)
+               x = strstr(buff, " notspam@");
+            if (!x)
+               x = strstr(buff, ":notspam@");
 
             if (x != NULL) {
               y = strdup(x+9);
