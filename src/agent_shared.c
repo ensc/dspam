@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.37 2005/04/05 21:55:31 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.38 2005/04/13 01:36:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -738,7 +738,7 @@ buffer * read_stdin(AGENT_CTX *ATX) {
                 x = strstr(buff, ":notspam-");
 
               if (x != NULL) {
-                y = strdup(x+4);
+                y = strdup(x+9);
 
                 if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
                 {

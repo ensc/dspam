@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.271 2005/04/12 21:51:00 jonz Exp $
+$Id: CHANGELOG,v 1.272 2005/04/13 01:36:02 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050412.0800] jonz: fix for cgi during time zone changes
+
+applied patch for cgi losing data during time zone changes
 
 [20050410.2000] jonz: adjusted mysql/pgsql objects/purge scripts for performance
 
@@ -52,6 +56,14 @@ preference when provsioned. To use:
    2. Create wildcard domains (@domain.tld) as users in dspam
    3. Set each wildcard domain with the "fallbackDomain on" preference
 
+Version 3.4.5
+-------------
+
+[20050412.2130] jonz: fix for notspam- aliases and changeuseronparse
+
+corrected parsing error causing notspam- aliases to fail to identify username
+when using changeuseronparse
+
 Version 3.4.4
 -------------
 
@@ -59,10 +71,6 @@ Version 3.4.4
 
 fixed a critical bug that caused the signature to NOT be written to the
 message body on quoted-printable or base64 messages
-
-[20050412.0800] jonz: fix for cgi during time zone changes
-
-applied patch for cgi losing data during time zone changes
 
 Version 3.4.3
 -------------
