@@ -41,8 +41,8 @@ then
 else
   ACLOCAL_FLAGS='-I m4 -I /usr/local/share/aclocal'
 fi
-AUTOHEADER_FLAGS=-Wall
-AUTOMAKE_FLAGS='--add-missing -Wall'
+AUTOHEADER_FLAGS=
+AUTOMAKE_FLAGS='--add-missing'
 AUTOCONF_FLAGS=-Wno-obsolete
 
 die()

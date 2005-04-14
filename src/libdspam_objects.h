@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.4 2005/04/05 21:55:31 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.5 2005/04/14 22:59:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -348,6 +348,7 @@ typedef struct
   char		*username;
   char		*group;
   char		*home;		 /* DSPAM Home */
+  char		status[128];
   int		operating_mode;  /* DSM_ */
   int		training_mode;   /* DST_ */
   int		training_buffer; /* 0-10 */

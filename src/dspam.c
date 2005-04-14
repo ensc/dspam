@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.138 2005/04/14 18:17:02 jonz Exp $ */
+/* $Id: dspam.c,v 1.139 2005/04/14 22:59:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -82,6 +82,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define USE_LMTP        (_ds_read_attribute(agent_config, "DeliveryProto") && !strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "LMTP"))
 #define USE_SMTP        (_ds_read_attribute(agent_config, "DeliveryProto") && !strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "SMTP"))
 #define LOOKUP(A, B)	((_ds_pref_val(A, "localStore")[0]) ? _ds_pref_val(A, "localStore") : B)
+#define STATUS( ... )	snprintf(CTX->status, sizeof(CTX->status), __VA_ARGS__);
 
 int
 main (int argc, char *argv[])
@@ -379,6 +380,7 @@ process_message (AGENT_CTX *ATX,
         LOGDEBUG("source address is blacklisted. learning as spam.");
         CTX->classification = DSR_ISSPAM;
         CTX->source = DSS_CORPUS;
+	STATUS("Blacklisted. Learned as spam.");
       }
     }
   }
@@ -448,6 +450,10 @@ process_message (AGENT_CTX *ATX,
   }
 
   result = CTX->result;
+
+  if (result == DSR_ISWHITELISTED) {
+    STATUS("Auto-Whitelisted");
+  }
 
   /* First Spam Message */
   if (result == DSR_ISSPAM &&
@@ -2317,8 +2323,9 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
           LOGDEBUG ("querying node %s", (const char *) node_int->ptr);
           res = user_classify ((const char *) node_int->ptr,
                                   CTX->signature, NULL, ATX);
-          if (res == DSR_ISWHITELISTED)
+          if (res == DSR_ISWHITELISTED) {
             res = DSR_ISINNOCENT;
+          }
 
           if ((res == DSR_ISSPAM || res == DSR_ISINNOCENT) && 
               r.total_incorrect+r.total_correct>4) 
@@ -2464,6 +2471,10 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   char x[1024];
   size_t y;
 
+  if (CTX->status[0] == 0 &&CTX->source == DSS_ERROR) {
+    STATUS("Retrained.");
+  }
+	    
   _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, CTX->username), "log");
   _ds_userdir_path(retrain, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, CTX->username), "retrain.log");
 
@@ -2481,10 +2492,12 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       node_header = block->headers->first;
       while(node_header != NULL) {
         head = (struct _ds_header_field *) node_header->ptr;
-        if (head != NULL && !strcasecmp(head->heading, "Subject")) 
-          subject = head->data;
-        else if (head != NULL && !strcasecmp(head->heading, "From"))
-          from = head->data;
+	if (head) {
+          if (!strcasecmp(head->heading, "Subject")) 
+            subject = head->data;
+          else if (!strcasecmp(head->heading, "From"))
+            from = head->data;
+        }
 
         node_header = node_header->next;
       }
@@ -2559,14 +2572,15 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       if (!i) {
         char s[1024];
 
-
-        snprintf(s, sizeof(s), "%ld\t%c\t%s\t%s\t%s\t%f\n",
+        snprintf(s, sizeof(s), "%ld\t%c\t%s\t%s\t%s\t%f\t%s\t%s\n",
             (long) time(NULL),
             class,
             (from == NULL) ? "<None Specified>" : from,
             ATX->signature,
             (subject == NULL) ? "<None Specified>" : subject,
-            gettime()-ATX->timestart);
+            gettime()-ATX->timestart,
+	    (CTX->username) ? CTX->username: "",
+	    (CTX->status) ? CTX->status : "");
         fputs(s, file);
         _ds_free_fcntl_lock(fileno(file));
       } else {

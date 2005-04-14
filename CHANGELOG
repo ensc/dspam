@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.274 2005/04/14 17:46:14 jonz Exp $
+$Id: CHANGELOG,v 1.275 2005/04/14 22:59:22 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050414.1900] jonz: added extended logging to system.log
+
+added recipient and beginnings of a "status" or remarks section for system.log.
 
 [20050413.2005] jonz: added PgSQLUIDInSignature option
 
