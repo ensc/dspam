@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.137 2005/04/14 05:13:43 jonz Exp $ */
+/* $Id: dspam.c,v 1.138 2005/04/14 18:17:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -563,7 +563,7 @@ process_message (AGENT_CTX *ATX,
   /* Write .stats file for CGI */
   if (CTX->training_mode != DST_NOTRAIN) {
     write_web_stats (
-      ATX->PTX,
+      ATX,
       (CTX->group == NULL || CTX->flags & DSF_MERGED) ?  CTX->username : CTX->group, 
       (CTX->group != NULL && CTX->flags & DSF_MERGED) ? CTX->group: NULL,
       &CTX->totals);
@@ -631,7 +631,7 @@ process_message (AGENT_CTX *ATX,
   if (!strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "tag") && 
       result == DSR_ISSPAM)
   {
-    tag_message((struct _ds_message_block *) CTX->message->components->first->ptr, ATX->PTX);
+    tag_message(ATX, (struct _ds_message_block *) CTX->message->components->first->ptr);
   }
 
   if (strcmp(_ds_pref_val(ATX->PTX, "signatureLocation"), "headers") &&
@@ -854,17 +854,17 @@ deliver_message (AGENT_CTX *ATX, const char *message,
     PTX		preferences
 */
 
-int tag_message(struct _ds_message_block *block, agent_pref_t PTX)
+int tag_message(AGENT_CTX *ATX, struct _ds_message_block *block)
 {
   struct nt_node *node_header = block->headers->first; 
   char spam_subject[16];
   int tagged = 0;
 
   strlcpy(spam_subject, "[SPAM]", sizeof(spam_subject));
-  if (_ds_pref_val(PTX, "spamSubject")[0] != '\n' &&
-      _ds_pref_val(PTX, "spamSubject")[0] != 0)
+  if (_ds_pref_val(ATX->PTX, "spamSubject")[0] != '\n' &&
+      _ds_pref_val(ATX->PTX, "spamSubject")[0] != 0)
   {
-    strlcpy(spam_subject, _ds_pref_val(PTX, "spamSubject"), 
+    strlcpy(spam_subject, _ds_pref_val(ATX->PTX, "spamSubject"), 
             sizeof(spam_subject));
   }
 
@@ -943,7 +943,7 @@ int tag_message(struct _ds_message_block *block, agent_pref_t PTX)
 */
 
 int
-quarantine_message (agent_pref_t PTX, const char *message, const char *username)
+quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
 {
   char filename[MAX_FILENAME_LENGTH];
   FILE *file;
@@ -952,7 +952,7 @@ quarantine_message (agent_pref_t PTX, const char *message, const char *username)
   int i;
 
   _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), 
-                   LOOKUP(PTX, username), "mbox");
+                   LOOKUP(ATX->PTX, username), "mbox");
   _ds_prepare_path_for(filename);
   file = fopen (filename, "a");
   if (file == NULL)
@@ -1014,7 +1014,7 @@ quarantine_message (agent_pref_t PTX, const char *message, const char *username)
 
 int
 write_web_stats (
-  agent_pref_t PTX,
+  AGENT_CTX *ATX,
   const char *username, 
   const char *group, 
   struct _ds_spam_totals *totals)
@@ -1028,7 +1028,7 @@ write_web_stats (
     return EINVAL;
   }
 
-  _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(PTX, username), "stats");
+  _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, username), "stats");
   _ds_prepare_path_for (filename);
   file = fopen (filename, "w");
   if (file == NULL)
@@ -1317,7 +1317,6 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
   while (node_nt || node_rcpt)
   {
-    agent_pref_t PTX = NULL;
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
     int result, optin, optout;
@@ -1605,9 +1604,9 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
               /* Use standard quarantine procedure */
               if (ATX->source == DSS_INOCULATION || ATX->classification == DSR_NONE) {
                 if (ATX->managed_group[0] == 0)
-                  retcode = quarantine_message (PTX, parse_message->data, username);
+                  retcode = quarantine_message (ATX, parse_message->data, username);
                 else
-                  retcode = quarantine_message (PTX, parse_message->data, ATX->managed_group);
+                  retcode = quarantine_message (ATX, parse_message->data, ATX->managed_group);
               }
             }
 
@@ -1654,8 +1653,9 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       }
     }
 
-    _ds_pref_free(PTX);
-    free(PTX);
+    _ds_pref_free(ATX->PTX);
+    free(ATX->PTX);
+    ATX->PTX = NULL;
     node_nt = c_nt_next (ATX->users, &c_nt);
 
     if (ATX->results) 

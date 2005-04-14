@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.36 2005/04/13 22:05:37 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.37 2005/04/14 18:17:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -1958,7 +1958,6 @@ agent_pref_t _ds_pref_load(
   agent_pref_t PTX;
   agent_attrib_t pref;
   int uid, i = 0;
-
 
   CTX = _mysql_drv_init_tools(home, config, dbh, DSM_TOOLS);
   if (CTX == NULL)
