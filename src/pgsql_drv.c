@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.33 2005/04/06 13:25:12 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.34 2005/04/14 17:46:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -1099,9 +1099,18 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
   char session[64];
   char digit[6];
   int pid, j;
-
+  struct passwd *p;
+  
   pid = getpid ();
-  snprintf (session, sizeof (session), "%8lx%d", (long) time (NULL), pid);
+  if (_ds_match_attribute(CTX->config->attributes, "PgSQLUIDInSignature", "on"))
+  {
+    p = _pgsql_drv_getpwnam (CTX, CTX->username);
+
+    snprintf (session, sizeof (session), "%d,%8lx%d", p->pw_uid, 
+              (long) time(NULL), pid);
+  }
+  else
+    snprintf (session, sizeof (session), "%8lx%d", (long) time (NULL), pid);
 
   for (j = 0; j < 2; j++)
   {
@@ -1123,6 +1132,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   char *mem, *mem2;
   char query[128];
   PGresult *result;
+  int uid;
 
   if (s->dbh == NULL)
   {
@@ -1141,10 +1151,40 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
               CTX->username);
     return EINVAL;
   }
+  
+  if (_ds_match_attribute(CTX->config->attributes, "PgSQLUIDInSignature", "on"))
+  {
+    char *u, *sig, *username;
+    void *dbh = s->dbh;
+    int dbh_attached = s->dbh_attached;
+    sig = strdup(signature);
+    u = strchr(sig, ',');
+    if (!u) {
+      LOGDEBUG("unable to locate uid in signature");
+      return EFAILURE;
+    }
+    u[0] = 0;
+    u = sig;
+    uid = atoi(u);
+    free(sig);
+
+    /* Change the context's username and reinitialize storage */
+
+    p = _pgsql_drv_getpwuid (CTX, uid);
+    username = strdup(p->pw_name);
+    _ds_shutdown_storage(CTX);
+    free(CTX->username);
+    CTX->username = username;
+    free(username);
+    _ds_init_storage(CTX, (dbh_attached) ? dbh : NULL);
+  } else {
+    uid = p->pw_uid;
+  }
+
 
   snprintf (query, sizeof (query),
             "SELECT data, length FROM dspam_signature_data WHERE uid = '%d' AND signature = '%s'",
-            p->pw_uid, signature);
+            uid, signature);
 
   result = PQexec(s->dbh, query);
   if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )

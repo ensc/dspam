@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.273 2005/04/13 22:05:37 jonz Exp $
+$Id: CHANGELOG,v 1.274 2005/04/14 17:46:14 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050413.2005] jonz: added PgSQLUIDInSignature option
+
+applied patch contributed by Alexandre Biancalana to mirror UID support for
+postgres
 
 [20050413.2005] jonz: added MySQLUIDInSignature option
 
