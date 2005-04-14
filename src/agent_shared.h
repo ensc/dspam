@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.13 2005/03/26 04:52:06 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.14 2005/04/14 05:13:43 jonz Exp $ */
 
 /*
  DSPAM
@@ -81,6 +81,7 @@ typedef struct {
   int sockfd_output;		/* Output sent to sockfd?    */
   char client_args[1024];	/* Args for client connection */
   double timestart;
+  agent_pref_t PTX;
 
 #ifdef DEBUG
   char debug_args[1024];

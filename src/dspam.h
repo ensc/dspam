@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.23 2005/04/08 23:20:38 jonz Exp $ */
+/* $Id: dspam.h,v 1.24 2005/04/14 05:13:43 jonz Exp $ */
 
 /*
  DSPAM
@@ -44,15 +44,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 double gettime(void);
 
 int deliver_message	(AGENT_CTX *ATX, 
-                         agent_pref_t PTX,
                          const char *message, 
                          const char *mailer_args,
                          const char *username, 
                          FILE *out,
                          int result);
 
-int process_message	(AGENT_CTX *ATX, agent_pref_t PTX,
-			 buffer *message, const char *username);
+agent_pref_t load_aggregated_prefs
+			(AGENT_CTX *ATX, const char *username);
+
+int process_message	(AGENT_CTX *ATX, buffer *message, const char *username);
 
 int inoculate_user	(const char *username, struct _ds_spam_signature *SIG,
 			 const char *message, AGENT_CTX *ATX);
@@ -67,16 +68,16 @@ int write_web_stats     (agent_pref_t PTX, const char *username, const char *gro
                          struct _ds_spam_totals *totals);
 
 int ensure_confident_result	(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result);
-DSPAM_CTX *ctx_init	(AGENT_CTX *ATX, agent_pref_t PTX, const char *username);
-int log_events		(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX);
+DSPAM_CTX *ctx_init	(AGENT_CTX *ATX, const char *username);
+int log_events		(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int retrain_message	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int tag_message		(struct _ds_message_block *block, agent_pref_t PTX);
 int quarantine_message  (agent_pref_t PTX, const char *message, const char *username);
 int process_users       (AGENT_CTX *ATX, buffer *message);
-int find_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX);
-int add_xdspam_headers	(DSPAM_CTX *CTX, AGENT_CTX *ATX,  agent_pref_t PTX);
-int embed_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX);
-int embed_signed	(DSPAM_CTX *CTX, AGENT_CTX *ATX, agent_pref_t PTX);
+int find_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int add_xdspam_headers	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int embed_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int embed_signed	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int tracksource		(DSPAM_CTX *CTX);
 int is_blacklisted	(const char *ip);
 #ifdef DAEMON
