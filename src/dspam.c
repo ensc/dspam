@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.139 2005/04/14 22:59:22 jonz Exp $ */
+/* $Id: dspam.c,v 1.140 2005/04/15 13:45:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -377,10 +377,14 @@ process_message (AGENT_CTX *ATX,
     if (!dspam_getsource (CTX, ip, sizeof (ip))) {
       bad = is_blacklisted(ip);
       if (bad) {
-        LOGDEBUG("source address is blacklisted. learning as spam.");
-        CTX->classification = DSR_ISSPAM;
-        CTX->source = DSS_CORPUS;
-	STATUS("Blacklisted. Learned as spam.");
+        if (_ds_match_attribute(agent_config, "RBLInoculate", "on")) {
+          LOGDEBUG("source address is blacklisted. learning as spam.");
+          CTX->classification = DSR_ISSPAM;
+          CTX->source = DSS_INOCULATION;
+          STATUS("Blacklisted. Learned as spam.");
+        } else {
+          return DSR_ISSPAM;
+        }
       }
     }
   }
@@ -2474,7 +2478,27 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   if (CTX->status[0] == 0 &&CTX->source == DSS_ERROR) {
     STATUS("Retrained.");
   }
-	    
+
+  if (CTX->status[0] == 0  && CTX->classification == DSR_NONE 
+                           && CTX->result == DSR_ISSPAM)
+  {
+    if (_ds_pref_val(ATX->PTX, "spamAction")[0] == 0 ||
+        !strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "quarantine")) 
+    {
+      STATUS("Quqrantined.");
+    } else if (!strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "tag")) {
+      STATUS("Tagged.");
+    } else if (!strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "delivered")) {
+      STATUS("Delivered.");
+    }
+  }
+
+  if (CTX->status[0] == 0  && CTX->classification == DSR_NONE &&
+     (CTX->result == DSR_ISINNOCENT || CTX->result == DSR_ISWHITELISTED)) 
+  {
+    STATUS("Delivered.");
+  }
+
   _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, CTX->username), "log");
   _ds_userdir_path(retrain, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, CTX->username), "retrain.log");
 

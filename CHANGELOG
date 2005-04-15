@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.275 2005/04/14 22:59:22 jonz Exp $
+$Id: CHANGELOG,v 1.276 2005/04/15 13:45:50 jonz Exp $
    
 Version NEXT
 ------------
+
+[20050415.0700] jonz: added RBLInoculate option
+
+default is now changed to handle RBL spam like all other spam, but when
+setting RBLLearnAsSpam to "on", RBL spam will be inoculated
 
 [20050414.1900] jonz: added extended logging to system.log
 
