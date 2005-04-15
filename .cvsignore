@@ -11,3 +11,4 @@ dspam-*.tar.gz
 configure.sh
 config
 gmon.out
+installtoaster.sh

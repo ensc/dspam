@@ -18,3 +18,4 @@ dspam-uninstalled.pc
 dspam.conf
 dspam
 dspamc
+stamp-h.in
