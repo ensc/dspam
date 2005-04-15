@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.142 2005/04/15 17:38:06 jonz Exp $ */
+/* $Id: dspam.c,v 1.143 2005/04/15 18:30:21 jonz Exp $ */
 
 /*
  DSPAM
@@ -375,15 +375,13 @@ process_message (AGENT_CTX *ATX,
     char ip[32];
 
     if (!dspam_getsource (CTX, ip, sizeof (ip))) {
-      bad = is_blacklisted(ip);
+      bad = is_blacklisted(CTX, ip);
       if (bad) {
         if (_ds_match_attribute(agent_config, "RBLInoculate", "on")) {
           LOGDEBUG("source address is blacklisted. learning as spam.");
           CTX->classification = DSR_ISSPAM;
           CTX->source = DSS_INOCULATION;
-          STATUS("Blacklisted and Inoculated");
         } else {
-          STATUS("Blacklisted");
           return DSR_ISSPAM;
         }
       }
@@ -3080,7 +3078,7 @@ int tracksource(DSPAM_CTX *CTX) {
   return 0;
 }
 
-int is_blacklisted(const char *ip) {
+int is_blacklisted(DSPAM_CTX *CTX, const char *ip) {
 #ifdef __CYGWIN__
   /* No cygwin support for ip blacklisting */
   return 0;
@@ -3117,8 +3115,10 @@ int is_blacklisted(const char *ip) {
       if (!bad) {
         memcpy(&saddr, res->ai_addr, sizeof(struct sockaddr));
         inet_ntoa_r(saddr.sin_addr, buff, sizeof(buff));
-        if (!strcmp(buff, "127.0.0.2"))
+        if (!strcmp(buff, "127.0.0.2")) {
+          STATUS("Blacklisted (%s)", attrib->value);
           bad = 1;
+	}
       }
       freeaddrinfo(res);
     }
