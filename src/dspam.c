@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.140 2005/04/15 13:45:50 jonz Exp $ */
+/* $Id: dspam.c,v 1.141 2005/04/15 14:58:41 jonz Exp $ */
 
 /*
  DSPAM
@@ -2485,7 +2485,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     if (_ds_pref_val(ATX->PTX, "spamAction")[0] == 0 ||
         !strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "quarantine")) 
     {
-      STATUS("Quqrantined.");
+      STATUS("Quarantined.");
     } else if (!strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "tag")) {
       STATUS("Tagged.");
     } else if (!strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "delivered")) {
