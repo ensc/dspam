@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.144 2005/04/16 02:38:14 jonz Exp $ */
+/* $Id: dspam.c,v 1.145 2005/04/16 02:38:41 jonz Exp $ */
 
 /*
  DSPAM
@@ -1557,7 +1557,6 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                 _ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                 ATX->learned)
             {
-LOGDEBUG("HERE0\n");
               ATX->classification =
                 (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
               ATX->source = DSS_ERROR;
@@ -1626,7 +1625,6 @@ LOGDEBUG("HERE0\n");
               /* Unlearn the message on a local delivery failure */
               if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                   ATX->learned) {
-LOGDEBUG("HERE1\n");
                 ATX->classification =
                   (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
                 ATX->source = DSS_ERROR;
@@ -1653,7 +1651,6 @@ LOGDEBUG("HERE1\n");
 
             if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                 ATX->learned) {
-LOGDEBUG("HERE2\n");
               ATX->classification =
                 (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
               ATX->source = DSS_ERROR;
