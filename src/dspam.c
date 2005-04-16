@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.145 2005/04/16 02:38:41 jonz Exp $ */
+/* $Id: dspam.c,v 1.146 2005/04/16 02:59:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -2479,7 +2479,8 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   }
 
   if (CTX->status[0] == 0  && CTX->classification == DSR_NONE 
-                           && CTX->result == DSR_ISSPAM)
+                           && CTX->result == DSR_ISSPAM
+                           && CTX->status[0] == 0)
   {
     if (_ds_pref_val(ATX->PTX, "spamAction")[0] == 0 ||
         !strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "quarantine")) 
@@ -2496,6 +2497,10 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
      (CTX->result == DSR_ISINNOCENT || CTX->result == DSR_ISWHITELISTED)) 
   {
     STATUS("Delivered");
+  }
+
+  if (ATX->flags & DAF_UNLEARN) {
+    STATUS("Deferred");
   }
 
   _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, CTX->username), "log");

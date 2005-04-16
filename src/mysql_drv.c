@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.37 2005/04/14 18:17:02 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.38 2005/04/16 02:59:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -1123,6 +1123,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     free(CTX->username);
     CTX->username = username;
     _ds_init_storage(CTX, (dbh_attached) ? dbh : NULL);
+    s = (struct _mysql_drv_storage *) CTX->storage;
   } else {
     uid = p->pw_uid;
   }
@@ -1131,6 +1132,8 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
           "select data, length from dspam_signature_data "
           "where uid = %d and signature = \"%s\"", uid, signature);
 
+  printf("Query: %s\n", query);
+  printf("len: %d\n", strlen(query));
   if (mysql_real_query (s->dbh, query, strlen (query)))
   {
     _mysql_drv_query_error (mysql_error (s->dbh), query);

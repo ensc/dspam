@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.35 2005/04/14 17:47:01 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.36 2005/04/16 02:59:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -1176,6 +1176,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     free(CTX->username);
     CTX->username = username;
     _ds_init_storage(CTX, (dbh_attached) ? dbh : NULL);
+    s = (struct _pgsql_drv_storage *) CTX->storage;
   } else {
     uid = p->pw_uid;
   }
