@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.143 2005/04/15 18:30:21 jonz Exp $ */
+/* $Id: dspam.c,v 1.144 2005/04/16 02:38:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -1557,6 +1557,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                 _ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                 ATX->learned)
             {
+LOGDEBUG("HERE0\n");
               ATX->classification =
                 (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
               ATX->source = DSS_ERROR;
@@ -1625,6 +1626,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
               /* Unlearn the message on a local delivery failure */
               if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                   ATX->learned) {
+LOGDEBUG("HERE1\n");
                 ATX->classification =
                   (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
                 ATX->source = DSS_ERROR;
@@ -1651,6 +1653,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
             if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                 ATX->learned) {
+LOGDEBUG("HERE2\n");
               ATX->classification =
                 (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
               ATX->source = DSS_ERROR;
@@ -2547,10 +2550,14 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     class = 'C';
      
   if (class == 'M' || class == 'F') {
-    snprintf(x, sizeof(x), "%ld\t%s\t%s",
-            (long) time(NULL),
-            ATX->signature,
-            (class == 'M') ? "spam" : "innocent");
+    char rclass[32];
+    strcpy(rclass, (class == 'M') ? "spam" : "innocent");
+    if (ATX->flags & DAF_UNLEARN) {
+      strcpy(rclass, "unlearn");
+    }
+    
+    snprintf(x, sizeof(x), "%ld\t%s\t%s", (long) time(NULL), ATX->signature,
+            rclass);
   } else {
     snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s\t%s", 
             (long) time(NULL), 
