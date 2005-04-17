@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.20 2005/04/16 01:53:10 jonz Exp $ */
+/* $Id: daemon.h,v 1.21 2005/04/17 10:57:30 jonz Exp $ */
 
 /*
 
@@ -71,7 +71,6 @@ void	decrement_thread_count(void);
 buffer *read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
 
 #define LMTP_GREETING		220
-#define LMTP_TEMP_ERROR		421
 #define LMTP_QUIT		221
 #define LMTP_OK			250
 #define LMTP_DATA		354
@@ -80,6 +79,7 @@ buffer *read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
 #define LMTP_AUTH_ERROR		503
 #define LMTP_BAD_CMD		503
 #define LMTP_NO_RCPT		554
+#define LMTP_TEMP_FAIL		421
 
 #define SSM_DSPAM	0x00
 #define SSM_STANDARD	0x01

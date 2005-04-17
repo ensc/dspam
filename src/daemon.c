@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.90 2005/04/16 01:53:10 jonz Exp $ */
+/* $Id: daemon.c,v 1.91 2005/04/17 10:57:30 jonz Exp $ */
 
 /*
 
@@ -399,7 +399,7 @@ void *process_connection(void *ptr) {
     ATX = calloc(1, sizeof(AGENT_CTX));
     if (ATX == NULL) {
       LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-      daemon_reply(TTX, LMTP_TEMP_ERROR, "4.3.0", ERROR_MEM_ALLOC);
+      daemon_reply(TTX, LMTP_TEMP_FAIL, "4.3.0", ERROR_MEM_ALLOC);
       goto CLOSE;
     }
 
@@ -735,7 +735,7 @@ GETCMD:
         {
           snprintf(buf, sizeof(buf),
                    "%d 4.3.0 <%s> Error occured during %s", 
-                   LMTP_TEMP_ERROR, (char *) node_nt->ptr,
+                   LMTP_TEMP_FAIL, (char *) node_nt->ptr,
             (result->exitcode == ERC_DELIVERY) ? "delivery" : "processing");
         }
 
