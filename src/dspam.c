@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.146 2005/04/16 02:59:54 jonz Exp $ */
+/* $Id: dspam.c,v 1.147 2005/04/17 20:54:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -2499,10 +2499,6 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     STATUS("Delivered");
   }
 
-  if (ATX->flags & DAF_UNLEARN) {
-    STATUS("Deferred");
-  }
-
   _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, CTX->username), "log");
   _ds_userdir_path(retrain, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, CTX->username), "retrain.log");
 
@@ -2551,6 +2547,11 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   else if (CTX->source == DSS_CORPUS)
     class = 'C';
      
+  if (ATX->flags & DAF_UNLEARN) {
+    STATUS("Deferred");
+    class = 'E';
+  }
+
   if (class == 'M' || class == 'F') {
     char rclass[32];
     strcpy(rclass, (class == 'M') ? "spam" : "innocent");
