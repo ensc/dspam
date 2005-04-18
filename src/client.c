@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.48 2005/04/18 17:20:04 jonz Exp $ */
+/* $Id: client.c,v 1.49 2005/04/18 19:07:39 jonz Exp $ */
 
 /*
 
@@ -242,6 +242,16 @@ int client_connect(AGENT_CTX *ATX, int flags) {
 
   if (flags & CCF_DELIVERY) {
     host = _ds_read_attribute(agent_config, "DeliveryHost");
+
+    if (ATX->recipient && ATX->recipient[0]) {
+      char *domain = strchr(ATX->recipient, '@');
+      if (domain) {
+        char key[128];
+        snprintf(key, sizeof(key), "DeliveryHost.%s", domain+1);
+        if (_ds_read_attribute(agent_config, key))
+          host = _ds_read_attribute(agent_config, key);
+      }
+    }
 
     if (_ds_read_attribute(agent_config, "DeliveryPort"))
       port = atoi(_ds_read_attribute(agent_config, "DeliveryPort"));

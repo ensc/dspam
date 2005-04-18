@@ -1,7 +1,15 @@
-$Id: CHANGELOG,v 1.280 2005/04/18 16:43:04 jonz Exp $
+$Id: CHANGELOG,v 1.281 2005/04/18 19:07:39 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050417.1400] jonz: added support for domain-based delivery hosts
+
+you can now configure:
+
+DeliveryHost.domain.com	a.b.c.da
+
+in dspam.conf
 
 [20050417.0900] jonz: fixed firstrun/firstspam messages with groups
 
