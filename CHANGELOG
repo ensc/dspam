@@ -1,7 +1,16 @@
-$Id: CHANGELOG,v 1.278 2005/04/18 13:26:17 jonz Exp $
+$Id: CHANGELOG,v 1.279 2005/04/18 13:52:04 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050417.0900] jonz: fixed firstrun/firstspam messages with groups
+
+fixed condition where users in groups would never receive firstrun or firstspam
+messages. 
+
+IMPORTANT: this fix will cause all users to receive the notifications for the
+first time. if you want to avoid this, touch user.firstrun and user.firstspam
+files in each user's data directory.
 
 [20050415.2145] jonz: changed error codes for temporary failures
 

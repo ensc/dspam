@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.148 2005/04/18 13:26:17 jonz Exp $ */
+/* $Id: dspam.c,v 1.149 2005/04/18 13:52:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -313,9 +313,21 @@ process_message (AGENT_CTX *ATX,
   }
 
   /* First Run Message */
-  if (! CTX->totals.innocent_learned && ! CTX->totals.spam_learned &&
-      _ds_match_attribute(agent_config, "Notifications", "on")) { 
-    send_notice(ATX, "firstrun.txt", ATX->mailer_args, username);
+  if (_ds_match_attribute(agent_config, "Notifications", "on")) { 
+    _ds_userdir_path(filename,
+                    _ds_read_attribute(agent_config, "Home"),
+                    LOOKUP(ATX->PTX, username), "firstrun");
+    file = fopen(filename, "r");
+    if (file == NULL) {
+      send_notice(ATX, "firstrun.txt", ATX->mailer_args, username);
+    } else {
+      fclose(file);
+    }
+    file = fopen(filename, "w");
+    if (file) {
+      fprintf(file, "%ld\n", (long) time);
+      fclose(file);
+    }
   }
 
   /* Decode the message into a series of structures for easy processing */
@@ -460,11 +472,20 @@ process_message (AGENT_CTX *ATX,
 
   /* First Spam Message */
   if (result == DSR_ISSPAM &&
-        CTX->totals.spam_learned == 1 &&
-        CTX->totals.spam_misclassified == 0 && 
-       _ds_match_attribute(agent_config, "Notifications", "on")) 
+       _ds_match_attribute(agent_config, "Notifications", "on"))
   {
-    send_notice(ATX, "firstspam.txt", ATX->mailer_args, CTX->username);
+    _ds_userdir_path(filename,
+                    _ds_read_attribute(agent_config, "Home"),
+                    LOOKUP(ATX->PTX, username), "firstspam");
+    file = fopen(filename, "r");
+    if (file == NULL) {
+      send_notice(ATX, "firstspam.txt", ATX->mailer_args, username);
+    } else {
+      fclose(file);
+    }
+    file = fopen(filename, "w");
+    fprintf(file, "%ld\n", (long) time);
+    fclose(file);
   }
 
   /* Quarantine Size Check */
