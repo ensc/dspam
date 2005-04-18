@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.46 2005/04/18 16:43:04 jonz Exp $ */
+/* $Id: client.c,v 1.47 2005/04/18 17:15:49 jonz Exp $ */
 
 /*
 
@@ -621,7 +621,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *message, int proto) {
     if (code >= 500) 
       exitcode = EINVAL;
     chomp(error);
-    STATUS("FATAL: %s", error);
+    STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", error);
     goto QUIT;
   }
 
@@ -641,7 +641,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *message, int proto) {
     if (code >= 500)
       exitcode = EINVAL;  
     chomp(error);
-    STATUS("FATAL: %s", error);
+    STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", error);
     goto QUIT;
   }
 
@@ -659,7 +659,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *message, int proto) {
     if (code >= 500)
       exitcode = EINVAL;
     chomp(error);
-    STATUS("FATAL: %s", error);
+    STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", error);
     goto QUIT;
   }
 
@@ -690,11 +690,13 @@ int deliver_socket(AGENT_CTX *ATX, const char *message, int proto) {
 
   input = client_expect(&TTX, LMTP_OK, error, sizeof(error));
   if (input == NULL) {
+    code = client_parsecode(error);
     LOGDEBUG("Received invalid reply after sending message contents: %s", error);
-    chomp(error);
-    STATUS("FATAL: %s", error);
-    if (client_parsecode(error)>=500)
+    if (code >= 500)
       exitcode = EINVAL;
+    chomp(error);
+    STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", error);
+
     goto QUIT;
    }
    free(input);
