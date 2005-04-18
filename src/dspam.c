@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.147 2005/04/17 20:54:25 jonz Exp $ */
+/* $Id: dspam.c,v 1.148 2005/04/18 13:26:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -342,7 +342,7 @@ process_message (AGENT_CTX *ATX,
   file = fopen(filename, "r");
   if (file != NULL) {
     int blocklisted = 0;
-    char *heading = _ds_find_header(CTX->message, "From");
+    char *heading = _ds_find_header(CTX->message, "From", 0);
     char buf[256];
     if (heading) {
       char *dup = strdup(heading);
@@ -2472,7 +2472,11 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   FILE *file;
   char class;
   char x[1024];
+  char *messageid = NULL;
   size_t y;
+
+  if (CTX->message) 
+    messageid = _ds_find_header(CTX->message, "Message-Id", DDF_ICASE);
 
   if (CTX->status[0] == 0 &&CTX->source == DSS_ERROR) {
     STATUS("Retrained");
@@ -2605,7 +2609,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       if (!i) {
         char s[1024];
 
-        snprintf(s, sizeof(s), "%ld\t%c\t%s\t%s\t%s\t%f\t%s\t%s\n",
+        snprintf(s, sizeof(s), "%ld\t%c\t%s\t%s\t%s\t%f\t%s\t%s\t%s\n",
             (long) time(NULL),
             class,
             (from == NULL) ? "<None Specified>" : from,
@@ -2613,7 +2617,8 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
             (subject == NULL) ? "<None Specified>" : subject,
             gettime()-ATX->timestart,
 	    (CTX->username) ? CTX->username: "",
-	    (CTX->status) ? CTX->status : "");
+	    (CTX->status) ? CTX->status : "",
+            (messageid) ? messageid : "");
         fputs(s, file);
         _ds_free_fcntl_lock(fileno(file));
       } else {

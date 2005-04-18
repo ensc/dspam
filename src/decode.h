@@ -1,4 +1,4 @@
-/* $Id: decode.h,v 1.5 2005/04/12 21:45:53 jonz Exp $ */
+/* $Id: decode.h,v 1.6 2005/04/18 13:26:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -127,7 +127,7 @@ char *  _ds_decode_quoted       (const char *body);
 
 struct _ds_message *	_ds_actualize_message	(const char *message);
 char *			_ds_assemble_message	(struct _ds_message *message);
-char *                  _ds_find_header (struct _ds_message *, char *heading);
+char *                  _ds_find_header (struct _ds_message *, char *heading, int flags);
 
 /* Internal Decoding Functions */
 
@@ -192,5 +192,8 @@ char *	_ds_pop_boundary	(struct nt *stack);
 #define BP_HEADER		0x00
 #define BP_BODY			0x01
 
+/* Decoding Function Flags */
+
+#define DDF_ICASE		0x01
 #endif /* _DECODE_H */
 

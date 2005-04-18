@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.15 2005/04/12 21:45:53 jonz Exp $ */
+/* $Id: decode.c,v 1.16 2005/04/18 13:26:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -987,7 +987,7 @@ _ds_extract_boundary (char *buf, size_t size, char *mem)
 
 
 char *
-_ds_find_header (struct _ds_message *message, char *heading) {
+_ds_find_header (struct _ds_message *message, char *heading, int flags) {
   struct _ds_message_block *block;
   struct _ds_header_field *head;
   struct nt_node *node_nt;
@@ -1004,8 +1004,13 @@ _ds_find_header (struct _ds_message *message, char *heading) {
   node_nt = block->headers->first;
   while(node_nt != NULL) {
     head = (struct _ds_header_field *) node_nt->ptr;
-    if (head && !strcmp(head->heading, heading))
-      return head->data;
+    if (flags & DDF_ICASE) {
+      if (head && !strcasecmp(head->heading, heading))
+        return head->data;
+    } else {
+      if (head && !strcmp(head->heading, heading))
+        return head->data;
+    }
     node_nt = node_nt->next;
   }
 
