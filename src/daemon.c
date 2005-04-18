@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.91 2005/04/17 10:57:30 jonz Exp $ */
+/* $Id: daemon.c,v 1.92 2005/04/18 16:43:04 jonz Exp $ */
 
 /*
 
@@ -733,10 +733,16 @@ GETCMD:
         } 
         else
         {
-          snprintf(buf, sizeof(buf),
-                   "%d 4.3.0 <%s> Error occured during %s", 
-                   LMTP_TEMP_FAIL, (char *) node_nt->ptr,
-            (result->exitcode == ERC_DELIVERY) ? "delivery" : "processing");
+          if (result->exitcode == ERC_PERMANENT_DELIVERY) {
+            snprintf(buf, sizeof(buf),
+                     "%d 5.3.0 <%s> Error occured during delivery",
+                     LMTP_FAILURE, (char *) node_nt->ptr);
+          } else {
+            snprintf(buf, sizeof(buf),
+                     "%d 4.3.0 <%s> Error occured during %s", 
+                     LMTP_TEMP_FAIL, (char *) node_nt->ptr,
+              (result->exitcode == ERC_DELIVERY) ? "delivery" : "processing");
+          }
         }
 
         if (send_socket(TTX, buf)<=0) 

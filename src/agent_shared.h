@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.14 2005/04/14 05:13:43 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.15 2005/04/18 16:43:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -36,6 +36,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #ifndef _AGENT_SHARED_H
 #  define _AGENT_SHARED_H
+
+#define STATUS( ... )   snprintf(ATX->status, sizeof(ATX->status), __VA_ARGS__);
 
 #define SYNTAX "Syntax: dspam [--daemon] --mode=[toe|tum|teft|notrain] --user [user1 user2 ... userN] [--feature=[ch,no,wh,tb=N,sbph]] [--class=[spam|innocent]] [--source=[error|corpus|inoculation]] [--profile=[PROFILE]] [--deliver=[spam,innocent]] [--process|--classify] [--stdout] [passthru-arguments]"
 
@@ -83,6 +85,7 @@ typedef struct {
   double timestart;
   agent_pref_t PTX;
 
+  char status[256];
 #ifdef DEBUG
   char debug_args[1024];
 #endif

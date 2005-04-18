@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.279 2005/04/18 13:52:04 jonz Exp $
+$Id: CHANGELOG,v 1.280 2005/04/18 16:43:04 jonz Exp $
 
 Version NEXT
 ------------
@@ -15,7 +15,9 @@ files in each user's data directory.
 [20050415.2145] jonz: changed error codes for temporary failures
 
 changed error codes for delivery to report temporary failures so that failed
-messages will requeue
+messages will requeue.
+
+for permanent failures, we still send a permanent failure
 
 [20050415.0700] jonz: added RBLInoculate option
 

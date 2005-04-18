@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.149 2005/04/18 13:52:04 jonz Exp $ */
+/* $Id: dspam.c,v 1.150 2005/04/18 16:43:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -82,7 +82,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define USE_LMTP        (_ds_read_attribute(agent_config, "DeliveryProto") && !strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "LMTP"))
 #define USE_SMTP        (_ds_read_attribute(agent_config, "DeliveryProto") && !strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "SMTP"))
 #define LOOKUP(A, B)	((_ds_pref_val(A, "localStore")[0]) ? _ds_pref_val(A, "localStore") : B)
-#define STATUS( ... )	snprintf(CTX->status, sizeof(CTX->status), __VA_ARGS__);
 
 int
 main (int argc, char *argv[])
@@ -387,7 +386,7 @@ process_message (AGENT_CTX *ATX,
     char ip[32];
 
     if (!dspam_getsource (CTX, ip, sizeof (ip))) {
-      bad = is_blacklisted(CTX, ip);
+      bad = is_blacklisted(ATX, ip);
       if (bad) {
         if (_ds_match_attribute(agent_config, "RBLInoculate", "on")) {
           LOGDEBUG("source address is blacklisted. learning as spam.");
@@ -1436,6 +1435,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       }
     }
 
+    ATX->status[0] = 0;
+
     if (DO_DEBUG) {
       LOGDEBUG ("DSPAM Instance Startup");
       LOGDEBUG ("input args: %s", ATX->debug_args);
@@ -1506,6 +1507,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
         if (retcode) 
           presult->exitcode = ERC_DELIVERY;
+	if (retcode == EINVAL)
+          presult->exitcode = ERC_PERMANENT_DELIVERY;
 
         if (ATX->sockfd && ATX->flags & DAF_STDOUT)
           ATX->sockfd_output = 1;
@@ -1573,6 +1576,9 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
             ATX->sockfd_output = 1;
           if (retcode) {
             presult->exitcode = ERC_DELIVERY;
+          if (retcode == EINVAL)
+            presult->exitcode = ERC_PERMANENT_DELIVERY;
+
 
             if ((result == DSR_ISINNOCENT || result == DSR_ISWHITELISTED) && 
                 _ds_match_attribute(agent_config, "OnFail", "unlearn") &&
@@ -1627,6 +1633,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
                 if (retcode) 
                   presult->exitcode = ERC_DELIVERY;
+                if (retcode == EINVAL)
+                  presult->exitcode = ERC_PERMANENT_DELIVERY;
               }
             }
             else
@@ -1642,6 +1650,9 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
             if (retcode) {
               presult->exitcode = ERC_DELIVERY;
+            if (retcode == EINVAL)
+              presult->exitcode = ERC_PERMANENT_DELIVERY;
+
 
               /* Unlearn the message on a local delivery failure */
               if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
@@ -1669,6 +1680,9 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
           if (retcode) {
             presult->exitcode = ERC_DELIVERY;
+          if (retcode == EINVAL)
+            presult->exitcode = ERC_PERMANENT_DELIVERY;
+
 
             if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                 ATX->learned) {
@@ -2499,13 +2513,13 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   if (CTX->message) 
     messageid = _ds_find_header(CTX->message, "Message-Id", DDF_ICASE);
 
-  if (CTX->status[0] == 0 &&CTX->source == DSS_ERROR) {
+  if (ATX->status[0] == 0 &&CTX->source == DSS_ERROR) {
     STATUS("Retrained");
   }
 
-  if (CTX->status[0] == 0  && CTX->classification == DSR_NONE 
+  if (ATX->status[0] == 0  && CTX->classification == DSR_NONE 
                            && CTX->result == DSR_ISSPAM
-                           && CTX->status[0] == 0)
+                           && ATX->status[0] == 0)
   {
     if (_ds_pref_val(ATX->PTX, "spamAction")[0] == 0 ||
         !strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "quarantine")) 
@@ -2513,12 +2527,12 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       STATUS("Quarantined");
     } else if (!strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "tag")) {
       STATUS("Tagged");
-    } else if (!strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "delivered")) {
+    } else if (!strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "deliver")) {
       STATUS("Delivered");
     }
   }
 
-  if (CTX->status[0] == 0  && CTX->classification == DSR_NONE &&
+  if (ATX->status[0] == 0  && CTX->classification == DSR_NONE &&
      (CTX->result == DSR_ISINNOCENT || CTX->result == DSR_ISWHITELISTED)) 
   {
     STATUS("Delivered");
@@ -2573,7 +2587,9 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     class = 'C';
      
   if (ATX->flags & DAF_UNLEARN) {
-    STATUS("Deferred");
+    char stat[256];
+    snprintf(stat, sizeof(stat), "Delivery Failed (%s)", ATX->status);
+    STATUS(stat);
     class = 'E';
   }
 
@@ -2638,7 +2654,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
             (subject == NULL) ? "<None Specified>" : subject,
             gettime()-ATX->timestart,
 	    (CTX->username) ? CTX->username: "",
-	    (CTX->status) ? CTX->status : "",
+	    (ATX->status) ? ATX->status : "",
             (messageid) ? messageid : "");
         fputs(s, file);
         _ds_free_fcntl_lock(fileno(file));
@@ -3114,7 +3130,7 @@ int tracksource(DSPAM_CTX *CTX) {
   return 0;
 }
 
-int is_blacklisted(DSPAM_CTX *CTX, const char *ip) {
+int is_blacklisted(AGENT_CTX *ATX, const char *ip) {
 #ifdef __CYGWIN__
   /* No cygwin support for ip blacklisting */
   return 0;

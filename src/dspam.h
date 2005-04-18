@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.26 2005/04/15 18:30:21 jonz Exp $ */
+/* $Id: dspam.h,v 1.27 2005/04/18 16:43:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -79,7 +79,7 @@ int add_xdspam_headers	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int embed_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int embed_signed	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int tracksource		(DSPAM_CTX *CTX);
-int is_blacklisted	(DSPAM_CTX *CTX, const char *ip);
+int is_blacklisted	(AGENT_CTX *CTX, const char *ip);
 #ifdef DAEMON
 int daemon_start	(AGENT_CTX *ATX);
 #endif
@@ -100,6 +100,7 @@ typedef struct agent_result {
 #define ERC_SUCCESS		0x00
 #define ERC_PROCESS		-0x01
 #define ERC_DELIVERY		-0x02
+#define ERC_PERMANENT_DELIVERY	-0x03
 
 #endif /* _DSPAM_H */
 

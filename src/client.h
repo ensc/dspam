@@ -1,4 +1,4 @@
-/* $Id: client.h,v 1.8 2005/03/19 00:12:04 jonz Exp $ */
+/* $Id: client.h,v 1.9 2005/04/18 16:43:04 jonz Exp $ */
 
 /*
 
@@ -39,10 +39,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "buffer.h"
 
 int client_process      (AGENT_CTX *ATX, buffer *message);
-int client_connect      (int flags);
+int client_connect      (AGENT_CTX *ATX, int flags);
 int client_authenticate (THREAD_CTX *TTX, const char *processmode);
-int client_getcode      (THREAD_CTX *TTX);
-char * client_expect    (THREAD_CTX *TTX, int response_code);
+int client_parsecode	(char *error);
+int client_getcode      (THREAD_CTX *TTX, char *error, size_t len);
+char * client_expect    (THREAD_CTX *TTX, int response_code, char *error, size_t len);
 char * client_getline   (THREAD_CTX *TTX, int timeout);
 int deliver_socket      (AGENT_CTX *ATX, const char *message, int proto);
 
