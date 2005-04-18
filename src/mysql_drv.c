@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.39 2005/04/17 10:57:30 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.40 2005/04/18 18:20:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -940,6 +940,10 @@ int
 _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 {
   struct _mysql_drv_storage *s;
+
+  if (CTX == NULL) {
+    return EINVAL;
+  }
 
   /* don't init if we're already initted */
   if (CTX->storage != NULL)
