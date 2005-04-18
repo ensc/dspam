@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.47 2005/04/18 17:15:49 jonz Exp $ */
+/* $Id: client.c,v 1.48 2005/04/18 17:20:04 jonz Exp $ */
 
 /*
 
@@ -88,6 +88,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
 
   if (client_authenticate(&TTX, ATX->client_args)<0) {
     report_error(ERROR_CLIENT_AUTH_FAILED);
+    STATUS(ERROR_CLIENT_AUTH_FAILED);
     goto QUIT;
   }
 
