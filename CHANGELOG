@@ -1,7 +1,18 @@
-$Id: CHANGELOG,v 1.281 2005/04/18 19:07:39 jonz Exp $
+$Id: CHANGELOG,v 1.282 2005/04/19 20:27:32 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050419.0200] jonz: got rid of retrain.log entirely, reworked logs
+
+reworked the system and user logs to be a little more useful and removed the
+retrain.log entirely. it's pretty simple:
+
+1 entry for a message process
+1 entry for a retrain using same signature id
+1 entry for a delivery error using same signature id
+
+the message id is also stored to detect resends. updated dspam.cgi.
 
 [20050417.1400] jonz: added support for domain-based delivery hosts
 

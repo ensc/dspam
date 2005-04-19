@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.150 2005/04/18 16:43:04 jonz Exp $ */
+/* $Id: dspam.c,v 1.151 2005/04/19 20:27:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -2500,7 +2500,6 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
 
 int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   char filename[MAX_FILENAME_LENGTH];
-  char retrain[MAX_FILENAME_LENGTH];
   char *subject = NULL, *from = NULL;
   struct nt_node *node_nt;
   struct nt_c c_nt;
@@ -2513,7 +2512,9 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   if (CTX->message) 
     messageid = _ds_find_header(CTX->message, "Message-Id", DDF_ICASE);
 
-  if (ATX->status[0] == 0 &&CTX->source == DSS_ERROR) {
+  if (ATX->status[0] == 0 && CTX->source == DSS_ERROR && 
+     (!(ATX->flags & DAF_UNLEARN)))
+  {
     STATUS("Retrained");
   }
 
@@ -2539,7 +2540,6 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   }
 
   _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, CTX->username), "log");
-  _ds_userdir_path(retrain, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, CTX->username), "retrain.log");
 
   node_nt = c_nt_first (CTX->message->components, &c_nt);
   if (node_nt != NULL)
@@ -2588,40 +2588,28 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
      
   if (ATX->flags & DAF_UNLEARN) {
     char stat[256];
-    snprintf(stat, sizeof(stat), "Delivery Failed (%s)", ATX->status);
+    snprintf(stat, sizeof(stat), "Delivery Failed (%s)", 
+             (ATX->status[0]) ? ATX->status : "No error provided");
     STATUS(stat);
     class = 'E';
   }
 
-  if (class == 'M' || class == 'F') {
-    char rclass[32];
-    strcpy(rclass, (class == 'M') ? "spam" : "innocent");
-    if (ATX->flags & DAF_UNLEARN) {
-      strcpy(rclass, "unlearn");
-    }
-    
-    snprintf(x, sizeof(x), "%ld\t%s\t%s", (long) time(NULL), ATX->signature,
-            rclass);
-  } else {
-    snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s\t%s", 
-            (long) time(NULL), 
+  /* Write user.log */
+  if (_ds_match_attribute(agent_config, "UserLog", "on")) {
+    snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s\t%s\t%s\t%s\n",
+            (long) time(NULL),
             class,
             (from == NULL) ? "<None Specified>" : from,
             ATX->signature,
-            (subject == NULL) ? "<None Specified>" : subject);
-  }
-  for(y=0;y<strlen(x);y++)
-    if (x[y] == '\n') 
-      x[y] = 32;
+            (subject == NULL) ? "<None Specified>" : subject,
+            ATX->status,
+            (messageid) ? messageid : "");
+    for(y=0;y<strlen(x);y++)
+      if (x[y] == '\n')
+        x[y] = 32;
 
-  if (_ds_match_attribute(agent_config, "UserLog", "on")) {
-    if (class == 'M' || class == 'F') {
-      _ds_prepare_path_for(retrain);
-      file = fopen(retrain, "a");
-    } else {
-      _ds_prepare_path_for(filename);
-      file = fopen(filename, "a");
-    }
+    _ds_prepare_path_for(filename);
+    file = fopen(filename, "a");
     if (file != NULL) {
       int i = _ds_get_fcntl_lock(fileno(file));
       if (!i) {
@@ -2632,14 +2620,14 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         LOG(LOG_WARNING, "Failed to lock %s: %d: %s\n", filename, i, 
                          strerror(errno));
       }
-
       fclose(file);
     }
   }
 
+  /* Write system.log */
   if (_ds_match_attribute(agent_config, "SystemLog", "on")) {
-    snprintf(filename, sizeof(filename), "%s/system.log", _ds_read_attribute(agent_config, "Home"));
-   
+    snprintf(filename, sizeof(filename), "%s/system.log", 
+             _ds_read_attribute(agent_config, "Home"));
     file = fopen(filename, "a");
     if (file != NULL) {
       int i = _ds_get_fcntl_lock(fileno(file));
