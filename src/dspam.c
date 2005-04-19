@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.151 2005/04/19 20:27:32 jonz Exp $ */
+/* $Id: dspam.c,v 1.152 2005/04/19 21:26:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -856,7 +856,10 @@ deliver_message (AGENT_CTX *ATX, const char *message,
     else
     {
       report_error_printf (ERROR_AGENT_RETURN, lda_exit_code, args);
-      return lda_exit_code;
+      if (_ds_match_attribute(agent_config, "LMTPLDAErrorsPermanent", "on")) 
+        return EINVAL;
+      else
+        return lda_exit_code;
     }
   }
 #ifndef _WIN32
