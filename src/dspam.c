@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.152 2005/04/19 21:26:47 jonz Exp $ */
+/* $Id: dspam.c,v 1.153 2005/04/20 12:44:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -324,7 +324,7 @@ process_message (AGENT_CTX *ATX,
     }
     file = fopen(filename, "w");
     if (file) {
-      fprintf(file, "%ld\n", (long) time);
+      fprintf(file, "%ld\n", (long) time(NULL));
       fclose(file);
     }
   }
@@ -483,7 +483,7 @@ process_message (AGENT_CTX *ATX,
       fclose(file);
     }
     file = fopen(filename, "w");
-    fprintf(file, "%ld\n", (long) time);
+    fprintf(file, "%ld\n", (long) time(NULL));
     fclose(file);
   }
 
