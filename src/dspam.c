@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.153 2005/04/20 12:44:14 jonz Exp $ */
+/* $Id: dspam.c,v 1.154 2005/04/20 12:45:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -483,8 +483,10 @@ process_message (AGENT_CTX *ATX,
       fclose(file);
     }
     file = fopen(filename, "w");
-    fprintf(file, "%ld\n", (long) time(NULL));
-    fclose(file);
+    if (file) {
+      fprintf(file, "%ld\n", (long) time(NULL));
+      fclose(file);
+    }
   }
 
   /* Quarantine Size Check */
