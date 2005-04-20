@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.282 2005/04/19 20:27:32 jonz Exp $
+$Id: CHANGELOG,v 1.283 2005/04/20 14:04:30 jonz Exp $
 
 Version NEXT
 ------------
@@ -21,22 +21,6 @@ you can now configure:
 DeliveryHost.domain.com	a.b.c.da
 
 in dspam.conf
-
-[20050417.0900] jonz: fixed firstrun/firstspam messages with groups
-
-fixed condition where users in groups would never receive firstrun or firstspam
-messages. 
-
-IMPORTANT: this fix will cause all users to receive the notifications for the
-first time. if you want to avoid this, touch user.firstrun and user.firstspam
-files in each user's data directory.
-
-[20050415.2145] jonz: changed error codes for temporary failures
-
-changed error codes for delivery to report temporary failures so that failed
-messages will requeue.
-
-for permanent failures, we still send a permanent failure
 
 [20050415.0700] jonz: added RBLInoculate option
 
@@ -71,10 +55,6 @@ made adjustments based on performance without token counter indexes
 added 'date' field to quarantine display using X-DSPAM-Processed header.
 reversed 'Date' ordering to list most recent at top
 
-[20050408.0300] jonz: set proper permissions for socket file
-
-set proper permissions (rwxrwxrwx) when creating socket file
-
 [20050405.1815] jonz: minor code cleanup
 
 minor cleanup of static -1 values in code, replaced with #define'd values
@@ -92,12 +72,12 @@ domain-based groups have been changed to require *@domain.tld instead of
 added domain blocklisting via data/user.blocklist file; does not train. useful
 for filtering unwanted nonspam. may expand for full support later via cgi.
 
-[20050331.0600] jonz: bugfix: external default preferences not merged
+[20050331.0600] jonz: external default preferences merged
 
 external preferences (default preferences stored in the database or .pref
-file) are not used when merging system and user preferences. fix changes
-behavior so that dspam.conf preferences are only loaded in absence of default
-preferences set in the database.
+file) were not previously used when merging system and user preferences. this
+now changes behavior so that dspam.conf preferences are only loaded in absence 
+of default preferences set in the database.
  
 [20050331.0600] jonz: added fallback domain support
 
@@ -113,6 +93,30 @@ preference when provsioned. To use:
 
 Version 3.4.5
 -------------
+
+[20050417.0900] jonz: fixed firstrun/firstspam messages with groups
+
+fixed condition where users in groups would never receive firstrun or firstspam
+messages.
+
+IMPORTANT: this fix will cause all users to receive the notifications for the
+first time. if you want to avoid this, touch user.firstrun and user.firstspam
+files in each user's data directory.
+
+[20050408.0300] jonz: set proper permissions for socket file
+
+set proper permissions (rwxrwxrwx) when creating socket file
+
+[20050419.2200] jonz: applied signature retrieval failure error patch
+
+applied patch to fix some false signature retrievals
+
+[20050415.2300] jonz: LMTP error codes for temporary failures
+
+changed relevant LMTP error codes to report temporary failures instead of
+permanent failures, to fix mail loss problem.
+
+for permanent failures, we still send a permanent failure
 
 [20050412.2130] jonz: fix for notspam- aliases and changeuseronparse
 
