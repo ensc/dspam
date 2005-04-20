@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.92 2005/04/18 16:43:04 jonz Exp $ */
+/* $Id: daemon.c,v 1.93 2005/04/20 13:38:39 jonz Exp $ */
 
 /*
 
@@ -735,7 +735,7 @@ GETCMD:
         {
           if (result->exitcode == ERC_PERMANENT_DELIVERY) {
             snprintf(buf, sizeof(buf),
-                     "%d 5.3.0 <%s> Error occured during delivery",
+                     "%d 5.3.0 <%s> Permanent error occured during delivery",
                      LMTP_FAILURE, (char *) node_nt->ptr);
           } else {
             snprintf(buf, sizeof(buf),
