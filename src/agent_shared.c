@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.40 2005/04/21 01:48:05 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.41 2005/04/21 02:01:08 jonz Exp $ */
 
 /*
 
@@ -56,10 +56,10 @@
 #include <sys/param.h>
 #endif
 #include "util.h"
-#ifdef DAEMON
-#include "daemon.h"
-#include "client.h"
-#endif
+//#ifdef DAEMON
+//#include "daemon.h"
+//#include "client.h"
+//#endif
 
 #ifdef TIME_WITH_SYS_TIME
 #   include <sys/time.h>

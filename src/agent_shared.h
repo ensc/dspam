@@ -1,22 +1,23 @@
-/* $Id: agent_shared.h,v 1.16 2005/04/21 01:48:05 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.17 2005/04/21 02:01:08 jonz Exp $ */
 
 /*
+
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
@@ -24,11 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef _WIN32
 #include <pwd.h>
 #endif
-#include "libdspam.h"
 #include "buffer.h"
-#include "pref.h"
-#include "read_config.h"
-#include "daemon.h"
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -39,17 +36,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define STATUS( ... )   snprintf(ATX->status, sizeof(ATX->status), __VA_ARGS__);
 
-#define SYNTAX "Syntax: dspam [--daemon] --mode=[toe|tum|teft|notrain] --user [user1 user2 ... userN] [--feature=[ch,no,wh,tb=N,sbph]] [--class=[spam|innocent]] [--source=[error|corpus|inoculation]] [--profile=[PROFILE]] [--deliver=[spam,innocent]] [--process|--classify] [--stdout] [passthru-arguments]"
-
-/* Signature identifiers; don't modify unless you understand the 
-   subtle consequences */
+#define SYNTAX "Syntax: dspam [--client|--daemon] --mode=[toe|tum|teft|notrain] --user [user1 user2 ... userN] [--feature=[ch,no,wh,tb=N,sbph]] [--class=[spam|innocent]] [--source=[error|corpus|inoculation]] [--profile=[PROFILE]] [--deliver=[spam,innocent,summary]] [--process|--classify] [--stdout] [passthru-arguments]"
 
 #define         SIGNATURE_BEGIN		"!DSPAM:"
 #define         SIGNATURE_END		"!"
 #define         LOOSE_SIGNATURE_BEGIN	"X-DSPAM-Signature:"
 #define         SIGNATURE_DELIMITER	": "
 
-/* Agent Context: Agent Configuration */
+/* AGENT_CTX: agent context */
 
 typedef struct {
   int operating_mode;       /* Processing Mode       IN DSM_ */
@@ -65,7 +59,7 @@ typedef struct {
   void *dbh;                /* Database Handle       IN      */
   u_int32_t flags;          /* Flags DAF_            IN      */
   int training_buffer;	    /* Sedation Level 0-10   IN      */
-  char *recipient;
+  char *recipient;          /* Current Recipient             */
   char mailer_args[256];        /* Delivery Args     IN      */
   char spam_args[256];          /* Quarantine Args   IN      */
   char managed_group[256];      /* Managed Groupname IN      */
@@ -77,7 +71,7 @@ typedef struct {
   struct nt *classify_users;    /* Classify list     OUT     */
   struct nt *recipients;	/* Recipients        IN      */
   struct nt *results;		/* Process Results   OUT    */
-  struct _ds_spam_signature SIG;/* signature object  OUT     */ 
+  struct _ds_spam_signature SIG;/* Signature object  OUT     */ 
   int learned;                  /* Message learned?  OUT     */
   FILE *sockfd;			/* Socket FD if not STDOUT   */
   int sockfd_output;		/* Output sent to sockfd?    */
@@ -118,10 +112,8 @@ buffer *read_stdin	(AGENT_CTX *ATX);
 #   define MIN(a,b)  ((a)<(b)?(a):(b))
 #endif /* !MIN */
 
-/*
- *  DSPAM Agent Context Flags (DAF)
-    Do not confuse with libdspam's classification context flags (DSF)
- */
+/* agent context flag (DAF)
+   do not confuse with libdspam's classification context flags (DSF) */
 
 #define DAF_STDOUT		0x01
 #define DAF_DELIVER_SPAM	0x02
