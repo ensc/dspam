@@ -1,23 +1,31 @@
-/* $Id: config_api.c,v 1.3 2005/04/14 05:13:43 jonz Exp $ */
+/* $Id: config_api.c,v 1.4 2005/04/21 17:20:36 jonz Exp $ */
 
 /*
+
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+*/
+
+/*
+   config_api.c
+
+   DESCRIPTION
+     configuration based functions for populating libdspam properties 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -33,14 +41,28 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <string.h>
 
 #include "config_api.h"
-#include "config_shared.h"
+//#include "config_shared.h"
 #include "read_config.h"
-#include "config.h"
+//#include "config.h"
 #include "error.h"
 #include "language.h"
 #include "libdspam.h"
-#include "pref.h"
 #include "util.h"
+
+/*
+   set_libdspam_attributes(DSPAM_CTX *CTX)
+
+   DESCRIPTION
+     populate libdspam properties with relevant configuration values from
+     dspam.conf. since dspam.conf is owned by the agent, libdspam doesn't read
+     it directly; we rely on this api to configure the context.
+
+   INPUT ARGUMENTS
+        CTX	dspam context to configure
+
+   RETURN VALUES
+     returns 0 on success
+*/
 
 int set_libdspam_attributes(DSPAM_CTX *CTX) {
   attribute_t *t;
@@ -48,7 +70,7 @@ int set_libdspam_attributes(DSPAM_CTX *CTX) {
   char *profile;
 
   t = _ds_find_attribute(agent_config, "IgnoreHeader");
-  while(t != NULL) {
+  while(t) {
     ret += dspam_addattribute(CTX, t->key, t->value);
     t = t->next;
   }
@@ -60,14 +82,13 @@ int set_libdspam_attributes(DSPAM_CTX *CTX) {
 
     while(t) {
 
-      if (!strncasecmp(t->key, "MySQL", 5) ||
-          !strncasecmp(t->key, "PgSQL", 5) ||
-          !strncasecmp(t->key, "Ora", 3)   ||
+      if (!strncasecmp(t->key, "MySQL", 5)  ||
+          !strncasecmp(t->key, "PgSQL", 5)  ||
+          !strncasecmp(t->key, "Ora", 3)    ||
           !strncasecmp(t->key, "SQLite", 6) ||
-          !strcasecmp(t->key, "LocalMX") ||
+          !strcasecmp(t->key, "LocalMX")    ||
           !strncasecmp(t->key, "Storage", 7))
       {
-
         if (profile == NULL || profile[0] == 0)
         {
           ret += dspam_addattribute(CTX, t->key, t->value);
@@ -93,9 +114,22 @@ int set_libdspam_attributes(DSPAM_CTX *CTX) {
   return ret;
 }
 
+/*
+   attach_context(DSPAM_CTX *CTX, void *dbh)
+    
+   DESCRIPTION
+     attach a database handle to an initialized dspam context
+    
+   INPUT ARGUMENTS
+        CTX     dspam context 
+	dbh	database handle to attach
+    
+   RETURN VALUES
+     returns 0 on success
+*/
+
 int attach_context(DSPAM_CTX *CTX, void *dbh) {
-  int tries = 0;
-  int maxtries = 1;
+  int maxtries = 1, tries = 0;
   int r;
 
   if (!_ds_read_attribute(agent_config, "DefaultProfile"))
@@ -136,4 +170,3 @@ int attach_context(DSPAM_CTX *CTX, void *dbh) {
 
   return r;
 }
-
