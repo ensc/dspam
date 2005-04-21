@@ -1,23 +1,31 @@
-/* $Id: base64.c,v 1.2 2004/12/13 22:58:45 jonz Exp $ */
+/* $Id: base64.c,v 1.3 2005/04/21 02:11:40 jonz Exp $ */
 
 /*
+
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+*/
+
+/*
+   base64.c
+
+   DESCRIPTION
+     base64 encoding/decoding routines
 */
 
 #ifdef HAVE_CONFIG_H
@@ -28,13 +36,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdlib.h>
 #include <string.h>
 
-#include "libdspam_objects.h"
+//#include "libdspam_objects.h"
 #include "error.h"
 #include "base64.h"
 
 #ifndef NCORE
 char *
-base64decode (const char *text)
+base64decode (const char *buf)
 {
   unsigned char alphabet[64] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -43,7 +51,7 @@ base64decode (const char *text)
   int pos = 0, dpos = 0;
   char *decoded;
 
-  decoded = malloc (strlen (text) * 2);
+  decoded = malloc (strlen (buf) * 2);
   if (decoded == NULL)
     return NULL;
   decoded[0] = 0;
@@ -58,9 +66,9 @@ base64decode (const char *text)
   }
   char_count = 0;
   bits = 0;
-  while (text[pos] != 0)
+  while (buf[pos] != 0)
   {
-    c = text[pos];
+    c = buf[pos];
     if (c == '=')
       break;
     if (c > 255 || !inalphabet[c])
@@ -86,7 +94,7 @@ base64decode (const char *text)
     }
     pos++;
   }
-  c = text[pos];
+  c = buf[pos];
   if (c == 0)
   {
     if (char_count)
@@ -122,7 +130,7 @@ base64decode (const char *text)
 #endif /* NCORE */
 
 char *
-base64encode (const char *text)
+base64encode (const char *buf)
 {
   unsigned char alphabet[64] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -130,7 +138,7 @@ base64encode (const char *text)
   char *out;
   long rpos = 0, wpos = 0;
 
-  out = malloc (strlen (text) * 2);
+  out = malloc (strlen (buf) * 2);
   if (out == NULL)
     return NULL;
 
@@ -139,7 +147,7 @@ base64encode (const char *text)
   char_count = 0;
   bits = 0;
   cols = 0;
-  c = text[rpos];
+  c = buf[rpos];
   while (c != 0)
   {
     bits += c;
@@ -167,7 +175,7 @@ base64encode (const char *text)
       bits <<= 8;
     }
     rpos++;
-    c = text[rpos];
+    c = buf[rpos];
   }
   if (char_count != 0)
   {
