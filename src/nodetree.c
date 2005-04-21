@@ -1,4 +1,4 @@
-/* $Id: nodetree.c,v 1.2 2004/12/22 03:36:40 jonz Exp $ */
+/* $Id: nodetree.c,v 1.3 2005/04/21 20:04:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -67,10 +67,9 @@ nt_destroy (struct nt *nt)
 {
   struct nt_node *cur, *next;
   int i;
-  if (nt == NULL)
-  {
+  if (!nt)
     return;
-  }
+
   cur = nt->first;
   for (i = 0; i < nt->items; i++)
   {

@@ -1,4 +1,4 @@
-/* $Id: buffer.c,v 1.2 2005/04/21 02:19:30 jonz Exp $ */
+/* $Id: buffer.c,v 1.3 2005/04/21 20:04:05 jonz Exp $ */
 
 /*
 
@@ -83,7 +83,7 @@ buffer_clear (buffer * b)
 void
 buffer_destroy (buffer * b)
 {
-  if (b == NULL)
+  if (!b)
     return;
 
   if (b->data != NULL)
