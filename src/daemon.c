@@ -1,7 +1,6 @@
-/* $Id: daemon.c,v 1.94 2005/04/21 19:29:24 jonz Exp $ */
+/* $Id: daemon.c,v 1.95 2005/04/21 21:08:21 jonz Exp $ */
 
 /*
-
  DSPAM
  COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
@@ -71,7 +70,6 @@
 #include "language.h"
 
 /*
-
   daemon_listen(DRIVER_CTX *DTX)
 
   DESCRIPTION
@@ -284,7 +282,6 @@ int daemon_listen(DRIVER_CTX *DTX) {
 }
 
 /*
-
   process_connection(void *ptr)
 
   DESCRIPTION
@@ -1088,7 +1085,6 @@ char *daemon_getline(THREAD_CTX *TTX, int timeout) {
 }
 
 /*
-
   {increment,decrement}_thread_count
 
   DESCRIPTION

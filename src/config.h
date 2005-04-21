@@ -1,7 +1,6 @@
-/* $Id: config.h,v 1.4 2005/04/21 17:23:48 jonz Exp $ */
+/* $Id: config.h,v 1.5 2005/04/21 21:08:21 jonz Exp $ */
 
 /*
-
  DSPAM
  COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 

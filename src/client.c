@@ -1,7 +1,6 @@
-/* $Id: client.c,v 1.50 2005/04/21 16:09:04 jonz Exp $ */
+/* $Id: client.c,v 1.51 2005/04/21 21:08:21 jonz Exp $ */
 
 /*
-
  DSPAM
  COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
@@ -643,7 +642,6 @@ int send_socket(THREAD_CTX *TTX, const char *text) {
 }
 
 /*
-
   deliver_socket(AGENT_CTX *ATX, const char *msg, int proto)
 
   DESCRIPTION

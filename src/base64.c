@@ -1,7 +1,6 @@
-/* $Id: base64.c,v 1.3 2005/04/21 02:11:40 jonz Exp $ */
+/* $Id: base64.c,v 1.4 2005/04/21 21:08:21 jonz Exp $ */
 
 /*
-
  DSPAM
  COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
@@ -36,7 +35,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-//#include "libdspam_objects.h"
 #include "error.h"
 #include "base64.h"
 

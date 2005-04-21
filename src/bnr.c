@@ -1,7 +1,6 @@
-/* $Id: bnr.c,v 1.23 2005/04/21 02:15:06 jonz Exp $ */
+/* $Id: bnr.c,v 1.24 2005/04/21 21:08:21 jonz Exp $ */
 
 /*
-
  DSPAM
  COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 

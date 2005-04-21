@@ -1,7 +1,6 @@
-/* $Id: agent_shared.h,v 1.18 2005/04/21 02:07:24 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.19 2005/04/21 21:08:21 jonz Exp $ */
 
 /*
-
  DSPAM
  COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 

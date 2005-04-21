@@ -1,7 +1,6 @@
-/* $Id: config_shared.c,v 1.3 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: config_shared.c,v 1.4 2005/04/21 21:08:21 jonz Exp $ */
 
 /*
-
  DSPAM
  COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 

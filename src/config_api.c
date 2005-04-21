@@ -1,7 +1,6 @@
-/* $Id: config_api.c,v 1.7 2005/04/21 19:28:54 jonz Exp $ */
+/* $Id: config_api.c,v 1.8 2005/04/21 21:08:21 jonz Exp $ */
 
 /*
-
  DSPAM
  COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
