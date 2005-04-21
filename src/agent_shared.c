@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.43 2005/04/21 16:09:04 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.44 2005/04/21 17:20:29 jonz Exp $ */
 
 /*
 
@@ -797,7 +797,6 @@ bail:
   buffer_destroy(msg);
   return NULL;
 }
-
 
 /*
    process_parseto(AGENT_CTX *, const char *)
