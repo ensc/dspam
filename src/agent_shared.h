@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.15 2005/04/18 16:43:04 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.16 2005/04/21 01:48:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -110,6 +110,7 @@ int check_configuration (AGENT_CTX *ATX);
 int apply_defaults      (AGENT_CTX *ATX);
 int process_arguments   (AGENT_CTX *ATX, int argc, char **argv);
 int initialize_atx      (AGENT_CTX *ATX);
+int process_parseto	(AGENT_CTX *ATX, const char *buf);
 buffer *read_stdin	(AGENT_CTX *ATX);
 
 #ifndef MIN

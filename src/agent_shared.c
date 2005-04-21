@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.39 2005/04/21 01:23:00 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.40 2005/04/21 01:48:05 jonz Exp $ */
 
 /*
 
@@ -742,89 +742,9 @@ buffer * read_stdin(AGENT_CTX *ATX) {
       if (_ds_match_attribute(agent_config, "ParseToHeaders", "on")) {
         if (buf[0] == 0)
           body = 1;
+
         if (!body && !strncasecmp(buf, "To: ", 4))
-        {
-          char *y = NULL;
-          char *x;
-
-          x = strstr(buf, "<spam-");
-          if (!x)
-            x = strstr(buf, " spam-");
-          if (!x)
-            x = strstr(buf, ":spam-");
-          if (!x)
-            x = strstr(buf, "<spam@");
-          if (!x)
-            x = strstr(buf, " spam@");
-          if (!x)
-            x = strstr(buf, ":spam@");
-
-          if (x != NULL) {
-            y = strdup(x+6);
-
-            if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
-            {
-              ATX->classification = DSR_ISSPAM;
-              ATX->source = DSS_ERROR;
-            }
-          } else {
-
-            x = strstr(buf, "<notspam-");
-            if (!x)
-              x = strstr(buf, "notspam-");
-            if (!x)
-              x = strstr(buf, ":notspam-");
-            if (!x)
-              x = strstr(buf, "<notspam@");
-            if (!x)
-              x = strstr(buf, " notspam@");
-            if (!x)
-              x = strstr(buf, ":notspam@");
-
-            if (x != NULL) {
-              y = strdup(x+9);
-
-              if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
-              {
-                ATX->classification = DSR_ISINNOCENT;
-                ATX->source = DSS_ERROR;
-              }
-            }
-          }
-
-          if (y && (_ds_match_attribute(agent_config,
-                                        "ChangeUserOnParse", "on") ||
-                    _ds_match_attribute(agent_config,
-                                       "ChangeUserOnParse", "full") ||
-                    _ds_match_attribute(agent_config,
-                                        "ChangeUserOnParse", "user"))) 
-          {
-            char *ptrptr;
-            char *z;
-
-            if (_ds_match_attribute(agent_config, 
-                                    "ChangeUserOnParse", "full"))
-            {
-              z = strtok_r(y, "> \n", &ptrptr);
-            } else {
-              if (!strstr(x, "spam@"))
-                z = strtok_r(y, "@", &ptrptr);
-              else
-                z = NULL;
-            }
-
-            if (z) {
-              nt_destroy(ATX->users);
-              ATX->users = nt_create(NT_CHAR);
-              if (!ATX->users) {
-                LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-                return NULL;
-              }
-              nt_add (ATX->users, z);
-            }
-            free(y);
-          }
-        } /* matched "To:" header */
+          process_parseto(ATX, buf);
       }
 
       if (buffer_cat (msg, buf))
@@ -878,3 +798,102 @@ bail:
   return NULL;
 }
 
+
+/*
+   process_parseto(AGENT_CTX *, const char *)
+
+   DESCRIPTION
+     processes the To: line of a message to provide parseto services
+
+   INPUT ARGUMENTS
+        ATX     agent context
+        buf	To: line
+
+   RETURN VALUES
+     returns 0 on success
+*/
+
+int process_parseto(AGENT_CTX *ATX, const char *buf) {
+  char *y = NULL;
+  char *x;
+
+  x = strstr(buf, "<spam-");
+  if (!x)
+    x = strstr(buf, " spam-");
+  if (!x)
+    x = strstr(buf, ":spam-");
+  if (!x)
+    x = strstr(buf, "<spam@");
+  if (!x)
+    x = strstr(buf, " spam@");
+  if (!x)
+    x = strstr(buf, ":spam@");
+
+  if (x != NULL) {
+    y = strdup(x+6);
+
+    if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
+    {
+      ATX->classification = DSR_ISSPAM;
+      ATX->source = DSS_ERROR;
+    }
+  } else {
+
+    x = strstr(buf, "<notspam-");
+    if (!x)
+      x = strstr(buf, "notspam-");
+    if (!x)
+      x = strstr(buf, ":notspam-");
+    if (!x)
+      x = strstr(buf, "<notspam@");
+    if (!x)
+      x = strstr(buf, " notspam@");
+    if (!x)
+      x = strstr(buf, ":notspam@");
+
+    if (x != NULL) {
+      y = strdup(x+9);
+
+      if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
+      {
+        ATX->classification = DSR_ISINNOCENT;
+        ATX->source = DSS_ERROR;
+      }
+    }
+  }
+
+  if (y && (_ds_match_attribute(agent_config,
+                                "ChangeUserOnParse", "on") ||
+            _ds_match_attribute(agent_config,
+                               "ChangeUserOnParse", "full") ||
+            _ds_match_attribute(agent_config,
+                                "ChangeUserOnParse", "user"))) 
+  {
+    char *ptrptr;
+    char *z;
+
+    if (_ds_match_attribute(agent_config, 
+                            "ChangeUserOnParse", "full"))
+    {
+      z = strtok_r(y, "> \n", &ptrptr);
+    } else {
+      if (!strstr(x, "spam@"))
+        z = strtok_r(y, "@", &ptrptr);
+      else
+        z = NULL;
+    }
+
+    if (z) {
+      nt_destroy(ATX->users);
+      ATX->users = nt_create(NT_CHAR);
+      if (!ATX->users) {
+        LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+        return NULL;
+      }
+      nt_add (ATX->users, z);
+    }
+    free(y);
+  }
+
+  return 0;
+}
