@@ -1,23 +1,32 @@
-/* $Id: agent_shared.c,v 1.38 2005/04/13 01:36:03 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.39 2005/04/21 01:23:00 jonz Exp $ */
 
 /*
+
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+*/
+
+/*
+   agent_shared.c
+
+   DESCRIPTION
+     agent-based components shared between the full dspam agent (dspam) 
+     and the lightweight client agent (dspamc)
 */
 
 #ifdef HAVE_CONFIG_H
@@ -46,9 +55,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/wait.h>
 #include <sys/param.h>
 #endif
-#include "config.h"
 #include "util.h"
-#include "read_config.h"
 #ifdef DAEMON
 #include "daemon.h"
 #include "client.h"
@@ -66,106 +73,35 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #include "agent_shared.h"
-#include "pref.h"
-#include "libdspam.h"
 #include "language.h"
 #include "buffer.h"
-#include "base64.h"
-#include "pref.h"
 
 /*
-    process_features: convert a plain text feature line into agent context 
-                      values
-    ATX		agent context
-    features	plain text list of features to parse
-*/
- 
-int process_features(AGENT_CTX *ATX, const char *features) {
-  char *s, *d, *ptrptr;
-  int ret = 0;
+   initialize_atx(AGENT_CTX *)
 
-  if (features[0] == 0)
-    return 0;
+   DESCRIPTION
+     initializes an existing agent context
 
-  d = strdup(features);
-  if (d == NULL) {
-    report_error(ERROR_MEM_ALLOC);
-    return EUNKNOWN;
-  }
+   INPUT ARGUMENTS
+	ATX	agent context to initialize
 
-  s = strtok_r(d, ",", &ptrptr);
-  while(s != NULL) {
-    if (!strcmp(s, "chained") || !strcmp(s, "ch"))
-      ATX->flags |= DAF_CHAINED;
-    else if (!strcmp(s, "sbph") || !strcmp(s, "sb"))
-      ATX->flags |= DAF_SBPH;
-    else if (!strcmp(s, "noise") || !strcmp(s, "no") || !strcmp(s, "bnr"))
-      ATX->flags |= DAF_NOISE;
-    else if (!strcmp(s, "whitelist") || !strcmp(s, "wh"))
-      ATX->flags |= DAF_WHITELIST;
-    else if (!strncmp(s, "tb=", 3)) {
-      ATX->training_buffer = atoi(strchr(s, '=')+1);
-
-      if (ATX->training_buffer < 0 || ATX->training_buffer > 10) {
-        report_error(ERROR_TB_INVALID);
-        exit(EXIT_FAILURE);
-      }
-    }
-    else
-    {
-      report_error_printf(ERROR_UNKNOWN_FEATURE, s);
-      ret = EINVAL;
-    }
-
-    s = strtok_r(NULL, ",", &ptrptr);
-  }
-  free(d);
-  return ret;
-}
-
-/*
-    process_mode: reads plain text mode into an agent context
-    ATX		agent context
-    mode	plain text name of mode
-*/
-
-int process_mode(AGENT_CTX *ATX, const char *mode) {
-  if (!strcmp(mode, "toe"))
-    ATX->training_mode = DST_TOE;
-  else if (!strcmp(mode, "teft"))
-    ATX->training_mode = DST_TEFT;
-  else if (!strcmp(mode, "tum"))
-    ATX->training_mode = DST_TUM;
-  else if (!strcmp(mode, "notrain"))
-    ATX->training_mode = DST_NOTRAIN;
-  else if (!strcmp(mode, "unlearn")) {
-    ATX->training_mode = DST_TEFT;
-    ATX->flags |= DAF_UNLEARN;
-  }
-  else
-  {
-    report_error_printf(ERROR_TR_MODE_INVALID, mode);
-    return EINVAL;
-  }
-
-  return 0;
-}
-
-/*
-    initialize_atx: initialize an agent context
-    ATX		agent context to initialize
+   RETURN VALUES
+     returns 0 on success
 */
 
 int initialize_atx(AGENT_CTX *ATX) {
-#if defined(TRUSTED_USER_SECURITY) && defined(_REENTRANT) && defined(HAVE_GETPWUID_R)
+
+#if defined(TRUSTED_USER_SECURITY) && \
+    defined(_REENTRANT)            && \
+    defined(HAVE_GETPWUID_R)
+
   char buf[1024];
 #endif
 
-  /* Initialize Agent Context */
   memset(ATX, 0, sizeof(AGENT_CTX));
   ATX->training_mode   = DST_DEFAULT;
   ATX->training_buffer = 0;
-  ATX->classification  = DSS_NONE;
+  ATX->classification  = DSR_NONE;
   ATX->source          = DSS_NONE;
   ATX->operating_mode  = DSM_PROCESS;
   ATX->users           = nt_create (NT_CHAR);
@@ -177,15 +113,19 @@ int initialize_atx(AGENT_CTX *ATX) {
 
 #ifdef TRUSTED_USER_SECURITY
 
+  /* cache the current user's passwd entry and establish trust */
+
 #if defined(_REENTRANT) && defined(HAVE_GETPWUID_R)
-  if (getpwuid_r(getuid(), &ATX->pwbuf, buf, sizeof(buf), &ATX->p))
+  if (getpwuid_r(getuid(), &ATX->pwbuf, buf, sizeof(buf), &ATX->p)) 
+  {
     ATX->p = NULL;
+  }
 #else
   ATX->p = getpwuid (getuid());
 #endif
 
   if (!ATX->p) {
-    report_error(ERROR_RUNTIME_USER);
+    LOG(LOG_ERR, ERROR_RUNTIME_USER);
     exit(EXIT_FAILURE);
   }
 
@@ -202,21 +142,32 @@ int initialize_atx(AGENT_CTX *ATX) {
 }
 
 /*
- * Process commandline arguments 
- * In the future this may be called from an XML or LMTP query
- */
+   process_arguments(AGENT_CTX *, int argc, char *argv[])
+
+   DESCRIPTION
+     master commandline argument process loop
+
+   INPUT ARGUMENTS
+        ATX     agent context
+        argc	number of arguments provided
+	argv	array of arguments
+
+   RETURN VALUES
+     returns 0 on success, EINVAL when invalid options specified
+*/
 
 int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
-  int i, user_flag = 0, rcpt_flag = 0;
-  int clienthost = (_ds_read_attribute(agent_config, "ClientHost") || _ds_read_attribute(agent_config, "ServerDomainSocketPath"));
+  int flag_u = 0, flag_r = 0;
+  int client = (_ds_read_attribute(agent_config, "ClientHost") != NULL);
   char *ptrptr;
+  int i;
 
 #ifdef DEBUG
   ATX->debug_args[0] = 0;
 #endif
   ATX->client_args[0] = 0;
 
-  for (i = 0; i < argc; i++)
+  for (i=0; i<argc; i++)
   {
 
 #ifdef DEBUG
@@ -224,17 +175,38 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     strlcat (ATX->debug_args, " ", sizeof (ATX->debug_args));
 #endif
 
-    if ((user_flag || rcpt_flag) &&
-       (argv[i][0] == '-' || argv[i][0] == 0 || !strcmp(argv[i], "--")))
+    /* terminate user/rcpt lists */
+
+    if ((flag_u || flag_r) &&
+        (argv[i][0] == '-' || argv[i][0] == 0 || !strcmp(argv[i], "--")))
     {
-       user_flag = 0;
-       rcpt_flag = 0;
+       flag_u = flag_r = 0;
        if (!strcmp(argv[i], "--"))
          continue;
     }
 
-    if (clienthost && i && !user_flag && strcmp(argv[i], "--user")) {
+    if (!strcmp (argv[i], "--user")) {
+      flag_u = 1;
+      continue;
+    }
 
+    if (!strcmp (argv[i], "--rcpt-to"))
+    {
+      if (!ATX->recipients) {
+        ATX->recipients = nt_create(NT_CHAR);
+        if (ATX->recipients == NULL) {
+          LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+          return EUNKNOWN;
+        }
+      }
+      flag_r = 1;
+      continue;
+    }
+
+    /* build arg list to pass to server (when in client/server mode) */
+ 
+    if (client && !flag_u && !flag_r && i>0) 
+    {
       if (argv[i][0] == 0)
         strlcat(ATX->client_args, "\"", sizeof(ATX->client_args));
       strlcat (ATX->client_args, argv[i], sizeof(ATX->client_args));
@@ -243,7 +215,6 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       strlcat (ATX->client_args, " ", sizeof(ATX->client_args));
     }
 
-    /* Debug */
     if (!strcmp (argv[i], "--debug"))
     {
 #ifdef DEBUG
@@ -254,7 +225,6 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     }
 
 #if defined(DAEMON) && !defined(_DSPAMC_H)
-    /* Launch into daemon mode */
 
     if (!strcmp (argv[i], "--client")) {
       ATX->client_mode = 1;
@@ -262,16 +232,16 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     }
 
 #ifdef TRUSTED_USER_SECURITY
-    if (!strcmp (argv[i], "--daemon") && ATX->trusted) {
+    if (!strcmp (argv[i], "--daemon") && ATX->trusted) 
 #else
-    if (!strcmp (argv[i], "--daemon")) {
+    if (!strcmp (argv[i], "--daemon")) 
 #endif
+    {
       ATX->operating_mode = DSM_DAEMON;
       continue;
     }
 #endif
  
-    /* Set training mode */
     if (!strncmp (argv[i], "--mode=", 7))
     {
       char *mode = strchr(argv[i], '=')+1;
@@ -279,83 +249,177 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       continue;
     }
 
-    /* Set runtime target user(s) */
+    /* build rcpt-to list */
 
-    if (!strncmp (argv[i], "--rcpt-to", 9))
+    if (flag_r)
     {
-      if (!ATX->recipients) {
-        ATX->recipients = nt_create(NT_CHAR);
-        if (ATX->recipients == NULL) {
-          report_error(ERROR_MEM_ALLOC);
-          return EUNKNOWN;
-        }
-      }
-      rcpt_flag = 1;
-      continue;
-    }
-
-    if (rcpt_flag)
-    {
-      if (argv[i] != NULL && strlen (argv[i]) <= MAX_USERNAME_LENGTH)
+      if (argv[i] != NULL && strlen (argv[i]) < MAX_USERNAME_LENGTH)
       {
         char user[MAX_USERNAME_LENGTH];
 
         if (_ds_match_attribute(agent_config, "Broken", "case"))
           lc(user, argv[i]);
         else
-          strlcpy(user, argv[i], MAX_USERNAME_LENGTH);
+          strcpy(user, argv[i]);
 
 #ifdef TRUSTED_USER_SECURITY
         if (!ATX->trusted && strcmp(user, ATX->p->pw_name)) {
-          report_error_printf(ERROR_TRUSTED_USER, ATX->p->pw_uid,
-                              ATX->p->pw_name);
-          return EFAILURE;
+          LOG(LOG_ERR, ERROR_TRUSTED_USER, ATX->p->pw_uid, ATX->p->pw_name);
+          return EINVAL;
         }
 
         if (ATX->trusted)
 #endif
           nt_add (ATX->recipients, user);
       }
-    }
-
-    if (!strncmp (argv[i], "--mail-from=", 12))
-    {
-      strlcpy(ATX->mailfrom, strchr(argv[i], '=')+1, sizeof(ATX->mailfrom));
-      LOGDEBUG("LMTP MAIL FROM: %s", ATX->mailfrom);
-      continue;
-    } 
-
-    if (!strcmp (argv[i], "--user"))
-    {
-      user_flag = 1;
       continue;
     }
 
-    if (user_flag)
+    /* build process user list */
+
+    if (flag_u)
     {
-      if (argv[i] != NULL && strlen (argv[i]) <= MAX_USERNAME_LENGTH)
+      if (argv[i] != NULL && strlen (argv[i]) < MAX_USERNAME_LENGTH)
       {
         char user[MAX_USERNAME_LENGTH];
 
         if (_ds_match_attribute(agent_config, "Broken", "case")) 
           lc(user, argv[i]);
         else 
-          strlcpy(user, argv[i], MAX_USERNAME_LENGTH);
+          strcpy(user, argv[i]);
 
 #ifdef TRUSTED_USER_SECURITY
         if (!ATX->trusted && strcmp(user, ATX->p->pw_name)) {
-          report_error_printf(ERROR_TRUSTED_USER, ATX->p->pw_uid,
-                              ATX->p->pw_name);
-          return EFAILURE;
+          LOG(LOG_ERR, ERROR_TRUSTED_USER, ATX->p->pw_uid, ATX->p->pw_name);
+          return EINVAL;
         }
 
         if (ATX->trusted)
 #endif
           nt_add (ATX->users, user);
       }
+      continue;
     }
 
-    /* Print Syntax and Exit */
+    if (!strncmp (argv[i], "--mail-from=", 12))
+    {
+      strlcpy(ATX->mailfrom, strchr(argv[i], '=')+1, sizeof(ATX->mailfrom));
+      LOGDEBUG("MAIL FROM: %s", ATX->mailfrom);
+      continue;
+    }  
+
+    if (!strncmp (argv[i], "--profile=", 10))
+    {
+#ifdef TRUSTED_USER_SECURITY
+      if (!ATX->trusted) {
+        LOG(LOG_ERR, ERROR_TRUSTED_OPTION, "--profile", 
+            ATX->p->pw_uid, ATX->p->pw_name);
+        return EINVAL;
+      }
+#endif
+      if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
+        report_error_printf(ERROR_NO_SUCH_PROFILE, argv[i]+10);
+        return EINVAL;
+      } else {
+        _ds_overwrite_attribute(agent_config, "DefaultProfile", argv[i]+10);
+      }
+      continue;
+    }
+
+    if (!strncmp (argv[i], "--signature=", 12)) 
+    {
+      strlcpy(ATX->signature, strchr(argv[i], '=')+1, sizeof(ATX->signature));
+      continue;
+    }
+
+    if (!strncmp (argv[i], "--class=", 8))
+    {
+      char *ptr = strchr(argv[i], '=')+1;
+      if (!strcmp(ptr, "spam"))
+        ATX->classification = DSR_ISSPAM;
+      else if (!strcmp(ptr, "innocent"))
+        ATX->classification = DSR_ISINNOCENT;
+      else
+      {
+        report_error_printf(ERROR_UNKNOWN_CLASS, ptr);
+        return EINVAL;
+      }
+      continue;
+    }
+
+    if (!strncmp (argv[i], "--source=", 9))
+    {
+      char *ptr = strchr(argv[i], '=')+1;
+
+      if (!strcmp(ptr, "corpus"))
+        ATX->source = DSS_CORPUS;
+      else if (!strcmp(ptr, "inoculation"))
+        ATX->source = DSS_INOCULATION;
+      else if (!strcmp(ptr, "error"))
+        ATX->source = DSS_ERROR;
+      else
+      {
+        report_error_printf(ERROR_UNKNOWN_SOURCE, ptr);
+        return EINVAL;
+      }
+      continue;
+    }
+
+    if (!strcmp (argv[i], "--classify"))
+    {
+      ATX->operating_mode = DSM_CLASSIFY;
+      ATX->training_mode = DST_NOTRAIN;
+      continue;
+    }
+
+    if (!strcmp (argv[i], "--process"))
+    {
+      ATX->operating_mode = DSM_PROCESS;
+      continue;
+    }
+
+    if (!strncmp (argv[i], "--deliver=", 10))
+    {
+      char *dup = strdup(strchr(argv[i], '=')+1);
+      char *ptr;
+      if (dup == NULL) {
+        LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+        return EUNKNOWN;
+      }
+
+      ptr = strtok_r(dup, ",", &ptrptr);
+      while(ptr != NULL) {
+        if (!strcmp(ptr, "spam")) 
+          ATX->flags |= DAF_DELIVER_SPAM;
+        else if (!strcmp(ptr, "innocent"))
+          ATX->flags |= DAF_DELIVER_INNOCENT;
+        else if (!strcmp(ptr, "summary"))
+          ATX->flags |= DAF_SUMMARY;
+        else
+        {
+          report_error_printf(ERROR_UNKNOWN_DELIVER, ptr);
+          free(dup);
+          return EINVAL;
+        }
+      
+        ptr = strtok_r(NULL, ",", &ptrptr);
+      }
+      free(dup);
+      continue;
+    }
+
+    if (!strncmp (argv[i], "--feature=", 10))
+    {
+      ATX->feature = 1;
+      process_features(ATX, strchr(argv[i], '=')+1);
+      continue;
+    }
+
+    if (!strcmp (argv[i], "--stdout"))
+    {
+      ATX->flags |= DAF_STDOUT;
+      continue;
+    }
 
     if (!strcmp (argv[i], "--help"))
     {
@@ -363,13 +427,11 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       exit(EXIT_SUCCESS);
     }
 
-    /* Print Version and Exit */
-
     if (!strcmp (argv[i], "--version"))
     {
       printf ("\nDSPAM Anti-Spam Suite %s (agent/library)\n\n", VERSION);
-      printf ("Copyright (c) 2002-2004 Network Dweebs Corporation\n");
-      printf ("http://www.nuclearelephant.com/projects/dspam/\n\n");
+      printf ("Copyright (c) 2002-2005 Deep Logic, Inc.\n");
+      printf ("http://dspam.nuclearelephant.com\n\n");
       printf ("DSPAM may be copied only under the terms of the GNU "
               "General Public License,\n");
       printf ("a copy of which can be found with the DSPAM distribution "
@@ -384,161 +446,11 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       exit (EXIT_SUCCESS);
     }
 
-    /* Storage profile */
+    /* append all unknown arguments as mailer args */
 
-    if (!strncmp (argv[i], "--profile=", 10))
-    {
+    if (i>0 
 #ifdef TRUSTED_USER_SECURITY
-      if (!ATX->trusted) {
-        report_error_printf(ERROR_TRUSTED_OPTION, "--profile", ATX->p->pw_uid,
-                            ATX->p->pw_name);
-        return EFAILURE;
-      }
-#endif
-      if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
-        report_error_printf(ERROR_NO_SUCH_PROFILE, argv[i]+10);
-        return EINVAL;
-      } else {
-        _ds_overwrite_attribute(agent_config, "DefaultProfile", argv[i]+10);
-      }
-      continue;
-    }
-
-    /* Signature specified via commandline */
-
-    if (!strncmp (argv[i], "--signature=", 12)) 
-    {
-      strlcpy(ATX->signature, strchr(argv[i], '=')+1, sizeof(ATX->signature));
-      continue;
-    }
-
-    /* If the message already has a classification */
-
-    if (!strncmp (argv[i], "--class=", 8))
-    {
-      char *c = strchr(argv[i], '=')+1;
-      if (!strcmp(c, "spam"))
-        ATX->classification = DSR_ISSPAM;
-      else if (!strcmp(c, "innocent"))
-        ATX->classification = DSR_ISINNOCENT;
-      else
-      {
-        report_error_printf(ERROR_UNKNOWN_CLASS, c);
-        return EINVAL;
-      }
-
-      continue;
-    }
-
-    /*
-       The source of the classification:
-         error: classification error made by dspam
-         corpus: message from user's corpus
-         inoculation: message inoculation
-    */
-
-    if (!strncmp (argv[i], "--source=", 9))
-    {
-      char *s = strchr(argv[i], '=')+1;
-
-      if (!strcmp(s, "corpus"))
-        ATX->source = DSS_CORPUS;
-      else if (!strcmp(s, "inoculation"))
-        ATX->source = DSS_INOCULATION;
-      else if (!strcmp(s, "error"))
-        ATX->source = DSS_ERROR;
-      else
-      {
-        report_error_printf(ERROR_UNKNOWN_SOURCE, s); 
-        return EINVAL;
-      }
-      continue;
-    }
-
-    /* Operating Mode: Classify Only. */
-    if (!strcmp (argv[i], "--classify"))
-    {
-      ATX->operating_mode = DSM_CLASSIFY;
-      ATX->training_mode = DST_NOTRAIN;
-      continue;
-    }
-
-    /* Operating Mode: Process Message */
-    if (!strcmp (argv[i], "--process"))
-    {
-      ATX->operating_mode = DSM_PROCESS;
-      continue;
-    }
-
-    /*
-      Which messages should be delivered? 
-      spam,innocent
-      If spam is not specified, standard quarantine procedure will be used
-
-      summary
-      Output classify summary headers
-    */
-
-    if (!strncmp (argv[i], "--deliver=", 10))
-    {
-      char *d = strdup(strchr(argv[i], '=')+1);
-      char *s;
-      if (d == NULL) {
-        report_error(ERROR_MEM_ALLOC);
-        return EUNKNOWN;
-      }
-
-      s = strtok_r(d, ",", &ptrptr);
-      while(s != NULL) {
-        if (!strcmp(s, "spam")) 
-          ATX->flags |= DAF_DELIVER_SPAM;
-        else if (!strcmp(s, "innocent"))
-          ATX->flags |= DAF_DELIVER_INNOCENT;
-        else if (!strcmp(s, "summary"))
-          ATX->flags |= DAF_SUMMARY;
-        else
-        {
-          report_error_printf(ERROR_UNKNOWN_DELIVER, s);
-          return EINVAL;
-        }
-      
-        s = strtok_r(NULL, ",", &ptrptr);
-      }
-      free(d);
-      continue;
-    }
-
-    /* 
-      Which features should be enabled?
-      chained,noise,whitelist
-
-      chained:   chained tokens (nGrams)
-      sbph:      use sparse binary polynomial hashing tokenizer
-      noise:     bayesian noise reduction
-      whitelist: automatic whitelisting
-      tb=N:      set training buffer level (0-10)
-
-      all features have their own internal instantiation requirements
-    */
-
-    if (!strncmp (argv[i], "--feature=", 10))
-    {
-      ATX->feature = 1;
-      process_features(ATX, strchr(argv[i], '=')+1);
-      continue;
-    }
-
-    /* Output message to stdout */
-    if (!strcmp (argv[i], "--stdout"))
-    {
-      ATX->flags |= DAF_STDOUT;
-      continue;
-    }
-
-    /* Append all other arguments as mailer args */
-    if (i > 0 && !user_flag
-#ifdef TRUSTED_USER_SECURITY
-         && ATX->trusted
+        && ATX->trusted
 #endif
     )
     {
@@ -553,22 +465,122 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
   return 0;
 }
 
-/*
-   Apply default values from dspam.conf in absence of other options 
-   ATX	agent context
 
+/* 
+   process_features(AGENT_CTX *, const char *)
+
+   DESCRIPTION
+     convert --feature= stdin into agent context values
+
+   INPUT ARGUMENTS
+	ATX	agent context
+	in	remainder of --feature= stdin
+
+   RETURN VALUES
+     returns 0 on success, EINVAL when invalid options specified
+     
+*/
+
+int process_features(AGENT_CTX *ATX, const char *in) {
+  char *ptr, *dup, *ptrptr;
+  int ret = 0;
+
+  if (in[0]==0)
+    return 0;
+
+  dup = strdup(in);
+  if (dup == NULL) {
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    return EUNKNOWN;
+  }
+
+  ptr = strtok_r(dup, ",", &ptrptr);
+  while(ptr != NULL) {
+    if (!strncmp(ptr, "ch",2))
+      ATX->flags |= DAF_CHAINED;
+    else if (!strncmp(ptr, "sb",2))
+      ATX->flags |= DAF_SBPH;
+    else if (!strncmp(ptr, "no",2))
+      ATX->flags |= DAF_NOISE;
+    else if (!strncmp(ptr, "wh", 2))
+      ATX->flags |= DAF_WHITELIST;
+    else if (!strncmp(ptr, "tb=", 3)) {
+      ATX->training_buffer = atoi(strchr(ptr, '=')+1);
+
+      if (ATX->training_buffer < 0 || ATX->training_buffer > 10) {
+        report_error(ERROR_TB_INVALID);
+        ret = EINVAL;
+      }
+    }
+    else {
+      report_error_printf(ERROR_UNKNOWN_FEATURE, ptr);
+      ret = EINVAL;
+    }
+
+    ptr = strtok_r(NULL, ",", &ptrptr);
+  }
+  free(dup);
+  return ret;
+}
+
+/*
+   process_mode(AGENT_CTX *, const char *)
+
+   DESCRIPTION
+     convert --mode= stdin into training mode
+
+   INPUT ARGUMENTS
+	ATX	agent context
+	mode	remainder of --mode= stdin
+
+   RETURN VALUES
+     returns 0 on success, EINVAL when invalid mode specified
+*/
+
+int process_mode(AGENT_CTX *ATX, const char *mode) {
+
+  if (!strcmp(mode, "toe"))
+    ATX->training_mode = DST_TOE;
+  else if (!strcmp(mode, "teft"))
+    ATX->training_mode = DST_TEFT;
+  else if (!strcmp(mode, "tum"))
+    ATX->training_mode = DST_TUM;
+  else if (!strcmp(mode, "notrain"))
+    ATX->training_mode = DST_NOTRAIN;
+  else if (!strcmp(mode, "unlearn")) {
+    ATX->training_mode = DST_TEFT;
+    ATX->flags |= DAF_UNLEARN;
+  } else {
+    report_error_printf(ERROR_TR_MODE_INVALID, mode);
+    return EINVAL;
+  }
+
+  return 0;
+}
+
+/*
+   apply_defaults(AGENT_CTX *)
+
+   DESCRIPTION
+     apply default values from dspam.conf in absence of other options
+
+   INPUT ARGUMENTS
+        ATX     agent context
+
+   RETURN VALUES
+     returns 0 on success
 */
 
 int apply_defaults(AGENT_CTX *ATX) {
 
-  /* Training mode */
+  /* training mode */
 
   if (ATX->training_mode == DST_DEFAULT) {
     char *v = _ds_read_attribute(agent_config, "TrainingMode");
     process_mode(ATX, v);
   }
 
-  /* Delivery agent */
+  /* default delivery agent */
 
   if (!(ATX->flags & DAF_STDOUT)) {
     char key[32];
@@ -581,35 +593,30 @@ int apply_defaults(AGENT_CTX *ATX) {
 
     if (_ds_read_attribute(agent_config, key)) {
       char fmt[sizeof(ATX->mailer_args)];
-      snprintf(fmt,
-               sizeof(fmt),
-               "%s ", 
-               _ds_read_attribute(agent_config, key));
+      snprintf(fmt, sizeof(fmt), "%s ", _ds_read_attribute(agent_config, key));
 #ifdef TRUSTED_USER_SECURITY
       if (ATX->trusted)
 #endif
         strlcat(fmt, ATX->mailer_args, sizeof(fmt));
       strcpy(ATX->mailer_args, fmt);
-    } else if (!_ds_read_attribute(agent_config, "Deliveryhost")) {
+    } else if (!_ds_read_attribute(agent_config, "DeliveryHost")) {
       if (!(ATX->flags & DAF_STDOUT)) {
-        report_error_printf(ERROR_NO_AGENT, key);
+        LOG(LOG_ERR, ERROR_NO_AGENT, key);
         return EINVAL;
       }
     }
   }
 
-  /* Quarantine */
+  /* default quarantine agent */
 
   if (_ds_read_attribute(agent_config, "QuarantineAgent")) {
-    snprintf(ATX->spam_args,
-             sizeof(ATX->spam_args),
-             "%s ",
+    snprintf(ATX->spam_args, sizeof(ATX->spam_args), "%s ",
              _ds_read_attribute(agent_config, "QuarantineAgent"));
   } else {
-    LOGDEBUG("No QuarantineAgent option found. Using quarantine.");
+    LOGDEBUG("No QuarantineAgent option found. Using standard quarantine.");
   }
 
-  /* Features */
+  /* features */
 
   if (!ATX->feature && _ds_find_attribute(agent_config, "Feature")) {
     attribute_t *attrib = _ds_find_attribute(agent_config, "Feature");
@@ -623,38 +630,49 @@ int apply_defaults(AGENT_CTX *ATX) {
   return 0;
 }
 
-/* Sanity-Check ATX */
+/*
+   check_configuration(AGENT_CTX *)
+
+   DESCRIPTION
+     sanity-check agent configuration
+
+   INPUT ARGUMENTS
+        ATX     agent context
+
+   RETURN VALUES
+     returns 0 on success, EINVAL on invalid configuration
+*/
 
 int check_configuration(AGENT_CTX *ATX) {
 
   if (ATX->classification != DSR_NONE && ATX->operating_mode == DSM_CLASSIFY)
   {
-    report_error(ERROR_CLASSIFY_CLASS);
+    LOG(LOG_ERR, ERROR_CLASSIFY_CLASS);
     return EINVAL;
   }
 
   if (ATX->classification != DSR_NONE && ATX->source == DSS_NONE && 
      !(ATX->flags & DAF_UNLEARN))
   {
-    report_error(ERROR_NO_SOURCE);
+    LOG(LOG_ERR, ERROR_NO_SOURCE);
     return EINVAL;
   }
 
   if (ATX->source != DSS_NONE && ATX->classification == DSR_NONE)
   {
-    report_error(ERROR_NO_CLASS);
+    LOG(LOG_ERR, ERROR_NO_CLASS);
     return EINVAL;
   }
 
   if (ATX->operating_mode == DSM_NONE)
   {
-    report_error(ERROR_NO_OP_MODE);
+    LOG(LOG_ERR, ERROR_NO_OP_MODE);
     return EINVAL;
   }
 
   if (ATX->training_mode == DST_DEFAULT)
   {
-    report_error(ERROR_NO_TR_MODE);
+    LOG(LOG_ERR, ERROR_NO_TR_MODE);
     return EINVAL;
   }
 
@@ -662,9 +680,7 @@ int check_configuration(AGENT_CTX *ATX) {
 
     if (ATX->users->items == 0)
     {
-      LOG (LOG_ERR, ERROR_USER_UNDEFINED);
-      report_error (ERROR_USER_UNDEFINED);
-      fprintf (stderr, "%s\n", SYNTAX);
+      LOG(LOG_ERR, ERROR_USER_UNDEFINED);
       return EINVAL;
     }
   }
@@ -672,131 +688,166 @@ int check_configuration(AGENT_CTX *ATX) {
   return 0;
 }
 
-/* Read message from stdin */
+/*
+   read_stdin(AGENT_CTX *)
+
+   DESCRIPTION
+     read message from stdin and perform any inline configuration
+     (such as servicing 'ParseToHeaders' functions)
+
+   INPUT ARGUMENTS
+        ATX     agent context
+
+   RETURN VALUES
+     buffer structure containing the message
+*/
 
 buffer * read_stdin(AGENT_CTX *ATX) {
-  char buff[1024];
-  buffer *message;
   int body = 0, line = 1;
+  char buf[1024];
+  buffer *msg;
 
-  message = buffer_create(NULL);
-  if (message == NULL) {
+  msg = buffer_create(NULL);
+  if (msg == NULL) {
     LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     return NULL;
   }
 
+  /* only read the message if no signature was provided on commandline */
+
   if (ATX->signature[0] == 0) {
-    while ((fgets (buff, sizeof (buff), stdin)) != NULL)
+    while ((fgets (buf, sizeof (buf), stdin)) != NULL)
     {
+      /* strip CR/LFs for admittedly broken mail servers */
 
       if (_ds_match_attribute(agent_config, "Broken", "lineStripping")) {
-        size_t len = strlen(buff);
-  
-        while (len>1 && buff[len-2]==13) {
-          buff[len-2] = buff[len-1];
-          buff[len-1] = 0;
+        size_t len = strlen(buf);
+        while (len>1 && buf[len-2]==13) {
+          buf[len-2] = buf[len-1];
+          buf[len-1] = 0;
           len--;
         }
       }
   
-      if (line > 1 || strncmp (buff, "From QUARANTINE", 15))
-      {
-        if (_ds_match_attribute(agent_config, "ParseToHeaders", "on")) {
+      /* don't include first line of message if it's a quarantine header added
+         by dspam at time of quarantine */
 
-          /* Parse the To: address for a username */
-          if (buff[0] == 0)
-            body = 1;
-          if (!body && !strncasecmp(buff, "To: ", 4))
-          {
-            char *y = NULL;
-            char *x;
+      if (line==1 && !strncmp(buf, "From QUARANTINE", 15))
+        continue;
 
-            /* Check for spam- */
+      /* parse the "To" headers and adjust the operating mode and user when
+         an email is sent to spam-* or notspam-* address. behavior must be
+         configured in dspam.conf */
 
-            x = strstr(buff, "<spam-");
+      if (_ds_match_attribute(agent_config, "ParseToHeaders", "on")) {
+        if (buf[0] == 0)
+          body = 1;
+        if (!body && !strncasecmp(buf, "To: ", 4))
+        {
+          char *y = NULL;
+          char *x;
+
+          x = strstr(buf, "<spam-");
+          if (!x)
+            x = strstr(buf, " spam-");
+          if (!x)
+            x = strstr(buf, ":spam-");
+          if (!x)
+            x = strstr(buf, "<spam@");
+          if (!x)
+            x = strstr(buf, " spam@");
+          if (!x)
+            x = strstr(buf, ":spam@");
+
+          if (x != NULL) {
+            y = strdup(x+6);
+
+            if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
+            {
+              ATX->classification = DSR_ISSPAM;
+              ATX->source = DSS_ERROR;
+            }
+          } else {
+
+            x = strstr(buf, "<notspam-");
             if (!x)
-              x = strstr(buff, " spam-");
+              x = strstr(buf, "notspam-");
             if (!x)
-              x = strstr(buff, ":spam-");
+              x = strstr(buf, ":notspam-");
+            if (!x)
+              x = strstr(buf, "<notspam@");
+            if (!x)
+              x = strstr(buf, " notspam@");
+            if (!x)
+              x = strstr(buf, ":notspam@");
 
             if (x != NULL) {
-              y = strdup(x+6);
+              y = strdup(x+9);
 
               if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
               {
-                ATX->classification = DSR_ISSPAM;
+                ATX->classification = DSR_ISINNOCENT;
                 ATX->source = DSS_ERROR;
               }
+            }
+          }
+
+          if (y && (_ds_match_attribute(agent_config,
+                                        "ChangeUserOnParse", "on") ||
+                    _ds_match_attribute(agent_config,
+                                       "ChangeUserOnParse", "full") ||
+                    _ds_match_attribute(agent_config,
+                                        "ChangeUserOnParse", "user"))) 
+          {
+            char *ptrptr;
+            char *z;
+
+            if (_ds_match_attribute(agent_config, 
+                                    "ChangeUserOnParse", "full"))
+            {
+              z = strtok_r(y, "> \n", &ptrptr);
             } else {
-
-              /* Check for notspam- */
-
-              x = strstr(buff, "<notspam-");
-              if (!x)
-                x = strstr(buff, " notspam-");
-              if (!x)
-                x = strstr(buff, ":notspam-");
-
-              if (x != NULL) {
-                y = strdup(x+9);
-
-                if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
-                {
-                  ATX->classification = DSR_ISINNOCENT;
-                  ATX->source = DSS_ERROR;
-                }
-              }
+              if (!strstr(x, "spam@"))
+                z = strtok_r(y, "@", &ptrptr);
+              else
+                z = NULL;
             }
 
-            if (y && (_ds_match_attribute(agent_config,
-                                          "ChangeUserOnParse", "on") ||
-                      _ds_match_attribute(agent_config,
-                                          "ChangeUserOnParse", "full") ||
-                      _ds_match_attribute(agent_config,
-                                          "ChangeUserOnParse", "user"))) 
-            {
-              char *ptrptr;
-              char *z;
-
-              if (_ds_match_attribute(agent_config, 
-                                      "ChangeUserOnParse", "full")) 
-              {
-                z = strtok_r(y, "> \n", &ptrptr);
-              } else {
-                z = strtok_r(y, "@", &ptrptr);
-              }
-
+            if (z) {
               nt_destroy(ATX->users);
               ATX->users = nt_create(NT_CHAR);
-              if (!ATX->users)
+              if (!ATX->users) {
+                LOG(LOG_CRIT, ERROR_MEM_ALLOC);
                 return NULL;
+              }
               nt_add (ATX->users, z);
-              free(y);
             }
-          } /* To: Header */
-        }
+            free(y);
+          }
+        } /* matched "To:" header */
+      }
 
-        if (buffer_cat (message, buff))
-        {
-          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
-          goto bail;
-        }
+      if (buffer_cat (msg, buf))
+      {
+        LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+        goto bail;
       }
   
-      /* Use the original user id if we are reversing a false positive */
-      if (!strncasecmp (buff, "X-DSPAM-User: ", 14) && 
-          ATX->managed_group[0] != 0                 &&
+      /* use the original user id if we are reversing a false positive
+         (this is only necessary when using shared,managed groups */
+
+      if (!strncasecmp (buf, "X-DSPAM-User: ", 14) && 
+          ATX->managed_group[0] != 0                &&
           ATX->operating_mode == DSM_PROCESS    &&
           ATX->classification == DSR_ISINNOCENT &&
           ATX->source         == DSS_ERROR)
       {
         char user[MAX_USERNAME_LENGTH];
-        strlcpy (user, buff + 14, sizeof (user));
+        strlcpy (user, buf + 14, sizeof (user));
         chomp (user);
         nt_destroy (ATX->users);
         ATX->users = nt_create (NT_CHAR);
-        if (ATX->users == NULL)
-        {
+        if (ATX->users == NULL) {
           report_error (ERROR_MEM_ALLOC);
           goto bail;
         }
@@ -808,11 +859,10 @@ buffer * read_stdin(AGENT_CTX *ATX) {
     }
   }
 
-  if (!message->used)
+  if (!msg->used)
   {
-    if (ATX->signature[0] != 0)
-    {
-      buffer_cat(message, "\n\n");
+    if (ATX->signature[0] != 0) {
+      buffer_cat(msg, "\n\n");
     }
     else { 
       LOG (LOG_INFO, "empty message (no data received)");
@@ -820,9 +870,11 @@ buffer * read_stdin(AGENT_CTX *ATX) {
     }
   }
 
-  return message;
+  return msg;
 
 bail:
-  buffer_destroy(message);
+  LOGDEBUG("read_stdin() failure");
+  buffer_destroy(msg);
   return NULL;
 }
+
