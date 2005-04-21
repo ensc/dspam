@@ -1,23 +1,23 @@
-/* $Id: daemon.h,v 1.21 2005/04/17 10:57:30 jonz Exp $ */
+/* $Id: daemon.h,v 1.22 2005/04/21 19:29:24 jonz Exp $ */
 
 /*
 
  DSPAM
- COPYRIGHT (C) 2002-2005 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
@@ -44,10 +44,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #ifdef DAEMON
 
-int __daemon_run;
-int __num_threads;
-int __hup;
-pthread_mutex_t __lock;
+int __daemon_run;	/* should we keep running? */
+int __num_threads;	/* number of live threads */
+int __hup;		/* should we reload? */
+pthread_mutex_t __lock;	/* global var lock */
 
 typedef struct {
   int sockfd;
@@ -60,12 +60,12 @@ typedef struct {
 
 int	daemon_listen(DRIVER_CTX *DTX);
 int	daemon_reply(THREAD_CTX *TTX, int reply, const char *ecode, 
-                     const char *txt);
+                     const char *text);
 int	daemon_extension(THREAD_CTX *TTX, const char *extension);
 void *	process_connection(void *ptr);
-char *	daemon_expect(THREAD_CTX *TTX, const char *ptr);
+char *	daemon_expect(THREAD_CTX *TTX, const char *command);
 char *	daemon_getline(THREAD_CTX *TTX, int timeout);
-void	process_signal(int signal);
+void	process_signal(int sig);
 void	increment_thread_count(void);
 void	decrement_thread_count(void);
 buffer *read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX);
