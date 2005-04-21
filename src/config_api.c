@@ -1,4 +1,4 @@
-/* $Id: config_api.c,v 1.6 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: config_api.c,v 1.7 2005/04/21 19:28:54 jonz Exp $ */
 
 /*
 
@@ -148,15 +148,15 @@ int attach_context(DSPAM_CTX *CTX, void *dbh) {
     failover = _ds_read_attribute(agent_config, key);
 
     if (!failover) {
-      report_error(ERROR_FAILOVER_OUT);
+      LOG(LOG_ERR, ERROR_FAILOVER_OUT);
       return r;
     }
 
-    report_error_printf(ERROR_FAILING_OVER, failover);
+    LOG(LOG_WARNING, ERROR_FAILING_OVER, failover);
     _ds_overwrite_attribute(agent_config, "DefaultProfile", failover);
 
     if (dspam_clearattributes(CTX)) {
-      report_error(ERROR_CLEAR_ATTRIBUTES);
+      LOG(LOG_ERR, ERROR_CLEAR_ATTRIBUTES);
       return r;
     }
 
