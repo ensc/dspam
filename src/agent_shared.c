@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.45 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.46 2005/04/21 19:29:15 jonz Exp $ */
 
 /*
 
@@ -768,7 +768,7 @@ buffer * read_stdin(AGENT_CTX *ATX) {
         nt_destroy (ATX->users);
         ATX->users = nt_create (NT_CHAR);
         if (ATX->users == NULL) {
-          report_error (ERROR_MEM_ALLOC);
+          LOG(LOG_CRIT, ERROR_MEM_ALLOC);
           goto bail;
         }
         LOGDEBUG("found username %s in X-DSPAM-User header", user);
