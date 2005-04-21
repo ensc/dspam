@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.14 2005/03/01 14:53:30 jonz Exp $ */
+/* $Id: language.h,v 1.15 2005/04/21 16:09:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -108,5 +108,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ERROR_CLIENT_AUTHENTICATE	"Authentication rejected"
 #define CLIENT_CONNECTED		"Connection established"
 #define CLIENT_CONNECT			"Establishing Connection to %s:%d"
+#define ERROR_SEND_FAILED		"Send Failed"
 
 #endif /* _LANGUAGE_H */

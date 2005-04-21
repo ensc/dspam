@@ -1,23 +1,23 @@
-/* $Id: client.h,v 1.9 2005/04/18 16:43:04 jonz Exp $ */
+/* $Id: client.h,v 1.10 2005/04/21 16:09:04 jonz Exp $ */
 
 /*
 
  DSPAM
- COPYRIGHT (C) 2002-2005 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
@@ -38,21 +38,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "dspam.h"
 #include "buffer.h"
 
-int client_process      (AGENT_CTX *ATX, buffer *message);
+int client_process      (AGENT_CTX *ATX, buffer *msg);
 int client_connect      (AGENT_CTX *ATX, int flags);
-int client_authenticate (THREAD_CTX *TTX, const char *processmode);
-int client_parsecode	(char *error);
-int client_getcode      (THREAD_CTX *TTX, char *error, size_t len);
-char * client_expect    (THREAD_CTX *TTX, int response_code, char *error, size_t len);
+int client_authenticate (THREAD_CTX *TTX, const char *mode);
+int client_parsecode	(char *err);
+int client_getcode      (THREAD_CTX *TTX, char *err, size_t len);
+char * client_expect    (THREAD_CTX *TTX, int code, char *err, size_t len);
 char * client_getline   (THREAD_CTX *TTX, int timeout);
-int deliver_socket      (AGENT_CTX *ATX, const char *message, int proto);
+int deliver_socket      (AGENT_CTX *ATX, const char *msg, int proto);
 
-/* Shared between client and server */
 char *pop_buffer  (THREAD_CTX *TTX);
 int   send_socket (THREAD_CTX *TTX, const char *ptr);
 
-#define CCF_PROCESS	0x00	/* Establish connection to process host */
-#define CCF_DELIVERY	0x01	/* Establish connection to delivery host */
+#define CCF_PROCESS	0x00	/* use ClientHost */
+#define CCF_DELIVERY	0x01	/* use DeliveryHost */
 
 #define DDP_LMTP	0x00
 #define DDP_SMTP	0x01

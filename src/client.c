@@ -1,24 +1,31 @@
-/* $Id: client.c,v 1.49 2005/04/18 19:07:39 jonz Exp $ */
+/* $Id: client.c,v 1.50 2005/04/21 16:09:04 jonz Exp $ */
 
 /*
 
  DSPAM
- COPYRIGHT (C) 2002-2005 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+*/
+
+/*
+   client.c
+
+   DESCRIPTION
+     client-based functions (for operating in client/daemon mode)
 */
 
 #ifdef HAVE_CONFIG_H
@@ -48,7 +55,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdlib.h>
 
 #include "client.h"
-#include "libdspam.h"
 #include "dspam.h"
 #include "config.h"
 #include "util.h"
@@ -56,26 +62,32 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "buffer.h"
 
 /*
+   client_process(AGENT_CTX *, buffer *)
 
- client_process: process as a DLMTP client
+   DESCRIPTION
+     connect to a dspam daemon socket and attempt to process a message
+     this function is called by the dspam agent when --client is specified
 
- This function is called by the DSPAM agent in lieu of standard processing
- when --client is specified. It passes off all responsibility for processing 
- to the configured server and returns the appropriate response. This should
- be ultimately transparent to any tools outside of the agent process.
+   INPUT ARGUMENTS
+        ATX     	agent context
+        message		message to be processed
 
+   RETURN VALUES
+     returns 0 on success
 */
 
 int client_process(AGENT_CTX *ATX, buffer *message) {
+  char buf[1024], err[256];
   struct nt_node *node_nt;
   struct nt_c c_nt;
-  THREAD_CTX TTX;	/* Needed for compatibility */
-  char buff[1024], error[256];
-  int exitcode = 0, i, msglen;
+  int exitcode = 0, msglen;
+  THREAD_CTX TTX;
+  int i;
 
   TTX.sockfd = client_connect(ATX, 0);
   if (TTX.sockfd <0) {
-    report_error(ERROR_CLIENT_CONNECT);
+    LOG(LOG_WARNING, ERROR_CLIENT_CONNECT);
+    STATUS(ERROR_CLIENT_CONNECT);
     return TTX.sockfd;
   }
 
@@ -83,42 +95,41 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   if (TTX.packet_buffer == NULL) 
     goto BAIL;
 
-  /* LHLO and MAIL FROM - Authenticate on the server */
-  /* ----------------------------------------------- */
+  /* LHLO / MAIL FROM - authenticate on the server */
 
   if (client_authenticate(&TTX, ATX->client_args)<0) {
-    report_error(ERROR_CLIENT_AUTH_FAILED);
+    LOG(LOG_WARNING, ERROR_CLIENT_AUTH_FAILED);
     STATUS(ERROR_CLIENT_AUTH_FAILED);
     goto QUIT;
   }
 
-  /* RCPT TO - Send recipient information */
-  /* ------------------------------------ */
+  /* RCPT TO - send recipient information */
 
-  strcpy(buff, "RCPT TO: ");
+  strcpy(buf, "RCPT TO: ");
   node_nt = c_nt_first(ATX->users, &c_nt);
   while(node_nt != NULL) {
     const char *ptr = (const char *) node_nt->ptr;
-    snprintf(buff, sizeof(buff), "RCPT TO: <%s>", ptr);
-    if (send_socket(&TTX, buff)<=0)
+    snprintf(buf, sizeof(buf), "RCPT TO: <%s>", ptr);
+    if (send_socket(&TTX, buf)<=0) {
+      STATUS(ERROR_SEND_FAILED);
       goto BAIL;
+    }
 
-    if (client_getcode(&TTX, error, sizeof(error))!=LMTP_OK) {
-      STATUS(error);
+    if (client_getcode(&TTX, err, sizeof(err))!=LMTP_OK) {
+      STATUS(err);
       goto QUIT;
     }
 
     node_nt = c_nt_next(ATX->users, &c_nt);
   }
 
-  /* DATA - Send message */
-  /* ------------------- */
+  /* DATA - send message */
 
   if (send_socket(&TTX, "DATA")<=0) 
     goto BAIL;
 
-  if (client_getcode(&TTX, error, sizeof(error))!=LMTP_DATA) {
-    STATUS(error);
+  if (client_getcode(&TTX, err, sizeof(err))!=LMTP_DATA) {
+    STATUS(err);
     goto QUIT;
   }
 
@@ -126,20 +137,26 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   msglen = strlen(message->data);
   while(i<msglen) {
     int r = send(TTX.sockfd, message->data+i, msglen - i, 0);
-    if (r <= 0) 
+    if (r <= 0) {
+      STATUS(ERROR_SEND_FAILED);
       goto BAIL;
+    }
     i += r;
   }
 
-  if (message->data[strlen(message->data)-1]!= '\n')
-    if (send_socket(&TTX, "")<=0)
+  if (message->data[strlen(message->data)-1]!= '\n') {
+    if (send_socket(&TTX, "")<=0) {
+     STATUS(ERROR_SEND_FAILED);
      goto BAIL;
+    }
+  }
 
-  if (send_socket(&TTX, ".")<=0)
+  if (send_socket(&TTX, ".")<=0) {
+    STATUS(ERROR_SEND_FAILED);
     goto BAIL;
+  }
 
-  /* Server Response */
-  /* --------------- */
+  /* server response */
 
   if (ATX->flags & DAF_STDOUT || ATX->operating_mode == DSM_CLASSIFY) {
     char *line = NULL;
@@ -204,14 +221,14 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   }
 
   send_socket(&TTX, "QUIT");
-  client_getcode(&TTX, error, sizeof(error));
+  client_getcode(&TTX, err, sizeof(err));
   close(TTX.sockfd);
   buffer_destroy(TTX.packet_buffer);
   return exitcode;
 
 QUIT:
   send_socket(&TTX, "QUIT");
-  client_getcode(&TTX, error, sizeof(error));
+  client_getcode(&TTX, err, sizeof(err));
 
 BAIL:
   exitcode = EFAILURE;
@@ -221,20 +238,29 @@ BAIL:
 }
 
 /*
+   client_connect(AGENT_CTX ATX, int flags)
 
- client_connect: establish a connection to an LMTP server
+   DESCRIPTION
+     establish a connection to a server
+     
 
- Depending on whether CCF_PROCESS or CCF_DELIVER was specified in flags,
- this function establishes a connection to either the DSPAM server (for
- processing) or an LMTP delivery host (for delivery).
+   INPUT ARGUMENTS
+        ATX             agent context
+        flags		connection flags
 
+   FLAGS
+	CCF_PROCESS	Use ClientHost as destination
+	CCF_DELIVERY	Use DeliveryHost as destination
+
+   RETURN VALUES
+     returns 0 on success
 */
 
 int client_connect(AGENT_CTX *ATX, int flags) {
   struct sockaddr_in addr;
   struct sockaddr_un saun;
-  int yes = 1;
   int sockfd;
+  int yes = 1;
   int port = 24;
   int domain = 0;
   int addr_len;
@@ -270,12 +296,12 @@ int client_connect(AGENT_CTX *ATX, int flags) {
   }
 
   if (host == NULL) {
-    report_error(ERROR_INVALID_CLIENT_CONFIG);
+    LOG(LOG_CRIT, ERROR_INVALID_CLIENT_CONFIG);
     STATUS(ERROR_INVALID_CLIENT_CONFIG);
     return EINVAL;
   }
 
-  /* Connect (Domain Socket) */
+  /* connect (domain socket) */
 
   if (domain) {
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -285,12 +311,12 @@ int client_connect(AGENT_CTX *ATX, int flags) {
 
     LOGDEBUG(CLIENT_CONNECT, host, 0);
     if(connect(sockfd, (struct sockaddr *)&saun, addr_len)<0) {
-      report_error_printf(ERROR_CLIENT_CONNECT_SOCKET, host, strerror(errno));
+      LOG(LOG_ERR, ERROR_CLIENT_CONNECT_SOCKET, host, strerror(errno));
       STATUS(strerror(errno));
       return EFAILURE;
     }
 
-  /* Connect (TCP) */
+  /* connect (tcp socket) */
 
   } else {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -302,7 +328,7 @@ int client_connect(AGENT_CTX *ATX, int flags) {
 
     LOGDEBUG(CLIENT_CONNECT, host, port);
     if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
-      report_error_printf(ERROR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+      LOG(LOG_ERR, ERROR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
       STATUS(strerror(errno));
       return EFAILURE;
     }
@@ -315,66 +341,74 @@ int client_connect(AGENT_CTX *ATX, int flags) {
 }
 
 /*
+   client_authenticate(AGENT_CTX *ATX, const char *mode)
 
- client_authenticate: greet and authenticate on a DLMTP server
+   DESCRIPTION
+     greet and authenticate on a server
 
- LHLO [ident]
- MAIL FROM: <password@ident>
 
+   INPUT ARGUMENTS
+        ATX             agent context
+        mode		processing mode
+
+   NOTES
+     the process mode is passed using the DSPAMPROCESSMODE service tag
+
+   RETURN VALUES
+     returns 0 on success
 */
 
-int client_authenticate(THREAD_CTX *TTX, const char *processmode) {
-  char buff[1024], error[128];
-  char *input;
+int client_authenticate(THREAD_CTX *TTX, const char *mode) {
   char *ident = _ds_read_attribute(agent_config, "ClientIdent");
+  char buf[1024], err[128];
+  char *ptr;
   char pmode[1024];
 
-  /* ugly hack for backslashing quotes */
   pmode[0] = 0;
-  if (processmode) {
-    int pos = 0;
-    int cpos = 0;
-    for(;processmode[cpos]&&pos<(sizeof(pmode)-1);cpos++) {
-      if (processmode[cpos] == '"') {
+  if (mode) {
+    int pos = 0, cpos = 0;
+    for(;mode[cpos]&&pos<(sizeof(pmode)-1);cpos++) {
+      if (mode[cpos] == '"') {
         pmode[pos] = '\\';
         pos++;
       }
-      pmode[pos] = processmode[cpos];
+      pmode[pos] = mode[cpos];
       pos++;
     }
     pmode[pos] = 0;
   }
 
-  if (ident == NULL || !strchr(ident, '@')) {
-    report_error(ERROR_CLIENT_IDENT);
+  if (!ident || !strchr(ident, '@')) {
+    LOG(LOG_ERR, ERROR_CLIENT_IDENT);
     return EINVAL;
   }
 
-  input = client_expect(TTX, LMTP_GREETING, error, sizeof(error));
-  if (input == NULL) {
-    report_error_printf("Error while authenticating: %s", error);
+  ptr = client_expect(TTX, LMTP_GREETING, err, sizeof(err));
+  if (ptr == NULL) {
+    LOG(LOG_ERR, "error while authenticating: %s", err);
     return EFAILURE;
   }
-  free(input);
+  free(ptr);
 
-  snprintf(buff, sizeof(buff), "LHLO %s", strchr(ident, '@')+1);
-  if (send_socket(TTX, buff)<=0) 
+  snprintf(buf, sizeof(buf), "LHLO %s", strchr(ident, '@')+1);
+  if (send_socket(TTX, buf)<=0) 
     return EFAILURE;
 
-  if (client_getcode(TTX, error, sizeof(error))!=LMTP_OK) {
+  if (client_getcode(TTX, err, sizeof(err))!=LMTP_OK) {
     return EFAILURE;
   }
 
-  if (processmode != NULL) {
-    snprintf(buff, sizeof(buff), "MAIL FROM: <%s> DSPAMPROCESSMODE=\"%s\"", ident, pmode);
+  if (mode) {
+    snprintf(buf, sizeof(buf), "MAIL FROM: <%s> DSPAMPROCESSMODE=\"%s\"", ident, pmode);
   } else {
-    snprintf(buff, sizeof(buff), "MAIL FROM: <%s>", ident);
+    snprintf(buf, sizeof(buf), "MAIL FROM: <%s>", ident);
   }
-  if (send_socket(TTX, buff)<=0)
+  if (send_socket(TTX, buf)<=0) {
     return EFAILURE;
+  }
 
-  if (client_getcode(TTX, error, sizeof(error))!=LMTP_OK) {
-    LOGDEBUG(ERROR_CLIENT_AUTHENTICATE);
+  if (client_getcode(TTX, err, sizeof(err))!=LMTP_OK) {
+    LOG(LOG_ERR, ERROR_CLIENT_AUTHENTICATE);
     return EFAILURE;
   }
 
@@ -382,48 +416,70 @@ int client_authenticate(THREAD_CTX *TTX, const char *processmode) {
 }
 
 /*
+   client_expect(THREAD_CTX *TTX, int code, char *err, size_t len)
 
- client_expect: wait for the appropriate code and return
+   DESCRIPTION
+     wait for the appropriate return code, then return
 
- Keep reading until we receive the appropriate response code, then return
- the buffer. We also want to skip over LHLO extension advertisements.
 
+   INPUT ARGUMENTS
+        ATX             agent context
+        code		return code to wait for
+	err		error buffer
+	len		buffer len
+
+   RETURN VALUES
+     allocated pointer to acknowledgement line, NULL on error
+     err buffer is populated on error
 */
- 
-char * client_expect(THREAD_CTX *TTX, int response_code, char *error, size_t len) {
-  char *input, *dup;
-  char *ptr, *ptrptr;
-  int code;
 
-  input = client_getline(TTX, 300);
-  while(input != NULL) {
-    code = 0;
-    dup = strdup(input);
+char * client_expect(THREAD_CTX *TTX, int code, char *err, size_t len) {
+  char *inp, *dup, *ptr, *ptrptr;
+  int recv_code;
+
+  inp = client_getline(TTX, 300);
+  while(inp != NULL) {
+    recv_code = 0;
+    dup = strdup(inp);
     if (!dup) {
-      free(input);
+      free(inp);
       LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-      strlcpy(error, ERROR_MEM_ALLOC, len);
+      strlcpy(err, ERROR_MEM_ALLOC, len);
       return NULL;
     }
     if (strncmp(dup, "250-", 4)) {
       ptr = strtok_r(dup, " ", &ptrptr);
       if (ptr) 
-        code = atoi(ptr);
+        recv_code = atoi(ptr);
       free(dup);
-      if (code == response_code) {
-        error[0] = 0;
-        return input;
+      if (recv_code == code) {
+        err[0] = 0;
+        return inp;
       }
-      LOGDEBUG("Received invalid input waiting for %d: %s", response_code, input);
+      LOG(LOG_WARNING, "received invalid input waiting for %d: %s", code, inp);
     }
     
-    strlcpy(error, input, len);
-    free(input);
-    input = client_getline(TTX, 300);
+    strlcpy(err, inp, len);
+    free(inp);
+    inp = client_getline(TTX, 300);
   }
 
   return NULL;
 }
+
+/*
+   client_parsecode(const char *err)
+
+   DESCRIPTION
+     parse response code from plain text
+
+
+   INPUT ARGUMENTS
+        err		error message to parse
+
+   RETURN VALUES
+     integer value of response code
+*/
 
 int client_parsecode(char *error) {
   char code[4];
@@ -432,46 +488,65 @@ int client_parsecode(char *error) {
   return atoi(code);
 }
 
-/* client_getcode: read the buffer and return response code */
+/*
+   client_getcode(THREAD_CTX *TTX, char *err, size_t len)
 
-int client_getcode(THREAD_CTX *TTX, char *error, size_t len) {
-  char *input, *ptr, *ptrptr;
+   DESCRIPTION
+     retrieve a line of input and return response code
+  
+  
+   INPUT ARGUMENTS  
+	TTX	thread context containing sockfd
+        err	error buffer
+	len	buffer len
+
+   RETURN VALUES
+     integer value of response code
+*/
+
+int client_getcode(THREAD_CTX *TTX, char *err, size_t len) {
+  char *inp, *ptr, *ptrptr;
   int i;
 
-  input = client_getline(TTX, 300);
-  if (input == NULL)
+  inp = client_getline(TTX, 300);
+  if (!inp)
     return EFAILURE;
 
-  while(input != NULL && !strncmp(input, "250-", 4)) {
-    free(input);
-    input = client_getline(TTX, 300);
+  while(inp && !strncmp(inp, "250-", 4)) {
+    free(inp);
+    inp = client_getline(TTX, 300);
   }
 
-  strlcpy(error, input, len);
-  ptr = strtok_r(input, " ", &ptrptr);
+  strlcpy(err, inp, len);
+  ptr = strtok_r(inp, " ", &ptrptr);
   if (ptr == NULL)
     return EFAILURE;
   i = atoi(ptr);
-  free(input);
+  free(inp);
   return i;
 }
 
 /*
+   client_getline(THREAD_CTX *TTX, int timeout)
 
- client_getline: read a complete line from the buffer
+   DESCRIPTION
+     read a complete line from a socket
+  
+   INPUT ARGUMENTS  
+        TTX	thread context containing sockfd
+	timeout	timeout (in seconds) to wait for input
 
- Wait for a complete line in the buffer, then return the line. If the wait
- exceeds the specified timeout, NULL is returned.
-
+   RETURN VALUES
+     allocated pointer to input
 */
 
 char *client_getline(THREAD_CTX *TTX, int timeout) {
-  int i;
   struct timeval tv;
-  fd_set fds;
   long recv_len;
+  char buf[1024];
   char *pop;
-  char buff[1024];
+  fd_set fds;
+  int i;
 
   pop = pop_buffer(TTX);
   while(!pop) {
@@ -483,11 +558,11 @@ char *client_getline(THREAD_CTX *TTX, int timeout) {
     if (i<=0)
       return NULL;
 
-    recv_len = recv(TTX->sockfd, buff, sizeof(buff)-1, 0);
-    buff[recv_len] = 0;
+    recv_len = recv(TTX->sockfd, buf, sizeof(buf)-1, 0);
+    buf[recv_len] = 0;
     if (recv_len == 0)
       return NULL;
-    buffer_cat(TTX->packet_buffer, buff);
+    buffer_cat(TTX->packet_buffer, buf);
     pop = pop_buffer(TTX);
   }
 
@@ -499,14 +574,20 @@ char *client_getline(THREAD_CTX *TTX, int timeout) {
 }
 
 /*
-  pop_buffer: pop and return a line off the buffer 
+   pop_buffer (THREAD_CTX *TTX)
 
-  If a complete line isn't available, return NULL.
+   DESCRIPTION
+     pop a line off the packet buffer
+ 
+   INPUT ARGUMENTS
+        TTX     thread context containing the packet buffer
 
+   RETURN VALUES
+     allocated pointer to line, NULL if complete line isn't available
 */
 
 char *pop_buffer(THREAD_CTX *TTX) {
-  char *buff, *eol;
+  char *buf, *eol;
   long len;
 
   if (!TTX || !TTX->packet_buffer || !TTX->packet_buffer->data)
@@ -516,29 +597,41 @@ char *pop_buffer(THREAD_CTX *TTX) {
   if (!eol)
     return NULL;
   len = (eol - TTX->packet_buffer->data) + 1;
-  buff = calloc(1, len+1);
-  if (!buff) {
+  buf = calloc(1, len+1);
+  if (!buf) {
     LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     return NULL;
   }
-  memcpy(buff, TTX->packet_buffer->data, len);
+  memcpy(buf, TTX->packet_buffer->data, len);
   memmove(TTX->packet_buffer->data, eol+1, strlen(eol+1)+1);
   TTX->packet_buffer->used -= len;
-  return buff;
+  return buf;
 }
 
-/* send_socket: send text to a socket */
+/*
+   send_socket(THREAD_CTX *TTX, const char *text)
 
-int send_socket(THREAD_CTX *TTX, const char *ptr) {
+   DESCRIPTION
+     send a line of text to a socket
+ 
+   INPUT ARGUMENTS
+        TTX     thread context containing sockfd
+        text	text to send
+
+   RETURN VALUES
+     number of bytes sent
+*/
+
+int send_socket(THREAD_CTX *TTX, const char *text) {
   int i = 0, r, msglen;
 
 #ifdef VERBOSE
-  LOGDEBUG("SEND: %s", ptr);
+  LOGDEBUG("SEND: %s", text);
 #endif
 
-  msglen = strlen(ptr);
+  msglen = strlen(text);
   while(i<msglen) {
-    r = send(TTX->sockfd, ptr+i, msglen-i, 0);
+    r = send(TTX->sockfd, text+i, msglen-i, 0);
     if (r <= 0) {
       return r;
     }
@@ -546,188 +639,208 @@ int send_socket(THREAD_CTX *TTX, const char *ptr) {
   }
 
   r = send(TTX->sockfd, "\r\n", 2, 0);
-  return i+1;
+  return i+2;
 }
 
 /*
-  deliver_socket: delivers via LMTP or SMTP instead of TrustedDeliveryAgent 
 
-  If DeliveryProto was specified in dspam.conf, this function will be called 
-  by deliver_message(). This function connects to and delivers the message 
-  using standard LMTP or SMTP. Depending on how DSPAM was originally called, 
-  either the address supplied with the incoming RCPT TO or the address 
-  supplied on the commandline with --rcpt-to  will be used. If neither are
-  present, the username will be used. 
+  deliver_socket(AGENT_CTX *ATX, const char *msg, int proto)
+
+  DESCRIPTION
+    delivers message via LMTP or SMTP (instead of TrustedDeliveryAgent) 
+
+    If LMTP/SMTP delivery was specified in dspam.conf, this function will be 
+    called by deliver_message(). This function connects to and delivers the 
+    message using standard LMTP or SMTP. Depending on how DSPAM was originally 
+    called, either the address supplied with the incoming RCPT TO or the 
+    address supplied on the commandline with --rcpt-to  will be used. If 
+    neither are present, the username will be used. 
+
+  INPUT ARGUMENTS
+	ATX	agent context
+	msg	message to send
+	proto	protocol to use
+
+  PROTOCOLS
+	DDP_LMTP	LMTP
+	DDP_SMTP	SMTP
+
+  RETURN VALUES
+    returns 0 on success
 
 */
 
-int deliver_socket(AGENT_CTX *ATX, const char *message, int proto) {
+int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   THREAD_CTX TTX;
-  char buff[1024], error[128];
-  char *input;
+  char buf[1024], err[256];
   char *ident = _ds_read_attribute(agent_config, "DeliveryIdent");
   int exitcode = EFAILURE;
-  int i, msglen, code;
+  int msglen, code;
+  char *inp;
+  int i;
+
+  err[0] = 0;
 
   TTX.sockfd = client_connect(ATX, CCF_DELIVERY);
   if (TTX.sockfd <0) {
-    report_error(ERROR_CLIENT_CONNECT);
+    STATUS(ERROR_CLIENT_CONNECT);
+    LOG(LOG_ERR, ERROR_CLIENT_CONNECT);
     return TTX.sockfd;
   }
 
   TTX.packet_buffer = buffer_create(NULL);
   if (TTX.packet_buffer == NULL) {
-    LOG(LOG_WARNING, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     STATUS(ERROR_MEM_ALLOC);
     goto BAIL;
   }
 
-  input = client_expect(&TTX, LMTP_GREETING, error, sizeof(error));
-  if (input == NULL) {
-    if (error) {
-      LOGDEBUG("Received invalid response on greeting: %s", error);
-      STATUS(error);
-    }
+  inp = client_expect(&TTX, LMTP_GREETING, err, sizeof(err));
+  if (inp == NULL) {
+    LOG(LOG_ERR, "received error on greeting: %s", err);
+    STATUS(err);
     goto BAIL;
   }
-  free(input);
+  free(inp);
 
-  /* LHLO */
+  /* LHLO / HELO */
 
-  snprintf(buff, sizeof(buff), "%s %s", (proto == DDP_LMTP) ? "LHLO" : "HELO",
+  snprintf(buf, sizeof(buf), "%s %s", (proto == DDP_LMTP) ? "LHLO" : "HELO",
            (ident) ? ident : "localhost");
-  if (send_socket(&TTX, buff)<=0) {
-    LOGDEBUG("HELO/LHLO send failed");
-    STATUS("LHLO/HELO send failed");
+  if (send_socket(&TTX, buf)<=0) {
+    LOG(LOG_ERR, ERROR_SEND_FAILED);
+    STATUS(ERROR_SEND_FAILED);
     goto BAIL;
   }
 
-  /* MAIL FROM - Pass-thru MAIL FROM and SIZE */
-  /* ---------------------------------------- */
+  /* MAIL FROM */
 
-  input = client_expect(&TTX, LMTP_OK, error, sizeof(error));
-  if (input == NULL) {
-    LOGDEBUG("Received invalid reply after HELO/LHLO: %s", error);
-    STATUS(error);
+  inp = client_expect(&TTX, LMTP_OK, err, sizeof(err));
+  if (inp == NULL) {
+    LOG(LOG_ERR, "received error in response to %s: %s",
+      (proto == DDP_LMTP) ? "LHLO" : "HELO", err);
+    STATUS("%s: %s", (proto == DDP_LMTP) ? "LHLO" : "HELO", err);
     goto QUIT;
   }
-  free(input);
+  free(inp);
 
   if (proto == DDP_LMTP) {
-    snprintf(buff, sizeof(buff), "MAIL FROM:<%s> SIZE=%ld", 
-             ATX->mailfrom, (long) strlen(message));
+    snprintf(buf, sizeof(buf), "MAIL FROM:<%s> SIZE=%ld", 
+             ATX->mailfrom, (long) strlen(msg));
   } else {
-    snprintf(buff, sizeof(buff), "MAIL FROM:<%s>", ATX->mailfrom);
+    snprintf(buf, sizeof(buf), "MAIL FROM:<%s>", ATX->mailfrom);
   }
 
-  if (send_socket(&TTX, buff)<=0) {
-    LOGDEBUG("MAIL FROM send failed");
+  if (send_socket(&TTX, buf)<=0) {
+    LOG(LOG_ERR, ERROR_SEND_FAILED);
+    STATUS(ERROR_SEND_FAILED);
     goto BAIL;
   }
 
-  code = client_getcode(&TTX, error, sizeof(error));
+  code = client_getcode(&TTX, err, sizeof(err));
 
   if (code!=LMTP_OK) {
-    LOGDEBUG("Received invalid reply after MAIL FROM: %d", code);
+    LOG(LOG_ERR, "received error %d in response to MAIL FROM: %s", code, err);
     if (code >= 500) 
       exitcode = EINVAL;
-    chomp(error);
-    STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", error);
+    chomp(err);
+    STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", err);
     goto QUIT;
   }
 
-  /* RCPT TO - Recipient information or pass-thru */
-  /* -------------------------------------------- */
+  /* RCPT TO */
 
-  snprintf(buff, sizeof(buff), "RCPT TO:<%s>", (ATX->recipient) ? ATX->recipient : "");
-  if (send_socket(&TTX, buff)<=0) {
-    LOGDEBUG("RCPT TO send failed");
+  snprintf(buf, sizeof(buf), "RCPT TO:<%s>", (ATX->recipient) ? ATX->recipient : "");
+  if (send_socket(&TTX, buf)<=0) {
+    LOG(LOG_ERR, ERROR_SEND_FAILED);
+    STATUS(ERROR_SEND_FAILED);
     goto BAIL;
   }
 
-  code = client_getcode(&TTX, error, sizeof(error));
+  code = client_getcode(&TTX, err, sizeof(err));
 
   if (code!=LMTP_OK) {
-    LOGDEBUG("Received invalid reply after RCPT TO: %d", code); 
+    LOG(LOG_ERR, "received error %d in response to RCPT TO: %s", code, err);
     if (code >= 500)
       exitcode = EINVAL;  
-    chomp(error);
-    STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", error);
+    chomp(err);
+    STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", err);
     goto QUIT;
   }
 
-  /* DATA - Send Message */
-  /* ------------------- */
+  /* DATA */
 
   if (send_socket(&TTX, "DATA")<=0) {
-    LOGDEBUG("DATA send failed");
+    LOG(LOG_ERR, ERROR_SEND_FAILED);
+    STATUS(ERROR_SEND_FAILED);
     goto BAIL;
   }
 
-  code = client_getcode(&TTX, error, sizeof(error));
+  code = client_getcode(&TTX, err, sizeof(err));
   if (code!=LMTP_DATA) {
-    LOGDEBUG("Received invalid reply after DATA: %d", code);
+    LOG(LOG_ERR, "received error %d in response to DATA: %s", code, err);
     if (code >= 500)
       exitcode = EINVAL;
-    chomp(error);
-    STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", error);
+    chomp(err);
+    STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", err);
     goto QUIT;
   }
 
   i = 0;
-  msglen = strlen(message);
+  msglen = strlen(msg);
   while(i<msglen) {
-    int r = send(TTX.sockfd, message+i, msglen - i, 0);
+    int r = send(TTX.sockfd, msg+i, msglen - i, 0);
     if (r <= 0) {
-      LOGDEBUG("message data send failed");
+      LOG(LOG_ERR, ERROR_SEND_FAILED);
+      STATUS(ERROR_SEND_FAILED);
       goto BAIL;
     }
     i += r;
   }
 
-  if (message[strlen(message)-1]!= '\n')
+  if (msg[strlen(msg)-1]!= '\n') {
     if (send_socket(&TTX, "")<=0) {
-      LOGDEBUG("trailing CR send failed");
+      LOG(LOG_ERR, ERROR_SEND_FAILED);
+      STATUS(ERROR_SEND_FAILED);
       goto BAIL;
     }
+  }
 
   if (send_socket(&TTX, "\r\n.")<=0) {
-    LOGDEBUG("trailing CRLF send failed");
+    LOG(LOG_ERR, ERROR_SEND_FAILED);
+    STATUS(ERROR_SEND_FAILED);
     goto BAIL;
   }
 
-  /* Server Response */
-  /* --------------- */
+  /* server response */
 
-  input = client_expect(&TTX, LMTP_OK, error, sizeof(error));
-  if (input == NULL) {
-    code = client_parsecode(error);
-    LOGDEBUG("Received invalid reply after sending message contents: %s", error);
+  inp = client_expect(&TTX, LMTP_OK, err, sizeof(err));
+  if (inp == NULL) {
+    code = client_parsecode(err);
+    LOG(LOG_ERR, "received error %d in response to message: %s", code, err);
     if (code >= 500)
       exitcode = EINVAL;
-    chomp(error);
-    STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", error);
-
+    chomp(err);
+    STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", err);
     goto QUIT;
    }
-   free(input);
+   free(inp);
 
   send_socket(&TTX, "QUIT");
-  client_getcode(&TTX, error, sizeof(error));
+  client_getcode(&TTX, err, sizeof(err));
   close(TTX.sockfd);
   buffer_destroy(TTX.packet_buffer);
   return 0;
 
 QUIT:
   send_socket(&TTX, "QUIT");
-  client_getcode(&TTX, error, sizeof(error));
+  client_getcode(&TTX, err, sizeof(err));
 
 BAIL:
-  report_error("TCP delivery failed");
+  LOG(LOG_ERR, "delivery failed");
   buffer_destroy(TTX.packet_buffer);
   close(TTX.sockfd);
   return exitcode;
 }
 
 #endif /* DAEMON */
-

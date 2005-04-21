@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.42 2005/04/21 02:07:24 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.43 2005/04/21 16:09:04 jonz Exp $ */
 
 /*
 
@@ -888,7 +888,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
       ATX->users = nt_create(NT_CHAR);
       if (!ATX->users) {
         LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-        return NULL;
+        return EUNKNOWN;
       }
       nt_add (ATX->users, z);
     }
