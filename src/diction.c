@@ -1,22 +1,33 @@
-/* $Id: diction.c,v 1.2 2005/01/03 03:38:51 jonz Exp $ */
+/* $Id: diction.c,v 1.3 2005/04/21 21:14:41 jonz Exp $ */
 
 /*
- DCLASSIFY
- COPYRIGHT (C) 2004 JONATHAN A. ZDZIARSKI
+ DSPAM
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+*/
+
+/*
+   diction.c
+
+   DESCRIPTION
+     a diction is a subset of lexical data from a user's dictionary. in the
+     context used within DSPAM, a diction is all of the matching lexical
+     information from the current message being processed. the diction is
+     loaded/stored by the storage driver and managed primarily by libdspam.
 
 */
 

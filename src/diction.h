@@ -1,22 +1,22 @@
-/* $Id: diction.h,v 1.1 2005/01/03 03:10:19 jonz Exp $ */
+/* $Id: diction.h,v 1.2 2005/04/21 21:14:41 jonz Exp $ */
 
 /*
- DCLASSIFY
- COPYRIGHT (C) 2004 JONATHAN A. ZDZIARSKI
+ DSPAM
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
@@ -62,7 +62,8 @@ void ds_diction_destroy(ds_diction_t diction);
 
 ds_term_t ds_diction_term_create(ds_key_t key, const char *name);
 ds_term_t ds_diction_find(ds_diction_t diction, ds_key_t key);
-ds_term_t ds_diction_touch(ds_diction_t diction, ds_key_t key, const char *name, int flags);
+ds_term_t ds_diction_touch(ds_diction_t diction, ds_key_t key, 
+  const char *name, int flags);
 void ds_diction_delete(ds_diction_t diction, ds_key_t key);
 int ds_diction_setstat(ds_diction_t diction, ds_key_t key, ds_spam_stat_t s);
 int ds_diction_addstat(ds_diction_t diction, ds_key_t key, ds_spam_stat_t s);
