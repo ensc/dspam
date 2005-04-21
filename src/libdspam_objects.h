@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.6 2005/04/18 16:43:04 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.7 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -225,7 +225,7 @@ struct _ds_signature_token
 
 struct _ds_config
 {
-  attribute_t **attributes;
+  config_t attributes;
   long size;
 };
 

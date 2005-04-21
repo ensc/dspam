@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.155 2005/04/21 14:33:34 jonz Exp $ */
+/* $Id: dspam.c,v 1.156 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -146,7 +146,7 @@ main (int argc, char *argv[])
     }
 
     if (agent_config)
-      _ds_destroy_attributes(agent_config);
+      _ds_destroy_config(agent_config);
 
     exit(EXIT_SUCCESS);
   }
@@ -248,7 +248,7 @@ bail:
   }
 
   if (agent_config)
-    _ds_destroy_attributes(agent_config);
+    _ds_destroy_config(agent_config);
 
   exit (exitcode);
 }
@@ -3251,7 +3251,7 @@ int daemon_start(AGENT_CTX *ATX) {
     /* Reload */
     if (__hup) {
       if (agent_config)
-        _ds_destroy_attributes(agent_config);
+        _ds_destroy_config(agent_config);
 
       agent_config = read_config(NULL);
       if (!agent_config) {

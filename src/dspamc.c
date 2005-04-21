@@ -1,4 +1,4 @@
-/* $Id: dspamc.c,v 1.4 2005/03/26 04:52:06 jonz Exp $ */
+/* $Id: dspamc.c,v 1.5 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -179,7 +179,7 @@ bail:
     nt_destroy(ATX.users);
 
   if (agent_config)
-    _ds_destroy_attributes(agent_config);
+    _ds_destroy_config(agent_config);
 
   exit (exitcode);
 }

@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.4 2005/01/13 17:34:49 jonz Exp $ */
+/* $Id: sqlite3_drv.c,v 1.5 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -690,7 +690,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   if (_ds_read_attribute(CTX->config->attributes, "SQLitePragma")) {
     char pragma[1024];
-    attribute_t *t = _ds_find_attribute(CTX->config->attributes, "SQLitePragma");
+    attribute_t t = _ds_find_attribute(CTX->config->attributes, "SQLitePragma");
     while(t != NULL) {
       snprintf(pragma, sizeof(pragma), "PRAGMA %s", t->value);
       if ((sqlite3_exec(s->dbh, pragma, NULL, NULL, &err))!=SQLITE_OK)

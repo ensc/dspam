@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.103 2005/04/05 21:55:31 jonz Exp $ */
+/* $Id: libdspam.c,v 1.104 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -159,7 +159,7 @@ DSPAM_CTX * dspam_create (const char *username,
     goto bail;
   }
   CTX->config->size = 128;
-  CTX->config->attributes = calloc(1, sizeof(attribute_t *)*128);
+  CTX->config->attributes = calloc(1, sizeof(attribute_t)*128);
   if (CTX->config->attributes == NULL) {
     report_error(ERROR_MEM_ALLOC);
     goto bail;
@@ -227,7 +227,7 @@ DSPAM_CTX * dspam_create (const char *username,
 
 bail:
   if (CTX->config)
-    _ds_destroy_attributes(CTX->config->attributes);
+    _ds_destroy_config(CTX->config->attributes);
   free(CTX->config);
   free(CTX->username);
   free(CTX->group);
@@ -246,7 +246,7 @@ bail:
 int dspam_clearattributes (DSPAM_CTX * CTX) {
 
   if (CTX->config) {
-    _ds_destroy_attributes(CTX->config->attributes);
+    _ds_destroy_config(CTX->config->attributes);
     free(CTX->config);
   } else {
     return EFAILURE;
@@ -256,7 +256,7 @@ int dspam_clearattributes (DSPAM_CTX * CTX) {
   if (CTX->config == NULL)
     goto bail;
   CTX->config->size = 128;
-  CTX->config->attributes = calloc(1, sizeof(attribute_t *)*128);
+  CTX->config->attributes = calloc(1, sizeof(attribute_t)*128);
   if (CTX->config->attributes == NULL)
     goto bail;
 
@@ -293,9 +293,9 @@ int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value) {
     j++;
                                                                                 
   if (j >= CTX->config->size) {
-    attribute_t **ptr;
+    config_t ptr;
     CTX->config->size *= 2;
-    ptr = realloc(CTX->config->attributes, 1+(sizeof(attribute_t *)*CTX->config->size));
+    ptr = realloc(CTX->config->attributes, 1+(sizeof(attribute_t)*CTX->config->size));
     if (ptr) {
       CTX->config->attributes = ptr;
     } else {
@@ -378,7 +378,7 @@ dspam_destroy (DSPAM_CTX * CTX)
 
   _ds_factor_destroy(CTX->factors);
   if (CTX->config && CTX->config->attributes)
-    _ds_destroy_attributes (CTX->config->attributes);
+    _ds_destroy_config (CTX->config->attributes);
 
   free(CTX->config);
  

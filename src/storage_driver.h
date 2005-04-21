@@ -1,4 +1,4 @@
-/* $Id: storage_driver.h,v 1.9 2005/01/12 03:12:26 jonz Exp $ */
+/* $Id: storage_driver.h,v 1.10 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -140,14 +140,14 @@ void *_ds_connect (DSPAM_CTX *CTX);
 */
 
 #ifdef PREFERENCES_EXTENSION
-agent_pref_t	_ds_pref_load(attribute_t **config, const char *user,
+agent_pref_t	_ds_pref_load(config_t config, const char *user,
                               const char *home, void *dbh);
-int		_ds_pref_save(attribute_t **config, const char *user, 
+int		_ds_pref_save(config_t config, const char *user, 
                               const char *home, agent_pref_t PTX, void *dbh);
 
-int	_ds_pref_set(attribute_t **config, const char *user, const char *home,
+int	_ds_pref_set(config_t config, const char *user, const char *home,
                      const char *attrib, const char *value, void *dbh);
-int	_ds_pref_del(attribute_t **, const char *user, const char *home, 
+int	_ds_pref_del(config_t , const char *user, const char *home, 
                      const char *attrib, void *dbh);
 #endif
 

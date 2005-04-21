@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.16 2005/03/01 14:53:30 jonz Exp $ */
+/* $Id: pref.c,v 1.17 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -161,7 +161,7 @@ agent_attrib_t _ds_pref_new(const char *attribute, const char *value) {
 
 #ifndef PREFERENCES_EXTENSION
 agent_pref_t _ds_pref_load(
-  attribute_t **config,
+  config_t config,
   const char *user, 
   const char *home,
   void *ignore)
@@ -298,7 +298,7 @@ int _ds_pref_commit (
 }
 
 int _ds_pref_set (
-  attribute_t **config,
+  config_t config,
   const char *username,
   const char *home,
   const char *preference,
@@ -325,7 +325,7 @@ int _ds_pref_set (
 }
 
 int _ds_pref_del (
-  attribute_t **config,
+  config_t config,
   const char *username,
   const char *home,
   const char *preference,

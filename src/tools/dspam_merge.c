@@ -1,4 +1,4 @@
-/* $Id: dspam_merge.c,v 1.4 2005/01/03 03:06:16 jonz Exp $ */
+/* $Id: dspam_merge.c,v 1.5 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -77,7 +77,7 @@ main (int argc, char **argv)
                                                                                 
   if (!_ds_read_attribute(agent_config, "Home")) {
     report_error(ERROR_DSPAM_HOME);
-    _ds_destroy_attributes(agent_config);
+    _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
                                                                                 
@@ -85,7 +85,7 @@ main (int argc, char **argv)
 #ifdef TRUSTED_USER_SECURITY
   if (!_ds_match_attribute(agent_config, "Trust", p->pw_name) && p->pw_uid) {
     fprintf(stderr, ERROR_TRUSTED_MODE "\n");
-    _ds_destroy_attributes(agent_config);
+    _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
 #endif
@@ -94,7 +94,7 @@ main (int argc, char **argv)
   if (argc < 4)
   {
     printf ("%s\n", TSYNTAX);
-    _ds_destroy_attributes(agent_config);
+    _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
 
@@ -218,7 +218,7 @@ main (int argc, char **argv)
   dspam_destroy (CTX);
   open_ctx = NULL;
   dspam_shutdown_driver (NULL);
-  _ds_destroy_attributes(agent_config);
+  _ds_destroy_config(agent_config);
   exit (EXIT_SUCCESS);
 
 bail:
@@ -229,7 +229,7 @@ bail:
   dspam_shutdown_driver (NULL);
   nt_destroy(users);
   ds_diction_destroy(merge);
-  _ds_destroy_attributes(agent_config);
+  _ds_destroy_config(agent_config);
   exit (EXIT_FAILURE);
 }
 
@@ -241,7 +241,7 @@ dieout (int signal)
     dspam_destroy (open_ctx);
   if (open_mtx != NULL)
     dspam_destroy (open_mtx);
-  _ds_destroy_attributes(agent_config);
+  _ds_destroy_config(agent_config);
   exit (EXIT_SUCCESS);
 }
 

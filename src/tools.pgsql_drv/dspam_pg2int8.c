@@ -1,4 +1,4 @@
-/* $Id: dspam_pg2int8.c,v 1.4 2005/03/29 13:37:07 jonz Exp $ */
+/* $Id: dspam_pg2int8.c,v 1.5 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -94,7 +94,7 @@ main (int argc, char **argv)
 
   if (!_ds_read_attribute(agent_config, "Home")) {
     report_error(ERROR_DSPAM_HOME);
-    _ds_destroy_attributes(agent_config);
+    _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
 
@@ -102,7 +102,7 @@ main (int argc, char **argv)
 #ifdef TRUSTED_USER_SECURITY
   if (!_ds_match_attribute(agent_config, "Trust", p->pw_name) && p->pw_uid) {
     fprintf(stderr, ERROR_TRUSTED_MODE "\n");
-    _ds_destroy_attributes(agent_config);
+    _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
 #endif
@@ -114,7 +114,7 @@ main (int argc, char **argv)
     {
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
         report_error_printf(ERROR_NO_SUCH_PROFILE, argv[i]+10);
-        _ds_destroy_attributes(agent_config);
+        _ds_destroy_config(agent_config);
         exit(EXIT_FAILURE);
       } else {
         _ds_overwrite_attribute(agent_config, "DefaultProfile", argv[i]+10);
@@ -192,7 +192,7 @@ main (int argc, char **argv)
     dspam_destroy (open_ctx);
   if (open_mtx != NULL)
     dspam_destroy (open_mtx);
-  _ds_destroy_attributes(agent_config);
+  _ds_destroy_config(agent_config);
   exit (EXIT_SUCCESS);
 }
 
@@ -388,7 +388,7 @@ dieout (int signal)
     dspam_destroy (open_ctx);
   if (open_mtx != NULL)
     dspam_destroy (open_mtx);
-  _ds_destroy_attributes(agent_config);
+  _ds_destroy_config(agent_config);
   exit (EXIT_SUCCESS);
 }
 
@@ -398,7 +398,7 @@ usage (void)
   (void)fprintf (stderr, "Usage: dspam_pg2int8 [-h] file\n"
       "\tCreates SQL file to migrate from NUMERIC to BIGINT type and vice-versa in PostgreSQL.\n"
       "\t-h: print this message\n");
-  _ds_destroy_attributes(agent_config);
+  _ds_destroy_config(agent_config);
   exit(EXIT_FAILURE);
 }
 

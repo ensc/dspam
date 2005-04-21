@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.h,v 1.6 2005/04/06 13:25:12 jonz Exp $ */
+/* $Id: mysql_drv.h,v 1.7 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -61,7 +61,7 @@ void	_mysql_drv_query_error		(const char *error, const char *query);
 MYSQL	*_mysql_drv_connect		(DSPAM_CTX *CTX);
 struct passwd *_mysql_drv_getpwnam      (DSPAM_CTX * CTX, const char *name);
 struct passwd *_mysql_drv_getpwuid      (DSPAM_CTX * CTX, uid_t uid);
-DSPAM_CTX     *_mysql_drv_init_tools	(const char *home, attribute_t **config,
+DSPAM_CTX     *_mysql_drv_init_tools	(const char *home, config_t config,
 	void *dbh, int mode);
 
 #ifdef VIRTUAL_USERS
@@ -69,7 +69,7 @@ struct passwd *_mysql_drv_setpwnam	(DSPAM_CTX * CTX, const char *name);
 #endif
 
 #ifdef PREFERENCES_EXTENSION
-int _mysql_drv_set_attributes(DSPAM_CTX *CTX, attribute_t **config);
+int _mysql_drv_set_attributes(DSPAM_CTX *CTX, config_t config);
 #endif
 #endif /* _MYSQL_DRV_H */
 

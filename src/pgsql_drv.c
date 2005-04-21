@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.36 2005/04/16 02:59:54 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.37 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -2067,7 +2067,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 #ifdef PREFERENCES_EXTENSION
 DSPAM_CTX *_pgsql_drv_init_tools(
  const char *home,
- attribute_t **config,
+ config_t config,
  void *dbh,
  int mode)
 {
@@ -2102,7 +2102,7 @@ BAIL:
 }
 
 agent_pref_t _ds_pref_load(
-  attribute_t **config,
+  config_t config,
   const char *username, 
   const char *home,
   void *dbh) 
@@ -2203,7 +2203,7 @@ agent_pref_t _ds_pref_load(
 }
 
 int _ds_pref_set (
-  attribute_t **config,
+  config_t config,
   const char *username, 
   const char *home,
   const char *preference,
@@ -2285,7 +2285,7 @@ FAIL:
 }
 
 int _ds_pref_del (
-  attribute_t **config,
+  config_t config,
   const char *username,
   const char *home,
   const char *preference,
@@ -2350,7 +2350,7 @@ FAIL:
 }
 
 int _ds_pref_save(
-  attribute_t **config,
+  config_t config,
   const char *username, 
   const char *home, 
   agent_pref_t PTX, 
@@ -2430,9 +2430,9 @@ int _ds_pref_save(
   return 0;
 }
 
-int _pgsql_drv_set_attributes(DSPAM_CTX *CTX, attribute_t **config) {
+int _pgsql_drv_set_attributes(DSPAM_CTX *CTX, config_t config) {
   int i, ret = 0;
-  attribute_t *t;
+  attribute_t t;
   char *profile;
 
   profile = _ds_read_attribute(config, "DefaultProfile");

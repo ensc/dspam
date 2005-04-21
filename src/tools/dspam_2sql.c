@@ -1,4 +1,4 @@
-/* $Id: dspam_2sql.c,v 1.3 2004/12/03 01:30:33 jonz Exp $ */
+/* $Id: dspam_2sql.c,v 1.4 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -68,7 +68,7 @@ main (int argc, char **argv)
                                                                                 
   if (!_ds_read_attribute(agent_config, "Home")) {
     report_error(ERROR_DSPAM_HOME);
-    _ds_destroy_attributes(agent_config);
+    _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
                                                                                 
@@ -76,7 +76,7 @@ main (int argc, char **argv)
 #ifdef TRUSTED_USER_SECURITY
   if (!_ds_match_attribute(agent_config, "Trust", p->pw_name) && p->pw_uid) {
     fprintf(stderr, ERROR_TRUSTED_MODE "\n");
-    _ds_destroy_attributes(agent_config);
+    _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
 #endif
@@ -88,7 +88,7 @@ main (int argc, char **argv)
     {
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
         report_error_printf(ERROR_NO_SUCH_PROFILE, argv[i]+10);
-        _ds_destroy_attributes(agent_config);
+        _ds_destroy_config(agent_config);
         exit(EXIT_FAILURE);
       } else {
         _ds_overwrite_attribute(agent_config, "DefaultProfile", argv[i]+10);
@@ -106,7 +106,7 @@ main (int argc, char **argv)
   dspam_init_driver (NULL);
   ret = process_all_users();
   dspam_shutdown_driver (NULL);
-  _ds_destroy_attributes(agent_config);
+  _ds_destroy_config(agent_config);
   exit((ret == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
@@ -201,6 +201,6 @@ dieout (int signal)
     dspam_destroy (open_ctx);
   if (open_mtx != NULL)
     dspam_destroy (open_mtx);
-  _ds_destroy_attributes(agent_config);
+  _ds_destroy_config(agent_config);
   exit (EXIT_SUCCESS);
 }

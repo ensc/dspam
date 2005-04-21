@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.44 2005/04/21 17:20:29 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.45 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
 
@@ -619,7 +619,7 @@ int apply_defaults(AGENT_CTX *ATX) {
   /* features */
 
   if (!ATX->feature && _ds_find_attribute(agent_config, "Feature")) {
-    attribute_t *attrib = _ds_find_attribute(agent_config, "Feature");
+    attribute_t attrib = _ds_find_attribute(agent_config, "Feature");
 
     while(attrib != NULL) { 
       process_features(ATX, attrib->value);

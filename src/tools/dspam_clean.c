@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.13 2005/01/28 21:44:56 jonz Exp $ */
+/* $Id: dspam_clean.c,v 1.14 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -191,7 +191,7 @@ main (int argc, char *argv[])
 
   if (help || (!do_probs && !do_sigs && !do_unused)) {
     fprintf(stderr, "%s", CLEANSYNTAX);
-    _ds_destroy_attributes(agent_config);
+    _ds_destroy_config(agent_config);
     nt_destroy(users);
     if (help) 
       exit(EXIT_SUCCESS);
@@ -278,7 +278,7 @@ main (int argc, char *argv[])
   }
 
   dspam_shutdown_driver (NULL);
-  _ds_destroy_attributes(agent_config);
+  _ds_destroy_config(agent_config);
   nt_destroy(users);
   exit (EXIT_SUCCESS);
 
@@ -288,7 +288,7 @@ bail:
     dspam_destroy(open_ctx);
   if (open_mtx)
     dspam_destroy(open_mtx);
-  _ds_destroy_attributes(agent_config);
+  _ds_destroy_config(agent_config);
   nt_destroy(users);
   exit(EXIT_FAILURE);
 }
@@ -459,6 +459,6 @@ dieout (int signal)
     dspam_destroy (open_ctx);
   if (open_mtx != NULL)
     dspam_destroy (open_mtx);
-  _ds_destroy_attributes(agent_config);
+  _ds_destroy_config(agent_config);
   exit (EXIT_SUCCESS);
 }

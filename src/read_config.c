@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.6 2005/03/09 14:08:18 jonz Exp $ */
+/* $Id: read_config.c,v 1.7 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -94,14 +94,14 @@ static char *tokenize(char *text, char **next)
 }
 
 
-attribute_t **read_config(const char *path) {
-  attribute_t **attrib, **ptr;
+config_t read_config(const char *path) {
+  config_t attrib, ptr;
   FILE *file;
   long attrib_size = 128, num_root = 0;
   char buffer[1024];
   char *a, *c, *v, *bufptr = buffer;
 
-  attrib = calloc(1, attrib_size*sizeof(attribute_t *));
+  attrib = calloc(1, attrib_size*sizeof(attribute_t));
   if (attrib == NULL) {
     report_error(ERROR_MEM_ALLOC);
     return NULL;
@@ -138,7 +138,7 @@ attribute_t **read_config(const char *path) {
         num_root++;
         if (num_root >= attrib_size) {
           attrib_size *=2;
-          ptr = realloc(attrib, attrib_size*sizeof(attribute_t *)); 
+          ptr = realloc(attrib, attrib_size*sizeof(attribute_t)); 
           if (ptr) 
             attrib = ptr;
           else
@@ -151,7 +151,7 @@ attribute_t **read_config(const char *path) {
 
   fclose(file);
 
-  ptr = realloc(attrib, ((num_root+1)*sizeof(attribute_t *))+1);
+  ptr = realloc(attrib, ((num_root+1)*sizeof(attribute_t))+1);
   if (ptr)
     return ptr;
   report_error(ERROR_MEM_ALLOC);
@@ -191,7 +191,7 @@ agent_pref_t pref_config(void)
 {
   agent_pref_t PTX = malloc(sizeof(agent_attrib_t)*PREF_MAX);
   agent_pref_t ptr;
-  attribute_t *attrib;
+  attribute_t attrib;
   char *p, *q;
   char *ptrptr;
   int i = 0;

@@ -1,4 +1,4 @@
-/* $Id: config_api.c,v 1.5 2005/04/21 17:25:40 jonz Exp $ */
+/* $Id: config_api.c,v 1.6 2005/04/21 17:58:42 jonz Exp $ */
 
 /*
 
@@ -63,7 +63,7 @@
 */
 
 int set_libdspam_attributes(DSPAM_CTX *CTX) {
-  attribute_t *t;
+  attribute_t t;
   int i, ret = 0;
   char *profile;
 
