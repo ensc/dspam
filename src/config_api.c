@@ -1,4 +1,4 @@
-/* $Id: config_api.c,v 1.4 2005/04/21 17:20:36 jonz Exp $ */
+/* $Id: config_api.c,v 1.5 2005/04/21 17:25:40 jonz Exp $ */
 
 /*
 
@@ -41,9 +41,7 @@
 #include <string.h>
 
 #include "config_api.h"
-//#include "config_shared.h"
 #include "read_config.h"
-//#include "config.h"
 #include "error.h"
 #include "language.h"
 #include "libdspam.h"
