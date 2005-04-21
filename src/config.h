@@ -1,20 +1,23 @@
+/* $Id: config.h,v 1.4 2005/04/21 17:23:48 jonz Exp $ */
+
 /*
+
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
@@ -46,20 +49,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define DELIMITERS_HEADING      " ,;:\"/\\[]}{=+()<>|&\n\t\r@*~`?"
 #define DELIMITERS_EOT		"!"
 
-/* Lock timeout.  If lock cannot be acquired in this amount of time
-   (in seconds) the message is delivered without processing. */
-#define LOCK_TIMEOUT		20
-
 /* Our 64-bit Polynomial */
 #define POLY64REV       0xd800000000000000ULL
 
 #ifndef LOGDIR
-#define LOGDIR "/var/log"
+#	warning LOGDIR is not defined by configure/Makefile
+#	warning Fallback to hardcoded defaults
+#define LOGDIR "/usr/local/var/dspam/log"
 #endif
 
 /* General-Purpose Character Array Sizes */
 #ifdef PATH_MAX
-#	define	MAX_FILENAME_LENGTH	PATH_MAX
+#	define MAX_FILENAME_LENGTH	PATH_MAX
 #else
 #	define MAX_FILENAME_LENGTH	128
 #endif
