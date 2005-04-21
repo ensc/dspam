@@ -1,22 +1,22 @@
-/* $Id: decode.h,v 1.6 2005/04/18 13:26:17 jonz Exp $ */
+/* $Id: decode.h,v 1.7 2005/04/21 21:04:11 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
@@ -33,44 +33,36 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define _DECODE_H
 
 /*
-  Message Actualization and Decoding
-
-  The decode components of DSPAM are responsible for decoding and actualizing
-  a message into its smaller components.  Each message part consists of
-  a message block, headers array, and etecetera.
-
-*/
-  
-/*
   _ds_header_field
 
-  A single header from a message block
+  DESCRIPTION
+    a single header/value paid from a message block
 
 */
-struct _ds_header_field
+
+typedef struct _ds_header_field
 {
   char *heading;
   char *data;
-  char *original_data;
-  char *concatenated_data;
-};
+  char *original_data;		/* prior to decoding */
+  char *concatenated_data;	/* multi-line */
+} *ds_header_t;
 
 /*
   _ds_message_block
  
-
-  A single message block.  In a single-part message, there will be only one
-  block.  In a multipart message, each part will be separated into a separte
-  block.  The message block consists of:
-
-   - A dynamic array of headers for the block
-   - Body data (= NULL if there is no body)
-   - Block encoding
-   - Block media type information
-   - Boundary and terminating boundary information
+  DESCRIPTION
+    a message block (or part) within a message. in a single-part message, 
+    there will be only one block (block 0). in a multipart message, each part 
+    will be separated into a separte block. the message block consists of:
+     - a dynamic array of headers (nodetree of ds_header_t's) for the block
+     - body data (NULL if there is no body)
+     - block encoding
+     - block media type information
+     - boundary and terminating boundary information
 */
 
-struct _ds_message_block
+typedef struct _ds_message_block
 {
   struct nt *	headers;
   buffer *	body;
@@ -81,80 +73,64 @@ struct _ds_message_block
   int 		original_encoding;
   int 		media_type;
   int 		media_subtype;
-};
+} *ds_message_block_t;
 
 /*
   _ds_message
 
-   The actual message structure.  Comprised of an array of message blocks.
-   In a non-multipart email, there will only be one message block however in
-   multipart emails, the first message block will represent the header 
-   (with a NULL body_data), and each additional block within the email will
-   be given its own message_block structure with its own headers, boundary,
-   etc.
+  DESCRIPTION
+    the actual message structure, comprised of an array of message blocks.
+    in a non-multipart email, there will only be one message block (block 0).
+    in multipart emails, however, the first message block will represent the 
+    header (with a NULL body_data or something like "This is a multi-part 
+    message"), and each additional block within the email will be given its 
+    own message_block structure with its own headers, boundary, etc.
 
-   Embedded multipart messages are not realized by the structure, but can
-   be identified by examining the media type or headers.
+    embedded multipart messages are not realized by the structure, but can
+    be identified by examining the media type or headers.
 */
 
-struct _ds_message
+typedef struct _ds_message
 {
   struct nt *	components; 
   int protect;
-};
+} *ds_message_t;
 
-/*
-  Decoding and Actualization Functions
+/* adapter dependent functions */
 
-  _ds_actualize_message()
-    The main actualization function; this is called with a plain text copy of
-    the message to decode and actualize, and returns a _ds_message structure
-    containing the actualized message.
-
-  _ds_assemble_message()
-    The opposite of _ds_actualize_message(), this function assembles a
-    _ds_message structure back into a plain text message
-    
-*/
-
-/* Adapter-dependent */
 #ifndef NCORE
 char *  _ds_decode_base64       (const char *body);
 char *  _ds_decode_quoted       (const char *body);
 #endif
 
-/* Adapter-independent */
+/* adapter-independent functions */
 
-struct _ds_message *	_ds_actualize_message	(const char *message);
-char *			_ds_assemble_message	(struct _ds_message *message);
-char *                  _ds_find_header (struct _ds_message *, char *heading, int flags);
+ds_message_t _ds_actualize_message (const char *message);
 
-/* Internal Decoding Functions */
+char *  _ds_assemble_message (ds_message_t message);
+char *  _ds_find_header (ds_message_t message, const char *heading, int flags);
 
-struct _ds_message_block * _ds_create_message_block (void);
-struct _ds_header_field *  _ds_create_header_field  (const char *heading);
+ds_message_block_t _ds_create_message_block (void);
+ds_header_t        _ds_create_header_field  (const char *heading);
+void               _ds_analyze_header
+  (ds_message_block_t block, ds_header_t  header, struct nt *boundaries);
 
+void _ds_destroy_message	(ds_message_t message);
+void _ds_destroy_headers	(ds_message_block_t block);
+void _ds_destroy_block		(ds_message_block_t block);
 
-void   _ds_analyze_header	(struct _ds_message_block *block,
-				 struct _ds_header_field *header,
-				 struct nt *boundaries);
-
-int _ds_destroy_message	(struct _ds_message *m);
-int _ds_destroy_headers	(struct _ds_message_block *block);
-int _ds_destroy_block	(struct _ds_message_block *block);
-
-char *	_ds_decode_block	(struct _ds_message_block *block);
-int	_ds_encode_block	(struct _ds_message_block *block, int encoding);
+char *	_ds_decode_block	(ds_message_block_t block);
+int	_ds_encode_block	(ds_message_block_t block, int encoding);
 char *	_ds_encode_base64	(const char *body);
 char *	_ds_encode_quoted	(const char *body);
-int     _ds_decode_headers      (struct _ds_message_block *block);
+int     _ds_decode_headers      (ds_message_block_t block);
 
 int	_ds_push_boundary	(struct nt *stack, const char *boundary);
 int	_ds_match_boundary	(struct nt *stack, const char *buff);
 int     _ds_extract_boundary    (char *buf, size_t size, char *data);
 char *	_ds_pop_boundary	(struct nt *stack);
 
-/* Encoding Values */
+/* encoding values */
 
 #define EN_7BIT			0x00
 #define EN_8BIT 		0x01
@@ -164,7 +140,7 @@ char *	_ds_pop_boundary	(struct nt *stack);
 #define EN_UNKNOWN		0xFE
 #define EN_OTHER		0xFF
 
-/* Media Types which are relevant to DSPAM */
+/* media types which are relevant to DSPAM */
 
 #define MT_TEXT			0x00
 #define MT_MULTIPART		0x01
@@ -173,7 +149,7 @@ char *	_ds_pop_boundary	(struct nt *stack);
 #define MT_UNKNOWN		0xFE
 #define MT_OTHER		0xFF
 
-/* Media Subtypes which are relevant to DSPAM */
+/* media subtypes which are relevant to DSPAM */
 
 #define MST_PLAIN		0x00
 #define	MST_HTML		0x01
@@ -187,13 +163,14 @@ char *	_ds_pop_boundary	(struct nt *stack);
 #define MST_UNKNOWN		0xFE
 #define MST_OTHER		0xFF
 
-/* Block position; used when analyzing a message */
+/* block position; used when analyzing a message */
 
 #define BP_HEADER		0x00
 #define BP_BODY			0x01
 
-/* Decoding Function Flags */
+/* decoding function flags */
 
 #define DDF_ICASE		0x01
+
 #endif /* _DECODE_H */
 
