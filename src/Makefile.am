@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.17 2005/04/20 02:18:21 jonz Exp $
+# $Id: Makefile.am,v 1.18 2005/04/21 21:15:32 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -22,8 +22,7 @@ etc_SCRIPTS = dspam_conf
 
 # Defaults from dspam.conf
 
-EXTRA_DIST = example.c dspam-button.gif dspam.pc.in dspam-uninstalled.pc.in \
-        dspam.conf.in 
+EXTRA_DIST = example.c dspam.pc.in dspam-uninstalled.pc.in dspam.conf.in 
 
 CLEANFILES = dspam.conf
 
