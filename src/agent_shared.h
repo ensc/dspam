@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.17 2005/04/21 02:01:08 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.18 2005/04/21 02:07:24 jonz Exp $ */
 
 /*
 
@@ -30,6 +30,7 @@
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
 #endif
+#include "libdspam.h"
 
 #ifndef _AGENT_SHARED_H
 #  define _AGENT_SHARED_H
