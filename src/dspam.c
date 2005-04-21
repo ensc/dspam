@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.154 2005/04/20 12:45:37 jonz Exp $ */
+/* $Id: dspam.c,v 1.155 2005/04/21 14:33:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -318,13 +318,14 @@ process_message (AGENT_CTX *ATX,
                     LOOKUP(ATX->PTX, username), "firstrun");
     file = fopen(filename, "r");
     if (file == NULL) {
+      LOGDEBUG("sending firstrun.txt to %s (%s): %s", username, filename, strerror(errno));
       send_notice(ATX, "firstrun.txt", ATX->mailer_args, username);
+      file = fopen(filename, "w");
+      if (file) {
+        fprintf(file, "%ld\n", (long) time(NULL));
+        fclose(file);
+      }
     } else {
-      fclose(file);
-    }
-    file = fopen(filename, "w");
-    if (file) {
-      fprintf(file, "%ld\n", (long) time(NULL));
       fclose(file);
     }
   }
@@ -478,13 +479,14 @@ process_message (AGENT_CTX *ATX,
                     LOOKUP(ATX->PTX, username), "firstspam");
     file = fopen(filename, "r");
     if (file == NULL) {
+      LOGDEBUG("sending firstspam.txt to %s (%s): %s", username, filename, strerror(errno));
       send_notice(ATX, "firstspam.txt", ATX->mailer_args, username);
+      file = fopen(filename, "w");
+      if (file) {
+        fprintf(file, "%ld\n", (long) time(NULL));
+        fclose(file);
+      }
     } else {
-      fclose(file);
-    }
-    file = fopen(filename, "w");
-    if (file) {
-      fprintf(file, "%ld\n", (long) time(NULL));
       fclose(file);
     }
   }
