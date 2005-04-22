@@ -1,4 +1,4 @@
-/* $Id: pref.h,v 1.9 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: pref.h,v 1.10 2005/04/22 02:21:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -31,8 +31,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
 #endif
-
-#include "config_shared.h"
 
 #define PREF_MAX	32
 

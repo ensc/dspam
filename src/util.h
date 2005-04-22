@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.5 2005/02/25 14:52:14 jonz Exp $ */
+/* $Id: util.h,v 1.6 2005/04/22 02:21:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -106,6 +106,7 @@ int		_ds_prepare_path_for	(const char *filename);
 int		_ds_compute_complexity	(const char *token);
 char *		_ds_truncate_token	(const char *token);
 int		_ds_extract_address(char *buf, const char *address, size_t len);
+double		_ds_gettime(void);
 
 int _ds_get_fcntl_lock	(int fd);
 int _ds_free_fcntl_lock	(int fd);

@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.6 2005/02/25 15:09:08 jonz Exp $ */
+/* $Id: util.c,v 1.7 2005/04/22 02:21:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -73,6 +73,23 @@ strtok_r(char *s1, const char *s2, char **lasts)
   return ret;
 }
 #endif /* HAVE_STRTOK_R */
+
+double _ds_gettime(void)
+{
+  double t;
+
+#ifdef _WIN32
+  t = GetTickCount()/1000.;
+#else /* !_WIN32 */
+  struct timeval tv;
+  if (gettimeofday(&tv, NULL) != -1 )
+    t = tv.tv_usec/1000000.0 + tv.tv_sec;
+  else
+    t = 0.;
+#endif /* _WIN32/!_WIN32 */
+
+  return t;
+}
 
 /* Compliments of Jay Freeman <saurik@saurik.com> */
 

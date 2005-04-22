@@ -1,22 +1,22 @@
-/* $Id: dspam.h,v 1.27 2005/04/18 16:43:04 jonz Exp $ */
+/* $Id: dspam.h,v 1.28 2005/04/22 02:21:28 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
@@ -39,52 +39,39 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef _DSPAM_H
 #  define _DSPAM_H
 
-/* Public agent functions */
+int deliver_message (AGENT_CTX *ATX, const char *message, 
+    const char *mailer_args, const char *username, FILE *out, int result);
+int process_message (AGENT_CTX *ATX, buffer *message, const char *username);
+int inoculate_user  (AGENT_CTX *ATX, const char *username, 
+    struct _ds_spam_signature *SIG, const char *message);
+int user_classify   (AGENT_CTX *ATX, const char *username,
+     struct _ds_spam_signature *SIG, const char *message);
+int send_notice     (AGENT_CTX *ATX, const char *filename, 
+    const char *mailer_args, const char *username);
+int write_web_stats (AGENT_CTX *ATX, const char *username, const char *group, 
+    struct _ds_spam_totals *totals);
+int ensure_confident_result (DSPAM_CTX *CTX, AGENT_CTX *ATX, int result);
+int quarantine_message      (AGENT_CTX *ATX, const char *message, 
+    const char *username);
+int log_events         (DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int retrain_message    (DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int tag_message        (AGENT_CTX *ATX, ds_message_t message);
+int process_users      (AGENT_CTX *ATX, buffer *message);
+int find_signature     (DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int add_xdspam_headers (DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int embed_signature    (DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int embed_signed       (DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int tracksource        (DSPAM_CTX *CTX);
+int is_blacklisted     (DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int is_blocklisted     (DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int do_notifications   (DSPAM_CTX *CTX, AGENT_CTX *ATX);
+DSPAM_CTX *ctx_init    (AGENT_CTX *ATX, const char *username);
+buffer *read_stdin     (AGENT_CTX *ATX);
+agent_pref_t load_aggregated_prefs (AGENT_CTX *ATX, const char *username);
 
-double gettime(void);
-
-int deliver_message	(AGENT_CTX *ATX, 
-                         const char *message, 
-                         const char *mailer_args,
-                         const char *username, 
-                         FILE *out,
-                         int result);
-
-agent_pref_t load_aggregated_prefs
-			(AGENT_CTX *ATX, const char *username);
-
-int process_message	(AGENT_CTX *ATX, buffer *message, const char *username);
-
-int inoculate_user	(const char *username, struct _ds_spam_signature *SIG,
-			 const char *message, AGENT_CTX *ATX);
-
-int user_classify	(const char *username, struct _ds_spam_signature *SIG,
-			 const char *message, AGENT_CTX *ATX);
-
-int send_notice		(AGENT_CTX *ATX, const char *filename, const char *mailer_args,
-			 const char *username);
-
-int write_web_stats     (AGENT_CTX *ATX, const char *username, const char *group, 
-                         struct _ds_spam_totals *totals);
-
-int ensure_confident_result	(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result);
-DSPAM_CTX *ctx_init	(AGENT_CTX *ATX, const char *username);
-int log_events		(DSPAM_CTX *CTX, AGENT_CTX *ATX);
-int retrain_message	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
-int tag_message		(AGENT_CTX *ATX, struct _ds_message_block *block);
-int quarantine_message  (AGENT_CTX *ATX, const char *message, const char *username);
-int process_users       (AGENT_CTX *ATX, buffer *message);
-int find_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
-int add_xdspam_headers	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
-int embed_signature	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
-int embed_signed	(DSPAM_CTX *CTX, AGENT_CTX *ATX);
-int tracksource		(DSPAM_CTX *CTX);
-int is_blacklisted	(AGENT_CTX *CTX, const char *ip);
 #ifdef DAEMON
-int daemon_start	(AGENT_CTX *ATX);
+int daemon_start       (AGENT_CTX *ATX);
 #endif
-
-buffer *read_stdin	(AGENT_CTX *ATX);
 
 #ifdef NEURAL
 int process_neural_decision(DSPAM_CTX *CTX, struct _ds_neural_decision *DEC);

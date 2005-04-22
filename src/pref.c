@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.17 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: pref.c,v 1.18 2005/04/22 02:21:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -357,3 +357,4 @@ int _ds_pref_del (
   return _ds_pref_commit(filename, out_file);
 }
 #endif
+

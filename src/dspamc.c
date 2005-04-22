@@ -1,4 +1,4 @@
-/* $Id: dspamc.c,v 1.5 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: dspamc.c,v 1.6 2005/04/22 02:21:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -182,22 +182,5 @@ bail:
     _ds_destroy_config(agent_config);
 
   exit (exitcode);
-}
-
-double gettime()
-{
-  double t;
-
-#ifdef _WIN32
-  t = GetTickCount()/1000.;
-#else /* !_WIN32 */
-  struct timeval tv;
-  if (gettimeofday(&tv, NULL) != -1 )
-    t = tv.tv_usec/1000000.0 + tv.tv_sec;
-  else
-    t = 0.;
-#endif /* _WIN32/!_WIN32 */
-
-  return t;
 }
 
