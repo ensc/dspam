@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.52 2005/04/22 13:58:40 jonz Exp $ */
+/* $Id: client.c,v 1.53 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -89,8 +89,8 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
 
   TTX.sockfd = client_connect(ATX, 0);
   if (TTX.sockfd <0) {
-    LOG(LOG_WARNING, ERROR_CLIENT_CONNECT);
-    STATUS(ERROR_CLIENT_CONNECT);
+    LOG(LOG_WARNING, ERR_CLIENT_CONNECT);
+    STATUS(ERR_CLIENT_CONNECT);
     return TTX.sockfd;
   }
 
@@ -101,8 +101,8 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   /* LHLO / MAIL FROM - Authenticate on the server */
 
   if (client_authenticate(&TTX, ATX->client_args)<0) {
-    LOG(LOG_WARNING, ERROR_CLIENT_AUTH_FAILED);
-    STATUS(ERROR_CLIENT_AUTH_FAILED);
+    LOG(LOG_WARNING, ERR_CLIENT_AUTH_FAILED);
+    STATUS(ERR_CLIENT_AUTH_FAILED);
     goto QUIT;
   }
 
@@ -114,7 +114,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     const char *ptr = (const char *) node_nt->ptr;
     snprintf(buf, sizeof(buf), "RCPT TO: <%s>", ptr);
     if (send_socket(&TTX, buf)<=0) {
-      STATUS(ERROR_SEND_FAILED);
+      STATUS(ERR_CLIENT_SEND_FAILED);
       goto BAIL;
     }
 
@@ -141,7 +141,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   while(i<msglen) {
     int r = send(TTX.sockfd, message->data+i, msglen - i, 0);
     if (r <= 0) {
-      STATUS(ERROR_SEND_FAILED);
+      STATUS(ERR_CLIENT_SEND_FAILED);
       goto BAIL;
     }
     i += r;
@@ -149,13 +149,13 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
 
   if (message->data[strlen(message->data)-1]!= '\n') {
     if (send_socket(&TTX, "")<=0) {
-     STATUS(ERROR_SEND_FAILED);
+     STATUS(ERR_CLIENT_SEND_FAILED);
      goto BAIL;
     }
   }
 
   if (send_socket(&TTX, ".")<=0) {
-    STATUS(ERROR_SEND_FAILED);
+    STATUS(ERR_CLIENT_SEND_FAILED);
     goto BAIL;
   }
 
@@ -298,8 +298,8 @@ int client_connect(AGENT_CTX *ATX, int flags) {
   }
 
   if (host == NULL) {
-    LOG(LOG_CRIT, ERROR_INVALID_CLIENT_CONFIG);
-    STATUS(ERROR_INVALID_CLIENT_CONFIG);
+    LOG(LOG_CRIT, ERR_CLIENT_INVALID_CONFIG);
+    STATUS(ERR_CLIENT_INVALID_CONFIG);
     return EINVAL;
   }
 
@@ -311,9 +311,9 @@ int client_connect(AGENT_CTX *ATX, int flags) {
     strcpy(saun.sun_path, host);
     addr_len = sizeof(saun.sun_family) + strlen(saun.sun_path) + 1;
 
-    LOGDEBUG(CLIENT_CONNECT, host, 0);
+    LOGDEBUG(INFO_CLIENT_CONNECTING, host, 0);
     if(connect(sockfd, (struct sockaddr *)&saun, addr_len)<0) {
-      LOG(LOG_ERR, ERROR_CLIENT_CONNECT_SOCKET, host, strerror(errno));
+      LOG(LOG_ERR, ERR_CLIENT_CONNECT_SOCKET, host, strerror(errno));
       STATUS(strerror(errno));
       return EFAILURE;
     }
@@ -328,15 +328,15 @@ int client_connect(AGENT_CTX *ATX, int flags) {
     addr.sin_port = htons(port);
     addr_len = sizeof(struct sockaddr_in);
 
-    LOGDEBUG(CLIENT_CONNECT, host, port);
+    LOGDEBUG(INFO_CLIENT_CONNECTING, host, port);
     if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
-      LOG(LOG_ERR, ERROR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+      LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
       STATUS(strerror(errno));
       return EFAILURE;
     }
   }
 
-  LOGDEBUG(CLIENT_CONNECTED);
+  LOGDEBUG(INFO_CLIENT_CONNECTED);
   setsockopt(sockfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
 
   return sockfd;
@@ -380,13 +380,13 @@ int client_authenticate(THREAD_CTX *TTX, const char *mode) {
   }
 
   if (!ident || !strchr(ident, '@')) {
-    LOG(LOG_ERR, ERROR_CLIENT_IDENT);
+    LOG(LOG_ERR, ERR_CLIENT_IDENT);
     return EINVAL;
   }
 
   ptr = client_expect(TTX, LMTP_GREETING, err, sizeof(err));
   if (ptr == NULL) {
-    LOG(LOG_ERR, "error while authenticating: %s", err);
+    LOG(LOG_ERR, ERR_CLIENT_WHILE_AUTH, err);
     return EFAILURE;
   }
   free(ptr);
@@ -409,7 +409,7 @@ int client_authenticate(THREAD_CTX *TTX, const char *mode) {
   }
 
   if (client_getcode(TTX, err, sizeof(err))!=LMTP_OK) {
-    LOG(LOG_ERR, ERROR_CLIENT_AUTHENTICATE);
+    LOG(LOG_ERR, ERR_CLIENT_AUTHENTICATE);
     return EFAILURE;
   }
 
@@ -443,8 +443,8 @@ char * client_expect(THREAD_CTX *TTX, int code, char *err, size_t len) {
     dup = strdup(inp);
     if (!dup) {
       free(inp);
-      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-      strlcpy(err, ERROR_MEM_ALLOC, len);
+      LOG(LOG_CRIT, ERR_MEM_ALLOC);
+      strlcpy(err, ERR_MEM_ALLOC, len);
       return NULL;
     }
     if (strncmp(dup, "250-", 4)) {
@@ -456,7 +456,7 @@ char * client_expect(THREAD_CTX *TTX, int code, char *err, size_t len) {
         err[0] = 0;
         return inp;
       }
-      LOG(LOG_WARNING, "received invalid input waiting for %d: %s", code, inp);
+      LOG(LOG_WARNING, ERR_CLIENT_RESPONSE_CODE, code, inp);
     }
     
     strlcpy(err, inp, len);
@@ -597,7 +597,7 @@ char *pop_buffer(THREAD_CTX *TTX) {
   len = (eol - TTX->packet_buffer->data) + 1;
   buf = calloc(1, len+1);
   if (!buf) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
   memcpy(buf, TTX->packet_buffer->data, len);
@@ -679,21 +679,21 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
 
   TTX.sockfd = client_connect(ATX, CCF_DELIVERY);
   if (TTX.sockfd <0) {
-    STATUS(ERROR_CLIENT_CONNECT);
-    LOG(LOG_ERR, ERROR_CLIENT_CONNECT);
+    STATUS(ERR_CLIENT_CONNECT);
+    LOG(LOG_ERR, ERR_CLIENT_CONNECT);
     return TTX.sockfd;
   }
 
   TTX.packet_buffer = buffer_create(NULL);
   if (TTX.packet_buffer == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-    STATUS(ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    STATUS(ERR_MEM_ALLOC);
     goto BAIL;
   }
 
   inp = client_expect(&TTX, LMTP_GREETING, err, sizeof(err));
   if (inp == NULL) {
-    LOG(LOG_ERR, "received error on greeting: %s", err);
+    LOG(LOG_ERR, ERR_CLIENT_ON_GREETING, err);
     STATUS(err);
     goto BAIL;
   }
@@ -704,8 +704,8 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   snprintf(buf, sizeof(buf), "%s %s", (proto == DDP_LMTP) ? "LHLO" : "HELO",
            (ident) ? ident : "localhost");
   if (send_socket(&TTX, buf)<=0) {
-    LOG(LOG_ERR, ERROR_SEND_FAILED);
-    STATUS(ERROR_SEND_FAILED);
+    LOG(LOG_ERR, ERR_CLIENT_SEND_FAILED);
+    STATUS(ERR_CLIENT_SEND_FAILED);
     goto BAIL;
   }
 
@@ -713,7 +713,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
 
   inp = client_expect(&TTX, LMTP_OK, err, sizeof(err));
   if (inp == NULL) {
-    LOG(LOG_ERR, "received error in response to %s: %s",
+    LOG(LOG_ERR, ERR_CLIENT_INVALID_RESPONSE,
       (proto == DDP_LMTP) ? "LHLO" : "HELO", err);
     STATUS("%s: %s", (proto == DDP_LMTP) ? "LHLO" : "HELO", err);
     goto QUIT;
@@ -728,15 +728,15 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   }
 
   if (send_socket(&TTX, buf)<=0) {
-    LOG(LOG_ERR, ERROR_SEND_FAILED);
-    STATUS(ERROR_SEND_FAILED);
+    LOG(LOG_ERR, ERR_CLIENT_SEND_FAILED);
+    STATUS(ERR_CLIENT_SEND_FAILED);
     goto BAIL;
   }
 
   code = client_getcode(&TTX, err, sizeof(err));
 
   if (code!=LMTP_OK) {
-    LOG(LOG_ERR, "received error %d in response to MAIL FROM: %s", code, err);
+    LOG(LOG_ERR, ERR_CLIENT_RESPONSE, code, "MAIL FROM", err);
     if (code >= 500) 
       exitcode = EINVAL;
     chomp(err);
@@ -748,15 +748,15 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
 
   snprintf(buf, sizeof(buf), "RCPT TO:<%s>", (ATX->recipient) ? ATX->recipient : "");
   if (send_socket(&TTX, buf)<=0) {
-    LOG(LOG_ERR, ERROR_SEND_FAILED);
-    STATUS(ERROR_SEND_FAILED);
+    LOG(LOG_ERR, ERR_CLIENT_SEND_FAILED);
+    STATUS(ERR_CLIENT_SEND_FAILED);
     goto BAIL;
   }
 
   code = client_getcode(&TTX, err, sizeof(err));
 
   if (code!=LMTP_OK) {
-    LOG(LOG_ERR, "received error %d in response to RCPT TO: %s", code, err);
+    LOG(LOG_ERR, ERR_CLIENT_RESPONSE, code, "RCPT TO", err);
     if (code >= 500)
       exitcode = EINVAL;  
     chomp(err);
@@ -767,14 +767,14 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   /* DATA */
 
   if (send_socket(&TTX, "DATA")<=0) {
-    LOG(LOG_ERR, ERROR_SEND_FAILED);
-    STATUS(ERROR_SEND_FAILED);
+    LOG(LOG_ERR, ERR_CLIENT_SEND_FAILED);
+    STATUS(ERR_CLIENT_SEND_FAILED);
     goto BAIL;
   }
 
   code = client_getcode(&TTX, err, sizeof(err));
   if (code!=LMTP_DATA) {
-    LOG(LOG_ERR, "received error %d in response to DATA: %s", code, err);
+    LOG(LOG_ERR, ERR_CLIENT_RESPONSE, code, "DATA", err);
     if (code >= 500)
       exitcode = EINVAL;
     chomp(err);
@@ -787,8 +787,8 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   while(i<msglen) {
     int r = send(TTX.sockfd, msg+i, msglen - i, 0);
     if (r <= 0) {
-      LOG(LOG_ERR, ERROR_SEND_FAILED);
-      STATUS(ERROR_SEND_FAILED);
+      LOG(LOG_ERR, ERR_CLIENT_SEND_FAILED);
+      STATUS(ERR_CLIENT_SEND_FAILED);
       goto BAIL;
     }
     i += r;
@@ -796,15 +796,15 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
 
   if (msg[strlen(msg)-1]!= '\n') {
     if (send_socket(&TTX, "")<=0) {
-      LOG(LOG_ERR, ERROR_SEND_FAILED);
-      STATUS(ERROR_SEND_FAILED);
+      LOG(LOG_ERR, ERR_CLIENT_SEND_FAILED);
+      STATUS(ERR_CLIENT_SEND_FAILED);
       goto BAIL;
     }
   }
 
   if (send_socket(&TTX, "\r\n.")<=0) {
-    LOG(LOG_ERR, ERROR_SEND_FAILED);
-    STATUS(ERROR_SEND_FAILED);
+    LOG(LOG_ERR, ERR_CLIENT_SEND_FAILED);
+    STATUS(ERR_CLIENT_SEND_FAILED);
     goto BAIL;
   }
 
@@ -813,7 +813,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   inp = client_expect(&TTX, LMTP_OK, err, sizeof(err));
   if (inp == NULL) {
     code = client_parsecode(err);
-    LOG(LOG_ERR, "received error %d in response to message: %s", code, err);
+    LOG(LOG_ERR, ERR_CLIENT_RESPONSE, code, "message data", err);
     if (code >= 500)
       exitcode = EINVAL;
     chomp(err);
@@ -833,7 +833,7 @@ QUIT:
   client_getcode(&TTX, err, sizeof(err));
 
 BAIL:
-  LOG(LOG_ERR, "delivery failed");
+  LOG(LOG_ERR, ERR_CLIENT_DELIVERY_FAILED);
   buffer_destroy(TTX.packet_buffer);
   close(TTX.sockfd);
   return exitcode;

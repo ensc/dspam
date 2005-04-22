@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.8 2005/04/22 18:17:53 jonz Exp $ */
+/* $Id: util.c,v 1.9 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -387,17 +387,12 @@ _ds_prepare_path_for (const char *filename)
   char *file_buffer_start;
   struct stat s;
                                                                                 
-  if (!filename)
-  {
-    LOG (LOG_ERR,
-         "_ds_prepare_path_for(): invalid argument: filename == NULL");
-    return EUNKNOWN;
-  }
-                                                                                
+  if (!filename) 
+    return EINVAL;
+
   file = strdup (filename);
-  if (!file)
-  {
-    LOG (LOG_ERR, "not enought memory");
+  if (!file) {
+    LOG (LOG_ERR, ERR_MEM_ALLOC);
     return EFAILURE;
   }
 
@@ -436,7 +431,7 @@ _ds_prepare_path_for (const char *filename)
         x = mkdir (path, 0770);
         if (x)
         {
-          LOG(LOG_ERR, ERROR_DIR_CREATE, path, strerror (errno));
+          LOG(LOG_ERR, ERR_IO_DIR_CREATE, path, strerror (errno));
           free (file_buffer_start);
           return EFILE;
         }

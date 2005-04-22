@@ -1,4 +1,4 @@
-/* $Id: nodetree.c,v 1.3 2005/04/21 20:04:05 jonz Exp $ */
+/* $Id: nodetree.c,v 1.4 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -30,13 +30,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "util.h"
 #include "error.h"
 #include "libdspam_objects.h"
+#include "language.h"
 
 /* nt_node_create (used internally) to allocate space for a new node */
 struct nt_node * nt_node_create (void *data) {
   struct nt_node *node;
   if ((node = (struct nt_node *) malloc (sizeof (struct nt_node))) == 0)
   {
-    LOG (LOG_CRIT, "memory allocation error: nt_node_create() failed");
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     exit (1);
   }
   node->ptr = data;
@@ -51,7 +52,7 @@ nt_create (int nodetype)
   struct nt *nt = (struct nt *) malloc (sizeof (struct nt));
   if (nt == NULL)
   {
-    LOG (LOG_CRIT, "memory allocation error: nt_create() failed");
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
   nt->first = (struct nt_node *) NULL;
@@ -109,7 +110,7 @@ nt_add (struct nt *nt, void *data)
     vptr = malloc (size);
     if (vptr == NULL)
     {
-      LOG (LOG_CRIT, "memory allocation error: nt_add() failed");
+      LOG (LOG_CRIT, ERR_MEM_ALLOC);
       return NULL;
     }
     strlcpy (vptr, data, size);

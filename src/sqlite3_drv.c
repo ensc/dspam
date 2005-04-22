@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.6 2005/04/22 18:17:53 jonz Exp $ */
+/* $Id: sqlite3_drv.c,v 1.7 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -250,7 +250,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -371,7 +371,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -601,7 +601,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EINVAL;
 
   if (CTX->flags & DSF_MERGED) {
-    LOG(LOG_ERR, ERROR_NO_MERGED);
+    LOG(LOG_ERR, ERR_DRV_NO_MERGED);
     return EINVAL;
   }
 
@@ -615,7 +615,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   s = malloc (sizeof (struct _sqlite_drv_storage));
   if (s == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -838,7 +838,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   SIG->data = malloc(SIG->length);
   if (SIG->data == NULL) {
     sqlite3_finalize(stmt);
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -871,7 +871,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   mem = calloc (1, 2 + (257*SIG->length)/254);
   if (mem == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -1093,7 +1093,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   st = calloc (1, sizeof (struct _ds_storage_record));
   if (st == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -1154,7 +1154,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   st = calloc (1, sizeof (struct _ds_storage_signature));
   if (st == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -1190,7 +1190,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   mem = malloc (length);
   if (mem == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC)
+    LOG (LOG_CRIT, ERR_MEM_ALLOC)
     sqlite3_finalize(s->iter_sig);
     s->iter_sig = NULL;
     free(st);
@@ -1227,7 +1227,7 @@ _sqlite_drv_query_error (const char *error, const char *query)
 
   if (file == NULL)
   {
-    LOG(LOG_ERR, ERROR_FILE_WRITE, fn, strerror (errno));
+    LOG(LOG_ERR, ERR_IO_FILE_WRITE, fn, strerror (errno));
   }
   else
   {
@@ -1288,7 +1288,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 

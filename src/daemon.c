@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.97 2005/04/22 18:17:52 jonz Exp $ */
+/* $Id: daemon.c,v 1.98 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -134,7 +134,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
 
     listener = socket(AF_UNIX, SOCK_STREAM, 0);
     if (listener == -1) {
-      LOG(LOG_CRIT, ERROR_DAEMON_SOCKET, strerror(errno));
+      LOG(LOG_CRIT, ERR_DAEMON_SOCKET, strerror(errno));
       umask (mask);
       return(EFAILURE);
     }
@@ -146,11 +146,11 @@ int daemon_listen(DRIVER_CTX *DTX) {
     unlink(address);
     len = sizeof(saun.sun_family) + strlen(saun.sun_path) + 1;
 
-    LOGDEBUG(DAEMON_DOMAIN, address);
+    LOGDEBUG(INFO_DAEMON_DOMAINSOCK, address);
   
     if (bind(listener, (struct sockaddr *) &saun, len)<0) {
       close(listener);
-      LOG(LOG_CRIT, ERROR_DAEMON_DOMAIN, address, strerror(errno));
+      LOG(LOG_CRIT, INFO_DAEMON_DOMAINSOCK, address, strerror(errno));
       umask (mask);
       return EFAILURE;
     }    
@@ -162,13 +162,13 @@ int daemon_listen(DRIVER_CTX *DTX) {
   } else {
     listener = socket(AF_INET, SOCK_STREAM, 0);
     if (listener == -1) {
-      LOG(LOG_CRIT, ERROR_DAEMON_SOCKET, strerror(errno));
+      LOG(LOG_CRIT, ERR_DAEMON_SOCKET, strerror(errno));
       return(EFAILURE);
     }
 
     if (setsockopt(listener,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) == -1) {
       close(listener);
-      LOG(LOG_CRIT, ERROR_DAEMON_SOCKOPT, "SO_REUSEADDR", strerror(errno));
+      LOG(LOG_CRIT, ERR_DAEMON_SOCKOPT, "SO_REUSEADDR", strerror(errno));
       return(EFAILURE);
     }
 
@@ -177,13 +177,13 @@ int daemon_listen(DRIVER_CTX *DTX) {
     local_addr.sin_port = htons(port);
     local_addr.sin_addr.s_addr = INADDR_ANY;
 
-    LOGDEBUG(DAEMON_BINDING, port);
+    LOGDEBUG(INFO_DAEMON_BIND, port);
 
     if (bind(listener, (struct sockaddr *)&local_addr, 
              sizeof(struct sockaddr)) == -1) 
     {
       close(listener);
-      LOG(LOG_CRIT, ERROR_DAEMON_BIND, port, strerror(errno));
+      LOG(LOG_CRIT, ERR_DAEMON_BIND, port, strerror(errno));
       return(EFAILURE);
     }
   }
@@ -192,7 +192,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
 
   if (listen(listener, queue) == -1) {
     close(listener);
-    LOG(LOG_CRIT, ERROR_DAEMON_LISTEN, strerror(errno));
+    LOG(LOG_CRIT, ERR_DAEMON_LISTEN, strerror(errno));
     return(EFAILURE);
   }
 
@@ -232,7 +232,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
                                 (struct sockaddr *)&remote_addr, 
                                 &addrlen)) == -1)
             {
-              LOG(LOG_WARNING, ERROR_DAEMON_ACCEPT, strerror(errno));
+              LOG(LOG_WARNING, ERR_DAEMON_ACCEPT, strerror(errno));
               continue;
 #ifdef DEBUG
             } else if (!domain) {
@@ -252,7 +252,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
 
             TTX = calloc(1, sizeof(THREAD_CTX));
             if (TTX == NULL) {
-              LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+              LOG(LOG_CRIT, ERR_MEM_ALLOC);
               close(newfd);
               continue;
             } else {
@@ -264,7 +264,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
               if (pthread_create(&TTX->thread, 
                                  &attr, process_connection, (void *) TTX))
               {
-                LOG(LOG_CRIT, ERROR_DAEMON_THREAD, strerror(errno));
+                LOG(LOG_CRIT, ERR_DAEMON_THREAD, strerror(errno));
                 close(TTX->sockfd);
                 free(TTX);
                 continue;
@@ -407,14 +407,14 @@ void *process_connection(void *ptr) {
 
     ATX = calloc(1, sizeof(AGENT_CTX));
     if (ATX == NULL) {
-      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
-      daemon_reply(TTX, LMTP_TEMP_FAIL, "4.3.0", ERROR_MEM_ALLOC);
+      LOG(LOG_CRIT, ERR_MEM_ALLOC);
+      daemon_reply(TTX, LMTP_TEMP_FAIL, "4.3.0", ERR_MEM_ALLOC);
       goto CLOSE;
     }
 
     if (initialize_atx(ATX)) {
-      LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
-      daemon_reply(TTX, LMTP_BAD_CMD, "5.3.0", ERROR_INITIALIZE_ATX);
+      LOG(LOG_ERR, ERR_AGENT_INIT_ATX);
+      daemon_reply(TTX, LMTP_BAD_CMD, "5.3.0", ERR_AGENT_INIT_ATX);
       goto CLOSE;
     }
 
@@ -567,7 +567,7 @@ void *process_connection(void *ptr) {
         if (_ds_extract_address(username, cmdline, sizeof(username)) ||
             username[0] == 0 || username[0] == '-')
         {
-          daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERROR_INVALID_RCPT);
+          daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERR_LMTP_BAD_RCPT);
           goto GETCMD;
         }
 
@@ -581,7 +581,7 @@ void *process_connection(void *ptr) {
           if (!ATX->recipients) {
             ATX->recipients = nt_create(NT_CHAR);
             if (ATX->recipients == NULL) {
-              LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+              LOG(LOG_CRIT, ERR_MEM_ALLOC);
               goto CLOSE;
             }
           }
@@ -626,11 +626,11 @@ GETCMD:
       invalid = 0;
       if (process_arguments(ATX, argc, argv) || apply_defaults(ATX))
       {
-        LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
-        daemon_reply(TTX, LMTP_NO_RCPT, "5.1.0", ERROR_INITIALIZE_ATX);
+        LOG(LOG_ERR, ERR_AGENT_INIT_ATX);
+        daemon_reply(TTX, LMTP_NO_RCPT, "5.1.0", ERR_AGENT_INIT_ATX);
         invalid = 1;
       } else if (ATX->users->items == 0) {
-        daemon_reply(TTX, LMTP_NO_RCPT, "5.1.1", ERROR_USER_UNDEFINED);
+        daemon_reply(TTX, LMTP_NO_RCPT, "5.1.1", ERR_AGENT_USER_UNDEFINED);
       }
     }
 
@@ -640,8 +640,8 @@ GETCMD:
     /* Something's terribly misconfigured */
 
     if (check_configuration(ATX)) {
-      LOG(LOG_ERR, ERROR_DSPAM_MISCONFIGURED);
-      daemon_reply(TTX, LMTP_BAD_CMD, "5.3.5", ERROR_DSPAM_MISCONFIGURED);
+      LOG(LOG_ERR, ERR_AGENT_MISCONFIGURED);
+      daemon_reply(TTX, LMTP_BAD_CMD, "5.3.5", ERR_AGENT_MISCONFIGURED);
       goto CLOSE;
     }
 
@@ -657,7 +657,7 @@ GETCMD:
         goto RSET;
     }
 
-    if (daemon_reply(TTX, LMTP_DATA, "", DAEMON_DATA)<=0)
+    if (daemon_reply(TTX, LMTP_DATA, "", INFO_LMTP_DATA)<=0)
       goto CLOSE;
   
     /*
@@ -668,7 +668,7 @@ GETCMD:
 
     message = read_sock(TTX, ATX);
     if (message == NULL || message->data == NULL || message->used == 0) {
-      daemon_reply(TTX, LMTP_FAILURE, "5.2.0", ERROR_MESSAGE_NULL);
+      daemon_reply(TTX, LMTP_FAILURE, "5.2.0", ERR_LMTP_MSG_NULL);
       goto CLOSE;
     }
 
@@ -691,7 +691,7 @@ GETCMD:
 
     ATX->results = nt_create(NT_PTR);
     if (ATX->results == NULL) {
-      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      LOG(LOG_CRIT, ERR_MEM_ALLOC);
       goto CLOSE;
     } 
     process_users(ATX, message);
@@ -838,7 +838,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
 
   message = buffer_create(NULL);
   if (message == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -871,7 +871,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
 
       if (buffer_cat (message, buf) || buffer_cat(message, "\n"))
       {
-        LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+        LOG (LOG_CRIT, ERR_MEM_ALLOC);
         goto bail;
       }
     }
@@ -890,7 +890,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
       ATX->users = nt_create (NT_CHAR);
       if (ATX->users == NULL)
       {
-        LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+        LOG(LOG_CRIT, ERR_MEM_ALLOC);
         goto bail;
       }
       nt_add (ATX->users, user);
@@ -1019,10 +1019,10 @@ int daemon_extension(THREAD_CTX *TTX, const char *extension) {
 void process_signal(int sig) {
   __daemon_run = 0;
   if (sig == SIGHUP) {
-    LOG(LOG_INFO, "reloading daemon");
+    LOG(LOG_INFO, INFO_DAEMON_RELOAD);
     __hup = 1;
   } else {
-    LOG(LOG_WARNING, "daemon terminating on signal %d", sig);
+    LOG(LOG_WARNING, ERR_DAEMON_TERMINATE, sig);
     __hup = 0;
   } 
 

@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.105 2005/04/22 18:17:52 jonz Exp $ */
+/* $Id: libdspam.c,v 1.106 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -155,13 +155,13 @@ DSPAM_CTX * dspam_create (const char *username,
 
   CTX->config = calloc(1, sizeof(struct _ds_config));
   if (CTX->config == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     goto bail;
   }
   CTX->config->size = 128;
   CTX->config->attributes = calloc(1, sizeof(attribute_t)*128);
   if (CTX->config->attributes == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     goto bail;
   }
 
@@ -265,7 +265,7 @@ int dspam_clearattributes (DSPAM_CTX * CTX) {
 bail:
   free(CTX->config);
   CTX->config = NULL;
-  LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+  LOG(LOG_CRIT, ERR_MEM_ALLOC);
   return EUNKNOWN;
 }
 
@@ -299,7 +299,7 @@ int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value) {
     if (ptr) {
       CTX->config->attributes = ptr;
     } else {
-      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      LOG(LOG_CRIT, ERR_MEM_ALLOC);
       return EFAILURE; 
     } 
   }
@@ -485,7 +485,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
 
   if (header == NULL || body == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     buffer_destroy (header);
     buffer_destroy (body);
     if (is_toe)
@@ -733,7 +733,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   {
     ds_diction_destroy(diction);
     ds_diction_destroy(bnr_patterns);
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     errcode = EUNKNOWN;
     goto bail;
   }
@@ -741,7 +741,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 #ifdef LIBBNR_DEBUG
   heap_nobnr = ds_heap_create (heap_sort->size, HP_DELTA);
   if (heap_nobnr == NULL) {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     errcode = EUNKNOWN;
     goto bail;
   }
@@ -783,7 +783,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     header = nt_create (NT_CHAR);
     if (header == NULL)
     {
-      LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+      LOG (LOG_CRIT, ERR_MEM_ALLOC);
       errcode = EUNKNOWN;
       goto bail;
     }
@@ -1703,7 +1703,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   return CTX->result;
 
 bail:
-  LOG(LOG_ERR,"bailing on error %d", errcode);
+  LOG(LOG_ERR, "bailing on error %d", errcode);
   ds_heap_destroy (heap_sort);
 #ifdef LIBBNR_DEBUG
   ds_heap_destroy (heap_nobnr);
@@ -1731,7 +1731,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
   ds_cursor_t ds_c;
 
   if (diction == NULL) {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 

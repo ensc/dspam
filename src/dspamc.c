@@ -1,4 +1,4 @@
-/* $Id: dspamc.c,v 1.8 2005/04/22 18:17:52 jonz Exp $ */
+/* $Id: dspamc.c,v 1.9 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -109,7 +109,7 @@ main (int argc, char *argv[])
   umask (006);
 
 #ifndef DAEMON
-  LOG(LOG_ERR, ERROR_NO_DAEMON);
+  LOG(LOG_ERR, ERR_DAEMON_NO_SUPPORT);
   exit(EXIT_FAILURE);
 #endif
 
@@ -117,13 +117,13 @@ main (int argc, char *argv[])
 
   agent_config = read_config(NULL);
   if (!agent_config) {
-    LOG(LOG_ERR, ERROR_READ_CONFIG);
+    LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
 
   if (!_ds_read_attribute(agent_config, "Home")) {
-    LOG(LOG_ERR, ERROR_DSPAM_HOME);
+    LOG(LOG_ERR, ERR_AGENT_DSPAM_HOME);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
@@ -131,7 +131,7 @@ main (int argc, char *argv[])
   /* Set up agent context to define behavior of processor */
 
   if (initialize_atx(&ATX)) {
-    LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
+    LOG(LOG_ERR, ERR_AGENT_INIT_ATX);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   } else {
@@ -139,19 +139,19 @@ main (int argc, char *argv[])
   }
 
   if (process_arguments(&ATX, argc, argv)) {
-    LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
+    LOG(LOG_ERR, ERR_AGENT_INIT_ATX);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
 
   if (apply_defaults(&ATX)) {
-    LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
+    LOG(LOG_ERR, ERR_AGENT_INIT_ATX);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
 
   if (check_configuration(&ATX)) {
-    LOG(LOG_ERR, ERROR_DSPAM_MISCONFIGURED);
+    LOG(LOG_ERR, ERR_AGENT_MISCONFIGURED);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
@@ -166,7 +166,7 @@ main (int argc, char *argv[])
 
   if (ATX.users->items == 0)
   {
-    LOG (LOG_ERR, ERROR_USER_UNDEFINED);
+    LOG (LOG_ERR, ERR_AGENT_USER_UNDEFINED);
     fprintf (stderr, "%s\n", SYNTAX);
     exitcode = EXIT_FAILURE;
     goto BAIL;
@@ -181,7 +181,7 @@ main (int argc, char *argv[])
   {
     exitcode = client_process(&ATX, message);
   } else {
-    LOG(LOG_ERR, ERROR_INVALID_CLIENT_CONFIG);
+    LOG(LOG_ERR, ERR_CLIENT_INVALID_CONFIG);
     exitcode = EINVAL;
   }
 #endif

@@ -1,4 +1,4 @@
-/* $Id: config_shared.c,v 1.5 2005/04/22 13:58:40 jonz Exp $ */
+/* $Id: config_shared.c,v 1.6 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -74,7 +74,7 @@ int _ds_add_attribute(config_t config, const char *key, const char *val) {
     config[i+1] = 0;
     config[i] = malloc(sizeof(struct attribute));
     if (!config[i]) {
-      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      LOG(LOG_CRIT, ERR_MEM_ALLOC);
       return EUNKNOWN;
     }
     attr = config[i];
@@ -84,7 +84,7 @@ int _ds_add_attribute(config_t config, const char *key, const char *val) {
     }
     attr->next = malloc(sizeof(struct attribute));
     if (!attr->next) {
-      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      LOG(LOG_CRIT, ERR_MEM_ALLOC);
       return EUNKNOWN;
     }
     attr = attr->next;

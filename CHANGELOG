@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.284 2005/04/22 18:17:52 jonz Exp $
+$Id: CHANGELOG,v 1.285 2005/04/22 20:26:44 jonz Exp $
 
 Version NEXT
 ------------
@@ -7,6 +7,9 @@ Version NEXT
 
 all logging now calls LOG() which syslogs, prints to stderr, and debug
 LOGDEBUG remains
+
+updated language.h with more sensible error codes partitioned by service
+components.
 
 [20050419.0200] jonz: got rid of retrain.log entirely, reworked logs
 

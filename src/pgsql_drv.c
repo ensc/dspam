@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.38 2005/04/22 18:17:52 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.39 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -97,7 +97,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
     DTX->connection_cache = connection_cache;
     DTX->connections = calloc(1, sizeof(struct _ds_drv_connection *)*connection_cache);
     if (DTX->connections == NULL) {
-      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      LOG(LOG_CRIT, ERR_MEM_ALLOC);
       return EUNKNOWN;
     }
 
@@ -483,7 +483,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -632,13 +632,13 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   prepare = buffer_create (NULL);
   if (prepare == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
   update = buffer_create (NULL);
   if (update == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -998,7 +998,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   s = calloc (1,sizeof (struct _pgsql_drv_storage));
   if (s == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -1211,7 +1211,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   mem2 = calloc(1, length+1);
   if (!mem2) {
     PQFREEMEM(mem);
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -1256,7 +1256,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -1500,7 +1500,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   st = calloc (1,sizeof (struct _ds_storage_record));
   if (st == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -1604,7 +1604,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   st = calloc (1, sizeof (struct _ds_storage_signature));
   if (st == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -1676,7 +1676,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   // memcpy (mem, row[0], lengths[0]);
   st->data = malloc(length);
   if (st->data == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     PQFREEMEM(mem);
     if (s->iter_sig) PQclear(s->iter_sig);
     return NULL;
@@ -1876,7 +1876,7 @@ _pgsql_drv_query_error (const char *error, const char *query)
 
   if (file == NULL)
   {
-    LOG(LOG_ERR, ERROR_FILE_WRITE, fn, strerror (errno));
+    LOG(LOG_ERR, ERR_IO_FILE_WRITE, fn, strerror (errno));
     return;
   }
 
@@ -1999,7 +1999,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -2163,7 +2163,7 @@ agent_pref_t _ds_pref_load(
 
   PTX = malloc(sizeof(agent_attrib_t )*(PQntuples(result)+1));
   if (PTX == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC); 
+    LOG(LOG_CRIT, ERR_MEM_ALLOC); 
     dspam_destroy(CTX);
     return NULL;
   }
@@ -2186,7 +2186,7 @@ agent_pref_t _ds_pref_load(
 
     pref = malloc(sizeof(struct _ds_agent_attribute));
     if (pref == NULL) {
-      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      LOG(LOG_CRIT, ERR_MEM_ALLOC);
       dspam_destroy(CTX);
       return PTX;
     }
@@ -2669,7 +2669,7 @@ _ds_get_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
   mem2 = calloc(1, length+1);
   if (!mem2) {
     PQFREEMEM(mem);
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -2715,7 +2715,7 @@ _ds_set_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -2828,7 +2828,7 @@ PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX)
 
   } else {
     if (!CTX->home) {
-      LOG(LOG_ERR, ERROR_NO_HOME);
+      LOG(LOG_ERR, ERR_AGENT_DSPAM_HOME);
       return NULL;
     }
     snprintf (filename, MAX_FILENAME_LENGTH, "%s/pgsql.data", CTX->home);

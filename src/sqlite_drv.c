@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.21 2005/04/22 18:17:53 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.22 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -250,7 +250,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -371,7 +371,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -601,12 +601,12 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EINVAL;
 
   if (!CTX->home) {
-    LOG(LOG_ERR, ERROR_NO_HOME);
+    LOG(LOG_ERR, ERR_AGENT_DSPAM_HOME);
     return EINVAL;
   } 
 
   if (CTX->flags & DSF_MERGED) {
-    LOG(LOG_ERR, ERROR_NO_MERGED);
+    LOG(LOG_ERR, ERR_DRV_NO_MERGED);
     return EINVAL;
   }
 
@@ -620,7 +620,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   s = malloc (sizeof (struct _sqlite_drv_storage));
   if (s == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -847,14 +847,14 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   mem = malloc(length+1);
   if (mem == NULL) {
-   LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+   LOG(LOG_CRIT, ERR_MEM_ALLOC);
    sqlite_free_table(row);
    return EUNKNOWN;
   }
 
   length = sqlite_decode_binary(row[ncolumn], mem);
   if (length<=0) {
-    LOG(LOG_ERR,"sqlite_decode_binary() failed with error %d", length);
+    LOG(LOG_ERR, "sqlite_decode_binary() failed with error %d", length);
     return EFAILURE;
   }
 
@@ -862,7 +862,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   if (ptr)
     SIG->data = ptr;
   else {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     SIG->data = mem;
   }
   SIG->length = length;
@@ -891,21 +891,21 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
   mem = calloc (1, 2 + (257*SIG->length)/254);
   if (mem == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     buffer_destroy(query);
     return EUNKNOWN;
   }
 
   length = sqlite_encode_binary(SIG->data, SIG->length, mem);
   if (length<0) {
-   LOG(LOG_ERR,"sqlite_encode_binary() failed on error %d", length);
+   LOG(LOG_ERR, "sqlite_encode_binary() failed on error %d", length);
    buffer_destroy(query);
    return EFAILURE;
   }
@@ -1125,7 +1125,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   st = calloc (1, sizeof (struct _ds_storage_record));
   if (st == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -1187,7 +1187,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   st = calloc (1, sizeof (struct _ds_storage_signature));
   if (st == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -1229,7 +1229,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
  mem = malloc (length+1);
   if (mem == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     sqlite_finalize(s->iter_sig, &err);
     s->iter_sig = NULL;
     free(st);
@@ -1238,7 +1238,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
 
   length = sqlite_decode_binary((const unsigned char *) &row[ncolumn], mem);
   if (length<0) {
-    LOG(LOG_ERR,"sqlite_decode_binary() failed with error %d", length);
+    LOG(LOG_ERR, "sqlite_decode_binary() failed with error %d", length);
     s->iter_sig = NULL;
     free(st);
     return NULL;
@@ -1272,7 +1272,7 @@ _sqlite_drv_query_error (const char *error, const char *query)
 
   if (file == NULL)
   {
-    LOG(LOG_ERR, ERROR_FILE_WRITE, fn, strerror (errno));
+    LOG(LOG_ERR, ERR_IO_FILE_WRITE, fn, strerror (errno));
   }
   else
   {
@@ -1333,7 +1333,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 

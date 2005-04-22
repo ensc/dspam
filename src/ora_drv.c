@@ -1,4 +1,4 @@
-/* $Id: ora_drv.c,v 1.9 2005/04/22 18:17:52 jonz Exp $ */
+/* $Id: ora_drv.c,v 1.10 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -86,12 +86,12 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EINVAL;
                                                                                 
   if (dbh != NULL) {
-    LOG(LOG_ERR, ERROR_NO_ATTACH);
+    LOG(LOG_ERR, ERR_DRV_NO_ATTACH);
     return EINVAL;
   }
 
   if (CTX->flags & DSF_MERGED) {
-    LOG(LOG_ERR, ERROR_NO_MERGED);
+    LOG(LOG_ERR, ERR_DRV_NO_MERGED);
     return EINVAL;
   }
 
@@ -105,7 +105,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   s = malloc (sizeof (struct _ora_drv_storage));
   if (s == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -136,7 +136,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   } else {
     if (!CTX->home) {
-      LOG(LOG_ERR, ERROR_NO_HOME);
+      LOG(LOG_ERR, ERR_AGENT_DSPAM_HOME);
       return EINVAL;
     }
     snprintf (filename, MAX_FILENAME_LENGTH, "%s/oracle.data", CTX->home);
@@ -294,7 +294,7 @@ _ora_drv_query_error (const char *error, const char *query)
 
   if (file == NULL)
   {
-    LOG(LOG_ERR, ERROR_FILE_WRITE, fn, strerror (errno));
+    LOG(LOG_ERR, ERR_IO_FILE_WRITE, fn, strerror (errno));
     return;
   }
   if (query != NULL)
@@ -445,7 +445,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   SIG->data = malloc (SIG->length);
   if (SIG->data == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     goto bail;
   }
 
@@ -929,7 +929,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   st = malloc (sizeof (struct _ds_storage_record));
   if (st == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -1050,7 +1050,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   st = malloc (sizeof (struct _ds_storage_signature));
   if (st == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     goto bail;
   }
 
@@ -1063,7 +1063,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
 
   if (st->data == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     goto bail;
   }
 
@@ -1773,7 +1773,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -1927,7 +1927,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -2338,7 +2338,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   query = buffer_create (NULL);
   if (query == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 

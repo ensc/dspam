@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.19 2005/04/22 18:17:53 jonz Exp $ */
+/* $Id: pref.c,v 1.20 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -85,7 +85,7 @@ agent_pref_t _ds_pref_aggregate(agent_pref_t STX, agent_pref_t UTX) {
           size++;
         }
       } else {
-        LOG(LOG_ERR,ERROR_IGNORING_PREF, UTX[i]->attribute);
+        LOG(LOG_ERR, ERR_AGENT_IGNORE_PREF, UTX[i]->attribute);
       }
     }
   }
@@ -147,7 +147,7 @@ agent_attrib_t _ds_pref_new(const char *attribute, const char *value) {
   pref = malloc(sizeof(struct _ds_agent_attribute));
                                                                                 
   if (pref == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
                                                                                 
@@ -174,7 +174,7 @@ agent_pref_t _ds_pref_load(
   int i = 0;
 
   if (PTX == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
   PTX[0] = NULL;
@@ -243,7 +243,7 @@ FILE *_ds_pref_prepare_file (
   out_file = fopen(out_filename, "w");
 
   if (out_file == NULL) {
-    LOG(LOG_ERR(ERROR_FILE_OPEN, out_filename, strerror(errno));
+    LOG(LOG_ERR(ERR_IO_FILE_OPEN, out_filename, strerror(errno));
     return NULL;
   }
 
@@ -257,7 +257,7 @@ FILE *_ds_pref_prepare_file (
       lineno++;
   
       if (fputs(line, out_file)) {
-        LOG(LOG_ERR(ERROR_FILE_WRITE, out_filename, strerror(errno));
+        LOG(LOG_ERR(ERR_IO_FILE_WRITE, out_filename, strerror(errno));
         fclose(in_file);
         fclose(out_file);
         unlink(out_filename);
@@ -284,12 +284,12 @@ int _ds_pref_commit (
 
   snprintf(backup, sizeof(backup), "%s.bak", filename);
   if (fclose(out_file)) {
-    LOG(LOG_ERR(ERROR_FILE_CLOSE, backup, strerror(errno));
+    LOG(LOG_ERR(ERR_IO_FILE_CLOSE, backup, strerror(errno));
     return EFAILURE;
   }
 
   if (rename(backup, filename)) {
-    LOG(LOG_ERR(ERROR_FILE_RENAME, backup, strerror(errno));
+    LOG(LOG_ERR(ERR_IO_FILE_RENAME, backup, strerror(errno));
     unlink(backup);
     return EFAILURE;
   }

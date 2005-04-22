@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.19 2005/04/22 13:58:40 jonz Exp $ */
+/* $Id: decode.c,v 1.20 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -90,7 +90,7 @@ _ds_actualize_message (const char *message)
     goto MEMFAIL;
 
   if (nt_add (out->components, (void *) current_block) == NULL)
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
 
   /* Read the message from memory */
 
@@ -118,7 +118,7 @@ _ds_actualize_message (const char *message)
 
         if (!current_block) 
         {
-          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+          LOG (LOG_CRIT, ERR_MEM_ALLOC);
           goto MEMFAIL;
         }
 
@@ -272,7 +272,7 @@ MEMFAIL:
   free(m_in);
   nt_destroy (boundaries);
   _ds_destroy_message(out);
-  LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+  LOG (LOG_CRIT, ERR_MEM_ALLOC);
   return NULL;
 }
 
@@ -324,7 +324,7 @@ MEMFAIL:
     nt_destroy(block->headers);
     free(block);
   }
-  LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+  LOG (LOG_CRIT, ERR_MEM_ALLOC);
   return NULL;
 }
 
@@ -397,7 +397,7 @@ _ds_create_header_field (const char *heading)
 MEMFAIL:
   free(header);
   free(m);
-  LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+  LOG (LOG_CRIT, ERR_MEM_ALLOC);
   return NULL;
 }
 
@@ -468,7 +468,7 @@ _ds_decode_headers (ds_message_block_t block) {
           decoded_len = strlen(decoded);
           new_alloc = calloc (1, offset + decoded_len + strlen (rest) + 2);
           if (new_alloc == NULL) {
-            LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+            LOG (LOG_CRIT, ERR_MEM_ALLOC);
           }
           else
           {
@@ -784,7 +784,7 @@ _ds_decode_quoted (const char *body)
   out = strdup (body);
   if (out == NULL)
   {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -911,7 +911,7 @@ _ds_assemble_message (ds_message_t message)
   int i = 0;
 
   if (!out) {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -1068,7 +1068,7 @@ _ds_extract_boundary (char *buf, size_t size, char *mem)
 
   data = strdup(mem);
   if (data == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 

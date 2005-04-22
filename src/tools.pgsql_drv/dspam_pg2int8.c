@@ -1,4 +1,4 @@
-/* $Id: dspam_pg2int8.c,v 1.6 2005/04/22 18:17:53 jonz Exp $ */
+/* $Id: dspam_pg2int8.c,v 1.7 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -88,12 +88,12 @@ main (int argc, char **argv)
 
   agent_config = read_config(NULL);
   if (!agent_config) {
-    LOG(LOG_ERR, ERROR_READ_CONFIG);
+    LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
     exit(EXIT_FAILURE);
   }
 
   if (!_ds_read_attribute(agent_config, "Home")) {
-    LOG(LOG_ERR, ERROR_DSPAM_HOME);
+    LOG(LOG_ERR, ERR_AGENT_DSPAM_HOME);
     _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
@@ -101,7 +101,7 @@ main (int argc, char **argv)
 #ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
   if (!_ds_match_attribute(agent_config, "Trust", p->pw_name) && p->pw_uid) {
-    fprintf(stderr, ERROR_TRUSTED_MODE "\n");
+    fprintf(stderr, ERR_TRUSTED_MODE "\n");
     _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
@@ -113,7 +113,7 @@ main (int argc, char **argv)
     if (!strncmp (argv[i], "--profile=", 10))
     {
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
-        LOG(LOG_ERR,ERROR_NO_SUCH_PROFILE, argv[i]+10);
+        LOG(LOG_ERR, ERR_AGENT_NO_SUCH_PROFILE, argv[i]+10);
         _ds_destroy_config(agent_config);
         exit(EXIT_FAILURE);
       } else {

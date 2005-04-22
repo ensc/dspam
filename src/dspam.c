@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.160 2005/04/22 18:17:52 jonz Exp $ */
+/* $Id: dspam.c,v 1.161 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -117,13 +117,13 @@ main (int argc, char *argv[])
 
   agent_config = read_config(NULL);
   if (!agent_config) {
-    LOG(LOG_ERR, ERROR_READ_CONFIG);
+    LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
 
   if (!_ds_read_attribute(agent_config, "Home")) {
-    LOG(LOG_ERR, ERROR_DSPAM_HOME);
+    LOG(LOG_ERR, ERR_AGENT_DSPAM_HOME);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
@@ -131,7 +131,7 @@ main (int argc, char *argv[])
   /* Set up an agent context to define the behavior of the processor */
 
   if (initialize_atx(&ATX)) {
-    LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
+    LOG(LOG_ERR, ERR_AGENT_INIT_ATX);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   } else {
@@ -139,7 +139,7 @@ main (int argc, char *argv[])
   }
 
   if (process_arguments(&ATX, argc, argv)) {
-    LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
+    LOG(LOG_ERR, ERR_AGENT_INIT_ATX);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
@@ -169,13 +169,13 @@ main (int argc, char *argv[])
 #endif
 
   if (apply_defaults(&ATX)) {
-    LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
+    LOG(LOG_ERR, ERR_AGENT_INIT_ATX);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
 
   if (check_configuration(&ATX)) {
-    LOG(LOG_ERR, ERROR_DSPAM_MISCONFIGURED);
+    LOG(LOG_ERR, ERR_AGENT_MISCONFIGURED);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
@@ -190,7 +190,7 @@ main (int argc, char *argv[])
 
   if (ATX.users->items == 0)
   {
-    LOG(LOG_ERR, ERROR_USER_UNDEFINED);
+    LOG(LOG_ERR, ERR_AGENT_USER_UNDEFINED);
     fprintf (stderr, "%s\n", SYNTAX);
     exitcode = EXIT_FAILURE;
     goto BAIL;
@@ -205,8 +205,9 @@ main (int argc, char *argv[])
        _ds_read_attribute(agent_config, "ServerDomainSocketPath")))
   {
     exitcode = client_process(&ATX, message);
-    if (exitcode<0)
-      LOG(LOG_ERR,ERROR_CLIENT_EXIT, exitcode);
+    if (exitcode<0) {
+      LOG(LOG_ERR, ERR_CLIENT_EXIT, exitcode);
+    }
   } else {
 #endif
 
@@ -216,7 +217,7 @@ main (int argc, char *argv[])
  
   if (dspam_init_driver (NULL))
   {
-    LOG (LOG_WARNING, "unable to initialize storage driver");
+    LOG (LOG_WARNING, ERR_DRV_INIT);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   } else {
@@ -225,7 +226,7 @@ main (int argc, char *argv[])
   
   ATX.results = nt_create(NT_PTR);
   if (ATX.results == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     exitcode = EUNKNOWN;
     goto BAIL;
   }
@@ -311,7 +312,7 @@ process_message (
 
   CTX = ctx_init(ATX, username);
   if (CTX == NULL) {
-    LOG (LOG_WARNING, "unable to create dspam context");
+    LOG (LOG_WARNING, ERR_CORE_INIT);
     result = EUNKNOWN;
     goto RETURN;
   }
@@ -329,12 +330,12 @@ process_message (
       ATX->dbh = _ds_connect(CTX);
 
       if (attach_context(CTX, ATX->dbh)) {
-        LOG(LOG_ERR, "unable to attach dspam context");
+        LOG(LOG_ERR, ERR_CORE_ATTACH);
         result = EUNKNOWN;
         goto RETURN;
       }
     } else {
-      LOG(LOG_ERR, "unable to attach dspam context");
+      LOG(LOG_ERR, ERR_CORE_ATTACH);
       result = EUNKNOWN;
       goto RETURN;
     }
@@ -349,7 +350,7 @@ process_message (
 
   components = _ds_actualize_message (message->data);
   if (components == NULL) {
-    LOG (LOG_ERR, "message parser failed. unable to process.");
+    LOG (LOG_ERR, ERR_AGENT_PARSER_FAILED);
     result = EUNKNOWN;
     goto RETURN;
   }
@@ -394,7 +395,7 @@ process_message (
 
     if (_ds_get_signature (CTX, &ATX->SIG, ATX->signature))
     {
-      LOG(LOG_WARNING, "signature retrieval for '%s' failed", ATX->signature);
+      LOG(LOG_WARNING, ERR_AGENT_SIG_RET_FAILED, ATX->signature);
       have_signature = 0;
     }
     else {
@@ -443,7 +444,7 @@ process_message (
     if (!_ds_match_attribute(agent_config, "TrainPristine", "on") && 
         strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "on")) {
       if (CTX->classification != DSR_NONE && CTX->source == DSS_ERROR) {
-        LOG(LOG_WARNING, "unable to find valid signature; bailing.");
+        LOG(LOG_WARNING, ERR_AGENT_NO_VALID_SIG);
         result = EFAILURE;
         goto RETURN;
       }
@@ -859,8 +860,7 @@ deliver_message (
   file = popen (args, "w");
   if (file == NULL)
   {
-    LOG(LOG_ERR,"error opening pipe to local agent: %s: %s",
-                        args, strerror (errno));
+    LOG(LOG_ERR, ERR_LDA_OPEN, args, strerror (errno));
     return EFILE;
   }
 
@@ -869,8 +869,7 @@ deliver_message (
   fputs (message, file);
   rc = pclose (file);
   if (rc == -1) {
-    LOG(LOG_WARNING, "error getting exit status of local agent: %s: %s", 
-        args, strerror (errno));
+    LOG(LOG_WARNING, ERR_LDA_STATUS, args, strerror (errno));
     return EFILE;
   } else if (WIFEXITED (rc)) {
     int lda_exit_code;
@@ -878,7 +877,7 @@ deliver_message (
     if (lda_exit_code == 0) {
       LOGDEBUG ("LDA returned success");
     } else {
-      LOG(LOG_ERR,ERROR_AGENT_RETURN, lda_exit_code, args);
+      LOG(LOG_ERR, ERR_LDA_EXIT, lda_exit_code, args);
       if (_ds_match_attribute(agent_config, "LMTPLDAErrorsPermanent", "on")) 
         return EINVAL;
       else
@@ -890,12 +889,12 @@ deliver_message (
   {
     int sig;
     sig = WTERMSIG (rc);
-    LOG(LOG_ERR,ERROR_AGENT_SIGNAL, sig, args);
+    LOG(LOG_ERR, ERR_LDA_SIGNAL, sig, args);
     return sig;
   }
   else
   {
-    LOG(LOG_ERR,ERROR_AGENT_CLOSE, rc);
+    LOG(LOG_ERR, ERR_LDA_CLOSE, rc);
     return rc;
   }
 #endif
@@ -1035,14 +1034,13 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
   file = fopen (filename, "a");
   if (file == NULL)
   {
-    LOG(LOG_ERR, ERROR_FILE_WRITE, filename, strerror (errno));
+    LOG(LOG_ERR, ERR_IO_FILE_WRITE, filename, strerror (errno));
     return EFILE;
   }
 
   i = _ds_get_fcntl_lock(fileno(file));
   if (i) {
-    LOG(LOG_WARNING, "Failed to lock %s: Error %d: %s\n", 
-        filename, i, strerror(errno));
+    LOG(LOG_WARNING, ERR_IO_LOCK, filename, i, strerror(errno));
     return EFILE;
   }
 
@@ -1064,7 +1062,7 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
   omsg = msg;
 
   if (msg == NULL) {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -1118,17 +1116,15 @@ write_web_stats (
   char filename[MAX_FILENAME_LENGTH];
   FILE *file;
 
-  if (!totals) {
-    LOG(LOG_WARNING, "can't write web stats: totals are null");
+  if (!totals) 
     return EINVAL;
-  }
 
   _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), 
                    LOOKUP(ATX->PTX, username), "stats");
   _ds_prepare_path_for (filename);
   file = fopen (filename, "w");
   if (file == NULL) {
-    LOG(LOG_ERR,ERROR_FILE_WRITE, filename, strerror (errno));
+    LOG(LOG_ERR, ERR_IO_FILE_WRITE, filename, strerror (errno));
     return EFILE;
   }
 
@@ -1207,7 +1203,7 @@ inoculate_user (
     {
       set_libdspam_attributes(INOC);
       if (attach_context(INOC, ATX->dbh)) {
-        LOG (LOG_WARNING, "unable to attach dspam context");
+        LOG (LOG_WARNING, ERR_CORE_ATTACH);
         dspam_destroy(INOC);
         return EUNKNOWN;
       }
@@ -1281,7 +1277,7 @@ user_classify (
   {
     set_libdspam_attributes(CLX);
     if (attach_context(CLX, ATX->dbh)) {
-      LOG (LOG_WARNING, "unable to attach dspam context");
+      LOG (LOG_WARNING, ERR_CORE_ATTACH);
       dspam_destroy(CLX);
       return EUNKNOWN;
     }
@@ -1350,13 +1346,13 @@ int send_notice(
            _ds_read_attribute(agent_config, "Home"), filename);
   f = fopen(msgfile, "r");
   if (!f) {
-    LOG(LOG_ERR,ERROR_FILE_OPEN, filename, strerror(errno));
+    LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
     return EFILE;
   }
 
   b = buffer_create(NULL);
   if (!b) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -1457,7 +1453,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
      
     parse_message = buffer_create(message->data);
     if (parse_message == NULL) {
-      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+      LOG(LOG_CRIT, ERR_MEM_ALLOC);
       presult->exitcode = ERC_PROCESS;
 
       if (ATX->results)
@@ -1562,7 +1558,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 #ifdef HOMEDIR
     if (!optin && (!S_ISDIR(s.st_mode))) {
       optin = -1;
-      LOG(LOG_WARNING, "Opt-in file %s is not a directory", filename);
+      LOG(LOG_WARNING, ERR_AGENT_OPTIN_DIR, filename);
     }
 #endif
 
@@ -2095,7 +2091,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
 
   ATX->inoc_users = nt_create (NT_CHAR);
   if (ATX->inoc_users == NULL) {
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -2103,7 +2099,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
   if (ATX->classify_users == NULL)
   {
     nt_destroy(ATX->inoc_users);
-    LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -2518,7 +2514,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       ATX->DEC.data = calloc(1, ATX->DEC.length);
       
       if (ATX->DEC.data == NULL) {
-        LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+        LOG(LOG_CRIT, ERR_MEM_ALLOC);
         return EUNKNOWN;
       }
 
@@ -2631,7 +2627,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       DSPAM_CTX *CTC = malloc(sizeof(DSPAM_CTX));
 
       if (CTC == NULL) {
-        LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+        LOG(LOG_CRIT, ERR_MEM_ALLOC);
         return EUNKNOWN;
       }
 
@@ -2655,7 +2651,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
     if ((result == DSR_ISINNOCENT || result == DSR_ISWHITELISTED) && was_spam) {
       DSPAM_CTX *CTC = malloc(sizeof(DSPAM_CTX));
       if (CTC == NULL) {
-        LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+        LOG(LOG_CRIT, ERR_MEM_ALLOC);
         return EUNKNOWN;
       }
                                                                                 
@@ -2810,8 +2806,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           fputs("\n", file);
           _ds_free_fcntl_lock(fileno(file));
       } else {
-        LOG(LOG_WARNING, "Failed to lock %s: %d: %s\n", filename, i, 
-                         strerror(errno));
+        LOG(LOG_WARNING, ERR_IO_LOCK, filename, i, strerror(errno));
       }
       fclose(file);
     }
@@ -2841,8 +2836,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         fputs(s, file);
         _ds_free_fcntl_lock(fileno(file));
       } else {
-        LOG(LOG_WARNING, "Failed to lock %s: %d: %s\n", filename, i, 
-                          strerror(errno));
+        LOG(LOG_WARNING, ERR_IO_LOCK, filename, i, strerror(errno));
       }
       fclose(file);
     }
@@ -2904,7 +2898,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         nt_add (block->headers, (void *) head);
       }
       else {
-        LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+        LOG (LOG_CRIT, ERR_MEM_ALLOC);
       }
 
       if (CTX->source == DSS_NONE) {
@@ -2922,7 +2916,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           nt_add(block->headers, (void *) head);
         }
         else
-          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+          LOG (LOG_CRIT, ERR_MEM_ALLOC);
       }
 
       if (CTX->source != DSS_ERROR) {
@@ -2937,7 +2931,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           nt_add(block->headers, (void *) head);
         }
         else
-          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+          LOG (LOG_CRIT, ERR_MEM_ALLOC);
 
         snprintf(data, sizeof(data), "X-DSPAM-Probability: %01.4f", 
                  CTX->probability);
@@ -2951,7 +2945,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
             nt_add (block->headers, (void *) head);
         }
         else
-          LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+          LOG (LOG_CRIT, ERR_MEM_ALLOC);
 
         if (CTX->training_mode != DST_NOTRAIN && ATX->signature[0] != 0) {
           snprintf(data, sizeof(data), "X-DSPAM-Signature: %s", ATX->signature);
@@ -2969,7 +2963,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
             nt_add (block->headers, (void *) head);
           }
           else
-            LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+            LOG (LOG_CRIT, ERR_MEM_ALLOC);
         }
 
         if (CTX->result == DSR_ISSPAM)
@@ -2984,7 +2978,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
               nt_add (block->headers, (void *) head);
           }
           else
-            LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+            LOG (LOG_CRIT, ERR_MEM_ALLOC);
         }
 
         if (!strcmp(_ds_pref_val(ATX->PTX, "showFactors"), "on")) {
@@ -3315,7 +3309,7 @@ MEM_ALLOC:
     free(newblock);
   }
 
-  LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+  LOG (LOG_CRIT, ERR_MEM_ALLOC);
   return EUNKNOWN;
 }
 
@@ -3498,7 +3492,7 @@ int daemon_start(AGENT_CTX *ATX) {
   __hup = 0;
   pthread_mutex_init(&__lock, NULL);
   libdspam_init();
-  LOG(LOG_INFO, DAEMON_START);
+  LOG(LOG_INFO, INFO_DAEMON_START);
 
   while(__daemon_run) {
     pidfile = _ds_read_attribute(agent_config, "ServerPID");
@@ -3508,7 +3502,7 @@ int daemon_start(AGENT_CTX *ATX) {
                       DSM_TOOLS, 0);
     if (!DTX.CTX)
     {
-      LOGDEBUG("unable to initialize dspam context");
+      LOG(LOG_ERR, ERR_CORE_INIT);
       exit(EXIT_FAILURE);
     }
 
@@ -3521,7 +3515,7 @@ int daemon_start(AGENT_CTX *ATX) {
 #endif
     if (dspam_init_driver (&DTX))
     {
-      LOG (LOG_WARNING, "unable to initialize storage driver");
+      LOG (LOG_WARNING, ERR_DRV_INIT);
       exit(EXIT_FAILURE);
     }
 
@@ -3529,7 +3523,7 @@ int daemon_start(AGENT_CTX *ATX) {
       FILE *file;
       file = fopen(pidfile, "w");
       if (file == NULL) {
-        LOG(LOG_ERR, ERROR_FILE_WRITE, pidfile, strerror(errno));
+        LOG(LOG_ERR, ERR_IO_FILE_WRITE, pidfile, strerror(errno));
       } else {
         fprintf(file, "%ld\n", (long) getpid());
         fclose(file);
@@ -3539,7 +3533,7 @@ int daemon_start(AGENT_CTX *ATX) {
     LOGDEBUG("spawning daemon listener");
 
     if (daemon_listen(&DTX)) {
-      LOG(LOG_CRIT, "daemon_listen() failed");
+      LOG(LOG_CRIT, ERR_DAEMON_FAIL);
       __daemon_run = 0;
     } else {
 
@@ -3566,7 +3560,7 @@ int daemon_start(AGENT_CTX *ATX) {
 
       agent_config = read_config(NULL);
       if (!agent_config) {
-        LOG(LOG_ERR, ERROR_READ_CONFIG);
+        LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
         exit(EXIT_FAILURE);
       }
 
@@ -3574,7 +3568,7 @@ int daemon_start(AGENT_CTX *ATX) {
     }
   }
 
-  LOG(LOG_INFO, DAEMON_EXIT);
+  LOG(LOG_INFO, INFO_DAEMON_EXIT);
   pthread_mutex_destroy(&__lock);
   libdspam_shutdown();
 

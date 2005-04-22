@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.50 2005/04/22 18:17:52 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.51 2005/04/22 20:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -106,7 +106,7 @@ int initialize_atx(AGENT_CTX *ATX) {
   ATX->users           = nt_create (NT_CHAR);
 
   if (ATX->users == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -124,7 +124,7 @@ int initialize_atx(AGENT_CTX *ATX) {
 #endif
 
   if (!ATX->p) {
-    LOG(LOG_ERR, ERROR_RUNTIME_USER);
+    LOG(LOG_ERR, ERR_AGENT_RUNTIME_USER);
     exit(EXIT_FAILURE);
   }
 
@@ -194,7 +194,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       if (!ATX->recipients) {
         ATX->recipients = nt_create(NT_CHAR);
         if (ATX->recipients == NULL) {
-          LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+          LOG(LOG_CRIT, ERR_MEM_ALLOC);
           return EUNKNOWN;
         }
       }
@@ -263,7 +263,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 
 #ifdef TRUSTED_USER_SECURITY
         if (!ATX->trusted && strcmp(user, ATX->p->pw_name)) {
-          LOG(LOG_ERR, ERROR_TRUSTED_USER, ATX->p->pw_uid, ATX->p->pw_name);
+          LOG(LOG_ERR, ERR_TRUSTED_USER, ATX->p->pw_uid, ATX->p->pw_name);
           return EINVAL;
         }
 
@@ -289,7 +289,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 
 #ifdef TRUSTED_USER_SECURITY
         if (!ATX->trusted && strcmp(user, ATX->p->pw_name)) {
-          LOG(LOG_ERR, ERROR_TRUSTED_USER, ATX->p->pw_uid, ATX->p->pw_name);
+          LOG(LOG_ERR, ERR_TRUSTED_USER, ATX->p->pw_uid, ATX->p->pw_name);
           return EINVAL;
         }
 
@@ -311,13 +311,13 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     {
 #ifdef TRUSTED_USER_SECURITY
       if (!ATX->trusted) {
-        LOG(LOG_ERR, ERROR_TRUSTED_OPTION, "--profile", 
+        LOG(LOG_ERR, ERR_TRUSTED_PRIV, "--profile", 
             ATX->p->pw_uid, ATX->p->pw_name);
         return EINVAL;
       }
 #endif
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
-        LOG(LOG_ERR,ERROR_NO_SUCH_PROFILE, argv[i]+10);
+        LOG(LOG_ERR,ERR_AGENT_NO_SUCH_PROFILE, argv[i]+10);
         return EINVAL;
       } else {
         _ds_overwrite_attribute(agent_config, "DefaultProfile", argv[i]+10);
@@ -340,7 +340,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
         ATX->classification = DSR_ISINNOCENT;
       else
       {
-        LOG(LOG_ERR,ERROR_UNKNOWN_CLASS, ptr);
+        LOG(LOG_ERR, ERR_AGENT_NO_SUCH_CLASS, ptr);
         return EINVAL;
       }
       continue;
@@ -358,7 +358,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
         ATX->source = DSS_ERROR;
       else
       {
-        LOG(LOG_ERR,ERROR_UNKNOWN_SOURCE, ptr);
+        LOG(LOG_ERR, ERR_AGENT_NO_SUCH_SOURCE, ptr);
         return EINVAL;
       }
       continue;
@@ -382,7 +382,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       char *dup = strdup(strchr(argv[i], '=')+1);
       char *ptr;
       if (dup == NULL) {
-        LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+        LOG(LOG_CRIT, ERR_MEM_ALLOC);
         return EUNKNOWN;
       }
 
@@ -396,7 +396,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
           ATX->flags |= DAF_SUMMARY;
         else
         {
-          LOG(LOG_ERR,ERROR_UNKNOWN_DELIVER, ptr);
+          LOG(LOG_ERR, ERR_AGENT_NO_SUCH_DELIVER, ptr);
           free(dup);
           return EINVAL;
         }
@@ -489,7 +489,7 @@ int process_features(AGENT_CTX *ATX, const char *in) {
 
   dup = strdup(in);
   if (dup == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -507,12 +507,12 @@ int process_features(AGENT_CTX *ATX, const char *in) {
       ATX->training_buffer = atoi(strchr(ptr, '=')+1);
 
       if (ATX->training_buffer < 0 || ATX->training_buffer > 10) {
-        LOG(LOG_ERR, ERROR_TB_INVALID);
+        LOG(LOG_ERR, ERR_AGENT_TB_INVALID);
         ret = EINVAL;
       }
     }
     else {
-      LOG(LOG_ERR,ERROR_UNKNOWN_FEATURE, ptr);
+      LOG(LOG_ERR, ERR_AGENT_NO_SUCH_FEATURE, ptr);
       ret = EINVAL;
     }
 
@@ -550,7 +550,7 @@ int process_mode(AGENT_CTX *ATX, const char *mode) {
     ATX->training_mode = DST_TEFT;
     ATX->flags |= DAF_UNLEARN;
   } else {
-    LOG(LOG_ERR,ERROR_TR_MODE_INVALID, mode);
+    LOG(LOG_ERR, ERR_AGENT_TR_MODE_INVALID, mode);
     return EINVAL;
   }
 
@@ -600,7 +600,7 @@ int apply_defaults(AGENT_CTX *ATX) {
       strcpy(ATX->mailer_args, fmt);
     } else if (!_ds_read_attribute(agent_config, "DeliveryHost")) {
       if (!(ATX->flags & DAF_STDOUT)) {
-        LOG(LOG_ERR, ERROR_NO_AGENT, key);
+        LOG(LOG_ERR, ERR_AGENT_NO_AGENT, key);
         return EINVAL;
       }
     }
@@ -646,32 +646,32 @@ int check_configuration(AGENT_CTX *ATX) {
 
   if (ATX->classification != DSR_NONE && ATX->operating_mode == DSM_CLASSIFY)
   {
-    LOG(LOG_ERR, ERROR_CLASSIFY_CLASS);
+    LOG(LOG_ERR, ERR_AGENT_CLASSIFY_CLASS);
     return EINVAL;
   }
 
   if (ATX->classification != DSR_NONE && ATX->source == DSS_NONE && 
      !(ATX->flags & DAF_UNLEARN))
   {
-    LOG(LOG_ERR, ERROR_NO_SOURCE);
+    LOG(LOG_ERR, ERR_AGENT_NO_SOURCE);
     return EINVAL;
   }
 
   if (ATX->source != DSS_NONE && ATX->classification == DSR_NONE)
   {
-    LOG(LOG_ERR, ERROR_NO_CLASS);
+    LOG(LOG_ERR, ERR_AGENT_NO_CLASS);
     return EINVAL;
   }
 
   if (ATX->operating_mode == DSM_NONE)
   {
-    LOG(LOG_ERR, ERROR_NO_OP_MODE);
+    LOG(LOG_ERR, ERR_AGENT_NO_OP_MODE);
     return EINVAL;
   }
 
   if (ATX->training_mode == DST_DEFAULT)
   {
-    LOG(LOG_ERR, ERROR_NO_TR_MODE);
+    LOG(LOG_ERR, ERR_AGENT_NO_TR_MODE);
     return EINVAL;
   }
 
@@ -679,7 +679,7 @@ int check_configuration(AGENT_CTX *ATX) {
 
     if (ATX->users->items == 0)
     {
-      LOG(LOG_ERR, ERROR_USER_UNDEFINED);
+      LOG(LOG_ERR, ERR_AGENT_USER_UNDEFINED);
       return EINVAL;
     }
   }
@@ -708,7 +708,7 @@ buffer * read_stdin(AGENT_CTX *ATX) {
 
   msg = buffer_create(NULL);
   if (msg == NULL) {
-    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
@@ -752,7 +752,7 @@ buffer * read_stdin(AGENT_CTX *ATX) {
 
       if (buffer_cat (msg, buf))
       {
-        LOG (LOG_CRIT, ERROR_MEM_ALLOC);
+        LOG (LOG_CRIT, ERR_MEM_ALLOC);
         goto bail;
       }
   
@@ -773,7 +773,7 @@ buffer * read_stdin(AGENT_CTX *ATX) {
         nt_destroy (ATX->users);
         ATX->users = nt_create (NT_CHAR);
         if (ATX->users == NULL) {
-          LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+          LOG(LOG_CRIT, ERR_MEM_ALLOC);
           goto bail;
         }
         LOGDEBUG("found username %s in X-DSPAM-User header", user);
@@ -891,7 +891,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
       nt_destroy(ATX->users);
       ATX->users = nt_create(NT_CHAR);
       if (!ATX->users) {
-        LOG(LOG_CRIT, ERROR_MEM_ALLOC);
+        LOG(LOG_CRIT, ERR_MEM_ALLOC);
         return EUNKNOWN;
       }
       nt_add (ATX->users, z);
