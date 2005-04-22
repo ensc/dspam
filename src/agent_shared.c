@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.47 2005/04/21 21:08:21 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.48 2005/04/22 02:29:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -21,12 +21,13 @@
 */
 
 /*
-   agent_shared.c
-
-   DESCRIPTION
-     agent-based components shared between the full dspam agent (dspam) 
-     and the lightweight client agent (dspamc)
-*/
+ * agent_shared.c
+ *
+ * DESCRIPTION
+ *   agent-based components shared between the full dspam agent (dspam) 
+ *   and the lightweight client agent (dspamc)
+ *
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -76,17 +77,17 @@
 #include "buffer.h"
 
 /*
-   initialize_atx(AGENT_CTX *)
-
-   DESCRIPTION
-     initializes an existing agent context
-
-   INPUT ARGUMENTS
-	ATX	agent context to initialize
-
-   RETURN VALUES
-     returns 0 on success
-*/
+ * initialize_atx(AGENT_CTX *)
+ *
+ * DESCRIPTION
+ *  initializes an existing agent context
+ *
+ * INPUT ARGUMENTS
+ *  ATX    agent context to initialize
+ *
+ * RETURN VALUES
+ *   returns 0 on success
+ */
 
 int initialize_atx(AGENT_CTX *ATX) {
 
@@ -141,19 +142,19 @@ int initialize_atx(AGENT_CTX *ATX) {
 }
 
 /*
-   process_arguments(AGENT_CTX *, int argc, char *argv[])
-
-   DESCRIPTION
-     master commandline argument process loop
-
-   INPUT ARGUMENTS
-        ATX     agent context
-        argc	number of arguments provided
-	argv	array of arguments
-
-   RETURN VALUES
-     returns 0 on success, EINVAL when invalid options specified
-*/
+ * process_arguments(AGENT_CTX *, int argc, char *argv[])
+ *
+ * DESCRIPTION
+ *   master commandline argument process loop
+ *
+ * INPUT ARGUMENTS
+ *      ATX     agent context
+ *      argc    number of arguments provided
+ *      argv    array of arguments
+ *
+ * RETURN VALUES
+ *  returns 0 on success, EINVAL when invalid options specified
+ */
 
 int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
   int flag_u = 0, flag_r = 0;
@@ -466,19 +467,19 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 
 
 /* 
-   process_features(AGENT_CTX *, const char *)
-
-   DESCRIPTION
-     convert --feature= stdin into agent context values
-
-   INPUT ARGUMENTS
-	ATX	agent context
-	in	remainder of --feature= stdin
-
-   RETURN VALUES
-     returns 0 on success, EINVAL when invalid options specified
-     
-*/
+ * process_features(AGENT_CTX *, const char *)
+ *
+ * DESCRIPTION
+ *   convert --feature= stdin into agent context values
+ *
+ * INPUT ARGUMENTS
+ *	ATX	agent context
+ *	in	remainder of --feature= stdin
+ *
+ * RETURN VALUES
+ *   returns 0 on success, EINVAL when invalid options specified
+ *    
+ */
 
 int process_features(AGENT_CTX *ATX, const char *in) {
   char *ptr, *dup, *ptrptr;
@@ -523,18 +524,18 @@ int process_features(AGENT_CTX *ATX, const char *in) {
 }
 
 /*
-   process_mode(AGENT_CTX *, const char *)
-
-   DESCRIPTION
-     convert --mode= stdin into training mode
-
-   INPUT ARGUMENTS
-	ATX	agent context
-	mode	remainder of --mode= stdin
-
-   RETURN VALUES
-     returns 0 on success, EINVAL when invalid mode specified
-*/
+ * process_mode(AGENT_CTX *, const char *)
+ *
+ * DESCRIPTION
+ *   convert --mode= stdin into training mode
+ *
+ * INPUT ARGUMENTS
+ *	ATX	agent context
+ *	mode	remainder of --mode= stdin
+ *
+ * RETURN VALUES
+ *   returns 0 on success, EINVAL when invalid mode specified
+ */
 
 int process_mode(AGENT_CTX *ATX, const char *mode) {
 
@@ -558,17 +559,17 @@ int process_mode(AGENT_CTX *ATX, const char *mode) {
 }
 
 /*
-   apply_defaults(AGENT_CTX *)
-
-   DESCRIPTION
-     apply default values from dspam.conf in absence of other options
-
-   INPUT ARGUMENTS
-        ATX     agent context
-
-   RETURN VALUES
-     returns 0 on success
-*/
+ * apply_defaults(AGENT_CTX *)
+ *
+ * DESCRIPTION
+ *   apply default values from dspam.conf in absence of other options
+ *
+ * INPUT ARGUMENTS
+ *      ATX     agent context
+ *
+ * RETURN VALUES
+ *   returns 0 on success
+ */
 
 int apply_defaults(AGENT_CTX *ATX) {
 
@@ -630,16 +631,16 @@ int apply_defaults(AGENT_CTX *ATX) {
 }
 
 /*
-   check_configuration(AGENT_CTX *)
-
-   DESCRIPTION
-     sanity-check agent configuration
-
-   INPUT ARGUMENTS
-        ATX     agent context
-
-   RETURN VALUES
-     returns 0 on success, EINVAL on invalid configuration
+ * check_configuration(AGENT_CTX *)
+ *
+ * DESCRIPTION
+ *   sanity-check agent configuration
+ *
+ * INPUT ARGUMENTS
+ *      ATX     agent context
+ *
+ * RETURN VALUES
+ *   returns 0 on success, EINVAL on invalid configuration
 */
 
 int check_configuration(AGENT_CTX *ATX) {
@@ -688,18 +689,18 @@ int check_configuration(AGENT_CTX *ATX) {
 }
 
 /*
-   read_stdin(AGENT_CTX *)
-
-   DESCRIPTION
-     read message from stdin and perform any inline configuration
-     (such as servicing 'ParseToHeaders' functions)
-
-   INPUT ARGUMENTS
-        ATX     agent context
-
-   RETURN VALUES
-     buffer structure containing the message
-*/
+ * read_stdin(AGENT_CTX *)
+ *
+ * DESCRIPTION
+ *   read message from stdin and perform any inline configuration
+ *   (such as servicing 'ParseToHeaders' functions)
+ *
+ * INPUT ARGUMENTS
+ *      ATX     agent context
+ *
+ * RETURN VALUES
+ *   buffer structure containing the message
+ */
 
 buffer * read_stdin(AGENT_CTX *ATX) {
   int body = 0, line = 1;
@@ -798,18 +799,18 @@ bail:
 }
 
 /*
-   process_parseto(AGENT_CTX *, const char *)
-
-   DESCRIPTION
-     processes the To: line of a message to provide parseto services
-
-   INPUT ARGUMENTS
-        ATX     agent context
-        buf	To: line
-
-   RETURN VALUES
-     returns 0 on success
-*/
+ * process_parseto(AGENT_CTX *, const char *)
+ *
+ * DESCRIPTION
+ *   processes the To: line of a message to provide parseto services
+ *
+ * INPUT ARGUMENTS
+ *      ATX     agent context
+ *      buf	To: line
+ *
+ * RETURN VALUES
+ *   returns 0 on success
+ */
 
 int process_parseto(AGENT_CTX *ATX, const char *buf) {
   char *y = NULL;
