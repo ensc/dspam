@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.17 2005/04/21 21:04:11 jonz Exp $ */
+/* $Id: decode.c,v 1.18 2005/04/22 12:53:57 jonz Exp $ */
 
 /*
  DSPAM
@@ -82,10 +82,11 @@ _ds_actualize_message (const char *message)
     goto MEMFAIL;
 
   out->components = nt_create (NT_PTR);
+  if (!out->components)
     goto MEMFAIL;
 
   current_block = _ds_create_message_block ();
-  if (current_block == NULL)
+  if (!current_block) 
     goto MEMFAIL;
 
   if (nt_add (out->components, (void *) current_block) == NULL)
@@ -115,7 +116,7 @@ _ds_actualize_message (const char *message)
         _ds_decode_headers(current_block);
         current_block = _ds_create_message_block ();
 
-        if (current_block == NULL)
+        if (!current_block) 
         {
           LOG (LOG_CRIT, ERROR_MEM_ALLOC);
           goto MEMFAIL;
@@ -237,7 +238,7 @@ _ds_actualize_message (const char *message)
         _ds_decode_headers(current_block);
         current_block = _ds_create_message_block ();
 
-        if (current_block == NULL)
+        if (!current_block)
           goto MEMFAIL;
 
         if (nt_add (out->components, (void *) current_block) == NULL)
