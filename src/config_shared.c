@@ -1,4 +1,4 @@
-/* $Id: config_shared.c,v 1.4 2005/04/21 21:08:21 jonz Exp $ */
+/* $Id: config_shared.c,v 1.5 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -21,16 +21,15 @@
 */
 
 /*
-   config_shared.c
-
-   DESCRIPTION
-     attributes-based configuration functions
-     attribtues are used by the agent and libdspam to control configuration
-     management. the included functions perform various operations on the
-     configuration structures supplied
-
-     because these functions are used by libdspam, they are prefixed with _ds_
-*/
+ * config_shared.c - attributes-based configuration functionsc
+ *
+ * DESCRIPTION
+ *   Attribtues are used by the agent and libdspam to control configuration
+ *   management. The included functions perform various operations on the
+ *   configuration structures supplied.
+ *
+ *   Because these functions are used by libdspam, they are prefixed with _ds_
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>

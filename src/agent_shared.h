@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.19 2005/04/21 21:08:21 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.20 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -43,7 +43,7 @@
 #define         LOOSE_SIGNATURE_BEGIN	"X-DSPAM-Signature:"
 #define         SIGNATURE_DELIMITER	": "
 
-/* AGENT_CTX: agent context */
+/* AGENT_CTX: Agent context. Defines the behavior of the agent */
 
 typedef struct {
   int operating_mode;       /* Processing Mode       IN DSM_ */
@@ -96,8 +96,6 @@ typedef struct {
 #endif
 } AGENT_CTX;
 
-/* Public agent functions */
-
 int process_features	(AGENT_CTX *ATX, const char *features);
 int process_mode	(AGENT_CTX *ATX, const char *mode);
 int check_configuration (AGENT_CTX *ATX);
@@ -112,8 +110,11 @@ buffer *read_stdin	(AGENT_CTX *ATX);
 #   define MIN(a,b)  ((a)<(b)?(a):(b))
 #endif /* !MIN */
 
-/* agent context flag (DAF)
-   do not confuse with libdspam's classification context flags (DSF) */
+/*
+ * Agent context flag (DAF)
+ * Do not confuse with libdspam's classification context flags (DSF) 
+ *
+ */
 
 #define DAF_STDOUT		0x01
 #define DAF_DELIVER_SPAM	0x02

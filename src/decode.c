@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.18 2005/04/22 12:53:57 jonz Exp $ */
+/* $Id: decode.c,v 1.19 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -21,12 +21,13 @@
 */
 
 /*
-   decode.c
-
-   DESCRIPTION
-     message decoding and actualization functions
-
-*/
+ * decode.c - message decoding and parsing
+ *
+ *  DESCRIPTION
+ *    This set of functions performs parsing and decoding of a message and
+ *    embeds its components into a ds_message_t structure, suitable for
+ *    logical access.
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -49,21 +50,20 @@
 #endif
 
 /*
-  _ds_actualize_message (const char *message)
-
-  DESCRIPTION
-    primary message parser
-
-    this function performs all decoding and actualization of the message
-    into the message structures defined in the .h
-
-  INPUT ARGUMENTS
-        message		message to decode
-
-  RETURN VALUES
-    pointer to an allocated message structure (ds_message_t), NULL on failure
-
-*/
+ * _ds_actualize_message (const char *message)
+ *
+ * DESCRIPTION
+ *   primary message parser
+ *
+ *   this function performs all decoding and actualization of the message
+ *   into the message structures defined in the .h
+ *
+ * INPUT ARGUMENTS
+ *      message    message to decode
+ *
+ * RETURN VALUES
+ *   pointer to an allocated message structure (ds_message_t), NULL on failure
+ */
 
 ds_message_t
 _ds_actualize_message (const char *message)
@@ -92,23 +92,23 @@ _ds_actualize_message (const char *message)
   if (nt_add (out->components, (void *) current_block) == NULL)
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
 
-  /* read the message from memory */
+  /* Read the message from memory */
 
   line = strsep (&in, "\n");
   while (line) 
   {
 
-    /* header processing */
+    /* Header processing */
 
     if (block_position == BP_HEADER)
     {
 
-      /* if we see two boundaries converged on top of one another */
+      /* If we see two boundaries converged on top of one another */
 
       if (_ds_match_boundary (boundaries, line))
       {
 
-        /* add the boundary as the terminating boundary */
+        /* Add the boundary as the terminating boundary */
 
         current_block->terminating_boundary = strdup (line + 2);
         current_block->original_encoding = current_block->encoding;
@@ -128,7 +128,7 @@ _ds_actualize_message (const char *message)
         block_position = BP_HEADER;
       }
 
-      /* concatenate multiline headers to the original header field data */
+      /* Concatenate multiline headers to the original header field data */
 
       else if (line[0] == 32 || line[0] == '\t')
       {
@@ -180,7 +180,7 @@ _ds_actualize_message (const char *message)
         }
       }
 
-      /* new header field */
+      /* New header field */
 
       else if (line[0] != 0)
       {
@@ -201,11 +201,11 @@ _ds_actualize_message (const char *message)
       }
     }
 
-    /* body processing */
+    /* Body processing */
 
     else if (block_position == BP_BODY)
     {
-      /* look for a boundary in the header of a part */
+      /* Look for a boundary in the header of a part */
 
       if (!strncasecmp (line, "Content-Type", 12)
             || ((line[0] == 32 || line[0] == 9) && in_content))
@@ -225,12 +225,12 @@ _ds_actualize_message (const char *message)
         in_content = 0;
       }
 
-      /* multipart boundary was reached; move onto next block */
+      /* Multipart boundary was reached; move onto next block */
 
       if (_ds_match_boundary (boundaries, line))
       {
 
-        /* add the boundary as the terminating boundary */
+        /* Add the boundary as the terminating boundary */
 
         current_block->terminating_boundary = strdup (line + 2);
         current_block->original_encoding = current_block->encoding;
@@ -247,12 +247,12 @@ _ds_actualize_message (const char *message)
         block_position = BP_HEADER;
       }
 
-      /* plain old message (or part) body */
+      /* Plain old message (or part) body */
 
       else {
         buffer_cat (current_block->body, line);
 
-        /* don't add extra \n at the end of message's body */
+        /* Don't add extra \n at the end of message's body */
 
         if (in != NULL)
           buffer_cat (current_block->body, "\n");
@@ -277,15 +277,15 @@ MEMFAIL:
 }
 
 /*
-  _ds_create_message_block
-
-  DESCRIPTION
-    create and initialize a new message block component
-
-  RETURN VALUES
-    pointer to an allocated message block (ds_message_block_t), NULL on failure
-
-*/
+ * _ds_create_message_block
+ *
+ * DESCRIPTION
+ *   create and initialize a new message block component
+ *
+ * RETURN VALUES
+ *   pointer to an allocated message block (ds_message_block_t), NULL on failure
+ *
+ */
 
 ds_message_block_t
 _ds_create_message_block (void)
@@ -309,7 +309,7 @@ _ds_create_message_block (void)
   block->media_subtype     = MST_PLAIN;
   block->original_encoding = EN_UNKNOWN;
 
-  /* not really necessary, but.. */
+  /* Not really necessary, but.. */
 
   block->boundary = NULL;
   block->terminating_boundary = NULL;
@@ -329,18 +329,17 @@ MEMFAIL:
 }
 
 /*
-  _ds_create_header_field(const char *heading)
-
-  DESCRIPTION
-    create and initialize a new header structure
-
-  INPUT ARGUMENTS
-	heading		plain text heading (e.g. "To: Mom")
-
-  RETURN VALUES
-    pointer to an allocated header structure (ds_header_t), NULL on failure
-
-*/
+ * _ds_create_header_field(const char *heading)
+ *
+ * DESCRIPTION
+ *   create and initialize a new header structure
+ *
+ * INPUT ARGUMENTS
+ *      heading    plain text heading (e.g. "To: Mom")
+ *
+ * RETURN VALUES
+ *   pointer to an allocated header structure (ds_header_t), NULL on failure
+ */
 
 ds_header_t
 _ds_create_header_field (const char *heading)
@@ -353,7 +352,7 @@ _ds_create_header_field (const char *heading)
   if (!header || !in) 
     goto MEMFAIL;
 
-  /* not really necessary, but... */
+  /* Not really necessary, but... */
 
   header->heading = NULL;
   header->data    = NULL;
@@ -372,13 +371,13 @@ _ds_create_header_field (const char *heading)
         LOGDEBUG("%s:%u: unexpected data: header string '%s' doesn't "
                  "contains `:' character", __FILE__, __LINE__, header->heading);
 
-        /* use empty string as data as fallback for comtinue processing. */
+        /* Use empty string as data as fallback for comtinue processing. */
 
         in = "";
       }
       else
       {
-        /* skip white space */
+        /* Skip white space */
         while (*in == 32 || *in == 9) 
           ++in; 
       }
@@ -403,15 +402,14 @@ MEMFAIL:
 }
 
 /*
-  _ds_decode_headers (ds_message_block_t block)
-
-  DESCRIPTION
-    decodes in-line encoded headers
-
-  RETURN VALUES
-    returns 0 on success
-
-*/
+ * _ds_decode_headers (ds_message_block_t block)
+ *
+ * DESCRIPTION
+ *   decodes in-line encoded headers
+ *
+ * RETURN VALUES
+ *   returns 0 on success
+ */
 
 int
 _ds_decode_headers (ds_message_block_t block) {
@@ -461,7 +459,7 @@ _ds_decode_headers (ds_message_block_t block) {
 
         decoded_len = 0;
 
-        /* append the rest of the message */
+        /* Append the rest of the message */
 
         if (decoded)
         {
@@ -507,24 +505,23 @@ _ds_decode_headers (ds_message_block_t block) {
 }
 
 /*
-  _ds_analyze_header (ds_message_block_t block, ds_header_t header,
-                      struct nt *boundaries)
-
-  DESCRIPTION
-    analyzes the header passed in and performs various operations including:
-      - setting media type and subtype
-      - setting transfer encoding
-      - adding newly discovered boundaries
-
-    based on the heading specified. essentially all headers shoudl be
-    analyzed for future expansion
-
-  INPUT ARGUMENTS
-	block		the message block to which the header belongs
-	header		the header to analyze
-	boundaries	a list of known boundaries found within the block 
-
-*/
+ *  _ds_analyze_header (ds_message_block_t block, ds_header_t header,
+ *                      struct nt *boundaries)
+ *
+ * DESCRIPTION
+ *   analyzes the header passed in and performs various operations including:
+ *     - setting media type and subtype
+ *     - setting transfer encoding
+ *     - adding newly discovered boundaries
+ *
+ *   based on the heading specified. essentially all headers shoudl be
+ *   analyzed for future expansion
+ *
+ * INPUT ARGUMENTS
+ *      block		the message block to which the header belongs
+ *      header		the header to analyze
+ *      boundaries	a list of known boundaries found within the block 
+ */
 
 void
 _ds_analyze_header (
@@ -624,15 +621,14 @@ _ds_analyze_header (
 }
 
 /*
-  _ds_destroy_message (ds_message_t message)
-
-  DESCRIPTION
-    destroys a message structure (ds_message_t)
-
-  INPUT ARGUMENTS
-        message		the message structure to be destroyed
-
-*/
+ * _ds_destroy_message (ds_message_t message)
+ *
+ * DESCRIPTION
+ *   destroys a message structure (ds_message_t)
+ *
+ * INPUT ARGUMENTS
+ *      message    the message structure to be destroyed
+ */
 
 void
 _ds_destroy_message (ds_message_t message)
@@ -660,15 +656,15 @@ _ds_destroy_message (ds_message_t message)
 }
 
 /*
-  _ds_destroy_headers (ds_message_block_t block)
-
-  DESCRIPTION
-    destroys a message block's header pairs
-    does not free the structures themselves; these are freed at nt_destroy
-
-  INPUT ARGUMENTS
-        block	the message block containing the headers to destsroy
-*/
+ * _ds_destroy_headers (ds_message_block_t block)
+ *
+ * DESCRIPTION
+ *   destroys a message block's header pairs
+ *   does not free the structures themselves; these are freed at nt_destroy
+ *
+ * INPUT ARGUMENTS
+ *      block    the message block containing the headers to destsroy
+ */
 
 void
 _ds_destroy_headers (ds_message_block_t block)
@@ -698,14 +694,14 @@ _ds_destroy_headers (ds_message_block_t block)
 }
 
 /*
-  _ds_destroy_block (ds_message_block_t block)
-
-  DESCRIPTION
-    destroys a message block
-
-  INPUT ARGUMENTS
-    block   the message block to destroy
-*/
+ * _ds_destroy_block (ds_message_block_t block)
+ *
+ * DESCRIPTION
+ *   destroys a message block
+ *
+ * INPUT ARGUMENTS
+ *   block   the message block to destroy
+ */
 
 void
 _ds_destroy_block (ds_message_block_t block)
@@ -727,19 +723,18 @@ _ds_destroy_block (ds_message_block_t block)
 }
 
 /*
-  _ds_decode_block (ds_message_block_t block)
-    
-  DESCRIPTION
-    decodes a message block
-  
-  INPUT ARGUMENTS
-    block   the message block to decode
-
-  RETURN VALUES
-    a pointer to the allocated character array containing the decoded message 
-    NULL on failure
-
-*/
+ * _ds_decode_block (ds_message_block_t block)
+ *   
+ * DESCRIPTION
+ *   decodes a message block
+ * 
+ * INPUT ARGUMENTS
+ *   block   the message block to decode
+ *
+ * RETURN VALUES
+ *   a pointer to the allocated character array containing the decoded message 
+ *   NULL on failure
+ */
 
 char *
 _ds_decode_block (ds_message_block_t block)
@@ -755,19 +750,18 @@ _ds_decode_block (ds_message_block_t block)
 }
 
 /*
-  _ds_decode_{base64,quoted}
-    
-  DESCRIPTION
-    supporting block decoder functions
-    these function call (or perform) specific decoding functions
- 
-  INPUT ARGUMENTS
-    body	encoded message body
-
-  RETURN VALUES
-    a pointer to the allocated character array containing the decoded body
-
-*/
+ * _ds_decode_{base64,quoted}
+ *
+ * DESCRIPTION
+ *   supporting block decoder functions
+ *   these function call (or perform) specific decoding functions
+ * 
+ * INPUT ARGUMENTS
+ *   body	encoded message body
+ *
+ * RETURN VALUES
+ *   a pointer to the allocated character array containing the decoded body
+ */
 
 #ifndef NCORE
 char *
@@ -828,20 +822,19 @@ _ds_decode_quoted (const char *body)
 #endif /* NCORE */
 
 /*
-  _ds_encode_block (ds_message_block_t block, int encoding)
-    
-  DESCRIPTION
-    encodes a message block using the encoding specified and replaces the
-    block's message body with the encoded data
-  
-  INPUT ARGUMENTS
-    block   the message block to encode
-    encoding	encoding to use (EN_)
-
-  RETURN VALUES
-    returns 0 on success
-
-*/
+ * _ds_encode_block (ds_message_block_t block, int encoding)
+ *   
+ * DESCRIPTION
+ *   encodes a message block using the encoding specified and replaces the
+ *   block's message body with the encoded data
+ * 
+ * INPUT ARGUMENTS
+ *      block       the message block to encode
+ *      encoding    encoding to use (EN_)
+ *
+ * RETURN VALUES
+ *    returns 0 on success
+ */
 
 int
 _ds_encode_block (ds_message_block_t block, int encoding)
@@ -875,19 +868,18 @@ _ds_encode_block (ds_message_block_t block, int encoding)
 }
 
 /*
-  _ds_encode_{base64,quoted}
-
-  DESCRIPTION
-    supporting block encoder functions
-    these function call (or perform) specific encoding functions
-
-  INPUT ARGUMENTS
-    body        decoded message body
-
-  RETURN VALUES
-    a pointer to the allocated character array containing the encoded body
-
-*/
+ * _ds_encode_{base64,quoted}
+ *
+ * DESCRIPTION
+ *   supporting block encoder functions
+ *   these function call (or perform) specific encoding functions
+ *
+ * INPUT ARGUMENTS
+ *   body        decoded message body
+ *
+ * RETURN VALUES
+ *   a pointer to the allocated character array containing the encoded body
+ */
 
 char *
 _ds_encode_base64 (const char *body)
@@ -896,18 +888,17 @@ _ds_encode_base64 (const char *body)
 }
 
 /*
-  _ds_assemble_message (ds_message_t message)
-
-  DESCRIPTION
-    assembles a message structure into a flat text message
-
-  INPUT ARGUMENTS
-    message	the message structure (ds_message_t) to assemble
-
-  RETURN VALUES
-    a pointer to the allocated character array containing the text message
-
-*/
+ * _ds_assemble_message (ds_message_t message)
+ *
+ * DESCRIPTION
+ *   assembles a message structure into a flat text message
+ *
+ * INPUT ARGUMENTS
+ *      message    the message structure (ds_message_t) to assemble
+ *
+ * RETURN VALUES
+ *   a pointer to the allocated character array containing the text message
+ */
 
 char *
 _ds_assemble_message (ds_message_t message)
@@ -933,7 +924,7 @@ _ds_assemble_message (ds_message_t message)
     LOGDEBUG ("assembling component %d", i);
 #endif
 
-    /* assemble headers */
+    /* Assemble headers */
 
     if (block->headers != NULL && block->headers->items > 0)
     {
@@ -967,7 +958,7 @@ _ds_assemble_message (ds_message_t message)
 
     buffer_cat (out, "\n");
 
-    /* assemble bodies */
+    /* Assemble bodies */
 
     if (block->original_signed_body != NULL && message->protect)
       buffer_cat (out, block->original_signed_body->data);
@@ -994,12 +985,11 @@ _ds_assemble_message (ds_message_t message)
 }
 
 /*
-  _ds_{push,pop,match,extract}_boundary 
-
-  DESCRIPTION
-    these functions maintain and service a boundary "stack" on the message
-
-*/
+ * _ds_{push,pop,match,extract}_boundary 
+ *
+ * DESCRIPTION
+ *   these functions maintain and service a boundary "stack" on the message
+ */
 
 int
 _ds_push_boundary (struct nt *stack, const char *boundary)
@@ -1106,23 +1096,23 @@ _ds_extract_boundary (char *buf, size_t size, char *mem)
 }
 
 /*
-  _ds_find_header (ds_message_t message, consr char *heading, int flags) {
-
-  DESCRIPTION
-    finds a header and returns its value
-
-  INPUT ARGUMENTS
-    message     the message structure to search
-    heading	the heading to search for 	
-    flags	optional search flags
-
-  FLAGS
-    DDF_ICASE	case insensitive search
-
-  RETURN VALUES
-    a pointer to the header structure's value
-
-*/
+ * _ds_find_header (ds_message_t message, consr char *heading, int flags) {
+ *
+ * DESCRIPTION
+ *   finds a header and returns its value
+ *
+ * INPUT ARGUMENTS
+ *   message     the message structure to search
+ *   heading	the heading to search for 	
+ *   flags	optional search flags
+ *
+ * FLAGS
+ *   DDF_ICASE	case insensitive search
+ *
+ * RETURN VALUES
+ *   a pointer to the header structure's value
+ *
+ */
 
 char *
 _ds_find_header (ds_message_t message, const char *heading, int flags) {

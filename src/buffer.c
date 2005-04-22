@@ -1,4 +1,4 @@
-/* $Id: buffer.c,v 1.4 2005/04/21 21:08:21 jonz Exp $ */
+/* $Id: buffer.c,v 1.5 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -20,12 +20,7 @@
 
 */
 
-/*
-   buffer.c
-
-   DESCRIPTION
-     dynamic string data structure
-*/
+/* buffer.c - dynamic string data structure */
 
 #include <string.h>
 #include <stdlib.h>

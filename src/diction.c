@@ -1,4 +1,4 @@
-/* $Id: diction.c,v 1.3 2005/04/21 21:14:41 jonz Exp $ */
+/* $Id: diction.c,v 1.4 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -21,15 +21,14 @@
 */
 
 /*
-   diction.c
-
-   DESCRIPTION
-     a diction is a subset of lexical data from a user's dictionary. in the
-     context used within DSPAM, a diction is all of the matching lexical
-     information from the current message being processed. the diction is
-     loaded/stored by the storage driver and managed primarily by libdspam.
-
-*/
+ *  diction.c - subset of lexical data
+ *
+ *  DESCRIPTION
+ *    a diction is a subset of lexical data from a user's dictionary. in the
+ *    context used within DSPAM, a diction is all of the matching lexical
+ *    information from the current message being processed. the diction is
+ *    loaded/stored by the storage driver and managed primarily by libdspam.
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>

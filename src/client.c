@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.51 2005/04/21 21:08:21 jonz Exp $ */
+/* $Id: client.c,v 1.52 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -21,11 +21,15 @@
 */
 
 /*
-   client.c
-
-   DESCRIPTION
-     client-based functions (for operating in client/daemon mode)
-*/
+ * client.c - client-based functions (for operating in client/daemon mode)c
+ *
+ * DESCRIPTION
+ *   Client-based functions are called when --client is specified on the
+ *   commandline or by dspamc (where --client is inferred). The client
+ *   functions connect to a DSPAM server for processing (rather than the
+ *   usual behavior which is to process the message itself). Client
+ *   functions are also used when delivering via LMTP or SMTP.
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -61,18 +65,18 @@
 #include "buffer.h"
 
 /*
-   client_process(AGENT_CTX *, buffer *)
-
-   DESCRIPTION
-     connect to a dspam daemon socket and attempt to process a message
-     this function is called by the dspam agent when --client is specified
-
-   INPUT ARGUMENTS
-        ATX     	agent context
-        message		message to be processed
-
-   RETURN VALUES
-     returns 0 on success
+ * client_process(AGENT_CTX *, buffer *)
+ *
+ * DESCRIPTION
+ *   connect to a dspam daemon socket and attempt to process a message
+ *   this function is called by the dspam agent when --client is specified
+ *
+ * INPUT ARGUMENTS
+ *      ATX     	agent context
+ *      message		message to be processed
+ *
+ * RETURN VALUES
+ *   returns 0 on success
 */
 
 int client_process(AGENT_CTX *ATX, buffer *message) {
@@ -94,7 +98,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   if (TTX.packet_buffer == NULL) 
     goto BAIL;
 
-  /* LHLO / MAIL FROM - authenticate on the server */
+  /* LHLO / MAIL FROM - Authenticate on the server */
 
   if (client_authenticate(&TTX, ATX->client_args)<0) {
     LOG(LOG_WARNING, ERROR_CLIENT_AUTH_FAILED);
@@ -102,7 +106,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     goto QUIT;
   }
 
-  /* RCPT TO - send recipient information */
+  /* RCPT TO - Send recipient information */
 
   strcpy(buf, "RCPT TO: ");
   node_nt = c_nt_first(ATX->users, &c_nt);
@@ -122,7 +126,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     node_nt = c_nt_next(ATX->users, &c_nt);
   }
 
-  /* DATA - send message */
+  /* DATA - Send message */
 
   if (send_socket(&TTX, "DATA")<=0) 
     goto BAIL;
@@ -155,7 +159,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     goto BAIL;
   }
 
-  /* server response */
+  /* Server response */
 
   if (ATX->flags & DAF_STDOUT || ATX->operating_mode == DSM_CLASSIFY) {
     char *line = NULL;
@@ -237,23 +241,22 @@ BAIL:
 }
 
 /*
-   client_connect(AGENT_CTX ATX, int flags)
-
-   DESCRIPTION
-     establish a connection to a server
-     
-
-   INPUT ARGUMENTS
-        ATX             agent context
-        flags		connection flags
-
-   FLAGS
-	CCF_PROCESS	Use ClientHost as destination
-	CCF_DELIVERY	Use DeliveryHost as destination
-
-   RETURN VALUES
-     returns 0 on success
-*/
+ * client_connect(AGENT_CTX ATX, int flags)
+ *
+ * DESCRIPTION
+ *   establish a connection to a server
+ *
+ * INPUT ARGUMENTS
+ *      ATX             agent context
+ *      flags		connection flags
+ *
+ * FLAGS
+ *    CCF_PROCESS     Use ClientHost as destination
+ *    CCF_DELIVERY    Use DeliveryHost as destination
+ *
+ *  RETURN VALUES
+ *    returns 0 on success
+ */
 
 int client_connect(AGENT_CTX *ATX, int flags) {
   struct sockaddr_in addr;
@@ -300,7 +303,7 @@ int client_connect(AGENT_CTX *ATX, int flags) {
     return EINVAL;
   }
 
-  /* connect (domain socket) */
+  /* Connect (domain socket) */
 
   if (domain) {
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -315,7 +318,7 @@ int client_connect(AGENT_CTX *ATX, int flags) {
       return EFAILURE;
     }
 
-  /* connect (tcp socket) */
+  /* Connect (TCP socket) */
 
   } else {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -340,22 +343,21 @@ int client_connect(AGENT_CTX *ATX, int flags) {
 }
 
 /*
-   client_authenticate(AGENT_CTX *ATX, const char *mode)
-
-   DESCRIPTION
-     greet and authenticate on a server
-
-
-   INPUT ARGUMENTS
-        ATX             agent context
-        mode		processing mode
-
-   NOTES
-     the process mode is passed using the DSPAMPROCESSMODE service tag
-
-   RETURN VALUES
-     returns 0 on success
-*/
+ * client_authenticate(AGENT_CTX *ATX, const char *mode)
+ *
+ * DESCRIPTION
+ *   greet and authenticate on a server
+ *
+ * INPUT ARGUMENTS
+ *      ATX             agent context
+ *      mode		processing mode
+ *
+ * NOTES
+ *   the process mode is passed using the DSPAMPROCESSMODE service tag
+ *
+ * RETURN VALUES
+ *   returns 0 on success
+ */
 
 int client_authenticate(THREAD_CTX *TTX, const char *mode) {
   char *ident = _ds_read_attribute(agent_config, "ClientIdent");
@@ -415,22 +417,21 @@ int client_authenticate(THREAD_CTX *TTX, const char *mode) {
 }
 
 /*
-   client_expect(THREAD_CTX *TTX, int code, char *err, size_t len)
-
-   DESCRIPTION
-     wait for the appropriate return code, then return
-
-
-   INPUT ARGUMENTS
-        ATX             agent context
-        code		return code to wait for
-	err		error buffer
-	len		buffer len
-
-   RETURN VALUES
-     allocated pointer to acknowledgement line, NULL on error
-     err buffer is populated on error
-*/
+ * client_expect(THREAD_CTX *TTX, int code, char *err, size_t len)
+ *
+ * DESCRIPTION
+ *   wait for the appropriate return code, then return
+ *
+ * INPUT ARGUMENTS
+ *    ATX    agent context
+ *    code   return code to wait for
+ *    err    error buffer
+ *    len    buffer len
+ *
+ * RETURN VALUES
+ *   allocated pointer to acknowledgement line, NULL on error
+ *   err buffer is populated on error
+ */
 
 char * client_expect(THREAD_CTX *TTX, int code, char *err, size_t len) {
   char *inp, *dup, *ptr, *ptrptr;
@@ -467,18 +468,17 @@ char * client_expect(THREAD_CTX *TTX, int code, char *err, size_t len) {
 }
 
 /*
-   client_parsecode(const char *err)
-
-   DESCRIPTION
-     parse response code from plain text
-
-
-   INPUT ARGUMENTS
-        err		error message to parse
-
-   RETURN VALUES
-     integer value of response code
-*/
+ * client_parsecode(const char *err)
+ *
+ * DESCRIPTION
+ *   parse response code from plain text
+ *
+ * INPUT ARGUMENTS
+ *      err    error message to parse
+ *
+ * RETURN VALUES
+ *   integer value of response code
+ */
 
 int client_parsecode(char *error) {
   char code[4];
@@ -488,20 +488,19 @@ int client_parsecode(char *error) {
 }
 
 /*
-   client_getcode(THREAD_CTX *TTX, char *err, size_t len)
-
-   DESCRIPTION
-     retrieve a line of input and return response code
-  
-  
-   INPUT ARGUMENTS  
-	TTX	thread context containing sockfd
-        err	error buffer
-	len	buffer len
-
-   RETURN VALUES
-     integer value of response code
-*/
+ * client_getcode(THREAD_CTX *TTX, char *err, size_t len)
+ *
+ * DESCRIPTION
+ *   retrieve a line of input and return response code
+ *
+ * INPUT ARGUMENTS  
+ *     TTX    thread context containing sockfd
+ *     err    error buffer
+ *     len    buffer len
+ *
+ * RETURN VALUES
+ *   integer value of response code
+ */
 
 int client_getcode(THREAD_CTX *TTX, char *err, size_t len) {
   char *inp, *ptr, *ptrptr;
@@ -526,18 +525,18 @@ int client_getcode(THREAD_CTX *TTX, char *err, size_t len) {
 }
 
 /*
-   client_getline(THREAD_CTX *TTX, int timeout)
-
-   DESCRIPTION
-     read a complete line from a socket
-  
-   INPUT ARGUMENTS  
-        TTX	thread context containing sockfd
-	timeout	timeout (in seconds) to wait for input
-
-   RETURN VALUES
-     allocated pointer to input
-*/
+ * client_getline(THREAD_CTX *TTX, int timeout)
+ *
+ * DESCRIPTION
+ *   read a complete line from a socket
+ *
+ * INPUT ARGUMENTS  
+ *      TTX        thread context containing sockfd
+ *      timeout    timeout (in seconds) to wait for input
+ *
+ * RETURN VALUES
+ *   allocated pointer to input
+ */
 
 char *client_getline(THREAD_CTX *TTX, int timeout) {
   struct timeval tv;
@@ -573,17 +572,17 @@ char *client_getline(THREAD_CTX *TTX, int timeout) {
 }
 
 /*
-   pop_buffer (THREAD_CTX *TTX)
-
-   DESCRIPTION
-     pop a line off the packet buffer
- 
-   INPUT ARGUMENTS
-        TTX     thread context containing the packet buffer
-
-   RETURN VALUES
-     allocated pointer to line, NULL if complete line isn't available
-*/
+ * pop_buffer (THREAD_CTX *TTX)
+ *
+ * DESCRIPTION
+ *   pop a line off the packet buffer
+ *
+ * INPUT ARGUMENTS
+ *      TTX     thread context containing the packet buffer
+ * 
+ * RETURN VALUES
+ *   allocated pointer to line, NULL if complete line isn't available
+ */
 
 char *pop_buffer(THREAD_CTX *TTX) {
   char *buf, *eol;
@@ -608,18 +607,18 @@ char *pop_buffer(THREAD_CTX *TTX) {
 }
 
 /*
-   send_socket(THREAD_CTX *TTX, const char *text)
-
-   DESCRIPTION
-     send a line of text to a socket
- 
-   INPUT ARGUMENTS
-        TTX     thread context containing sockfd
-        text	text to send
-
-   RETURN VALUES
-     number of bytes sent
-*/
+ * send_socket(THREAD_CTX *TTX, const char *text)
+ *
+ * DESCRIPTION
+ *   send a line of text to a socket
+ *
+ * INPUT ARGUMENTS
+ *      TTX     thread context containing sockfd
+ *      text    text to send
+ *
+ * RETURN VALUES
+ *   number of bytes sent
+ */
 
 int send_socket(THREAD_CTX *TTX, const char *text) {
   int i = 0, r, msglen;
@@ -642,31 +641,30 @@ int send_socket(THREAD_CTX *TTX, const char *text) {
 }
 
 /*
-  deliver_socket(AGENT_CTX *ATX, const char *msg, int proto)
-
-  DESCRIPTION
-    delivers message via LMTP or SMTP (instead of TrustedDeliveryAgent) 
-
-    If LMTP/SMTP delivery was specified in dspam.conf, this function will be 
-    called by deliver_message(). This function connects to and delivers the 
-    message using standard LMTP or SMTP. Depending on how DSPAM was originally 
-    called, either the address supplied with the incoming RCPT TO or the 
-    address supplied on the commandline with --rcpt-to  will be used. If 
-    neither are present, the username will be used. 
-
-  INPUT ARGUMENTS
-	ATX	agent context
-	msg	message to send
-	proto	protocol to use
-
-  PROTOCOLS
-	DDP_LMTP	LMTP
-	DDP_SMTP	SMTP
-
-  RETURN VALUES
-    returns 0 on success
-
-*/
+ * deliver_socket(AGENT_CTX *ATX, const char *msg, int proto)
+ *
+ * DESCRIPTION
+ *   delivers message via LMTP or SMTP (instead of TrustedDeliveryAgent) 
+ *
+ *   If LMTP/SMTP delivery was specified in dspam.conf, this function will be 
+ *   called by deliver_message(). This function connects to and delivers the 
+ *   message using standard LMTP or SMTP. Depending on how DSPAM was originally 
+ *   called, either the address supplied with the incoming RCPT TO or the 
+ *   address supplied on the commandline with --rcpt-to  will be used. If 
+ *   neither are present, the username will be used. 
+ *
+ * INPUT ARGUMENTS
+ *     ATX      agent context
+ *     msg      message to send
+ *     proto    protocol to use
+ *
+ * PROTOCOLS
+ *     DDP_LMTP    LMTP
+ *     DDP_SMTP    SMTP
+ *
+ * RETURN VALUES
+ *   returns 0 on success
+ */
 
 int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   THREAD_CTX TTX;

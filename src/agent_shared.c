@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.48 2005/04/22 02:29:19 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.49 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -21,12 +21,11 @@
 */
 
 /*
- * agent_shared.c
+ * agent_shared.c - shared agent-based components
  *
  * DESCRIPTION
  *   agent-based components shared between the full dspam agent (dspam) 
  *   and the lightweight client agent (dspamc)
- *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -113,7 +112,7 @@ int initialize_atx(AGENT_CTX *ATX) {
 
 #ifdef TRUSTED_USER_SECURITY
 
-  /* cache the current user's passwd entry and establish trust */
+  /* Cache the current user's passwd entry and establish trust */
 
 #if defined(_REENTRANT) && defined(HAVE_GETPWUID_R)
   if (getpwuid_r(getuid(), &ATX->pwbuf, buf, sizeof(buf), &ATX->p)) 
@@ -175,7 +174,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     strlcat (ATX->debug_args, " ", sizeof (ATX->debug_args));
 #endif
 
-    /* terminate user/rcpt lists */
+    /* Terminate user/rcpt lists */
 
     if ((flag_u || flag_r) &&
         (argv[i][0] == '-' || argv[i][0] == 0 || !strcmp(argv[i], "--")))
@@ -203,7 +202,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       continue;
     }
 
-    /* build arg list to pass to server (when in client/server mode) */
+    /* Build arg list to pass to server (when in client/server mode) */
  
     if (client && !flag_u && !flag_r && i>0) 
     {
@@ -249,7 +248,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       continue;
     }
 
-    /* build rcpt-to list */
+    /* Build RCPT TO list */
 
     if (flag_r)
     {
@@ -275,7 +274,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       continue;
     }
 
-    /* build process user list */
+    /* Build process user list */
 
     if (flag_u)
     {
@@ -446,7 +445,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       exit (EXIT_SUCCESS);
     }
 
-    /* append all unknown arguments as mailer args */
+    /* Append all unknown arguments as mailer args */
 
     if (i>0 
 #ifdef TRUSTED_USER_SECURITY
@@ -573,14 +572,14 @@ int process_mode(AGENT_CTX *ATX, const char *mode) {
 
 int apply_defaults(AGENT_CTX *ATX) {
 
-  /* training mode */
+  /* Training mode */
 
   if (ATX->training_mode == DST_DEFAULT) {
     char *v = _ds_read_attribute(agent_config, "TrainingMode");
     process_mode(ATX, v);
   }
 
-  /* default delivery agent */
+  /* Default delivery agent */
 
   if (!(ATX->flags & DAF_STDOUT)) {
     char key[32];
@@ -607,7 +606,7 @@ int apply_defaults(AGENT_CTX *ATX) {
     }
   }
 
-  /* default quarantine agent */
+  /* Default quarantine agent */
 
   if (_ds_read_attribute(agent_config, "QuarantineAgent")) {
     snprintf(ATX->spam_args, sizeof(ATX->spam_args), "%s ",
@@ -616,7 +615,7 @@ int apply_defaults(AGENT_CTX *ATX) {
     LOGDEBUG("No QuarantineAgent option found. Using standard quarantine.");
   }
 
-  /* features */
+  /* Features */
 
   if (!ATX->feature && _ds_find_attribute(agent_config, "Feature")) {
     attribute_t attrib = _ds_find_attribute(agent_config, "Feature");
@@ -713,12 +712,12 @@ buffer * read_stdin(AGENT_CTX *ATX) {
     return NULL;
   }
 
-  /* only read the message if no signature was provided on commandline */
+  /* Only read the message if no signature was provided on commandline */
 
   if (ATX->signature[0] == 0) {
     while ((fgets (buf, sizeof (buf), stdin)) != NULL)
     {
-      /* strip CR/LFs for admittedly broken mail servers */
+      /* Strip CR/LFs for admittedly broken mail servers */
 
       if (_ds_match_attribute(agent_config, "Broken", "lineStripping")) {
         size_t len = strlen(buf);
@@ -729,15 +728,19 @@ buffer * read_stdin(AGENT_CTX *ATX) {
         }
       }
   
-      /* don't include first line of message if it's a quarantine header added
-         by dspam at time of quarantine */
+      /*
+       *  Don't include first line of message if it's a quarantine header added
+       *  by dspam at time of quarantine 
+       */
 
       if (line==1 && !strncmp(buf, "From QUARANTINE", 15))
         continue;
 
-      /* parse the "To" headers and adjust the operating mode and user when
-         an email is sent to spam-* or notspam-* address. behavior must be
-         configured in dspam.conf */
+      /*
+       *  Parse the "To" headers and adjust the operating mode and user when
+       *  an email is sent to spam-* or notspam-* address. Behavior must be
+       *  configured in dspam.conf
+       */
 
       if (_ds_match_attribute(agent_config, "ParseToHeaders", "on")) {
         if (buf[0] == 0)
@@ -753,8 +756,10 @@ buffer * read_stdin(AGENT_CTX *ATX) {
         goto bail;
       }
   
-      /* use the original user id if we are reversing a false positive
-         (this is only necessary when using shared,managed groups */
+      /*
+       *  Use the original user id if we are reversing a false positive
+       *  (this is only necessary when using shared,managed groups 
+       */
 
       if (!strncasecmp (buf, "X-DSPAM-User: ", 14) && 
           ATX->managed_group[0] != 0                &&

@@ -1,4 +1,4 @@
-/* $Id: config_api.c,v 1.8 2005/04/21 21:08:21 jonz Exp $ */
+/* $Id: config_api.c,v 1.9 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -21,11 +21,13 @@
 */
 
 /*
-   config_api.c
-
-   DESCRIPTION
-     configuration based functions for populating libdspam properties 
-*/
+ * config_api.c - configuration functions for populating libdspam properties 
+ *
+ * DESCRIPTION
+ *   The functions in this section are used to manipulate the libdspam
+ *   context using various APIs. Specifically, the properties API and the
+ *   storage attach API are used here.
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -47,19 +49,19 @@
 #include "util.h"
 
 /*
-   set_libdspam_attributes(DSPAM_CTX *CTX)
-
-   DESCRIPTION
-     populate libdspam properties with relevant configuration values from
-     dspam.conf. since dspam.conf is owned by the agent, libdspam doesn't read
-     it directly; we rely on this api to configure the context.
-
-   INPUT ARGUMENTS
-        CTX	dspam context to configure
-
-   RETURN VALUES
-     returns 0 on success
-*/
+ * set_libdspam_attributes(DSPAM_CTX *CTX)
+ *
+ * DESCRIPTION
+ *   populate libdspam properties with relevant configuration values from
+ *   dspam.conf. since dspam.conf is owned by the agent, libdspam doesn't read
+ *   it directly; we rely on this api to configure the context.
+ *
+ * INPUT ARGUMENTS
+ *      CTX	dspam context to configure
+ *
+ * RETURN VALUES
+ *   returns 0 on success
+ */
 
 int set_libdspam_attributes(DSPAM_CTX *CTX) {
   attribute_t t;
@@ -112,18 +114,18 @@ int set_libdspam_attributes(DSPAM_CTX *CTX) {
 }
 
 /*
-   attach_context(DSPAM_CTX *CTX, void *dbh)
-    
-   DESCRIPTION
-     attach a database handle to an initialized dspam context
-    
-   INPUT ARGUMENTS
-        CTX     dspam context 
-	dbh	database handle to attach
-    
-   RETURN VALUES
-     returns 0 on success
-*/
+ * attach_context(DSPAM_CTX *CTX, void *dbh)
+ *  
+ * DESCRIPTION
+ *   attach a database handle to an initialized dspam context
+ *  
+ * INPUT ARGUMENTS
+ *      CTX    dspam context 
+ *      dbh    database handle to attach
+ *    
+ * RETURN VALUES
+ *   returns 0 on success
+ */
 
 int attach_context(DSPAM_CTX *CTX, void *dbh) {
   int maxtries = 1, tries = 0;

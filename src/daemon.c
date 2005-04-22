@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.95 2005/04/21 21:08:21 jonz Exp $ */
+/* $Id: daemon.c,v 1.96 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -21,12 +21,13 @@
 */
 
 /*
-   daemon.c
-
-   DESCRIPTION
-     server daemon codebase (for operating in client/daemon mode)
-
-*/
+ * daemon.c - server daemon codebase (for operating in client/daemon mode)
+ *
+ * DESCRIPTION
+ *   The code in this section is responsible for managing the DSPAM agent as
+ *   a server-side process when --daemon is called. It ties in with many
+ *   standard agent processing functions..
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -70,23 +71,22 @@
 #include "language.h"
 
 /*
-  daemon_listen(DRIVER_CTX *DTX)
-
-  DESCRIPTION
-    primary daemon loop
-
-    this function is called by the agent when --daemon is specified on the
-    commandline, and is responsible for innitializing and managing core daemon
-    services. these include listening for and accepting incoming connections
-    and spawning new protocol handler threads.
-
-  INPUT ARGUMENTS
-        DTX     driver context (containing cached database connections)
-
-  RETURN VALUES
-    returns 0 on success
-
-*/
+ * daemon_listen(DRIVER_CTX *DTX)
+ *
+ * DESCRIPTION
+ *   primary daemon loop
+ *
+ *   this function is called by the agent when --daemon is specified on the
+ *   commandline, and is responsible for innitializing and managing core daemon
+ *   services. these include listening for and accepting incoming connections
+ *   and spawning new protocol handler threads.
+ *
+ * INPUT ARGUMENTS
+ *     DTX    driver context (containing cached database connections)
+ *
+ * RETURN VALUES
+ *   returns 0 on success
+ */
 
 int daemon_listen(DRIVER_CTX *DTX) {
   struct sockaddr_in local_addr, remote_addr;
@@ -122,7 +122,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-  /* bind (domain socket) */
+  /* Bind (domain socket) */
 
   if (domain) {
     struct sockaddr_un saun;
@@ -157,7 +157,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
 
     umask (mask);
 
-  /* bind to a TCP socket */
+  /* Bind to a TCP socket */
 
   } else {
     listener = socket(AF_INET, SOCK_STREAM, 0);
@@ -188,7 +188,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
     }
   }
 
-  /* listen */
+  /* Listen */
 
   if (listen(listener, queue) == -1) {
     close(listener);
@@ -199,7 +199,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
   FD_SET(listener, &master);
   fdmax = listener;
 
-  /* process new connections (until death or reload) */
+  /* Process new connections (until death or reload) */
 
   for(;;) {
     read_fds = master;
@@ -217,12 +217,12 @@ int daemon_listen(DRIVER_CTX *DTX) {
 
     if (select(fdmax+1, &read_fds, NULL, NULL, &tv)>0) {
 
-      /* process read-ready connections */
+      /* Process read-ready connections */
 
       for(i=0;i<=fdmax;i++) {
         if (FD_ISSET(i, &read_fds)) {
 
-          /* accept new connections */
+          /* Accept new connections */
 
           if (i == listener) {
             int newfd;
@@ -244,9 +244,11 @@ int daemon_listen(DRIVER_CTX *DTX) {
             fcntl(newfd, F_SETFL, O_RDWR);
             setsockopt(newfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
 
-            /* since processing time varies, each new connection gets its own 
-               thread, so we create a new thread context and send it on its 
-               way */
+            /* 
+             * Since processing time varies, each new connection gets its own 
+             * thread, so we create a new thread context and send it on its way 
+             *
+             */
 
             TTX = calloc(1, sizeof(THREAD_CTX));
             if (TTX == NULL) {
@@ -274,7 +276,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
     }  /* if (select)... */
   } /* for(;;) */
 
-  /* shutdown - we should never get here, but who knows */
+  /* Shutdown - we should never get here, but who knows */
 
   close(listener);
   pthread_attr_destroy(&attr);
@@ -282,21 +284,21 @@ int daemon_listen(DRIVER_CTX *DTX) {
 }
 
 /*
-  process_connection(void *ptr)
-
-  DESCRIPTION
-    process a connection after establishment
-
-    this function instantiates for each thread at the beginning of a connection
-    and is the hub for a connection's processing.
-
-  INPUT ARGUMENTS
-        ptr	thread context (TTX)
-
-  RETURN VALUES
-    returns NULL on success
-
-*/
+ * process_connection(void *ptr)
+ *
+ * DESCRIPTION
+ *   process a connection after establishment
+ *
+ *  this function instantiates for each thread at the beginning of a connection
+ *  and is the hub for a connection's processing.
+ *
+ * INPUT ARGUMENTS
+ *      ptr    thread context (TTX)
+ *
+ * RETURN VALUES
+ *   returns NULL on success
+ *
+ */
 
 void *process_connection(void *ptr) {
   char *server_ident = _ds_read_attribute(agent_config, "ServerIdent");
@@ -325,7 +327,7 @@ void *process_connection(void *ptr) {
     server_mode = SSM_AUTO;
   }
 
-  /* initialize a file descriptor hook for dspam to use as stdout */
+  /* Initialize a file descriptor hook for dspam to use as stdout */
 
   fd = fdopen(TTX->sockfd, "w");
   if (!fd) {
@@ -338,9 +340,11 @@ void *process_connection(void *ptr) {
   if (TTX->packet_buffer == NULL)
     goto CLOSE;
 
-  /* send greeting banner
-     in auto mode, we want to look like a regular LMTP server so we don't
-     cause any compatibility problems. in dspam mode, we can change this.  */
+  /* 
+   *  Send greeting banner
+   *  in auto mode, we want to look like a regular LMTP server so we don't
+   *  cause any compatibility problems. in dspam mode, we can change this.  
+   */
 
   snprintf(buf, sizeof(buf), "%d DSPAM %sLMTP %s %s", 
     LMTP_GREETING, 
@@ -360,8 +364,10 @@ void *process_connection(void *ptr) {
   if (server_mode == SSM_AUTO && input[4]) {
     char buff[128];
 
-    /* auto-detect the server mode based on whether or not the ident is
-       assigned a password in dspam.conf */
+    /*
+     *  Auto-detect the server mode based on whether or not the ident is
+     *  assigned a password in dspam.conf 
+     */
 
     snprintf(buff, sizeof(buff), "ServerPass.%s", input + 5);
     chomp(buff);
@@ -372,7 +378,7 @@ void *process_connection(void *ptr) {
   }
   free(input);
 
-  /* advertise extensions */
+  /* Advertise extensions */
 
   if (daemon_extension(TTX, (server_ident) ? server_ident : 
       "localhost.localdomain")<=0)
@@ -391,13 +397,13 @@ void *process_connection(void *ptr) {
   if (daemon_reply(TTX, LMTP_OK, "", "SIZE")<=0)
     goto CLOSE;
 
-  /* main protocol loop */
+  /* Main protocol loop */
 
   while(1) {
     char processmode[256];
     parms = NULL;
 
-    /* configure a new agent context for each pass */
+    /* Configure a new agent context for each pass */
 
     ATX = calloc(1, sizeof(AGENT_CTX));
     if (ATX == NULL) {
@@ -457,7 +463,7 @@ void *process_connection(void *ptr) {
             if (serverpass && !strcmp(pass, serverpass)) {
               TTX->authenticated = 1;
 
-              /* parse PROCESSMODE service tag */
+              /* Parse PROCESSMODE service tag */
  
               ptr = strstr(input, "DSPAMPROCESSMODE=\"");
               if (ptr) {
@@ -520,7 +526,7 @@ void *process_connection(void *ptr) {
     argv[0] = "dspam";
     argv[1] = 0;
 
-    /* load open-LMTP configuration parameters */
+    /* Load open-LMTP configuration parameters */
 
     if (server_mode == SSM_STANDARD) {
       parms = _ds_read_attribute(agent_config, "ServerParameters");
@@ -605,7 +611,7 @@ GETCMD:
         goto CLOSE;
       }
 
-      /* parse DSPAMPROCESSMODE input and set up process arguments */
+      /* Parse DSPAMPROCESSMODE input and set up process arguments */
  
       if (server_mode == SSM_DSPAM && processmode[0] != 0) {
         token = strtok_r(processmode, " ", &ptrptr);
@@ -631,7 +637,7 @@ GETCMD:
     ATX->sockfd = fd;
     ATX->sockfd_output = 0;
 
-    /* something's terribly misconfigured */
+    /* Something's terribly misconfigured */
 
     if (check_configuration(ATX)) {
       report_error(ERROR_DSPAM_MISCONFIGURED);
@@ -655,10 +661,10 @@ GETCMD:
       goto CLOSE;
   
     /*
-       read in the message from a DATA. i personally like to just hang up on
-       a client stupid enough to pass in a NULL message for DATA, but you're 
-       welcome to do whatever you want. 
-    */
+     *  Read in the message from a DATA. I personally like to just hang up on
+     *  a client stupid enough to pass in a NULL message for DATA, but you're 
+     *  welcome to do whatever you want. 
+     */
 
     message = read_sock(TTX, ATX);
     if (message == NULL || message->data == NULL || message->used == 0) {
@@ -667,13 +673,13 @@ GETCMD:
     }
 
     /*
-       lock a database handle. we currently use the modulus of the
-       socket id against the number of database connections in the cache.
-       this seems to work rather well, as we would need to lock up the entire
-       cache to wrap back around. And if we do wrap back around, that means
-       we're busy enough to justify spinning on the current lock (vs. seeking
-       out a free handle, which there likely are none).
-    */
+     *  Lock a database handle. We currently use the modulus of the socket
+     *  id against the number of database connections in the cache. This 
+     *  seems to work rather well, as we would need to lock up the entire
+     *  cache to wrap back around. And if we do wrap back around, that means
+     *  we're busy enough to justify spinning on the current lock (vs. seeking
+     *  out a free handle, which there likely are none).
+     */
 
     i = (TTX->sockfd % TTX->DTX->connection_cache);
     LOGDEBUG("using database handle id %d", i);
@@ -681,7 +687,7 @@ GETCMD:
     ATX->dbh = TTX->DTX->connections[i]->dbh;
     locked = i;
 
-    /* process the message by tying back into the agent functions */
+    /* Process the message by tying back into the agent functions */
 
     ATX->results = nt_create(NT_PTR);
     if (ATX->results == NULL) {
@@ -691,10 +697,10 @@ GETCMD:
     process_users(ATX, message);
   
     /*
-       unlock the database handle as soon as we're done. we also need to
-       refresh our handle index with a new handle if for some reason we
-       had to re-establish a dewedged connection.
-    */
+     *  Unlock the database handle as soon as we're done. We also need to
+     *  refresh our handle index with a new handle if for some reason we
+     *  had to re-establish a dewedged connection.
+     */
 
     if (TTX->DTX->connections[locked]->dbh != ATX->dbh) 
       TTX->DTX->connections[locked]->dbh = ATX->dbh;
@@ -702,13 +708,13 @@ GETCMD:
     pthread_mutex_unlock(&TTX->DTX->connections[locked]->lock);
     locked = -1;
 
-    /* send a terminating '.' if --stdout in 'dspam' mode */
+    /* Send a terminating '.' if --stdout in 'dspam' mode */
 
     if (ATX->sockfd_output) {
       if (send_socket(TTX, ".")<=0)
         goto CLOSE;
 
-    /* otherwise, produce standard delivery results */
+    /* Otherwise, produce standard delivery results */
 
     } else {
       struct nt_node *node_nt, *node_res = NULL;
@@ -762,7 +768,7 @@ GETCMD:
       }
     }
 
-    /* cleanup and get ready for another message */
+    /* Cleanup and get ready for another message */
 
 RSET:
     fflush(fd);
@@ -786,7 +792,7 @@ RSET:
 
   } /* while(1) */
 
-  /* close connection and return */
+  /* Close connection and return */
 
 CLOSE:
   if (locked>=0)
@@ -810,21 +816,20 @@ CLOSE:
 }
 
 /*
-  read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX)
-
-  DESCRIPTION
-    read in a message via socket and perform standard parseto services
-    this is a daemonized version of read_stdin, adding in timeouts and
-    termination via '.'
-
-  INPUT ARGUMENTS
-	TTX	thread context
-	ATX	agent context
-
-  RETURN VALUES
-    pointer to allocated buffer containing the message
-
-*/
+ * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX)
+ *
+ * DESCRIPTION
+ *   read in a message via socket and perform standard parseto services
+ *   this is a daemonized version of read_stdin, adding in timeouts and
+ *   termination via '.'
+ *
+ * INPUT ARGUMENTS
+ *      TTX    thread context
+ *      ATX    agent context
+ *
+ * RETURN VALUES
+ *   pointer to allocated buffer containing the message
+ */
 
 buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
   buffer *message;
@@ -903,20 +908,19 @@ bail:
 }
 
 /*
-  daemon_expect(THREAD_CTX *TTX, const char *command) {
-
-  DESCRIPTION
-    wait for the right command ot be issued by the client
-    if any other command is issued, give them an error
-
-  INPUT ARGUMENTS
-        TTX		thread context
-	command		command to wait for
-
-  RETURN VALUES
-    pointer to allocated character array containing the input line
-
-*/
+ * daemon_expect(THREAD_CTX *TTX, const char *command) {
+ *
+ * DESCRIPTION
+ *   wait for the right command ot be issued by the client
+ *   if any other command is issued, give them an error
+ *
+ * INPUT ARGUMENTS
+ *      TTX        thread context
+ *      command    command to wait for
+ *
+ * RETURN VALUES
+ *   pointer to allocated character array containing the input line
+ */
 
 char *daemon_expect(THREAD_CTX *TTX, const char *command) {
   char buf[128];
@@ -953,20 +957,20 @@ char *daemon_expect(THREAD_CTX *TTX, const char *command) {
 }
 
 /*
-  daemon_reply(THREAD_CTX *TTX, int reply, const char *ecode, const char *text)
-
-  DESCRIPTION
-    send a formatted response to the client
-
-  INPUT ARGUMENTS
-        TTX             thread context
-	reply		numeric response code
-	ecode		enhanced status code
-	text		info text to send
-
-  RETURN VALUES
-    returns 0 on success
-*/
+ * daemon_reply(THREAD_CTX *TTX, int reply, const char *ecode, const char *text)
+ *
+ * DESCRIPTION
+ *   send a formatted response to the client
+ *
+ * INPUT ARGUMENTS
+ *      TTX      thread context
+ *      reply    numeric response code
+ *      ecode    enhanced status code
+ *      text     info text to send
+ *
+ * RETURN VALUES
+ *    returns 0 on success
+ */
 
 int daemon_reply(
   THREAD_CTX *TTX, 
@@ -982,18 +986,18 @@ int daemon_reply(
 
 
 /*
-  daemon_extension(THREAD_CTX *TTX, const char *extension)
-
-  DESCRIPTION
-    advertise a supported LMTP extension
-
-  INPUT ARGUMENTS
-        TTX             thread context
-        extension	extension name
-
-  RETURN VALUES
-    returns 0 on success
-*/
+ * daemon_extension(THREAD_CTX *TTX, const char *extension)
+ *
+ * DESCRIPTION
+ *   advertise a supported LMTP extension
+ *
+ * INPUT ARGUMENTS
+ *       TTX          thread context
+ *       extension    extension name
+ *
+ * RETURN VALUES
+ *   returns 0 on success
+ */
 
 int daemon_extension(THREAD_CTX *TTX, const char *extension) {
   char buf[128];
@@ -1002,15 +1006,15 @@ int daemon_extension(THREAD_CTX *TTX, const char *extension) {
 }
 
 /*
-  process_signal(int sig)
-
-  DESCRIPTION
-    terminate daemon or perform a reload (signal handler)
-
-  INPUT ARGUMENTS
-        sig		signal code
-
-*/
+ * process_signal(int sig)
+ *
+ *  DESCRIPTION
+ *    terminate daemon or perform a reload (signal handler)
+ *
+ *  INPUT ARGUMENTS
+ *      sig    signal code
+ *
+ */
 
 void process_signal(int sig) {
   __daemon_run = 0;
@@ -1026,18 +1030,18 @@ void process_signal(int sig) {
 }
 
 /*
-  daemon_getline(THREAD_CTX *TTX, int timeout)
-
-  DESCRIPTION
-    retrieves a full line of text from a socket
-
-  INPUT ARGUMENTS
-        TTX             thread context
-        timeout		timeout to enforce in waiting for complete line
-
-  RETURN VALUES
-    pointer to allocated character array containing line of input
-*/
+ *  daemon_getline(THREAD_CTX *TTX, int timeout)
+ *
+ * DESCRIPTION
+ *   retrieves a full line of text from a socket
+ *
+ * INPUT ARGUMENTS
+ *      TTX        thread context
+ *      timeout    timeout to enforce in waiting for complete line
+ *
+ * RETURN VALUES
+ *   pointer to allocated character array containing line of input
+ */
 
 char *daemon_getline(THREAD_CTX *TTX, int timeout) {
   struct timeval tv;
@@ -1085,19 +1089,18 @@ char *daemon_getline(THREAD_CTX *TTX, int timeout) {
 }
 
 /*
-  {increment,decrement}_thread_count
-
-  DESCRIPTION
-    keep track of running thread count
-
-    in order to reload or terminate, all threads must complete and exit. 
-    these functions are called whenever a thread spawns or ends and bumps the
-    thread counter in the appropriate direction
-
-  RETURN VALUES
-    pointer to allocated character array containing line of input
-
-*/
+ * {increment,decrement}_thread_count
+ *
+ * DESCRIPTION
+ *   keep track of running thread count
+ *
+ *  in order to reload or terminate, all threads must complete and exit. 
+ *  these functions are called whenever a thread spawns or ends and bumps the
+ *  thread counter in the appropriate direction
+ *
+ * RETURN VALUES
+ *   pointer to allocated character array containing line of input
+ */
 
 void increment_thread_count(void) {
   pthread_mutex_lock(&__lock);

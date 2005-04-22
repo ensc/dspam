@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.24 2005/04/21 21:08:21 jonz Exp $ */
+/* $Id: bnr.c,v 1.25 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -21,11 +21,11 @@
 */
 
 /*
-   bnr.c
-
-   DESCRIPTION
-     Bayesian Noise Reduction - Contextual Symmetry Logic
-*/
+ * bnr.c - bayesian noise reduction - contextual symmetry logic
+ *
+ * http://bnr.nuclearelephant.com 
+ *
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>

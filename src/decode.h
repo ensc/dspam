@@ -1,4 +1,4 @@
-/* $Id: decode.h,v 1.7 2005/04/21 21:04:11 jonz Exp $ */
+/* $Id: decode.h,v 1.8 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -33,12 +33,11 @@
 #define _DECODE_H
 
 /*
-  _ds_header_field
-
-  DESCRIPTION
-    a single header/value paid from a message block
-
-*/
+ * _ds_header_field
+ *
+ * DESCRIPTION
+ *   a single header/value paid from a message block
+ */
 
 typedef struct _ds_header_field
 {
@@ -49,18 +48,18 @@ typedef struct _ds_header_field
 } *ds_header_t;
 
 /*
-  _ds_message_block
- 
-  DESCRIPTION
-    a message block (or part) within a message. in a single-part message, 
-    there will be only one block (block 0). in a multipart message, each part 
-    will be separated into a separte block. the message block consists of:
-     - a dynamic array of headers (nodetree of ds_header_t's) for the block
-     - body data (NULL if there is no body)
-     - block encoding
-     - block media type information
-     - boundary and terminating boundary information
-*/
+ * _ds_message_block
+ * 
+ * DESCRIPTION
+ *   a message block (or part) within a message. in a single-part message, 
+ *   there will be only one block (block 0). in a multipart message, each part 
+ *   will be separated into a separte block. the message block consists of:
+ *    - a dynamic array of headers (nodetree of ds_header_t's) for the block
+ *    - body data (NULL if there is no body)
+ *    - block encoding
+ *    - block media type information
+ *    - boundary and terminating boundary information
+ */
 
 typedef struct _ds_message_block
 {
@@ -76,19 +75,19 @@ typedef struct _ds_message_block
 } *ds_message_block_t;
 
 /*
-  _ds_message
-
-  DESCRIPTION
-    the actual message structure, comprised of an array of message blocks.
-    in a non-multipart email, there will only be one message block (block 0).
-    in multipart emails, however, the first message block will represent the 
-    header (with a NULL body_data or something like "This is a multi-part 
-    message"), and each additional block within the email will be given its 
-    own message_block structure with its own headers, boundary, etc.
-
-    embedded multipart messages are not realized by the structure, but can
-    be identified by examining the media type or headers.
-*/
+ * _ds_message
+ *
+ * DESCRIPTION
+ *   the actual message structure, comprised of an array of message blocks.
+ *   in a non-multipart email, there will only be one message block (block 0).
+ *   in multipart emails, however, the first message block will represent the 
+ *   header (with a NULL body_data or something like "This is a multi-part 
+ *   message"), and each additional block within the email will be given its 
+ *   own message_block structure with its own headers, boundary, etc.
+ *
+ *   embedded multipart messages are not realized by the structure, but can
+ *   be identified by examining the media type or headers.
+ */
 
 typedef struct _ds_message
 {
@@ -103,7 +102,7 @@ char *  _ds_decode_base64       (const char *body);
 char *  _ds_decode_quoted       (const char *body);
 #endif
 
-/* adapter-independent functions */
+/* Adapter-independent functions */
 
 ds_message_t _ds_actualize_message (const char *message);
 
@@ -130,7 +129,7 @@ int	_ds_match_boundary	(struct nt *stack, const char *buff);
 int     _ds_extract_boundary    (char *buf, size_t size, char *data);
 char *	_ds_pop_boundary	(struct nt *stack);
 
-/* encoding values */
+/* Encoding values */
 
 #define EN_7BIT			0x00
 #define EN_8BIT 		0x01
@@ -140,7 +139,7 @@ char *	_ds_pop_boundary	(struct nt *stack);
 #define EN_UNKNOWN		0xFE
 #define EN_OTHER		0xFF
 
-/* media types which are relevant to DSPAM */
+/* Media types which are relevant to DSPAM */
 
 #define MT_TEXT			0x00
 #define MT_MULTIPART		0x01
@@ -149,7 +148,7 @@ char *	_ds_pop_boundary	(struct nt *stack);
 #define MT_UNKNOWN		0xFE
 #define MT_OTHER		0xFF
 
-/* media subtypes which are relevant to DSPAM */
+/* Media subtypes which are relevant to DSPAM */
 
 #define MST_PLAIN		0x00
 #define	MST_HTML		0x01
@@ -163,12 +162,12 @@ char *	_ds_pop_boundary	(struct nt *stack);
 #define MST_UNKNOWN		0xFE
 #define MST_OTHER		0xFF
 
-/* block position; used when analyzing a message */
+/* Block position; used when analyzing a message */
 
 #define BP_HEADER		0x00
 #define BP_BODY			0x01
 
-/* decoding function flags */
+/* Decoding function flags */
 
 #define DDF_ICASE		0x01
 

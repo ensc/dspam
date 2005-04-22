@@ -1,4 +1,4 @@
-/* $Id: base64.c,v 1.4 2005/04/21 21:08:21 jonz Exp $ */
+/* $Id: base64.c,v 1.5 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -21,11 +21,9 @@
 */
 
 /*
-   base64.c
-
-   DESCRIPTION
-     base64 encoding/decoding routines
-*/
+ * base64.c - base64 encoding/decoding routines
+ *
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>

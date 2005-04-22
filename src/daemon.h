@@ -1,4 +1,4 @@
-/* $Id: daemon.h,v 1.23 2005/04/21 21:08:21 jonz Exp $ */
+/* $Id: daemon.h,v 1.24 2005/04/22 13:58:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -59,7 +59,7 @@ typedef struct {
 
 int	daemon_listen(DRIVER_CTX *DTX);
 int	daemon_reply(THREAD_CTX *TTX, int reply, const char *ecode, 
-                     const char *text);
+        const char *text);
 int	daemon_extension(THREAD_CTX *TTX, const char *extension);
 void *	process_connection(void *ptr);
 char *	daemon_expect(THREAD_CTX *TTX, const char *command);
