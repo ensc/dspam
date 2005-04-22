@@ -1,4 +1,4 @@
-/* $Id: ora_drv.c,v 1.8 2005/01/18 18:28:27 jonz Exp $ */
+/* $Id: ora_drv.c,v 1.9 2005/04/22 18:17:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -86,12 +86,12 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EINVAL;
                                                                                 
   if (dbh != NULL) {
-    report_error (ERROR_NO_ATTACH);
+    LOG(LOG_ERR, ERROR_NO_ATTACH);
     return EINVAL;
   }
 
   if (CTX->flags & DSF_MERGED) {
-    report_error (ERROR_NO_MERGED);
+    LOG(LOG_ERR, ERROR_NO_MERGED);
     return EINVAL;
   }
 
@@ -136,7 +136,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   } else {
     if (!CTX->home) {
-      report_error(ERROR_NO_HOME);
+      LOG(LOG_ERR, ERROR_NO_HOME);
       return EINVAL;
     }
     snprintf (filename, MAX_FILENAME_LENGTH, "%s/oracle.data", CTX->home);
@@ -294,7 +294,7 @@ _ora_drv_query_error (const char *error, const char *query)
 
   if (file == NULL)
   {
-    file_error (ERROR_FILE_WRITE, fn, strerror (errno));
+    LOG(LOG_ERR, ERROR_FILE_WRITE, fn, strerror (errno));
     return;
   }
   if (query != NULL)

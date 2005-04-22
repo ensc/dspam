@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.7 2005/04/22 02:21:28 jonz Exp $ */
+/* $Id: util.c,v 1.8 2005/04/22 18:17:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -436,7 +436,7 @@ _ds_prepare_path_for (const char *filename)
         x = mkdir (path, 0770);
         if (x)
         {
-          file_error (ERROR_DIR_CREATE, path, strerror (errno));
+          LOG(LOG_ERR, ERROR_DIR_CREATE, path, strerror (errno));
           free (file_buffer_start);
           return EFILE;
         }

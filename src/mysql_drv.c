@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.41 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.42 2005/04/22 18:17:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -1753,7 +1753,7 @@ _mysql_drv_query_error (const char *error, const char *query)
 
   if (file == NULL)
   {
-    file_error (ERROR_FILE_WRITE, fn, strerror (errno));
+    LOG(LOG_ERR, ERROR_FILE_WRITE, fn, strerror (errno));
     return;
   }
 
@@ -2674,7 +2674,7 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
 
   } else {
     if (!CTX->home) {
-      report_error(ERROR_NO_HOME);
+      LOG(LOG_ERR, ERROR_NO_HOME);
       goto FAILURE;
     }
     snprintf (filename, MAX_FILENAME_LENGTH, "%s/mysql.data", CTX->home);

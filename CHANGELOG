@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.283 2005/04/20 14:04:30 jonz Exp $
+$Id: CHANGELOG,v 1.284 2005/04/22 18:17:52 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050422.0700] jonz: got rid of report_error and report_error_printf
+
+all logging now calls LOG() which syslogs, prints to stderr, and debug
+LOGDEBUG remains
 
 [20050419.0200] jonz: got rid of retrain.log entirely, reworked logs
 

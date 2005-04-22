@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.37 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.38 2005/04/22 18:17:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -1211,7 +1211,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   mem2 = calloc(1, length+1);
   if (!mem2) {
     PQFREEMEM(mem);
-    report_error(ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -1876,7 +1876,7 @@ _pgsql_drv_query_error (const char *error, const char *query)
 
   if (file == NULL)
   {
-    file_error (ERROR_FILE_WRITE, fn, strerror (errno));
+    LOG(LOG_ERR, ERROR_FILE_WRITE, fn, strerror (errno));
     return;
   }
 
@@ -2669,7 +2669,7 @@ _ds_get_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
   mem2 = calloc(1, length+1);
   if (!mem2) {
     PQFREEMEM(mem);
-    report_error(ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -2828,7 +2828,7 @@ PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX)
 
   } else {
     if (!CTX->home) {
-      report_error(ERROR_NO_HOME);
+      LOG(LOG_ERR, ERROR_NO_HOME);
       return NULL;
     }
     snprintf (filename, MAX_FILENAME_LENGTH, "%s/pgsql.data", CTX->home);

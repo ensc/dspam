@@ -1,4 +1,4 @@
-/* $Id: error.h,v 1.3 2005/03/15 17:37:19 jonz Exp $ */
+/* $Id: error.h,v 1.4 2005/04/22 18:17:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -40,36 +40,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern int DO_DEBUG;
 #endif
 
-char *format_date_r		(char *buf);
-void  report_error		(const char *);
-void  report_error_printf	(const char *fmt, ...);
-void  file_error		(const char *operation,
-				 const char *filename,
-				 const char *error);
-#ifndef HAVE_ISO_VARARGS
-void debug (const char *);
-void LOGDEBUG (char *, ...);
-void LOG (int, char *, ...);
+#ifndef DEBUG
+#define LOGDEBUG( ... );
 #else
-#ifdef DEBUG
-extern char debug_text[1024];
-void debug (const char *text);
-#	define	LOGDEBUG( ... )	\
-	{ if (DO_DEBUG) { snprintf(debug_text, 1024, __VA_ARGS__ ); debug(debug_text); } }
-#else
-#	define LOGDEBUG( ... );
+void LOGDEBUG (const char *err, ... );
 #endif
 
 #ifdef _WIN32
-#	define	LOG( ... )
+#define LOG ( ... );
 #else
-#	define	LOG( A, ... ) \
-	{ openlog("dspam", LOG_PID | LOG_NOWAIT, LOG_MAIL); \
-          syslog( A, __VA_ARGS__ ); \
-	  closelog(); LOGDEBUG( __VA_ARGS__ ); \
-          report_error_printf( __VA_ARGS__ ); \
-        }
+void LOG (int priority, const char *err, ... );
 #endif
-#endif
+
+char *format_date_r (char *buf);
+
+void  debug_out (const char *);
 
 #endif /* _DSPAM_ERROR_H */

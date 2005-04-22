@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.49 2005/04/22 13:58:40 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.50 2005/04/22 18:17:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -317,7 +317,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       }
 #endif
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
-        report_error_printf(ERROR_NO_SUCH_PROFILE, argv[i]+10);
+        LOG(LOG_ERR,ERROR_NO_SUCH_PROFILE, argv[i]+10);
         return EINVAL;
       } else {
         _ds_overwrite_attribute(agent_config, "DefaultProfile", argv[i]+10);
@@ -340,7 +340,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
         ATX->classification = DSR_ISINNOCENT;
       else
       {
-        report_error_printf(ERROR_UNKNOWN_CLASS, ptr);
+        LOG(LOG_ERR,ERROR_UNKNOWN_CLASS, ptr);
         return EINVAL;
       }
       continue;
@@ -358,7 +358,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
         ATX->source = DSS_ERROR;
       else
       {
-        report_error_printf(ERROR_UNKNOWN_SOURCE, ptr);
+        LOG(LOG_ERR,ERROR_UNKNOWN_SOURCE, ptr);
         return EINVAL;
       }
       continue;
@@ -396,7 +396,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
           ATX->flags |= DAF_SUMMARY;
         else
         {
-          report_error_printf(ERROR_UNKNOWN_DELIVER, ptr);
+          LOG(LOG_ERR,ERROR_UNKNOWN_DELIVER, ptr);
           free(dup);
           return EINVAL;
         }
@@ -507,12 +507,12 @@ int process_features(AGENT_CTX *ATX, const char *in) {
       ATX->training_buffer = atoi(strchr(ptr, '=')+1);
 
       if (ATX->training_buffer < 0 || ATX->training_buffer > 10) {
-        report_error(ERROR_TB_INVALID);
+        LOG(LOG_ERR, ERROR_TB_INVALID);
         ret = EINVAL;
       }
     }
     else {
-      report_error_printf(ERROR_UNKNOWN_FEATURE, ptr);
+      LOG(LOG_ERR,ERROR_UNKNOWN_FEATURE, ptr);
       ret = EINVAL;
     }
 
@@ -550,7 +550,7 @@ int process_mode(AGENT_CTX *ATX, const char *mode) {
     ATX->training_mode = DST_TEFT;
     ATX->flags |= DAF_UNLEARN;
   } else {
-    report_error_printf(ERROR_TR_MODE_INVALID, mode);
+    LOG(LOG_ERR,ERROR_TR_MODE_INVALID, mode);
     return EINVAL;
   }
 

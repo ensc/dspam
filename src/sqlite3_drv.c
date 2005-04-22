@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.5 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: sqlite3_drv.c,v 1.6 2005/04/22 18:17:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -601,7 +601,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EINVAL;
 
   if (CTX->flags & DSF_MERGED) {
-    report_error (ERROR_NO_MERGED);
+    LOG(LOG_ERR, ERROR_NO_MERGED);
     return EINVAL;
   }
 
@@ -838,7 +838,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   SIG->data = malloc(SIG->length);
   if (SIG->data == NULL) {
     sqlite3_finalize(stmt);
-    report_error(ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
@@ -1227,7 +1227,7 @@ _sqlite_drv_query_error (const char *error, const char *query)
 
   if (file == NULL)
   {
-    file_error (ERROR_FILE_WRITE, fn, strerror (errno));
+    LOG(LOG_ERR, ERROR_FILE_WRITE, fn, strerror (errno));
   }
   else
   {

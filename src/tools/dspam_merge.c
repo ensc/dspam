@@ -1,4 +1,4 @@
-/* $Id: dspam_merge.c,v 1.5 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: dspam_merge.c,v 1.6 2005/04/22 18:17:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -71,12 +71,12 @@ main (int argc, char **argv)
                                                                                 
   agent_config = read_config(NULL);
   if (!agent_config) {
-    report_error(ERROR_READ_CONFIG);
+    LOG(LOG_ERR, ERROR_READ_CONFIG);
     exit(EXIT_FAILURE);
   }
                                                                                 
   if (!_ds_read_attribute(agent_config, "Home")) {
-    report_error(ERROR_DSPAM_HOME);
+    LOG(LOG_ERR, ERROR_DSPAM_HOME);
     _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
@@ -119,7 +119,7 @@ main (int argc, char **argv)
     if (!strncmp (argv[i], "--profile=", 10))
     {
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
-        report_error_printf(ERROR_NO_SUCH_PROFILE, argv[i]+10);
+        LOG(LOG_ERR,ERROR_NO_SUCH_PROFILE, argv[i]+10);
         goto bail;
       } else {
         _ds_overwrite_attribute(agent_config, "DefaultProfile", argv[i]+10);

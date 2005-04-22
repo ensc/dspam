@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.7 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: read_config.c,v 1.8 2005/04/22 18:17:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -103,7 +103,7 @@ config_t read_config(const char *path) {
 
   attrib = calloc(1, attrib_size*sizeof(attribute_t));
   if (attrib == NULL) {
-    report_error(ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     return NULL;
   }
 
@@ -113,7 +113,7 @@ config_t read_config(const char *path) {
     file = fopen(path, "r");
 
   if (file == NULL) {
-    file_error (ERROR_FILE_OPEN, CONFIG_DEFAULT, strerror(errno));
+    LOG(LOG_ERR, ERROR_FILE_OPEN, CONFIG_DEFAULT, strerror(errno));
     free(attrib);
     return NULL;
   }
@@ -142,7 +142,7 @@ config_t read_config(const char *path) {
           if (ptr) 
             attrib = ptr;
           else
-            report_error(ERROR_MEM_ALLOC);
+            LOG(LOG_CRIT, ERROR_MEM_ALLOC);
         } 
         _ds_add_attribute(attrib, a, v);
       }
@@ -154,7 +154,7 @@ config_t read_config(const char *path) {
   ptr = realloc(attrib, ((num_root+1)*sizeof(attribute_t))+1);
   if (ptr)
     return ptr;
-  report_error(ERROR_MEM_ALLOC);
+  LOG(LOG_CRIT, ERROR_MEM_ALLOC);
   return attrib;
 }
 
@@ -230,6 +230,6 @@ agent_pref_t pref_config(void)
   if (ptr)
     return ptr;
   
-  report_error(ERROR_MEM_ALLOC);
+  LOG(LOG_CRIT, ERROR_MEM_ALLOC);
   return PTX;
 }

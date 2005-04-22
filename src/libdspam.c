@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.104 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: libdspam.c,v 1.105 2005/04/22 18:17:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -155,13 +155,13 @@ DSPAM_CTX * dspam_create (const char *username,
 
   CTX->config = calloc(1, sizeof(struct _ds_config));
   if (CTX->config == NULL) {
-    report_error(ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     goto bail;
   }
   CTX->config->size = 128;
   CTX->config->attributes = calloc(1, sizeof(attribute_t)*128);
   if (CTX->config->attributes == NULL) {
-    report_error(ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     goto bail;
   }
 
@@ -265,7 +265,7 @@ int dspam_clearattributes (DSPAM_CTX * CTX) {
 bail:
   free(CTX->config);
   CTX->config = NULL;
-  report_error(ERROR_MEM_ALLOC);
+  LOG(LOG_CRIT, ERROR_MEM_ALLOC);
   return EUNKNOWN;
 }
 
@@ -299,7 +299,7 @@ int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value) {
     if (ptr) {
       CTX->config->attributes = ptr;
     } else {
-      report_error(ERROR_MEM_ALLOC);
+      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
       return EFAILURE; 
     } 
   }
@@ -1703,7 +1703,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   return CTX->result;
 
 bail:
-  report_error_printf("bailing on error %d", errcode);
+  LOG(LOG_ERR,"bailing on error %d", errcode);
   ds_heap_destroy (heap_sort);
 #ifdef LIBBNR_DEBUG
   ds_heap_destroy (heap_nobnr);

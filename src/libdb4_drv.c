@@ -1,4 +1,4 @@
-/* $Id: libdb4_drv.c,v 1.6 2005/01/18 18:28:27 jonz Exp $ */
+/* $Id: libdb4_drv.c,v 1.7 2005/04/22 18:17:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -366,17 +366,17 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EINVAL;
 
   if (!CTX->home) {
-    report_error(ERROR_NO_HOME);
+    LOG(LOG_ERR, ERROR_NO_HOME);
     return EINVAL;
   }
 
   if (dbh != NULL) {
-    report_error (ERROR_NO_ATTACH);
+    LOG(LOG_ERR, ERROR_NO_ATTACH);
     return EINVAL;
   }
 
   if (CTX->flags & DSF_MERGED) {
-    report_error (ERROR_NO_MERGED);
+    LOG(LOG_ERR, ERROR_NO_MERGED);
     return EINVAL;
   }
 
@@ -392,7 +392,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     s = malloc (sizeof (struct _libdb4_drv_storage));
     if (s == NULL)
     {
-      report_error (ERROR_MEM_ALLOC);
+      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
       LOG (LOG_CRIT, ERROR_MEM_ALLOC);
       return EUNKNOWN;
     }
@@ -409,7 +409,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     s = malloc (sizeof (struct _libdb4_drv_storage));
     if (s == NULL)
     {
-      report_error (ERROR_MEM_ALLOC);
+      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
       LOG (LOG_CRIT, ERROR_MEM_ALLOC);
       return EUNKNOWN;
     }
@@ -705,7 +705,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   hashkey = malloc (strlen (signature) + 1);
   if (!hashkey)
   {
-    report_error (ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
@@ -731,7 +731,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   if (mem == NULL)
   {
     free (hashkey);
-    report_error (ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
@@ -758,7 +758,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   hashkey = malloc (strlen (signature) + 1);
   if (!hashkey)
   {
-    report_error (ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
@@ -768,7 +768,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   if (mem == NULL)
   {
     free (hashkey);
-    report_error (ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
@@ -811,7 +811,7 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   hashkey = malloc (strlen (signature) + 1);
   if (!hashkey)
   {
-    report_error (ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
@@ -859,7 +859,7 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   hashkey = malloc (signature_len + 1);
   if (!hashkey)
   {
-    report_error (ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }
@@ -1004,7 +1004,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   sr = malloc (sizeof (struct _ds_storage_record));
   if (sr == NULL)
   {
-    report_error (ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return NULL;
   }
@@ -1050,7 +1050,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   ss = malloc (sizeof (struct _ds_storage_signature));
   if (ss == NULL)
   {
-    report_error (ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return NULL;
   }
@@ -1066,7 +1066,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     ss->data = (void *) calloc (1, data.size - sizeof (time_t));
     if (ss->data == NULL)
     {
-      report_error (ERROR_MEM_ALLOC);
+      LOG(LOG_CRIT, ERROR_MEM_ALLOC);
       LOG (LOG_CRIT, ERROR_MEM_ALLOC);
       free (ss);
       return NULL;
@@ -1132,7 +1132,7 @@ _libdb4_drv_recover (DSPAM_CTX * CTX, int fatal)
   s = malloc (sizeof (struct _libdb4_drv_storage));
   if (s == NULL)
   {
-    report_error (ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     LOG (LOG_CRIT, ERROR_MEM_ALLOC);
     return EUNKNOWN;
   }

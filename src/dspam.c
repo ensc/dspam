@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.159 2005/04/22 14:13:48 jonz Exp $ */
+/* $Id: dspam.c,v 1.160 2005/04/22 18:17:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -107,7 +107,6 @@ main (int argc, char *argv[])
   struct nt_c c_nt;
 
   srand ((long) time << (long) getpid ());
-
   umask (006);                  /* rw-rw---- */
   setbuf (stdout, NULL);	/* unbuffered output */
 #ifdef DEBUG
@@ -118,13 +117,13 @@ main (int argc, char *argv[])
 
   agent_config = read_config(NULL);
   if (!agent_config) {
-    report_error(ERROR_READ_CONFIG);
+    LOG(LOG_ERR, ERROR_READ_CONFIG);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
 
   if (!_ds_read_attribute(agent_config, "Home")) {
-    report_error(ERROR_DSPAM_HOME);
+    LOG(LOG_ERR, ERROR_DSPAM_HOME);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
@@ -132,7 +131,7 @@ main (int argc, char *argv[])
   /* Set up an agent context to define the behavior of the processor */
 
   if (initialize_atx(&ATX)) {
-    report_error(ERROR_INITIALIZE_ATX);
+    LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   } else {
@@ -140,7 +139,7 @@ main (int argc, char *argv[])
   }
 
   if (process_arguments(&ATX, argc, argv)) {
-    report_error(ERROR_INITIALIZE_ATX);
+    LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
@@ -170,13 +169,13 @@ main (int argc, char *argv[])
 #endif
 
   if (apply_defaults(&ATX)) {
-    report_error(ERROR_INITIALIZE_ATX);
+    LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
 
   if (check_configuration(&ATX)) {
-    report_error(ERROR_DSPAM_MISCONFIGURED);
+    LOG(LOG_ERR, ERROR_DSPAM_MISCONFIGURED);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
@@ -191,8 +190,7 @@ main (int argc, char *argv[])
 
   if (ATX.users->items == 0)
   {
-    LOG (LOG_ERR, ERROR_USER_UNDEFINED);
-    report_error (ERROR_USER_UNDEFINED);
+    LOG(LOG_ERR, ERROR_USER_UNDEFINED);
     fprintf (stderr, "%s\n", SYNTAX);
     exitcode = EXIT_FAILURE;
     goto BAIL;
@@ -208,7 +206,7 @@ main (int argc, char *argv[])
   {
     exitcode = client_process(&ATX, message);
     if (exitcode<0)
-      report_error_printf(ERROR_CLIENT_EXIT, exitcode);
+      LOG(LOG_ERR,ERROR_CLIENT_EXIT, exitcode);
   } else {
 #endif
 
@@ -861,7 +859,7 @@ deliver_message (
   file = popen (args, "w");
   if (file == NULL)
   {
-    report_error_printf("error opening pipe to local agent: %s: %s",
+    LOG(LOG_ERR,"error opening pipe to local agent: %s: %s",
                         args, strerror (errno));
     return EFILE;
   }
@@ -880,7 +878,7 @@ deliver_message (
     if (lda_exit_code == 0) {
       LOGDEBUG ("LDA returned success");
     } else {
-      report_error_printf (ERROR_AGENT_RETURN, lda_exit_code, args);
+      LOG(LOG_ERR,ERROR_AGENT_RETURN, lda_exit_code, args);
       if (_ds_match_attribute(agent_config, "LMTPLDAErrorsPermanent", "on")) 
         return EINVAL;
       else
@@ -892,12 +890,12 @@ deliver_message (
   {
     int sig;
     sig = WTERMSIG (rc);
-    report_error_printf (ERROR_AGENT_SIGNAL, sig, args);
+    LOG(LOG_ERR,ERROR_AGENT_SIGNAL, sig, args);
     return sig;
   }
   else
   {
-    report_error_printf (ERROR_AGENT_CLOSE, rc);
+    LOG(LOG_ERR,ERROR_AGENT_CLOSE, rc);
     return rc;
   }
 #endif
@@ -1037,7 +1035,7 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
   file = fopen (filename, "a");
   if (file == NULL)
   {
-    file_error (ERROR_FILE_WRITE, filename, strerror (errno));
+    LOG(LOG_ERR, ERROR_FILE_WRITE, filename, strerror (errno));
     return EFILE;
   }
 
@@ -1130,7 +1128,7 @@ write_web_stats (
   _ds_prepare_path_for (filename);
   file = fopen (filename, "w");
   if (file == NULL) {
-    report_error_printf(ERROR_FILE_WRITE, filename, strerror (errno));
+    LOG(LOG_ERR,ERROR_FILE_WRITE, filename, strerror (errno));
     return EFILE;
   }
 
@@ -1352,7 +1350,7 @@ int send_notice(
            _ds_read_attribute(agent_config, "Home"), filename);
   f = fopen(msgfile, "r");
   if (!f) {
-    report_error_printf(ERROR_FILE_OPEN, filename, strerror(errno));
+    LOG(LOG_ERR,ERROR_FILE_OPEN, filename, strerror(errno));
     return EFILE;
   }
 
@@ -2633,7 +2631,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       DSPAM_CTX *CTC = malloc(sizeof(DSPAM_CTX));
 
       if (CTC == NULL) {
-        report_error(ERROR_MEM_ALLOC);
+        LOG(LOG_CRIT, ERROR_MEM_ALLOC);
         return EUNKNOWN;
       }
 
@@ -2657,7 +2655,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
     if ((result == DSR_ISINNOCENT || result == DSR_ISWHITELISTED) && was_spam) {
       DSPAM_CTX *CTC = malloc(sizeof(DSPAM_CTX));
       if (CTC == NULL) {
-        report_error(ERROR_MEM_ALLOC);
+        LOG(LOG_CRIT, ERROR_MEM_ALLOC);
         return EUNKNOWN;
       }
                                                                                 
@@ -3531,7 +3529,7 @@ int daemon_start(AGENT_CTX *ATX) {
       FILE *file;
       file = fopen(pidfile, "w");
       if (file == NULL) {
-        file_error(ERROR_FILE_WRITE, pidfile, strerror(errno));
+        LOG(LOG_ERR, ERROR_FILE_WRITE, pidfile, strerror(errno));
       } else {
         fprintf(file, "%ld\n", (long) getpid());
         fclose(file);
@@ -3568,7 +3566,7 @@ int daemon_start(AGENT_CTX *ATX) {
 
       agent_config = read_config(NULL);
       if (!agent_config) {
-        report_error(ERROR_READ_CONFIG);
+        LOG(LOG_ERR, ERROR_READ_CONFIG);
         exit(EXIT_FAILURE);
       }
 

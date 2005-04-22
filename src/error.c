@@ -1,24 +1,33 @@
-/* $Id: error.c,v 1.3 2005/03/15 17:37:19 jonz Exp $ */
+/* $Id: error.c,v 1.4 2005/04/22 18:17:52 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+
+/*
+ * error.c - error reporting
+ *
+ * DESCRIPTION
+ *   The error reporting facilities include:
+ *     LOGDEBUG  Log to debug only
+ *     LOG       Log to syslog, stderr, and debug
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -50,51 +59,45 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
     #include <process.h>
 #endif
 
-/*  Subroutine: report_error
-   Description: Reports an error to the supported facilities (currently stderr)
-    Parameters: Error message to report
-*/
-
+#ifndef _WIN32
 void
-report_error (const char *error)
-{
-  char buf[128];
-
-  fprintf (stderr, "%ld: [%s] %s\n", (long) getpid (), format_date_r(buf), error);
-
-#ifdef DEBUG
-  debug (error);
-#endif
-
-  return;
-}
-
-void
-report_error_printf (const char *fmt, ...)
+LOG(int priority, const char *err, ... )
 {
   va_list ap;
-  char buff[1024];
-  va_start (ap, fmt);
-  vsnprintf (buff, sizeof (buff), fmt, ap);
-  report_error (buff);
+  char buf[1024], date[128];
+
+  va_start (ap, err);
+  vsnprintf (buf, sizeof (buf), err, ap);
+
+  fprintf(stderr, "%ld: [%s] %s\n", (long) getpid(), format_date_r(date), buf);
+
+  openlog ("dspam", LOG_PID | LOG_NOWAIT, LOG_MAIL);
+  vsyslog (priority, err, ap);
   va_end (ap);
+  closelog ();
   return;
 }
-
-void
-file_error (const char *operation, const char *filename, const char *error)
-{
-  char errmsg[1024];
-
-  snprintf (errmsg, sizeof (errmsg), "%s: %s: %s", operation, filename,
-            error);
-  report_error (errmsg);
-  return;
-}
+#endif
 
 #ifdef DEBUG
 void
-debug (const char *text)
+LOGDEBUG (const char *err, ... )
+{
+  char debug_text[1024];
+  va_list args;
+
+  if (!DO_DEBUG)
+    return;
+
+  va_start (args, err);
+  vsnprintf (debug_text, sizeof (debug_text), err, args);
+  va_end (args);
+
+  debug_out(debug_text);
+}
+
+void
+debug_out (const char *err)
 {
   FILE *file;
   char fn[MAX_FILENAME_LENGTH];
@@ -104,64 +107,20 @@ debug (const char *text)
     snprintf (fn, sizeof (fn), "%s/dspam.debug", LOGDIR);
 
     file = fopen (fn, "a");
-    if (file != NULL)
-    {
-      fprintf (file, "%ld: [%s] %s\n", (long) getpid (), format_date_r(buf), text);
-      fclose (file);
+    if (file != NULL) {
+      fprintf(file, "%ld: [%s] %s\n", (long) getpid(), format_date_r(buf), err);
+      fclose(file);
     }
   } else if (DO_DEBUG == 2) {
-    printf ("%ld: [%s] %s\n", (long) getpid (), format_date_r(buf), text);
+    printf ("%ld: [%s] %s\n", (long) getpid (), format_date_r(buf), err);
   }
   return;
 }
 #endif
 
-#ifndef HAVE_ISO_VARARGS
-void
-LOGDEBUG (char *text, ...)
-{
-#ifdef DEBUG
-  char debug_text[1024];
-  va_list args;
-
-  if (!DO_DEBUG)
-    return;
-
-  va_start (args, text);
-  vsnprintf (debug_text, sizeof (debug_text), text, args);
-  va_end (args);
-
-  debug (debug_text);
-#endif
-}
-
-void
-LOG (int priority, char *text, ...)
-{
-#ifdef DEBUG
-#ifdef _WIN32
-  char log_text[1024];
-  va_list args;
-  va_start (args, text);
-  vsnprintf (log_text, sizeof (log_text), text, args);
-  va_end (args);
-  debug(log_text);
-#else
-  va_list args;
-
-  va_start (args, text);
-  openlog ("dspam", LOG_PID | LOG_NOWAIT, LOG_MAIL);
-  syslog (priority, text, args);
-  closelog ();
-  LOGDEBUG (text, args);
-  va_end (args);
-#endif
-#endif
-}
-#endif
-
 char *
-format_date_r(char *buf) {
+format_date_r(char *buf) 
+{
   struct tm *l;
 #ifdef HAVE_LOCALTIME_R
   struct tm lt;
@@ -174,8 +133,8 @@ format_date_r(char *buf) {
   l = localtime(&t);
 #endif
                                                                                 
-  sprintf(buf, "%d/%d/%d %d:%d:%d",
-           l->tm_mon+1, l->tm_mday, l->tm_year+1900, l->tm_hour, l->tm_min,
-           l->tm_sec);
+  sprintf(buf, "%02d/%02d/%04d %02d:%02d:%02d",
+          l->tm_mon+1, l->tm_mday, l->tm_year+1900, l->tm_hour, l->tm_min,
+          l->tm_sec);
   return buf;
 }

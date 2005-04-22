@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.96 2005/04/22 13:58:40 jonz Exp $ */
+/* $Id: daemon.c,v 1.97 2005/04/22 18:17:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -413,7 +413,7 @@ void *process_connection(void *ptr) {
     }
 
     if (initialize_atx(ATX)) {
-      report_error(ERROR_INITIALIZE_ATX);
+      LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
       daemon_reply(TTX, LMTP_BAD_CMD, "5.3.0", ERROR_INITIALIZE_ATX);
       goto CLOSE;
     }
@@ -626,7 +626,7 @@ GETCMD:
       invalid = 0;
       if (process_arguments(ATX, argc, argv) || apply_defaults(ATX))
       {
-        report_error(ERROR_INITIALIZE_ATX);
+        LOG(LOG_ERR, ERROR_INITIALIZE_ATX);
         daemon_reply(TTX, LMTP_NO_RCPT, "5.1.0", ERROR_INITIALIZE_ATX);
         invalid = 1;
       } else if (ATX->users->items == 0) {
@@ -640,7 +640,7 @@ GETCMD:
     /* Something's terribly misconfigured */
 
     if (check_configuration(ATX)) {
-      report_error(ERROR_DSPAM_MISCONFIGURED);
+      LOG(LOG_ERR, ERROR_DSPAM_MISCONFIGURED);
       daemon_reply(TTX, LMTP_BAD_CMD, "5.3.5", ERROR_DSPAM_MISCONFIGURED);
       goto CLOSE;
     }
@@ -890,7 +890,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
       ATX->users = nt_create (NT_CHAR);
       if (ATX->users == NULL)
       {
-        report_error (ERROR_MEM_ALLOC);
+        LOG(LOG_CRIT, ERROR_MEM_ALLOC);
         goto bail;
       }
       nt_add (ATX->users, user);

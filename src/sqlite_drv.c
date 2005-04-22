@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.20 2005/04/21 17:58:42 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.21 2005/04/22 18:17:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -601,12 +601,12 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EINVAL;
 
   if (!CTX->home) {
-    report_error(ERROR_NO_HOME);
+    LOG(LOG_ERR, ERROR_NO_HOME);
     return EINVAL;
   } 
 
   if (CTX->flags & DSF_MERGED) {
-    report_error (ERROR_NO_MERGED);
+    LOG(LOG_ERR, ERROR_NO_MERGED);
     return EINVAL;
   }
 
@@ -854,7 +854,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   length = sqlite_decode_binary(row[ncolumn], mem);
   if (length<=0) {
-    report_error_printf("sqlite_decode_binary() failed with error %d", length);
+    LOG(LOG_ERR,"sqlite_decode_binary() failed with error %d", length);
     return EFAILURE;
   }
 
@@ -862,7 +862,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   if (ptr)
     SIG->data = ptr;
   else {
-    report_error(ERROR_MEM_ALLOC);
+    LOG(LOG_CRIT, ERROR_MEM_ALLOC);
     SIG->data = mem;
   }
   SIG->length = length;
@@ -905,7 +905,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   length = sqlite_encode_binary(SIG->data, SIG->length, mem);
   if (length<0) {
-   report_error_printf("sqlite_encode_binary() failed on error %d", length);
+   LOG(LOG_ERR,"sqlite_encode_binary() failed on error %d", length);
    buffer_destroy(query);
    return EFAILURE;
   }
@@ -1238,7 +1238,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
 
   length = sqlite_decode_binary((const unsigned char *) &row[ncolumn], mem);
   if (length<0) {
-    report_error_printf("sqlite_decode_binary() failed with error %d", length);
+    LOG(LOG_ERR,"sqlite_decode_binary() failed with error %d", length);
     s->iter_sig = NULL;
     free(st);
     return NULL;
@@ -1272,7 +1272,7 @@ _sqlite_drv_query_error (const char *error, const char *query)
 
   if (file == NULL)
   {
-    file_error (ERROR_FILE_WRITE, fn, strerror (errno));
+    LOG(LOG_ERR, ERROR_FILE_WRITE, fn, strerror (errno));
   }
   else
   {

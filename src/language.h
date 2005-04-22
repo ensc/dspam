@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.15 2005/04/21 16:09:04 jonz Exp $ */
+/* $Id: language.h,v 1.16 2005/04/22 18:17:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -28,12 +28,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 /* Error Messages */
 
 #define ERROR_USER_UNDEFINED	"Unable to determine the destination user"
-#define ERROR_MEM_ALLOC         "Memory allocation error"
-#define ERROR_FILE_OPEN		"Unable to open file for reading"
-#define ERROR_FILE_WRITE	"Unable to open file for writing"
-#define ERROR_FILE_CLOSE	"Unable to close file"
-#define ERROR_FILE_RENAME	"Unable to rename file" 
-#define ERROR_DIR_CREATE	"Unable to create directory"
+#define ERROR_MEM_ALLOC         "Memory allocation error. Out of memory?"
+#define ERROR_FILE_OPEN		"Unable to open file for reading: %s: %s"
+#define ERROR_FILE_WRITE	"Unable to open file for writing: %s: %s"
+#define ERROR_FILE_CLOSE	"Unable to close file: %s: %s"
+#define ERROR_FILE_RENAME	"Unable to rename file: %s: %s" 
+#define ERROR_DIR_CREATE	"Unable to create directory: %s: %s"
 #define ERROR_READ_CONFIG	"Unable to read dspam.conf"
 #define ERROR_DSPAM_HOME	"DSPAM Home must be defined in dspam.conf"
 #define ERROR_RUNTIME_USER	"Unable to determine the runtime user"
