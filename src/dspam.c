@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.158 2005/04/22 02:29:33 jonz Exp $ */
+/* $Id: dspam.c,v 1.159 2005/04/22 14:13:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -466,9 +466,14 @@ process_message (
 
   /*
    * Send any relevant notifications to the user (first spam, etc)
+   * Only if the process was successful
    */
 
-  do_notifications(CTX, ATX);
+  if (result == DSR_ISWHITELISTED || result == DSR_ISINNOCENT ||
+      result == DSR_ISSPAM) 
+  {
+    do_notifications(CTX, ATX);
+  }
 
   if (result != DSR_ISWHITELISTED)
     result = ensure_confident_result(CTX, ATX, result);
