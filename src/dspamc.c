@@ -1,24 +1,37 @@
-/* $Id: dspamc.c,v 1.6 2005/04/22 02:21:28 jonz Exp $ */
+/* $Id: dspamc.c,v 1.7 2005/04/22 16:56:06 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+
+/*
+ * dspamc.c - lightweight dspam client
+ *
+ * DESCRIPTION
+ *   The lightweight client build is designed to perform identical to the full
+ *   agent, but without any linkage to libdspam. Instead, the client calls
+ *   the client-based functions (client.c) to perform processing by connecting
+ *   to a DSPAM server process (dspam in --daemon mode).
+ *
+ *   This code-base is the client-only codebase. See dspam.c for the full
+ *   agent base.
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -82,71 +95,73 @@ char debug_text[1024];
 int
 main (int argc, char *argv[])
 {
-  AGENT_CTX ATX;		/* Agent configuration */
-  buffer *message = NULL;       /* Input Message */
+  AGENT_CTX ATX;
   int exitcode = EXIT_SUCCESS;
-  int agent_init = 0;		/* Agent is initialized */
+  buffer *message = NULL;       /* input Message */
+  int agent_init = 0;		/* agent is initialized */
 
-  srand (getpid ());		/* Random numbers for signature creation */
-  umask (006);                  /* rw-rw---- */
-  setbuf (stdout, NULL);	/* Unbuffered output */
+  setbuf (stdout, NULL);	/* unbuffered output */
 #ifdef DEBUG
   DO_DEBUG = 0;
 #endif
+
+  srand ((long) time << (long) getpid());
+  umask (006);
 
 #ifndef DAEMON
   report_error(ERROR_NO_DAEMON);
   exit(EXIT_FAILURE);
 #endif
 
-  /* Read dspam.conf */
+  /* Read dspam.conf into global config structure (ds_config_t) */
+
   agent_config = read_config(NULL);
   if (!agent_config) {
     report_error(ERROR_READ_CONFIG);
     exitcode = EXIT_FAILURE;
-    goto bail;
+    goto BAIL;
   }
 
   if (!_ds_read_attribute(agent_config, "Home")) {
     report_error(ERROR_DSPAM_HOME);
     exitcode = EXIT_FAILURE;
-    goto bail;
+    goto BAIL;
   }
 
-  /* Set up our agent configuration */
+  /* Set up agent context to define behavior of processor */
+
   if (initialize_atx(&ATX)) {
     report_error(ERROR_INITIALIZE_ATX);
     exitcode = EXIT_FAILURE;
-    goto bail;
+    goto BAIL;
   } else {
     agent_init = 1;
   }
 
-  /* Parse commandline arguments */ 
   if (process_arguments(&ATX, argc, argv)) {
     report_error(ERROR_INITIALIZE_ATX);
     exitcode = EXIT_FAILURE;
-    goto bail;
+    goto BAIL;
   }
 
-  /* Set defaults if an option wasn't specified on the commandline */
   if (apply_defaults(&ATX)) {
     report_error(ERROR_INITIALIZE_ATX);
     exitcode = EXIT_FAILURE;
-    goto bail;
+    goto BAIL;
   }
 
-  /* Sanity check the configuration before proceeding */
   if (check_configuration(&ATX)) {
     report_error(ERROR_DSPAM_MISCONFIGURED);
     exitcode = EXIT_FAILURE;
-    goto bail;
+    goto BAIL;
   }
+
+  /* Read the message in and apply ParseTo services */
 
   message = read_stdin(&ATX);
   if (message == NULL) {
     exitcode = EXIT_FAILURE;
-    goto bail;
+    goto BAIL;
   }
 
   if (ATX.users->items == 0)
@@ -155,8 +170,10 @@ main (int argc, char *argv[])
     report_error (ERROR_USER_UNDEFINED);
     fprintf (stderr, "%s\n", SYNTAX);
     exitcode = EXIT_FAILURE;
-    goto bail;
+    goto BAIL;
   }
+
+  /* Perform client-based processing */
 
 #ifdef DAEMON
   if (_ds_read_attribute(agent_config, "ClientIdent") &&
@@ -170,7 +187,7 @@ main (int argc, char *argv[])
   }
 #endif
 
-bail:
+BAIL:
 
   if (message)
     buffer_destroy(message);
