@@ -1,24 +1,33 @@
-/* $Id: libdspam.c,v 1.106 2005/04/22 20:26:44 jonz Exp $ */
+/* $Id: libdspam.c,v 1.107 2005/04/25 13:05:48 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2004 NETWORK DWEEBS CORPORATION
+ COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+
+/*
+ * libdspam.c - DSPAM core analytical engine
+ *
+ * DESCRIPTION
+ *   libdspam is at the core of the decision making process and is called
+ *   by the agent to perform all tasks related to message classification.
+ *   The libdspam API functions are documented in libdspam(1).
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -74,7 +83,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #ifdef DEBUG
 int DO_DEBUG = 0;
-char debug_text[1024];
 #endif
 
 #ifdef NCORE
@@ -84,11 +92,14 @@ NC_STREAM_CTX	g_ncDelimiters;
 #endif
 
 /*
+ * dspam_init()
+ *
+ * DESCRIPTION
  *   The  dspam_init() function creates and initializes a new classification
  *   context and attaches the context to whatever backend  storage  facility
  *   was  configured. The user and group arguments provided are used to read
  *   and write information stored for the user and group specified. The home
- *   argument is used to configure libdspam’s storage around the base direc-
+ *   argument is used to configure libdspam's storage around the base direc-
  *   tory specified. The mode specifies the operating mode to initialize the
  *   classification context with and may be one of:
  *
@@ -97,33 +108,34 @@ NC_STREAM_CTX	g_ncDelimiters;
  *    DSM_TOOLS     No processing, attach to storage only
  * 
  *   The  flags  provided further tune the classification context for a spe-
- *   cific function. Multiple flags may be OR’d together.
+ *   cific function. Multiple flags may be OR'd together.
  * 
  *    DSF_CHAINED   Use a Chained (Multi-Word) Tokenizer
  *    DSF_SBPH      Use Sparse Binary Polynomial Hashing Tokenizer
  *    DSF_SIGNATURE A binary signature is requested/provided
  *    DSF_NOISE     Apply Bayesian Noise Reduction logic
  *    DSF_WHITELIST Use automatic whitelisting logic
- *    DSF_MERGED    Merge group metadata with user’s in memory
+ *    DSF_MERGED    Merge group metadata with user's in memory
  * 
+ * RETURN VALUES
  *   Upon successful completion, dspam_init() will return a pointer to a new
  *   classification context structure containing a copy of the configuration
  *   passed into dspam_init(), a connected storage driver handle, and a  set
  *   of preliminary user control data read from storage.
  */
-                                                                                
 
-DSPAM_CTX * dspam_init  (const char *username,
-                         const char *group,
-                         const char *home,
-                         int operating_mode,
-                         u_int32_t flags)
+DSPAM_CTX * dspam_init (
+  const char *username,
+  const char *group,
+  const char *home,
+  int operating_mode,
+  u_int32_t flags)
 {
   DSPAM_CTX *CTX = dspam_create(username, group, home, operating_mode, flags);
-                                                                                
+
   if (CTX == NULL)
     return NULL;
-                                                                                
+
   if (!dspam_attach(CTX, NULL))
     return CTX;
 
@@ -132,20 +144,29 @@ DSPAM_CTX * dspam_init  (const char *username,
   return NULL;
 }
 
-/*
+/* dspam_create()
+ *
+ * DESCRIPTION
  *   The  dspam_create() function performs in exactly the same manner as the
  *   dspam_init() function, but does not attach  to  storage.  Instead,  the
  *   caller  must  also  call dspam_attach() after setting any storage- spe-
  *   cific attributes using dspam_addattribute(). This is useful  for  cases
  *   where  the  implementor  would  prefer  to configure storage internally
  *   rather than having libdspam read a configuration from a file.
+ *
+ * RETURN VALUES
+ *   Upon successful completion, dspam_create() will return a pointer to a new
+ *   classification context structure containing a copy of the configuration
+ *   passed into dspam_create(). At this point, dspam_attach() must be called
+ *   for further processing.
  */
 
-DSPAM_CTX * dspam_create (const char *username,
-			 const char *group,
-                         const char *home,
-			 int operating_mode,
-			 u_int32_t flags)
+DSPAM_CTX * dspam_create (
+  const char *username,
+  const char *group,
+  const char *home,
+  int operating_mode,
+  u_int32_t flags)
 {
   DSPAM_CTX *CTX;
 
@@ -158,6 +179,7 @@ DSPAM_CTX * dspam_create (const char *username,
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     goto bail;
   }
+
   CTX->config->size = 128;
   CTX->config->attributes = calloc(1, sizeof(attribute_t)*128);
   if (CTX->config->attributes == NULL) {
@@ -199,7 +221,12 @@ DSPAM_CTX * dspam_create (const char *username,
   CTX->factors         = NULL;
   CTX->algorithms      = 0;
 
-  /* Algorithms */
+  /*
+   *  The algorithms are configured by default based on configure arguments,
+   *  but the agent automatically resets these based on dspam.conf settings.
+   *  This code is here to allow developers to configure a default set of
+   *  algorithms without having to set CTX->algorithms themselves.
+   */
 
 #if defined(GRAHAM_BAYESIAN) 
   CTX->algorithms |= DSA_GRAHAM;
@@ -216,8 +243,6 @@ DSPAM_CTX * dspam_create (const char *username,
 #if defined(CHI_SQUARE) 
   CTX->algorithms |= DSA_CHI_SQUARE;
 #endif
-
-  /* P-Values */
 
 #if defined(ROBINSON_FW)
   CTX->algorithms |= DSP_ROBINSON; 
@@ -236,10 +261,16 @@ bail:
 }
 
 /*
+ * dspam_clearattributes()
+ *
+ * DESCRIPTION
  *  The dspam_clearattributes() function is called to clear any attributes
  *  previously set using dspam_addattribute()  within  the  classification
  *  context.  It is necessary to call this function prior to replacing any
  *  attributes already written.
+ *
+ * RETURN VALUES
+ *  returns 0 on success, standard errors on failure
  *
  */ 
 
@@ -270,6 +301,9 @@ bail:
 }
 
 /*
+ * dspam_addattribute()
+ *
+ * DESCRIPTION
  *   The dspam_addattribute() function is called to  set  attributes  within
  *   the  classification  context.  Some  storage drivers support the use of
  *   passing specific attributes such as  server  connect  information.  The
@@ -282,6 +316,9 @@ bail:
  *   Only  driver-dependent  attributes  need  be  set  prior  to  a call to
  *   dspam_attach(). Driver-independent attributes may be  set  both  before
  *   and after storage has been attached.
+ *
+ * RETURN VALUES
+ *   returns 0 on success, standard errors on failure
  */                                                                                 
 int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value) {
   int i, j = 0;
@@ -295,7 +332,8 @@ int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value) {
   if (j >= CTX->config->size) {
     config_t ptr;
     CTX->config->size *= 2;
-    ptr = realloc(CTX->config->attributes, 1+(sizeof(attribute_t)*CTX->config->size));
+    ptr = realloc(CTX->config->attributes,
+                  1+(sizeof(attribute_t)*CTX->config->size));
     if (ptr) {
       CTX->config->attributes = ptr;
     } else {
@@ -308,6 +346,9 @@ int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value) {
 }
 
 /*
+ * dspam_attach()
+ *
+ * DESCRIPTION
  *   The dspam_attach() function attaches the storage interface to the clas-
  *   sification context and alternatively established an initial  connection
  *   with  storage  if dbh is NULL. Some storage drivers support only a NULL
@@ -316,6 +357,9 @@ int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value) {
  *   should only be called after  an  initial  call  to  dspam_create()  and
  *   should  never  be called if using dspam_init(), as storage is automati-
  *   cally attached by a call to dspam_init().
+ *
+ * RETURN VALUES
+ *   returns 0 on success, standard errors on failure
  */
 
 int dspam_attach (DSPAM_CTX *CTX, void *dbh) {
@@ -326,6 +370,9 @@ int dspam_attach (DSPAM_CTX *CTX, void *dbh) {
 }
 
 /*
+ * dspam_detach()
+ *
+ * DESCRIPTION
  *     The dspam_detach() function can be called when a detachment from  stor-
  *     age  is desired, but the context is still needed. The storage driver is
  *     closed, leaving the classification context in place. Once  the  context
@@ -333,15 +380,18 @@ int dspam_attach (DSPAM_CTX *CTX, void *dbh) {
  *     you are closing storage and destroying the context at the same time, it
  *     is   not  necessary  to  call  this  function.  Instead  you  may  call
  *     dspam_destroy() directly.
+ *
+ * RETURN VALUES
+ *   returns 0 on success, standard errors on failure
  */
 
 int
 dspam_detach (DSPAM_CTX * CTX)
 {
-
   if (CTX->storage != NULL) {
                                                                                 
-    /* Sanity-Check Totals */
+    /* Sanity check totals before our shutdown call writes them */
+
     if (CTX->totals.spam_learned < 0)
       CTX->totals.spam_learned = 0;
     if (CTX->totals.innocent_learned < 0)
@@ -364,13 +414,15 @@ dspam_detach (DSPAM_CTX * CTX)
 }
 
 /*
+ * dspam_destroy()
+ * 
  *     The dspam_destroy() function should be called when the  context  is  no
  *     longer  needed.  If a connection was established to storage internally,
  *     the connection is closed and all data is flushed and written. If a han-
  *     dle was attached, the handle will remain open.
  */
 
-int
+void
 dspam_destroy (DSPAM_CTX * CTX)
 {
   if (CTX->storage != NULL)
@@ -395,10 +447,13 @@ dspam_destroy (DSPAM_CTX * CTX)
   if (CTX->message)
     _ds_destroy_message(CTX->message);
   free (CTX);
-  return 0;
+  return;
 }
 
 /*
+ * dspam_process()
+ *
+ * DESCRIPTION
  *   The dspam_process() function performs analysis of  the  message  passed
  *   into  it  and will return zero on successful completion. If successful,
  *   CTX->result will be set to one of three classification results:
@@ -407,13 +462,14 @@ dspam_destroy (DSPAM_CTX * CTX)
  *    DSR_ISINNOCENT    Message was classified as nonspam
  *    DSR_ISWHITELISTED Recipient was automatically whitelisted
  * 
- *   Should the call fail, one of the following errors will be returned:
- * 
- *    EINVAL    An invalid call or invalid parameter used.
- *    EUNKNOWN  Unexpected error, such as malloc() failure
- *    EFILE     Error opening or writing to a file or file handle
- *    ELOCK     Locking failure
- *    EFAILURE  The operation itself has failed
+ * RETURN VALUES
+ *   returns 0 on success
+ *
+ *   EINVAL    An invalid call or invalid parameter used.
+ *   EUNKNOWN  Unexpected error, such as malloc() failure
+ *   EFILE     Error opening or writing to a file or file handle
+ *   ELOCK     Locking failure
+ *   EFAILURE  The operation itself has failed
  */
 
 int
@@ -425,10 +481,11 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   if (CTX->signature != NULL)
     CTX->_sig_provided = 1;
 
-  /* We can't ask for a classification and provide one simultaneously */
+  /* Sanity check context behavior */
+
   if (CTX->operating_mode == DSM_CLASSIFY && CTX->classification != DSR_NONE)
   {
-    LOG(LOG_WARNING, "DSM_CLASSIFY can't be used with a provided classification");
+    LOG(LOG_WARNING, "DSM_CLASSIFY can't be used with a classification");
     return EINVAL;
   }
 
@@ -440,7 +497,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
 
   if (CTX->classification == DSR_NONE && CTX->source != DSR_NONE)
   {
-    LOG(LOG_WARNING, "A source was specified but no classification");
+    LOG(LOG_WARNING, "A source requires a classification be specified");
     return EINVAL;
   }
  
@@ -478,7 +535,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   }
 
   /* From this point on, logic assumes that there will be no signature-based
-     classification (as it was forked off from the above call) */
+     training (as it was forked off from the above call) */
 
   header = buffer_create (NULL);
   body   = buffer_create (NULL);
@@ -493,14 +550,11 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     return EUNKNOWN;
   }
 
-  /* Actualize the message if it hasn't already been by the client app */
+  /* Parse the message if it hasn't already been by the client app */
   if (CTX->message == NULL && message != NULL)
-  {
     CTX->message = _ds_actualize_message (message);
-  }
 
-  /* If a signature was provided for classification, we don't need to
-     analyze the message */
+  /* Analyze the message unless it's a signature based classification */
  
   if ( ! (CTX->flags & DSF_SIGNATURE          &&
           CTX->operating_mode == DSM_CLASSIFY &&
@@ -510,6 +564,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   }
 
   CTX->result = DSR_NONE;
+
+  /* Perform statistical operations and get a classification result */
 
   if (CTX->flags & DSF_SBPH &&
       CTX->operating_mode != DSM_CLASSIFY && 
@@ -552,24 +608,33 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     return 0;
   else
   {
-    LOG(LOG_WARNING, "received invalid result (! DSR_ISSPAM || DSR_INNOCENT || DSR_ISWHITELISTED): %d", CTX->result);
+    LOG(LOG_WARNING, "received invalid result (! DSR_ISSPAM || DSR_INNOCENT "
+                     "|| DSR_ISWHITELISTED): %d", CTX->result);
     return EUNKNOWN;
   }
 }
 
 /*
+ * dspam_getsource()
+ *
+ * DESCRIPTION
+ *
  *   The dspam_getsource() function extracts the source sender from the mes-
  *   sage  passed  in  during  a call to dspam_process() and writes not more
  *   than size bytes to buf.
+ *
+ * RETURN VALUES
+ *   returns 0 on success, standard errors on failure
  */
 
 int
-dspam_getsource (DSPAM_CTX * CTX,
-		 char *buf,	
-		 size_t size)
+dspam_getsource (
+  DSPAM_CTX * CTX,
+  char *buf,
+  size_t size)
 {
-  struct _ds_message_block *current_block;
-  struct _ds_header_field *current_heading = NULL;
+  ds_message_block_t current_block;
+  ds_header_t current_heading = NULL;
   struct nt_node *node_nt;
   struct nt_c c;
 
@@ -580,12 +645,12 @@ dspam_getsource (DSPAM_CTX * CTX,
   if (node_nt == NULL)
     return EINVAL;
 
-  current_block = (struct _ds_message_block *) node_nt->ptr;
+  current_block = (ds_message_block_t) node_nt->ptr;
 
   node_nt = c_nt_first (current_block->headers, &c);
   while (node_nt != NULL)
   {
-    current_heading = (struct _ds_header_field *) node_nt->ptr;
+    current_heading = (ds_header_t) node_nt->ptr;
     if (!strcmp (current_heading->heading, "Received"))
     {
       char *data = strdup (current_heading->data);
@@ -627,17 +692,23 @@ dspam_getsource (DSPAM_CTX * CTX,
 }
 
 /*
- *  _ds_operate() - operate on the message
+ * _ds_operate() - operate on the message
+ *
+ * DESCRIPTION
  *    calculate the statistical probability the email is spam
  *    update tokens in dictionary according to result/mode
  *
- *  parameters: DSPAM_CTX *CTX		pointer to context
- *              char *header		pointer to message header
- *              char *body		pointer to message body
+ * INPUT ARGUMENTS
+ *     DSPAM_CTX *CTX    pointer to context
+ *     char *header      pointer to message header
+ *     char *body        pointer to message body
  *
- *     returns: DSR_ISSPAM		message is spam
- *              DSR_ISINNOCENT		message is innocent
- *              DSR_ISWHITELISTED	message is whitelisted
+ * RETURN VALUES
+ *   standard errors on failure
+ *
+ *     DSR_ISSPAM           message is spam
+ *     DSR_ISINNOCENT       message is innocent
+ *     DSR_ISWHITELISTED    message is whitelisted
  */
 
 int
@@ -646,7 +717,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   char *token;				/* current token */
   char joined_token[32];		/* used for de-obfuscating tokens */
   char *previous_token = NULL;		/* used for chained tokens */
-  char *previous_tokens[SBPH_SIZE];	/* used for k-mapped tokens */
+  char *previous_tokens[SBPH_SIZE];	/* used for sbph chaining */
 #ifdef NCORE
   nc_strtok_t NTX;
 #endif
@@ -660,12 +731,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   int errcode = 0;
 
   /* Create our diction (lexical data in message) and patterns */
+
   ds_diction_t diction = ds_diction_create(24593);
   ds_diction_t bnr_patterns = ds_diction_create(3079);
   ds_term_t ds_term;
   ds_cursor_t ds_c;
 
-  ds_heap_t heap_sort = NULL; /* Heap sort for top N tokens */
+  ds_heap_t heap_sort = NULL;    /* Heap sort for top N tokens */
 
 #ifdef LIBBNR_DEBUG
   ds_heap_t heap_nobnr = NULL;
@@ -687,7 +759,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   else
     heap_sort = ds_heap_create(15, HP_DELTA);
 
-  /* Allocate SBPH signature (Message Text) */
+  /* Allocate SBPH signature (stored as message text) */
 
   if (CTX->flags & DSF_SBPH   &&
       CTX->flags & DSF_SIGNATURE && 
@@ -722,6 +794,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   if (body != NULL)
     body_length = strlen(body);
+
+  /* Zero out sbph chain */
 
   if (CTX->flags & DSF_SBPH)
     for(i=0;i<SBPH_SIZE;i++)
@@ -1714,11 +1788,13 @@ bail:
 }
 
 /*
- *  _ds_process_signature() - process an erroneously classified message 
- *    processing based on signature
+ * _ds_process_signature()
  *
- *   parameters: DSPAM_CTX *CTX		pointer to classification context
- *                                      where CTX->signature is present
+ * DESCRIPTION
+ *   process an erroneously classified message processing based on signature
+ *
+ * INPUT ARGUMENTS
+ *   parameters: DSPAM_CTX *CTX		Pointer to context containing signature
  */
 
 int
@@ -1873,10 +1949,19 @@ _ds_process_signature (DSPAM_CTX * CTX)
 /*
  *  _ds_calc_stat() - Calculate the probability of a token
  *
+ * DESCRIPTION
+ *
  *  Calculates the probability of an individual token based on  the
  *  pvalue algorithm chosen. The resulting value largely depends on
- *  the total  amount of ham/spam in the user's corpus. The  result
+ *  the total  amount of ham/spam in the user's corpus. The result
  *  is written to s.
+ *
+ * INPUT ARGUMENTS
+ *      CTX           DSPAM context
+ *      token         CRC64 of token to calculate
+ *      s             Pointer to stat structure containing totals
+ *      token_type    DTT_ value specifying token type
+ *      bnr_tot       BNR totals structure
  */
 
 int
@@ -1993,6 +2078,9 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
 }
 
 /*
+ * _ds_{process,map}_{header,body}_token()
+ *
+ * DESCRIPTION
  *  Token processing and mapping functions
  *    _ds_process_header_token
  *    _ds_process_body_token
@@ -2299,13 +2387,20 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
 }
 
 /* 
- *  _ds_degenerate_message() - Degenerate the message into tokenizable pieces
+ *  _ds_degenerate_message()
  *
- *  This function is responsible for analyzing the actualized message and
- *  degenerating it into only the components which are tokenizable.  This 
- *  process  effectively eliminates much HTML noise, special symbols,  or
- *  other  non-tokenizable/non-desirable components. What is left  is the
- *  bulk of  the message  and only  desired tags,  URLs, and other  data.
+ * DESCRIPTION
+ *   Degenerate the message into tokenizable pieces
+ *
+ *   This function is responsible for analyzing the actualized message and
+ *   degenerating it into only the components which are tokenizable.  This 
+ *   process  effectively eliminates much HTML noise, special symbols,  or
+ *   other  non-tokenizable/non-desirable components. What is left  is the
+ *   bulk of  the message  and only  desired tags,  URLs, and other  data.
+ *
+ * INPUT ARGUMENTS
+ *      header    pointer to buffer containing headers
+ *      body      pointer to buffer containing message body
  */
 
 int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
@@ -2515,12 +2610,15 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 }
 
 /*
- *  _ds_calc_result() - Perform statistical combination of the token index
+ *  _ds_calc_result()
  *
- *  Passed in an index of tokens, this function is responsible for choosing
- *  and combining  the most  relevant characteristics  (based on the  algo-
- *  rithms  configured)  and calculating  libdspam's  decision  about  the 
- *  provided message sample.
+ * DESCRIPTION
+ *   Perform statistical combination of the token index
+ *
+ *    Passed in an index of tokens, this function is responsible for choosing
+ *    and combining  the most  relevant characteristics  (based on the  algo-
+ *    rithms  configured)  and calculating  libdspam's  decision  about  the 
+ *    provided message sample.
  */
 
 int
@@ -2989,11 +3087,14 @@ CHI_NEXT:
 }
 
 /*
- *  _ds_factor() - Factors a token/value into a set
+ *  _ds_factor()
  *
- *  Adds a token/value pair to a factor set. The factor set of the dominant
- *  calculation  is provided to the  client in order to explain  libdspam's
- *  final decision about the message's classification.
+ * DESCRIPTION
+ *   Factors a token/value into a set
+ *
+ *    Adds a token/value pair to a factor set. The factor set of the dominant
+ *    calculation  is provided to the  client in order to explain  libdspam's
+ *    final decision about the message's classification.
  */
  
 int _ds_factor(struct nt *set, char *token_name, float value) {
@@ -3008,11 +3109,14 @@ int _ds_factor(struct nt *set, char *token_name, float value) {
 }
 
 /*
- *  _ds_spbh_clear - Clears the SBPH stack
+ *  _ds_spbh_clear
  *
- *  Clears and frees all of the tokens in the SBPH stack. Used when a 
- *  boundary has been crossed (such as a new message header) where
- *  tokens from the previous boundary are no longer useful.
+ * DESCRIPTION
+ *   Clears the SBPH stack
+ *
+ *   Clears and frees all of the tokens in the SBPH stack. Used when a 
+ *   boundary has been crossed (such as a new message header) where
+ *   tokens from the previous boundary are no longer useful.
  */
  
 void _ds_sbph_clear(char **previous_tokens) {
@@ -3026,7 +3130,7 @@ void _ds_sbph_clear(char **previous_tokens) {
 
 
 /*
- *  _ds_factor_destroy - Destroys a factor tree
+ *  _ds_factor_destroy - destroy a factor tree
  *
  */
 

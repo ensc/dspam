@@ -1,7 +1,7 @@
-$Id: README,v 1.60 2005/04/14 17:46:14 jonz Exp $
+$Id: README,v 1.61 2005/04/25 13:05:48 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
-Copyright (c) 2002-2005 Network Dweebs Corporation
+Copyright (c) 2002-2005 Deep Logic, Inc.
 http://dspam.nuclearelephant.com
 
 LICENSE
@@ -1878,7 +1878,7 @@ DATA
   web page's directory and use the following code wherever you'd like the
   button displayed:
 
-  <A HREF="http://www.networkdweebs.com/software/dspam/">
+  <A HREF="http://dspam.nuclearelephant.com">
   <IMG BORDER=0 SRC="dspam-button.gif"></A>
 
 3.3 CVS ACCESS

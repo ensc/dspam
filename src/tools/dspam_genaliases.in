@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: dspam_genaliases.in,v 1.1 2004/10/24 20:53:29 jonz Exp $
+# $Id: dspam_genaliases.in,v 1.2 2005/04/25 13:05:48 jonz Exp $
 
 use strict;
 use File::Basename;
@@ -61,7 +61,7 @@ sub UseHelp()
 sub show_version()
 {
     printf("%s (%s)\n", PROGNAME, PACKAGE_STRING);
-    printf("Copyright (C) 2002-2004 Network Dweebs Corporation\n");
+    printf("Copyright (C) 2002-2005 Deep Logic, Inc.\n");
     printf("This is free software; see the source for copying conditions.  There is NO\n");
     printf("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n");
     printf("\n");

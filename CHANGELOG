@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.285 2005/04/22 20:26:44 jonz Exp $
+$Id: CHANGELOG,v 1.286 2005/04/25 13:05:48 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050425.0700] jonz: changed copyright notice
+
+changed copyright notice to reflect my company name change (I am ditching
+Network Dweebs Corp. in exchange for Deep Logic, Inc.)
 
 [20050422.0700] jonz: got rid of report_error and report_error_printf
 
@@ -4865,9 +4870,6 @@ FREE FOR
 FOR ALL
 
 this parsing is not specific to just words, but any type of valid token. 
-please read the white paper at: 
-
-http://www.networkdweebs.com/products/dspam/Chained_Tokens.pdf 
 
 ...for more information.
 
@@ -4893,12 +4895,12 @@ don't want to filter out all HTML so longer tags will still be tokenized.
 [2003.0503.0400] jonz: special tokens for urls
 
 URLs are broken down into URL-specific tokens. for example, 
-http://www.networkdweebs.com/products/dspam/ will be broken down into: 
+http://www.nuclearelephant.com/projects/dspam/ will be broken down into: 
 
 Url*www
-Url*networkdweebs
+Url*nuclearelephant
 Url*com
-Url*products
+Url*projects
 Url*dspam
 
 this should help separate emails with suspicious URLs from emails with the 
