@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.22 2005/04/27 12:27:00 jonz Exp $ */
+/* $Id: pref.c,v 1.23 2005/04/27 15:41:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -244,7 +244,7 @@ FILE *_ds_pref_prepare_file (
   out_file = fopen(out_filename, "w");
 
   if (out_file == NULL) {
-    LOG(LOG_ERR(ERR_IO_FILE_OPEN, out_filename, strerror(errno));
+    LOG(LOG_ERR, ERR_IO_FILE_OPEN, out_filename, strerror(errno));
     return NULL;
   }
 
@@ -258,7 +258,7 @@ FILE *_ds_pref_prepare_file (
       lineno++;
   
       if (fputs(line, out_file)) {
-        LOG(LOG_ERR(ERR_IO_FILE_WRITE, out_filename, strerror(errno));
+        LOG(LOG_ERR, ERR_IO_FILE_WRITE, out_filename, strerror(errno));
         fclose(in_file);
         fclose(out_file);
         unlink(out_filename);
@@ -285,12 +285,12 @@ int _ds_pref_commit (
 
   snprintf(backup, sizeof(backup), "%s.bak", filename);
   if (fclose(out_file)) {
-    LOG(LOG_ERR(ERR_IO_FILE_CLOSE, backup, strerror(errno));
+    LOG(LOG_ERR, ERR_IO_FILE_CLOSE, backup, strerror(errno));
     return EFAILURE;
   }
 
   if (rename(backup, filename)) {
-    LOG(LOG_ERR(ERR_IO_FILE_RENAME, backup, strerror(errno));
+    LOG(LOG_ERR, ERR_IO_FILE_RENAME, backup, strerror(errno));
     unlink(backup);
     return EFAILURE;
   }
