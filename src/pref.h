@@ -1,4 +1,4 @@
-/* $Id: pref.h,v 1.11 2005/04/25 13:05:48 jonz Exp $ */
+/* $Id: pref.h,v 1.12 2005/04/27 12:27:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -32,6 +32,8 @@
 #include <auto-config.h>
 #endif
 
+#include "config_shared.h"
+
 #define PREF_MAX	32
 
 /* a single preference attribute */
@@ -51,10 +53,12 @@ agent_pref_t	_ds_pref_aggregate(agent_pref_t, agent_pref_t);
 agent_attrib_t	_ds_pref_new(const char *attribute, const char *value);
 
 #ifndef PREFERENCES_EXTENSION
-agent_pref_t      _ds_pref_load(config_t config, const char *user, const char *home, void *ignore);
-int               _ds_pref_set(config_t config, const char *user, const char *home, const char *preference, const char *value, void *ignore);
-int               _ds_pref_del(config_t config, const char *user, const char *home, const char *preference, void *ignore);
-
+agent_pref_t  _ds_pref_load(config_t config, const char *user, 
+              const char *home, void *ignore);
+int _ds_pref_set(config_t config, const char *user, const char *home,
+    const char *preference, const char *value, void *ignore);
+int _ds_pref_del(config_t config, const char *user, const char *home, 
+    const char *preference, void *ignore);
 FILE *_ds_pref_prepare_file (const char *filename,const char *omission,
   int *nlines);
 int _ds_pref_commit (const char *filename, FILE *out_file);

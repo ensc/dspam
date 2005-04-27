@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.21 2005/04/25 13:05:48 jonz Exp $ */
+/* $Id: pref.c,v 1.22 2005/04/27 12:27:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -37,6 +37,7 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "pref.h"
 #include "config.h"
