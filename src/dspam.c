@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.161 2005/04/22 20:26:44 jonz Exp $ */
+/* $Id: dspam.c,v 1.162 2005/04/28 14:52:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -574,6 +574,39 @@ process_message (
       _ds_match_attribute(agent_config, "UserLog", "on")))
   {
     log_events(CTX, ATX);
+  }
+
+  /*  Fragment Store - Store 1k fragments of each message for web users who
+   *  want to be able to see them from history. This requires some type of
+   *  find recipe for purging 
+   */
+
+  if (ATX->PTX != NULL && !strcmp(_ds_pref_val(ATX->PTX, "storeFragments"), 
+      "on")) 
+  {
+    char dirname[MAX_FILENAME_LENGTH];
+    char corpusfile[MAX_FILENAME_LENGTH];
+    char output[1024];
+    FILE *file;
+
+    _ds_userdir_path(dirname, _ds_read_attribute(agent_config, "Home"),
+                 LOOKUP(ATX->PTX, CTX->username), "frag");
+    snprintf(corpusfile, MAX_FILENAME_LENGTH, "%s/%s.frag",
+      dirname, ATX->signature);
+
+    LOGDEBUG("writing to corpus file %s", corpusfile);
+
+    _ds_prepare_path_for(corpusfile);
+    file = fopen(corpusfile, "w");
+    if (file != NULL) {
+      char *body = strstr(message->data, "\n\n");
+      if (!body)
+        body = message->data;
+      strlcpy(output, body, sizeof(output));
+      fputs(output, file);
+      fputs("\n", file);
+      fclose(file);
+    }
   }
 
   /* Corpus Maker - Build a corpus in DSPAM_HOME/data/USERPATH/USER.corpus */

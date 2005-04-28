@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.288 2005/04/27 15:41:50 jonz Exp $
+$Id: CHANGELOG,v 1.289 2005/04/28 14:52:27 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050426.2300] jonz: added storeFragments preference
+
+when set to 'on', dspam will store 1k of the message body in user.frag/sig.frag
 
 [20050425.0700] jonz: changed copyright notice
 
