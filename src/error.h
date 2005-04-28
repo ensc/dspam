@@ -1,4 +1,4 @@
-/* $Id: error.h,v 1.5 2005/04/25 13:05:48 jonz Exp $ */
+/* $Id: error.h,v 1.6 2005/04/28 16:50:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -34,6 +34,10 @@
 #   define LOG_INFO     6
 #else
 #include <syslog.h>
+#endif
+#ifdef DAEMON
+#include <pthread.h>
+pthread_mutex_t	__syslog_lock;
 #endif
 
 #ifdef DEBUG

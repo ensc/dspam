@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.163 2005/04/28 15:48:58 jonz Exp $ */
+/* $Id: dspam.c,v 1.164 2005/04/28 16:50:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -113,6 +113,10 @@ main (int argc, char *argv[])
   DO_DEBUG = 0;
 #endif
 
+#ifdef DAEMON
+  pthread_mutex_init(&__syslog_lock, NULL);
+#endif
+
   /* Read dspam.conf into global config structure (ds_config_t) */
 
   agent_config = read_config(NULL);
@@ -164,6 +168,7 @@ main (int argc, char *argv[])
     if (agent_config)
       _ds_destroy_config(agent_config);
 
+    pthread_mutex_destroy(&__syslog_lock);
     exit(EXIT_SUCCESS);
   }
 #endif
@@ -269,7 +274,10 @@ BAIL:
   if (agent_config)
     _ds_destroy_config(agent_config);
 
-  exit (exitcode);
+#ifdef DAEMON
+  pthread_mutex_destroy(&__syslog_lock);
+#endif
+  exit(exitcode);
 }
 
 /*
@@ -407,7 +415,10 @@ process_message (
       if (CTX->username != original_username) {
         if (ATX->PTX)
           _ds_pref_free(ATX->PTX);
+        free(ATX->PTX);
+
         ATX->PTX = load_aggregated_prefs(ATX, CTX->username);
+
       }
     }
 #ifdef NEURAL
@@ -1662,6 +1673,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
         node_nt = c_nt_next (ATX->users, &c_nt);
         _ds_pref_free(ATX->PTX);
         free(ATX->PTX);
+        ATX->PTX = NULL;
         buffer_destroy(parse_message);
         i++;
         continue;
@@ -1850,6 +1862,10 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
   return return_code;
 }
+// break
+// load_agg
+// continue
+// return
 
 /*
  * find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX)
@@ -3684,7 +3700,7 @@ agent_pref_t load_aggregated_prefs(AGENT_CTX *ATX, const char *username) {
 #endif
 
   return PTX;
-} 
+}
 
 /*
  * do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX)

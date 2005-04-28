@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.20 2005/04/22 20:26:44 jonz Exp $ */
+/* $Id: decode.c,v 1.21 2005/04/28 16:50:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -718,7 +718,7 @@ _ds_destroy_block (ds_message_block_t block)
   buffer_destroy (block->original_signed_body);
   free (block->boundary);
   free (block->terminating_boundary);
-  free (block);
+//  free (block);
   return;
 }
 

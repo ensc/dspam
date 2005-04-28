@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.53 2005/04/22 20:26:44 jonz Exp $ */
+/* $Id: client.c,v 1.54 2005/04/28 16:50:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -327,7 +327,6 @@ int client_connect(AGENT_CTX *ATX, int flags) {
     addr.sin_addr.s_addr = inet_addr(host);
     addr.sin_port = htons(port);
     addr_len = sizeof(struct sockaddr_in);
-
     LOGDEBUG(INFO_CLIENT_CONNECTING, host, port);
     if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
       LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
