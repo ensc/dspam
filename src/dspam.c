@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.162 2005/04/28 14:52:27 jonz Exp $ */
+/* $Id: dspam.c,v 1.163 2005/04/28 15:48:58 jonz Exp $ */
 
 /*
  DSPAM
@@ -594,7 +594,7 @@ process_message (
     snprintf(corpusfile, MAX_FILENAME_LENGTH, "%s/%s.frag",
       dirname, ATX->signature);
 
-    LOGDEBUG("writing to corpus file %s", corpusfile);
+    LOGDEBUG("writing to frag file %s", corpusfile);
 
     _ds_prepare_path_for(corpusfile);
     file = fopen(corpusfile, "w");
@@ -1722,6 +1722,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
               ATX->flags |= DAF_UNLEARN;
               process_message (ATX, parse_message, username);
             }
+
           }
         }
       }
