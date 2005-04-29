@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.165 2005/04/29 00:49:00 jonz Exp $ */
+/* $Id: dspam.c,v 1.166 2005/04/29 13:29:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -3427,7 +3427,7 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   char ip[32];
   int bad = 0;
   struct attribute *attrib;
-  struct addrinfo *res;
+  struct addrinfo *res = NULL;
   struct sockaddr_in saddr;
   char host[32];
   char lookup[256];

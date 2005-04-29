@@ -1,4 +1,4 @@
-/* $Id: error.h,v 1.6 2005/04/28 16:50:42 jonz Exp $ */
+/* $Id: error.h,v 1.7 2005/04/29 13:29:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -37,7 +37,7 @@
 #endif
 #ifdef DAEMON
 #include <pthread.h>
-pthread_mutex_t	__syslog_lock;
+extern pthread_mutex_t  __syslog_lock;
 #endif
 
 #ifdef DEBUG

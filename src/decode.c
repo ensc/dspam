@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.21 2005/04/28 16:50:42 jonz Exp $ */
+/* $Id: decode.c,v 1.22 2005/04/29 13:29:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -161,13 +161,12 @@ _ds_actualize_message (const char *message)
             goto MEMFAIL;
           }
 
-          if (current_heading->original_data != NULL) {
+          if (current_heading->original_data) {
             ptr =
               realloc (current_heading->original_data,
                        strlen (current_heading->original_data) +
                                strlen (line) + 2);
-            if (ptr)
-            {
+            if (ptr) {
               current_heading->original_data = ptr;
               strcat (current_heading->original_data, "\n");
               strcat (current_heading->original_data, line);

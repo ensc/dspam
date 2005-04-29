@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.5 2005/04/28 16:50:42 jonz Exp $ */
+/* $Id: error.c,v 1.6 2005/04/29 13:29:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -54,6 +54,11 @@
 #include "error.h"
 #include "util.h"
 #include "config.h"
+
+#ifdef DAEMON
+#include <pthread.h>
+pthread_mutex_t  __syslog_lock;
+#endif
 
 #ifdef _WIN32
     #include <process.h>
