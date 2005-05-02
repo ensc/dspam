@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.34 2005/04/15 13:45:50 jonz Exp $
+## $Id: dspam.conf.in,v 1.35 2005/05/02 16:04:04 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -412,6 +412,14 @@ Opt out
 # without processing. Value is in bytes.
 #
 #MaxMessageSize 4194304
+
+#
+# Virus Checking: If you are running clamd, DSPAM can perform stream-based
+# virus checking using TCP. Uncomment the values below to enable virus
+# checking. WARNING: Messages with viruses are rejected (permanent failure).
+#
+#ClamAVPort	3310
+#ClamAVHost	127.0.0.1
 
 #
 # Daemonized Server: If you are running DSPAM as a daemonized server using

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.166 2005/04/29 13:29:29 jonz Exp $ */
+/* $Id: dspam.c,v 1.167 2005/05/02 16:04:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -49,6 +49,8 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <netdb.h>
+#include <sys/socket.h>
+
 #ifdef _WIN32
 #include <io.h>
 #include <process.h>
@@ -364,6 +366,19 @@ process_message (
   }
 
   CTX->message = components;
+
+  /* Check for viruses */
+ 
+  if (_ds_read_attribute(agent_config, "ClamAVPort") &&
+      _ds_read_attribute(agent_config, "ClamAVHost")) {
+    if (has_virus(message)) {
+      CTX->result = DSR_ISSPAM;
+      STATUS("A virus was detected in the message contents");
+      log_events(CTX, ATX);
+      result = DSR_ISVIRUS;
+      goto RETURN;
+    }
+  }
 
   /* Check for a domain blocklist (user-based setting) */
 
@@ -1499,6 +1514,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     if (parse_message == NULL) {
       LOG(LOG_CRIT, ERR_MEM_ALLOC);
       presult->exitcode = ERC_PROCESS;
+      strcpy(presult->text, ERR_MEM_ALLOC);
 
       if (ATX->results)
         nt_add(ATX->results, presult);
@@ -1644,6 +1660,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
           presult->exitcode = ERC_DELIVERY;
 	if (retcode == EINVAL)
           presult->exitcode = ERC_PERMANENT_DELIVERY;
+        strlcpy(presult->text, ATX->status, sizeof(presult->text));
 
         if (ATX->sockfd && ATX->flags & DAF_STDOUT)
           ATX->sockfd_output = 1;
@@ -1653,14 +1670,21 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     /* Call process_message(), then handle result appropriately */
 
     else
-    {
+    { 
       result = process_message (ATX, parse_message, username);
       presult->classification = result;
+
+      if (result == DSR_ISVIRUS) {
+        presult->classification = DSR_ISSPAM;
+        presult->exitcode = ERC_PERMANENT_DELIVERY;
+        strlcpy(presult->text, ATX->status, sizeof(presult->text));
+        goto RSET;
+      }
 
       /* Exit code 99 for spam (when using broken return codes) */
 
       if (_ds_match_attribute(agent_config, "Broken", "returnCodes")) {
-        if (result == DSR_ISSPAM) 
+        if (result == DSR_ISSPAM || result == DSR_ISVIRUS) 
           return_code = 99;
       }
 
@@ -1722,7 +1746,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
             presult->exitcode = ERC_DELIVERY;
           if (retcode == EINVAL)
             presult->exitcode = ERC_PERMANENT_DELIVERY;
-
+          strlcpy(presult->text, ATX->status, sizeof(presult->text));
 
             if ((result == DSR_ISINNOCENT || result == DSR_ISWHITELISTED) && 
                 _ds_match_attribute(agent_config, "OnFail", "unlearn") &&
@@ -1780,6 +1804,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                   presult->exitcode = ERC_DELIVERY;
                 if (retcode == EINVAL)
                   presult->exitcode = ERC_PERMANENT_DELIVERY;
+                strlcpy(presult->text, ATX->status, sizeof(presult->text));
               }
             }
             else
@@ -1802,6 +1827,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
               presult->exitcode = ERC_DELIVERY;
             if (retcode == EINVAL)
               presult->exitcode = ERC_PERMANENT_DELIVERY;
+            strlcpy(presult->text, ATX->status, sizeof(presult->text));
 
 
               /* Unlearn the message on a local delivery failure */
@@ -1832,6 +1858,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
             presult->exitcode = ERC_DELIVERY;
           if (retcode == EINVAL)
             presult->exitcode = ERC_PERMANENT_DELIVERY;
+          strlcpy(presult->text, ATX->status, sizeof(presult->text));
 
 
             if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
@@ -1847,6 +1874,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       }
     }
 
+RSET:
     _ds_pref_free(ATX->PTX);
     free(ATX->PTX);
     ATX->PTX = NULL;
@@ -3406,6 +3434,111 @@ int tracksource(DSPAM_CTX *CTX) {
 }
 
 /*
+ * has_virus(buffer *message)
+ *
+ * DESCRIPTION
+ *   Call ClamAV to determine if the message has a virus
+ *
+ * INPUT ARGUMENTS
+ *    message     pointer to buffer containing message for scanning
+ *
+ * RETURN VALUES
+ *   returns 1 if virus, 0 otherwise
+ */
+
+int has_virus(buffer *message) {
+  struct sockaddr_in addr;
+  int sockfd;
+  int virus = 0;
+  int yes = 1;
+  int port = atoi(_ds_read_attribute(agent_config, "ClamAVPort"));
+  int addr_len;
+  char *host = _ds_read_attribute(agent_config, "ClamAVHost");
+  FILE *sock;
+  char buf[128];
+
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  memset(&addr, 0, sizeof(struct sockaddr_in));
+  addr.sin_family = AF_INET;
+  addr.sin_addr.s_addr = inet_addr(host);
+  addr.sin_port = htons(port);
+  addr_len = sizeof(struct sockaddr_in);
+  LOGDEBUG("Connecting to %s:%d for virus check", host, port);
+  if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
+    LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+    return 0;
+  }
+
+  setsockopt(sockfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
+
+  sock = fdopen(sockfd, "r+");
+  fprintf(sock, "STREAM\r\n");
+
+  if ((fgets(buf, sizeof(buf), sock))!=NULL && !strncmp(buf, "PORT", 4)) {
+    int s_port = atoi(buf+5);
+    if (feed_clam(s_port, message)==0) {
+      if ((fgets(buf, sizeof(buf), sock))!=NULL) {
+        if (!strstr(buf, ": OK")) 
+          virus = 1;
+      }
+    }
+  }
+  fclose(sock);
+  close(sockfd);
+  
+  return virus;
+}
+
+/*
+ * feed_clam(int port, buffer *message)
+ *
+ * DESCRIPTION
+ *   Feed a stream to ClamAV for virus detection
+ *
+ * INPUT ARGUMENTS
+ *    sockfd      port number of stream
+ *    message     pointer to buffer containing message for scanning
+ *
+ * RETURN VALUES
+ *   returns 0 on success
+ */
+
+int feed_clam(int port, buffer *message) {
+  struct sockaddr_in addr;
+  int sockfd, r, addr_len;
+  int yes = 1;
+  long sent = 0;
+  long size = strlen(message->data);
+  char *host = _ds_read_attribute(agent_config, "ClamAVHost");
+ 
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  memset(&addr, 0, sizeof(struct sockaddr_in));
+  addr.sin_family = AF_INET;
+  addr.sin_addr.s_addr = inet_addr(host);
+  addr.sin_port = htons(port);
+  addr_len = sizeof(struct sockaddr_in);
+  LOGDEBUG("Connecting to %s:%d for virus stream transmission", host, port);
+  if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
+    LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+    return EFAILURE;
+  }
+
+  setsockopt(sockfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
+
+  while(sent<size) {
+    r = send(sockfd, message->data+sent, size-sent, 0);
+    if (r <= 0) {
+      return r;
+    }
+    sent += r;
+  }
+ 
+  close(sockfd);
+  return 0;
+}
+
+
+/*
  * is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX)
  *
  * DESCRIPTION
@@ -3793,4 +3926,3 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   return 0;
 }
-

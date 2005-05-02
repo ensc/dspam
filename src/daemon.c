@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.98 2005/04/22 20:26:44 jonz Exp $ */
+/* $Id: daemon.c,v 1.99 2005/05/02 16:04:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -746,14 +746,20 @@ GETCMD:
         else
         {
           if (result->exitcode == ERC_PERMANENT_DELIVERY) {
-            snprintf(buf, sizeof(buf),
-                     "%d 5.3.0 <%s> Permanent error occured during delivery",
-                     LMTP_FAILURE, (char *) node_nt->ptr);
+            snprintf(buf, sizeof(buf), "%d 5.3.0 <%s> %s",
+                 LMTP_FAILURE, (char *) node_nt->ptr,
+                 (result->text[0]) ? result->text : "Permanent error occured");
           } else {
-            snprintf(buf, sizeof(buf),
-                     "%d 4.3.0 <%s> Error occured during %s", 
-                     LMTP_TEMP_FAIL, (char *) node_nt->ptr,
-              (result->exitcode == ERC_DELIVERY) ? "delivery" : "processing");
+            if (result->text[0]) {
+              snprintf(buf, sizeof(buf),
+                       "%d 4.3.0 <%s> %s",
+                       LMTP_TEMP_FAIL, (char *) node_nt->ptr, result->text);
+            } else {
+              snprintf(buf, sizeof(buf),
+                       "%d 4.3.0 <%s> Error occured during %s", 
+                       LMTP_TEMP_FAIL, (char *) node_nt->ptr,
+                (result->exitcode == ERC_DELIVERY) ? "delivery" : "processing");
+            }
           }
         }
 

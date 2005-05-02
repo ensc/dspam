@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.28 2005/04/22 02:21:28 jonz Exp $ */
+/* $Id: dspam.h,v 1.29 2005/05/02 16:04:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -62,6 +62,8 @@ int add_xdspam_headers (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int embed_signature    (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int embed_signed       (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int tracksource        (DSPAM_CTX *CTX);
+int has_virus          (buffer *message);
+int feed_clam          (int port, buffer *message);
 int is_blacklisted     (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int is_blocklisted     (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int do_notifications   (DSPAM_CTX *CTX, AGENT_CTX *ATX);
@@ -82,12 +84,15 @@ int process_neural_decision(DSPAM_CTX *CTX, struct _ds_neural_decision *DEC);
 typedef struct agent_result {
   int exitcode;
   int classification;
+  char text[256];
 } *agent_result_t; 
 
 #define ERC_SUCCESS		0x00
 #define ERC_PROCESS		-0x01
 #define ERC_DELIVERY		-0x02
 #define ERC_PERMANENT_DELIVERY	-0x03
+
+#define DSR_ISVIRUS 0xD0
 
 #endif /* _DSPAM_H */
 
