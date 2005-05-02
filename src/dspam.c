@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.167 2005/05/02 16:04:04 jonz Exp $ */
+/* $Id: dspam.c,v 1.168 2005/05/02 19:22:10 jonz Exp $ */
 
 /*
  DSPAM
@@ -1675,9 +1675,14 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       presult->classification = result;
 
       if (result == DSR_ISVIRUS) {
-        presult->classification = DSR_ISSPAM;
-        presult->exitcode = ERC_PERMANENT_DELIVERY;
-        strlcpy(presult->text, ATX->status, sizeof(presult->text));
+        if (_ds_match_attribute(agent_config, "ClamAVResponse", "reject")) {
+          presult->classification = DSR_ISSPAM;
+          presult->exitcode = ERC_PERMANENT_DELIVERY;
+          strlcpy(presult->text, ATX->status, sizeof(presult->text));
+        } else {
+          presult->classification = DSR_ISINNOCENT;
+          presult->exitcode = ERC_SUCCESS;
+        }
         goto RSET;
       }
 

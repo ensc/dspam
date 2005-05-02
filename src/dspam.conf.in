@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.35 2005/05/02 16:04:04 jonz Exp $
+## $Id: dspam.conf.in,v 1.36 2005/05/02 19:22:10 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -416,10 +416,14 @@ Opt out
 #
 # Virus Checking: If you are running clamd, DSPAM can perform stream-based
 # virus checking using TCP. Uncomment the values below to enable virus
-# checking. WARNING: Messages with viruses are rejected (permanent failure).
+# checking. 
+#
+# ClamAVResponse: reject (reject or drop the message with a permanent failure)
+#                 accept (accept the message and quietly drop the message)
 #
 #ClamAVPort	3310
 #ClamAVHost	127.0.0.1
+#ClamAVResponse reject
 
 #
 # Daemonized Server: If you are running DSPAM as a daemonized server using
