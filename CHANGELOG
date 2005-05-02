@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.291 2005/05/02 19:31:30 jonz Exp $
+$Id: CHANGELOG,v 1.292 2005/05/02 20:57:12 jonz Exp $
 
 Version NEXT
 ------------
@@ -10,7 +10,8 @@ LMTP error codes should include relevant text from error where possible
 [20050501.0800] jonz: added preliminary support for Clam/AV
 
 added support for clamd virus checking via TCP via ClamAVHost and ClamAVPort
-properties (see dspam.conf)
+properties (see dspam.conf. added ClamAVResponse to control how DSPAM should
+act if a virus is found.
 
 use --enable-clamav to enable
 

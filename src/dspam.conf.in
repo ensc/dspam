@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.36 2005/05/02 19:22:10 jonz Exp $
+## $Id: dspam.conf.in,v 1.37 2005/05/02 20:57:13 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -420,10 +420,11 @@ Opt out
 #
 # ClamAVResponse: reject (reject or drop the message with a permanent failure)
 #                 accept (accept the message and quietly drop the message)
+#                 spam   (treat as spam and quarantine/tag/whatever)
 #
 #ClamAVPort	3310
 #ClamAVHost	127.0.0.1
-#ClamAVResponse reject
+#ClamAVResponse accept
 
 #
 # Daemonized Server: If you are running DSPAM as a daemonized server using
