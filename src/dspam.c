@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.168 2005/05/02 19:22:10 jonz Exp $ */
+/* $Id: dspam.c,v 1.169 2005/05/02 19:31:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -367,6 +367,7 @@ process_message (
 
   CTX->message = components;
 
+#ifdef CLAMAV
   /* Check for viruses */
  
   if (_ds_read_attribute(agent_config, "ClamAVPort") &&
@@ -379,6 +380,7 @@ process_message (
       goto RETURN;
     }
   }
+#endif
 
   /* Check for a domain blocklist (user-based setting) */
 
@@ -1674,6 +1676,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       result = process_message (ATX, parse_message, username);
       presult->classification = result;
 
+#ifdef CLAMAV
       if (result == DSR_ISVIRUS) {
         if (_ds_match_attribute(agent_config, "ClamAVResponse", "reject")) {
           presult->classification = DSR_ISSPAM;
@@ -1685,6 +1688,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
         }
         goto RSET;
       }
+#endif
 
       /* Exit code 99 for spam (when using broken return codes) */
 
@@ -1879,7 +1883,9 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       }
     }
 
+#ifdef CLAMAV
 RSET:
+#endif
     _ds_pref_free(ATX->PTX);
     free(ATX->PTX);
     ATX->PTX = NULL;
@@ -3438,6 +3444,8 @@ int tracksource(DSPAM_CTX *CTX) {
   return 0;
 }
 
+#ifdef CLAMAV
+
 /*
  * has_virus(buffer *message)
  *
@@ -3542,6 +3550,7 @@ int feed_clam(int port, buffer *message) {
   return 0;
 }
 
+#endif
 
 /*
  * is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX)

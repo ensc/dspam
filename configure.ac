@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.29 2005/04/25 13:05:48 jonz Exp $
+dnl $Id: configure.ac,v 1.30 2005/05/02 19:31:30 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -265,6 +265,34 @@ else
               [Defined if trusted user security are enabled])
 fi
 AC_MSG_RESULT([$enable_trusted_user_security])
+
+#           
+#   Clam/AV Support
+#
+AC_ARG_ENABLE(clamav,
+    [AS_HELP_STRING(--enable-clamav,
+                        Enable Clam/AV support for DSPAM.
+                    )])
+AC_MSG_CHECKING([whether to enable clamav])
+case x"$enable_clamav" in
+    xyes)   # clamav output enabled explicity
+            ;;
+    xno)    # clamav output disabled explicity
+            ;;
+    x)      # clamav output disabled by default
+            enable_clamav=no
+            ;;   
+    *)      AC_MSG_ERROR([unexpected value $enable_clamav for --{enable,disable}-clamav configure option])
+            ;;
+esac
+if test x"$enable_clamav" != xyes
+then
+    enable_clamav=no
+else
+    enable_clamav=yes    # overkill, but convenient
+    AC_DEFINE(CLAMAV, 1, [Defined if clamav is enabled])
+fi
+AC_MSG_RESULT([$enable_debug])
 
 #
 #   Debug support

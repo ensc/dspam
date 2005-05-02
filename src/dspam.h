@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.29 2005/05/02 16:04:04 jonz Exp $ */
+/* $Id: dspam.h,v 1.30 2005/05/02 19:31:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -62,8 +62,10 @@ int add_xdspam_headers (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int embed_signature    (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int embed_signed       (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int tracksource        (DSPAM_CTX *CTX);
+#ifdef CLAMAV
 int has_virus          (buffer *message);
 int feed_clam          (int port, buffer *message);
+#endif
 int is_blacklisted     (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int is_blocklisted     (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int do_notifications   (DSPAM_CTX *CTX, AGENT_CTX *ATX);

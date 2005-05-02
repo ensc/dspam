@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.290 2005/05/02 16:04:04 jonz Exp $
+$Id: CHANGELOG,v 1.291 2005/05/02 19:31:30 jonz Exp $
 
 Version NEXT
 ------------
@@ -11,6 +11,8 @@ LMTP error codes should include relevant text from error where possible
 
 added support for clamd virus checking via TCP via ClamAVHost and ClamAVPort
 properties (see dspam.conf)
+
+use --enable-clamav to enable
 
 [20050426.2300] jonz: added storeFragments preference
 
