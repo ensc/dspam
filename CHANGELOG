@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.292 2005/05/02 20:57:12 jonz Exp $
+$Id: CHANGELOG,v 1.293 2005/05/03 23:58:51 jonz Exp $
 
 Version NEXT
 ------------
@@ -119,6 +119,14 @@ preference when provsioned. To use:
    1. Add "FallbackDomains on" to dspam.conf
    2. Create wildcard domains (@domain.tld) as users in dspam
    3. Set each wildcard domain with the "fallbackDomain on" preference
+
+Version 3.4.6
+-------------
+
+[20050503.2000] jonz: fixed obscure malformatted signature crash bug
+
+fixed an obscure bug causing dspam to crash under certain conditions when the
+loose signature was provided without the appropriate delimiter
 
 Version 3.4.5
 -------------

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.170 2005/05/02 20:57:13 jonz Exp $ */
+/* $Id: dspam.c,v 1.171 2005/05/03 23:58:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -2100,20 +2100,28 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         /* Look for signature */
         if (body != NULL)
         {
+          int tight = 1;
           signature_begin = strstr (body, SIGNATURE_BEGIN);
-          if (signature_begin == NULL)
+          if (signature_begin == NULL) {
             signature_begin = strstr (body, LOOSE_SIGNATURE_BEGIN);
+            tight = 0;
+          }
  
-          if (signature_begin != NULL)
+          if (signature_begin)
           {
             erase_begin = signature_begin;
-            if (!strncmp(signature_begin, SIGNATURE_BEGIN, strlen(SIGNATURE_BEGIN))) 
+            if (tight)
               signature_begin += strlen(SIGNATURE_BEGIN);
-            else
-              signature_begin =
-                strstr (signature_begin,
-                  SIGNATURE_DELIMITER) + strlen (SIGNATURE_DELIMITER);
-                  signature_end = signature_begin;
+            else {
+              char *loose = strstr (signature_begin, SIGNATURE_DELIMITER);
+              if (!loose) {
+                LOGDEBUG("found loose signature begin, but no delimiter");
+                goto NEXT;
+              }
+              signature_begin = loose + strlen(SIGNATURE_DELIMITER);
+            }
+
+            signature_end = signature_begin;
   
             /* Find the signature's end character */
             while (signature_end != NULL
@@ -2154,6 +2162,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         }
       } /* TrainPristine */
     }
+NEXT:
     prev_node = node_nt;
     node_nt = c_nt_next (CTX->message->components, &c);
     i++;

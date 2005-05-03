@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.99 2005/05/02 16:04:04 jonz Exp $ */
+/* $Id: daemon.c,v 1.100 2005/05/03 23:58:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -230,7 +230,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
 
             if ((newfd = accept(listener, 
                                 (struct sockaddr *)&remote_addr, 
-                                &addrlen)) == -1)
+                                (socklen_t *) &addrlen)) == -1)
             {
               LOG(LOG_WARNING, ERR_DAEMON_ACCEPT, strerror(errno));
               continue;
