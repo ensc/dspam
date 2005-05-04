@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.171 2005/05/03 23:58:51 jonz Exp $ */
+/* $Id: dspam.c,v 1.172 2005/05/04 17:19:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -582,7 +582,7 @@ process_message (
 
   /* Write .stats file for web interface */
 
-  if (CTX->training_mode != DST_NOTRAIN && !_ds_match_attribute(agent_config, "supressWebStats", "on")) {
+  if (CTX->training_mode != DST_NOTRAIN && !_ds_match_attribute(agent_config, "SupressWebStats", "on")) {
     write_web_stats (
       ATX,
       (CTX->group == NULL || CTX->flags & DSF_MERGED) ?
