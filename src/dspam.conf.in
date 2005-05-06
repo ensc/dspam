@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.37 2005/05/02 20:57:13 jonz Exp $
+## $Id: dspam.conf.in,v 1.38 2005/05/06 13:23:21 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -55,6 +55,27 @@ TrustedDeliveryAgent "@delivery_agent@"
 # spam. Use %u to specify the user DSPAM is processing mail for.
 #
 #QuarantineAgent	"/usr/bin/procmail -d spam"
+
+#
+# DSPAM can optionally process "plused users" (addresses in the user+detail
+# form) by truncating the username just before the "+", so all internal
+# processing occurs for "user", but delivery will be performed for
+# "user+detail". This is only useful if the LDA can handle "plused users"
+# (for example Cyrus IMAP) and when configured for LMTP delivery above
+#
+# NOTE: Plused detail presently only works when usernames are provided and
+#       not fully qualified email address (@domain).
+#
+#EnablePlusedDetail	on
+
+#
+# Quarantine Mailbox: DSPAM's LMTP code can send spam mail using LMTP to a 
+# "plused" mailbox (such as user+quarantine) leaving quarantine processing
+# for retraining or deletion to be performed by the LDA and the mail client.
+# "plused" mailboxes are supported by Cyrus IMAP and possibly other LDAs.
+# The mailbox name must have the +
+#
+#QuarantineMailbox	+quarantine
 
 #
 # OnFail: What to do if local delivery or quarantine should fail. If set

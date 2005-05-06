@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.172 2005/05/04 17:19:18 jonz Exp $ */
+/* $Id: dspam.c,v 1.173 2005/05/06 13:23:21 jonz Exp $ */
 
 /*
  DSPAM
@@ -821,6 +821,21 @@ deliver_message (
 
 #ifdef DAEMON
 
+  /* If QuarantineMailbox defined and delivering a spam, get 
+   * name of recipient, truncate possible "+detail", and 
+   * add the QuarantineMailbox name (that must include the "+")
+   */ 
+
+  if ((_ds_read_attribute(agent_config, "QuarantineMailbox")) &&
+      (result == DSR_ISSPAM)) {
+    strlcpy(args, ATX->recipient, sizeof(args));
+    arg=index(args,'+');
+    if (arg != NULL) *arg='\0';
+    strlcat(args,_ds_read_attribute(agent_config, "QuarantineMailbox"),
+            sizeof(args));
+    ATX->recipient=args;
+  }
+
   /* If (using LMTP or SMTP) and (not delivering to stdout) and 
    * (we shouldn't be delivering this to a quarantine agent) 
    * then call deliver_socket to deliver to DeliveryHost
@@ -1463,6 +1478,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_c c_nt, c_rcpt;
   buffer *parse_message;
   agent_result_t presult;
+  char *plus;
+  char mailbox[256];
   FILE *fout;
 
   if (ATX->sockfd) {
@@ -1511,7 +1528,17 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
       ATX->recipient = node_nt->ptr;
     }
-     
+
+      /* If support for "+detail" is enabled, save full mailbox name for
+         delivery and strip detail for processing */
+
+    if (_ds_match_attribute(agent_config, "EnablePlusedDetail", "on")) {
+      strlcpy(mailbox, username, sizeof(mailbox));
+      ATX->recipient = mailbox;
+      plus=index(username, '+');
+      if (plus != NULL) *plus='\0';
+    }
+
     parse_message = buffer_create(message->data);
     if (parse_message == NULL) {
       LOG(LOG_CRIT, ERR_MEM_ALLOC);

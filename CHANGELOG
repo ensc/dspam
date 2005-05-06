@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.293 2005/05/03 23:58:51 jonz Exp $
+$Id: CHANGELOG,v 1.294 2005/05/06 13:23:21 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050505.0800] jonz: added plused detail support
+
+applied patch submitted by Arnaldo Viegas de Lima <arnaldo@viegasdelima.com>
+to add plused-detail support (username+mailbox). 
 
 [20050501.0800] jonz: LMTP error codes to include more descriptive text
 
