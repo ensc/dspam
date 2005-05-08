@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.173 2005/05/06 13:23:21 jonz Exp $ */
+/* $Id: dspam.c,v 1.174 2005/05/08 03:57:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <errno.h>
 #ifdef HAVE_UNISTD_H_
