@@ -1,4 +1,4 @@
-$Id: README,v 1.61 2005/04/25 13:05:48 jonz Exp $
+$Id: README,v 1.62 2005/05/12 12:13:18 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -347,6 +347,11 @@ First you will need to download a few prerequisite tools:
    Enables neural networking support (see the section NEURAL NETWORKING).  This
    feature is only presently supported by the mysq_drv and pgsql_drv 
    storage drivers, and is still considered experimental.
+
+   --enable-clamav
+   Enables support for Clam Antivirus. DSPAM can interface directly with clamd 
+   to perform virus scanning and can be configured to react in different
+   ways to viruses.
 
    ALGORITHM ACTIVATION
 
