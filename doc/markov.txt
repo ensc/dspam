@@ -16,3 +16,13 @@ if you wanted to play around. It's quite possible you may get better results
 from using a different combo. The only thing that is certain is the value
 computing algorithm should always be 'markov'.
 
+Other Optimizations
+
+You'll need to increase the maximum query length on your SQL server, as 
+queries get absurdly large. If you are using MySQL, you can add this to
+your my.cnf:
+
+set-variable = max_allowed_packet=32M
+
+I presently use 128M just to be insanely safe, but I suspect 32M is probably
+fine.
