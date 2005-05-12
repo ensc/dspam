@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.174 2005/05/08 03:57:22 jonz Exp $ */
+/* $Id: dspam.c,v 1.175 2005/05/12 15:31:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -3204,7 +3204,7 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         && (block->media_type == MT_TEXT
             || (block->boundary == NULL && i == 0
                 && block->media_type != MT_MULTIPART))
-        && (toplevel_boundary[0] == 0 || block->terminating_boundary))
+        && (toplevel_boundary[0] == 0 || (block->body && block->body->used)))
     {
       int is_attachment = 0;
       ds_header_t field;
