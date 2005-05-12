@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.295 2005/05/12 00:56:28 jonz Exp $
+$Id: CHANGELOG,v 1.296 2005/05/12 02:52:48 jonz Exp $
 
 Version NEXT
 ------------
@@ -6,11 +6,13 @@ Version NEXT
 [20050511.2045] jonz: added markovian weighting functions
 
 added functions to support markovian weighting (the algorithm used in
-crm114). at the moment, it is very unoptimized and takes a matter of a few
-seconds of processing time). markovian discrimination in general is very
-expensive in terms of resources (disk space, cpu time), but has shown to be
-very effective at classifying text. it may be appropriate for more
-scientifically geared applications.
+crm114).  markovian discrimination in general is very expensive in terms of 
+disk space and usage, but has shown to be very effective at classifying text. 
+it may be appropriate for more scientifically geared applications. be sure to
+perform as many database optimizations as possible to keep it running at a
+reasonable speed. presently, the average message takes anywhere from 0.5
+seconds to 2.0 seconds of processing time. this is about 10x slower than
+processing using chained tokens.
 
 note: dspam_dump and dspam_clean -p presently do not function with markovian
 discrimination, because weights are not stored in the database (they are
