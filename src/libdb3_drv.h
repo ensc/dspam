@@ -1,6 +1,6 @@
-/* $Id: libdb3_drv.h,v 1.2 2005/04/22 21:11:35 jonz Exp $ */
+/* $Id: libdb3_drv.h,v 1.3 2005/05/12 14:47:24 jonz Exp $ */
 
-*
+/*
  DSPAM
  COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 
