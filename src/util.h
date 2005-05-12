@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.7 2005/04/25 13:05:48 jonz Exp $ */
+/* $Id: util.h,v 1.8 2005/05/12 00:56:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -90,6 +90,13 @@ size_t strlcat (char *, const char *, size_t);
 
   _ds_compute_complexity()
     Calculates the complexity of a token based on its nGram depth
+
+  _ds_compute_sparse()
+    Calculates the number of sparse skips in a token
+
+  _ds_compute_weight()
+    Calculates the markovian weight of a token
+
 */
 
 #ifndef HAVE_STRTOK_R
@@ -104,6 +111,8 @@ char *inet_ntoa_r(struct in_addr in, char *buf, int len);
 const char *	_ds_userdir_path (char *buff, const char *home, const char *filename, const char *extension);
 int		_ds_prepare_path_for	(const char *filename);
 int		_ds_compute_complexity	(const char *token);
+int		_ds_compute_sparse	(const char *token);
+int		_ds_compute_weight	(const char *token);
 char *		_ds_truncate_token	(const char *token);
 int		_ds_extract_address(char *buf, const char *address, size_t len);
 double		_ds_gettime(void);

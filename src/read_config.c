@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.10 2005/04/25 13:05:48 jonz Exp $ */
+/* $Id: read_config.c,v 1.11 2005/05/12 00:56:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -173,8 +173,11 @@ int configure_algorithms(DSPAM_CTX *CTX) {
                                                                                 
   if (_ds_match_attribute(agent_config, "PValue", "robinson"))
     CTX->algorithms |= DSP_ROBINSON;
+  else if (_ds_match_attribute(agent_config, "PValue", "markov"))
+    CTX->algorithms |= DSP_MARKOV;
   else
     CTX->algorithms |= DSP_GRAHAM;
+ 
 
   if (_ds_match_attribute(agent_config, "Algorithm", "chi-square"))
   {

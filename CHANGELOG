@@ -1,8 +1,27 @@
-$Id: CHANGELOG,v 1.294 2005/05/06 13:23:21 jonz Exp $
+$Id: CHANGELOG,v 1.295 2005/05/12 00:56:28 jonz Exp $
 
 Version NEXT
 ------------
 
+[20050511.2045] jonz: added markovian weighting functions
+
+added functions to support markovian weighting (the algorithm used in
+crm114). at the moment, it is very unoptimized and takes a matter of a few
+seconds of processing time). markovian discrimination in general is very
+expensive in terms of resources (disk space, cpu time), but has shown to be
+very effective at classifying text. it may be appropriate for more
+scientifically geared applications.
+
+note: dspam_dump and dspam_clean -p presently do not function with markovian
+discrimination, because weights are not stored in the database (they are
+computed when a message is processed). dspam_dump will inaccurately show a 
+value of 0.5000 for all tokens. do not run dspam_clean -p at all when using
+markovian weighting, as the band of interestingness is entirely different
+and dspam_clean -p is likely to wipe out /all/ markov-based tokens.
+
+finally, see doc/markov.txt for more information on configuring dspam as a
+markovian filter
+ 
 [20050505.0800] jonz: added plused detail support
 
 applied patch submitted by Arnaldo Viegas de Lima <arnaldo@viegasdelima.com>

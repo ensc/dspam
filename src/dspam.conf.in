@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.38 2005/05/06 13:23:21 jonz Exp $
+## $Id: dspam.conf.in,v 1.39 2005/05/12 00:56:28 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -134,6 +134,8 @@ TrainingMode teft
 # on the commandline. See the documentation for a list of available features.
 # If _any_ features are specified on the commandline, these are ignored.
 #
+# NOTE: For standard "CRM114" Markovian weighting, use sbph
+#
 #Feature sbph
 #Feature noise
 Feature chained
@@ -152,6 +154,8 @@ Feature whitelist
 # recommended that you group Bayesian algorithms with other Bayesian
 # algorithms, and any use of Chi-Square remain exclusive.
 #
+# NOTE: For standard "CRM114" Markovian weighting, use Graham
+#
 # Don't mess with this unless you know what you're doing
 #
 #Algorithm chi-square
@@ -162,6 +166,7 @@ Algorithm graham burton
 # defaults configured in the build. These options are:
 #    graham      Graham's Technique ("A Plan for Spam")
 #    robinson    Robinson's Technique 
+#    markov      Markovian Weighted Technique
 #
 # Unlike algorithms, you may only have one of these defined. Use of the
 # chi-square algorithm automatically changes this to robinson.
@@ -169,6 +174,7 @@ Algorithm graham burton
 # Don't mess with this unless you know what you're doing.
 #
 #PValue robinson
+#PValue markov
 PValue graham
 
 #

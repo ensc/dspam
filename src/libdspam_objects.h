@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.8 2005/04/25 13:05:48 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.9 2005/05/12 00:56:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -333,6 +333,7 @@ struct _ds_config
  *
  *      DSP_ROBINSON		Robinson's Technique
  *      DSP_GRAHAM		Graham's Technique
+ *      DSP_MARKOV		Markov Weighted Technique
  *
  *  locked (output)
  *    Identifies that the user's storage is presently locked
@@ -389,6 +390,7 @@ typedef struct
 #define DSA_CHI_SQUARE		0x08
 #define DSP_ROBINSON		0x10
 #define DSP_GRAHAM		0x20
+#define DSP_MARKOV		0x40
 
 /* Operating Modes */
 

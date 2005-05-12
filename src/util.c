@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.11 2005/04/28 13:44:22 jonz Exp $ */
+/* $Id: util.c,v 1.12 2005/05/12 00:56:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -538,8 +538,68 @@ _ds_getcrc64 (const char *s)
   return crc;
 }
 
+int _ds_compute_weight(const char *token) {
+  int complexity = _ds_compute_complexity(token);
+  int sparse = _ds_compute_sparse(token);
+
+  if (complexity == 1 && sparse == 0) /* the */
+    return 1;
+  if (complexity == 2 && sparse == 0) /* the quick */
+    return 8;
+
+  if (complexity == 3) { 
+    if (sparse == 1) /*		the * brown			*/
+      return 8;
+
+    if (sparse == 0) /*		the quick brown			*/
+      return 32;
+  }
+
+  if (complexity == 4) {
+    if (sparse == 2) /* 	the * * fox			*/
+      return 4;
+    if (sparse == 1) /* 	the quick * fox			*/
+      return 16;
+    if (sparse == 0) /*		the quick brown fox		*/
+      return 64;
+  }
+
+  if (complexity == 5) {
+    if (sparse == 3) /*		the * * * jumped		*/
+      return 4;
+    if (sparse == 2) /*		the quick * * jumped		*/
+      return 16;
+    if (sparse == 1) /*		the quick brown * jumped	*/
+      return 64;
+    if (sparse == 0) /*		the quick brown fox jumped	*/
+      return 256;
+  }
+
+  LOG(LOG_WARNING, "no rule to compute markovian weight for '%s'; complexity: %d; sparse: %d", token, complexity, sparse);
+  return 1;
+}
+
+/* Compute the number of adjacent sparse skips in a token */
+
+int _ds_compute_sparse(const char *token) {
+  int sparse = 0;
+  char *a = strstr(token, "++");
+  
+  while(a) {
+    sparse++;
+    a = strstr(a+1, "++");
+  }
+
+  if (token[0] == '+') 
+    sparse++;
+  if (token[strlen(token)-1] == '+')
+    sparse++;
+
+  return sparse;
+}
 
 /* Compute the complexity of a token */
+
 int _ds_compute_complexity(const char *token) {
   int i, complexity = 1;
                                                                                 

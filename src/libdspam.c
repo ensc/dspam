@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.107 2005/04/25 13:05:48 jonz Exp $ */
+/* $Id: libdspam.c,v 1.108 2005/05/12 00:56:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -78,8 +78,11 @@
 #endif
 
 /* Fisher-Robinson's Inverse Chi-Square Constants */
-#define CHI_S           0.1     /* Strength */
-#define CHI_X           0.5000  /* Assumed Probability */
+#define CHI_S   0.1     /* Strength */
+#define CHI_X   0.5000  /* Assumed Probability */
+
+#define	C1	16.0	/* Markov C1 */
+#define C2	1.0	/* Markov C2 */
 
 #ifdef DEBUG
 int DO_DEBUG = 0;
@@ -514,8 +517,11 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
       CTX->operating_mode == DSM_PROCESS &&
       CTX->classification == DSR_NONE    &&
       CTX->totals.innocent_learned > 2500) || 
-     (CTX->training_mode  == DST_NOTRAIN  &&
-      CTX->operating_mode == DSM_PROCESS  &&
+     (CTX->training_mode  == DST_NOTRAIN &&
+      CTX->operating_mode == DSM_PROCESS &&
+      CTX->classification == DSR_NONE)     ||
+     (CTX->algorithms    == DSP_MARKOV   &&
+      CTX->training_mode == DST_TOE      &&
       CTX->classification == DSR_NONE))
   {
     CTX->operating_mode = DSM_CLASSIFY;
@@ -1287,7 +1293,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       ds_c = ds_diction_cursor(bnr_patterns);
       ds_term = ds_diction_next(ds_c);
       while(ds_term) {
-        _ds_calc_stat(CTX, ds_term->key, &ds_term->s, DTT_BNR, &bnr_tot);
+        _ds_calc_stat(CTX, ds_term, &ds_term->s, DTT_BNR, &bnr_tot);
         if (ds_term->name[4] == 's')
           bnr_set_pattern(BTX_S, ds_term->name, ds_term->s.probability);
         else if (ds_term->name[4] == 'c')
@@ -1477,7 +1483,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   {
 
     if (ds_term->s.probability == 0.00000 || CTX->classification != DSR_NONE)
-      _ds_calc_stat (CTX, ds_term->key, &ds_term->s, DTT_DEFAULT, NULL);
+      _ds_calc_stat (CTX, ds_term, &ds_term->s, DTT_DEFAULT, NULL);
 
     if (CTX->flags & DSF_WHITELIST) {
       if (ds_term->key == whitelist_token              && 
@@ -1958,98 +1964,132 @@ _ds_process_signature (DSPAM_CTX * CTX)
  *
  * INPUT ARGUMENTS
  *      CTX           DSPAM context
- *      token         CRC64 of token to calculate
- *      s             Pointer to stat structure containing totals
+ *      term          ds_term_t 
  *      token_type    DTT_ value specifying token type
  *      bnr_tot       BNR totals structure
  */
 
 int
-_ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
-               struct _ds_spam_stat *s, int token_type,
-               struct _ds_spam_stat *bnr_tot)
+_ds_calc_stat (
+  DSPAM_CTX * CTX,
+  ds_term_t term,
+  struct _ds_spam_stat *s,
+  int token_type,
+  struct _ds_spam_stat *bnr_tot)
 {
-
-  int min_hits;
+  int min_hits, sed_hits = 0;
   long ti, ts;
 
-  min_hits = (token_type == DTT_BNR) ? 25 : 5;
+  if (token_type == DTT_BNR) {
+    min_hits = 25; /* Bayesian Noise Reduction patterns */
+
+  } else if (!(CTX->algorithms & DSP_MARKOV)) {
+    min_hits = 5; /* "Standard" token threshold */
+
+  } else {
+    min_hits = 10; /* Markov threshold */
+
+  }
+
+  /*  Statistical Sedation: Adjust hapaxial threshold to compensate for a 
+   *  spam corpus imbalance 
+   */
 
   ti = CTX->totals.innocent_learned + CTX->totals.innocent_classified;
   ts = CTX->totals.spam_learned + CTX->totals.spam_classified;
-
   if (CTX->training_buffer) {
-
     if (ti < 1000 && ti < ts)
     {
-      min_hits = min_hits+(CTX->training_buffer/2)+
+      sed_hits = min_hits+(CTX->training_buffer/2)+
                    (CTX->training_buffer*((ts-ti)/200));
     }
 
     if (ti < 2500 && ti >=1000 && ts > ti)
     {
       float spams = (ts * 1.0 / (ts * 1.0 + ti * 1.0)) * 100;
-      min_hits = min_hits+(CTX->training_buffer/2)+
+      sed_hits = min_hits+(CTX->training_buffer/2)+
                    (CTX->training_buffer*(spams/20));
     }
   }
 
-  if (token_type == DTT_DEFAULT) {
-    if (min_hits < 5)
-      min_hits = 5;
-  }
+  if (token_type != DTT_DEFAULT || sed_hits > min_hits) 
+    min_hits = sed_hits;
 
-  if (CTX->training_mode == DST_TUM) {
-    if (min_hits>20)
-      min_hits = 20;
-  }
+  /*  TUM mode training only records up to 20 hits so we need to make sure we
+   *  don't require more than that.
+   */
+
+  if (CTX->training_mode == DST_TUM && min_hits > 20) 
+    min_hits = 20;
 
   if (CTX->classification == DSR_ISSPAM)
     s->probability = .7;
   else
-    s->probability = .4;
+    s->probability = (CTX->algorithms & DSP_MARKOV) ? .5 : .4;
 
-  if (CTX->totals.spam_learned > 0 && 
-      CTX->totals.innocent_learned > 0 &&
-        ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
-         (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0)) > 0)
+  /* Markovian Weighting */
 
-  {
-    if (token_type == DTT_BNR) {
-      s->probability =
-        (s->spam_hits * 1.0 / bnr_tot->spam_hits * 1.0) /
-        ((s->spam_hits * 1.0 / bnr_tot->spam_hits * 1.0) +
-         (s->innocent_hits * 1.0 / bnr_tot->innocent_hits * 1.0));
-    } else {
-#ifdef BIAS
-        s->probability =
-          (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
-          ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
-           (s->innocent_hits * 2.0 / CTX->totals.innocent_learned * 1.0));
-#else
-        s->probability =
-          (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
-          ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
-           (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0));
-#endif
+  if (CTX->algorithms & DSP_MARKOV) {
+    int weight;
+
+    /*  some utilities don't provide the token name, and so we can't compute
+     *  a probability. just return something neutral.
+     */
+    if (term == NULL) {
+      s->probability = .5;
+      return 0;
     }
-  }
 
-  if (s->spam_hits == 0 && s->innocent_hits > 0)
-  {
-    if (s->innocent_hits > 50)
-      s->probability = 0.0060;
-    else if (s->innocent_hits > 10)
-      s->probability = 0.0001;
-    else
-      s->probability = 0.0002;
-  }
-  else if (s->spam_hits > 0 && s->innocent_hits == 0)
-  {
-    if (s->spam_hits >= 10)
-      s->probability = 0.9999;
-    else
-      s->probability = 0.9998;
+    weight = _ds_compute_weight(term->name);
+    s->probability = 0.5 + (((s->spam_hits - s->innocent_hits) * weight) /
+                         (C1 * (s->spam_hits + s->innocent_hits + C2) * 256.0));
+
+  /* Graham and Robinson Start Here */
+
+  } else {
+    if (CTX->totals.spam_learned > 0 && 
+        CTX->totals.innocent_learned > 0 &&
+          ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
+           (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0)) > 0)
+    {
+      if (token_type == DTT_BNR) {
+        s->probability =
+          (s->spam_hits * 1.0 / bnr_tot->spam_hits * 1.0) /
+          ((s->spam_hits * 1.0 / bnr_tot->spam_hits * 1.0) +
+           (s->innocent_hits * 1.0 / bnr_tot->innocent_hits * 1.0));
+      } else {
+
+#ifdef BIAS
+          s->probability =
+            (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
+            ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
+             (s->innocent_hits * 2.0 / CTX->totals.innocent_learned * 1.0));
+#else
+          s->probability =
+            (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
+            ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
+             (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0));
+#endif
+      }
+    }
+
+    if (s->spam_hits == 0 && s->innocent_hits > 0)
+    {
+      if (s->innocent_hits > 50)
+        s->probability = 0.0060;
+      else if (s->innocent_hits > 10)
+        s->probability = 0.0001;
+      else
+        s->probability = 0.0002;
+    }
+    else if (s->spam_hits > 0 && s->innocent_hits == 0)
+    {
+      if (s->spam_hits >= 10)
+        s->probability = 0.9999;
+      else
+        s->probability = 0.9998;
+    }
+
   }
 
 #ifdef BIAS
@@ -2059,13 +2099,15 @@ _ds_calc_stat (DSPAM_CTX * CTX, unsigned long long token,
   if (s->spam_hits + s->innocent_hits < min_hits
       || CTX->totals.innocent_learned < min_hits)
 #endif
-    s->probability = .4;
+    s->probability = (CTX->algorithms & DSP_MARKOV) ? .5 : .4;
 
   if (s->probability < 0.0001)
     s->probability = 0.0001;
 
   if (s->probability > 0.9999)
     s->probability = 0.9999;
+
+  /* Finish off Robinson */
 
   if (token_type != DTT_BNR && CTX->algorithms & DSP_ROBINSON)
   {
@@ -2959,7 +3001,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_GRAHAM) {
       factor = factor_bayes;
-      if (bay_result >= 0.9)
+      if ((CTX->algorithms & DSP_MARKOV && bay_result > 0.5) ||
+          (!(CTX->algorithms & DSP_MARKOV) && bay_result >= 0.9))
       {
         CTX->result = DSR_ISSPAM;
         CTX->probability = bay_result;
@@ -2970,7 +3013,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_BURTON) {
       factor = factor_altbayes;
-      if (abay_result >= 0.9) 
+      if ((CTX->algorithms & DSP_MARKOV && abay_result > 0.5) ||
+          (!(CTX->algorithms & DSP_MARKOV) && abay_result >= 0.9))
       {
         CTX->result = DSR_ISSPAM;
         CTX->probability = abay_result;
@@ -2983,7 +3027,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_ROBINSON) {
       factor = factor_rob;
-      if (rob_result >= ROB_CUTOFF) 
+      if ((CTX->algorithms & DSP_MARKOV && rob_result > 0.5) ||
+          (!(CTX->algorithms & DSP_MARKOV) && rob_result >= ROB_CUTOFF))
       {
         CTX->result = DSR_ISSPAM;
         if (CTX->probability < 0)
@@ -2997,7 +3042,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_CHI_SQUARE) {
      factor = factor_chi;
-     if (chi_result >= CHI_CUTOFF)
+     if ((CTX->algorithms & DSP_MARKOV && chi_result > 0.5) ||
+         (!(CTX->algorithms & DSP_MARKOV) && bay_result >= CHI_CUTOFF))
      {
        CTX->result = DSR_ISSPAM;
        if (CTX->probability < 0)
@@ -3041,7 +3087,7 @@ CHI_NEXT:
   }
 
 #ifdef VERBOSE
-  if (DO_DEBUG) {
+  if (DO_DEBUG && (!(CTX->algorithms & DSP_MARKOV))) {
     if (abay_result >= 0.9 && bay_result < 0.9)
     {
       LOGDEBUG ("CATCH: Burton Bayesian");
@@ -3192,7 +3238,7 @@ int _ds_instantiate_bnr(
   while(node_nt != NULL) {
     ds_term = node_nt->ptr;
 
-    _ds_calc_stat (CTX, ds_term->key, &ds_term->s, DTT_DEFAULT, NULL);
+    _ds_calc_stat (CTX, ds_term, &ds_term->s, DTT_DEFAULT, NULL);
 
     for(i=0;i<BNR_SIZE-1;i++) 
       previous_bnr_probs[i] = previous_bnr_probs[i+1];
