@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.12 2005/05/12 00:56:28 jonz Exp $ */
+/* $Id: util.c,v 1.13 2005/05/12 01:07:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -545,14 +545,14 @@ int _ds_compute_weight(const char *token) {
   if (complexity == 1 && sparse == 0) /* the */
     return 1;
   if (complexity == 2 && sparse == 0) /* the quick */
-    return 8;
+    return 4;
 
   if (complexity == 3) { 
     if (sparse == 1) /*		the * brown			*/
-      return 8;
+      return 4;
 
     if (sparse == 0) /*		the quick brown			*/
-      return 32;
+      return 16;
   }
 
   if (complexity == 4) {
