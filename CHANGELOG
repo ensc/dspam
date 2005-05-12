@@ -1,7 +1,18 @@
-$Id: CHANGELOG,v 1.297 2005/05/12 15:31:49 jonz Exp $
+$Id: CHANGELOG,v 1.298 2005/05/12 22:16:49 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050512.0400] jonz: added experimental css_drv (CRM114 sparse spectra driver)
+
+added *experimental* css_drv which is a flat-file based driver using Bill
+Yerazunis' "sparse spectra" approach to storage. each user will have two 16MB
+fixed-size files containing up to a million tokens (this will be adjustable
+later). 
+
+NOTE: although operational, it's still a bit buggy. a lot of spam is missed
+when using this driver, so I suspect some work needs to be done to fix data
+integrity issues. that means don't use it in production.
 
 [20050511.2045] jonz: added markovian weighting functions
 

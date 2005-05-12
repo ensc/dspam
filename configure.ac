@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.30 2005/05/02 19:31:30 jonz Exp $
+dnl $Id: configure.ac,v 1.31 2005/05/12 22:16:49 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -943,6 +943,14 @@ then
     is_storagedrv_handled=yes
 fi
 
+if test x"$storagedrv" = xcss_drv
+then
+  storage_drv_sources='css_drv.c css_drv.h'
+  storage_drv_subdirs='tools.css_drv'
+  storage_drv_objects='css_drv.lo'
+  is_storagedrv_handled=yes
+fi
+
 if test x"$storagedrv" = xmysql_drv
 then
     DS_MYSQL(MYSQL_CPPFLAGS, MYSQL_LDFLAGS, MYSQL_LIBS,
@@ -1124,6 +1132,6 @@ AC_CONFIG_FILES([txt/Makefile src/tools.pgsql_drv/Makefile ])
 AC_CONFIG_FILES([src/Makefile cgi/templates/Makefile])
 AC_CONFIG_FILES([src/tools.sqlite_drv/Makefile man/Makefile])
 AC_CONFIG_FILES([src/dspam.pc src/dspam-uninstalled.pc])
-AC_CONFIG_FILES([src/win32/Makefile doc/Makefile])
+AC_CONFIG_FILES([src/win32/Makefile doc/Makefile src/tools.css_drv/Makefile])
 AC_OUTPUT
 

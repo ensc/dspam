@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.17 2005/04/22 20:26:44 jonz Exp $ */
+/* $Id: language.h,v 1.18 2005/05/12 22:16:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -34,6 +34,7 @@
 #define ERR_IO_FILE_RENAME	"Unable to rename file: %s: %s"
 #define ERR_IO_DIR_CREATE	"Unable to create directory: %s: %s"
 #define ERR_IO_LOCK             "Failed to lock file %s: %d: %s"
+#define ERR_IO_LOCK_FREE	"Failed to free lock file %s: %d: %s"
 
 /* Agent error codes */
 
