@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.4 2005/05/13 03:44:05 jonz Exp $ */
+/* $Id: css_drv.c,v 1.5 2005/05/13 03:55:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -456,6 +456,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
         ((wrap && filepos <thumb) || (!wrap)))
   {
     filepos += sizeof(struct _css_drv_spam_record);
+
     if (!wrap && filepos >= CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
       filepos = 0;
       wrap = 1;
@@ -513,6 +514,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   {
     iterations++;
     filepos += sizeof(struct _css_drv_spam_record);
+
     if (!wrap && filepos >= CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
       filepos = 0;
       wrap = 1;
@@ -538,6 +540,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   {
     iterations++;
     filepos += sizeof(struct _css_drv_spam_record);
+
     if (!wrap && filepos >= CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
       filepos = 0;
       wrap = 1;
