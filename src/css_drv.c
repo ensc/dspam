@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.1 2005/05/12 22:16:49 jonz Exp $ */
+/* $Id: css_drv.c,v 1.2 2005/05/13 03:26:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -437,7 +437,7 @@ int
 _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
                     struct _ds_spam_stat *stat)
 {
-  struct _css_drv_spam_record record;
+  struct _css_drv_spam_record rec;
   struct _css_drv_storage *s = (struct _css_drv_storage *) CTX->storage;
   unsigned long filepos, thumb;
   int wrap;
@@ -448,35 +448,42 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   filepos = (token % CSS_REC_MAX) * sizeof(struct _css_drv_spam_record);
   thumb = filepos;
  
-  memcpy(&record, ((void *) s->nonspam) + filepos, sizeof(struct _css_drv_spam_record));
+  /* Nonspam Counter */
+
   wrap = 0;
-  while(record.hashcode != token && record.hashcode != 0 && 
+  memcpy(&rec, s->nonspam+filepos, sizeof(struct _css_drv_spam_record));
+  while(rec.hashcode != token && rec.hashcode !=0 && 
         ((wrap && filepos <thumb) || (!wrap)))
   {
     filepos += sizeof(struct _css_drv_spam_record);
-    if (filepos > CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
+    if (!wrap && filepos > CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
       filepos = 0;
       wrap = 1;
     }
-    memcpy(&record, s->nonspam+filepos, sizeof(struct _css_drv_spam_record));
+    memcpy(&rec, s->nonspam+filepos, sizeof(struct _css_drv_spam_record));
   }
-  stat->innocent_hits = record.counter;
+  if (rec.hashcode == 0) 
+    return EFAILURE;
+  stat->innocent_hits = rec.counter;
 
-  filepos = thumb;
+  /* Spam Counter */
+
   wrap = 0;
-  memcpy(&record, s->spam+filepos, sizeof(struct _css_drv_spam_record));
-  while(record.hashcode != token && record.hashcode != 0 &&
-         ((wrap && filepos <thumb) || (!wrap)))
+  filepos = thumb;
+  memcpy(&rec, s->spam+filepos, sizeof(struct _css_drv_spam_record));
+  while(rec.hashcode != token && rec.hashcode != 0 && 
+        ((wrap && filepos<thumb) || (!wrap)))
   {
     filepos += sizeof(struct _css_drv_spam_record);
-    if (filepos > CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
+    if (!wrap && filepos > CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
       filepos = 0;
       wrap = 1;
     }
-    memcpy(&record, s->spam+filepos, sizeof(struct _css_drv_spam_record));
+    memcpy(&rec, s->spam+filepos, sizeof(struct _css_drv_spam_record));
   }
-
-  stat->spam_hits = record.counter;
+  if (rec.hashcode == 0) 
+    return EFAILURE;
+  stat->spam_hits = rec.counter;
 
   return 0;
 }
@@ -485,7 +492,7 @@ int
 _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
                     struct _ds_spam_stat *stat)
 {
-  struct _css_drv_spam_record record;
+  struct _css_drv_spam_record rec;
   struct _css_drv_storage *s = (struct _css_drv_storage *) CTX->storage;
   long filepos, thumb;
   int wrap;
@@ -495,39 +502,50 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
 
   filepos = (token % CSS_REC_MAX) * sizeof(struct _css_drv_spam_record);
   thumb = filepos;
-  wrap = 0;
-  thumb = filepos;
 
-  memcpy(&record, s->nonspam+filepos, sizeof(struct _css_drv_spam_record));
-  while(record.hashcode != token && record.hashcode != 0 
-        && ((wrap && filepos <thumb) || (!wrap)))
+  /* Nonspam Counter */
+  wrap = 0;
+  memcpy(&rec, s->nonspam+filepos, sizeof(struct _css_drv_spam_record));
+  while(rec.hashcode != token && rec.hashcode != 0 && 
+        ((wrap && filepos<thumb) || (!wrap)))
   {
     filepos += sizeof(struct _css_drv_spam_record);
-    if (filepos > CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
+    if (!wrap && filepos > CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
       filepos = 0;
       wrap = 1;
     }
-    memcpy(&record, s->nonspam+filepos, sizeof(struct _css_drv_spam_record));
+    memcpy(&rec, s->nonspam+filepos, sizeof(struct _css_drv_spam_record));
   }
-  record.hashcode = token;
-  record.counter = stat->innocent_hits;
-  memcpy(s->nonspam+filepos, &record, sizeof(struct _css_drv_spam_record));
+  if (rec.hashcode != token && rec.hashcode != 0) {
+    LOG(LOG_WARNING, "css table full");
+    return EFAILURE;
+  }
+  rec.hashcode = token;
+  rec.counter = stat->innocent_hits;
+  memcpy(s->nonspam+filepos, &rec, sizeof(struct _css_drv_spam_record));
 
+  /* Spam Counter */
+
+  wrap = 0;
   filepos = thumb;
-  wrap = 0;
-  memcpy(&record, s->spam+filepos, sizeof(struct _css_drv_spam_record));
-  while(record.hashcode != token && record.hashcode != 0 && 
-        ((wrap && filepos <thumb) || (!wrap)))
+  memcpy(&rec, s->spam+filepos, sizeof(struct _css_drv_spam_record));
+  while(rec.hashcode != token && rec.hashcode != 0 && 
+        ((wrap && filepos<thumb) || (!wrap)))
   {
     filepos += sizeof(struct _css_drv_spam_record);
-    if (filepos > CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
+    if (!wrap && filepos > CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
       filepos = 0;
       wrap = 1;
     }
-    memcpy(&record, s->spam+filepos, sizeof(struct _css_drv_spam_record));
+    memcpy(&rec, s->spam+filepos, sizeof(struct _css_drv_spam_record));
   }
-  record.counter = stat->spam_hits;
-  memcpy(s->spam+filepos, &record, sizeof(struct _css_drv_spam_record));
+  if (rec.hashcode != token && rec.hashcode != 0) {
+    LOG(LOG_WARNING, "css table full");
+    return EFAILURE;
+  }
+  rec.hashcode = token;
+  rec.counter = stat->spam_hits;
+  memcpy(s->spam+filepos, &rec, sizeof(struct _css_drv_spam_record));
 
   return 0;
 }
