@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.2 2005/05/13 03:26:35 jonz Exp $ */
+/* $Id: css_drv.c,v 1.3 2005/05/13 03:36:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -495,7 +495,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   struct _css_drv_spam_record rec;
   struct _css_drv_storage *s = (struct _css_drv_storage *) CTX->storage;
   long filepos, thumb;
-  int wrap;
+  int wrap, iterations;
 
   if (s->nonspam == NULL)
     return EINVAL;
@@ -505,10 +505,12 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
 
   /* Nonspam Counter */
   wrap = 0;
+  iterations = 0;
   memcpy(&rec, s->nonspam+filepos, sizeof(struct _css_drv_spam_record));
   while(rec.hashcode != token && rec.hashcode != 0 && 
         ((wrap && filepos<thumb) || (!wrap)))
   {
+    iterations++;
     filepos += sizeof(struct _css_drv_spam_record);
     if (!wrap && filepos > CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
       filepos = 0;
@@ -517,7 +519,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     memcpy(&rec, s->nonspam+filepos, sizeof(struct _css_drv_spam_record));
   }
   if (rec.hashcode != token && rec.hashcode != 0) {
-    LOG(LOG_WARNING, "css table full");
+    LOG(LOG_WARNING, "css table full. could not insert %llu. tried %lu times.", token, iterations);
     return EFAILURE;
   }
   rec.hashcode = token;
@@ -527,11 +529,13 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   /* Spam Counter */
 
   wrap = 0;
+  iterations = 0;
   filepos = thumb;
   memcpy(&rec, s->spam+filepos, sizeof(struct _css_drv_spam_record));
   while(rec.hashcode != token && rec.hashcode != 0 && 
         ((wrap && filepos<thumb) || (!wrap)))
   {
+    iterations++;
     filepos += sizeof(struct _css_drv_spam_record);
     if (!wrap && filepos > CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
       filepos = 0;
@@ -540,7 +544,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     memcpy(&rec, s->spam+filepos, sizeof(struct _css_drv_spam_record));
   }
   if (rec.hashcode != token && rec.hashcode != 0) {
-    LOG(LOG_WARNING, "css table full");
+    LOG(LOG_WARNING, "css table full. could not insert %llu. tried %lu times.", token, iterations);
     return EFAILURE;
   }
   rec.hashcode = token;
