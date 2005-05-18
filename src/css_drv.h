@@ -1,4 +1,4 @@
-/* $Id: css_drv.h,v 1.3 2005/05/18 16:12:05 jonz Exp $ */
+/* $Id: css_drv.h,v 1.4 2005/05/18 17:11:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -35,10 +35,16 @@
 
 #define CSS_REC_MAX	1000000
 
+typedef struct _css_drv_map
+{
+  void *addr;
+  int fd;
+} *css_drv_map_t;
+
 struct _css_drv_storage
 {
-  void *nonspam;	/* mmap'd nonspam css */
-  void *spam;		/* mmap'd spam css */
+  struct _css_drv_map nonspam;
+  struct _css_drv_map spam;
 
   FILE *lock;
 
@@ -57,7 +63,7 @@ int _css_drv_set_spamtotals (DSPAM_CTX * CTX);
 int _css_drv_lock_get (DSPAM_CTX * CTX, struct _css_drv_storage *s, 
   const char *username);
 int _css_drv_lock_free (struct _css_drv_storage *s, const char *username);
-void * _css_drv_open(DSPAM_CTX *CTX, const char *filename);
-int _css_drv_close(void *map);
+int _css_drv_open(DSPAM_CTX *CTX, const char *filename, css_drv_map_t map);
+int _css_drv_close(css_drv_map_t map);
 
 #endif /* _CSS_DRV_H */
