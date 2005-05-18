@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.110 2005/05/18 17:59:17 jonz Exp $ */
+/* $Id: libdspam.c,v 1.111 2005/05/18 18:54:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -1989,8 +1989,7 @@ _ds_calc_stat (
     min_hits = 5; /* "Standard" token threshold */
 
   } else {
-    min_hits = 10; /* Markov threshold */
-
+    min_hits = 0; /* Markov threshold */
   }
 
   /*  Statistical Sedation: Adjust hapaxial threshold to compensate for a 
