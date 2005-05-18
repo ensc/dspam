@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.109 2005/05/18 16:12:05 jonz Exp $ */
+/* $Id: libdspam.c,v 1.110 2005/05/18 17:59:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -523,7 +523,9 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
      (CTX->algorithms  & DSP_MARKOV      &&
       CTX->training_mode == DST_TOE      &&
       CTX->classification == DSR_NONE    &&
-      CTX->operating_mode == DSM_PROCESS))
+      CTX->operating_mode == DSM_PROCESS &&
+      CTX->totals.innocent_learned > 0   &&
+      CTX->totals.spam_learned > 0))
   {
     CTX->operating_mode = DSM_CLASSIFY;
     is_toe = 1;
@@ -1482,7 +1484,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
-
     if (ds_term->s.probability == 0.00000 || CTX->classification != DSR_NONE)
       _ds_calc_stat (CTX, ds_term, &ds_term->s, DTT_DEFAULT, NULL);
 
@@ -2071,6 +2072,7 @@ _ds_calc_stat (
             ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
              (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0));
 #endif
+
       }
     }
 

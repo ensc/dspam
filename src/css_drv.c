@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.8 2005/05/18 17:11:06 jonz Exp $ */
+/* $Id: css_drv.c,v 1.9 2005/05/18 17:59:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -119,8 +119,11 @@ _css_drv_lock_free (struct _css_drv_storage *s, const char *username)
 }
 
 int _css_drv_open(DSPAM_CTX *CTX, const char *filename, css_drv_map_t map) {
-  int open_flags = (CTX->operating_mode == DSM_CLASSIFY || CTX->operating_mode == DSM_TOOLS) ? O_RDONLY : O_RDWR;
-  int mmap_flags = (CTX->operating_mode == DSM_CLASSIFY || CTX->operating_mode == DSM_TOOLS) ? PROT_READ : PROT_READ | PROT_WRITE;
+//  int open_flags = (CTX->operating_mode == DSM_CLASSIFY || CTX->operating_mode == DSM_TOOLS) ? O_RDONLY : O_RDWR;
+//  int mmap_flags = (CTX->operating_mode == DSM_CLASSIFY || CTX->operating_mode == DSM_TOOLS) ? PROT_READ : PROT_READ | PROT_WRITE;
+
+  int open_flags = O_RDWR;
+  int mmap_flags = PROT_READ + PROT_WRITE;
 
   map->fd = open(filename, open_flags);
   if (map->fd < 0) {
@@ -163,7 +166,6 @@ _css_drv_close(css_drv_map_t map) {
   if (!map->addr)
     return EINVAL;
 
-  msync(map->addr, CSS_REC_MAX*sizeof(struct _css_drv_spam_record), MS_SYNC);
   r = munmap(map->addr, CSS_REC_MAX*sizeof(struct _css_drv_spam_record));
   if (r) {
     LOG(LOG_WARNING, "munmap failed on error %d: %s", r, strerror(errno));
@@ -460,6 +462,8 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   struct _css_drv_storage *s = (struct _css_drv_storage *) CTX->storage;
   unsigned long filepos, thumb;
   int wrap;
+
+  stat->probability = 0.00000;
 
   if (s->nonspam.addr == NULL)
     return EINVAL;
