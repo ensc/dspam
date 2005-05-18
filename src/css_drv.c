@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.5 2005/05/13 03:55:27 jonz Exp $ */
+/* $Id: css_drv.c,v 1.6 2005/05/18 15:34:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -495,7 +495,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
 {
   struct _css_drv_spam_record rec;
   struct _css_drv_storage *s = (struct _css_drv_storage *) CTX->storage;
-  long filepos, thumb;
+  unsigned long filepos, thumb;
   int wrap, iterations;
 
   if (s->nonspam == NULL)
@@ -515,7 +515,8 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     iterations++;
     filepos += sizeof(struct _css_drv_spam_record);
 
-    if (!wrap && filepos >= CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
+    if (!wrap && filepos >= (CSS_REC_MAX * sizeof(struct _css_drv_spam_record)))
+    {
       filepos = 0;
       wrap = 1;
     }
@@ -541,12 +542,13 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     iterations++;
     filepos += sizeof(struct _css_drv_spam_record);
 
-    if (!wrap && filepos >= CSS_REC_MAX * sizeof(struct _css_drv_spam_record)) {
+    if (!wrap && filepos >= (CSS_REC_MAX * sizeof(struct _css_drv_spam_record)))    {
       filepos = 0;
       wrap = 1;
     }
     memcpy(&rec, s->spam+filepos, sizeof(struct _css_drv_spam_record));
   }
+
   if (rec.hashcode != token && rec.hashcode != 0) {
     LOG(LOG_WARNING, "spam.css table full. could not insert %llu. tried %lu times.", token, iterations);
     return EFAILURE;

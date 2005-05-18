@@ -1,4 +1,4 @@
-/* $Id: css_drv.h,v 1.1 2005/05/12 22:16:49 jonz Exp $ */
+/* $Id: css_drv.h,v 1.2 2005/05/18 15:34:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -30,6 +30,8 @@
 #include "config.h"
 #include "nodetree.h"
 #include "libdspam.h"
+
+/* Support up to a million tokens (16M x 2) */
 
 #define CSS_REC_MAX	1000000
 
