@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.112 2005/05/18 19:08:31 jonz Exp $ */
+/* $Id: libdspam.c,v 1.113 2005/05/18 20:10:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -516,7 +516,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   if ((CTX->training_mode == DST_TOE     &&
       CTX->operating_mode == DSM_PROCESS &&
       CTX->classification == DSR_NONE    &&
-      CTX->totals.innocent_learned > 2500) || 
+      CTX->totals.innocent_learned > 100) || 
      (CTX->training_mode  == DST_NOTRAIN &&
       CTX->operating_mode == DSM_PROCESS &&
       CTX->classification == DSR_NONE)     ||
