@@ -1,4 +1,4 @@
-$Id: README,v 1.62 2005/05/12 12:13:18 jonz Exp $
+$Id: README,v 1.63 2005/05/18 19:08:31 jonz Exp $
 
 DSPAM v3.4 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -196,6 +196,15 @@ First you will need to download a few prerequisite tools:
    pgsql_drv:   PostgreSQL client libraries (and a server to connect to)
    sqlite_drv:  SQLite v2.7.7 or above * Default * 
    sqlite3_drv: SQLite v3.x
+   css_drv:     CRM Sparse Spectra (Very fast file driver, no dependencies)
+
+   The CRM Sparse Spectra driver is the latest addition to DSPAM and is a very
+   fast random-access file driver originally designed by Bill Yerazunis (the
+   author of CRM114). CSS is very fast (faster than MySQL in many cases) and 
+   requires no dependencies. The downside is that the files are fixed-length,
+   and by default this requires 32MB of drive space per user. If you are
+   configuring DSPAM as a Markovian filter, you should definitely use this
+   driver to avoid performance issues. 
 
    MySQL is the recommended storage driver, even for small implementations, as
    it is more stable and tested than the other drivers. If you are incapable
@@ -211,6 +220,7 @@ First you will need to download a few prerequisite tools:
    You can download PostgreSQL from http://www.postgresql.com.
    You can obtain more information about Oracle at http://www.oracle.com.
    You can download SQLite from http://www.sqlite.org.
+   The CSS driver requires no dependencies.
 
    Be sure the necessary libraries are available to root, the MTA user, and 
    the CGI user. The easiest way to do this is to copy them to /usr/lib or 
@@ -286,6 +296,7 @@ First you will need to download a few prerequisite tools:
      pgsql_drv:   PostgreSQL Drivers           ** MT SAFE ** 
      sqlite_drv:  SQLite Drivers 
      sqlite3_drv: SQLite v3.x Drivers
+     css_drv:     CRM Sparse Spectra Driver 
 
    The DSPAM agent does not require a multi-thread safe driver, but some
    third party applications may. Be sure you use one labeled "MT SAFE" if

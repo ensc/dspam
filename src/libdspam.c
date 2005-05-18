@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.111 2005/05/18 18:54:11 jonz Exp $ */
+/* $Id: libdspam.c,v 1.112 2005/05/18 19:08:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -1985,11 +1985,8 @@ _ds_calc_stat (
   if (token_type == DTT_BNR) {
     min_hits = 25; /* Bayesian Noise Reduction patterns */
 
-  } else if (!(CTX->algorithms & DSP_MARKOV)) {
-    min_hits = 5; /* "Standard" token threshold */
-
   } else {
-    min_hits = 0; /* Markov threshold */
+    min_hits = 5; /* "Standard" token threshold */
   }
 
   /*  Statistical Sedation: Adjust hapaxial threshold to compensate for a 
@@ -2092,8 +2089,6 @@ _ds_calc_stat (
         s->probability = 0.9998;
     }
 
-  }
-
 #ifdef BIAS
   if (s->spam_hits + (2 * s->innocent_hits) < min_hits
       || CTX->totals.innocent_learned < min_hits)
@@ -2101,7 +2096,8 @@ _ds_calc_stat (
   if (s->spam_hits + s->innocent_hits < min_hits
       || CTX->totals.innocent_learned < min_hits)
 #endif
-    s->probability = (CTX->algorithms & DSP_MARKOV) ? .5 : .4;
+    s->probability = .4;
+  }
 
   if (s->probability < 0.0001)
     s->probability = 0.0001;
