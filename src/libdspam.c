@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.108 2005/05/12 00:56:28 jonz Exp $ */
+/* $Id: libdspam.c,v 1.109 2005/05/18 16:12:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -520,9 +520,10 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
      (CTX->training_mode  == DST_NOTRAIN &&
       CTX->operating_mode == DSM_PROCESS &&
       CTX->classification == DSR_NONE)     ||
-     (CTX->algorithms    == DSP_MARKOV   &&
+     (CTX->algorithms  & DSP_MARKOV      &&
       CTX->training_mode == DST_TOE      &&
-      CTX->classification == DSR_NONE))
+      CTX->classification == DSR_NONE    &&
+      CTX->operating_mode == DSM_PROCESS))
   {
     CTX->operating_mode = DSM_CLASSIFY;
     is_toe = 1;

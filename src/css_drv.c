@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.6 2005/05/18 15:34:59 jonz Exp $ */
+/* $Id: css_drv.c,v 1.7 2005/05/18 16:12:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -528,6 +528,8 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   }
   rec.hashcode = token;
   rec.counter = stat->innocent_hits;
+  if (rec.counter < 0) 
+    rec.counter = 0;
   memcpy(s->nonspam+filepos, &rec, sizeof(struct _css_drv_spam_record));
 
   /* Spam Counter */
@@ -555,6 +557,8 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   }
   rec.hashcode = token;
   rec.counter = stat->spam_hits;
+  if (rec.counter < 0)
+    rec.counter = 0;
   memcpy(s->spam+filepos, &rec, sizeof(struct _css_drv_spam_record));
 
   return 0;
