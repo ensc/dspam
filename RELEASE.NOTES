@@ -1,9 +1,9 @@
-$Id: RELEASE.NOTES,v 1.39 2005/04/11 12:47:28 jonz Exp $
+$Id: RELEASE.NOTES,v 1.40 2005/05/19 17:38:11 jonz Exp $
 
-RELEASE 3.4.3-STABLE
+RELEASE 3.5.0-DEVELOPMENT
 
-This version is a maintenance release and contains bug fixes and minor
-enhancements.
+Odd-numbered releases are development releases and may be unstable or contain
+significant bugs.
 
 --------------------------------------------------------------------------
 Tired of managing DSPAM yourself? Be one of the first to pilot a new DSPAM
@@ -15,234 +15,78 @@ Made by the makers of DSPAM.
 e-mail jonathan@nuclearelephant.com for more information about the pilot
 --------------------------------------------------------------------------
 
-BUGFIX: When using LMTP/SMTP delivery, QuarantineAgent is ignored
-BUGFIX: Domain-scale uses wrong data path in admin script
-BUGFIX: DSPAM fails to build on Cygwin
-BUGFIX: optIn does not work when using preferences extensions
-BUGFIX: showFactors does not set/unset properly in user preferences
-BUGFIX: Supplying an empty spamSubject raises errors in user preferences
-BUGFIX: Signature-related errors are not reported (except to debug)
-BUGFIX: Formatting bug in system.log
+ENHANCEMENTS
 
-RELEASE 3.4.2-STABLE
+Unified Spam Alias / UID in Signature Support
+The MySQL and PgSQL storage drivers now support embedded user id's in the
+message's signature identifier. This means you can now configure a single
+system-wide spam alias and have DSPAM set the user based on that specified in
+the signature. No more long alias lists to maintain.
 
-This version is a maintenance release and contains bug fixes and minor
-enhancements.
+Domain Based Delivery Hosts
+Support for using different delivery hosts for each domain has been added.
+Each domain and its delivery host can be configured in dspam.conf.
 
-BUGFIX: Minor memory leaks in multi-word tokenizer
-BUGFIX: When using --classify, the system/user log is appended to 
-BUGFIX: Using signatureLocation=headers should prefer signature in headers
-BUGFIX: History-based training only works for admins
-BUGFIX: Long usernames malformatted in dspam_stats
-BUGFIX: Daemon connection deadlocks when NULL characters are sent
-BUGFIX: Other minor memory leaks
-BUGFIX: PostgreSQL connections stay open in daemon mode
+Integrated Clam A/V Support
+DSPAM can now communicate directly with clamd (using streaming mode) to check
+all messages for viruses. Upon detection, DSPAM can act one of three ways:
+reject the message with a permanent error, accept the message and quietly
+drop, or treat the message as spam. 
 
-ENHANCEMENTS:
+Markovian Discrimination 
+Added support for Markovian weighting, enabling DSPAM to perform as a Markovian
+classifier. These functions were based on Bill Yerazunis' published research
+describing the techniques used in CRM114. Markovian weighting is a lexically
+verbose approach to filtering spam, and provides rather impressive results.
+See doc/markov.txt for more information
 
-History-Based Training Enhancements
-DSPAM now maintains its own retraining log, which history-based training
-uses to mark messages as "Retrained" rather than allowing the user to click
-on it again. History-Based training also now delivers false positives out of
-quarantine, so the user may use quarantine or history to manage their email.
+CRM Sparse Spectra Storage Driver
+Implemented Bill Yerazunis' CRM Sparse Spectra (CSS) storage approach as a new
+storage driver (css_drv). The CSS driver is an extremely fast storage driver
+using a combination of random access files and rapid overflow. It requires no 
+dependencies and outperforms all other storage drivers. The only catch is that 
+this driver uses fixed-length storage files, which presently use 32MB of
+disk space per user. This can be adjusted, however once the CSS files are full,
+no additional tokens can be added.
 
-PostgreSQL Enhancements
-Additional enhancements have been made to the PostgreSQL driver to reduce
-duplicate key errors and improve performance.
+Fallback Domain-Based User Support
+Fallback domain support can be used by systems where a user's full email address
+is provided as the username, and allows nonexistent users to fall back to
+@domain.tld as the username. Ideal for configuring pass-thru.
 
-Non-ASCII Character Sets
-DSPAM now recognizes many non-ASCII character sets, unicode, etc.
+Improved, Unified Logging
+All logging functions have been consolidated into two functions - one for
+debugging-only messages, and one for system messages.  All system messages are 
+now logged to syslog, stderr, and debug (if debug is active). This should
+improve the quality of what is logged to the system log.
 
-ChangeUserOnParse "full" option
-A "full" option has been added for ChangeUserOnParse to use the entire address
-after spam- or notspam-
+Activity logging has also been improved and the retrain log has been eliminated
+entirely. Instead, events are logged with different status codes and info
+text to the user's primary log (and system.log).
 
-RELEASE 3.4.1-STABLE
+Plused Detail Support
+Support for mailboxes using plused detail (e.g. username+mailbox) has been
+added. DSPAM will ignore everything after + when setting the username, and
+attach it upon delivery.
 
-This version is a maintenance release and contains bug and security-related
-fixes and minor enhancements.
+Message Fragments Support
+DSPAM can now be configured via a user preference to store 1K of each message
+processed on the server. This can be used by some GUIs (such as the DSPAM
+Appliance UI) to display message fragments from history.
 
-BUGFIX:	Broken returnCodes option does not work in daemon mode
-BUGFIX: Improper handling of empty arguments
-BUGFIX: Missing RSET functionality in LMTP server mode 
-BUGFIX: Corpus feeding fails on messages with DSPAM signatures
-BUGFIX: TrackSources reports spam from users forwarding spam misses
-BUGFIX: 5.1.0 Initialization error fails to RSET
-BUGFIX: False positives are delivered if no matching signature
-BUGFIX: Opt-in/out preferences support lacking in admin.cgi
-BUGFIX: When listener fails, file descriptors remain open
-BUGFIX: When file descriptors fail, their invalid state can lead to a crash
-BUGFIX: Syslogging does not use LOG_NOWAIT and hangs if syslog breaks
-BUGFIX: Some sessions using multiple RCPT TOs process for last recipient only
-BUGFIX: Socket communications do not send \r
+Domain Blocklisting Support
+Added support for per-user blocking of certain messages coming from 
+undesirable domains. Blocklisted messages are quarantined, but not learned as
+spam. 
 
-SECFIX: Fixed possible argument overflow vulnerability in authenticated server
-        Threat Level: Low; requires local relay authentication and routing
-
-Enhancements and other changes:
-
-DSPAM Protocol Enhancements
-In an attempt to steer away from DLMTP (DSPAM-proprietary LMTP), the
-arguments list sent by the dspam client are now sent via a DSPAMPROCESSMODE
-service tag advertised when the LMTP server recognizes a client's LHLO ident
-and later authenticates.
-
-SMTP Support Addition
-In addition to LMTP delivery, SMTP delivery has been added. As a result,
-previous LMTPDeliveryHost options have changed. See dspam.conf for more
-information. DeliveryProto option has been added to specify LMTP or SMTP.
-
-False Positive Alias:
-The false positive alias prefix has been changed from fp- to notspam- when using
-ParseToHeader. This helps prevent a conflict with an existing email account. 
-
-ParseToHeader Changes:
-Two new configuration options are used in conjunction with ParseToHeader:
-ChangeUserOnParse: Sets the current user to match the local part after prefix
-ChangeModeOnParse: Sets the processing mode to match the prefix provided,
-  eliminating the need for aliases when configured with ChangeUserOnParse.
-
-LMTP Commandline Changes:
-The LMTP commandline options have changed to support multiple rcpt tos and
-support SMTP delivery:
-  --lmtp-rcpt-to and --lmtp-recipient have been changed to --rcpt-to, which
-  can be a list of users similar to --user. If no recipient list is specified,
-  the recipient list will mirror the user list.
-  --lmtp-mail-from= has been changed to --mail-from=
-
-RELEASE 3.4.0-STABLE
-
-------------------------------------------------------
-PLEASE SEE THE FILE 'UPGRADING' PRIOR TO INSTALLATION!
-------------------------------------------------------
-
-DSPAM CORE ENGINE (libdspam)
-
-Enhancements:
-
-Accuracy Enhancements
-Many small bug fixes and enhancements have been made to the core engine,
-resulting in a significant improvement in accuracy. Please see the UPGRADING
-document for the results of a comparison test using the SpamAssassin corpus.
-
-Bayesian Noise Reduction v2.0
-http://bnr.nuclearelephant.com
-Bayesian Noise Reduction v2.0 has been implemented, using a statistical pattern
-identification algorithm. 
-
-TUM-Mode Enhancements
-TUM-Mode training has been enhanced to use fewer database resources than
-TEFT (instead of more), and is now a good balance between TEFT and TOE from
-a resource perspective. Each token has a 'dirty' bit set now, and only those
-which are to be updated in TUM are written. TUM now also trains on low
-confidence. 
-
-Library Performance Enhancements
-Many algorithms have been optimized and/or completely rewritten. These include
-sorting algorithms and internal data structure functions. The resulting
-code is much faster (by a factor of 5 or more). This should make processing
-extremely fast, even for large messages.
-
-NodalCore(tm) C-Series Hardware Build Support
-The NodalCore(tm) C-Series interface card is a high-speed coprocessor
-card designed for high-speed tokenization with future plans for hardware-based
-message decoding and checksum creation. It is the foundation for the
-Accelerated DSPAM product to be released in 2005. Build support has been
-added to provide integration hooks to the core API. 
-
-NOTE: The necessary DSPAM adapter code is only available under license. 
-
-SQLite3 Storage Driver Support
-The SQLite3 storage driver (sqlite3_drv) has been added to support the
-latest stable production version of sqlite.
-
-PostgreSQL Storage Driver Enhancements
-The PostgreSQL storage drivers have been updated with many improvements. 
-While backward compatible, some users may wish to migrate using the
-instructions outlined in UPGRADING.
-
-DSPAM AGENT
-
-Enhancements:
-
-MaxMessageSize Option
-A MaxMessageSize option has been added to dspam.conf allowing systems 
-administrators to choose the largest size file DSPAM should process. Admins
-should be careful not to set this value too low as it could cause potentially
-useful data to be ignored.
-
-Daemonized LMTP Server
-The agent can be placed into daemon mode (using --daemon) to run a single
-stateful processing core for DSPAM in a multi-threaded environment. The
-agent can run in one of three modes:
-  1. A standard, MTA-compatible LMTP server -or-
-  2. A proprietary, DSPAM-proprietary DLMTP server
-  3. Auto detect of 1 and 2 
-This allows the daemon to service either MTAs or the DSPAM thin-client, 
-depending on your needs.  Use the --enable-daemon compile flag to activate. 
-A thin-client (dspamc) has also been added to the build, which is basically a 
-scaled down version of the agent without libdspam linked in, which of course
-speaks DLMTP (DSPAM LMTP). The client process is called with --client.
-
-LMTP Delivery
-On top of full LMTP support inbound, DSPAM also supports LMTP delivery
-instead of LDA delivery by configuring an LMTP delivery host in dspam.conf.
-
-Storage Profile Failover
-The agent now supports failover of storage profiles. This allows you to
-select an alternative server (or chain of servers) to use in the event of
-a failure. Keep in mind that this will require some type of database
-replication, or a centralized database to pull off.
-
-Streamlined Blackhole List Support
-The DSPAM Streamlined Blackhole List Server is an unsupervised, machine-
-automated temporary blacklisting system which bases its decisions on how
-many networks report a particular network address. The DSPAM agent can now
-perform lookups on an SBL server and learn messages as spam which originate
-from blacklisted addresses.
-
-Corpus Maker
-Added makeCorpus preference which makes it seemless to build a corpus with
-DSPAM. The makeCorpus feature records all messages processed for the user
-to dspam_home/data/username/username.corpus/[spam|nonspam]. when an error is
-corrected, the file is moved to the appropriate corpus. To activate, set
-makeCorpus "on" in a user's preferences and add it to your list of allowable
-overrides.
-
-Bug fixes from version 3.2-FINAL:
-
-BUGFIX: Linestripping fails to remove multiple ^Ms on a single line
-BUGFIX: Signed messages are malformatted and appear blank in some MUAs
-BUGFIX: System preferences are ignored when user preferences are present
-BUGFIX: SQLite driver fails to recognize shared groups
-
-TOOLS
-
-Enhancements:
-
-New Reporting Features in dspam_stats
-Functionality has been added to dspam_stats to report accuracy either based
-on total activity or activity based on a snapshot. The tool can now take a
-snapshot of the current activity (just like reset stats) and report on
-activity since the last snapshot.
-
-CGI
-
-Fast User Switching
-Added fast user switching for admins, allowing them to type in the username of
-the person they wish to "become" to manage their account
-
-Additional Sort Functionality
-Sorting by Subject and Sender options have been added to the quarantine view
-
-Manual Override of Autodetectable Features
-Implementations where the CGI runs untrusted provide an override to manually
-set the features which would normally be autodetectable as a trusted user.
-
-Retrain Options via History
-Retraining options have been added to the history tab, allowing users to
-quickly retrain messages without actually delivering or forwarding them. This
-is ideal for lazy users.
+Other Enhancements:
+  User preferences made case-insensitive
+  LMTP error codes now include messages from relay host
+  RBLInoculate option allows RBL'd emails to be quarantined or learned as spam
+  MySQL and PgSQL object creation scripts updated to improve performance
+  Added 'date' to quarantine display and sorted most recent at top
+  Significant code cleanup and partial audit complete
+  Domain-based groups changed from @domain.tld to *@domain.tld
 
 Jonathan Zdziarski
 <jonathan@nuclearelephant.com>

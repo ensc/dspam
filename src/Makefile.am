@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.18 2005/04/21 21:15:32 jonz Exp $
+# $Id: Makefile.am,v 1.19 2005/05/19 17:38:11 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -78,7 +78,7 @@ EXTRA_libdspam_la_SOURCES = \
 
 # Libtools veriooning scheme is:
 #   current:revision:age
-libdspam_la_LDFLAGS = -version-info 6:0:0
+libdspam_la_LDFLAGS = -version-info 7:0:0
 
 dspam_SOURCES = \
         config.h libdspam.h language.h \
