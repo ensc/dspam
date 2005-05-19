@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.23 2005/04/27 15:41:50 jonz Exp $ */
+/* $Id: pref.c,v 1.24 2005/05/19 16:42:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -133,7 +133,7 @@ const char *_ds_pref_val(
 
   for(i=0;PTX[i];i++) {
     pref = PTX[i];
-    if (!strcmp(pref->attribute, attrib))
+    if (!strcasecmp(pref->attribute, attrib))
       return pref->value;
   }
 

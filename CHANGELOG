@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.300 2005/05/18 18:54:11 jonz Exp $
+$Id: CHANGELOG,v 1.301 2005/05/19 16:42:06 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050519.0600] jonz: made preferences case-insensitive
+
+user preferences now case insensitive
 
 [20050512.0400] jonz: added experimental css_drv (CRM114 sparse spectra driver)
 
