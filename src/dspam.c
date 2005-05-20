@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.175 2005/05/12 15:31:50 jonz Exp $ */
+/* $Id: dspam.c,v 1.176 2005/05/20 17:26:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -1639,6 +1639,10 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
      */
 
     ATX->PTX = load_aggregated_prefs(ATX, username);
+    if (!strcmp(_ds_pref_val(ATX->PTX, "fallbackDomain"), "on")) {
+      char *domain = strchr(username, '@');
+      username = domain;
+    }
 
     _ds_userdir_path(filename, 
                      _ds_read_attribute(agent_config, "Home"), 
