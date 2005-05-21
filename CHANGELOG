@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.303 2005/05/21 11:46:59 jonz Exp $
+$Id: CHANGELOG,v 1.304 2005/05/21 20:03:40 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050521.1600] jonz: smtp/lmtp delivery to accept all 2xx delivery responses
+
+DBmail appears to be the only MTA that sends a 215 response to a successful delivery,
+instead of 250. After reviewing RFC, the deliver_socket() code has been modified to 
+accept any 2xx message in response to a final delivery instruction.
 
 [20050521.0730] jonz: improved performance of css_drv
 

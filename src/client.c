@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.54 2005/04/28 16:50:42 jonz Exp $ */
+/* $Id: client.c,v 1.55 2005/05/21 20:03:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -809,17 +809,15 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
 
   /* server response */
 
-  inp = client_expect(&TTX, LMTP_OK, err, sizeof(err));
-  if (inp == NULL) {
-    code = client_parsecode(err);
+  code = client_getcode(&TTX, err, sizeof(err));
+  if (code < 200 || code >= 300) {
     LOG(LOG_ERR, ERR_CLIENT_RESPONSE, code, "message data", err);
     if (code >= 500)
       exitcode = EINVAL;
     chomp(err);
     STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", err);
     goto QUIT;
-   }
-   free(inp);
+  }
 
   send_socket(&TTX, "QUIT");
   client_getcode(&TTX, err, sizeof(err));
