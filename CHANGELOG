@@ -1,4 +1,12 @@
-$Id: CHANGELOG,v 1.302 2005/05/19 17:38:11 jonz Exp $
+$Id: CHANGELOG,v 1.303 2005/05/21 11:46:59 jonz Exp $
+
+Version NEXT
+------------
+
+[20050521.0730] jonz: improved performance of css_drv
+
+made additional performance improvements to css_drv. plan to finish up driver
+later this weekend.
 
 Version 3.5.0
 -------------

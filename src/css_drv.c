@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.9 2005/05/18 17:59:17 jonz Exp $ */
+/* $Id: css_drv.c,v 1.10 2005/05/21 11:46:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -458,9 +458,9 @@ int
 _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
                     struct _ds_spam_stat *stat)
 {
-  struct _css_drv_spam_record rec;
+  css_drv_spam_record_t rec;
   struct _css_drv_storage *s = (struct _css_drv_storage *) CTX->storage;
-  unsigned long filepos, thumb;
+  unsigned long thumb, filepos;
   int wrap;
 
   stat->probability = 0.00000;
@@ -474,8 +474,8 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   /* Nonspam Counter */
 
   wrap = 0;
-  memcpy(&rec, s->nonspam.addr+filepos, sizeof(struct _css_drv_spam_record));
-  while(rec.hashcode != token && rec.hashcode !=0 && 
+  rec = s->nonspam.addr+filepos;
+  while(rec->hashcode != token && rec->hashcode !=0 && 
         ((wrap && filepos <thumb) || (!wrap)))
   {
     filepos += sizeof(struct _css_drv_spam_record);
@@ -485,18 +485,18 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
       filepos = 0;
       wrap = 1;
     }
-    memcpy(&rec, s->nonspam.addr+filepos, sizeof(struct _css_drv_spam_record));
+    rec = s->nonspam.addr+filepos;
   }
-  if (rec.hashcode == 0) 
+  if (rec->hashcode == 0) 
     return EFAILURE;
-  stat->innocent_hits = rec.counter;
+  stat->innocent_hits = rec->counter;
 
   /* Spam Counter */
 
   wrap = 0;
   filepos = thumb;
-  memcpy(&rec, s->spam.addr+filepos, sizeof(struct _css_drv_spam_record));
-  while(rec.hashcode != token && rec.hashcode != 0 && 
+  rec = s->spam.addr+filepos;
+  while(rec->hashcode != token && rec->hashcode != 0 && 
         ((wrap && filepos<thumb) || (!wrap)))
   {
     filepos += sizeof(struct _css_drv_spam_record);
@@ -504,11 +504,11 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
       filepos = 0;
       wrap = 1;
     }
-    memcpy(&rec, s->spam.addr+filepos, sizeof(struct _css_drv_spam_record));
+    rec = s->spam.addr+filepos;
   }
-  if (rec.hashcode == 0) 
+  if (rec->hashcode == 0) 
     return EFAILURE;
-  stat->spam_hits = rec.counter;
+  stat->spam_hits = rec->counter;
 
   return 0;
 }
@@ -517,7 +517,7 @@ int
 _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
                     struct _ds_spam_stat *stat)
 {
-  struct _css_drv_spam_record rec;
+  css_drv_spam_record_t rec;
   struct _css_drv_storage *s = (struct _css_drv_storage *) CTX->storage;
   unsigned long filepos, thumb;
   int wrap, iterations;
@@ -532,8 +532,8 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
 
   wrap = 0;
   iterations = 0;
-  memcpy(&rec, s->nonspam.addr+filepos, sizeof(struct _css_drv_spam_record));
-  while(rec.hashcode != token && rec.hashcode != 0 && 
+  rec = s->nonspam.addr+filepos;
+  while(rec->hashcode != token && rec->hashcode != 0 && 
         ((wrap && filepos<thumb) || (!wrap)))
   {
     iterations++;
@@ -544,25 +544,24 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
       filepos = 0;
       wrap = 1;
     }
-    memcpy(&rec, s->nonspam.addr+filepos, sizeof(struct _css_drv_spam_record));
+    rec = s->nonspam.addr+filepos;
   }
-  if (rec.hashcode != token && rec.hashcode != 0) {
+  if (rec->hashcode != token && rec->hashcode != 0) {
     LOG(LOG_WARNING, "nonspam.css table full. could not insert %llu. tried %lu times.", token, iterations);
     return EFAILURE;
   }
-  rec.hashcode = token;
-  rec.counter = stat->innocent_hits;
-  if (rec.counter < 0) 
-    rec.counter = 0;
-  memcpy(s->nonspam.addr+filepos, &rec, sizeof(struct _css_drv_spam_record));
+  rec->hashcode = token;
+  rec->counter = stat->innocent_hits;
+  if (rec->counter < 0) 
+    rec->counter = 0;
 
   /* Spam Counter */
 
   wrap = 0;
   iterations = 0;
   filepos = thumb;
-  memcpy(&rec, s->spam.addr+filepos, sizeof(struct _css_drv_spam_record));
-  while(rec.hashcode != token && rec.hashcode != 0 && 
+  rec = s->spam.addr+filepos;
+  while(rec->hashcode != token && rec->hashcode != 0 && 
         ((wrap && filepos<thumb) || (!wrap)))
   {
     iterations++;
@@ -572,18 +571,17 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
       filepos = 0;
       wrap = 1;
     }
-    memcpy(&rec, s->spam.addr+filepos, sizeof(struct _css_drv_spam_record));
+    rec = s->spam.addr+filepos;
   }
 
-  if (rec.hashcode != token && rec.hashcode != 0) {
+  if (rec->hashcode != token && rec->hashcode != 0) {
     LOG(LOG_WARNING, "spam.css table full. could not insert %llu. tried %lu times.", token, iterations);
     return EFAILURE;
   }
-  rec.hashcode = token;
-  rec.counter = stat->spam_hits;
-  if (rec.counter < 0)
-    rec.counter = 0;
-  memcpy(s->spam.addr+filepos, &rec, sizeof(struct _css_drv_spam_record));
+  rec->hashcode = token;
+  rec->counter = stat->spam_hits;
+  if (rec->counter < 0)
+    rec->counter = 0;
 
   return 0;
 }
