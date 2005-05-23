@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.100 2005/05/03 23:58:51 jonz Exp $ */
+/* $Id: daemon.c,v 1.101 2005/05/23 12:41:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -884,7 +884,6 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
 
     /* Use the original user id if we are reversing a false positive */
     if (!strncasecmp (buf, "X-DSPAM-User: ", 14) && 
-        ATX->managed_group[0] != 0                 &&
         ATX->operating_mode == DSM_PROCESS    &&
         ATX->classification == DSR_ISINNOCENT &&
         ATX->source         == DSS_ERROR)
