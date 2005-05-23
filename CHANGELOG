@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.304 2005/05/21 20:03:40 jonz Exp $
+$Id: CHANGELOG,v 1.305 2005/05/23 12:37:06 jonz Exp $
 
 Version NEXT
 ------------
@@ -168,6 +168,10 @@ preference when provsioned. To use:
 
 Version 3.4.7
 -------------
+
+[20050522.2300] jonz: fix for managed groups reclassification
+
+fix for managed groups where delivery of false positives would fail due tothe managed group not being recognized
 
 [20050512.0600] jonz: fix for signature embedding with malformatted boundary
 

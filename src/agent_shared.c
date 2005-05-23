@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.52 2005/05/12 00:56:28 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.53 2005/05/23 12:37:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -762,7 +762,6 @@ buffer * read_stdin(AGENT_CTX *ATX) {
        */
 
       if (!strncasecmp (buf, "X-DSPAM-User: ", 14) && 
-          ATX->managed_group[0] != 0                &&
           ATX->operating_mode == DSM_PROCESS    &&
           ATX->classification == DSR_ISINNOCENT &&
           ATX->source         == DSS_ERROR)
