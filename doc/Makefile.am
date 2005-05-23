@@ -14,4 +14,5 @@ EXTRA_DIST = 	courier.txt	\
 		sendmail.txt	\
 		sqlite_drv.txt	\
 		win32.txt 	\
-		appliance.txt
+		appliance.txt   \
+		markov.txt
