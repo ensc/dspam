@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.177 2005/05/23 12:40:15 jonz Exp $ */
+/* $Id: dspam.c,v 1.178 2005/05/27 18:34:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -3783,14 +3783,15 @@ int daemon_start(AGENT_CTX *ATX) {
       __daemon_run = 0;
     } else {
 
-      LOGDEBUG("waiting for processing threads to exit");
-
+      LOG(LOG_WARNING, "received signal. waiting for processing threads to exit.");
       while(__num_threads) { 
         struct timeval tv;
         tv.tv_sec = 1;
         tv.tv_usec = 0;
         select(0, NULL, NULL, NULL, &tv);
       }
+
+      LOG(LOG_WARNING, "daemon is down.");
     }
 
     if (pidfile)
@@ -3801,6 +3802,8 @@ int daemon_start(AGENT_CTX *ATX) {
 
     /* Reload */
     if (__hup) {
+      LOG(LOG_WARNING, "reloading configuration");
+
       if (agent_config)
         _ds_destroy_config(agent_config);
 
@@ -3811,10 +3814,11 @@ int daemon_start(AGENT_CTX *ATX) {
       }
 
       __daemon_run = 1;
+      __hup = 0;
     }
   }
 
-  LOG(LOG_INFO, INFO_DAEMON_EXIT);
+  LOG(LOG_WARNING, INFO_DAEMON_EXIT);
   pthread_mutex_destroy(&__lock);
   libdspam_shutdown();
 

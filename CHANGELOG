@@ -1,8 +1,8 @@
-$Id: CHANGELOG,v 1.305 2005/05/23 12:37:06 jonz Exp $
+$Id: CHANGELOG,v 1.306 2005/05/27 18:34:00 jonz Exp $
 
 Version NEXT
 ------------
-
+ 
 [20050521.1600] jonz: smtp/lmtp delivery to accept all 2xx delivery responses
 
 DBmail appears to be the only MTA that sends a 215 response to a successful delivery,

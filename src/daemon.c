@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.101 2005/05/23 12:41:52 jonz Exp $ */
+/* $Id: daemon.c,v 1.102 2005/05/27 18:34:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -264,6 +264,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
               if (pthread_create(&TTX->thread, 
                                  &attr, process_connection, (void *) TTX))
               {
+                decrement_thread_count();
                 LOG(LOG_CRIT, ERR_DAEMON_THREAD, strerror(errno));
                 close(TTX->sockfd);
                 free(TTX);
