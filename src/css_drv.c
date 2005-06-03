@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.10 2005/05/21 11:46:59 jonz Exp $ */
+/* $Id: css_drv.c,v 1.11 2005/06/03 12:54:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -127,12 +127,13 @@ int _css_drv_open(DSPAM_CTX *CTX, const char *filename, css_drv_map_t map) {
 
   map->fd = open(filename, open_flags);
   if (map->fd < 0) {
+    FILE *f;
     struct _css_drv_spam_record rec;
     long recno;
 
     memset(&rec, 0, sizeof(struct _css_drv_spam_record));
 
-    FILE *f = fopen(filename, "w");
+    f = fopen(filename, "w");
     if (!f) {
       LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
       return EFILE;
