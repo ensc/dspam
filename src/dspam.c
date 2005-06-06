@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.178 2005/05/27 18:34:00 jonz Exp $ */
+/* $Id: dspam.c,v 1.179 2005/06/06 20:37:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -768,6 +768,7 @@ process_message (
 RETURN:
   if (have_signature)
     free(ATX->SIG.data);
+  ATX->signature[0] = 0;
   nt_destroy (ATX->inoc_users);
   nt_destroy (ATX->classify_users);
   if (CTX) {
@@ -2067,7 +2068,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           }
           else
           {
-            block->encoding = EN_7BIT;
+            block->encoding = EN_8BIT;
 
             node_header = c_nt_first (block->headers, &c2);
             while (node_header != NULL)
@@ -2078,7 +2079,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
                   (header->heading, "Content-Transfer-Encoding"))
               {
                 free (header->data);
-                header->data = strdup ("7bit");
+                header->data = strdup ("8bit");
               }
               node_header = c_nt_next (block->headers, &c2);
             }
