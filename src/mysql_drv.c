@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.44 2005/04/25 13:05:48 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.45 2005/06/08 02:15:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -49,6 +49,10 @@
 #   else
 #       include <time.h>
 #   endif
+#endif
+
+#ifdef USE_LDAP
+#include "ldap_client.h"
 #endif
 
 #include "storage_driver.h"
@@ -108,6 +112,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
       DTX->connections[i] = calloc(1, sizeof(struct _ds_drv_connection));
       if (DTX->connections[i]) {
 #ifdef DAEMON
+        LOGDEBUG("initializing lock %d", i);
         pthread_mutex_init(&DTX->connections[i]->lock, NULL);
 #endif
         DTX->connections[i]->dbh = (void *) _mysql_drv_connect(DTX->CTX);
@@ -130,6 +135,7 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
           if (DTX->connections[i]->dbh)
             mysql_close((MYSQL *) DTX->connections[i]->dbh);
 #ifdef DAEMON
+          LOGDEBUG("destroying lock %d", i);
           pthread_mutex_destroy(&DTX->connections[i]->lock);
 #endif
           free(DTX->connections[i]);
@@ -1768,6 +1774,13 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
 {
   char query[256];
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
+
+#ifdef USE_LDAP
+  if (!ldap_verify(CTX, name)) {
+    LOGDEBUG("LDAP verification of %s failed: not adding user", name);
+    return NULL;
+  }
+#endif
 
   snprintf (query, sizeof (query),
             "insert into dspam_virtual_uids (uid, username) values(NULL, '%s')",

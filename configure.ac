@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.31 2005/05/12 22:16:49 jonz Exp $
+dnl $Id: configure.ac,v 1.32 2005/06/08 02:15:08 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -130,6 +130,7 @@ AC_SUBST(NETLIBS)
 #   Support for NodalCore(tm) C-Series Hardware Extensions
 #
 DS_NCORE()
+DS_LDAP()
 
 #---------------------------------------------------------
 #   DSPAM features

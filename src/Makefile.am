@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.19 2005/05/19 17:38:11 jonz Exp $
+# $Id: Makefile.am,v 1.20 2005/06/08 02:15:09 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -59,7 +59,8 @@ libdspam_la_SOURCES = \
 	config_shared.c config_shared.h \
 	bnr.c bnr.h \
 	hash.c hash.h \
-	list.c list.h
+	list.c list.h \
+	ldap_client.c ldap_client.h
  
 libdspam_la_LIBADD = $(storage_drv_objects) $(adapter_objects)
 libdspam_la_LIBADD += -lm $(NETLIBS) $(NCORELIBS)

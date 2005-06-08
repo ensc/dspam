@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.19 2005/05/20 17:26:51 jonz Exp $ */
+/* $Id: language.h,v 1.20 2005/06/08 02:15:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -35,6 +35,13 @@
 #define ERR_IO_DIR_CREATE	"Unable to create directory: %s: %s"
 #define ERR_IO_LOCK             "Failed to lock file %s: %d: %s"
 #define ERR_IO_LOCK_FREE	"Failed to free lock file %s: %d: %s"
+
+/* LDAP related error codes */
+
+#define ERR_LDAP_INIT_FAIL	"LDAP initialization failed"
+#define ERR_LDAP_PROTO_VER_FAIL	"LDAP failure: unable to set protocol version"
+#define ERR_LDAP_SEARCH_FAIL	"LDAP search failure"
+#define ERR_LDAP_MISCONFIGURED	"LDAP misconfigured"
 
 /* Agent error codes */
 

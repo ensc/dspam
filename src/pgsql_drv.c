@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.40 2005/04/25 13:05:48 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.41 2005/06/08 02:15:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -49,6 +49,10 @@
 #   else
 #       include <time.h>
 #   endif
+#endif
+
+#ifdef USE_LDAP
+#include "ldap_client.h"
 #endif
 
 #include "storage_driver.h"
@@ -1892,6 +1896,13 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   char query[256];
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   PGresult *result;
+
+#ifdef USE_LDAP
+  if (!ldap_verify(CTX, name)) {
+    LOGDEBUG("LDAP verification of %s failed: not adding user", name);
+    return NULL;
+  }
+#endif
 
   snprintf (query, sizeof (query),
             "INSERT INTO dspam_virtual_uids (username) VALUES ('%s')",

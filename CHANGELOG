@@ -1,8 +1,18 @@
-$Id: CHANGELOG,v 1.308 2005/06/06 20:37:53 jonz Exp $
+$Id: CHANGELOG,v 1.309 2005/06/08 02:15:08 jonz Exp $
 
 Version NEXT
 ------------
   
+[20050607.2200] jonz: added preliminary ldap support
+
+added ldap verification function which will verify existence of user on an ldap
+server before adding to virtual uid table. 
+
+CVS STATUS:
+  functionality is presently limited to lookup of dspam username only. user and
+  domain as separate variables will come later. additional ldap mode to support
+  actual uid lookups on ldap server will be added later as well.
+
 [20050521.1600] jonz: smtp/lmtp delivery to accept all 2xx delivery responses
 
 DBmail appears to be the only MTA that sends a 215 response to a successful delivery,

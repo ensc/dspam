@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.39 2005/05/12 00:56:28 jonz Exp $
+## $Id: dspam.conf.in,v 1.40 2005/06/08 02:15:09 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -244,7 +244,16 @@ AllowOverride whitelistThreshold
 
 #SQLitePragma   "synchronous = OFF"
 
+# LDAP: Perform various LDAP functions depending on LDAPMode variable.
+# Presently, the only mode supported is 'verify', which will verify the existence
+# of an unknown user in LDAP prior to creating them as a new user in the system.
+# This is useful on some systems acting as gateway machines.
 #
+#LDAPMode	verify
+#LDAPHost	ldaphost.mydomain.com
+#LDAPFilter	"(mail=%u)"
+#LDAPBase	ou=people,dc=domain,dc=com
+
 # Optionally, you can specify storage profiles, and specify the server to
 # use on the commandline with --profile. For example:
 #
@@ -513,7 +522,6 @@ Opt out
 #ClientPort	24
 #ClientIdent	"secret@Relay1"
 
-#
 # SBLQueue: Touch files in the SBL queue
 # If you are a reporting streamlined blackhole list participant, you can
 # touch ip addresses within the directory the sbl_client process is watching.

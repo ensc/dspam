@@ -1,4 +1,4 @@
-/* $Id: config_api.c,v 1.10 2005/04/22 20:26:44 jonz Exp $ */
+/* $Id: config_api.c,v 1.11 2005/06/08 02:15:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -86,6 +86,7 @@ int set_libdspam_attributes(DSPAM_CTX *CTX) {
           !strncasecmp(t->key, "Ora", 3)    ||
           !strncasecmp(t->key, "SQLite", 6) ||
           !strcasecmp(t->key, "LocalMX")    ||
+          !strncasecmp(t->key, "LDAP", 4)   ||
           !strncasecmp(t->key, "Storage", 7))
       {
         if (profile == NULL || profile[0] == 0)
