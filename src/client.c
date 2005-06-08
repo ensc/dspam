@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.55 2005/05/21 20:03:40 jonz Exp $ */
+/* $Id: client.c,v 1.56 2005/06/08 19:36:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -315,6 +315,7 @@ int client_connect(AGENT_CTX *ATX, int flags) {
     if(connect(sockfd, (struct sockaddr *)&saun, addr_len)<0) {
       LOG(LOG_ERR, ERR_CLIENT_CONNECT_SOCKET, host, strerror(errno));
       STATUS(strerror(errno));
+      close(sockfd);
       return EFAILURE;
     }
 
@@ -331,6 +332,7 @@ int client_connect(AGENT_CTX *ATX, int flags) {
     if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
       LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
       STATUS(strerror(errno));
+      close(sockfd);
       return EFAILURE;
     }
   }
