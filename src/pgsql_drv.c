@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.41 2005/06/08 02:15:09 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.42 2005/06/08 04:22:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -1898,7 +1898,9 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   PGresult *result;
 
 #ifdef USE_LDAP
-  if (!ldap_verify(CTX, name)) {
+  if (_ds_match_attribute(CTX->config->attributes, "LDAPMode", "verify") &&
+      !ldap_verify(CTX, name))
+  {
     LOGDEBUG("LDAP verification of %s failed: not adding user", name);
     return NULL;
   }

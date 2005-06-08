@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.45 2005/06/08 02:15:09 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.46 2005/06/08 04:22:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -1776,7 +1776,9 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
 
 #ifdef USE_LDAP
-  if (!ldap_verify(CTX, name)) {
+  if (_ds_match_attribute(CTX->config->attributes, "LDAPMode", "verify") &&
+      !ldap_verify(CTX, name)) 
+  {
     LOGDEBUG("LDAP verification of %s failed: not adding user", name);
     return NULL;
   }

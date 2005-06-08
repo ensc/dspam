@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.311 2005/06/08 02:18:52 jonz Exp $
+$Id: CHANGELOG,v 1.312 2005/06/08 04:22:09 jonz Exp $
 
 Version NEXT
 ------------
@@ -15,6 +15,7 @@ CVS STATUS:
   domain as separate variables will come later. additional ldap mode to support
   actual uid lookups on ldap server will be added later as well.
 
+  authentication also coming later
 
 [20050521.1600] jonz: smtp/lmtp delivery to accept all 2xx delivery responses
 
