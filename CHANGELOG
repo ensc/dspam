@@ -1,8 +1,13 @@
-$Id: CHANGELOG,v 1.312 2005/06/08 04:22:09 jonz Exp $
+$Id: CHANGELOG,v 1.313 2005/06/08 19:43:25 jonz Exp $
 
 Version NEXT
 ------------
   
+[20050608.0330] jonz: fixed socket file descriptor leak on delivery failure
+
+fixed a file descriptor leak which occurs on socket delivery connect failure,
+leading to the daemon exiting when it has exceeded its file descriptor limit
+
 [20050607.2200] jonz: added preliminary ldap support
 
 added ldap verification function which will verify existence of user on an ldap
