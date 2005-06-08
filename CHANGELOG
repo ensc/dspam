@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.310 2005/06/08 02:16:06 jonz Exp $
+$Id: CHANGELOG,v 1.311 2005/06/08 02:18:52 jonz Exp $
 
 Version NEXT
 ------------
@@ -7,7 +7,8 @@ Version NEXT
 
 added ldap verification function which will verify existence of user on an ldap
 server before adding to virtual uid table. dspam links to openldap libraries and
-is also compatible with os x's openldap libs. use --enable-ldap to enable.
+is also compatible with os x's openldap libs. use --enable-ldap to enable. see
+dspam.conf for more information.
 
 CVS STATUS:
   functionality is presently limited to lookup of dspam username only. user and
