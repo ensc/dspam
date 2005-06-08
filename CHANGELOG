@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.309 2005/06/08 02:15:08 jonz Exp $
+$Id: CHANGELOG,v 1.310 2005/06/08 02:16:06 jonz Exp $
 
 Version NEXT
 ------------
@@ -6,12 +6,14 @@ Version NEXT
 [20050607.2200] jonz: added preliminary ldap support
 
 added ldap verification function which will verify existence of user on an ldap
-server before adding to virtual uid table. 
+server before adding to virtual uid table. dspam links to openldap libraries and
+is also compatible with os x's openldap libs. use --enable-ldap to enable.
 
 CVS STATUS:
   functionality is presently limited to lookup of dspam username only. user and
   domain as separate variables will come later. additional ldap mode to support
   actual uid lookups on ldap server will be added later as well.
+
 
 [20050521.1600] jonz: smtp/lmtp delivery to accept all 2xx delivery responses
 
