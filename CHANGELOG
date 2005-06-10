@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.314 2005/06/10 14:22:01 jonz Exp $
+$Id: CHANGELOG,v 1.315 2005/06/10 21:35:55 jonz Exp $
  
 Version NEXT
 ------------
@@ -187,6 +187,12 @@ preference when provsioned. To use:
 
 Version 3.4.8
 -------------
+
+[20050610.0530] jonz: message truncation fix
+
+fixed a problem where some mta's woulud fail to quote a single dot on a line
+by itself, leading to message truncation. solution was to check for quoting
+inside dspam too.
 
 [20050606.0420] jonz: fixes for encoding shifts
 

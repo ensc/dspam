@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.53 2005/05/23 12:37:06 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.54 2005/06/10 21:35:55 jonz Exp $ */
 
 /*
  DSPAM
@@ -726,6 +726,13 @@ buffer * read_stdin(AGENT_CTX *ATX) {
           buf[len-1] = 0;
           len--;
         }
+      }
+
+      /* Quote message termination characters, that could truncate messages */
+      if (buf[0] == '.' && buf[1] < 32) {
+        char x[sizeof(buf)];
+        snprintf(x, sizeof(x), ".%s", buf);
+        strcpy(buf, x);
       }
   
       /*
