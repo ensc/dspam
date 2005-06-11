@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.315 2005/06/10 21:35:55 jonz Exp $
+$Id: CHANGELOG,v 1.316 2005/06/11 14:17:46 jonz Exp $
  
 Version NEXT
 ------------
@@ -187,6 +187,11 @@ preference when provsioned. To use:
 
 Version 3.4.8
 -------------
+
+[20050611.1000] jonz: fixed broken managed group functions
+
+fixed many files (such as logs and corpus maker) which were not written to
+the correct directory when used with managed groups
 
 [20050610.0530] jonz: message truncation fix
 

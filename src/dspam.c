@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.180 2005/06/10 14:21:46 jonz Exp $ */
+/* $Id: dspam.c,v 1.181 2005/06/11 14:17:46 jonz Exp $ */
 
 /*
  DSPAM
@@ -619,7 +619,7 @@ process_message (
     FILE *file;
 
     _ds_userdir_path(dirname, _ds_read_attribute(agent_config, "Home"),
-                 LOOKUP(ATX->PTX, CTX->username), "frag");
+                 LOOKUP(ATX->PTX, (ATX->managed_group[0]) ? ATX->managed_group :                                   CTX->username), "frag");
     snprintf(corpusfile, MAX_FILENAME_LENGTH, "%s/%s.frag",
       dirname, ATX->signature);
 
@@ -647,7 +647,8 @@ process_message (
       FILE *file;
 
       _ds_userdir_path(dirname, _ds_read_attribute(agent_config, "Home"),
-                   LOOKUP(ATX->PTX, CTX->username), "corpus");
+                   LOOKUP(ATX->PTX, (ATX->managed_group[0]) ? ATX->managed_group
+                                     : CTX->username), "corpus");
       snprintf(corpusfile, MAX_FILENAME_LENGTH, "%s/%s/%s.msg",
         dirname, (result == DSR_ISSPAM) ? "spam" : "nonspam",
         ATX->signature);
@@ -666,7 +667,8 @@ process_message (
       char corpusdest[MAX_FILENAME_LENGTH];
 
       _ds_userdir_path(dirname, _ds_read_attribute(agent_config, "Home"),
-                   LOOKUP(ATX->PTX, CTX->username), "corpus");
+                   LOOKUP(ATX->PTX, (ATX->managed_group[0]) ? ATX->managed_group
+                                     : CTX->username), "corpus");
       snprintf(corpusdest, MAX_FILENAME_LENGTH, "%s/%s/%s.msg",
         dirname, (result == DSR_ISSPAM) ? "spam" : "nonspam",
         ATX->signature);
@@ -2866,7 +2868,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     STATUS("Delivered");
   }
 
-  _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, CTX->username), "log");
+  _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, (ATX->managed_group[0]) ? ATX->managed_group : CTX->username), "log");
 
   node_nt = c_nt_first (CTX->message->components, &c_nt);
   if (node_nt != NULL)
@@ -3696,7 +3698,8 @@ int is_blocklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   FILE *file;
   int blocklisted = 0;
   _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"),
-                   LOOKUP(ATX->PTX, CTX->username), "blocklist");
+                   LOOKUP(ATX->PTX, (ATX->managed_group[0]) ? ATX->managed_group
+                                     : CTX->username), "blocklist");
   file = fopen(filename, "r");
   if (file != NULL) {
     char *heading = _ds_find_header(CTX->message, "From", 0);
