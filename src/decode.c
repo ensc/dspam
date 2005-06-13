@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.22 2005/04/29 13:29:29 jonz Exp $ */
+/* $Id: decode.c,v 1.23 2005/06/13 13:00:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -810,8 +810,10 @@ _ds_decode_quoted (const char *body)
               || (hex[1] >= '0' && hex[1] <= '9')))
       {
         val = (int) strtol (hex, NULL, 16);
-        x[0] = val;
-        memmove(x+1, x+3, strlen(x+3)+1);
+        if (val) {
+          x[0] = val;
+          memmove(x+1, x+3, strlen(x+3)+1);
+        }
       }
       x = strchr (x + 1, '=');
     }

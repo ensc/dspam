@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.316 2005/06/11 14:17:46 jonz Exp $
+$Id: CHANGELOG,v 1.317 2005/06/13 13:00:59 jonz Exp $
  
 Version NEXT
 ------------
@@ -187,6 +187,10 @@ preference when provsioned. To use:
 
 Version 3.4.8
 -------------
+
+[20050612.2200] jonz: fixed null decoding bug
+
+fixed a bug where placing %00 or =00 in an encoded message would decode the NUL character, causing the message to become truncated.
 
 [20050611.1000] jonz: fixed broken managed group functions
 

@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.113 2005/05/18 20:10:07 jonz Exp $ */
+/* $Id: libdspam.c,v 1.114 2005/06/13 13:00:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -2541,21 +2541,22 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
   
           // Hexadecimal decoding
           if (block->encoding == EN_8BIT) {
-            char hex[5];
+            char hex[5] = "0x00";
             int conv;
-                                                                                
-            strcpy(hex, "0x00");
-                                                                                
+
             x = strchr(decode2, '%');
             while(x != NULL) {
-              if (isxdigit((unsigned char) x[1]) && isxdigit((unsigned char) x[2])) {
+              if (isxdigit((unsigned char) x[1]) && 
+                  isxdigit((unsigned char) x[2])) 
+               {
                 hex[2] = x[1];
                 hex[3] = x[2];
                                                                                 
                 conv = strtol(hex, NULL, 16);
-                                                                                
-                x[0] = conv;
-                memmove(x+1, x+3, strlen(x+3));
+                if (conv) {
+                  x[0] = conv;
+                  memmove(x+1, x+3, strlen(x+3));
+                }
               }
               x = strchr(x+1, '%');
             }
