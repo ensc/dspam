@@ -1,7 +1,7 @@
 Configuring DSPAM as a seamless front-end relay using Postfix
 
-This HOWTO explains how to set up DSPAM as a front-end relay, or "appliance".
-Using this configuration, you can point your MX records to the DSPAM server and
+This HOWTO explains how to set up DSPAM as a front-end relay.  Using this 
+configuration, you can point your MX records to the DSPAM server and
 then have DSPAM pass along any valid email to your mail server. The example
 provided also provides personalized training for each user it is protecting,
 even if users have multiple email aliases. This allows you to create more than
@@ -11,15 +11,16 @@ behind your mail server, but you'll find by the end of this exercise that it's
 not very difficult to maintain. 
 
 -----------------------------------------------------------------------------
-NOTE: This is just some basic setup for a DSPAM appliance "model". The DSPAM
-Appliance itself is a commercial product you can purchase which includes a
+NOTE: This is just some basic setup for a DSPAM relay "model". If you're
+interested in a commercial product configured as an appliance, please ask about
+the DSPAM Appliance. The DSPAM appliance is a commercial-grade unit including a
 completely new user interface, superior administration tools, one-step backup
 and recovery, and much more. It's very different from what you are building
 here. If you are interested in the DSPAM Appliance, please email me at
 jonathan@nuclearelephant.com.
 -----------------------------------------------------------------------------
 
-When configuring DSPAM as a relay/appliance, it's generally a good idea to set 
+When configuring DSPAM as a relay, it's generally a good idea to set 
 up DSPAM on its own server. Therefore, we will assume you've got a fresh server
 running *NIX with an existing MySQL 4.1+ installation. 
 
@@ -173,7 +174,7 @@ recipient information.
 ALIASES
 
 If you have some aliases, you'll need to also set them up on your relay
-appliance so that DSPAM can process the individual users. To do this, add the
+so that DSPAM can process the individual users. To do this, add the
 following lines to postfix's main.cf:
 
 virtual_alias_domains =
