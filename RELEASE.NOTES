@@ -1,6 +1,6 @@
-$Id: RELEASE.NOTES,v 1.40 2005/05/19 17:38:11 jonz Exp $
+$Id: RELEASE.NOTES,v 1.41 2005/06/28 15:44:51 jonz Exp $
 
-RELEASE 3.5.0-DEVELOPMENT
+RELEASE 3.5.1-DEVELOPMENT
 
 Odd-numbered releases are development releases and may be unstable or contain
 significant bugs.
@@ -16,6 +16,12 @@ e-mail jonathan@nuclearelephant.com for more information about the pilot
 --------------------------------------------------------------------------
 
 ENHANCEMENTS
+
+LDAP Verification
+LDAP Verification can be used with some storage drivers (such as MySQL and
+PostgreSQL) and allows DSPAM to verify that a user exists in LDAP before 
+adding them to the system locally. This is ideal for virtual user scenarios
+where DSPAM is left to validate users.
 
 Unified Spam Alias / UID in Signature Support
 The MySQL and PgSQL storage drivers now support embedded user id's in the

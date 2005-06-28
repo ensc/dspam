@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.318 2005/06/21 21:23:34 jonz Exp $
+$Id: CHANGELOG,v 1.319 2005/06/28 15:44:51 jonz Exp $
  
-Version NEXT
-------------
+Version 3.5.1
+-------------
   
 [20050608.0330] jonz: fixed socket file descriptor leak on delivery failure
 
