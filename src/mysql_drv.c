@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.46 2005/06/08 04:22:09 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.47 2005/06/29 19:26:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -1061,7 +1061,10 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
   if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
   {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-
+    if (!p) {
+      LOG(LOG_ERR, "Unable to determine UID for %s", CTX->username);
+      return EINVAL;
+    }
     snprintf (session, sizeof (session), "%d,%8lx%d", p->pw_uid, 
               (long) time(NULL), pid);
   }
