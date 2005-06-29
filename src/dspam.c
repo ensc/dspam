@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.182 2005/06/29 15:09:14 jonz Exp $ */
+/* $Id: dspam.c,v 1.183 2005/06/29 19:25:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -316,6 +316,7 @@ process_message (
   int have_signature = 0;
   int have_decision = 0;
   int result, i;
+  int internally_canned = 0;
 
   ATX->timestart = _ds_gettime();	/* set tick count to get run time */
 
@@ -376,9 +377,8 @@ process_message (
     if (has_virus(message)) {
       CTX->result = DSR_ISSPAM;
       STATUS("A virus was detected in the message contents");
-      log_events(CTX, ATX);
       result = DSR_ISVIRUS;
-      goto RETURN;
+      internally_canned = 1;
     }
   }
 #endif
@@ -387,7 +387,8 @@ process_message (
 
   if (is_blocklisted(CTX, ATX)) {
     CTX->result = DSR_ISSPAM;
-    return DSR_ISSPAM;
+    result = DSR_ISSPAM;
+    internally_canned = 1;
   }
 
   /* Check for an RBL blacklist (system-based setting) */
@@ -403,7 +404,8 @@ process_message (
         CTX->source = DSS_INOCULATION;
       } else {
         CTX->result = DSR_ISSPAM;
-        return DSR_ISSPAM;
+        result = DSR_ISSPAM;
+        internally_canned = 1;
       }
     }
   }
@@ -483,7 +485,8 @@ process_message (
      * Call libdspam to process the environment we've configured
      */
 
-    result = dspam_process (CTX, message->data);
+    if (!internally_canned)
+      result = dspam_process (CTX, message->data);
   }
 
   result = CTX->result;
@@ -550,9 +553,21 @@ process_message (
 
   /* Generate a signature id for the message and store */
 
-  if (CTX->operating_mode == DSM_PROCESS &&
+  if (internally_canned) {
+    if (CTX->signature) {
+      free(CTX->signature->data);
+      free(CTX->signature);
+    }
+    CTX->signature = calloc(1, sizeof(struct _ds_spam_signature));
+    if (CTX->signature) {
+      CTX->signature->length = 8;
+      CTX->signature->data = calloc(1, 8);
+    }
+  }
+
+  if (internally_canned || (CTX->operating_mode == DSM_PROCESS &&
       CTX->classification == DSR_NONE    &&
-      CTX->signature != NULL)
+      CTX->signature != NULL))
   {
     int valid = 0;
 
@@ -703,7 +718,7 @@ process_message (
   if (strcmp(_ds_pref_val(ATX->PTX, "signatureLocation"), "headers") &&
       !_ds_match_attribute(agent_config, "TrainPristine", "on") &&
        strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "on") &&
-       CTX->classification == DSR_NONE)
+       (CTX->classification == DSR_NONE || internally_canned))
   {
     i = embed_signature(CTX, ATX);
     if (i<0) {
