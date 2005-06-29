@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.183 2005/06/29 19:25:45 jonz Exp $ */
+/* $Id: dspam.c,v 1.184 2005/06/29 19:41:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -376,6 +376,8 @@ process_message (
       _ds_read_attribute(agent_config, "ClamAVHost")) {
     if (has_virus(message)) {
       CTX->result = DSR_ISSPAM;
+      CTX->probability = 1.0;
+      CTX->confidence = 1.0;
       STATUS("A virus was detected in the message contents");
       result = DSR_ISVIRUS;
       internally_canned = 1;
@@ -388,6 +390,8 @@ process_message (
   if (is_blocklisted(CTX, ATX)) {
     CTX->result = DSR_ISSPAM;
     result = DSR_ISSPAM;
+    CTX->probability = 1.0;
+    CTX->confidence = 1.0;
     internally_canned = 1;
   }
 
@@ -405,6 +409,8 @@ process_message (
       } else {
         CTX->result = DSR_ISSPAM;
         result = DSR_ISSPAM;
+        CTX->probability = 1.0;
+        CTX->confidence = 1.0;
         internally_canned = 1;
       }
     }
