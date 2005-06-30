@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.40 2005/06/08 02:15:09 jonz Exp $
+## $Id: dspam.conf.in,v 1.41 2005/06/30 16:39:04 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -236,6 +236,14 @@ AllowOverride whitelistThreshold
 # of connections the server pools between all clients).
 #
 #PgSQLConnectionCache	3
+
+# UIDInSignature: Some storage drivers support the insertion of the user id
+# into the DSPAM signature. This allows you to create one single spam or fp
+# alias (pointing to some arbitrary user), and the uid in the signature will
+# switch to the correct user. Having only one spam alias, of course, is
+# pretty nice.
+#MySQLUIDInSignature	on
+#PgSQLUIDInSignature	on 
 
 #OraServer       "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SID=PROD)))"
 #OraUser         dspam
