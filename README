@@ -1,4 +1,4 @@
-$Id: README,v 1.64 2005/05/19 17:38:11 jonz Exp $
+$Id: README,v 1.65 2005/07/01 18:58:57 jonz Exp $
 
 DSPAM v3.5 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -34,17 +34,13 @@ Patch Contributors (Past 6 Months)
   Mar/2005 Ron Bickers <rbickers@logicetc.com>
   Mar/2005 Denis Shaposhnikov <dsh@vlink.ru>
   Mar/2005 Leandro Santi <lesanti@fiuba7504.com.ar>
-  Jan/2005 Ben Reser <ben@reser.org>
-  Jan/2005 Martin Forssen <maf@appgate.com>
-  Jan/2005 Philip Champon <flah@hell.com>
-  Dec/2004 Bernard Quartermass <bernard@quartermass.co.uk>
 
 TABLE OF CONTENTS
 
 General DSPAM Information
 
   1.0 About DSPAM
-  1.1 Installation
+  1.1 Installation and Configuration
   1.2 Testing
   1.3 Troubleshooting
   1.4 DSPAM Tools
@@ -61,9 +57,7 @@ Advanced DSPAM functionality
 Miscellaneous
 
   3.0 Bugs, Ports, and the like 
-  3.1 Known Bugs
-  3.2 Adding the dspam logo button to your website
-  3.3 CVS Access
+  3.1 CVS Access
 
 1.0 ABOUT DSPAM
 
@@ -94,81 +88,116 @@ clients, other anti-spam tools, and so on.
 PLEASE NOTE: DSPAM and libdspam are distributed under the GPL license, not the 
 LGPL. Commercial licensing is available for those who seek to redistribute
 DSPAM or some of DSPAM's components/libraries in their non-GPL products.
-Please contact jonathan@nuclearelephant.com for more information.
+Please contact jonathan@nuclearelephant.com for more information about
+commercial licensing.
 
-The DSPAM Solution is split up into the following pieces:
-
-LIBDSPAM: CORE PROCESSING ENGINE
-
-The DSPAM core processing engine, also known as libdspam, provides all critical
-spam filtering functions.  The engine is linked to other dspam components (such
-as a commandline agent) to provide functionality. libdspam is capable of being 
-linked in with any other application as a "drop-in" to provide spam filtering to
-mail clients, other anti-spam tools, and other such type projects that
-would benefit from its use.  Both static and shared versions are built by
-libtool and installed upon 'make install'.
-
-libdspam provides a storage driver abstraction layer, enabling developers to 
-easily change how information is stored on the system (for example MySQL,
-PostgreSQL, Oracle, etc.) with enough flexibility to write a storage
-driver utilizing stone tablets and chisels. An attribute API is also available
-for advanced configuration management.  
+The DSPAM package is split up into the following pieces:
 
 DSPAM AGENT
 
-The DSPAM agent is a front-end for libdspam providing a direct interface to
-mail servers or other tools for server-side spam filtering. The agent 
-is normally integrated into one of two places:
+The DSPAM agent is the command center for all shell and daemon operations.
+If you're using DSPAM as a filtering solution, this is the 'dspam' (or dspamc)
+binary you're likely going to be talking to via commandline. 
 
-1. The agent can masquerade as a mail server's delivery agent or into the
-processing chain. DSPAM then processes email piped to it from the mail server 
-and then either delivers it using the real delivery agent (procmail, 
-mail.local, or a proxy to pass it along to another server), or will quarantine 
-it if the message is spam (DSPAM can optionally tag and deliver spams, or
-even pass it to a third-party tool instead).
+LIBDSPAM: CORE ENGINE
 
-2. As a POP3 proxy, DSPAM can be configured to processes email when the user 
-checks theirs, and tags spam accordingly. This allows DSPAM to front-end
-any mail system without the need for integration.
+The DSPAM core processing engine, also known as libdspam, provides all critical
+spam filtering functions.  The engine is embedded into other dspam components
+(such as the agent) and is responsbile for the actual filtering logic.
+If you're not a developer, you don't need to be concerned with this component 
+as it is automatically compiled in with the build. 
 
-The agent is also responsible for providing a front-end in correcting 
-misclassifications (missed spams or false positives), which is critical to the 
-learning operations of DSPAM. 
+WEB UI
 
-The MTA (sendmail, postfix, exim, etc) or the POP3 proxy calls DSPAM with 
-parameters identifying the destination user and other operational parameters.
-DSPAM performs its internal calculations and will then perform the appropriate 
-action based on the result.
-
-When an email is delivered to the end-user, the agent appends a serial number
-to each email. This serial number references temporary information stored on
-the server which contains the original training data for the message, and is
-used to re-learn the original message in the event DSPAM made a mistake. This
-allows DSPAM to accurately learn without having to provide the full headers
-of the message - making life much easier for end-users.
-
-CGI CLIENT
-
-The CGI client is an end-user tool enabling a mail user to view their spam
-quarantine, reverse the occasional false positive, view their historical
-activity, graphs, and most importantly to delete their spams permanently.
-The CGI client works in conjunction with the DSPAM agent.  It is possible to 
-eliminate the quarantine box in lieu of an alternative solution, such as 
-client-filtering/forwarding, but many users will appreciate the added
-functionality and information provided by the CGI client. Administrators may
-find the client's ability to generate usage graphs and reports to be useful.
-
-The CGI also adds the ability to perform historical retraining, as opposed to
-having to forward in spam. By clicking on the 'history' tab, users can see
-the last 200 messages sent to them and, with the click of the mouse, retrain
-spam and deliver false positives.
-
+The Web UI (User Interface) is designed to allow end-users to review their
+spam quarantine and history, graphs, and to delete their spam permanently.
+They can also optionally use the quarantine to perform all of their training.
+The UI also includes some basic administrative tools to change settings and
+manage user quarantines.
+ 
 TOOLS
 
-Some basic tools which have been provided to manage dictionaries, automate 
+Some basic tools which have been provided to manage dictionaries, automate
 corpus feeding, and perform other diagnostic operations related to DSPAM.
+Some of these include dspam_corpus, dspam_stats, and dspam_dump.
 
 1.1 INSTALLATION
+
+IMPLEMENTATION OPTIONS
+
+There are many different ways to deploy DSPAM onto an existing network. The
+most popular approaches are:
+
+1. As a delivery proxy
+
+When your mail server gets ready to deliver mail to a user's mailbox it calls 
+a delivery agent of some sort. On most UNIX systems, this is procmail, maildrop,
+mail.local, or a similar tool. When used as a delivery proxy, the DSPAM agent
+is called in place of your existing agent - or better put, it can masquerade
+as the local delivery agent. DSPAM then processes the message and will call
+the /real/ delivery agent to pass the good mail into the user's mailbox,
+quarantining the bad mail. DSPAM can optionally tag and deliver both spam
+and legitimate mail.
+
+In the diagram below, MTA refers to Mail Transfer Agent, or your mail server
+software: Postfix, Sendmail, Exim, etc. LDA refers to the Local Delivery
+Agent: Procmail, Maildrop, etc..
+
+BEFORE:
+
+    [MTA] ---> [LDA] ---> (User's Mailbox)
+
+AFTER:
+
+    [MTA] ---> [DSPAM] ---> [LDA] ---> (User's Mailbox)
+                        \
+                         \--> [Quarantine]
+           [End User] ------> [Web UI]
+
+2. As a POP3 Proxy
+
+If you don't want to tinker with your existing mail server setup, DSPAM can
+be combined with one of a few open source programs designed to act as a POP3
+proxy. This means spam is filtered whenever the user checks their mail,
+rather than when it is delivered. The benefit to this is that you can set up
+a small machine on your network that will connect to your existing mail server,
+so no integration is needed. It also allows your users to arbitarily point their
+mail client at it if they desire filtering. The drawback to this approach is
+that the POP3 protocol has no way to tell the mail client that a message is
+spam, and so the user will have to download the spam (tagged, of course).
+
+BEFORE:
+
+    [End User] ---> [POP3 Server]
+
+AFTER:
+
+    [End User] ---> [POP3 Proxy] <--> [DSPAM]
+                     \
+                      \--> [POP3 Server]
+
+3. As an SMTP Relay
+
+Newer versions of DSPAM have seen features that allow it to function more
+easily as an SMTP relay. An SMTP relay sits in front of your existing mail
+server (requiring no integration). To use an SMTP relay, the MX records for 
+your domains are repointed to the relay machine running DSPAM. DSPAM then 
+relays the good (and optionally bad) mail to the existing SMTP server. This
+allows you to use DSPAM with even a Windows-based destination mail server
+as no integration is necessary. See doc/relay.txt for one example of how to
+do this with Postfix.
+
+BEFORE:
+
+  { Internet } ---> [Company Mail Server]
+
+AFTER:
+
+  { Internet } --->  [ Inbound SMTP Relay  ]  --->  [Company Mail Server]
+                         ( MTA <> DSPAM )     SMTP 
+                          \                    or
+                           \--> [Quarantine]  LMTP
+             [End User] ------> [Web UI]
 
 UPGRADING DSPAM
 
@@ -176,400 +205,430 @@ UPGRADING DSPAM
 
 FRESH INSTALLATION
 
--- Short Version
+0. PREREQUISITES
 
-./configure && make && make install
-follow appropriate instructions in doc/ for integration, then restart the MTA
-dspam_genaliases >> /etc/mail/aliases (or equivalent)
-newaliases (or equivalent)
-
--- Long Version
-
-First you will need to download a few prerequisite tools:
-
-   Depending on which storage driver you want to use, you will need:
+   DSPAM can use one of many different backends to store its information, and
+   you will need to decide on one and install the appropriate software before
+   you can build DSPAM. The following storage backends are presently available: 
  
-   libdb4_drv:  Berkeley DB-4. ** Not Recommended ** 
-   libdb3_drv:  Berkeley DB-3. ** Not Recommended **
-   mysql_drv:   MySQL client libraries (and a server to connect to) 
-   ora_drv:     Oracle Call Interface (and a server to connect to)
-   pgsql_drv:   PostgreSQL client libraries (and a server to connect to)
-   sqlite_drv:  SQLite v2.7.7 or above * Default * 
+   Driver       Requirements
+   -------------------------------------------------------------------------
+ D libdb4_drv:  Berkeley DB4 libraries
+ D libdb3_drv:  Berkeley DB3 libraries
+ T mysql_drv:   MySQL client libraries      (and a server to connect to) 
+   ora_drv:     Oracle Call Interface       (and a server to connect to)
+ T pgsql_drv:   PostgreSQL client libraries (and a server to connect to)
+ * sqlite_drv:  SQLite v2.7.7 or above 
    sqlite3_drv: SQLite v3.x
-   css_drv:     CRM Sparse Spectra (Very fast file driver, no dependencies)
+   css_drv:     None (CRM Sparse Spectra Driver)
 
-   The CRM Sparse Spectra driver is the latest addition to DSPAM and is a very
-   fast random-access file driver originally designed by Bill Yerazunis (the
-   author of CRM114). CSS is very fast (faster than MySQL in many cases) and 
-   requires no dependencies. The downside is that the files are fixed-length,
-   and by default this requires 32MB of drive space per user. If you are
-   configuring DSPAM as a Markovian filter, you should definitely use this
-   driver to avoid performance issues. 
+   Legend:
+    * Default storage driver
+    T Thread-safe (Required for running DSPAM in server daemon mode)
+    D Deprecated  (Not recommended)
 
    MySQL is the recommended storage driver, even for small implementations, as
    it is more stable and tested than the other drivers. If you are incapable
-   of running a stateful server, the sqlite drivers are your next best
-   option. It is STRONGLY RECOMMENDED that you run MySQL v4.1 or greater, as
-   some critical issues have been addressed in the server.
+   of running MySQL as a background process, the SQLite drivers are your next 
+   best option. It is STRONGLY RECOMMENDED that you run MySQL v4.1 or greater, 
+   as some critical issues have been addressed in the server.
 
    In general, MySQL is a faster solution with a smaller storage footprint, 
    and is well suited for both small and large-scale implementations.
 
-   You can download Berkeley DB from http://www.sleepycat.com.  
-   You can download MySQL from http://www.mysql.com.
-   You can download PostgreSQL from http://www.postgresql.com.
-   You can obtain more information about Oracle at http://www.oracle.com.
-   You can download SQLite from http://www.sqlite.org.
-   The CSS driver requires no dependencies.
-
-   Be sure the necessary libraries are available to root, the MTA user, and 
-   the CGI user. The easiest way to do this is to copy them to /usr/lib or 
-   /lib.
-
    Documentation for the setup of your selected storage driver can be found
-   in the tools.[storage driver]/ directory.
+   in the doc/ directory. You'll need to follow any steps outlined in the
+   storage driver documentation before continuing.
 
-   NOTE: LIBDB3/LIBDB4
+   Note:
 
+     You can download Berkeley DB from http://www.sleepycat.com.  
+     You can download MySQL from http://www.mysql.com.
+     You can download PostgreSQL from http://www.postgresql.com.
+     You can obtain more information about Oracle at http://www.oracle.com.
+     You can download SQLite from http://www.sqlite.org.
+     The CSS driver requires no dependencies.
+
+   Note:
+     
      Some operating system distributions include their own version of
      libdb3_drv and libdb4_drv.  A majority of these packaged versions
      do work correctly with DSPAM, however a few do not.  If you experience
      problems with one of the libdb storage drivers, consider downloading
-     and compiling the official source tree from http://www.sleepycat.com.
+     and compiling the public source tree from http://www.sleepycat.com.
+
+   Note for Advanced Users:
+
+     The CRM Sparse Spectra driver is the latest addition to DSPAM and is a very
+     fast random-access file driver originally designed by Bill Yerazunis (the
+     author of CRM114). CSS is very fast (faster than MySQL in many cases) and
+     requires no dependencies. The downside is that the files are fixed-length,
+     and by default this requires 32MB of drive space per user. If you are
+     configuring DSPAM as a Markovian filter, you should definitely use this
+     driver to avoid performance issues.
 
 1. CONFIGURATION
 
+   DSPAM uses autoconf, so configuration is fairly standardized with other
+   UNIX-based software:
+
    ./configure [options]
 
-   DSPAM supports the configuration options below. 
+   DSPAM supports the configuration options below. Generally, the default
+   configuration is more than acceptable, so it's a good idea not to tweak too
+   many settings unless you know what you are doing.
 
    PATH SWITCHES
 
-   --prefix=DIR
-   Specify an alternative root prefix for installation.  The default is
-   /usr/local. This does not affect the location of dspam.conf (which defaults
-   to /usr/local/etc). Use --sysconfdir= for this.
+     --prefix=DIR
+     Specify an alternative root prefix for installation.  The default is
+     /usr/local. This does not affect the location of dspam.conf (which 
+     defaults to /usr/local/etc). Use --sysconfdir= for this.
 
-   --sysconfdir=DIR
-   Specify an alternative home for the dspam.conf file. The default is
-   /usr/local/etc.
+     --sysconfdir=DIR
+     Specify an alternative home for the dspam.conf file. The default is
+     /usr/local/etc.
 
-   --with-dspam-home=DIR
-   Specify an alternative DSPAM home for installation. This can alternatively
-   be changed in dspam.conf, but is convenient to do on the configure line.
-   The default is $prefix/var/dspam, or /usr/local/var/dspam.
+     --with-dspam-home=DIR
+     Specify an alternative DSPAM home for installation. This can alternatively
+     be changed in dspam.conf, but is convenient to do on the configure line.
+     The default is $prefix/var/dspam, or /usr/local/var/dspam.
 
-   --with-logdir=DIR
-   Specify an alternative log directory. The default is $dspam_home/log. Do
-   not set this to /var/log unless DSPAM will have permissions to write to the
-   directory.
+     --with-logdir=DIR
+     Specify an alternative log directory. The default is $dspam_home/log. Do
+     not set this to /var/log unless DSPAM will have permissions to write to 
+     the directory.
 
    FILESYSTEM SCALE
 
-   The default filesystem scale is "small-scale", and writes each user to
-   its own directory in the top-level DSPAM home data directory.  
-   The following two switches allow the scale to be changed to be more 
-   suitable for larger installations.
+     The default filesystem scale is "small-scale", and writes each user to
+     its own directory in the top-level DSPAM home data directory.  
+     The following two switches allow the scale to be changed to be more 
+     suitable for larger installations.
 
-   --enable-large-scale
-   Switch for large-scale implementation.  User data will be stored as
-   $HOME/data/u/s/user instead of $HOME/data/user
+     --enable-large-scale
+     Switch for large-scale implementation.  User data will be stored as
+     $HOME/data/u/s/user instead of $HOME/data/user
 
-   --enable-domain-scale
-   Switch for domain-scale implementation.  When used, username@domain should
-   be passed in as the user id and user data will be stored as
-   $HOME/data/domain.com/user and $HOME/opt-in/domain/user.dspam
-   instead of $HOME/data/user
+     --enable-domain-scale
+     Switch for domain-scale implementation.  When used, DSPAM expects 
+     username@domain to be passed in as the user id and user data will be 
+     stored as $HOME/data/domain.com/user and $HOME/opt-in/domain/user.dspam
+     instead of $HOME/data/user
 
    INTEGRATION SWITCHES
 
-   --with-storage-driver=DRIVER
-   Specify an alternative storage driver.  A storage driver is a driver
-   written specifically for DSPAM to store tokens, signature data, and
-   perform other proprietary operations.  The default driver is sqlite_drv,
-   which uses SQLite.  The following drivers have been provided:
+     --with-storage-driver=DRIVER
+     Specify your storage driver selection.  A storage driver is a driver
+     written specifically for DSPAM to store tokens, signature data, and
+     perform other proprietary operations.  The default driver is sqlite_drv,
+     which uses SQLite.  The following drivers have been provided:
 
      libdb4_drv:  Berkeley DB4 Library
      libdb3_drv:  Berkeley DB3 Library
-     mysql_drv:   MySQL Drivers and ZLib       ** MT SAFE **
-     ora_drv:     Oracle Drivers (BETA)
-     pgsql_drv:   PostgreSQL Drivers           ** MT SAFE ** 
-     sqlite_drv:  SQLite Drivers 
+     mysql_drv:   MySQL Drivers 
+     ora_drv:     Oracle Drivers 
+     pgsql_drv:   PostgreSQL Drivers
+     sqlite_drv:  SQLite v2.x Drivers 
      sqlite3_drv: SQLite v3.x Drivers
      css_drv:     CRM Sparse Spectra Driver 
 
-   The DSPAM agent does not require a multi-thread safe driver, but some
-   third party applications may. Be sure you use one labeled "MT SAFE" if
-   you plan on using such an application.
+     Note:
 
-   You may also need to use some of the driver-specific configure flags
-   (discussed later).
+     If you will be compiling DSPAM to operate as a server daemon or to deliver
+     via SMTP/LMTP, you will need to use a thread-safe driver.
 
-   --disable-trusted-user-security
-   Administrators who wish to disable trusted user security may do so by
-   using this configure flag.  This will cause DSPAM to treat each user as
-   if they were "trusted" which could allow them to potentially execute
-   arbitrary commands on the server via DSPAM.  Because of this, administrators
-   should only use this option on either a closed server, or configure their
-   DSPAM binary to be executable only by users who can be trusted.  This
-   option SHOULD NOT be used as a solution to your MTA dropping privileges
-   prior to calling DSPAM.  Instead, see the TRUSTED SECURITY section of this
-   document.
+     Note:
 
-   --enable-homedir
-   When enabled, instead of checking for $HOME/$USER/opt-in/
-   $USER[.dspam|.nodspam], DSPAM will check for a .dspam|.nodspam file in the
-   user's home directory. DSPAM will also store each user's data in ~/.dspam
-   when this option is enabled. Because of this, DSPAM will automatically 
-   install and run setuid root so that it can read each user's home directory.
+     You may also need to use some of the driver-specific configure flags
+     (discussed in the DRIVER SPECIFIC CONFIGURATION OPTIONS section below).
 
-   NOTE: This function is incompatible with the DSPAM CGI, since it requires
-         access to read each user's home directory. Therefore, only use this
-         option if you will not be using the CGI or plan on doing something
-         asinine like running it as root.
+     --disable-trusted-user-security
+     Administrators who wish to disable trusted user security may do so by
+     using this configure flag.  This will cause DSPAM to treat each user as
+     if they were "trusted" which could allow them to potentially execute
+     arbitrary commands on the server via DSPAM. Because of this, administrators
+     should only use this option on either a closed server, or configure their
+     DSPAM binary to be executable only by users who can be trusted.  This
+     option SHOULD NOT be used as a solution to your MTA dropping privileges
+     prior to calling DSPAM. Instead, see the TRUSTED SECURITY section of this
+     document.
 
-   --enable-daemon
-   Builds DSPAM with support for daemon mode, and builds associated dspamc
-   thin client. Pthreads is required to build for daemon mode.
+     --enable-homedir
+     When enabled, instead of checking for $HOME/$USER/opt-in/
+     $USER[.dspam|.nodspam], DSPAM will check for a .dspam|.nodspam file in the
+     user's home directory. DSPAM will also store each user's data in ~/.dspam
+     when this option is enabled. Because of this, DSPAM will automatically 
+     install and run setuid root so that it can read each user's home directory.
 
-   DEBUGGING SWITCHES
+     Note:
 
-   --enable-debug
-   Turns on support for debugging output. This option allows you to turn on 
-   debugging messages for all or some users by editing dspam.conf or specifying
-   --debug on the commandline. Enabling debug in configure only causes support 
-   for debug to be compiled in, it must still be activated using one of the 
-   options prescribed above. Debugging support itself doesn't use up very 
-   many additional resources, so it should be safe to leave enabled on 
-   non-enterprise class systems.
+       This function is incompatible with most implementations of the Web UI, 
+       since it requires access to read each user's home directory. Therefore, 
+       only use this option if you will not be using the Web UI or plan on 
+       doing something asinine like running it as root.
 
-   --enable-verbose-debug
-   Turns on extremely verbose debugging output. --enable-debug is implied.
-   Never use this on production builds! 
-
-  NOTE: When verbose debug is compiled in, DSPAM performs many additional
-         mathematical calculations regardless of whether or not it's been
-         activated. You shouldn't use --enable-verbose for production builds
-         unless you have serious issues you can't resolve.
-
-   FEATURE ACTIVATION
-
-   --enable-neural-networking (EXPERIMENTAL)
-   Enables neural networking support (see the section NEURAL NETWORKING).  This
-   feature is only presently supported by the mysq_drv and pgsql_drv 
-   storage drivers, and is still considered experimental.
-
-   --enable-clamav
-   Enables support for Clam Antivirus. DSPAM can interface directly with clamd 
-   to perform virus scanning and can be configured to react in different
-   ways to viruses.
-
-   ALGORITHM ACTIVATION
-
-  --disable-bias
-   When bias is disabled, dspam no longer biases the statistics in favor of
-   innocent mail, but measures both spam and innocent tokens equally in the
-   calculation equally.  This may provide more effective spam filtering,
-   but has shown to increase the number of false positives in many
-   unofficial tests.
-
-   NOTE: The remaining options in this section are now available in dspam.conf,
-         but have been provided for backward-compatibility and compatibility 
-         with third-party application developers using libdspam.
-
-   The default algorithms enabled are quite sufficient, and represent the most
-   well-tested algorithms in DSPAM. It is not necessary to change any of
-   these options unless you are interested in altering DSPAM's default 
-   behavior.
-
-   --disable-graham-bayesian	(formerly --disable-traditional-bayesian)
-   Disables Paul Graham's Bayesian algorithm (enabled by default).
-
-   --disable-burton-bayesian	(formerly --disable-alternative-bayesian)
-   Disables Brian Burton's Bayesian algorithm (enabled by default).
-     - 27 Samples are used instead of 15
-     - Tokens appearing more than once may take up to 2 slots in the
-       calculation.  This is ideal when there is very limited data
-
-   --enable-robinson
-   Enables Robinson's geometric mean test.  The differences are:
-     - A window-size of 25 is used instead of 15 
-     - The combination algorithm is different.  See:
-       http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html
-       for more information.
-
-       This algorithm is obsolete, and not recommended for production builds. 
-
-   --enable-chi-square
-   Enables Fisher-Robinson's Inverse Chi-Square
-     Defaults in libdspam.c:
-     - Exclusionary radius of 0.45
-     - Ham/Spam Cutoff of 0.5
-     - Strength: 0.1
-     - Assumed probability: 0.5
-
-   NOTE: You may have multiple algorithms enabled simultaneously; if any of
-     the enabled algorithms believe the message is spam, it will be marked
-     accordingly.  Naturally, you also have the potential problem of any
-     false positives generated by the enabled algorithms, so it is recommended
-     to either stick with a single algorithm, or use only Bayesian or only
-     Robinson's type algorithms.  A Bayesian+AltBayesian or Chi-Square 
-     configuration seem to be the two most effective (and popular)
-     configurations.
-
-     For this reason, if you plan on enabling any algorithms which are 
-     disabled by default, it is strongly recommended that you also:
-
-     --disable-graham-bayesian --disable-burton-bayesian
-
-     Generally, the Burton-Bayesian algorithm appears to catch some spams
-     that the Graham-Bayesian algorithm does not, however it also misses
-     far more spams than the Graham algorithm.  Therefore, an 
-     implementation using both Bayesian algorithms appears to be quite
-     effective in catching spam.
-
-   --enable-robinson-pvalues
-   Enable's robinson's technique for combining p-values. This is an alternative
-   approach to generating word probabilities described here:
-
-   http://www.linuxjournal.com/article.php?sid=6467
-
-   Robinson's p-values are automatically used in Chi-Square calculations, but
-   enabling them with this flag will use them for *all* calculations effectively
-   replacing the default (Graham's) tokenization approach. This flag may 
-   be used without enabling Chi-Square, however it functions best when using
-   it
-
-   NOTE: This could potentially decrease accuracy when applied to other
-   algorithms.
-
-   TRAINING SWITCHES
-
-   --disable-test-conditional
-   Disables test-conditional training.  Test-conditional training is a more
-   agressive approach to training than traditional training, and provides more
-   inoculous results rapidly.  
-
-   Enabled by default, this mode of training will automatically re-train the 
-   user's dictionary on spam or false positive until the training condition is 
-   met (e.g. until the user's dictionary no longer results in 
-   misclassification of the message being retrained).  This training has a 
-   maximum number of 5 iterations, and will only invoke when:
-                                                                                
-   - The user has > 1000 innocent messages in their corpus, and is reporting
-     a spam
-                                                                                
-   - The user is reporting a false positive (regardless of the number of 
-     messages in their corpus)
-
-   This method of training has its controversial points as well.  All of these
-   issues revolve around the assumption this approach to training makes that
-   you are likely to receive the same (or very similar) again one or more times
-   in the future.
-
-   - Since the message is being retrained repeatedly, the learning curve is
-     going to be based solely on that one message rather than the natural flow
-     of similar messages that may contain slightly different text.
-
-   - It's possible a user may agressively train a spam they will only receive
-     once but could potentially increase their risk of false positives by
-     training this agressively.
-
-   - If there is a significant overlap of dictionary tokens between a user's
-     regular mail and the incoming spams being agressively trained, the user
-     could potentially end up retraining with spam, then retraining with
-     false positives, then retraining with spam again.
-
-   In spite of these controversial points, this approach to training has had
-   successful results with several implementations.
+     --enable-daemon
+     Builds DSPAM with support for daemon mode, and builds associated dspamc
+     thin client. Pthreads is required to build for daemon mode and the
+     storage driver used must be thread-safe.
 
    DRIVER SPECIFIC CONFIGURE SWITCHES
 
-   libdb4_drv:
-     --with-db4-includes=DIR
-     Specify a path to the Berkeley db4 includes
+     Some storage drivers have their own custom configuration switches:
 
-     --with-db4-libraries=DIR
-     Specify a path to the Berkeley db4 libraries
+     libdb4_drv:
+       --with-db4-includes=DIR
+       Specify a path to the Berkeley db4 includes
 
-   libdb3_drv:
-     --with-db3-includes=DIR
-     Specify a path to the Berkeley db3 includes
+       --with-db4-libraries=DIR
+       Specify a path to the Berkeley db4 libraries
 
-     --with-db3-libraries=DIR
-     Specify a path to the Berkeley db3 libraries
-     (Currently links to -ldb3, to you may need to symlink libdb-3.3.so to
-      libdb3.so if it doesn't exist)
+     libdb3_drv:
+       --with-db3-includes=DIR
+       Specify a path to the Berkeley db3 includes
 
-   mysql_drv:
-     --with-mysql-includes=DIR
-     Specify a path to the MySQL includes
+       --with-db3-libraries=DIR
+       Specify a path to the Berkeley db3 libraries
+       (Currently links to -ldb3, to you may need to symlink libdb-3.3.so to
+        libdb3.so if it doesn't exist)
 
-     --with-mysql-libraries=DIR
-     Specify a path to the MySQL libraries
-     (Currently links to -lmysqlclient, also -lcrypto on some systems)
+     mysql_drv:
+       --with-mysql-includes=DIR
+       Specify a path to the MySQL includes
 
-     --enable-virtual-users
-     Tells DSPAM to create virtual user ids.  Use this if your users don't
-     actually exist on the system (e.g. in /etc/passwd if using a password file)
+       --with-mysql-libraries=DIR
+       Specify a path to the MySQL libraries
+       (Currently links to -lmysqlclient, also -lcrypto on some systems)
 
-     --enable-preferences-extension
-     MySQL supports the preferences extension, which stores user preferences
-     in mysql instead of flat files (the built-in method)
+       --enable-virtual-users
+       Tells DSPAM to create virtual user ids.  Use this if your users don't
+       actually exist on the system (e.g. in /etc/passwd if using a password 
+       file)
 
-     NOTE: If you have never created the dspam_preferences objects, you will 
-           need to re-run the objects creation script.
+       --enable-preferences-extension
+       MySQL supports the preferences extension, which stores user preferences
+       in mysql instead of flat files (the built-in method)
 
-     --disable-mysql4-initialization
-     If you are compiling libdspam for use with a third party application,
-     and the third party application makes its own calls to libmysqlclient,
-     you should use this option to disable libdspam's initialization and
-     cleanup of libmysqlclient, and allow the application to manage this.
-     This option suppresses libdspam's calls to mysql_server_init and
-     mysql_server_end.
+       --disable-mysql4-initialization
+       If you are compiling libdspam for use with a third party application,
+       and the third party application makes its own calls to libmysqlclient,
+       you should use this option to disable libdspam's initialization and
+       cleanup of libmysqlclient, and allow the application to manage this.
+       This option suppresses libdspam's calls to mysql_server_init and
+       mysql_server_end.
+
+       Note:
+
+       Please see the file doc/mysql_drv.txt for more information
+       about configuring the mysql_drv storage driver.
+
+     pgsql_drv:
+       --with-pgsql-includes=DIR
+       Specify a path to the PgSQL includes
+
+       --with-pgsql-libraries=DIR
+       Specify a path to the PgSQL libraries
+       (Currently links to -lpq, and netlibs on some systems)
+
+       --enable-virtual-users
+       Tells DSPAM to create virtual user ids.  Use this if your users don't
+       actually exist on the system (e.g. in /etc/passwd if using a password 
+       file)
+
+       --enable-preferences-extension
+       Postgres supports the preferences extension, which stores user 
+       preferences in pgsql instead of flat files (the built-in method)
+
+       Note:
+
+       Please see the file doc/pgsql_drv.txt for more information about
+       configuring the pgsql_drv storage driver.
+
+     ora_drv:
+       --with-oracle-home=DIR
+       Specify the Oracle Home (or client home)
+
+       --enable-virtual-users
+       Tells DSPAM to create virtual user ids.  Use this if your users don't
+       actually exist on the system (e.g. in /etc/passwd if using a password 
+       file)  
+
+       Note:
+
+       Please see the file doc/ora_drv.txt for more information
+       about configuring the ora_drv storage driver.
+
+     sqlite_drv:
+     sqlite3_drv:
+       --with-sqlite-includes=DIR
+       Specify a path to the SQLite includes
+
+       --with-sqlite-libraries=DIR
+       Specify a path to the SQLite libraries
+
+   DEBUGGING SWITCHES
+
+     --enable-debug
+     Turns on support for debugging output. This option allows you to turn on 
+     debugging messages for all or some users by editing dspam.conf or setting
+     --debug on the commandline. Enabling debug in configure only adds support 
+     for debug to be compiled in, it must still be activated using one of the 
+     options prescribed above. Debugging support itself doesn't use up very 
+     many additional resources, so it should be safe to leave enabled on 
+     non-enterprise class systems.
+
+     --enable-verbose-debug
+     Turns on extremely verbose debugging output. --enable-debug is implied.
+     Never use this on production builds! 
+
+     Note:
+
+     When verbose debug is compiled in, DSPAM performs many additional
+     mathematical calculations regardless of whether or not it's been
+     activated. You shouldn't use --enable-verbose for production builds
+     unless you have serious issues you can't resolve.
+
+   FEATURE ACTIVATION
+
+     --enable-neural-networking (EXPERIMENTAL)
+     Enables neural networking support (see the section NEURAL NETWORKING).
+     This feature is only presently supported by the mysq_drv and pgsql_drv 
+     storage drivers, and is still considered experimental.
+
+     --enable-clamav
+     Enables support for Clam Antivirus. DSPAM can interface directly with 
+     clamd to perform virus scanning and can be configured to react in 
+     different ways to viruses. See dspam.conf for more information.
+
+   ALGORITHM ACTIVATION
+
+     --disable-bias
+     When bias is disabled, dspam no longer biases the statistics in favor of
+     innocent mail, but measures both spam and innocent tokens equally in the
+     calculation equally.  This may provide more effective spam filtering,
+     but has shown to increase the number of false positives in many
+     unofficial tests.
+
+     Note:
+ 
+     The remaining options in this section are now available in dspam.conf,
+     but have been provided for backward-compatibility and compatibility 
+     with third-party application developers using libdspam.
+
+     The default algorithms enabled are quite sufficient, and represent the most
+     well-tested algorithms in DSPAM. It is not necessary to change any of
+     these options unless you are interested in altering DSPAM's default 
+     behavior.
+
+     --disable-graham-bayesian	(formerly --disable-traditional-bayesian)
+     Disables Paul Graham's Bayesian algorithm (enabled by default).
+
+     --disable-burton-bayesian	(formerly --disable-alternative-bayesian)
+     Disables Brian Burton's Bayesian algorithm (enabled by default).
+       - 27 Samples are used instead of 15
+       - Tokens appearing more than once may take up to 2 slots in the
+         calculation.  This is ideal when there is very limited data
+
+     --enable-robinson
+     Enables Robinson's geometric mean test.  The differences are:
+       - A window-size of 25 is used instead of 15 
+       - The combination algorithm is different.  See:
+         http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html
+         for more information.
+
+         This algorithm is obsolete, and not recommended for production builds. 
+
+     --enable-chi-square
+     Enables Fisher-Robinson's Inverse Chi-Square
+       Defaults in libdspam.c:
+       - Exclusionary radius of 0.45
+       - Ham/Spam Cutoff of 0.5
+       - Strength: 0.1
+       - Assumed probability: 0.5
+
+     NOTE: You may have multiple algorithms enabled simultaneously; if any of
+       the enabled algorithms believe the message is spam, it will be marked
+       accordingly.  Naturally, you also have the potential problem of any
+       false positives generated by the enabled algorithms, so it is recommended
+       to either stick with a single algorithm, or use only Bayesian or only
+       Robinson's type algorithms.  A Bayesian+AltBayesian or Chi-Square 
+       configuration seem to be the two most effective (and popular)
+       configurations.
+
+       For this reason, if you plan on enabling any algorithms which are 
+       disabled by default, it is strongly recommended that you also:
+
+       --disable-graham-bayesian --disable-burton-bayesian
+
+       Generally, the Burton-Bayesian algorithm appears to catch some spams
+       that the Graham-Bayesian algorithm does not, however it also misses
+       far more spams than the Graham algorithm.  Therefore, an 
+       implementation using both Bayesian algorithms appears to be quite
+       effective in catching spam.
+
+     --enable-robinson-pvalues
+     Enable's robinson's technique for combining p-values. This is an 
+     alternative approach to generating word probabilities described here:
+
+     http://www.linuxjournal.com/article.php?sid=6467
+
+     Robinson's p-values are automatically used in Chi-Square calculations, but
+     enabling them with this flag will use them for *all* calculations 
+     effectively replacing the default (Graham's) tokenization approach. This 
+     flag may be used without enabling Chi-Square, however it functions best 
+     when using it
+
+     Note:
      
-     NOTE: Please see the file doc/mysql_drv.txt for more information
-     about configuring the mysql_drv storage driver.
+     This could potentially decrease accuracy when applied to other algorithms.
 
-   pgsql_drv:
-     --with-pgsql-includes=DIR
-     Specify a path to the PgSQL includes
+   TRAINING SWITCHES
 
-     --with-pgsql-libraries=DIR
-     Specify a path to the PgSQL libraries
-     (Currently links to -lpq, and netlibs on some systems)
+     --disable-test-conditional
+     Disables test-conditional training.  Test-conditional training is a more
+     agressive approach to training than traditional training, and provides more
+     inoculous results rapidly.  
 
-     --enable-virtual-users
-     Tells DSPAM to create virtual user ids.  Use this if your users don't
-     actually exist on the system (e.g. in /etc/passwd if using a password file)
+     Enabled by default, this mode of training will automatically re-train the 
+     user's dictionary on spam or false positive until the training condition 
+     is met (e.g. until the user's dictionary no longer results in 
+     misclassification of the message being retrained).  This training has a 
+     maximum number of 5 iterations, and will only invoke when:
+                                                                                
+     - The user has > 1000 innocent messages in their corpus, and is reporting
+       a spam
+                                                                                
+     - The user is reporting a false positive (regardless of the number of 
+       messages in their corpus)
 
-     --enable-preferences-extension
-     Postgres supports the preferences extension, which stores user preferences
-     in pgsql instead of flat files (the built-in method)
+     This method of training has its controversial points as well.  All of these
+     issues revolve around the assumption this approach to training makes that
+     you are likely to receive the same (or very similar) again one or more 
+     times in the future.
 
-     NOTE: If you have never created the dspam_preferences objects, you will
-           need to re-run the objects creation script.
+     - Since the message is being retrained repeatedly, the learning curve is
+       going to be based solely on that one message rather than the natural flow
+       of similar messages that may contain slightly different text.
 
-     Please see the file doc/pgsql_drv.txt for more information about 
-     configuring the pgsql_drv storage driver.
+     - It's possible a user may agressively train a spam they will only receive
+       once but could potentially increase their risk of false positives by
+       training this agressively.
 
-   ora_drv:
-     --with-oracle-home=DIR
-     Specify the Oracle Home (or client home)
+     - If there is a significant overlap of dictionary tokens between a user's
+       regular mail and the incoming spams being agressively trained, the user
+       could potentially end up retraining with spam, then retraining with
+       false positives, then retraining with spam again.
 
-     --enable-virtual-users
-     Tells DSPAM to create virtual user ids.  Use this if your users don't
-     actually exist on the system (e.g. in /etc/passwd if using a password file)                                                                                
-     NOTE: Please see the file doc/ora_drv.txt for more information
-     about configuring the ora_drv storage driver.
+     In spite of these controversial points, this approach to training has had
+     successful results with several implementations.
 
-   sqlite_drv:
-   sqlite3_drv:
-     --with-sqlite-includes=DIR
-     Specify a path to the SQLite includes
+   ADDITIONAL CONFIGURATION OPTIONS
 
-     --with-sqlite-libraries=DIR
-     Specify a path to the SQLite libraries
+     The remainder of configuration options are located in dspam.conf, which
+     is installed in sysconfdir (default: /usr/local/etc) upon a make install.
+     It is generally a good idea to review dspam.conf and make any changes
+     necessary prior to using DSPAM.
 
 2. BUILDING AND INSTALLING
 
@@ -578,66 +637,114 @@ First you will need to download a few prerequisite tools:
 
    make && make install
 
-   If you are a developer wanting to link to the core engine of dspam,
-   libdspam will be built during this process.  Please see the
-   example.c file for examples of how to link to and use libdspam. Static
-   and dynamic libraries are built in the .libs directory. Needed headers
-   will be installed in $prefix$/include/dspam.
+   Note: 
+
+     If you are a developer wanting to link to the core engine of dspam,
+     libdspam will be built during this process.  Please see the
+     example.c file for examples of how to link to and use libdspam. Static
+     and dynamic libraries are built in the .libs directory. Needed headers
+     will be installed in $prefix$/include/dspam.
 
 3. PERMISSIONS
 
-   After install, the default home will have been created for you automatically
-   (the default is /usr/local/var/dspam).  Ensure the permissions of the 
-   directory are writable by both your MTA and CGI user. dspam.conf will also 
-   have been installed into $sysconfdir (the default being /usr/local/etc).
+   In the typical UNIX environment, you'll need to worry about the following
+   permissions:
 
-   You may need to add your MTA user to dspam.conf's list of trusted users.
-   The MTA user is usually 'daemon' or 'smmsp' although on FreeBSD the default
-   is 'mailnull'.  This is very important, as your MTA user needs to be able 
-   to lock and work with files. You'll also want to add your CGI user (this is 
-   usually www or nobody, see httpd.conf).
+   The CGI User: This is the user your web server (most likely Apache) is
+     running as. This is commonly 'nobody' or 'web'. You can find this in
+     Apache's httpd.conf by searching for 'User'. The CGI user will need
+     the ability to access the following components of DSPAM:
+       - Ability to execute the dspam binary
+       - Ability to read and write to dspam_home/data/
+       - Trusted user permissions in dspam.conf ("Trust [username]")
+       - The execution 'Group' used must match the group dspam is running as
+         (this is typically 'mail', 'dspam', or similar)
+     
+   The MTA User: This is the user your mail server software is running as when
+     it executes DSPAM. This is usually daemon, mail, exim, etc. This is 
+     typically different from the user the MTA runs and polices itself as, to
+     avoid security problems. Consult your MTA's documentation for more info.
+     The MTA user will require:
+       - The ability to execute the dspam binary
+       - Trusted user permissions in dspam.conf ("Trust [username]")
 
-   IMPORTANT!!!
+   Systems Administrators: In order to perform administrative functions,
+     systems administratiors will require:
+       - The ability to execute dspam-related binaries
+       - Trusted user permissions in dspam.conf ("Trust [username]")
 
-   FreeBSD's mail.local changes its effective uid, and so in order to use it
-   dspam must be installed as setuid root to work on the commandline properly.
-   This is done automatically on install.
+   Note:
+ 
+     If the MTA is communicating with DSPAM via LMTP (explained later), then
+     execution permissions are not necessary
 
-   TRUSTED USERS SECURITY
+   Note about FreeBSD:
+
+     FreeBSD's default MTA user is 'mailnull'
+     FreeBSD's default delivery agent also changes its uid, and so in order
+     to call it, dspam must be installed as setuid root to work on the 
+     commandline properly. This is done automatically on install.
+
+
+   Understanding Trusted User Security
 
    DSPAM has tighter security for untrusted users on the system to prevent
-   them from being able to spoof other users or specify their own passthru
-   arguments to potentially hijack the delivery agent.  This method
-   of security has been implemented due to the fact that some implementations
-   (such as those using procmail) may require the DSPAM agent to be setuid or
-   setgid.
+   them from touching other user's data or passing arbitrary commands to the
+   delivery agent DSPAM calls. "Trusted User Security" is a simple system 
+   whereby any unsafe functions are not available to a user calling dspam 
+   unless they are within dspam.conf's trusted user list. 
 
-   A list of trusted users is maintained in dspam.conf. This file should 
-   contain a list of trusted users who should be allowed to set the dspam user,
+   Local non-privileged users should be able to use DSPAM without any problems
+   while remaining untrusted, as long as they behave. For example, an untrusted
+   user cannot set their DSPAM username to any name other than their username.
+   Untrusted users are also limited to the delivery options set by the
+   system administrator, and cannot redirect how DSPAM delivers mail.
+
+   A list of trusted users is maintained in dspam.conf. This file should
+   include a list of trusted users who should be allowed to set the dspam user,
    passthru parameters, and other information that would be potentially 
    dangerous for a malicious user to be able to set.  You'll need to ensure 
-   that your MTA users, administrators, and CGI user are on this list.
+   that your CGI user, MTA user, and system administrators are on the list.
 
-   Be sure to examine dspam.debug to ensure that you don't get any untrusted 
-   user warnings when submitting spam or a false positive, as both of these 
-   actions frequently call dspam from a different user than standard mail 
-   delivery.
+4. MAIL SERVER INTEGRATION
 
-   If you are using an MTA that changes its userid before calling DSPAM to
-   match the destination user, you should NOT add each user to the trusted
-   users file, but instead configure DSPAM to operate in untrusted mode.
+   As previously mentioned, there are three popular ways to implement DSPAM:
+
+   As a delivery proxy:
+     The default approach integrates DSPAM directly with the mail server and 
+     filters spam as mail comes in. Please see the appropriate instructions 
+     in doc/ pertaining to your MTA.
+
+   As a POP3 proxy:
+     This alternative approach implements a POP3 proxy where users
+     connect to the proxy to check their email, and email is filtered when
+     being downloaded.  The POP3 proxy is a much easier approach, as it
+     requires much less integration work with the mail server (and is ideal 
+     for implementing DSPAM on Exchange, etcetera). Please see the file
+     doc/pop3filter.txt.
+
+   As an SMTP Relay:
+     DSPAM can be configured as an SMTP relay, a.k.a appliance. You
+     can set it up to sit in front of your real mail server and then point
+     your MX records at it. DSPAM will then pass along the good mail to
+     your real SMTP server. See doc/appliance.txt for more information. The
+     example provided uses Postfix and MySQL.
+
+   Trusted users and the MTA
+
+   If you are using an MTA that changes its userid to match the destination
+   user before calling DSPAM, you won't be able to provide pass-thru 
+   arguments to DSPAM (these are the commandline arguments that DSPAM in turn
+   passed to the local delivery agent, in such a configuration). 
+   You will need to pre-configure the "default" pass-thru arguments in DSPAM. 
    This can be done by declaring an untrusted delivery agent in dspam.conf.
    When DSPAM is called by an untrusted user, it will automatically force their
    DSPAM user id and passthru delivery agent arguments specified in dspam.conf.
-   
-   To override an untrusted user's passthru delivery agent arguments
-   (arguments which could be used to hijack the delivery agent to gain
-   privileged access to the system) you will need to specify the arguments
-   in dspam.conf's UntrustedDeliveryAgent section.  This information will 
-   override any passthru commandline parameters specified by the user. 
-   For example:
 
-   UntrustedDeliveryAgent	"/bin/mail -d $u"
+   This information will override any passthru commandline parameters
+   specified by the user. For example:
+
+   UntrustedDeliveryAgent       "/bin/mail -d $u"
 
    The variable $u informs DSPAM that you would like the destination username
    to be used in the position $u is specified, so when DSPAM calls your LDA
@@ -645,152 +752,178 @@ First you will need to download a few prerequisite tools:
 
    /bin/mail -d bob
 
-4. MAIL SERVER INTEGRATION
-
-   There are three primary ways the DSPAM agent can be integrated:
-
-   Mail Server: The default approach integrates DSPAM directly with the mail 
-        server and filters spam as mail comes in. Please see the appropriate
-        instructions in doc/ pertaining to your MTA.
-
-   POP3 Proxy: The alternative approach implements a POP3 proxy where users
-        connect to the proxy to check their email, and email is filtered when
-        being downloaded.  The POP3 proxy is a much easier approach, as it
-        requires much less integration work with the mail server (and is ideal 
-        for implementing DSPAM on Exchange, etcetera). Please see the file
-        doc/pop3filter.txt.
-
-   SMTP Relay: DSPAM can be configured as an SMTP relay, a.k.a appliance. You
-        can set it up to sit in front of your real mail server and then point
-        your MX records at it. DSPAM will then pass along the good mail to
-        your real SMTP server. See doc/appliance.txt for more information. The
-        example provided uses Postfix and MySQL.
-
 5. ALIASES
 
-   Users must have an alias to forward/bounce spams to in order for DSPAM to
-   learn unless you want them to use the CGI's history function for all of 
-   their retraining. Since DSPAM learns each user's specific email behavior, 
-   it is necessary to identify the end-user to program their specific 
-   dictionary.  
+   There are essentially two different ways a user might train DSPAM. The first
+   is by using the Web UI, which allows them to retrain via the "History"
+   tab. This works quite well, as users must visit the Web UI occasionally
+   to review their quarantine anyway (and reverse any false positives). We'll
+   discuss this shortly in section 1.1.8.
 
-   This can be done in two ways:
+   The more common approach to training, discussed here, is to allow users to
+   simpmly forward their spam to an email address where DSPAM can analyze and
+   learn it. DSPAM uses a signature-based system, where a serial number of
+   sorts is appended to each email processed by DSPAM. DSPAM reads this serial
+   number when the user forwards (or bounced) a message to what is called their
+   "spam email address". The serial number points to temporary information
+   stored on the server (for 14 days by default) containing all of the 
+   information necessary for DSPAM to relearn the message. This is necessary
+   in order to relearn the *exact* message DSPAM originally processed.
 
-   The easy way
-   ------------
+   Note:
 
-   DSPAM has an option called ParseToHeaders which can be used to automatically
-   parse the To: header of forwarded spam and/or false positives, so when a
-   user emails:
+     If you are using an IMAP based system, Web-based email, or other form of
+     email management where the original messages are stored on the server in
+     pristine format, you can turn this signature feature off by setting
+     "TrainPristine on" in dspam.conf. DSPAM will then use the message itself
+     that you provide it to train, which MUST be identical to the original
+     message in order to retrain properly.
 
-   spam-bob@domain.tld
+   Because DSPAM learns each user's specific email behavior, it's necessary
+   to identify the user in order to program their specific filtering database.
+   This can be done in one of three ways:
 
-   DSPAM can set the training mode to "learn spam" and set the username to
-   either 'bob' or 'bob@domain.tld' automatically. This is ideal if you don't
-   want to set up a separate alias for each user on your system. The catch is
-   that you have to tell your mail server to pass along all email to
-   spam-[whatever] or notspam-[whatever] to DSPAM. This may be difficult, and
-   so you can alternatively set up a subdomain as a catch-all. For example:
+   The Simple Way:
 
-   @relearn.domain.tld	"|/usr/local/bin/dspam"
+     If you are using the MySQL or PgSQL storage drivers, the original
+     numeric user id can be embedded in the signature, requiring only one
+     central spam alias to be necessary for the entire system. To configure
+     this, uncomment the appropriate UIDInSignature option in dspam.conf:
 
-   Then, when user 'bob' forwards an email to spam-bob@relearn.domain.tld, 
-   DSPAM will automatically know to retrain the message as spam for user
-   'bob'. 
+     # MySQLUIDInSignature    on
+     # PgSQLUIDInSignature    on  
 
-   Just set up the catch-all, then add these lines to dspam.conf:
+     Now all you'll need is a single system-wide alias, and DSPAM will train
+     the appropriate user when it sees the signature. An example of an alias
+     might look like:
 
-   ParseToHeaders on
-   ChangeUserOnParse user
-   ChangeModeOnParse on
+     spam:"|/usr/local/bin/dspam --user root --class=spam --source=error"
 
-   You can also configure DSPAM to use the entire email address as the user
-   name, instead of just the part that comes before the @ sign. This is
-   useful if you are using the full email address as the DSPAM username 
-   instead of just the local part. The caveat to this is that you can't use 
-   subdomains, so if you plan on doing this then you'll have to finesse your 
-   MTA into passing along anything with spam- or notspam- in the To: header. 
-   Once you've got that set up, use this configuration in dspam.conf:
+     Similarly, you may also wish to have a false-positive alias for users who
+     prefer to tag spam rather than quarantine it:
 
-   ParseToHeaders on
-   ChangeUserOnParse full
-   ChangeModeOnParse on
+     notspam:"|/usr/local/bin/dspam --user root --class=innocent --source=error"
 
-   The hard way
-   ------------
+     Note:
 
-   Sometimes it may be more appropriate to set up an alias for each user on the
-   system instead of having a system-wide configuration. To do this, you will
-   need to create an email address for each user, so that DSPAM can 
-   analyze and learn for that specific user.  For example:
+     The 'root' user represents any existing user on the system. It is
+     necessary to supply a username on the commandline or DSPAM will bail on
+     an error, however the user will be changed internally once the signature
+     is read.
 
-   spam-bob: "|/usr/local/bin/dspam --user bob --class=spam --source=error"
+   The Kind-of-Simple Way:
 
-   You will end up having one alias per mail user on the system, two if you
-   do not use DSPAM's CGI quarantine (an additional one using notspam-). Be 
-   sure the aliases are unique and each username matches the name after the 
-   --user flag.  A tool has been provided called dspam_genaliases.  This tool 
-   will read the /etc/passwd file and write out a dspam aliases file that can 
-   be included in your master aliases table.  
+     If you're not using one of the above storage drivers, the next easiest
+     way to configure aliases is to have DSPAM parse the 'To:' header of the
+     message and use a catch-all subdomain to direct all mail into DSPAM for
+     retraining. You can then instruct your users to email addresses like
+     'spam-bob@relearn.domain.tld'. The ParseToHeaders option (available
+     in dspam.conf) will parse the To: header of forwarded messages and
+     set the username to either 'bob' or 'bob@relearn.domain.tld', depending 
+     on how it is configured. DSPAM can also set the training mode to either
+     "learn spam" or "learn notspam" depending on whether the user specified
+     a spam- or notspam- address in the To: header.
 
-   To report spams, the user should be instructed to forward each spam to
-   spam-user@yourhost
+     This is ideal if you don't want to set up a separate alias for each user 
+     on your system (The Hard Way). If you're fortunate enough to have a
+     mail server that can perform regular expression matching, you can set up
+     your system without a subdomain, and just use addresses like 
+     spam-bob@domain.tld. For the rest of us, it will be necessary to set up
+     a subdomain catch-all directly into DSPAM. For example:
 
-   It doesn't really matter what you name these aliases, so long as the flags
-   being passed to dspam are correct for each user.  It might be a good idea
-   to create an alias custom to your network, so that spammers don't forward
-   spam into it.  For example, notspam-yourcompany-bob or something.  
+     @relearn.domain.tld	"|/usr/local/bin/dspam"
 
-6. CLEANUP AND PURGE TOOLS
+     Don't forget to set the appropriate ParseToHeaders and related options in
+     dspam.conf as well. More specific instructions can be found in dspam.conf
+     itself. In most cases, the following will suffice:
 
-   CLEANUP
+     ParseToHeaders on
+     ChangeUserOnParse user
+     ChangeModeOnParse on
 
-   You should configure dspam_clean to run under cron nightly.
+   The Old Way (A.K.A. The Hard Way)
 
-   This clean tool will read all signature databases and purge signatures that
-   are older than 14 days (configurable), purge abandoned tokens, and remove
-   unimportant tokens.  Without this tool, old signatures will continue to 
-   pile up.  A cron should suffice.  Be sure the user running cleanup has full 
-   read/write permissions on the DSPAM data files.
+     If neither of the easy ways are possible, you're stuck with doing it
+     the hard way. This means you'll need a separate spam alias (and notspam
+     alias, if users are tagging mail) for each user. To do this, you will
+     need to create an email address for each user, so that DSPAM can 
+     analyze and learn for that specific user.  For example:
 
-   0 0 * * * /usr/local/bin/dspam_clean [options]
+     spam-bob: "|/usr/local/bin/dspam --user bob --class=spam --source=error"
 
-   See the dspam_clean description for more information
+     You will end up having one alias per mail user on the system, two if you
+     do not use DSPAM's CGI quarantine (an additional one using notspam-). Be 
+     sure the aliases are unique and each username matches the name after the 
+     --user flag.  A tool has been provided called dspam_genaliases.  This tool 
+     will read the /etc/passwd file and write out a dspam aliases file that can 
+     be included in your master aliases table.  
 
-   PURGE
+     To report spam, the user should be instructed to forward each spam to
+     spam-user@yourhost
 
-   Depending on which storage driver you choose, it may be beneficial to run
-   a purge tool that will recreate the database nightly.  This is especially
-   true to the BDB drivers.  Using db_dump and db_load in a shell script,
-   for example, can very easily reclaim free space in a BDB database if run
-   once a week or so.
+     It doesn't really matter what you name these aliases, so long as the flags
+     being passed to dspam are correct for each user.  It might be a good idea
+     to create an alias custom to your network, so that spammers don't forward
+     spam into it.  For example, notspam-yourcompany-bob or something.  
 
-   Obviously if you are using a SQL-based driver, you will not need to compress
-   files, but may want to run some basic SQL commands to delete unused tokens, 
-   etc.  You can find instructions about each driver's purge functions in
-   the driver's README (tools.[driver]/README) for performing nightly
-   maintenance. dspam_clean can also be used for more granular purges.
+   Note About Security:
 
-   LOG ROTATION
+     You might be wondering if a user can forward a spam to another user's
+     address, or whether a spammer can forward a spam to another user's
+     notspam address. The answer is "no". The key to all mail-based retraining
+     is the signature embedded in each email. The signature is stored with
+     each user's own user id, and so not only does the incoming message have
+     to bear a valid signature, but it also has to be stored on the system with
+     the correct user id. This prevents any kind of alias abuse.
 
-   The system log and user logs can fill up fairly quickly, when all that's
-   really needed to generate graphs are the last two to three weeks of data. 
-   You can configure a nightly log cleanup using a simple find recipe:
+6. NIGHTLY MAINTENANCE AND HOUSEKEEPING CRONS
 
-   0 0 * * * dspam_logrotate -a 30 /usr/local/var/dspam/system.log `find /usr/local/var/dspam/data -name "*.log"`
+   Non-SQL Based Nightly Purge
+
+     If you are NOT running a SQL-based solution, then you should configure
+     dspam_clean to run under cron nightly. This clean tool will read all 
+     signature databases and purge signatures that are older than 14 days 
+     (configurable), purge abandoned tokens, and remove unimportant tokens.  
+     Without this tool, old signatures will continue to pile up. 
+     Be sure the user running cleanup has full read/write permissions on the 
+     DSPAM data files.
+
+     0 0 * * * /usr/local/bin/dspam_clean [options]
+
+     See the dspam_clean description for more information
+
+   SQL-Based Nightly Purge
+
+     SQL-Based solutions include a nightly SQL script to perform the same basic
+     tasks as dspam_clean, and it does it much faster and with more finesse.
+     You can find instructions about each driver's purge functions in
+     the driver's README (doc/[driver].txt) for performing nightly
+     maintenance. Most SQL drivers will include a purge script in the
+     src/tools.[driver] directory. For example:
+
+     0 0 * * * mysql --user=[user] --pass=[pass] [db] < /path/to/purge-4.1.sql
+
+   Log Rotation
+
+     The system log and user logs can fill up fairly quickly, when all that's
+     really needed to generate graphs are the last two to three weeks of data. 
+     You can configure a nightly log cleanup using a simple find recipe:
+
+     0 0 * * * dspam_logrotate -a 30 /usr/local/var/dspam/system.log \
+               `find /usr/local/var/dspam/data -name "*.log"`
 
 7. NOTIFICATIONS
 
-   DSPAM is capable of sending three different notifications:
+   DSPAM is capable of sending three different notifications to users:
 
-   - A "First Run" message sent to each user when they receive their first 
-     message through DSPAM.
+     - A "First Run" message sent to each user when they receive their first 
+       message through DSPAM.
 
-   - A "First Spam" message sent to each user when they receive their first
-     spam
+     - A "First Spam" message sent to each user when they receive their first
+       spam
 
-   - A "Quarantine Full" message sent to each user when their quarantine box
-     is > 2MB in size.
+     - A "Quarantine Full" message sent to each user when their quarantine box
+       is > 2MB in size.
 
    These notifications can be activated by copying the txt/ directory from the
    distribution into DSPAM's home (by default /usr/local/var/dspam).  You will
@@ -804,69 +937,82 @@ First you will need to download a few prerequisite tools:
 
    You'll need to also set "Notifications" to "on" in dspam.conf.
 
-THE CGI CLIENT
+8. THE WEB UI
 
    The CGI client (dspam.cgi) can be run from any executable location on
    a web server, and detects its user's identity from the REMOTE_USER
-   environment variable.  This means you'll need to use HTTP password
+   environment variable. This means you'll need to use HTTP password
    authentication to access the CGI (Any type of authentication will work,
-   so long as Apache supports the module).  You'll want the usernames to match
-   the actual username on the system.  A copy of the shadow password file
-   will suffice for authentication.
+   so long as Apache supports the module). This is also convenient in that you
+   can set up authentication using almost any existing system you have.
+   The only catch is that you'll need the usernames to match the actual 
+   DSPAM usernames used the system. A copy of the shadow password file
+   will suffice for most common installs.
 
    The accompanying files in the cgi/ folder should be copied into the same
    location as dspam.cgi, as they are needed by the tool to generate output.
    Be sure to copy the templates and graphics into the cgi-bin as well.
 
-   NOTE: Some authentication mechanisms are case insensitive and will
-   authenticate the user regardless of the case they type it in.  DSPAM,
-   on the other hand, is case sensitive and the case of the username used
-   will need to match the case on the system.  If you suffer from this
-   authentication problem, and are certain all of your users' usernames are
-   in lowercase, you can add the following line of code to the CGI right
-   after the call to &ReadParse...
+     NOTE: Some authentication mechanisms are case insensitive and will
+     authenticate the user regardless of the case they type it in.  DSPAM,
+     on the other hand, is case sensitive and the case of the username used
+     will need to match the case on the system.  If you suffer from this
+     authentication problem, and are certain all of your users' usernames are
+     in lowercase, you can add the following line of code to the CGI right
+     after the call to &ReadParse...
 
-   $ENV{'REMOTE_USER'} = lc($ENV{'REMOTE_USER'});
+     $ENV{'REMOTE_USER'} = lc($ENV{'REMOTE_USER'});
 
    The CGI will need to function in the same group as the dspam agent in order
    to work with the files in dspam_home.  The best way to do this is to create 
    a separate virtualhost specifically for the CGI and assign it to run in the 
-   MTA group using Apache's suexec.  If you are using procmail, additional 
-   configuration may also be necessary (see below).  Please note that Apache 
-   users do NOT take on the identity of the groups specified in /etc/group; 
-   e.g. you will need to specifically assign the group in httpd.conf.
+   MTA group using Apache's suexec. If you are using procmail, additional 
+   configuration may also be necessary (see below).  
 
-   NOTE: Because the DSPAM CGI is a script, DSPAM will not retain its setuid 
-         privileges when called. If you are running procmail, this will become
-         a problem as procmail requires root privileges to deliver. The easiest
-         hack around this is to create a procmail.dspam binary and make it
-         setuid root, then make it executable only by the mail group (or 
-         whatever group DSPAM and the CGI run in).
+   Note:
 
-   The DSPAM CGI has a minimal configuration inside the configure.pl script. 
+     Apache users do NOT take on the identity of the groups specified in 
+     /etc/group so you will need to specifically assign the group in 
+     httpd.conf.
+
+   Note about Procmail:
+
+      Because the DSPAM Web UI is a CGI script, DSPAM will not retain its 
+      setuid privileges when called. If you are running procmail, this will 
+      become a problem as procmail requires root privileges to deliver. The 
+      easiest hack around this is to create a procmail.dspam binary and make it
+      setuid root, then make it executable only by the mail group (or 
+      whatever group DSPAM and the CGI run in).
+
+   The DSPAM Web UI has a minimal configuration inside the configure.pl script. 
    You'll want to check and make sure all of the settings are correct. In
    most cases, the only that will be necessary to change are the large-scale
    or domain-scale flags.
 
-   Once you've configured the CGI, you'll want to make any changes to 
-   default.prefs. This will set the default preferences loaded when a user
-   clicks to edit their preferences for the first time. The file should 
-   reflect your system wide defaults. An example is provided in the cgi 
-   directory...
+   BEFORE PROCEEDING:
+     Check and make sure (Again) that the CGI user from Apache's httpd.conf is
+     added as a trusted user in dspam.conf.
 
-trainingMode=TEFT
-spamAction=quarantine
-spamSubject=[SPAM]
-enableBNR=on
-enableWhitelist=on
-showFactors=off
+   Default Preferences
 
-   By default, the parameters specified on the commandline will be used. If,
-   however, a preference is found for the particular user those preferences
-   will override the commandline. As a result, you'll want to remove any
-   options from the CGI that you don't want users to set (possibly
-   training mode) or at the very least remove the AllowOverride option from
-   dspam.conf so that the setting is ignored.
+   Now would be a good time to set the system's default preferences. This can 
+   be done using the dspam_admin tool.  For example:
+
+     dspam_admin ch pref default trainingMode TEFT
+     dspam_admin ch pref default spamAction quarantine
+     dspam_admin ch pref default spamSubject "[SPAM]"
+     dspam_admin ch pref default enableWhitelist on
+     dspam_admin ch pref showFactors off
+ 
+   The default preferences are used for any users who have not yet set their
+   own preferences. You can also control which preferences the user may
+   override by changing the "AllowOverride" settings in dspam.conf.
+
+   By default, the parameters specified on the commandline will be used (if
+   any). If, however, a preference is found for the particular user those 
+   preferences will override the commandline. 
+
+   GD Graphing Library
 
    If you plan on leaving DSPAM's logging function enabled, and would like to
    produce pretty graphs for your users, the graph.cgi script requires the
@@ -882,20 +1028,17 @@ showFactors=off
      . GDTextUtil
      . CGI
 
-  NOTE ON CGI USERS: It is far more secure to create a separate virtual
-  host for the DSPAM CGI running as a different user than any other
-  scripts on the system. This avoids giving trusted user privileges to
-  another CGI. If you do this, be sure to add the CGI user to the trusted
-  users list.
+  Configuring Administrators
 
-  Once you've configured the CGI, you'll want to edit the 'admins' file to
+  Once you've configured the Web UI, you'll want to edit the 'admins' file to
   contain a list of users who are permitted to use the administration suite.
 
   Opt-In/Out
 
   If you would like your users to be able to opt in/out of DSPAM filtering,
   add the correct option to the nav_preferences.html template, depending on
-  your configuration. Note: This currently only works with the preferences
+  your configuration (for example, if you have an opt-in system, you'll want to
+  add the opt-in option). Note: This currently only works with the preferences
   extension, and not drop files.
 
 <INPUT TYPE=CHECKBOX NAME=optIn $C_OPTIN$>
@@ -906,12 +1049,16 @@ Opt out of DSPAM filtering
 
 1.2 TESTING
 
+  If you've installed from an RPM, there's a good chance that the packager
+  went to the trouble of testing already. If you're building from sources,
+  however, you'll need to find a way to ensure your configuration isn't broken.
+
   Most software packages are supplied with a test suite to determine if the
   software is functioning properly.  Since DSPAM's correct function relies 
   primarily on having the correct permissions and mail server configuration,
   a test script fails to provide the level of testing required for such a
   package.  The following exercise has been provided to test dspam's correct
-  functioning on your system.  This exercise does not test the CGI, but only
+  functioning on your system. This exercise does not test the Web UI, but only
   the core dspam agent.
   
   Before running the test, you should have completed section 1.1's instructions
@@ -932,7 +1079,7 @@ Opt out of DSPAM filtering
 
   If you receive an error such as "unable to open /usr/local/var/dspam... for
   reading", then the dspam agent is not configured correctly.  The problem
-  could lie in either your mail server configuration or one or more of the
+  could exist in either your mail server configuration or one or more of the
   permissions on the directory or agent.  Check your configuration and
   permissions, and repeat this step until the correct results are experienced.
 
@@ -999,7 +1146,7 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
              calls to dspam_clean -p to purge neutral data, which comprises a
              majority of most databases.
 
-  For more help, please see the DSPAM FAQ.
+  For more help, please see the DSPAM FAQ at http://dspam.nuclearelephant.com.
 
 1.4 DSPAM TOOLS
 
@@ -1304,7 +1451,7 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
   "drop-in" spam-filtering for their applications.  Examples of the libdspam
    API can be found in the example.c file included with this distribution.
 
-  -- COMMERCIAL LICENSING --
+  <COMMERCIAL LICENSING>
 
   IF YOUR PROJECT USES THE LIBDSPAM API, A GPL-COMPATIBLE OPEN SOURCE LICENSE
   IS REQUIRED IN ORDER TO REDISTRIBUTE. IF YOU ARE DEVELOPING A CLOSED-SOURCE 
@@ -1314,14 +1461,14 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
 
   COMMERCIAL LICENSING BENEFITS:
   - PRIORITY DEVELOPER SUPPORT
-  - 2-YEAR, 3-YEAR, AND PERPETUAL LICENSING AVAILABLE
-  - NON-GPL PRIVILEGES
-  - FEATURE REQUEST PRIORITY
+  - 1-YEAR, 2-YEAR, AND PERPETUAL LICENSING AVAILABLE
+  - NON-GPL REDISTRIBUTION PRIVILEGES
+  - BUG AND FEATURE REQUEST PRIORITY
 
   Please contact the author at jonathan@nuclearelephant.com for information 
   about commercial licensing. 
 
-  -- COMMERCIAL LICENSING --
+  </COMMERCIAL LICENSING>
 
   To link to libdspam, follow the instructions for compiling and installing 
   DSPAM. When compiled, the libdspam static and shared libraries are also 
@@ -1771,7 +1918,6 @@ SERVER> 250 2.0.0 <jane> Message accepted for delivery: SPAM
   will fail. Depending on how the MTA reacts, this may cause messages to
   fall back to queue or to bounce.
 
-
 2.4 LMTP 
 
   DSPAM supports LMTP both on the front-end and back-end (delivery). This
@@ -1870,34 +2016,36 @@ DATA
 
 3.0 BUGS, PORTS, AND THE LIKE
 
-  Please report any questions, bugs, suggestions, and the like to the 
-  dspam-users mailing list.  See the project website for details.
+  Please see http://dspam.nuclearelephant.com/bugs.shtml for the current known
+  bugs list and proper reporting procedure.
 
   If you port DSPAM to another platform, or would like to submit changes to
   the distribution, please email a diff along with any other pertinent 
-  information to the dspam-dev mailing list.
+  information to the dspam-dev mailing list. 
+
+  Note:
+
+  In order to keep DSPAM unencumbered by intellectual property abuses, all 
+  external contributors to the project are asked to release any rights to the 
+  submission. This keeps the DSPAM project a healthy, unencumbered GPL project.
+  Please accompany your patch, code, or other submission with the following 
+  statement. By submitting a patch to the project, you agree to be bound by 
+  the terms of this statement whether it is specifically included in the 
+  submission or not, however we still require that it be attached to the 
+  submission: 
+
+    The author or authors of this submission hereby release any and all 
+    copyright interest in this code, documentation, or other materials 
+    included to the DSPAM project and its primary governors. We intend this 
+    relinquishment of copyright interest in perpetuity of all present and 
+    future rights to said submission under copyright law. 
 
   If you like DSPAM and want to buy the author pizza (or a Ferrari),
   paypal donations may be sent to jonathan@nuclearelephant.com.
 
   Thanks =)
 
-3.1 KNOWN BUGS
-
-  Please see http://dspam.nuclearelephant.com/bugs.shtml for information
-  about known bugs.
-
-3.2 ADDING THE DSPAM LOGO BUTTON TO YOUR WEBSITE
-
-  A small button has been included for those who would like to advertise dspam
-  on their web page.  To use, copy the graphic (dspam-button.gif) into your
-  web page's directory and use the following code wherever you'd like the
-  button displayed:
-
-  <A HREF="http://dspam.nuclearelephant.com">
-  <IMG BORDER=0 SRC="dspam-button.gif"></A>
-
-3.3 CVS ACCESS
+3.1 CVS ACCESS
 
   The DSPAM source tree can be downloaded via read-only cvs access using the
   following commands:
