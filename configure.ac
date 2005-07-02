@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.32 2005/06/08 02:15:08 jonz Exp $
+dnl $Id: configure.ac,v 1.33 2005/07/02 03:59:52 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -1126,13 +1126,14 @@ AH_BOTTOM([
 #endif /* !__auto_config_h */
 ])
 
-AC_CONFIG_FILES([Makefile src/tools/Makefile cgi/Makefile m4/Makefile])
+AC_CONFIG_FILES([Makefile src/tools/Makefile webui/Makefile m4/Makefile])
 AC_CONFIG_FILES([src/tools.libdb4_drv/Makefile src/tools.libdb3_drv/Makefile])
 AC_CONFIG_FILES([src/tools.mysql_drv/Makefile src/tools.ora_drv/Makefile])
 AC_CONFIG_FILES([txt/Makefile src/tools.pgsql_drv/Makefile ])
-AC_CONFIG_FILES([src/Makefile cgi/templates/Makefile])
+AC_CONFIG_FILES([src/Makefile webui/cgi-bin/templates/Makefile])
 AC_CONFIG_FILES([src/tools.sqlite_drv/Makefile man/Makefile])
 AC_CONFIG_FILES([src/dspam.pc src/dspam-uninstalled.pc])
 AC_CONFIG_FILES([src/win32/Makefile doc/Makefile src/tools.css_drv/Makefile])
+AC_CONFIG_FILES([webui/cgi-bin/Makefile webui/htdocs/Makefile])
 AC_OUTPUT
 

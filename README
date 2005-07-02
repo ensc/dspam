@@ -1,4 +1,4 @@
-$Id: README,v 1.65 2005/07/01 18:58:57 jonz Exp $
+$Id: README,v 1.66 2005/07/02 03:59:52 jonz Exp $
 
 DSPAM v3.5 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -939,7 +939,7 @@ FRESH INSTALLATION
 
 8. THE WEB UI
 
-   The CGI client (dspam.cgi) can be run from any executable location on
+   The Web UI (CGI client) can be run from any executable location on
    a web server, and detects its user's identity from the REMOTE_USER
    environment variable. This means you'll need to use HTTP password
    authentication to access the CGI (Any type of authentication will work,
@@ -949,11 +949,12 @@ FRESH INSTALLATION
    DSPAM usernames used the system. A copy of the shadow password file
    will suffice for most common installs.
 
-   The accompanying files in the cgi/ folder should be copied into the same
-   location as dspam.cgi, as they are needed by the tool to generate output.
-   Be sure to copy the templates and graphics into the cgi-bin as well.
+   The accompanying files in the webui/ folder should be copied into your 
+   document root and cgi-bin, as specified. 
 
-     NOTE: Some authentication mechanisms are case insensitive and will
+     Note:
+
+     Some authentication mechanisms are case insensitive and will
      authenticate the user regardless of the case they type it in.  DSPAM,
      on the other hand, is case sensitive and the case of the username used
      will need to match the case on the system.  If you suffer from this

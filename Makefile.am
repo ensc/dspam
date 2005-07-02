@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.5 2005/03/11 21:16:02 jonz Exp $
+# $Id: Makefile.am,v 1.6 2005/07/02 03:59:52 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -10,8 +10,8 @@
 
 includedir=@includedir@/dspam
 
-SUBDIRS = . cgi m4 man src 
-DIST_SUBDIRS = . cgi m4 txt man src doc
+SUBDIRS = . webui m4 man src 
+DIST_SUBDIRS = . webui m4 txt man src doc
 
 EXTRA_DIST = autogen-glibtool.sh autogen.sh RELEASE.NOTES CHANGELOG LICENSE \
   README UPGRADING
