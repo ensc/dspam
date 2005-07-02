@@ -1,5 +1,12 @@
-$Id: CHANGELOG,v 1.320 2005/06/29 15:09:13 jonz Exp $
+$Id: CHANGELOG,v 1.321 2005/07/02 04:38:03 jonz Exp $
   
+Version NEXT
+------------
+
+[20050702.0030] jonz: cgi review and fixes
+
+reviewed cgi, made minor fixes to history display and admin graphs
+
 Version 3.5.1
 -------------
   
@@ -15,7 +22,7 @@ server before adding to virtual uid table. dspam links to openldap libraries and
 is also compatible with os x's openldap libs. use --enable-ldap to enable. see
 dspam.conf for more information.
 
-CVS STATUS:
+STATUS:
   functionality is presently limited to lookup of dspam username only. user and
   domain as separate variables will come later. additional ldap mode to support
   actual uid lookups on ldap server will be added later as well.
