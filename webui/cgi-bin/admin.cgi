@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.1 2005/07/02 03:59:52 jonz Exp $
+# $Id: admin.cgi,v 1.2 2005/07/02 04:30:57 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 #
@@ -345,6 +345,8 @@ sub DisplayStatus {
      @inoc_weekly, @whitelist_weekly);
   my(%msgpersecond);
   my($keycount_exectime);
+  my($last_message);
+  my(%classes);
 
   my ($min, $hour, $mday, $mon, $year) = (localtime(time))[1,2,3,4,5];
   my ($hmstart) = time - 60;
@@ -385,7 +387,9 @@ sub DisplayStatus {
 
   open(LOG, "<$LOG") || &error("Unable to open logfile: $!");
   while(<LOG>) {
-    my($t_log, $c_log, $e_log) = (split(/\t/))[0,1,5];
+    my($t_log, $c_log, $signature, $e_log) = (split(/\t/))[0,1,3,5];
+
+    $last_message = $t_log;
 
     # Only Parse Log Data in our Time Period
     if ($t_log>=$periodstart) {
@@ -397,15 +401,39 @@ sub DisplayStatus {
       while($period_weekly[$c_weekly] ne "$tmon/$tday/$tyear" && $c_weekly<24) {
         $c_weekly++;
       }
-    
+
+      if ($c_log eq "E") {
+        if ($classes{$signature} eq "S") {
+          $spam_weekly[$c_weekly]--;
+          $spam_weekly[$c_weekly] = 0 if ($spam_weekly[$c_weekly]<0);
+        } elsif ($classes{$signature} eq "I") {
+          $nonspam_weekly[$c_weekly]--;
+          $nonspam_weekly[$c_weekly] = 0 if ($nonspam_weekly[$c_weekly]<0);
+        } elsif ($classes{$signature} eq "W") {
+          $whitelist_weekly[$c_weekly]--;
+          $whitelist_weekly[$c_weekly] = 0 if ($whitelist_weekly[$c_weekly]<0);
+        } elsif ($classes{$signature} eq "F") {
+          $spam_weekly[$c_weekly]++; $fp_weekly[$c_weekly]--;
+          $fp_weekly[$c_weekly] = 0 if ($fp_weekly[$c_weekly]<0);
+        } elsif ($classes{$signature} eq "M") {
+          $sm_weekly[$c_weekly]--; $nonspam_weekly[$c_weekly]++;
+          $sm_weekly[$c_weekly] = 0 if ($sm_weekly[$c_weekly]<0);
+        } elsif ($classes{$signature} eq "N") {
+          $inoc_weekly[$c_weekly]--;
+          $inoc_weekly[$c_weekly] = 0 if ($inoc_weekly[$c_weekly]<0);
+        }
+      } else {
+       $classes{$signature} = $c_log;
+      }
+
       if ($c_log eq "S") { $spam_weekly[$c_weekly]++; }
-      if ($c_log eq "I") { $nonspam_weekly[$c_weekly]++; } 
+      if ($c_log eq "I") { $nonspam_weekly[$c_weekly]++; }
       if ($c_log eq "W") { $whitelist_weekly[$c_weekly]++; }
-      if ($c_log eq "F") 
-        { $spam_weekly[$c_weekly]--; $fp_weekly[$c_weekly]++; 
+      if ($c_log eq "F")
+        { $spam_weekly[$c_weekly]--; $fp_weekly[$c_weekly]++;
           $spam_weekly[$c_weekly] = 0 if ($spam_weekly[$c_weekly]<0); }
       if ($c_log eq "M")
-        { $sm_weekly[$c_weekly]++; $nonspam_weekly[$c_weekly]--; 
+        { $sm_weekly[$c_weekly]++; $nonspam_weekly[$c_weekly]--;
           $nonspam_weekly[$c_weekly] = 0 if ($nonspam_weekly[$c_weekly]<0); }
       if ($c_log eq "N") { $inoc_weekly[$c_weekly]++; }
 
@@ -416,14 +444,37 @@ sub DisplayStatus {
           $c_daily++;
         }
 
+
+        if ($c_log eq "E") {
+          if ($classes{$signature} eq "S") {
+            $spam_daily[$c_daily]--;
+            $spam_daily[$c_daily] = 0 if ($spam_daily[$c_daily]<0);
+          } elsif ($classes{$signature} eq "I") {
+            $nonspam_daily[$c_daily]--;
+            $nonspam_daily[$c_daily] = 0 if ($nonspam_daily[$c_daily]<0);
+          } elsif ($classes{$signature} eq "W") {
+            $whitelist_daily[$c_daily]--;
+            $whitelist_daily[$c_daily] = 0 if ($whitelist_daily[$c_daily]<0);
+          } elsif ($classes{$signature} eq "F") {
+            $spam_daily[$c_daily]++; $fp_daily[$c_daily]--;
+            $fp_daily[$c_daily] = 0 if ($fp_daily[$c_daily]<0);
+          } elsif ($classes{$signature} eq "M") {
+            $sm_daily[$c_daily]--; $nonspam_daily[$c_daily]++;
+            $sm_daily[$c_daily] = 0 if ($sm_daily[$c_daily]<0);
+          } elsif ($classes{$signature} eq "N") {
+            $inoc_daily[$c_daily]--;
+            $inoc_daily[$c_daily] = 0 if ($inoc_daily[$c_daily]<0);
+          }
+        }
+
         if ($c_log eq "S") { $spam_daily[$c_daily]++; }
         if ($c_log eq "I") { $nonspam_daily[$c_daily]++; }
         if ($c_log eq "W") { $whitelist_daily[$c_daily]++; }
-        if ($c_log eq "F") 
-          { $spam_daily[$c_daily]--; $fp_daily[$c_daily]++; 
+        if ($c_log eq "F")
+          { $spam_daily[$c_daily]--; $fp_daily[$c_daily]++;
             $spam_daily[$c_daily] = 0 if ($spam_daily[$c_daily]<0); }
         if ($c_log eq "M")
-          { $sm_daily[$c_daily]++; $nonspam_daily[$c_daily]--; 
+          { $sm_daily[$c_daily]++; $nonspam_daily[$c_daily]--;
             $nonspam_daily[$c_daily] = 0 if ($nonspam_daily[$c_daily]<0); }
         if ($c_log eq "N") { $inoc_daily[$c_daily]++; }
       }
@@ -436,6 +487,7 @@ sub DisplayStatus {
       }
     }
   }
+
   close(LOG);
 
   # Calculate Avg. Messages Per Second
@@ -472,45 +524,11 @@ sub DisplayStatus {
   $DATA{'SM_THIS_HOUR'}             = $sm_daily[23];
   $DATA{'FP_THIS_HOUR'}             = $fp_daily[23];
   $DATA{'INOC_THIS_HOUR'}           = $inoc_daily[23];
-  $DATA{'TOTAL_THIS_HOUR'}          = $DATA{'SPAM_THIS_HOUR'} + $DATA{'NONSPAM_THIS_HOUR'} + $DATA{'SM_THIS_HOUR'}
-                                      + $DATA{'FP_THIS_HOUR'} + $DATA{'INOC_THIS_HOUR'};
-
-  for(0..$#spam_daily) {
-    if ($spam_daily[$_] eq "") {
-      $spam_daily[$_] = 0;
-    }
-  }
-
-  for(0..$#nonspam_daily) {
-    if ($nonspam_daily[$_] eq "") {
-      $nonspam_daily[$_] = 0;
-    }
-  }
-
-  for(0..$#sm_daily) {
-    if ($sm_daily[$_] eq "") {
-      $sm_daily[$_] = 0;
-    }
-  }
-
-  for(0..$#fp_daily) {
-    if ($fp_daily[$_] eq "") {
-      $fp_daily[$_] = 0;
-    }
-  }
-
-  for(0..$#inoc_daily) {
-    if ($inoc_daily[$_] eq "") {
-      $inoc_daily[$_] = 0;
-    }
-  }
-
-  for(0..$#whitelist_daily) {
-    if ($whitelist_daily[$_] eq "") {
-      $whitelist_daily[$_] = 0;
-    }
-  }
-
+  $DATA{'TOTAL_THIS_HOUR'}          = $DATA{'SPAM_THIS_HOUR'} +
+                                      + $DATA{'NONSPAM_THIS_HOUR'} 
+                                      + $DATA{'SM_THIS_HOUR'}
+                                      + $DATA{'FP_THIS_HOUR'} 
+                                      + $DATA{'INOC_THIS_HOUR'};
 
   $DATA{'DATA_DAILY'} = join(",", @spam_daily)
                       . "_"
