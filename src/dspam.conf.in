@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.41 2005/06/30 16:39:04 jonz Exp $
+## $Id: dspam.conf.in,v 1.42 2005/07/03 23:41:30 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -176,6 +176,11 @@ Algorithm graham burton
 #PValue robinson
 #PValue markov
 PValue graham
+
+#
+# SupressWebStats: Enable this if you are not using the CGI, and don't want
+# .stats files written.
+#SupressWebStats on
 
 #
 # Preferences: Specify any preferences to set by default, unless otherwise
