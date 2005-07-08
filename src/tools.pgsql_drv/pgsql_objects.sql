@@ -1,4 +1,4 @@
-/* $Id: pgsql_objects.sql,v 1.7 2005/04/11 00:58:27 jonz Exp $ */
+/* $Id: pgsql_objects.sql,v 1.8 2005/07/08 02:17:54 jonz Exp $ */
 
 CREATE TABLE dspam_token_data (
   uid smallint,
@@ -6,11 +6,8 @@ CREATE TABLE dspam_token_data (
   spam_hits int,
   innocent_hits int,
   last_hit date,
-  UNIQUE (token, uid)
+  UNIQUE (uid, token)
 ) WITHOUT OIDS;
-
-CREATE INDEX id_token_data_03 ON dspam_token_data(token);
-CREATE INDEX id_token_data_04 ON dspam_token_data(uid);
 
 CREATE TABLE dspam_signature_data (
   uid smallint,
@@ -18,7 +15,7 @@ CREATE TABLE dspam_signature_data (
   data bytea,
   length int,
   created_on date,
-  UNIQUE (signature, uid)
+  UNIQUE (uid, signature)
 ) WITHOUT OIDS;
 
 CREATE TABLE dspam_stats (
@@ -56,5 +53,5 @@ CREATE TABLE dspam_preferences (
   uid smallint,
   preference varchar(128),
   value varchar(128),
-  UNIQUE (preference, uid)
+  UNIQUE (uid, preference)
 ) WITHOUT OIDS;
