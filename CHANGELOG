@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.323 2005/07/14 13:30:49 jonz Exp $
+$Id: CHANGELOG,v 1.324 2005/07/14 14:37:28 jonz Exp $
   
 Version NEXT
 ------------
+
+[20050714.0715] jonz: more work on css_drv
+
+more work on css_drv; functionality added to make dspam_stats work
 
 [20050714.0715] jonz: added WEB_ROOT to CGI
 

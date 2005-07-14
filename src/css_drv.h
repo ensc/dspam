@@ -1,4 +1,4 @@
-/* $Id: css_drv.h,v 1.4 2005/05/18 17:11:07 jonz Exp $ */
+/* $Id: css_drv.h,v 1.5 2005/07/14 14:37:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -49,6 +49,7 @@ struct _css_drv_storage
   FILE *lock;
 
   unsigned long offset_nexttoken;
+  struct nt *dir_handles;
 
 };
 

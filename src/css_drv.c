@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.11 2005/06/03 12:54:30 jonz Exp $ */
+/* $Id: css_drv.c,v 1.12 2005/07/14 14:37:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -107,6 +107,9 @@ int
 _css_drv_lock_free (struct _css_drv_storage *s, const char *username)
 {
   int r;
+
+  if (username == NULL)
+    return 0;
 
   r = _ds_free_fcntl_lock(fileno(s->lock));
   if (!r) {
@@ -256,6 +259,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   }
 
   CTX->storage = s;
+  s->dir_handles = nt_create (NT_INDEX);
 
   if (CTX->username != NULL)
   {
@@ -281,12 +285,25 @@ int
 _ds_shutdown_storage (DSPAM_CTX * CTX)
 {
   struct _css_drv_storage *s;
+  struct nt_node *node_nt;
+  struct nt_c c_nt;
   int lock_result;
 
   if (!CTX || !CTX->storage)
     return EINVAL;
 
   s  = (struct _css_drv_storage *) CTX->storage;
+
+  node_nt = c_nt_first (s->dir_handles, &c_nt);
+  while (node_nt != NULL)
+  {
+    DIR *dir;
+    dir = (DIR *) node_nt->ptr;
+    closedir (dir);
+    node_nt = c_nt_next (s->dir_handles, &c_nt);
+  }
+
+  nt_destroy (s->dir_handles);
 
   if (CTX->username != NULL && CTX->operating_mode != DSM_CLASSIFY)
   {
@@ -740,6 +757,117 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
 char * 
 _ds_get_nextuser (DSPAM_CTX * CTX) 
 {
+  static char user[MAX_FILENAME_LENGTH];
+  static char path[MAX_FILENAME_LENGTH];
+  struct _css_drv_storage *s = (struct _css_drv_storage *) CTX->storage;
+  struct nt_node *node_nt, *prev;
+  struct nt_c c_nt;
+  char *x = NULL, *y;
+  DIR *dir = NULL;
+
+  struct dirent *entry;
+
+  if (s->dir_handles->items == 0)
+  {
+    char filename[MAX_FILENAME_LENGTH];
+    snprintf(filename, MAX_FILENAME_LENGTH, "%s/data", CTX->home);
+    dir = opendir (filename);
+    if (dir == NULL)
+    {
+      LOG (LOG_WARNING,
+           "unable to open directory '%s' for reading: %s",
+           CTX->home, strerror (errno));
+      return NULL;
+    }
+
+    nt_add (s->dir_handles, (void *) dir);
+    strlcpy (path, filename, sizeof (path));
+  }
+  else
+  {
+    node_nt = c_nt_first (s->dir_handles, &c_nt);
+    while (node_nt != NULL)
+    {
+      if (node_nt->next == NULL)
+        dir = (DIR *) node_nt->ptr;
+      node_nt = c_nt_next (s->dir_handles, &c_nt);
+    }
+  }
+
+  while ((entry = readdir (dir)) != NULL)
+  {
+    struct stat st;
+    char filename[MAX_FILENAME_LENGTH];
+    snprintf (filename, sizeof (filename), "%s/%s", path, entry->d_name);
+
+    if (!strcmp (entry->d_name, ".") || !strcmp (entry->d_name, ".."))
+      continue;
+
+    if (stat (filename, &st)) {
+      continue;
+    }
+
+    /* push a new directory */
+    if (st.st_mode & S_IFDIR)
+    {
+      DIR *ndir;
+
+      ndir = opendir (filename);
+      if (ndir == NULL)
+        continue;
+      strlcat (path, "/", sizeof (path));
+      strlcat (path, entry->d_name, sizeof (path));
+      nt_add (s->dir_handles, (void *) ndir);
+      return _ds_get_nextuser (CTX);
+    }
+    else if (strlen(entry->d_name)>12 &&
+      !strncmp (entry->d_name + strlen (entry->d_name) - 12, ".nonspam.css", 12))
+    {
+      strlcpy (user, entry->d_name, sizeof (user));
+      user[strlen (user) - 12] = 0;
+      return user;
+    }
+  }
+
+  /* pop current directory */
+  y = strchr (path, '/');
+  while (y != NULL)
+  {
+    x = y;
+    y = strchr (x + 1, '/');
+  }
+  if (x)
+    x[0] = 0;
+
+  /* pop directory handle from list */
+  node_nt = c_nt_first (s->dir_handles, &c_nt);
+  prev = NULL;
+  while (node_nt != NULL)
+  {
+    if (node_nt->next == NULL)
+    {
+      dir = (DIR *) node_nt->ptr;
+      closedir (dir);
+      if (prev != NULL) {
+        prev->next = NULL;
+        s->dir_handles->insert = NULL;
+      }
+      else
+        s->dir_handles->first = NULL;
+      free (node_nt);
+      s->dir_handles->items--;
+      prev = node_nt;
+      break;
+    }
+    prev = node_nt;
+    node_nt = c_nt_next (s->dir_handles, &c_nt);
+  }
+  if (s->dir_handles->items > 0)
+    return _ds_get_nextuser (CTX);
+
+  /* done */
+
+  user[0] = 0;
   return NULL;
 }
 
