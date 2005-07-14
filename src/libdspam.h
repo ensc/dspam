@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.14 2005/05/12 00:56:28 jonz Exp $ */
+/* $Id: libdspam.h,v 1.15 2005/07/14 18:39:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -19,6 +19,10 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -102,3 +106,6 @@ void _ds_factor_destroy        (struct nt *factors);
 
 #endif /* _LIBDSPAM_H */
 
+#ifdef __cplusplus
+}
+#endif

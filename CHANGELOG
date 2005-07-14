@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.325 2005/07/14 14:47:21 jonz Exp $
+$Id: CHANGELOG,v 1.326 2005/07/14 18:39:50 jonz Exp $
   
 Version NEXT
 ------------
+
+[20050714.0715] jonz: added extern "C" for C++ compilers
+
+added extern "C" to libdspam.h for C++ compilers
 
 [20050714.0715] jonz: more work on css_drv
 
