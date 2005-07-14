@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.322 2005/07/14 13:24:54 jonz Exp $
+$Id: CHANGELOG,v 1.323 2005/07/14 13:30:49 jonz Exp $
   
 Version NEXT
 ------------
+
+[20050714.0715] jonz: added WEB_ROOT to CGI
+
+added WEB_ROOT to configure.pl, location to webui's htdocs contents
 
 [20050714.0715] jonz: sqlite 3 purge script changes
 
