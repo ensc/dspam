@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.184 2005/06/29 19:41:25 jonz Exp $ */
+/* $Id: dspam.c,v 1.185 2005/07/14 14:47:21 jonz Exp $ */
 
 /*
  DSPAM
@@ -3135,7 +3135,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
             LOG (LOG_CRIT, ERR_MEM_ALLOC);
         }
 
-        if (CTX->result == DSR_ISSPAM && ATX->managed_group[0])
+        if (CTX->result == DSR_ISSPAM && (ATX->managed_group[0] || (_ds_pref_val(ATX->PTX, "localStore")[0])))
         {
           snprintf(data, sizeof(data), "X-DSPAM-User: %s", CTX->username);
           head = _ds_create_header_field(data);

@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.324 2005/07/14 14:37:28 jonz Exp $
+$Id: CHANGELOG,v 1.325 2005/07/14 14:47:21 jonz Exp $
   
 Version NEXT
 ------------
@@ -204,6 +204,19 @@ preference when provsioned. To use:
    1. Add "FallbackDomains on" to dspam.conf
    2. Create wildcard domains (@domain.tld) as users in dspam
    3. Set each wildcard domain with the "fallbackDomain on" preference
+
+Version 3.4.9
+-------------
+
+[20050714.0700] jonz: add X-DSPAM-User when using localStore
+
+added X-DSPAM-User heading to spam when localStore preference is used, so that
+destination address will be right
+
+[20050714.0700] jonz: bugfix for header decoding
+
+fixed a bug where the decoded headers (used internally) were delivered, instead
+of the original headers
 
 Version 3.4.8
 -------------
