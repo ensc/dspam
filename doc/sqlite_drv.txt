@@ -59,9 +59,9 @@ user upon first use of DSPAM by that user.
 The purge script should be run against all databases periodically. The best
 way to do this is to use a find recipe such as:
 
-find /var/dspam/data -name "*.sdb" -exec sqlite {} < /var/dspam/purge.sql \;
+find /var/dspam/data -name "*.sdb" -exec sqlite {} < /var/dspam/purge-2.sql \;
 
-or sqlite3, if you're running sqlite3_drv.
+or use sqlite3 and purge-3.sql if you're running sqlite3_drv.
 
 You may also wish to occasionally compact your databases. This should only
 be run once in a great while, and is not entirely necessary as sqlite will
