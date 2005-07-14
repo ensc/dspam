@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.321 2005/07/02 04:38:03 jonz Exp $
+$Id: CHANGELOG,v 1.322 2005/07/14 13:24:54 jonz Exp $
   
 Version NEXT
 ------------
+
+[20050714.0715] jonz: sqlite 3 purge script changes
+
+added a sqlite 3 specific purge script in tools.sqlite_drv
 
 [20050702.0030] jonz: cgi review and fixes
 
