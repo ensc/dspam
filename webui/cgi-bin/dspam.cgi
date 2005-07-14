@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.1 2005/07/02 03:59:52 jonz Exp $
+# $Id: dspam.cgi,v 1.2 2005/07/14 13:29:33 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 #
@@ -1215,6 +1215,7 @@ sub output {
   print "Cache-control: no-cache\n";
   print "Content-type: text/html\n\n";
   my(%DATA) = @_;
+  $DATA{'WEB_ROOT'} = $CONFIG{'WEB_ROOT'};
 
   # Check admin permissions
   do {

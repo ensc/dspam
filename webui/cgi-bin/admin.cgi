@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.2 2005/07/02 04:30:57 jonz Exp $
+# $Id: admin.cgi,v 1.3 2005/07/14 13:29:33 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 #
@@ -588,6 +588,8 @@ sub output {
   print "Cache-control: no-cache\n";
   print "Content-type: text/html\n\n";
   my(%DATA) = @_;
+  $DATA{'WEB_ROOT'} = $CONFIG{'WEB_ROOT'};
+
   open(FILE, "<$CONFIG{'TEMPLATES'}/nav_admin_$FORM{'template'}.html");
   while(<FILE>) { 
     s/\$CGI\$/$CONFIG{'ME'}/g;
