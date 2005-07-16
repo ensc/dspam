@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.326 2005/07/14 18:39:50 jonz Exp $
+$Id: CHANGELOG,v 1.327 2005/07/16 03:09:04 jonz Exp $
   
-Version NEXT
-------------
+Version 3.5.2
+-------------
 
 [20050714.0715] jonz: added extern "C" for C++ compilers
 
