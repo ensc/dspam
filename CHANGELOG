@@ -1,4 +1,16 @@
-$Id: CHANGELOG,v 1.327 2005/07/16 03:09:04 jonz Exp $
+$Id: CHANGELOG,v 1.328 2005/08/02 12:55:28 jonz Exp $
+
+Version NEXT
+------------
+
+[20050801.0600] jonz: updated postfix documentation
+
+added model using postfix's content filter
+
+[20050801.0600] jonz: fixed bug in mysql driver
+
+fixed a bug causing a segfault in mysql_drv when certain preferences are
+null or have null values
   
 Version 3.5.2
 -------------
