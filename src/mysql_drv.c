@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.48 2005/08/02 12:56:10 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.49 2005/08/02 12:59:21 jonz Exp $ */
 
 /*
  DSPAM
@@ -2107,8 +2107,8 @@ int _ds_pref_set (
     uid = 0; /* Default Preferences */
   }
 
-  m1 = calloc(1, strlen(preference)*2 + 1);
-  m2 = calloc(1, strlen(value)*2 + 1);
+  m1 = calloc(1, strlen(preference)*2+1);
+  m2 = calloc(1, strlen(value)*2+1);
   if (m1 == NULL || m2 == NULL)
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
@@ -2190,7 +2190,7 @@ int _ds_pref_del (
     uid = 0; /* Default Preferences */
   }
                                                                                 
-  m1 = calloc(1, strlen(preference)*2 +1);
+  m1 = calloc(1, strlen(preference)*2+1);
   if (m1 == NULL) 
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
