@@ -1,4 +1,11 @@
-$Id: UPGRADING,v 1.16 2005/04/03 00:55:11 jonz Exp $
+$Id: UPGRADING,v 1.17 2005/08/03 16:12:48 jonz Exp $
+
+UPGRADING FROM < 3.5.3
+----------------------
+
+- PostgreSQL systems running v8.0+ must create the function lookup_tokens
+added to pgsql_objects.sql. The driver now checks your version and uses this
+function to improve performance on 8.0+.
 
 UPGRADING FROM 3.4
 ------------------

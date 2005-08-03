@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.329 2005/08/03 12:41:16 jonz Exp $
+$Id: CHANGELOG,v 1.330 2005/08/03 16:12:48 jonz Exp $
 
-Version NEXT
-------------
+Version 3.5.3
+-------------
 
 [20050803.0700] jonz: changes to pgsql drive for 8.0+
 

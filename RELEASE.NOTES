@@ -1,6 +1,6 @@
-$Id: RELEASE.NOTES,v 1.42 2005/07/16 03:09:04 jonz Exp $
+$Id: RELEASE.NOTES,v 1.43 2005/08/03 16:12:48 jonz Exp $
 
-RELEASE 3.5.2-DEVELOPMENT
+RELEASE 3.5.3-DEVELOPMENT
 
 Odd-numbered releases are development releases and may be unstable or contain
 significant bugs.
@@ -10,12 +10,16 @@ Tired of managing DSPAM yourself? Be one of the first to pilot a new DSPAM
 relay appliance. A complete SMTP gateway solution with a completely new
 and feature rich user and administration interface. Perform real-time
 provisioning of new users, one-step backup and recovery, and much more.
-Made by the makers of DSPAM.
+Made by the makers of DSPAM. US & Canada Only.
 
 e-mail jonathan@nuclearelephant.com for more information about the pilot
 --------------------------------------------------------------------------
 
 ENHANCEMENTS
+
+PostgreSQL Performance Enhancements
+PostgreSQL enhancements have been made for installations of v8.0+, speeding
+up processing up as much as three times.
 
 LDAP Verification
 LDAP Verification can be used with some storage drivers (such as MySQL and
