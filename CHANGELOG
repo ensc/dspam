@@ -1,8 +1,18 @@
-$Id: CHANGELOG,v 1.328 2005/08/02 12:55:28 jonz Exp $
+$Id: CHANGELOG,v 1.329 2005/08/03 12:41:16 jonz Exp $
 
 Version NEXT
 ------------
 
+[20050803.0700] jonz: changes to pgsql drive for 8.0+
+
+changes to the pgsql driver have been made increasing performance by three
+times on versions 8.0+. the driver will auto-detect which version you are
+running in and take advantage of a new lookup_tokens function. 
+
+IMPORTANT: If you're upgrading dspam on your pgsql 8.0+ system, you must
+create the lookup_tokens function added to the pgsql_objects.sql script or
+everything will break miserably.
+ 
 [20050801.0600] jonz: updated postfix documentation
 
 added model using postfix's content filter
