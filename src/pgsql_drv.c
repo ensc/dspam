@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.43 2005/06/29 19:26:06 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.44 2005/08/03 12:38:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -502,10 +502,15 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 	      "FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
 	      uid, gid);
   } else {
-    snprintf (scratch, sizeof (scratch),
-	      "SELECT uid, token, spam_hits, innocent_hits "
-	      "FROM dspam_token_data WHERE uid = '%d' AND token IN (",
-	      uid);
+    if (PQserverVersion(s->dbh) > 80000) {
+      snprintf (scratch, sizeof (scratch),
+                "SELECT * FROM lookup_tokens(%d, '{", uid);
+    } else {
+      snprintf (scratch, sizeof (scratch),
+                "SELECT uid, token, spam_hits, innocent_hits "
+                "FROM dspam_token_data WHERE uid = '%d' AND token IN (",
+                uid);
+    }
   }
 
   buffer_cat (query, scratch);
@@ -525,7 +530,15 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     get_one = 1;
   }
   ds_diction_close(ds_c);
-  buffer_cat (query, ")");
+
+  if (PQserverVersion(s->dbh) > 80000) {
+    if (gid != uid) 
+      buffer_cat (query, ")");
+    else
+      buffer_cat(query, "}')");
+  } else {
+    buffer_cat (query, ")");
+  }
 
 #ifdef VERBOSE
   LOGDEBUG ("pgsql query length: %ld\n", query->used);
@@ -1137,7 +1150,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   struct passwd *p;
   size_t length;
-  char *mem, *mem2;
+  unsigned char *mem, *mem2;
   char query[128];
   PGresult *result;
   int uid;
@@ -1214,7 +1227,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EFAILURE;
   }
 
-  mem = PQunescapeBytea(PQgetvalue(result,0,0), &length);
+  mem = PQunescapeBytea((unsigned char *) PQgetvalue(result,0,0), &length);
   SIG->length = strtol (PQgetvalue(result,0,1), NULL, 10);
   mem2 = calloc(1, length+1);
   if (!mem2) {
@@ -1225,7 +1238,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   memcpy(mem2, mem, length);
   PQFREEMEM(mem);
-  SIG->data = mem2;
+  SIG->data = (void *) mem2;
 
   if (result) PQclear(result);
   return 0;
@@ -1237,7 +1250,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   size_t length;
-  char *mem;
+  unsigned char *mem;
   char scratch[1024];
   buffer *query;
   PGresult *result;
@@ -1274,7 +1287,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
             "INSERT INTO dspam_signature_data (uid, signature, length, created_on, data) VALUES (%d, '%s', %ld, CURRENT_DATE, '",
             p->pw_uid, signature, SIG->length);
   buffer_cat (query, scratch);
-  buffer_cat (query, mem);
+  buffer_cat (query, (const char *) mem);
   buffer_cat (query, "')");
 
   result = PQexec(s->dbh, query->data);
@@ -1589,7 +1602,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   char query[256];
   PGresult *result;
   struct passwd *p;
-  char *mem;
+  unsigned char *mem;
 
   if (s->dbh == NULL)
   {
@@ -1680,7 +1693,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  mem = PQunescapeBytea( PQgetvalue( s->iter_sig, 0, 0), &length );
+  mem = PQunescapeBytea( (unsigned char *) PQgetvalue( s->iter_sig, 0, 0), &length );
   // memcpy (mem, row[0], lengths[0]);
   st->data = malloc(length);
   if (st->data == NULL) {
@@ -2232,7 +2245,7 @@ int _ds_pref_set (
   char query[128];
   DSPAM_CTX *CTX;
   int uid;
-  char *m1, *m2;
+  unsigned char *m1, *m2;
   size_t length;
   PGresult *result;
 
@@ -2261,8 +2274,8 @@ int _ds_pref_set (
     uid = 0; /* Default Preferences */
   }
 
-  m1 = PQescapeBytea(preference, strlen(preference), &length);
-  m2 = PQescapeBytea(value, strlen(value), &length);
+  m1 = PQescapeBytea((unsigned char *) preference, strlen(preference), &length);
+  m2 = PQescapeBytea((unsigned char *) value, strlen(value), &length);
 
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences "
     "WHERE uid = '%d' and preference = '%s'", uid, m1);
@@ -2313,7 +2326,7 @@ int _ds_pref_del (
   char query[128];
   DSPAM_CTX *CTX;
   int uid;
-  char *m1;
+  unsigned char *m1;
   size_t length;
   PGresult *result;
 
@@ -2342,7 +2355,7 @@ int _ds_pref_del (
     uid = 0; /* Default Preferences */
   }
 
-  m1 = PQescapeBytea(preference, strlen(preference), &length);
+  m1 = PQescapeBytea((unsigned char *) preference, strlen(preference), &length);
 
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences "
     "WHERE uid = '%d' AND preference = '%s'", uid, m1);
@@ -2379,7 +2392,7 @@ int _ds_pref_save(
   DSPAM_CTX *CTX;
   agent_attrib_t pref;
   int uid, i = 0;
-  char *m1, *m2;
+  unsigned char *m1, *m2;
   size_t length;
   PGresult *result;
 
@@ -2424,8 +2437,8 @@ int _ds_pref_save(
   for(i=0;PTX[i];i++) {
     pref = PTX[i];
 
-    m1 = PQescapeBytea(pref->attribute, strlen(pref->attribute), &length);
-    m2 = PQescapeBytea(pref->value, strlen(pref->value), &length);
+    m1 = PQescapeBytea((unsigned char *) pref->attribute, strlen(pref->attribute), &length);
+    m2 = PQescapeBytea((unsigned char *) pref->value, strlen(pref->value), &length);
 
     snprintf(query, sizeof(query), "INSERT INTO dspam_preferences "
       "(uid, attribute, value) VALUES ('%d', '%s', '%s')", uid, m1, m2);
@@ -2633,7 +2646,7 @@ _ds_get_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   struct passwd *p;
-  char *mem, *mem2;
+  unsigned char *mem, *mem2;
   char query[128];
   size_t length;
   PGresult *result;
@@ -2680,7 +2693,7 @@ _ds_get_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
     return EFAILURE;
   }
 
-  mem = PQunescapeBytea(PQgetvalue(result,0,0), &length);
+  mem = PQunescapeBytea((unsigned char *) PQgetvalue(result,0,0), &length);
   DEC->length = strtol (PQgetvalue(result,0,1), NULL, 0);
 
   mem2 = calloc(1, length+1);
@@ -2704,7 +2717,7 @@ _ds_set_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
                    const char *signature)
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
-  char *mem;
+  unsigned char *mem;
   char scratch[1024];
   buffer *query;
   struct passwd *p;
@@ -2742,7 +2755,7 @@ _ds_set_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
             "INSERT INTO dspam_neural_decisions (uid, signature, length, created_on, data) VALUES (%d, '%s', %ld, CURRENT_DATE, '",
             p->pw_uid, signature, DEC->length);
   buffer_cat (query, scratch);
-  buffer_cat (query, mem);
+  buffer_cat (query, (const char *) mem);
   buffer_cat (query, "')");
 
   result = PQexec(s->dbh, query->data);
