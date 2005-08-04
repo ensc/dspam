@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.21 2005/06/28 15:48:08 jonz Exp $
+# $Id: Makefile.am,v 1.22 2005/08/04 13:13:18 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -73,7 +73,8 @@ EXTRA_libdspam_la_SOURCES = \
 	pgsql_drv.c pgsql_drv.h \
         ora_drv.c ora_drv.h \
 	sqlite_drv.c sqlite_drv.h \
-	sqlite3_drv.c sqlite3_drv.h 
+	sqlite3_drv.c sqlite3_drv.h \
+	css_drv.c css_drv.h
 # extend and uncomment for NodalCore(tm) builds
 #	ncore_adp.cpp ncore_adp.h
 
