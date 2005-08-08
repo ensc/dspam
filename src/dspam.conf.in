@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.42 2005/07/03 23:41:30 jonz Exp $
+## $Id: dspam.conf.in,v 1.43 2005/08/08 04:02:03 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -323,7 +323,7 @@ AllowOverride whitelistThreshold
 # server is machine-automated, unsupervised blacklisting system designed to
 # provide real-time and highly accurate blacklisting based on network spread.
 # When performing a lookup, DSPAM will automatically learn the inbound message 
-# as spam if the source IP is listed. Until an official public SBL server is 
+# as spam if the source IP is listed. Until an official public RABL server is 
 # available, this feature is only useful if you are running your own 
 # streamlined blackhole list server for internal reporting among multiple mail 
 # servers. Provide the name of the lookup zone below to use.
@@ -410,7 +410,7 @@ Opt out
 # TrackSources: specify which (if any) source addresses to track and report
 # them to syslog (mail.info). This is useful if you're running a firewall or
 # blacklist and would like to use this information. Spam reporting also drops
-# SBL blacklist files (see http://www.nuclearelephant.com/projects/sbl/). 
+# RABL blacklist files (see http://www.nuclearelephant.com/projects/rabl/). 
 #
 #TrackSources spam nonspam
 
@@ -535,10 +535,10 @@ Opt out
 #ClientPort	24
 #ClientIdent	"secret@Relay1"
 
-# SBLQueue: Touch files in the SBL queue
+# RABLQueue: Touch files in the RABL queue
 # If you are a reporting streamlined blackhole list participant, you can
-# touch ip addresses within the directory the sbl_client process is watching.
+# touch ip addresses within the directory the rabl_client process is watching.
 #
-#SBLQueue	/var/spool/sbl
+#RABLQueue	/var/spool/rabl
 
 ## EOF

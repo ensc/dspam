@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.330 2005/08/03 16:12:48 jonz Exp $
+$Id: CHANGELOG,v 1.331 2005/08/08 04:02:03 jonz Exp $
 
 Version 3.5.3
 -------------
@@ -233,6 +233,9 @@ preference when provsioned. To use:
 
 Version 3.4.9
 -------------
+
+[20050808.0000] jonz: upgraded streamlined blacklisting support to RABL
+changed configuration options for streamlined blacklisting to support the RABL
 
 [20050714.0700] jonz: add X-DSPAM-User when using localStore
 

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.185 2005/07/14 14:47:21 jonz Exp $ */
+/* $Id: dspam.c,v 1.186 2005/08/08 04:02:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -740,7 +740,7 @@ process_message (
   buffer_cat (message, copyback);
   free (copyback);
 
-  /* Track source address and report to syslog, SBL */
+  /* Track source address and report to syslog, RABL */
 
   if ( _ds_read_attribute(agent_config, "TrackSources") &&
        CTX->operating_mode == DSM_PROCESS               &&
@@ -3486,7 +3486,7 @@ MEM_ALLOC:
  * tracksources(DSPAM_CTX *CTX)
  *
  * DESCRIPTION
- *   Track the source address of a message, report to syslog and/or SBL
+ *   Track the source address of a message, report to syslog and/or RABL
  *
  * INPUT ARGUMENTS
  *   CTX          DSPAM context containing filter results and message
@@ -3506,9 +3506,9 @@ int tracksource(DSPAM_CTX *CTX) {
         FILE *file;
         char dropfile[MAX_FILENAME_LENGTH];
         LOG (LOG_INFO, "spam detected from %s", ip);
-        if (_ds_read_attribute(agent_config, "SBLQueue")) {
+        if (_ds_read_attribute(agent_config, "RABLQueue")) {
           snprintf(dropfile, sizeof(dropfile), "%s/%s", 
-            _ds_read_attribute(agent_config, "SBLQueue"), ip);
+            _ds_read_attribute(agent_config, "RABLQueue"), ip);
           file = fopen(dropfile, "w");
           if (file != NULL) 
             fclose(file);
