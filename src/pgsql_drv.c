@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.44 2005/08/03 12:38:04 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.45 2005/08/10 15:00:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -446,7 +446,6 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   int get_one = 0;
   int uid, gid;
   int i, ntuples;
-  int token_type = -1;
 
   if (s->dbh == NULL)
   {
@@ -491,18 +490,13 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EUNKNOWN;
   }
 
-  if ((token_type = _pgsql_drv_token_type(s,NULL,0)) < 0) {
-    buffer_destroy(query);
-    return EFAILURE;
-  }
-
   if (gid != uid) {
     snprintf (scratch, sizeof (scratch),
 	      "SELECT uid, token, spam_hits, innocent_hits "
 	      "FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
 	      uid, gid);
   } else {
-    if (PQserverVersion(s->dbh) > 80000) {
+    if (s->pg_major_ver >= 8) {
       snprintf (scratch, sizeof (scratch),
                 "SELECT * FROM lookup_tokens(%d, '{", uid);
     } else {
@@ -518,7 +512,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
-    _pgsql_drv_token_write (token_type, ds_term->key, scratch, sizeof(scratch));
+    _pgsql_drv_token_write (s->pg_token_type, ds_term->key, scratch, sizeof(scratch));
     buffer_cat (query, scratch);
     ds_term->s.innocent_hits = 0;
     ds_term->s.spam_hits = 0;
@@ -531,7 +525,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
   ds_diction_close(ds_c);
 
-  if (PQserverVersion(s->dbh) > 80000) {
+  if (s->pg_major_ver >= 8) {
     if (gid != uid) 
       buffer_cat (query, ")");
     else
@@ -564,7 +558,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   for (i=0; i<ntuples; i++)
   {
     int rid = atoi(PQgetvalue(result,i,0));
-    token = _pgsql_drv_token_read (token_type, PQgetvalue(result,i,1));
+    token = _pgsql_drv_token_read (s->pg_token_type, PQgetvalue(result,i,1));
     stat.spam_hits = strtol (PQgetvalue(result,i,2), NULL, 10);
     stat.innocent_hits = strtol (PQgetvalue(result,i,3), NULL, 10);
 
@@ -617,7 +611,6 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_cursor_t ds_c = NULL;
   buffer *prepare;
   buffer *update;
-  int token_type = -1;
   PGresult *result;
   char scratch[1024];
   struct passwd *p;
@@ -679,17 +672,10 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     ds_diction_getstat(diction, s->control_token, &stat);
   }
 
-  if ((token_type = _pgsql_drv_token_type(s,NULL,0)) < 0)
-  {
-    buffer_destroy(update);
-    buffer_destroy(prepare);
-    return EFAILURE;
-  }
-
   snprintf (scratch, sizeof (scratch),
             "PREPARE dspam_update_plan (%s) AS UPDATE dspam_token_data "
             "SET last_hit = CURRENT_DATE",
-            token_type == 0 ? "numeric" : "bigint");
+            s->pg_token_type == 0 ? "numeric" : "bigint");
   buffer_cat (prepare, scratch);
 
 
@@ -738,7 +724,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
             "PREPARE dspam_insert_plan (%s, int, int) AS INSERT INTO dspam_token_data "
             "(uid, token, spam_hits, innocent_hits, last_hit) VALUES "
             "(%d, $1, $2, $3, CURRENT_DATE);", 
-            token_type == 0 ? "numeric" : "bigint", p->pw_uid);
+            s->pg_token_type == 0 ? "numeric" : "bigint", p->pw_uid);
 
   buffer_cat (prepare, scratch);
 
@@ -785,7 +771,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       char tok_buf[30];
       const char *insertValues[3];
 
-      insertValues[0] = _pgsql_drv_token_write(token_type, ds_term->key, tok_buf, sizeof(tok_buf));
+      insertValues[0] = _pgsql_drv_token_write(s->pg_token_type, ds_term->key, tok_buf, sizeof(tok_buf));
 
       /* If we're processing a message with a MERGED group, assign it based on
          an empty count and not the current count (since the current count
@@ -810,7 +796,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     }
 
     if ((stat2.status & TST_DISK)) {
-      _pgsql_drv_token_write(token_type, ds_term->key, scratch, sizeof(scratch));
+      _pgsql_drv_token_write(s->pg_token_type, ds_term->key, scratch, sizeof(scratch));
       buffer_cat (update, "EXECUTE dspam_update_plan (");
       buffer_cat (update, scratch);
       buffer_cat (update, ");");
@@ -866,7 +852,6 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   struct passwd *p;
   PGresult *result;
   char tok_buf[30];
-  int token_type = -1;
 
   if (s->dbh == NULL)
   {
@@ -886,14 +871,10 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     return EINVAL;
   }
 
-  if ((token_type = _pgsql_drv_token_type(s,NULL,0)) < 0) {
-    return EFAILURE;
-  }
-
   snprintf (query, sizeof (query),
             "SELECT spam_hits, innocent_hits FROM dspam_token_data "
             "WHERE uid = '%d' AND token = %s ", p->pw_uid, 
-            _pgsql_drv_token_write(token_type, token, tok_buf, sizeof(tok_buf)));
+            _pgsql_drv_token_write(s->pg_token_type, token, tok_buf, sizeof(tok_buf)));
 
   stat->probability = 0.0;
   stat->spam_hits = 0;
@@ -931,7 +912,6 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   struct passwd *p;
   PGresult *result;
   char tok_buf[30];
-  int token_type = -1;
 
   result = NULL;
   
@@ -956,10 +936,6 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     return EINVAL;
   }
 
-  if ((token_type = _pgsql_drv_token_type(s,NULL,0)) < 0) {
-    return EFAILURE;
-  }
-
   /* It's either not on disk or the caller isn't using stat.disk */
   if (!(stat->status & TST_DISK))
   {
@@ -967,7 +943,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
               "INSERT INTO dspam_token_data (uid, token, spam_hits, innocent_hits, last_hit)"
               " VALUES (%d, %s, %ld, %ld, CURRENT_DATE)",
               p->pw_uid, 
-              _pgsql_drv_token_write(token_type, token, tok_buf, sizeof(tok_buf)),
+              _pgsql_drv_token_write(s->pg_token_type, token, tok_buf, sizeof(tok_buf)),
               stat->spam_hits, stat->innocent_hits);
     result = PQexec(s->dbh, query);
   }
@@ -981,7 +957,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
               "WHERE uid = '%d' "
               "AND token = %s", stat->spam_hits,
               stat->innocent_hits, p->pw_uid,
-              _pgsql_drv_token_write(token_type, token, tok_buf, sizeof(tok_buf)));
+              _pgsql_drv_token_write(s->pg_token_type, token, tok_buf, sizeof(tok_buf)));
 
     if (result) PQclear(result);
 
@@ -1056,6 +1032,10 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   s->control_token = 0;
   s->control_ih = 0;
   s->control_sh = 0;  
+
+  /* init db version and token type */
+  s->pg_major_ver = _pgsql_drv_get_dbversion(s);
+  s->pg_token_type = _pgsql_drv_token_type(s,NULL,0);
 
   /* get spam totals on successful init */
   if (CTX->username != NULL)
@@ -1951,7 +1931,6 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
   char query[128];
   PGresult *result;
   char tok_buf[30];
-  int token_type = -1;
 
   if (s->dbh == NULL)
   {
@@ -1971,14 +1950,10 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
     return EINVAL;
   }
 
-  if ( (token_type = _pgsql_drv_token_type(s,NULL,0)) < 0 ) {
-    return EFAILURE;
-  }
-
   snprintf (query, sizeof (query),
             "DELETE FROM dspam_token_data WHERE uid = '%d' AND token = %s",
             p->pw_uid,
-            _pgsql_drv_token_write (token_type, token, tok_buf, sizeof(tok_buf)) );
+            _pgsql_drv_token_write (s->pg_token_type, token, tok_buf, sizeof(tok_buf)) );
 
   result = PQexec(s->dbh, query);
   if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
@@ -2003,7 +1978,6 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   struct passwd *p;
   int writes = 0;
   PGresult *result;
-  int token_type = -1;
 
   if (diction->items < 1)
     return 0;
@@ -2033,10 +2007,6 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EUNKNOWN;
   }
 
-  if ( (token_type = _pgsql_drv_token_type(s,NULL,0)) < 0 ) {
-    return EFAILURE;
-  }
-
   snprintf (queryhead, sizeof(queryhead),
             "DELETE FROM dspam_token_data "
             "WHERE uid = '%d' AND token IN (",
@@ -2048,7 +2018,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
-    _pgsql_drv_token_write (token_type, ds_term->key, scratch, sizeof(scratch));
+    _pgsql_drv_token_write (s->pg_token_type, ds_term->key, scratch, sizeof(scratch));
     buffer_cat (query, scratch);
     ds_term = ds_diction_next(ds_c);
    
@@ -3003,4 +2973,35 @@ _pgsql_drv_token_write(int type, unsigned long long token, char *buffer, size_t 
     snprintf(buffer, bufsz, "'%llu'", token);
   }
   return buffer;
+}
+
+/* Detects PostgreSQL database version */
+int
+_pgsql_drv_get_dbversion(struct _pgsql_drv_storage *s)
+{
+  int pg_major_ver = 7;
+  char query[256];
+  PGresult *result;
+
+  /* detect postgres version */
+  snprintf (query, sizeof (query), "SELECT split_part(split_part(version(),' ',2),'.',1)::int2");
+
+  result = PQexec(s->dbh, query);
+  if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
+  {
+    _pgsql_drv_query_error (PQresultErrorMessage(result), query);
+    if (result) PQclear(result);
+    return EFAILURE;
+  }
+
+  if ( PQntuples(result) < 1 )
+  {
+    if (result) PQclear(result);
+    return EFAILURE;
+  }
+
+  pg_major_ver = strtol (PQgetvalue( result, 0, 0), NULL, 10);
+  if (result) PQclear(result);
+  
+  return pg_major_ver;
 }
