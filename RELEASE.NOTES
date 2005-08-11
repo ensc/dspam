@@ -1,9 +1,6 @@
-$Id: RELEASE.NOTES,v 1.43 2005/08/03 16:12:48 jonz Exp $
+$Id: RELEASE.NOTES,v 1.44 2005/08/11 18:52:20 jonz Exp $
 
-RELEASE 3.5.3-DEVELOPMENT
-
-Odd-numbered releases are development releases and may be unstable or contain
-significant bugs.
+RELEASE 3.6-BETA 1
 
 --------------------------------------------------------------------------
 Tired of managing DSPAM yourself? Be one of the first to pilot a new DSPAM
