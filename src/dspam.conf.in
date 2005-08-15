@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.43 2005/08/08 04:02:03 jonz Exp $
+## $Id: dspam.conf.in,v 1.44 2005/08/15 12:31:41 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -209,6 +209,8 @@ AllowOverride showFactors
 AllowOverride optIn optOut
 AllowOverride whitelistThreshold
 
+# --- MySQL ---
+
 #
 # Storage driver settings: Specific to a particular storage driver. Uncomment
 # the configuration specific to your installation, if applicable.
@@ -230,6 +232,23 @@ AllowOverride whitelistThreshold
 #
 #MySQLConnectionCache	10
 
+# If you're using vpopmail or some other type of virtual setup and wish to
+# change the table dspam uses to perform username/uid lookups, you can over-
+# ride it below
+
+#MySQLVirtualTable          dspam_virtual_uids
+#MySQLVirtualUIDField       uid
+#MySQLVirtualUsernameField  username
+
+# UIDInSignature: MySQL supports the insertion of the user id into the DSPAM 
+# signature. This allows you to create one single spam or fp alias 
+# (pointing to some arbitrary user), and the uid in the signature will
+# switch to the correct user. Result: you need only one spam alias 
+
+#MySQLUIDInSignature    on
+
+# --- PostgreSQL ---
+
 #PgSQLServer    	127.0.0.1
 #PgSQLPort      	5432
 #PgSQLUser      	dspam
@@ -242,18 +261,21 @@ AllowOverride whitelistThreshold
 #
 #PgSQLConnectionCache	3
 
-# UIDInSignature: Some storage drivers support the insertion of the user id
-# into the DSPAM signature. This allows you to create one single spam or fp
-# alias (pointing to some arbitrary user), and the uid in the signature will
-# switch to the correct user. Having only one spam alias, of course, is
-# pretty nice.
-#MySQLUIDInSignature	on
+# UIDInSignature: PgSQL supports the insertion of the user id into the DSPAM 
+# signature. This allows you to create one single spam or fp alias 
+# (pointing to some arbitrary user), and the uid in the signature will
+# switch to the correct user. Result: you need only one spam alias
+
 #PgSQLUIDInSignature	on 
+
+# --- Oracle ---
 
 #OraServer       "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SID=PROD)))"
 #OraUser         dspam
 #OraPass         changeme
 #OraSchema       dspam
+
+# --- SQLite ---
 
 #SQLitePragma   "synchronous = OFF"
 

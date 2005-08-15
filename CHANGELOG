@@ -1,4 +1,15 @@
-$Id: CHANGELOG,v 1.331 2005/08/08 04:02:03 jonz Exp $
+$Id: CHANGELOG,v 1.332 2005/08/15 12:31:41 jonz Exp $
+
+Version NEXT
+------------
+
+[20050815.0800] jonz; added custom tags to dspam.conf for virtual uids
+
+added tags to dspam.conf to use custom table/field names for dspam_virtual_uids
+allowing you to use a postfix table or some other table for username/uid
+lookups.
+
+CVS STATUS: MySQL complete, waiting on pgsql
 
 Version 3.5.3
 -------------

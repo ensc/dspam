@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.49 2005/08/02 12:59:21 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.50 2005/08/15 12:31:41 jonz Exp $ */
 
 /*
  DSPAM
@@ -1352,6 +1352,8 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
 #ifndef VIRTUAL_USERS
   struct passwd *p;
   uid_t uid;
+#else
+  char *virtual_table, *virtual_uid, *virtual_username;
 #endif
   char query[128];
   MYSQL_ROW row;
@@ -1362,10 +1364,26 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     return NULL;
   }
 
+#ifdef VIRTUAL_USERS
+  if ((virtual_table 
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_uid 
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
+  { virtual_uid = "uid"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes, 
+    "MySQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; } 
+#endif
+
   if (s->iter_user == NULL)
   {
 #ifdef VIRTUAL_USERS
-    strcpy (query, "select distinct username from dspam_virtual_uids");
+    snprintf(query, sizeof(query), "select distinct %s from %s", 
+      virtual_username, 
+      virtual_table);
 #else
     strcpy (query, "select distinct uid from dspam_stats");
 #endif
@@ -1606,6 +1624,19 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   char query[256];
   MYSQL_RES *result;
   MYSQL_ROW row;
+  char *virtual_table, *virtual_uid, *virtual_username;
+
+  if ((virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
+  { virtual_uid = "uid"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
+    "MySQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; }
 
   if (s->p_getpwnam.pw_name != NULL)
   {
@@ -1618,7 +1649,8 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   }
 
   snprintf (query, sizeof (query),
-            "select uid from dspam_virtual_uids where username = '%s'", name);
+            "select %s from %s where %s = '%s'", 
+            virtual_uid, virtual_table, virtual_username, name);
 
   if (MYSQL_RUN_QUERY (s->dbh, query))
   {
@@ -1702,6 +1734,19 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   char query[256];
   MYSQL_RES *result;
   MYSQL_ROW row;
+  char *virtual_table, *virtual_uid, *virtual_username;
+
+  if ((virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
+  { virtual_uid = "uid"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
+    "MySQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; }
 
   if (s->p_getpwuid.pw_name != NULL)
   {
@@ -1713,7 +1758,8 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   }
 
   snprintf (query, sizeof (query),
-            "select username from dspam_virtual_uids where uid = '%d'", uid);
+            "select %s from %s where %s = '%d'", 
+            virtual_username, virtual_table, virtual_uid, uid);
 
   if (MYSQL_RUN_QUERY (s->dbh, query))
   {
@@ -1776,7 +1822,20 @@ struct passwd *
 _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
 {
   char query[256];
+  char *virtual_table, *virtual_uid, *virtual_username;
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
+
+  if ((virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
+  { virtual_uid = "uid"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
+    "MySQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; }
 
 #ifdef USE_LDAP
   if (_ds_match_attribute(CTX->config->attributes, "LDAPMode", "verify") &&
@@ -1788,8 +1847,8 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
 #endif
 
   snprintf (query, sizeof (query),
-            "insert into dspam_virtual_uids (uid, username) values(NULL, '%s')",
-            name);
+            "insert into %s (%s, %s) values(NULL, '%s')",
+            virtual_table, virtual_uid, virtual_username, name);
 
   /* we need to fail, to prevent a potential loop - even if it was inserted
    * by another process */
