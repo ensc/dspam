@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.33 2005/07/02 03:59:52 jonz Exp $
+dnl $Id: configure.ac,v 1.34 2005/08/17 14:25:44 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -680,7 +680,7 @@ then
     enable_chi_square=no
 else
     enable_chi_square=yes    # overkill, but convenient
-    AC_DEFINE(CHI_SQ, 1,
+    AC_DEFINE(CHI_SQUARE, 1,
              [Defined if Chi-Square calculation is enabled])
 fi
 
