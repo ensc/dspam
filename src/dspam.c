@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.186 2005/08/08 04:02:03 jonz Exp $ */
+/* $Id: dspam.c,v 1.187 2005/08/22 14:02:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -373,7 +373,9 @@ process_message (
   /* Check for viruses */
  
   if (_ds_read_attribute(agent_config, "ClamAVPort") &&
-      _ds_read_attribute(agent_config, "ClamAVHost")) {
+      _ds_read_attribute(agent_config, "ClamAVHost") &&
+      strcmp(_ds_pref_val(ATX->PTX, "optOutClamAV"), "on"))
+  {
     if (has_virus(message)) {
       CTX->result = DSR_ISSPAM;
       CTX->probability = 1.0;

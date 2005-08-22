@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.332 2005/08/15 12:31:41 jonz Exp $
+$Id: CHANGELOG,v 1.333 2005/08/22 14:02:30 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050822.1000] jonz: added optOutClamAV option to opt out of virus scanning
+
+User-configurable preference optOutClamAV added (set to 'on') to opt out of
+A/V, if active.
 
 [20050815.0800] jonz; added custom tags to dspam.conf for virtual uids
 
