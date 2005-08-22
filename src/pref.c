@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.24 2005/05/19 16:42:06 jonz Exp $ */
+/* $Id: pref.c,v 1.25 2005/08/22 13:47:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -211,6 +211,9 @@ agent_pref_t _ds_pref_load(
       i++;
     }
     fclose(file);
+  } else {
+    free(PTX);
+    return NULL;
   }
 
   return PTX;
