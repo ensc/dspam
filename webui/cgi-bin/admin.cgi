@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.3 2005/07/14 13:29:33 jonz Exp $
+# $Id: admin.cgi,v 1.4 2005/08/22 13:28:58 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 #
@@ -206,6 +206,7 @@ statisticalSedation=$FORM{'statisticalSedation'}
 enableBNR=$FORM{'enableBNR'}
 enableWhitelist=$FORM{'enableWhitelist'}
 signatureLocation=$FORM{'signatureLocation'}
+showFactors=$FORM{'showFactors'}
 _END
       close(FILE);
     }
