@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.114 2005/06/13 13:00:59 jonz Exp $ */
+/* $Id: libdspam.c,v 1.115 2005/08/23 04:01:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -463,7 +463,6 @@ dspam_destroy (DSPAM_CTX * CTX)
  * 
  *    DSR_ISSPAM        Message was classified as spam
  *    DSR_ISINNOCENT    Message was classified as nonspam
- *    DSR_ISWHITELISTED Recipient was automatically whitelisted
  * 
  * RETURN VALUES
  *   returns 0 on success
@@ -593,9 +592,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     spam_result = _ds_operate (CTX, header->data, body->data);
   }
 
-  if (spam_result == DSR_ISSPAM     || 
-      spam_result == DSR_ISINNOCENT || 
-      spam_result == DSR_ISWHITELISTED)
+  if (spam_result == DSR_ISSPAM  || spam_result == DSR_ISINNOCENT)
   {
     if (CTX->classification == DSR_ISINNOCENT)
       spam_result = DSR_ISINNOCENT;
@@ -608,17 +605,22 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
 
   CTX->result = spam_result;
 
+  if (CTX->class[0] == 0) {
+    if (CTX->result == DSR_ISSPAM)
+      strcpy(CTX->class, LANG_CLASS_SPAM);
+    else if (CTX->result == DSR_ISINNOCENT)
+      strcpy(CTX->class, LANG_CLASS_INNOCENT);
+  }
+
   if (is_toe)
     CTX->operating_mode = DSM_PROCESS;
 
-  if (CTX->result == DSR_ISSPAM     ||
-      CTX->result == DSR_ISINNOCENT ||
-      CTX->result == DSR_ISWHITELISTED)
+  if (CTX->result == DSR_ISSPAM || CTX->result == DSR_ISINNOCENT) 
     return 0;
   else
   {
-    LOG(LOG_WARNING, "received invalid result (! DSR_ISSPAM || DSR_INNOCENT "
-                     "|| DSR_ISWHITELISTED): %d", CTX->result);
+    LOG(LOG_WARNING, "received invalid result (! DSR_ISSPAM || DSR_INNOCENT) "
+                     ": %d", CTX->result);
     return EUNKNOWN;
   }
 }
@@ -717,7 +719,6 @@ dspam_getsource (
  *
  *     DSR_ISSPAM           message is spam
  *     DSR_ISINNOCENT       message is innocent
- *     DSR_ISWHITELISTED    message is whitelisted
  */
 
 int
@@ -1589,7 +1590,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   if (CTX->flags & DSF_WHITELIST && do_whitelist) {
     LOGDEBUG("auto-whitelisting this message");
-    CTX->result = DSR_ISWHITELISTED;
+    CTX->result = DSR_ISINNOCENT;
+    strcpy(CTX->class, LANG_CLASS_WHITELISTED);
   }
 
   /* Update Totals */
@@ -1619,8 +1621,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     /* INNOCENT */
   }
-  else if ((CTX->result == DSR_ISINNOCENT || CTX->result == DSR_ISWHITELISTED) 
-    && CTX->operating_mode != DSM_CLASSIFY)
+  else if ((CTX->result == DSR_ISINNOCENT) && 
+            CTX->operating_mode != DSM_CLASSIFY)
   {
     if (!(CTX->flags & DSF_UNLEARN)) {
       CTX->totals.innocent_learned++;
@@ -1646,7 +1648,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   if (CTX->training_mode == DST_TOE && CTX->operating_mode == DSM_CLASSIFY) {
     if (CTX->result == DSR_ISSPAM) 
       CTX->totals.spam_classified++;
-    else if (CTX->result == DSR_ISINNOCENT || CTX->result == DSR_ISWHITELISTED)
+    else if (CTX->result == DSR_ISINNOCENT)
       CTX->totals.innocent_classified++;
   }
 
@@ -1728,7 +1730,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         ds_term->s.innocent_hits-= 1;
       }
     }
-
 
     /* INNOCENT */
     else

@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.20 2005/06/08 02:15:09 jonz Exp $ */
+/* $Id: language.h,v 1.21 2005/08/23 04:01:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -159,5 +159,14 @@ user, e.g.. root or Trusted User [uid=%d(%s)]"
 #define ERR_CLIENT_DELIVERY_FAILED      "Delivery failed completely"
 #define ERR_CLIENT_RESPONSE             "Got error %d in response to %s: %s"
 #define ERR_CLIENT_RESPONSE_CODE        "Invalid data waiting for code %d: %s"
+
+/* Classes */
+
+#define LANG_CLASS_WHITELISTED		"Whitelisted"
+#define LANG_CLASS_SPAM			"Spam"
+#define LANG_CLASS_INNOCENT		"Innocent"
+#define LANG_CLASS_VIRUS		"Virus"
+#define LANG_CLASS_BLOCKLISTED		"Blocklisted"
+#define LANG_CLASS_BLACKLISTED		"Blacklisted"
 
 #endif /* _LANGUAGE_H */

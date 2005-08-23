@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.9 2005/05/12 00:56:28 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.10 2005/08/23 04:01:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -360,6 +360,7 @@ typedef struct
   u_int32_t	algorithms;
 
   int		result;
+  char		class[32];
   float		probability;
   float		confidence;
 
@@ -411,7 +412,6 @@ typedef struct
 
 #define	DSR_ISSPAM		0x01
 #define DSR_ISINNOCENT		0x02
-#define DSR_ISWHITELISTED	0x03
 #define DSR_NONE		0xFF
 
 /* Classification Sources */

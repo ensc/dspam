@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.30 2005/05/02 19:31:30 jonz Exp $ */
+/* $Id: dspam.h,v 1.31 2005/08/23 04:01:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -93,8 +93,6 @@ typedef struct agent_result {
 #define ERC_PROCESS		-0x01
 #define ERC_DELIVERY		-0x02
 #define ERC_PERMANENT_DELIVERY	-0x03
-
-#define DSR_ISVIRUS 0xD0
 
 #endif /* _DSPAM_H */
 

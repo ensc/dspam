@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.187 2005/08/22 14:02:30 jonz Exp $ */
+/* $Id: dspam.c,v 1.188 2005/08/23 04:01:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -300,7 +300,6 @@ BAIL:
  *
  *   DSR_ISINNOCENT	Message is innocent
  *   DSR_ISSPAM		Message is spam
- *   DSR_ISWHITELISTED	Message is whitelisted (innocent)
  *   (other)		Error code (see libdspam.h)
  */
 
@@ -381,7 +380,8 @@ process_message (
       CTX->probability = 1.0;
       CTX->confidence = 1.0;
       STATUS("A virus was detected in the message contents");
-      result = DSR_ISVIRUS;
+      result = DSR_ISSPAM;
+      strcpy(CTX->class, LANG_CLASS_VIRUS);
       internally_canned = 1;
     }
   }
@@ -394,6 +394,7 @@ process_message (
     result = DSR_ISSPAM;
     CTX->probability = 1.0;
     CTX->confidence = 1.0;
+    strcpy(CTX->class, LANG_CLASS_BLOCKLISTED);
     internally_canned = 1;
   }
 
@@ -413,6 +414,7 @@ process_message (
         result = DSR_ISSPAM;
         CTX->probability = 1.0;
         CTX->confidence = 1.0;
+        strcpy(CTX->class, LANG_CLASS_BLACKLISTED);
         internally_canned = 1;
       }
     }
@@ -499,7 +501,7 @@ process_message (
 
   result = CTX->result;
 
-  if (result == DSR_ISWHITELISTED) {
+  if (result == DSR_ISINNOCENT && !strcmp(CTX->class, LANG_CLASS_WHITELISTED)) {
     STATUS("Auto-Whitelisted");
   }
 
@@ -508,13 +510,12 @@ process_message (
    * Only if the process was successful
    */
 
-  if (result == DSR_ISWHITELISTED || result == DSR_ISINNOCENT ||
-      result == DSR_ISSPAM) 
+  if (result == DSR_ISINNOCENT || result == DSR_ISSPAM) 
   {
     do_notifications(CTX, ATX);
   }
 
-  if (result != DSR_ISWHITELISTED)
+  if (strcmp(CTX->class, LANG_CLASS_WHITELISTED))
     result = ensure_confident_result(CTX, ATX, result);
   if (result<0) 
    goto RETURN;
@@ -763,9 +764,6 @@ process_message (
       case DSR_ISSPAM:
         strcpy(data, "Spam");
         break;
-      case DSR_ISWHITELISTED:
-        strcpy(data, "Whitelisted");
-        break;
       default:
         strcpy(data, "Innocent");
         break;
@@ -779,10 +777,12 @@ process_message (
       fout = stdout;
     }
 
-    fprintf(fout, "X-DSPAM-Result: %s; result=\"%s\"; probability=%01.4f; "
+    fprintf(fout, "X-DSPAM-Result: %s; result=\"%s\"; class=\"%s\"; "
+                  "probability=%01.4f; "
            "confidence=%02.2f\n",
            CTX->username,
            data,
+           CTX->class,
            CTX->probability,
            CTX->confidence);
 
@@ -1735,7 +1735,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       presult->classification = result;
 
 #ifdef CLAMAV
-      if (result == DSR_ISVIRUS) {
+      if (!strcmp(CTX->class, LANG_CLASS_VIRUS)) {
         if (_ds_match_attribute(agent_config, "ClamAVResponse", "reject")) {
           presult->classification = DSR_ISSPAM;
           presult->exitcode = ERC_PERMANENT_DELIVERY;
@@ -1759,7 +1759,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       /* Exit code 99 for spam (when using broken return codes) */
 
       if (_ds_match_attribute(agent_config, "Broken", "returnCodes")) {
-        if (result == DSR_ISSPAM || result == DSR_ISVIRUS) 
+        if (result == DSR_ISSPAM)
           return_code = 99;
       }
 
@@ -1790,16 +1790,16 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
         /* Processing Error */
 
-        if (result != DSR_ISINNOCENT && result != DSR_ISWHITELISTED &&
-            ATX->classification != DSR_NONE && ATX->classification != DSR_NONE)
+        if (result != DSR_ISINNOCENT        && 
+            ATX->classification != DSR_NONE && 
+            ATX->classification != DSR_NONE)
         {
           deliver = 0;
           LOG (LOG_WARNING,
                "process_message returned error %d.  dropping message.", result);
         }
 
-        if (result != DSR_ISINNOCENT && result != DSR_ISWHITELISTED &&
-            ATX->classification == DSR_NONE)
+        if (result != DSR_ISINNOCENT && ATX->classification == DSR_NONE)
         {
           deliver = 1;
           LOG (LOG_WARNING,
@@ -1823,12 +1823,11 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
             presult->exitcode = ERC_PERMANENT_DELIVERY;
           strlcpy(presult->text, ATX->status, sizeof(presult->text));
 
-            if ((result == DSR_ISINNOCENT || result == DSR_ISWHITELISTED) && 
+            if (result == DSR_ISINNOCENT && 
                 _ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                 ATX->learned)
             {
-              ATX->classification =
-                (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
+              ATX->classification = result;
               ATX->source = DSS_ERROR;
               ATX->flags |= DAF_UNLEARN;
               process_message (ATX, parse_message, username);
@@ -1908,8 +1907,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
               /* Unlearn the message on a local delivery failure */
               if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                   ATX->learned) {
-                ATX->classification =
-                  (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
+                ATX->classification = result;
                 ATX->source = DSS_ERROR;
                 ATX->flags |= DAF_UNLEARN;
                 process_message (ATX, parse_message, username);
@@ -1938,8 +1936,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
             if (_ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                 ATX->learned) {
-              ATX->classification =
-                (result == DSR_ISWHITELISTED) ? DSR_ISINNOCENT : result;
+              ATX->classification = result;
               ATX->source = DSS_ERROR;
               ATX->flags |= DAF_UNLEARN;
               process_message (ATX, parse_message, username);
@@ -2698,9 +2695,6 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
           LOGDEBUG ("querying node %s", (const char *) node_int->ptr);
           res = user_classify (ATX, (const char *) node_int->ptr,
                                   CTX->signature, NULL);
-          if (res == DSR_ISWHITELISTED) {
-            res = DSR_ISINNOCENT;
-          }
 
           if ((res == DSR_ISSPAM || res == DSR_ISINNOCENT) && 
               r.total_incorrect+r.total_correct>4) 
@@ -2729,8 +2723,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
 
       /* include the top n reliable sources */
       while(heap_element && total_nodes>0) {
-        float probability = (heap_element->frequency == DSR_ISINNOCENT     || 
-                             heap_element->frequency == DSR_ISWHITELISTED) ?
+        float probability = (heap_element->frequency == DSR_ISINNOCENT) ?
           1-heap_element->probability : heap_element->probability;
 
         LOGDEBUG("including node %llu [%2.6f]", heap_element->token, probability);
@@ -2812,7 +2805,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
      * spam, retrain the user as a false positive 
      */
 
-    if ((result == DSR_ISINNOCENT || result == DSR_ISWHITELISTED) && was_spam) {
+    if (result == DSR_ISINNOCENT && was_spam) {
       DSPAM_CTX *CTC = malloc(sizeof(DSPAM_CTX));
       if (CTC == NULL) {
         LOG(LOG_CRIT, ERR_MEM_ALLOC);
@@ -2885,8 +2878,9 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     }
   }
 
-  if (ATX->status[0] == 0  && CTX->classification == DSR_NONE &&
-     (CTX->result == DSR_ISINNOCENT || CTX->result == DSR_ISWHITELISTED)) 
+  if (ATX->status[0] == 0             && 
+      CTX->classification == DSR_NONE &&
+      CTX->result == DSR_ISINNOCENT) 
   {
     STATUS("Delivered");
   }
@@ -2921,7 +2915,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   if (CTX->result == DSR_ISSPAM)
     class = 'S';
-  else if (CTX->result == DSR_ISWHITELISTED)
+  else if (!strcmp(CTX->class, LANG_CLASS_WHITELISTED))
     class = 'W';
   else 
     class = 'I';
@@ -3046,19 +3040,9 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       char data[10240];
       char scratch[128];
 
-      strcpy(data, (CTX->source == DSS_ERROR) ? 
-                   "X-DSPAM-Reclassified: " : "X-DSPAM-Result: ");
-      switch (CTX->result) {
-        case DSR_ISSPAM:
-          strcat(data, "Spam");
-          break;
-        case DSR_ISWHITELISTED:
-          strcat(data, "Whitelisted");
-          break;
-        default:
-          strcat(data, "Innocent");
-          break;
-      }
+      snprintf(data, sizeof(data), "%s: %s",
+        (CTX->source == DSS_ERROR) ? "X-DSPAM-Reclassified" : "X-DSPAM-Result",
+        CTX->class);
   
       head = _ds_create_header_field(data);
       if (head != NULL)

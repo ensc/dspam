@@ -1,7 +1,19 @@
-$Id: CHANGELOG,v 1.333 2005/08/22 14:02:30 jonz Exp $
+$Id: CHANGELOG,v 1.334 2005/08/23 04:01:11 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050822.2350] jonz: added new X-DSPAM-Result / X-DSPAM-Reclassified values
+
+The following values may now appear under X-DSPAM-Result / X-DSPAM-Reclassified
+Spam, Innocent, Whitelisted, Blacklisted, Blocklisted, Virus
+
+This is made possible by the addition of CTX->class (char[32]), whose constants
+are made available in language.h. Previous CTX->result options specifying 
+DSR_ISWHITELISTED and DSR_ISVIRUS values are now gone, leaving only 
+DSR_ISINNOCENT and DSR_ISSPAM for backward-compatibility (whitelisted
+messages will be marked as DSR_ISINNOCENT). Future applications should use
+CTX->class instead of CTX->result for more specific results info.
 
 [20050822.1000] jonz: added optOutClamAV option to opt out of virus scanning
 
