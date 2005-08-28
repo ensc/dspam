@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.46 2005/08/28 03:00:16 jonz Exp $
+## $Id: dspam.conf.in,v 1.47 2005/08/28 04:11:06 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -9,6 +9,11 @@ Home @dspam_home@
 
 #
 # StorageDriver: Specifies the storage driver backend (library) to use.
+# You'll only need to set this if you are using dynamic storage driver plugins.
+# The default when one storage driver is specified is to statically link. Be 
+# sure to include the path to the library if necessary, and some systems may 
+# use an extension other than .so.
+#
 # Options include:
 #
 #   libmysql_drv.so     libpgsql_drv.so   libsqlite_drv.so

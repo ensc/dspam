@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.24 2005/08/28 03:00:16 jonz Exp $
+# $Id: Makefile.am,v 1.25 2005/08/28 04:11:06 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -36,6 +36,8 @@ DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
        -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS 
 
 lib_LTLIBRARIES = libdspam.la 
+
+if DYNAMIC_DRIVER
 if BUILD_DB4_DRV
 lib_LTLIBRARIES += libdb4_drv.la
 endif
@@ -60,10 +62,8 @@ endif
 if BUILD_SQLITE3_DRV
 lib_LTLIBRARIES += libsqlite3_drv.la
 endif
+endif
 
-#EXTRA_LTLIBRARIES = libdb4_drv.la libdb3_drv.la libmysql_drv.la \
-#                    libpgsql_drv.la libsqlite_drv.la libsqlite3_drv.la \
-#                    libora_drv.la libcss_drv.la
 bin_PROGRAMS = dspam dspamc
 
 # installed for libdspam
@@ -89,16 +89,64 @@ libdspam_la_SOURCES = \
 	hash.c hash.h \
 	list.c list.h \
 	ldap_client.c ldap_client.h \
-	storage_driver.c storage_driver.h
+	storage_driver.h
+
 if BUILD_NCORE
 libdspam_la_SOURCES += ncore_adp.c ncore_adp.h
 endif
 
+if DYNAMIC_DRIVER
+libdspam_la_SOURCES += storage_driver.c
+endif
+
+EXTRA_libdspam_la_SOURCES = \
+        libdb4_drv.c libdb4_drv.h \
+        libdb3_drv.c libdb3_drv.h \
+        mysql_drv.c mysql_drv.h \
+        pgsql_drv.c pgsql_drv.h \
+        ora_drv.c ora_drv.h \
+        sqlite_drv.c sqlite_drv.h \
+        sqlite3_drv.c sqlite3_drv.h
+
+#if STATIC_DRIVER
+#if BUILD_DB4_DRV
+#libdspam_la_SOURCES += libdb4_drv.c libdb4_drv.h
+#endif
+#if BUILD_DB3_DRV
+#libdspam_la_SOURCES += libdb3_drv.c libdb3_drv.h
+#endif
+#if BUILD_CSS_DRV
+#libdspam_la_SOURCES += libcss_drv.c libcss_drv.h
+#endif
+#if BUILD_ORA_DRV
+#libdspam_la_SOURCES += libora_drv.c libora_drv.h
+#endif
+#if BUILD_MYSQL_DRV
+#libdspam_la_SOURCES += libmysql_drv.c libmysql_drv.h
+#endif
+#if BUILD_PGSQL_DRV
+#libdspam_la_SOURCES += libpgsql_drv.c libpgsql_drv.h
+#endif
+#if BUILD_SQLITE_DRV
+#libdspam_la_SOURCES += libsqlite_drv.c libsqlite_drv.h
+#endif
+#if BUILD_SQLITE3_DRV
+#libdspam_la_SOURCES += libsqlite3_drv.c libsqlite3_drv.h
+#endif
+#endif
+
 libdspam_la_LIBADD = $(adapter_objects)
 libdspam_la_LIBADD += -lm $(NETLIBS) $(NCORELIBS)
 libdspam_la_DEPENDENCIES = $(adapter_objects)
+if STATIC_DRIVER
+libdspam_la_LIBADD += $(active_driver).lo
+libdspam_la_DEPENDENCIES += $(active_driver).lo
+endif
+
 #   current:revision:age
 libdspam_la_LDFLAGS = -rpath '$(libdir)' -version-info $(libversion)
+
+if DYNAMIC_DRIVER
 
 libdb4_drv_la_SOURCES = \
 	libdb4_drv.c libdb4_drv.h 
@@ -159,6 +207,8 @@ libsqlite3_drv_la_DEPENDENCIES =
 libcss_drv_la_SOURCES = \
 	css_drv.c css_drv.h
 libcss_drv_la_LDFLAGS = -rpath '$(libdir)' -version-info $(libversion)
+
+endif
 
 dspam_SOURCES = \
         config.h libdspam.h language.h \

@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.35 2005/08/28 01:35:49 jonz Exp $
+dnl $Id: configure.ac,v 1.36 2005/08/28 04:11:06 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -863,6 +863,7 @@ AC_MSG_RESULT([$logdir])
 storagedrv=sqlite
 storage_drv_subdirs=""
 active_driver=""
+static_driver=yes
 AC_ARG_WITH(storage-driver,
    [AS_HELP_STRING(--with-storage-driver=LIST,Specify storage drivers to enable. @<:@default: sqlite_drv@:>@)],
     [ storagedrv="$withval" ])
@@ -882,6 +883,8 @@ for drv in $withval; do
   then
     active_driver=$drv
     AC_SUBST(active_driver)
+  else
+    static_driver=no
   fi
 
 if test x"$drv" = xlibdb4_drv
@@ -1052,10 +1055,26 @@ AM_CONDITIONAL([BUILD_SQLITE_DRV], [ test x"$sqlite_drv" = xyes ])
 AM_CONDITIONAL([BUILD_SQLITE3_DRV], [ test x"$sqlite3_drv" = xyes ])
 AM_CONDITIONAL([BUILD_MYSQL_DRV], [ test x"$mysql_drv" = xyes ])
 AM_CONDITIONAL([BUILD_PGSQL_DRV], [ test x"$pgsql_drv" = xyes ])
+AM_CONDITIONAL([STATIC_DRIVER], [ test x"$static_driver" = xyes ])
+AM_CONDITIONAL([DYNAMIC_DRIVER], [ test x"$static_driver" = xno ])
 
+AC_MSG_CHECKING([whether we are building a single, static storage driver])
+
+if test x"$static_driver" = xyes
+then
+AC_DEFINE([STATIC_DRIVER], 1,
+          [Define if using a single, statically linked storage driver])
+AC_MSG_RESULT([yes])
+CPPFLAGS="$CPPFLAGS $libmysql_drv_cppflags $libpgsql_drv_cppflags $libsqlite_drv_cppflags $libsqlite3_drv_cppflags $libora_drv_cppflags $libdb4_drv_cppflags $libdb3_drv_cppflags $libcss_drv_cppflags"
+LIBS="$LIBS $libmysql_drv_libs $libpgsql_drv_libs $libsqlite_drv_libs $libsqlite3_drv_libs $libora_drv_libs $libdb4_drv_libs $libdb3_drv_libs $libcss_drv_libs"
+LDFLAGS="$LDFLAGS $libmysql_drv_ldflags $libpgsql_drv_ldflags $libsqlite_drv_ldflags $libsqlite3_drv_ldflags $libora_drv_ldflags $libdb4_drv_ldflags $libdb3_drv_ldflags $libcss_drv_ldflags"
+else
+AC_MSG_RESULT([no])
+fi
+ 
 AC_SUBST(storage_drv_subdirs)
 
-if test x"$storage_drv_subdirs" == x
+if test x"$storage_drv_subdirs" = x
 then
     AC_MSG_ERROR([no valid storage drivers specified])
 fi

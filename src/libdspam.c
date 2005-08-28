@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.116 2005/08/28 01:35:50 jonz Exp $ */
+/* $Id: libdspam.c,v 1.117 2005/08/28 04:11:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -29,7 +29,9 @@
  *   The libdspam API functions are documented in libdspam(1).
  */
 
+#ifndef STATIC_DRIVER
 void *_drv_handle;
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -3204,12 +3206,14 @@ void _ds_factor_destroy(struct nt *factors) {
 
 int libdspam_init(const char *driver) {
 
+#ifndef STATIC_DRIVER
   if (driver) {
     if ((_drv_handle = dlopen(driver, RTLD_NOW))==NULL) {
       LOG(LOG_CRIT, "dlopen() failed: %s: %s", driver, dlerror()); 
       return EFAILURE;
     }
   }
+#endif
 
 #ifdef NCORE
   _ncsetup();
@@ -3219,18 +3223,20 @@ int libdspam_init(const char *driver) {
 }
 
 int libdspam_shutdown(void) {
-  int r;
 
 #ifdef NCORE
   _nccleanup();
 #endif
 
+#ifndef STATIC_DRIVER
   if (_drv_handle) {
+    int r;
     if ((r=dlclose(_drv_handle))) {
       LOG(LOG_CRIT, "dlclose() failed: %s", dlerror());
       return r;
     }
   }
+#endif
    
   return 0;
 }

@@ -1,19 +1,31 @@
-$Id: CHANGELOG,v 1.335 2005/08/28 01:35:49 jonz Exp $
+$Id: CHANGELOG,v 1.336 2005/08/28 04:11:06 jonz Exp $
 
 Version NEXT
 ------------
 
-[20050827.2130] jonz: dynamic storage driver libraries
+[20050827.2130] jonz: dynamic storage driver library support
 
-reconfigured for dynamic storage driver libraries. driver library/libraries
-will be compiled and installed automatically. see dspam.conf for StorageDriver
-property, which will need to be added to existing configurations.
+support for dynamic storage driver library builds (including multiple driver
+builds for packagers) is now supported through the existing 
+--with-storage-driver function. specifying a single storage driver, such as:
 
-multiple storage drivers can also be specified using:
---with-storage-driver=driver1,driver2,driver3
+--with-storage-driver=mysql_drv
 
-for example:
---with-storage-driver=mysql_drv,pgsql_drv,sqlite_drv
+will build a statically linked storage driver (the same behavior as previous
+versions of dspam). specifying multiple drivers, however, will build dynamic
+libraries - one of which can then be dynamically loaded at run-time by
+setting the StorageDriver parameter in dspam.conf (see the new dspam.conf for
+more information). for example:
+
+--with-storage-driver=mysql_drv,pgsql_drv,ora_drv
+
+NOTE: required parameters for all activated drivers must be provided
+
+users wishing to build only one storage driver, but dynamically loaded instead
+of statically linked, may supply the same driver name twice to enable 
+dynamic loading:
+
+--with-storage-driver=mysql_drv,mysql_drv 
 
 [20050822.2350] jonz: added new X-DSPAM-Result / X-DSPAM-Reclassified values
 
