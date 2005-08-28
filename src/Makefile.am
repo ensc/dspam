@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.25 2005/08/28 04:11:06 jonz Exp $
+# $Id: Makefile.am,v 1.26 2005/08/28 21:54:23 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -232,7 +232,7 @@ dspamc_SOURCES = \
 	client.c client.h \
 	agent_shared.c agent_shared.h 
 
-dspamc_LDADD = -lm buffer.o config_shared.o error.o pref.o nodetree.o util.o
+dspamc_LDADD = -lm buffer.o config_shared.o error.o pref.o nodetree.o util.o $(NETLIBS)
 dspamc_LDFLAGS = -static
 
 # Failing of chgrp is expected and normal case when someone do
