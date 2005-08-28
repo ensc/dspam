@@ -1,6 +1,6 @@
-$Id: RELEASE.NOTES,v 1.44 2005/08/11 18:52:20 jonz Exp $
+$Id: RELEASE.NOTES,v 1.45 2005/08/28 04:15:28 jonz Exp $
 
-RELEASE 3.6-BETA 1
+RELEASE 3.6-BETA 2
 
 --------------------------------------------------------------------------
 Tired of managing DSPAM yourself? Be one of the first to pilot a new DSPAM
@@ -13,6 +13,11 @@ e-mail jonathan@nuclearelephant.com for more information about the pilot
 --------------------------------------------------------------------------
 
 ENHANCEMENTS
+
+Dynamically Loadable Storage Driver Support
+DSPAM now supports a dynamically loadable storage driver plugin codebase,
+which allows third party driver authors to more easily build new drivers, and 
+packagers to build and distribute dspam with multiple storage drivers.
 
 PostgreSQL Performance Enhancements
 PostgreSQL enhancements have been made for installations of v8.0+, speeding
@@ -94,6 +99,7 @@ Other Enhancements:
   Added 'date' to quarantine display and sorted most recent at top
   Significant code cleanup and partial audit complete
   Domain-based groups changed from @domain.tld to *@domain.tld
+  X-DSPAM-Result expanded to support Virus, Blacklisted, and Blocklisted results
 
 Jonathan Zdziarski
 <jonathan@nuclearelephant.com>
