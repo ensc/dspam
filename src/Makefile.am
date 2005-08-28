@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.23 2005/08/28 01:35:49 jonz Exp $
+# $Id: Makefile.am,v 1.24 2005/08/28 03:00:16 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -247,7 +247,8 @@ sed_substitute_variables = \
         dspam_transformed=`echo dspam | sed '$(transform)'`; \
         sed -e 's,@dspam_home\@,$(dspam_home),g' \
             -e 's,@delivery_agent\@,$(delivery_agent),g' \
-            -e 's,@storage_driver\@,lib$(active_driver).so,g'
+            -e 's,@storage_driver\@,lib$(active_driver).so,g' \
+            -e 's,@libdir\@,$(libdir),g'
 
 dspam_conf: dspam.conf.in Makefile
 	${sed_substitute_variables} < $(srcdir)/dspam.conf.in > dspam.conf

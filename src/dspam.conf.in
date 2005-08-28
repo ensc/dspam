@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.45 2005/08/28 01:35:50 jonz Exp $
+## $Id: dspam.conf.in,v 1.46 2005/08/28 03:00:16 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -19,7 +19,7 @@ Home @dspam_home@
 # this option. If you do not wish to lose all of your data, you will need to
 # migrate it to the new backend before making this change.
 #
-StorageDriver @dspam_home@/@storage_driver@
+StorageDriver @libdir@/@storage_driver@
 
 #
 # Trusted Delivery Agent: Specifies the local delivery agent DSPAM should call 
