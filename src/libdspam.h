@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.15 2005/07/14 18:39:50 jonz Exp $ */
+/* $Id: libdspam.h,v 1.16 2005/08/28 01:35:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -40,12 +40,12 @@ extern "C" {
 #include "heap.h"
 
 #define LIBDSPAM_VERSION_MAJOR	3
-#define LIBDSPAM_VERSION_MINOR	5
+#define LIBDSPAM_VERSION_MINOR	6
 #define LIBDSPAM_VERSION_PATCH	0
 
 /* Public API */
 
-int libdspam_init(void);
+int libdspam_init(const char *);
 int libdspam_shutdown(void);
 
 DSPAM_CTX * dspam_init	(const char *username, const char *group,

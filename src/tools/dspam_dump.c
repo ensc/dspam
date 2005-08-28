@@ -1,4 +1,4 @@
-/* $Id: dspam_dump.c,v 1.9 2005/05/12 00:56:28 jonz Exp $ */
+/* $Id: dspam_dump.c,v 1.10 2005/08/28 01:35:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -87,11 +87,13 @@ main (int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
+  libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
+
 #ifndef WIN32
 #ifdef TRUSTED_USER_SECURITY
   if (!_ds_match_attribute(agent_config, "Trust", p->pw_name) && p->pw_uid) {
     fprintf(stderr, ERR_TRUSTED_MODE "\n");
-    exit(EXIT_FAILURE);
+    goto BAIL;
   }
 #endif
 #endif
@@ -104,7 +106,7 @@ main (int argc, char **argv)
   if (argc < 2)
   {
     fprintf (stderr, "%s\n", TSYNTAX);
-    exit (EXIT_FAILURE);
+    goto BAIL;
   }
 
   for(i=1;i<argc;i++) {
@@ -113,7 +115,7 @@ main (int argc, char **argv)
     {
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
         LOG(LOG_ERR, ERR_AGENT_NO_SUCH_PROFILE, argv[i]+10);
-        exit(EXIT_FAILURE);
+        goto BAIL;
       } else {
         _ds_overwrite_attribute(agent_config, "DefaultProfile", argv[i]+10);
       }
@@ -126,7 +128,7 @@ main (int argc, char **argv)
         i++;
       } else {
         fprintf(stderr, "invalid driver or no driver specified\n");
-        exit(EXIT_FAILURE);
+        goto BAIL;
       }
     } else {
       if (username == NULL)
@@ -143,20 +145,25 @@ main (int argc, char **argv)
   {
     fprintf (stderr, "Could not init context: %s\n", strerror (errno));
     dspam_shutdown_driver (NULL);
-    exit (EXIT_FAILURE);
+    goto BAIL;
   }
 
   set_libdspam_attributes(CTX);
   if (dspam_attach(CTX, NULL)) {
     LOG (LOG_WARNING, "unable to attach dspam context");
-    exit(EXIT_FAILURE);
+    goto BAIL;
   }
 
   r = dump_database (CTX, token, sql);
   dspam_destroy (CTX);
   open_ctx = NULL;
   dspam_shutdown_driver (NULL);
+  libdspam_shutdown();
   return (r) ? EXIT_FAILURE : EXIT_SUCCESS;
+
+BAIL:
+  libdspam_shutdown();
+  exit(EXIT_FAILURE);
 }
 
 int

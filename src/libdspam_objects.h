@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.10 2005/08/23 04:01:16 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.11 2005/08/28 01:35:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -43,6 +43,8 @@ typedef unsigned char u_int8_t;
 typedef unsigned int u_int32_t;
 typedef u_int32_t uid_t;
 #endif
+
+extern void *_drv_handle; /* Handle to storage driver library */
 
 /*
  *  struct dspam_factor - A single determining factor

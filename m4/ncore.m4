@@ -1,4 +1,4 @@
-# $Id: ncore.m4,v 1.2 2004/12/16 19:56:17 jonz Exp $
+# $Id: ncore.m4,v 1.3 2005/08/28 01:35:49 jonz Exp $
 # m4/ncore.m4
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
 #
@@ -34,6 +34,7 @@ AC_DEFUN([DS_NCORE],
 
       adapter_objects=ncore_adp.lo
       NCORELIBS="-lncore -lncorefw -lpthread"
+      build_ncore=yes
 
       AC_SUBST(NCORELIBS)
       AC_SUBST(adapter_objects)

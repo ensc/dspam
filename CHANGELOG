@@ -1,7 +1,19 @@
-$Id: CHANGELOG,v 1.334 2005/08/23 04:01:11 jonz Exp $
+$Id: CHANGELOG,v 1.335 2005/08/28 01:35:49 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050827.2130] jonz: dynamic storage driver libraries
+
+reconfigured for dynamic storage driver libraries. driver library/libraries
+will be compiled and installed automatically. see dspam.conf for StorageDriver
+property, which will need to be added to existing configurations.
+
+multiple storage drivers can also be specified using:
+--with-storage-driver=driver1,driver2,driver3
+
+for example:
+--with-storage-driver=mysql_drv,pgsql_drv,sqlite_drv
 
 [20050822.2350] jonz: added new X-DSPAM-Result / X-DSPAM-Reclassified values
 

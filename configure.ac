@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.34 2005/08/17 14:25:44 jonz Exp $
+dnl $Id: configure.ac,v 1.35 2005/08/28 01:35:49 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -131,6 +131,8 @@ AC_SUBST(NETLIBS)
 #
 DS_NCORE()
 DS_LDAP()
+
+AM_CONDITIONAL([BUILD_NCORE], [ test x$build_ncore = xyes ])
 
 #---------------------------------------------------------
 #   DSPAM features
@@ -857,30 +859,32 @@ AC_MSG_CHECKING([for logdir])
 AC_MSG_RESULT([$logdir])
 
 #---------------------------------------------------------
-#   storage driver - storage driver selection
-#              copies the selected driver to storage_drv.c and storage_drv.h
-#
-#   This variable is AC_SUBST'ed, not AC_DEFINE'd because used not only
-#   for C-code, but for Makefile rules also.
-#
-storagedrv=sqlite_drv
+#   storage driver selection
+storagedrv=sqlite
+storage_drv_subdirs=""
+active_driver=""
 AC_ARG_WITH(storage-driver,
-    [AS_HELP_STRING(--with-storage-driver=DIR,Specify storage driver. @<:@default: sqlite_drv@:>@)],
+   [AS_HELP_STRING(--with-storage-driver=LIST,Specify storage drivers to enable. @<:@default: sqlite_drv@:>@)],
     [ storagedrv="$withval" ])
 
-AC_MSG_CHECKING([for storage driver])
+AC_MSG_CHECKING([which storage drivers to build])
 AC_MSG_RESULT([$storagedrv])
 
-AC_SUBST(storage_drv_objects)   # driver-specific *libtool* object files
-                                # should be listed here
-AC_SUBST(storage_drv_subdirs)   # driver-specific subdirectories should
-                                # be listed here
-is_storagedrv_handled=no
-
 #---------------------------------------------------------
-#   Libraries for storage driver
+#   Libraries for storage drivers
 #
-if test x"$storagedrv" = xlibdb4_drv
+
+ac_save_IFS=$IFS; IFS=,
+for drv in $withval; do
+  IFS=$ac_save_IFS
+
+  if test x"$active_driver" = x
+  then
+    active_driver=$drv
+    AC_SUBST(active_driver)
+  fi
+
+if test x"$drv" = xlibdb4_drv
 then
     db_version_major=unknown
     DS_BERKELEY_DB4(DB_CPPFLAGS, DB_LDFLAGS, DB_LIBS,
@@ -895,24 +899,17 @@ then
         AC_MSG_ERROR([Berkeley DB v$db_version_major found but v4 is required])
     fi
 
-    CPPFLAGS="$DB_CPPFLAGS $CPPFLAGS"
-    LIBS="$DB_LIBS $LIBS"
-    LDFLAGS="$DB_LDFLAGS $LDFLAGS"
-
-    storage_drv_subdirs='tools.libdb4_drv'
-    storage_drv_objects='libdb4_drv.lo'     # Please note: because storage
-                                            # drives is part of libdspam,
-                                            # which builded/linked by libtool,
-                                            # then object file have `.lo'
-                                            # suffix.  In case for plain
-                                            # objects (for executables or
-                                            # non-libtool libraries)
-                                            # `$(OBJEXT)' should be used
-                                            # instead.
-    is_storagedrv_handled=yes
+    libdb4_drv_cppflags="$DB_CPPFLAGS $CPPFLAGS"
+    libdb4_drv_libs="$DB_LIBS $LIBS"
+    libdb4_drv_ldflags="$DB_LDFLAGS $LDFLAGS"
+    AC_SUBST(libdb4_drv_cppflags)
+    AC_SUBST(libdb4_drv_libs)
+    AC_SUBST(libdb4_drv_ldflags)
+    db4_drv=yes
+    storage_drv_subdirs="$storage_drv_subdirs tools.libdb4_drv"
 fi
 
-if test x"$storagedrv" = xlibdb3_drv
+if test x"$drv" = xlibdb3_drv
 then
     db_version_major=unknown
     DS_BERKELEY_DB3(DB_CPPFLAGS, DB_LDFLAGS, DB_LIBS,
@@ -927,32 +924,23 @@ then
         AC_MSG_ERROR([Berkeley DB v$db_version_major found but v3 is required])
     fi
 
-    CPPFLAGS="$DB_CPPFLAGS $CPPFLAGS"
-    LIBS="$DB_LIBS $LIBS"
-    LDFLAGS="$DB_LDFLAGS"
-    storage_drv_sources='libdb3_drv.c libdb3_drv.h'
-    storage_drv_subdirs='tools.libdb3_drv'
-    storage_drv_objects='libdb3_drv.lo'     # Please note: because storage
-                                            # drives is part of libdspam,
-                                            # which builded/linked by libtool,
-                                            # then object file have `.lo'
-                                            # suffix.  In case for plain
-                                            # objects (for executables or
-                                            # non-libtool libraries)
-                                            # `$(OBJEXT)' should be used
-                                            # instead.
-    is_storagedrv_handled=yes
+    libdb3_drv_cppflags="$DB_CPPFLAGS $CPPFLAGS"
+    libdb3_drv_libs="$DB_LIBS $LIBS"
+    libdb3_drv_ldflags=LDFLAGS="$DB_LDFLAGS"
+    AC_SUBST(libdb3_drv_cppflags)
+    AC_SUBST(libdb3_drv_libs)
+    AC_SUBST(libdb3_drv_ldflags)
+    db3_drv=yes
+    storage_drv_subdirs="$storage_drv_subdirs tools.libdb3_drv"
 fi
 
-if test x"$storagedrv" = xcss_drv
+if test x"$drv" = xcss_drv
 then
-  storage_drv_sources='css_drv.c css_drv.h'
-  storage_drv_subdirs='tools.css_drv'
-  storage_drv_objects='css_drv.lo'
-  is_storagedrv_handled=yes
+  css_drv=yes
+  storage_drv_subdirs="$storage_drv_subdirs tools.css_drv"
 fi
 
-if test x"$storagedrv" = xmysql_drv
+if test x"$drv" = xmysql_drv
 then
     DS_MYSQL(MYSQL_CPPFLAGS, MYSQL_LDFLAGS, MYSQL_LIBS,
              [success=yes], [success=no])
@@ -960,24 +948,18 @@ then
     then
         AC_MSG_ERROR([Required version of libmysqlclient not found])
     fi
-    CPPFLAGS="$MYSQL_CPPFLAGS $CPPFLAGS"
-    LIBS="$MYSQL_LIBS $LIBS"
-    LDFLAGS="$MYSQL_LDFLAGS $LDFLAGS"
+    libmysql_drv_cppflags="$MYSQL_CPPFLAGS $CPPFLAGS"
+    libmysql_drv_libs="$MYSQL_LIBS $LIBS" 
+    libmysql_drv_ldflags="$MYSQL_LDFLAGS $LDFLAGS"
 
-    storage_drv_subdirs='tools.mysql_drv'
-    storage_drv_objects='mysql_drv.lo'      # Please note: because storage
-                                            # drives is part of libdspam,
-                                            # which builded/linked by libtool,
-                                            # then object file have `.lo'
-                                            # suffix.  In case for plain
-                                            # objects (for executables or
-                                            # non-libtool libraries)
-                                            # `$(OBJEXT)' should be used
-                                            # instead.
-    is_storagedrv_handled=yes
+    AC_SUBST(libmysql_drv_cppflags)
+    AC_SUBST(libmysql_drv_libs)
+    AC_SUBST(libmysql_drv_ldflags)
+    mysql_drv=yes
+    storage_drv_subdirs="$storage_drv_subdirs tools.mysql_drv"
 fi
 
-if test x"$storagedrv" = xpgsql_drv
+if test x"$drv" = xpgsql_drv
 then
     DS_PGSQL(PGSQL_CPPFLAGS, PGSQL_LDFLAGS, PGSQL_LIBS,
              [success=yes], [success=no])
@@ -985,24 +967,17 @@ then
     then
         AC_MSG_ERROR([Required version of libpq not found])
     fi
-    CPPFLAGS="$PGSQL_CPPFLAGS $CPPFLAGS"
-    LIBS="$PGSQL_LIBS $LIBS"
-    LDFLAGS="$PGSQL_LDFLAGS $LDFLAGS"
-                                                                                
-    storage_drv_subdirs='tools.pgsql_drv'
-    storage_drv_objects='pgsql_drv.lo'      # Please note: because storage
-                                            # drives is part of libdspam,
-                                            # which builded/linked by libtool,
-                                            # then object file have `.lo'
-                                            # suffix.  In case for plain
-                                            # objects (for executables or
-                                            # non-libtool libraries)
-                                            # `$(OBJEXT)' should be used
-                                            # instead.
-    is_storagedrv_handled=yes
+    libpgsql_drv_cppflags="$PGSQL_CPPFLAGS $CPPFLAGS"
+    libpgsql_drv_libs="$PGSQL_LIBS $LIBS"
+    libpgsql_drv_ldflags="$PGSQL_LDFLAGS $LDFLAGS"
+    AC_SUBST(libpgsql_drv_cppflags)
+    AC_SUBST(libpgsql_drv_libs)
+    AC_SUBST(libpgsql_drv_ldflags)
+    pgsql_drv=yes
+    storage_drv_subdirs="$storage_drv_subdirs tools.pgsql_drv"
 fi
                                                                                 
-if test x"$storagedrv" = xora_drv
+if test x"$drv" = xora_drv
 then
     DS_ORACLE(ORACLE_CPPFLAGS, ORACLE_LDFLAGS, ORACLE_LIBS,
               [success=yes], [success=no])
@@ -1010,24 +985,17 @@ then
     then
         AC_MSG_ERROR([Required version of libclntsh not found])
     fi
-    CPPFLAGS="$ORACLE_CPPFLAGS $CPPFLAGS"
-    LIBS="$ORACLE_LIBS $LIBS"
-    LDFLAGS="$ORACLE_LDFLAGS $LDFLAGS"
-
-    storage_drv_subdirs='tools.ora_drv'
-    storage_drv_objects='ora_drv.lo'       # Please note: because storage
-                                            # drives is part of libdspam,
-                                            # which builded/linked by libtool,
-                                            # then object file have `.lo'
-                                            # suffix.  In case for plain
-                                            # objects (for executables or
-                                            # non-libtool libraries)
-                                            # `$(OBJEXT)' should be used
-                                            # instead.
-    is_storagedrv_handled=yes
+    libora_drv_cppflags="$ORACLE_CPPFLAGS $CPPFLAGS"
+    libora_drv_libs="$ORACLE_LIBS $LIBS"
+    libora_drv_ldflags="$ORACLE_LDFLAGS $LDFLAGS"
+    AC_SUBST(libora_drv_cppflags)
+    AC_SUBST(libora_drv_libs)
+    AC_SUBST(libora_drv_ldflags)
+    ora_drv=yes
+    storage_drv_subdirs="$storage_drv_subdirs tools.ora_drv"
 fi
 
-if test x"$storagedrv" = xsqlite_drv
+if test x"$drv" = xsqlite_drv
 then
     DS_SQLITE(SQLITE_CPPFLAGS, SQLITE_LDFLAGS, SQLITE_LIBS,
               [sqlite_version_major], [], [],
@@ -1041,24 +1009,17 @@ then
         AC_MSG_ERROR([Version mismatch: sqlite_drv requires libsqlite version 2])
     fi
 
-    CPPFLAGS="$SQLITE_CPPFLAGS $CPPFLAGS"
-    LIBS="$SQLITE_LIBS $LIBS"
-    LDFLAGS="$SQLITE_LDFLAGS $LDFLAGS"
-                                                                                
-    storage_drv_subdirs='tools.sqlite_drv'
-    storage_drv_objects='sqlite_drv.lo'     # Please note: because storage
-                                            # drives is part of libdspam,
-                                            # which builded/linked by libtool,
-                                            # then object file have `.lo'
-                                            # suffix.  In case for plain
-                                            # objects (for executables or
-                                            # non-libtool libraries)
-                                            # `$(OBJEXT)' should be used
-                                            # instead.
-    is_storagedrv_handled=yes
+    libsqlite_drv_cppflags="$SQLITE_CPPFLAGS $CPPFLAGS"
+    libsqlite_drv_libs="$SQLITE_LIBS $LIBS"
+    libsqlite_drv_ldflags="$SQLITE_LDFLAGS $LDFLAGS"
+    AC_SUBST(libsqlite_drv_cppflags)
+    AC_SUBST(libsqlite_drv_libs)
+    AC_SUBST(libsqlite_drv_ldflags)
+    sqlite_drv=yes
+    storage_drv_subdirs="$storage_drv_subdirs tools.sqlite_drv"
 fi
 
-if test x"$storagedrv" = xsqlite3_drv
+if test x"$drv" = xsqlite3_drv
 then
     DS_SQLITE3(SQLITE3_CPPFLAGS, SQLITE3_LDFLAGS, SQLITE3_LIBS,
               [sqlite_version_major], [], [],
@@ -1072,30 +1033,34 @@ then
         AC_MSG_ERROR([Version mismatch: sqlite3_drv requires libsqlite version 3])
     fi
 
-    CPPFLAGS="$SQLITE3_CPPFLAGS $CPPFLAGS"
-    LIBS="$SQLITE3_LIBS $LIBS"
-    LDFLAGS="$SQLITE3_LDFLAGS $LDFLAGS"
-
-    storage_drv_subdirs='tools.sqlite_drv'
-    storage_drv_objects='sqlite3_drv.lo'    # Please note: because storage
-                                            # drives is part of libdspam,
-                                            # which builded/linked by libtool,
-                                            # then object file have `.lo'
-                                            # suffix.  In case for plain
-                                            # objects (for executables or
-                                            # non-libtool libraries)
-                                            # `$(OBJEXT)' should be used
-                                            # instead.
-    is_storagedrv_handled=yes
+    libsqlite3_drv_cppflags="$SQLITE3_CPPFLAGS $CPPFLAGS"
+    libsqlite3_drv_libs="$SQLITE3_LIBS $LIBS"
+    libsqlite3_drv_ldflags="$SQLITE3_LDFLAGS $LDFLAGS"
+    AC_SUBST(libsqlite_drv_cppflags)
+    AC_SUBST(libsqlite_drv_libs)
+    AC_SUBST(libsqlite_drv_ldflags)
+    sqlite3_drv=yes
+    storage_drv_subdirs="$storage_drv_subdirs tools.sqlite3_drv"
 fi
+done
 
+AM_CONDITIONAL([BUILD_DB4_DRV], [ test x"$db4_drv" = xyes ])
+AM_CONDITIONAL([BUILD_DB3_DRV], [ test x"$db3_drv" = xyes ])
+AM_CONDITIONAL([BUILD_CSS_DRV], [ test x"$css_drv" = xyes ])
+AM_CONDITIONAL([BUILD_ORA_DRV], [ test x"$ora_drv" = xyes ])
+AM_CONDITIONAL([BUILD_SQLITE_DRV], [ test x"$sqlite_drv" = xyes ])
+AM_CONDITIONAL([BUILD_SQLITE3_DRV], [ test x"$sqlite3_drv" = xyes ])
+AM_CONDITIONAL([BUILD_MYSQL_DRV], [ test x"$mysql_drv" = xyes ])
+AM_CONDITIONAL([BUILD_PGSQL_DRV], [ test x"$pgsql_drv" = xyes ])
 
-if test x"$is_storagedrv_handled" != xyes
+AC_SUBST(storage_drv_subdirs)
+
+if test x"$storage_drv_subdirs" == x
 then
-    AC_MSG_ERROR([unknown storage driver requested: $storagedrv])
+    AC_MSG_ERROR([no valid storage drivers specified])
 fi
 
-if test x"$enable_daemon" = xyes && test x"$storagedrv" != xmysql_drv && test x"$storagedrv" != xpgsql_drv
+if test x"$enable_daemon" = xyes && test x"$mysql_drv" != xyes && test x"$pgsql_drv" != xyes
 then
   AC_MSG_ERROR([daemon mode requires one of the following storage drivers: mysql_drv pgsql_drv])
 fi

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.189 2005/08/23 13:47:12 jonz Exp $ */
+/* $Id: dspam.c,v 1.190 2005/08/28 01:35:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -221,7 +221,7 @@ main (int argc, char *argv[])
 
   /* Primary (non-client) processing procedure */
 
-  libdspam_init();
+  libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
  
   if (dspam_init_driver (NULL))
   {
@@ -3756,7 +3756,8 @@ int daemon_start(AGENT_CTX *ATX) {
   __num_threads = 0;
   __hup = 0;
   pthread_mutex_init(&__lock, NULL);
-  libdspam_init();
+  libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
+
   LOG(LOG_INFO, INFO_DAEMON_START);
 
   while(__daemon_run) {

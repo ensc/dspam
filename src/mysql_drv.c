@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.50 2005/08/15 12:31:41 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.51 2005/08/28 01:35:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -2758,8 +2758,7 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
     file = fopen (filename, "r");
     if (file == NULL)
     {
-      LOG (LOG_WARNING, "unable to open %s for reading: %s",
-           filename, strerror (errno));
+      LOG (LOG_WARNING, "unable to locate mysql configuration");
       goto FAILURE;
     }
   

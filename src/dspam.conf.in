@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.44 2005/08/15 12:31:41 jonz Exp $
+## $Id: dspam.conf.in,v 1.45 2005/08/28 01:35:50 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -6,6 +6,20 @@
 # DSPAM Home: Specifies the base directory to be used for DSPAM storage
 #
 Home @dspam_home@
+
+#
+# StorageDriver: Specifies the storage driver backend (library) to use.
+# Options include:
+#
+#   libmysql_drv.so     libpgsql_drv.so   libsqlite_drv.so
+#   libsqlite3_drv.so   libora_drv.so     libdb4_drv.so
+#   libdb3_drv.so       libcss_drv.so
+#
+# IMPORTANT: Switching storage drivers requires more than merely changing
+# this option. If you do not wish to lose all of your data, you will need to
+# migrate it to the new backend before making this change.
+#
+StorageDriver @dspam_home@/@storage_driver@
 
 #
 # Trusted Delivery Agent: Specifies the local delivery agent DSPAM should call 

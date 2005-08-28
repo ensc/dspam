@@ -1,4 +1,4 @@
-/* $Id: dspam_merge.c,v 1.8 2005/04/25 13:05:48 jonz Exp $ */
+/* $Id: dspam_merge.c,v 1.9 2005/08/28 01:35:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -57,7 +57,7 @@ main (int argc, char **argv)
   struct nt_c c_nt;
   struct _ds_storage_record *token;
   struct _ds_spam_stat s;
-  ds_diction_t merge;
+  ds_diction_t merge = NULL;
   DSPAM_CTX *CTX, *MTX;
   long i;
 #ifndef _WIN32
@@ -81,12 +81,14 @@ main (int argc, char **argv)
     exit(EXIT_FAILURE);
   }
                                                                                 
+  libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
+
 #ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
   if (!_ds_match_attribute(agent_config, "Trust", p->pw_name) && p->pw_uid) {
     fprintf(stderr, ERR_TRUSTED_MODE "\n");
     _ds_destroy_config(agent_config);
-    exit(EXIT_FAILURE);
+    goto bail;
   }
 #endif
 #endif
@@ -95,7 +97,7 @@ main (int argc, char **argv)
   {
     printf ("%s\n", TSYNTAX);
     _ds_destroy_config(agent_config);
-    exit(EXIT_FAILURE);
+    goto bail;
   }
 
   open_ctx = open_mtx = NULL;
@@ -219,6 +221,7 @@ main (int argc, char **argv)
   open_ctx = NULL;
   dspam_shutdown_driver (NULL);
   _ds_destroy_config(agent_config);
+  libdspam_shutdown();
   exit (EXIT_SUCCESS);
 
 bail:
@@ -230,6 +233,7 @@ bail:
   nt_destroy(users);
   ds_diction_destroy(merge);
   _ds_destroy_config(agent_config);
+  libdspam_shutdown();
   exit (EXIT_FAILURE);
 }
 

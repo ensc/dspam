@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.18 2005/05/12 00:56:28 jonz Exp $ */
+/* $Id: dspam_clean.c,v 1.19 2005/08/28 01:35:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -96,6 +96,8 @@ main (int argc, char *argv[])
     goto bail;
   }
                                                                                 
+  libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
+
 #ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
   if (!_ds_match_attribute(agent_config, "Trust", p->pw_name) && p->pw_uid) {
@@ -193,8 +195,10 @@ main (int argc, char *argv[])
     fprintf(stderr, "%s", CLEANSYNTAX);
     _ds_destroy_config(agent_config);
     nt_destroy(users);
-    if (help) 
+    libdspam_shutdown();
+    if (help) {
       exit(EXIT_SUCCESS);
+    }
     exit(EXIT_FAILURE);
   }
       
@@ -280,6 +284,7 @@ main (int argc, char *argv[])
   dspam_shutdown_driver (NULL);
   _ds_destroy_config(agent_config);
   nt_destroy(users);
+  libdspam_shutdown();
   exit (EXIT_SUCCESS);
 
 bail:
@@ -290,6 +295,7 @@ bail:
     dspam_destroy(open_mtx);
   _ds_destroy_config(agent_config);
   nt_destroy(users);
+  libdspam_shutdown();
   exit(EXIT_FAILURE);
 }
 

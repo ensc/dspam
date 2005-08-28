@@ -1,4 +1,4 @@
-/* $Id: dspam_admin.c,v 1.13 2005/04/25 13:05:48 jonz Exp $ */
+/* $Id: dspam_admin.c,v 1.14 2005/08/28 01:35:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -85,12 +85,14 @@ main (int argc, char **argv)
     exit(EXIT_FAILURE);
   }
                                                                                 
+  libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
+
 #ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
   if (!_ds_match_attribute(agent_config, "Trust", p->pw_name) && p->pw_uid) {
     fprintf(stderr, ERR_TRUSTED_MODE "\n");     
     _ds_destroy_config(agent_config);
-    exit(EXIT_FAILURE);
+    goto BAIL;
   }
 #endif
 #endif
@@ -102,7 +104,7 @@ main (int argc, char **argv)
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
         LOG(LOG_ERR, ERR_AGENT_NO_SUCH_PROFILE, argv[i]+10);
         _ds_destroy_config(agent_config);
-        exit(EXIT_FAILURE);
+        goto BAIL;
       } else {
         _ds_overwrite_attribute(agent_config, "DefaultProfile", argv[i]+10);
       }
@@ -158,7 +160,12 @@ main (int argc, char **argv)
 
   dspam_shutdown_driver (NULL);
   _ds_destroy_config(agent_config);
+  libdspam_shutdown();
   exit (EXIT_SUCCESS);
+
+BAIL:
+  libdspam_shutdown();
+  exit(EXIT_FAILURE);
 }
 
 void

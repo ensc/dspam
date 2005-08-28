@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.22 2005/08/04 13:13:18 jonz Exp $
+# $Id: Makefile.am,v 1.23 2005/08/28 01:35:49 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -19,6 +19,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dspam.pc
 etcdir = $(sysconfdir)
 etc_SCRIPTS = dspam_conf
+libversion = 7:0:0
 
 # Defaults from dspam.conf
 
@@ -34,7 +35,35 @@ DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
        -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\"\
        -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS 
 
-lib_LTLIBRARIES = libdspam.la
+lib_LTLIBRARIES = libdspam.la 
+if BUILD_DB4_DRV
+lib_LTLIBRARIES += libdb4_drv.la
+endif
+if BUILD_DB3_DRV
+lib_LTLIBRARIES += libdb3_drv.la
+endif
+if BUILD_CSS_DRV
+lib_LTLIBRARIES += libcss_drv.la
+endif
+if BUILD_ORA_DRV
+lib_LTLIBRARIES += libora_drv.la
+endif
+if BUILD_MYSQL_DRV
+lib_LTLIBRARIES += libmysql_drv.la
+endif
+if BUILD_PGSQL_DRV
+lib_LTLIBRARIES += libpgsql_drv.la
+endif
+if BUILD_SQLITE_DRV
+lib_LTLIBRARIES += libsqlite_drv.la
+endif
+if BUILD_SQLITE3_DRV
+lib_LTLIBRARIES += libsqlite3_drv.la
+endif
+
+#EXTRA_LTLIBRARIES = libdb4_drv.la libdb3_drv.la libmysql_drv.la \
+#                    libpgsql_drv.la libsqlite_drv.la libsqlite3_drv.la \
+#                    libora_drv.la libcss_drv.la
 bin_PROGRAMS = dspam dspamc
 
 # installed for libdspam
@@ -54,33 +83,82 @@ libdspam_la_SOURCES = \
 	nodetree.c nodetree.h \
         error.c error.h \
 	decode.c decode.h \
-	storage_driver.h \
 	pref.c pref.h \
 	config_shared.c config_shared.h \
 	bnr.c bnr.h \
 	hash.c hash.h \
 	list.c list.h \
-	ldap_client.c ldap_client.h
- 
-libdspam_la_LIBADD = $(storage_drv_objects) $(adapter_objects)
+	ldap_client.c ldap_client.h \
+	storage_driver.c storage_driver.h
+if BUILD_NCORE
+libdspam_la_SOURCES += ncore_adp.c ncore_adp.h
+endif
+
+libdspam_la_LIBADD = $(adapter_objects)
 libdspam_la_LIBADD += -lm $(NETLIBS) $(NCORELIBS)
-libdspam_la_DEPENDENCIES = $(storage_drv_objects) $(adapter_objects)
-
-EXTRA_libdspam_la_SOURCES = \
-	libdb4_drv.c libdb4_drv.h \
-	libdb3_drv.c libdb3_drv.h \
-	mysql_drv.c mysql_drv.h \
-	pgsql_drv.c pgsql_drv.h \
-        ora_drv.c ora_drv.h \
-	sqlite_drv.c sqlite_drv.h \
-	sqlite3_drv.c sqlite3_drv.h \
-	css_drv.c css_drv.h
-# extend and uncomment for NodalCore(tm) builds
-#	ncore_adp.cpp ncore_adp.h
-
-# Libtools veriooning scheme is:
+libdspam_la_DEPENDENCIES = $(adapter_objects)
 #   current:revision:age
-libdspam_la_LDFLAGS = -version-info 7:0:0
+libdspam_la_LDFLAGS = -rpath '$(libdir)' -version-info $(libversion)
+
+libdb4_drv_la_SOURCES = \
+	libdb4_drv.c libdb4_drv.h 
+libdb4_drv_la_LIBADD = $(libdb4_drv_libs)
+libdb4_drv_la_CPPFLAGS = $(libdb4_drv_cppflags)
+libdb4_drv_la_LDFLAGS = $(libdb4_drv_ldflags)
+libdb4_drv_la_LDFLAGS += -version-info $(libversion)
+libdb4_drv_la_DEPENDENCIES =
+
+libdb3_drv_la_SOURCES = \
+        libdb3_drv.c libdb3_drv.h
+libdb3_drv_la_LIBADD = $(libdb3_drv_libs)
+libdb3_drv_la_CPPFLAGS = $(libdb3_drv_cppflags)
+libdb3_drv_la_LDFLAGS = $(libdb3_drv_ldflags)
+libdb3_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
+libdb3_drv_la_DEPENDENCIES =
+
+libmysql_drv_la_SOURCES = \
+	mysql_drv.c mysql_drv.h 
+libmysql_drv_la_LIBADD = $(libmysql_drv_libs)
+libmysql_drv_la_CPPFLAGS = $(libmysql_drv_cppflags)
+libmysql_drv_la_LDFLAGS = $(libmysql_drv_ldflags)
+libmysql_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion) 
+libmysql_drv_la_DEPENDENCIES =
+
+libpgsql_drv_la_SOURCES = \
+	pgsql_drv.c pgsql_drv.h 
+libpgsql_drv_la_LIBADD = $(libpgsql_drv_libs)
+libpgsql_drv_la_CPPFLAGS = $(libpgsql_drv_cppflags)
+libpgsql_drv_la_LDFLAGS = $(libpgsql_drv_ldflags)
+libpgsql_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
+libpgsql_drv_la_DEPENDENCIES =
+
+libora_drv_la_SOURCES = \
+        ora_drv.c ora_drv.h 
+libora_drv_la_LIBADD = $(libora_drv_libs)
+libora_drv_la_CPPFLAGS = $(libora_drv_cppflags)
+libora_drv_la_LDFLAGS = $(libora_drv_ldflags)
+libora_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
+libora_drv_la_DEPENDENCIES =
+
+libsqlite_drv_la_SOURCES = \
+	sqlite_drv.c sqlite_drv.h 
+libsqlite_drv_la_LIBADD = $(libsqlite_drv_libs)
+libsqlite_drv_la_CPPFLAGS = $(libsqlite_drv_cppflags)
+libsqlite_drv_la_LDFLAGS = $(libsqlite_drv_ldflags)
+libsqlite_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
+libsqlite_drv_la_DEPENDENCIES =
+
+libsqlite3_drv_la_SOURCES = \
+	sqlite3_drv.c sqlite3_drv.h 
+libsqlite3_drv_la_LIBADD = $(libsqlite3_drv_libs)
+libsqlite3_drv_la_CPPFLAGS = $(libsqlite3_drv_cppflags)
+libsqlite3_drv_la_LDFLAGS = $(libsqlite3_drv_ldflags)
+libsqlite3_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
+libsqlite3_drv_la_DEPENDENCIES =
+
+libcss_drv_la_SOURCES = \
+	css_drv.c css_drv.h
+libcss_drv_la_LDFLAGS = -rpath '$(libdir)' -version-info $(libversion)
 
 dspam_SOURCES = \
         config.h libdspam.h language.h \
@@ -168,7 +246,8 @@ ACLOCAL_AMFLAGS = -I m4
 sed_substitute_variables = \
         dspam_transformed=`echo dspam | sed '$(transform)'`; \
         sed -e 's,@dspam_home\@,$(dspam_home),g' \
-            -e 's,@delivery_agent\@,$(delivery_agent),g' 
+            -e 's,@delivery_agent\@,$(delivery_agent),g' \
+            -e 's,@storage_driver\@,lib$(active_driver).so,g'
 
 dspam_conf: dspam.conf.in Makefile
 	${sed_substitute_variables} < $(srcdir)/dspam.conf.in > dspam.conf
