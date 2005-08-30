@@ -1,7 +1,14 @@
-$Id: CHANGELOG,v 1.336 2005/08/28 04:11:06 jonz Exp $
+$Id: CHANGELOG,v 1.337 2005/08/30 18:45:34 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050830.1500] jonz: RCPT TO and Broken Case bugfix
+
+fixed a bug where Broken Case wasn't working when in LMTP RCPT mode
+
+Version 3.6.beta.2
+------------------
 
 [20050827.2130] jonz: dynamic storage driver library support
 

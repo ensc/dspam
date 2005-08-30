@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.102 2005/05/27 18:34:00 jonz Exp $ */
+/* $Id: daemon.c,v 1.103 2005/08/30 18:45:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -571,6 +571,10 @@ void *process_connection(void *ptr) {
           daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERR_LMTP_BAD_RCPT);
           goto GETCMD;
         }
+
+
+        if (_ds_match_attribute(agent_config, "Broken", "case"))
+          lc(username, username);
 
         if (server_mode == SSM_DSPAM) {
           nt_add(ATX->users, username);
