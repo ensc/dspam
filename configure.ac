@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.38 2005/09/02 00:26:26 jonz Exp $
+dnl $Id: configure.ac,v 1.39 2005/09/02 00:36:22 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -1043,7 +1043,7 @@ then
     AC_SUBST(libsqlite_drv_libs)
     AC_SUBST(libsqlite_drv_ldflags)
     sqlite3_drv=yes
-    storage_drv_subdirs="$storage_drv_subdirs tools.sqlite3_drv"
+    storage_drv_subdirs="$storage_drv_subdirs tools.sqlite_drv"
 fi
 done
 

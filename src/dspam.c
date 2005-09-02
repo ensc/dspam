@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.192 2005/09/02 00:25:56 jonz Exp $ */
+/* $Id: dspam.c,v 1.193 2005/09/02 00:36:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -3652,14 +3652,13 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   if (!dspam_getsource (CTX, ip, sizeof (ip))) {
     host[0] = 0;
     ptr = strtok(ip, ".");
-    while(ptr != NULL && i>=0) {
+    while(ptr != NULL && i>=0 && i<4) {
       octet[i] = ptr;
       ptr = strtok(NULL, ".");
+      if (ptr == NULL && i<4)
+        return EFAILURE; 
       i--;
     }
-
-    if (octet[0] == 0) 
-      return EFAILURE;
 
       snprintf(host, sizeof(host), "%s.%s.%s.%s.", 
              octet[0], octet[1], octet[2], octet[3]);
