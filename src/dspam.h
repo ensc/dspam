@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.31 2005/08/23 04:01:14 jonz Exp $ */
+/* $Id: dspam.h,v 1.32 2005/09/04 00:11:57 jonz Exp $ */
 
 /*
  DSPAM
@@ -41,7 +41,8 @@
 
 int deliver_message (AGENT_CTX *ATX, const char *message, 
     const char *mailer_args, const char *username, FILE *out, int result);
-int process_message (AGENT_CTX *ATX, buffer *message, const char *username);
+int process_message (AGENT_CTX *ATX, buffer *message, const char *username,
+     char **result_string);
 int inoculate_user  (AGENT_CTX *ATX, const char *username, 
     struct _ds_spam_signature *SIG, const char *message);
 int user_classify   (AGENT_CTX *ATX, const char *username,

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.193 2005/09/02 00:36:22 jonz Exp $ */
+/* $Id: dspam.c,v 1.194 2005/09/04 00:11:57 jonz Exp $ */
 
 /*
  DSPAM
@@ -307,7 +307,8 @@ int
 process_message (
   AGENT_CTX *ATX, 
   buffer * message, 
-  const char *username)
+  const char *username,
+  char **result_string)
 {
   DSPAM_CTX *CTX = NULL;		/* (lib)dspam context */
   ds_message_t components;
@@ -790,6 +791,8 @@ process_message (
   }
 
   ATX->learned = CTX->learned;
+  if (result_string)
+    *result_string = strdup(CTX->class);
 
 RETURN:
   if (have_signature)
@@ -1732,11 +1735,12 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
     else
     { 
-      result = process_message (ATX, parse_message, username);
+      char *result_string;
+      result = process_message (ATX, parse_message, username, &result_string);
       presult->classification = result;
 
 #ifdef CLAMAV
-      if (!strcmp(CTX->class, LANG_CLASS_VIRUS)) {
+      if (!strcmp(result_string, LANG_CLASS_VIRUS)) {
         if (_ds_match_attribute(agent_config, "ClamAVResponse", "reject")) {
           presult->classification = DSR_ISSPAM;
           presult->exitcode = ERC_PERMANENT_DELIVERY;
@@ -1756,6 +1760,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
         }
       }
 #endif
+      free(result_string);
 
       /* Exit code 99 for spam (when using broken return codes) */
 
@@ -1831,7 +1836,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
               ATX->classification = result;
               ATX->source = DSS_ERROR;
               ATX->flags |= DAF_UNLEARN;
-              process_message (ATX, parse_message, username);
+              process_message (ATX, parse_message, username, NULL);
             }
 
           }
@@ -1911,7 +1916,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                 ATX->classification = result;
                 ATX->source = DSS_ERROR;
                 ATX->flags |= DAF_UNLEARN;
-                process_message (ATX, parse_message, username);
+                process_message (ATX, parse_message, username, NULL);
               }
             }
           }
@@ -1940,7 +1945,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
               ATX->classification = result;
               ATX->source = DSS_ERROR;
               ATX->flags |= DAF_UNLEARN;
-              process_message (ATX, parse_message, username);
+              process_message (ATX, parse_message, username, NULL);
             }
           }
         }
