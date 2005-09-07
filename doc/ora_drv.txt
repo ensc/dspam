@@ -1,4 +1,4 @@
-$Id: ora_drv.txt,v 1.3 2005/04/25 13:05:48 jonz Exp $
+$Id: ora_drv.txt,v 1.4 2005/09/07 12:46:13 jonz Exp $
 
 ora_drv: Oracle storage driver for DSPAM <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -81,7 +81,7 @@ don't actually exist on your system), also run virtual_users.sql.
 CREATING A CONNECT DATA FILE
 
 ora_drv needs to know how to connect to your Oracle database. You'll need to
-specify this in dspam.conf. An example is already prevent in the file:
+specify this in dspam.conf. An example is already present in the file:
 
 OraServer       (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SID=PROD)))
 OraUser         dspam
