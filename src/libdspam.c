@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.117 2005/08/28 04:11:06 jonz Exp $ */
+/* $Id: libdspam.c,v 1.118 2005/09/07 18:37:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -86,8 +86,8 @@ void *_drv_handle;
 #define CHI_S   0.1     /* Strength */
 #define CHI_X   0.5000  /* Assumed Probability */
 
-#define	C1	16.0	/* Markov C1 */
-#define C2	1.0	/* Markov C2 */
+#define	C1	16	/* Markov C1 */
+#define C2	1	/* Markov C2 */
 
 #ifdef DEBUG
 int DO_DEBUG = 0;
@@ -524,12 +524,11 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
      (CTX->training_mode  == DST_NOTRAIN &&
       CTX->operating_mode == DSM_PROCESS &&
       CTX->classification == DSR_NONE)     ||
-     (CTX->algorithms  & DSP_MARKOV      &&
+     ((CTX->algorithms  & DSP_MARKOV)      &&
       CTX->training_mode == DST_TOE      &&
       CTX->classification == DSR_NONE    &&
-      CTX->operating_mode == DSM_PROCESS &&
-      CTX->totals.innocent_learned > 0   &&
-      CTX->totals.spam_learned > 0))
+      CTX->operating_mode == DSM_PROCESS 
+  ))
   {
     CTX->operating_mode = DSM_CLASSIFY;
     is_toe = 1;
@@ -546,9 +545,6 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
       CTX->operating_mode = DSM_PROCESS;
     return i;
   }
-
-  /* From this point on, logic assumes that there will be no signature-based
-     training (as it was forked off from the above call) */
 
   header = buffer_create (NULL);
   body   = buffer_create (NULL);
@@ -579,6 +575,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   CTX->result = DSR_NONE;
 
   /* Perform statistical operations and get a classification result */
+
+  /* SBPH loads text-based signatures */
 
   if (CTX->flags & DSF_SBPH &&
       CTX->operating_mode != DSM_CLASSIFY && 
@@ -1619,8 +1617,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       else if (SPAM_MISS(CTX))
       {
         CTX->totals.spam_misclassified++;
-        CTX->totals.innocent_learned -=
-          (CTX->totals.innocent_learned > 0) ? 1 : 0;
+        if (CTX->training_mode != DST_TOE) {
+          CTX->totals.innocent_learned -=
+            (CTX->totals.innocent_learned > 0) ? 1 : 0;
+        }
       }
     }
 
@@ -1644,7 +1644,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         CTX->totals.innocent_learned -= (CTX->totals.innocent_learned >0) ? 1:0;
       } else {
         CTX->totals.innocent_misclassified++;
-        CTX->totals.spam_learned -= (CTX->totals.spam_learned > 0) ? 1 : 0;
+        if (CTX->training_mode != DST_TOE) {
+          CTX->totals.spam_learned -= (CTX->totals.spam_learned > 0) ? 1 : 0;
+        }
       }
     }
   }
@@ -1725,13 +1727,18 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       {
         if (CTX->flags & DSF_UNLEARN) {
           if (CTX->classification == DSR_ISSPAM)
+          {
             ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
+          }
         } else {
           ds_term->s.spam_hits++;
         }
       }
 
-      if (SPAM_MISS(CTX) && !(CTX->flags & DSF_UNLEARN)) { 
+      if (SPAM_MISS(CTX) && 
+          !(CTX->flags & DSF_UNLEARN) && 
+          CTX->training_mode != DST_TOE) 
+      { 
         ds_term->s.innocent_hits-= 1;
       }
     }
@@ -1741,14 +1748,17 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     {
       if (CTX->flags & DSF_UNLEARN) { 
         if (CTX->classification == DSR_ISINNOCENT)
+        {
           ds_term->s.innocent_hits-= (ds_term->s.innocent_hits>0) ? 1:0;
+        }
       } else {
         ds_term->s.innocent_hits++;
       }
 
-      if (FALSE_POSITIVE(CTX) && !(CTX->flags & DSF_UNLEARN))
+      if (FALSE_POSITIVE(CTX)         && 
+          !(CTX->flags & DSF_UNLEARN) && 
+          CTX->training_mode != DST_TOE)
       {
-
         ds_term->s.spam_hits-= 1;
       }
     }
@@ -1849,7 +1859,9 @@ _ds_process_signature (DSPAM_CTX * CTX)
         CTX->totals.innocent_misclassified++;
         if ((CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 2500)
             && CTX->training_mode != DST_NOTRAIN)
+        {
           CTX->totals.spam_learned -= (CTX->totals.spam_learned > 0) ? 1:0;
+        }
       } else {
         CTX->totals.innocent_corpusfed++;
       }
@@ -1868,8 +1880,10 @@ _ds_process_signature (DSPAM_CTX * CTX)
       if (CTX->source == DSS_ERROR) {
         CTX->totals.spam_misclassified++;
         if ((CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 2500)
-          && CTX->training_mode != DST_NOTRAIN)
+          && CTX->training_mode != DST_NOTRAIN) 
+        {
           CTX->totals.innocent_learned -= (CTX->totals.innocent_learned > 0) ? 1:0;
+        }
       } else {
         CTX->totals.spam_corpusfed++;
       }
@@ -1907,8 +1921,12 @@ _ds_process_signature (DSPAM_CTX * CTX)
         ds_term->s.innocent_hits-= (ds_term->s.innocent_hits>0) ? 1:0;
       } else {
         ds_term->s.innocent_hits++;
-        if (CTX->source == DSS_ERROR && CTX->training_mode != DST_NOTRAIN)
+        if (CTX->source == DSS_ERROR          && 
+            CTX->training_mode != DST_NOTRAIN && 
+            CTX->training_mode != DST_TOE)
+        {
           ds_term->s.spam_hits -= (ds_term->s.spam_hits > 0) ? 1 : 0;
+        }
       }
     }
 
@@ -1918,8 +1936,12 @@ _ds_process_signature (DSPAM_CTX * CTX)
       if (CTX->flags & DSF_UNLEARN) {
         ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1 :0;
       } else {
-       if (CTX->source == DSS_ERROR && CTX->training_mode != DST_NOTRAIN)
+       if (CTX->source == DSS_ERROR          && 
+           CTX->training_mode != DST_NOTRAIN && 
+           CTX->training_mode != DST_TOE)
+       {
           ds_term->s.innocent_hits -= (ds_term->s.innocent_hits > 0) ? 1 : 0;
+       }
 
         if (CTX->source == DSS_INOCULATION)
         {
@@ -2034,8 +2056,9 @@ _ds_calc_stat (
   /* Markovian Weighting */
 
   if (CTX->algorithms & DSP_MARKOV) {
-    int weight;
-
+    unsigned int weight;
+    long num, den;
+ 
     /*  some utilities don't provide the token name, and so we can't compute
      *  a probability. just return something neutral.
      */
@@ -2045,8 +2068,10 @@ _ds_calc_stat (
     }
 
     weight = _ds_compute_weight(term->name);
-    s->probability = 0.5 + (((s->spam_hits - s->innocent_hits) * weight) /
-                         (C1 * (s->spam_hits + s->innocent_hits + C2) * 256.0));
+    num = weight * (s->spam_hits - s->innocent_hits);
+    den = C1 * (s->spam_hits + s->innocent_hits + C2) * 256;
+
+    s->probability = 0.5 + ((double) num / (double) den); 
 
   /* Graham and Robinson Start Here */
 
@@ -3006,7 +3031,7 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_GRAHAM) {
       factor = factor_bayes;
-      if ((CTX->algorithms & DSP_MARKOV && bay_result > 0.5) ||
+      if ((CTX->algorithms & DSP_MARKOV && bay_result > 0.5000) ||
           (!(CTX->algorithms & DSP_MARKOV) && bay_result >= 0.9))
       {
         CTX->result = DSR_ISSPAM;
@@ -3018,7 +3043,7 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_BURTON) {
       factor = factor_altbayes;
-      if ((CTX->algorithms & DSP_MARKOV && abay_result > 0.5) ||
+      if ((CTX->algorithms & DSP_MARKOV && abay_result > 0.5000) ||
           (!(CTX->algorithms & DSP_MARKOV) && abay_result >= 0.9))
       {
         CTX->result = DSR_ISSPAM;
@@ -3032,7 +3057,7 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_ROBINSON) {
       factor = factor_rob;
-      if ((CTX->algorithms & DSP_MARKOV && rob_result > 0.5) ||
+      if ((CTX->algorithms & DSP_MARKOV && rob_result > 0.5000) ||
           (!(CTX->algorithms & DSP_MARKOV) && rob_result >= ROB_CUTOFF))
       {
         CTX->result = DSR_ISSPAM;
@@ -3047,7 +3072,7 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_CHI_SQUARE) {
      factor = factor_chi;
-     if ((CTX->algorithms & DSP_MARKOV && chi_result > 0.5) ||
+     if ((CTX->algorithms & DSP_MARKOV && chi_result > 0.5000) ||
          (!(CTX->algorithms & DSP_MARKOV) && bay_result >= CHI_CUTOFF))
      {
        CTX->result = DSR_ISSPAM;
