@@ -8,12 +8,18 @@ KEYFILE=src/libdspam.c
 # autoconf binary
 
 AUTOCONF=`which autoconf`
+LIBTOOLIZE=`which libtoolize`
 if test x"${AUTOCONF}" != x -a -f ${AUTOCONF}
 then
     AUTOCONF=autoconf
     AUTOMAKE=automake
     ACLOCAL=aclocal
-    LIBTOOLIZE=libtoolize
+    if test x"${LIBTOOLIZE}" != x -a -f "${LIBTOOLIZE}"
+    then
+      LIBTOOLIZE=libtoolize
+    else
+      LIBTOOLIZE=glibtoolize
+    fi
     AUTOHEADER=autoheader
 else
     FINDPATH=`echo ${PATH}|sed -e 's,:, ,g'` 

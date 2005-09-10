@@ -1,4 +1,4 @@
-/* $Id: css_drv.h,v 1.5 2005/07/14 14:37:28 jonz Exp $ */
+/* $Id: css_drv.h,v 1.6 2005/09/10 18:27:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -31,9 +31,9 @@
 #include "nodetree.h"
 #include "libdspam.h"
 
-/* Support up to a million tokens (16M x 2) */
+/* Number of total records (per concept) to support */
 
-#define CSS_REC_MAX	1000000
+#define CSS_REC_MAX	50000000
 
 typedef struct _css_drv_map
 {

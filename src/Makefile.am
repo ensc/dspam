@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.26 2005/08/28 21:54:23 jonz Exp $
+# $Id: Makefile.am,v 1.27 2005/09/10 18:27:47 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -89,6 +89,7 @@ libdspam_la_SOURCES = \
 	hash.c hash.h \
 	list.c list.h \
 	ldap_client.c ldap_client.h \
+        tokenizer.c tokenizer.h \
 	storage_driver.h
 
 if BUILD_NCORE

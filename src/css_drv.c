@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.12 2005/07/14 14:37:28 jonz Exp $ */
+/* $Id: css_drv.c,v 1.13 2005/09/10 18:27:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -507,6 +507,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   }
   if (rec->hashcode == 0) 
     return EFAILURE;
+
   stat->innocent_hits = rec->counter;
 
   /* Spam Counter */
@@ -526,6 +527,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   }
   if (rec->hashcode == 0) 
     return EFAILURE;
+
   stat->spam_hits = rec->counter;
 
   return 0;

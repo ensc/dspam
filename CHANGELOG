@@ -1,7 +1,19 @@
-$Id: CHANGELOG,v 1.337 2005/08/30 18:45:34 jonz Exp $
+$Id: CHANGELOG,v 1.338 2005/09/10 18:27:47 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050910.1400] jonz: commandline enhancements
+
+started using --class=nonspam instead of --class=innocent, however innocent is
+still available for backward compatibility.
+
+added --deliver=stdout which is a shortcut for --deliver=innocent,spam --stdout
+
+[20050910.1400] jonz: completed markovian discrimination
+
+Completed markovian discrimination algorithms and implemented 'naive' 
+combination. Accuracy tests show significant improvement.
 
 [20050830.1500] jonz: RCPT TO and Broken Case bugfix
 

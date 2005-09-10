@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.11 2005/08/28 01:35:50 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.12 2005/09/10 18:27:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -330,6 +330,7 @@ struct _ds_config
  *	DSA_BURTON		Burton-Bayesian    
  *	DSA_ROBINSON		Robinson's Geometric Mean Test
  *	DSA_CHI_SQUARE		Fisher-Robinson's Chi-Square
+ *      DSA_NAIVE		Naive-Bayesian
  * 
  *    P-Value Computations:
  *
@@ -394,6 +395,7 @@ typedef struct
 #define DSP_ROBINSON		0x10
 #define DSP_GRAHAM		0x20
 #define DSP_MARKOV		0x40
+#define DSA_NAIVE		0x80
 
 /* Operating Modes */
 
@@ -422,8 +424,6 @@ typedef struct
 #define DSS_CORPUS      0x01 /* Training a message from corpus */
 #define DSS_INOCULATION 0x02 /* Message is an inoculation */
 #define DSS_NONE	0xFF /* Standard inbound processing */
-
-#define SBPH_SIZE	5
 
 /* Statuses for token-status bit */
 #define TST_DISK	0x01

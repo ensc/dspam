@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.54 2005/06/10 21:35:55 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.55 2005/09/10 18:27:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -336,7 +336,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       char *ptr = strchr(argv[i], '=')+1;
       if (!strcmp(ptr, "spam"))
         ATX->classification = DSR_ISSPAM;
-      else if (!strcmp(ptr, "innocent"))
+      else if (!strcmp(ptr, "innocent") || !strcmp(ptr, "nonspam"))
         ATX->classification = DSR_ISINNOCENT;
       else
       {
@@ -388,9 +388,14 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 
       ptr = strtok_r(dup, ",", &ptrptr);
       while(ptr != NULL) {
+        if (!strcmp(ptr, "stdout")) {
+          ATX->flags |= DAF_DELIVER_SPAM;
+          ATX->flags |= DAF_DELIVER_INNOCENT;
+          ATX->flags |= DAF_STDOUT; 
+        }
         if (!strcmp(ptr, "spam")) 
           ATX->flags |= DAF_DELIVER_SPAM;
-        else if (!strcmp(ptr, "innocent"))
+        else if (!strcmp(ptr, "innocent") || !strcmp(ptr, "nonspam"))
           ATX->flags |= DAF_DELIVER_INNOCENT;
         else if (!strcmp(ptr, "summary"))
           ATX->flags |= DAF_SUMMARY;

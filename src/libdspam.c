@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.118 2005/09/07 18:37:44 jonz Exp $ */
+/* $Id: libdspam.c,v 1.119 2005/09/10 18:27:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -86,7 +86,7 @@ void *_drv_handle;
 #define CHI_S   0.1     /* Strength */
 #define CHI_X   0.5000  /* Assumed Probability */
 
-#define	C1	16	/* Markov C1 */
+#define	C1	8	/* Markov C1 */
 #define C2	1	/* Markov C2 */
 
 #ifdef DEBUG
@@ -519,8 +519,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   /* Set TOE mode if data is mature enough */
   if ((CTX->training_mode == DST_TOE     &&
       CTX->operating_mode == DSM_PROCESS &&
-      CTX->classification == DSR_NONE    &&
-      CTX->totals.innocent_learned > 100) || 
+      CTX->classification == DSR_NONE) ||
      (CTX->training_mode  == DST_NOTRAIN &&
       CTX->operating_mode == DSM_PROCESS &&
       CTX->classification == DSR_NONE)     ||
@@ -727,21 +726,8 @@ dspam_getsource (
 int
 _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 {
-  char *token;				/* current token */
-  char joined_token[32];		/* used for de-obfuscating tokens */
-  char *previous_token = NULL;		/* used for chained tokens */
-  char *previous_tokens[SBPH_SIZE];	/* used for sbph chaining */
-#ifdef NCORE
-  nc_strtok_t NTX;
-#endif
-
-  char *line = NULL;			/* header broken up into lines */
-  char *url_body;			/* urls broken up */
-
-  char heading[128];			/* current heading */
-  int alloc_joined = 0;			/* track joined token free()'s */
-  int i = 0;
   int errcode = 0;
+  int i;
 
   /* Create our diction (lexical data in message) and patterns */
 
@@ -756,10 +742,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   ds_heap_t heap_nobnr = NULL;
 #endif
 
-  struct nt *header = NULL;      /* Header array */
   struct nt_node *node_nt;
   struct nt_c c_nt;
-  long body_length = 0;
 
   unsigned long long whitelist_token = 0;
   int do_whitelist = 0;
@@ -804,17 +788,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     strcat(CTX->signature->data, "\001");
     strcat(CTX->signature->data, body);
   }
-
-  if (body != NULL)
-    body_length = strlen(body);
-
-  /* Zero out sbph chain */
-
-  if (CTX->flags & DSF_SBPH)
-    for(i=0;i<SBPH_SIZE;i++)
-      previous_tokens[i] = NULL;
-    
-  joined_token[0] = 0;
 
   if (!diction || !bnr_patterns)
   {
@@ -865,351 +838,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   else
   {
-    char *ptrptr;
-
-    header = nt_create (NT_CHAR);
-    if (header == NULL)
-    {
-      LOG (LOG_CRIT, ERR_MEM_ALLOC);
-      errcode = EUNKNOWN;
-      goto bail;
+    if (_ds_tokenize(CTX, headers, body, diction)) {
+      LOG(LOG_CRIT, "tokenizer failed");
     }
-
-    /* HEADER: Split up the text into tokens, include heading */
-    line = strtok_r (headers, "\n", &ptrptr);
-
-    while (line != NULL)
-    {
-      nt_add (header, line);
-      line = strtok_r (NULL, "\n", &ptrptr);
-    }
-
-    node_nt = c_nt_first (header, &c_nt);
-    heading[0] = 0;
-    while (node_nt != NULL)
-    {
-      int is_received, multiline;
-      joined_token[0] = 0;
-      alloc_joined = 0;
-
-      if (CTX->flags & DSF_SBPH)
-        _ds_sbph_clear(previous_tokens);
-
-      line = node_nt->ptr;
-      token = strtok_r (line, ":", &ptrptr);
-      if (token != NULL && token[0] != 32 && token[0] != 9
-          && !strstr (token, " "))
-      {
-        multiline = 0;
-        strlcpy (heading, token, 128);
-        if (alloc_joined) {
-          free(previous_token);
-          alloc_joined = 0;
-        }
-        previous_token = NULL;
-        if (CTX->flags & DSF_SBPH)
-          _ds_sbph_clear(previous_tokens);
-      } else {
-        multiline = 1;
-      }
-
-#ifdef VERBOSE
-      LOGDEBUG ("Reading '%s' header from: '%s'", heading, line);
-#endif
-
-      if (CTX->flags & DSF_WHITELIST) {
-        /* Track the entire From: line for auto-whitelisting */
-
-        if (!strcmp(heading, "From")) {
-          char wl[256];
-          char *fromline = line + 5;
-
-          if (fromline[0] == 32) 
-            fromline++;
-
-          snprintf(wl, sizeof(wl), "%s*%s", heading, fromline);
-          whitelist_token = _ds_getcrc64(wl); 
-          ds_diction_touch(diction, whitelist_token, wl, 0);
-          diction->whitelist_token = whitelist_token;
-        }
-      }
-
-      is_received = (!strcmp (heading, "Received") ? 1 : 0);
-
-      if (is_received)
-        token = strtok_r ((multiline) ? line : NULL, DELIMITERS_HEADING, &ptrptr);
-      else
-        token = strtok_r ((multiline) ? line : NULL, DELIMITERS, &ptrptr);
-
-      while (token != NULL)
-      {
-        int l;
-
-        l = strlen (token);
-        if (l > 1 && l < 25)
-        {
-
-#ifdef VERBOSE
-          LOGDEBUG ("Processing '%s' token in '%s' header", token, heading);
-#endif
-
-          /* If we had to join a token together (e.g. S E X), process it */
-          if (joined_token[0] != 0)
-          {
-            if (strlen (joined_token) < 25 && joined_token[1] != 0)
-            {
-              if (!_ds_process_header_token
-                  (CTX, joined_token, previous_token, diction, heading)
-                  && (CTX->flags & DSF_CHAINED))
-              {
-                if (alloc_joined)
-                  free(previous_token);
-                alloc_joined = 1;
-                previous_token = strdup (joined_token);
-              }
-              /* Map the joined token */
-              if (CTX->flags & DSF_SBPH)
-                _ds_map_header_token (CTX, joined_token, previous_tokens, diction, heading);
-            }
-            joined_token[0] = 0;
-          }
-
-          if (!_ds_process_header_token
-              (CTX, token, previous_token, diction, heading) && 
-              (CTX->flags & DSF_CHAINED))
-          {
-            if (alloc_joined)
-            {
-              free (previous_token);
-              alloc_joined = 0;
-            }
-            previous_token = token;
-          }
-
-          /* Map the joined token */
-          if (CTX->flags & DSF_SBPH)
-            _ds_map_header_token (CTX, token, previous_tokens, diction, heading);
-        }
-        else if (l == 1
-                 || (l == 2 && (strchr (token, '$') || strchr (token, '!'))))
-        {
-          strlcat (joined_token, token, sizeof (joined_token));
-        }
-
-        if (is_received)
-          token = strtok_r (NULL, DELIMITERS_HEADING, &ptrptr);
-        else
-          token = strtok_r (NULL, DELIMITERS, &ptrptr);
-      }
-      node_nt = c_nt_next (header, &c_nt);
-
-      if (joined_token[0] != 0)
-      {
-        if (strlen (joined_token) < 25 && joined_token[1] != 0)
-        {
-          _ds_process_header_token (CTX, joined_token, previous_token, diction, heading);
-          /* Map the joined token */
-          if (CTX->flags & DSF_SBPH)
-            _ds_map_header_token (CTX, joined_token, previous_tokens, diction, heading);
-        }
-      }
-
-      if (alloc_joined) {
-        free(previous_token);
-        previous_token = NULL;
-        alloc_joined = 0;
-      }
-    }
-
-    nt_destroy (header);
-
-    previous_token = NULL;
-
-    if (CTX->flags & DSF_SBPH)
-      _ds_sbph_clear(previous_tokens);
-
-    /* BODY: Split up URLs into tokens, count frequency */
-
-    if (body != NULL) 
-      url_body = strdup (body);
-    else
-      url_body = NULL;
-    if (url_body != NULL)
-    {
-      char combined_token[256];
-      char *url_ptr = url_body;
-      int url_length;
-      unsigned long long crc;
-
-      token = strcasestr (url_ptr, "http://");
-      while (token != NULL)
-      {
-        char *ptrurl;
-        char *const url_end = token + strlen(token);
-
-        url_ptr = token;
-
-        token = strtok_r (token, " \n\">", &ptrurl);
-        if (token != NULL)
-        {
-          char *urltoken;
-          char *ptrurl2;
-          url_length = strlen (token);
-
-          /* Individual tokens form the URL */
-          urltoken = strtok_r (token, DELIMITERS, &ptrurl2);
-          while (urltoken != NULL)
-          {
-            snprintf (combined_token, sizeof (combined_token), "Url*%s",
-                      urltoken);
-            crc = _ds_getcrc64 (combined_token);
-            ds_diction_touch(diction, crc, combined_token, 0);
-            urltoken = strtok_r (NULL, DELIMITERS, &ptrurl2);
-          }
-
-          memset (body + (url_ptr - url_body), 32, url_length);
-          url_ptr += url_length + 1;
-	  if (url_ptr >= url_end)
-            token = NULL;
-	  else
-            token = strcasestr (url_ptr, "http://");
-        }
-        else
-          token = NULL;
-      }
-      free (url_body);
-    }
-
-    if (body != NULL)
-      url_body = strdup (body);
-    else
-      url_body = NULL;
-    if (url_body != NULL)
-    {
-      char combined_token[256];
-      char *url_ptr = url_body;
-      int url_length;
-      unsigned long long crc;
-
-      url_ptr = url_body;
-      token = strcasestr (url_ptr, "href=\"");
-      while (token != NULL)
-      {
-        char *urltoken;
-        char *ptrurl;
-
-        url_ptr = token + 6;
-
-        urltoken = strtok_r (url_ptr, " \n\">", &ptrurl);
-        if (urltoken != NULL)
-        {
-          char *urlind;
-          char *ptrind;
-          url_length = strlen (urltoken);
-
-          /* Individual tokens form the URL */
-          urlind = strtok_r (urltoken, DELIMITERS, &ptrind);
-          while (urlind != NULL)
-          {
-            snprintf (combined_token, sizeof (combined_token), "Url*%s",
-                      urlind);
-            crc = _ds_getcrc64 (combined_token);
-            ds_diction_touch(diction, crc, combined_token, 0);
-            urlind = strtok_r (NULL, DELIMITERS, &ptrind);
-          }
-
-          memset (body + ((token + 6) - url_body), 32, url_length);
-
-          url_ptr += url_length + 1;
-          token = strcasestr (url_ptr, "href=\"");
-        }
-        else
-          token = NULL;
-      }
-
-      free (url_body);
-    }
-
-    /* BODY: Split up the text into tokens, count frequency */
-    joined_token[0] = 0;
-    alloc_joined = 0;
-#ifdef NCORE
-    token = strtok_n (body, &g_ncDelimiters, &NTX);
-#else
-    token = strtok_r (body, DELIMITERS, &ptrptr);
-#endif
-    while (token != NULL)
-    {
-      int l = strlen (token);
-      if (l > 1 && l < 25)
-      {
-        /* If we had to join a token together (e.g. S E X), process it */
-        if (joined_token[0] != 0)
-        {
-          if (strlen (joined_token) < 25 && joined_token[1] != 0)
-          {
-            if (!_ds_process_body_token
-                (CTX, joined_token, previous_token, diction) && 
-                (CTX->flags & DSF_CHAINED))
-            {
-              if (alloc_joined)
-                free(previous_token);
-              alloc_joined = 1;
-              previous_token = strdup (joined_token);
-            }
-                                                                                
-            /* Map joined token */
-            if (CTX->flags & DSF_SBPH)
-              _ds_map_body_token (CTX, joined_token, previous_tokens, diction);
-
-          }
-          joined_token[0] = 0;
-        }
-
-        if (!_ds_process_body_token
-            (CTX, token, previous_token, diction) && (CTX->flags & DSF_CHAINED))
-        {
-          if (alloc_joined)
-          {
-            alloc_joined = 0;
-            free (previous_token);
-          }
-          previous_token = token;
-        }
-
-        if (CTX->flags & DSF_SBPH)
-          _ds_map_body_token (CTX, token, previous_tokens, diction);
-      }
-
-      else if (l == 1
-               || (l == 2 && (strchr (token, '$') || strchr (token, '!'))))
-      {
-        strlcat (joined_token, token, sizeof (joined_token));
-      }
-#ifdef NCORE
-      token = strtok_n (NULL, NULL, &NTX);
-#else
-      token = strtok_r (NULL, DELIMITERS, &ptrptr);
-#endif
-    }
-
-
-    if (joined_token[0] != 0)
-    {
-      if (strlen (joined_token) < 25 && joined_token[1] != 0)
-      {
-        _ds_process_body_token (CTX, joined_token, previous_token, diction);
-                                                                                
-        /* Map joined token */
-        if (CTX->flags & DSF_SBPH)
-          _ds_map_body_token (CTX, joined_token, previous_tokens, diction);
-      }
-    }
-  }
-
-  if (alloc_joined) {
-    alloc_joined = 0;
-    free (previous_token), previous_token = NULL;
+    whitelist_token = diction->whitelist_token;
   }
 
   /* Load all token statistics */
@@ -1520,7 +1152,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 #endif
 
 #ifdef VERBOSE
-    LOGDEBUG ("Token: %s [%f]", ds_term->name, ds_term->s.probability);
+    LOGDEBUG ("Token: %s [%f] SH %ld IH %ld", ds_term->name, ds_term->s.probability, ds_term->s.spam_hits, ds_term->s.innocent_hits);
 #endif
 
     ds_term = ds_diction_next(ds_c);
@@ -2072,6 +1704,8 @@ _ds_calc_stat (
     den = C1 * (s->spam_hits + s->innocent_hits + C2) * 256;
 
     s->probability = 0.5 + ((double) num / (double) den); 
+    if (s->innocent_hits + s->spam_hits < 1)
+      s->probability = 0.5;
 
   /* Graham and Robinson Start Here */
 
@@ -2119,15 +1753,14 @@ _ds_calc_stat (
       else
         s->probability = 0.9998;
     }
-
 #ifdef BIAS
-  if (s->spam_hits + (2 * s->innocent_hits) < min_hits
-      || CTX->totals.innocent_learned < min_hits)
+    if (s->spam_hits + (2 * s->innocent_hits) < min_hits)
 #else
-  if (s->spam_hits + s->innocent_hits < min_hits
-      || CTX->totals.innocent_learned < min_hits)
+    if (s->spam_hits + s->innocent_hits < min_hits)
 #endif
-    s->probability = .4;
+    {
+      s->probability = (CTX->algorithms & DSP_MARKOV) ? .5000 : .4;
+    }
   }
 
   if (s->probability < 0.0001)
@@ -2144,539 +1777,6 @@ _ds_calc_stat (
     double fw = ((CHI_S * CHI_X) + (n * s->probability))/(CHI_S + n);
     s->probability = fw;
   }
-
-  return 0;
-}
-
-/*
- * _ds_{process,map}_{header,body}_token()
- *
- * DESCRIPTION
- *  Token processing and mapping functions
- *    _ds_process_header_token
- *    _ds_process_body_token
- *    _ds_map_header_token
- *    _ds_map_body_token
- *
- *  These functions are responsible to converting the input words into
- *  full blown tokens with CRCs, probabilities, and producing variants
- *  based on the tokenizer approach applied. 
- */
- 
-int
-_ds_process_header_token (DSPAM_CTX * CTX, char *token,
-                          const char *previous_token, ds_diction_t diction,
-                          const char *heading)
-{
-  int all_num = 1, i;
-  char combined_token[256];
-  int len = 0;
-  int is_received;
-  unsigned long long crc;
-  char *tweaked_token;
-
-  if (_ds_match_attribute(CTX->config->attributes, "IgnoreHeader", heading))
-    return 0;
-
-  is_received = (!strcmp (heading, "Received") ? 1 : 0);
-
-  if (is_received && strlen (token) < 6)
-    return EINVAL;
-
-  for (i = 0; token[i] != 0; i++)
-  {
-    if (!isdigit ((unsigned char) token[i]))
-      all_num = 0;
-    if (iscntrl ((unsigned char) token[i])) {
-      token[i] = 'z';
-      all_num = 0;
-    }
-  }
-
-  len = i - 1;
-
-  if (isdigit ((unsigned char) token[0]))
-  {
-    if (token[len - 1] != '%')
-      all_num = 1;
-  }
-
-  if (!(isalnum ((unsigned char) token[0]) || (unsigned char) token[0] > 127) && token[0] != '$' && token[0] != '#')
-    all_num = 1;
-
-  if (is_received)
-    all_num = 0;
-
-  /* Ignore tokens that are all numbers, or contain high ASCII characters */
-  if (all_num)
-    return EINVAL;
-
-  /* This is where we used to ignore certain headings */
-
-  if (heading[0] != 0)
-    snprintf (combined_token, sizeof (combined_token),
-              "%s*%s", heading, token);
-  else
-    strlcpy (combined_token, token, sizeof (combined_token));
-
-  tweaked_token = _ds_truncate_token(token);
-  if (tweaked_token == NULL)
-    return EUNKNOWN;
-
-  snprintf(combined_token, sizeof(combined_token), "%s*%s", heading, tweaked_token);
-
-  crc = _ds_getcrc64 (combined_token);
-#ifdef VERBOSE
-  LOGDEBUG ("Token Hit: '%s'", combined_token);
-#endif
-  ds_diction_touch(diction, crc, combined_token, 0);
-
-  if ((CTX->flags & DSF_CHAINED) && previous_token != NULL && !is_received)
-  {
-    char *tweaked_previous;
-
-    tweaked_previous = _ds_truncate_token(previous_token);
-    if (tweaked_previous == NULL)
-      return EUNKNOWN;
-
-    snprintf (combined_token, sizeof (combined_token),
-              "%s*%s+%s", heading, tweaked_previous, tweaked_token);
-    crc = _ds_getcrc64 (combined_token);
-
-    ds_diction_touch(diction, crc, combined_token, DSD_CHAINED);
-    free(tweaked_previous);
-  }
-
-  free(tweaked_token);
-  return 0;
-}
-
-int
-_ds_process_body_token (DSPAM_CTX * CTX, char *token,
-                        const char *previous_token, ds_diction_t diction)
-{
-  int all_num = 1, i;
-  char combined_token[256];
-  int len;
-  unsigned long long crc;
-  char *tweaked_token;
-
-  for (i = 0; token[i] != 0; i++)
-  {
-    if (!isdigit ((unsigned char) token[i]))
-      all_num = 0;
-    if (iscntrl ((unsigned char) token[i])) {
-      token[i] = 'z';
-      all_num = 0;
-    }
-  }
-
-  len = i - 1;
-
-  if (isdigit ((unsigned char) token[0]))
-  {
-    int l = len - 1;
-    if (token[l] != '%')
-      all_num = 1;
-  }
-
-  if (!(isalnum ((unsigned char) token[0]) || (unsigned char) token[0] > 127) && token[0] != '$' && token[0] != '#')
-    all_num = 1;
-
-  /* Ignore tokens that are all numbers, or contain high ASCII characters */
-  if (all_num)
-    return EINVAL;
-
-  tweaked_token = _ds_truncate_token(token);
-  if (tweaked_token == NULL)
-    return EUNKNOWN;
-
-  crc = _ds_getcrc64 (tweaked_token);
-
-  ds_diction_touch(diction, crc, tweaked_token, DSD_CONTEXT);
-
-  if ((CTX->flags & DSF_CHAINED) && previous_token != NULL)
-  {
-    char *tweaked_previous = _ds_truncate_token(previous_token);
-    if (tweaked_previous == NULL)
-      return EUNKNOWN;
-
-    snprintf (combined_token, sizeof (combined_token), "%s+%s",
-              tweaked_previous, tweaked_token);
-    crc = _ds_getcrc64 (combined_token);
-
-    ds_diction_touch(diction, crc, combined_token, DSD_CHAINED | DSD_CONTEXT);
-    free(tweaked_previous);
-  }
-  free(tweaked_token);
-
-  return 0;
-}
-
-
-int
-_ds_map_header_token (DSPAM_CTX * CTX, char *token,
-                      char **previous_tokens, ds_diction_t diction,
-                      const char *heading)
-{
-  int all_num = 1, i, mask, t;
-  int len;
-  unsigned long long crc;
-  char key[256];
-
-  if (_ds_match_attribute(CTX->config->attributes, "IgnoreHeader", heading))
-    return 0;
-
-  for (i = 0; token[i] != 0; i++)
-  {
-    if (!isdigit ((unsigned char) token[i]))
-      all_num = 0;
-    if (iscntrl ((unsigned char) token[i])) {
-      token[i] = 'z';
-      all_num = 0;
-    }
-  }
-
-  len = i - 1;
-
-  if (isdigit ((unsigned char) token[0]))
-  {
-    if (token[len - 1] != '%')
-      all_num = 1;
-  }
-
-  if (!(isalnum ((unsigned char) token[0]) || (unsigned char) token[0] > 127) && token[0] != '$' && token[0] != '#')
-    all_num = 1;
-
-  /* Ignore tokens that are all numbers, or contain high ASCII characters */
-  if (all_num)
-    return EINVAL;
-
-  /* Shift all previous tokens up */
-  free(previous_tokens[0]);
-  for(i=0;i<SBPH_SIZE-1;i++)
-    previous_tokens[i] = previous_tokens[i+1];
-
-  previous_tokens[SBPH_SIZE-1] = strdup (token);
-
-  /* Iterate and generate all keys necessary */
-  for(mask=0;mask < _ds_pow2(SBPH_SIZE);mask++) {
-    snprintf(key, sizeof(key), "%s*", heading);
-    t = 0;
-                                                                                
-    /* Each Bit */
-    for(i=0;i<SBPH_SIZE;i++) {
-      if (t) 
-        strlcat(key, "+", sizeof(key));
-
-      if (mask & (_ds_pow2(i+1)/2) && previous_tokens[i]) {
-        strlcat(key, previous_tokens[i], sizeof(key));
-        t++;
-      }
-    }
-
-    /* If the bucket has at least 2 literals, hit it */
-    if (t>=2) {
-      crc = _ds_getcrc64(key);
-      ds_diction_touch(diction, crc, key, DSD_CONTEXT);
-    }
-  }
-
-  return 0;
-}
-
-int
-_ds_map_body_token (DSPAM_CTX * CTX, char *token,
-                        char **previous_tokens, ds_diction_t diction)
-{
-  int all_num = 1, i,  mask, t;
-  int len;
-  unsigned long long crc;
-  char key[256];
-
-  for (i = 0; token[i] != 0; i++)
-  {
-    if (!isdigit ((unsigned char) token[i]))
-      all_num = 0;
-    if (iscntrl ((unsigned char) token[i])) {
-      token[i] = 'z';
-      all_num = 0;
-    }
-  }
-
-  len = i - 1;
-
-  if (isdigit ((unsigned char) token[0]))
-  {
-    int l = len - 1;
-    if (token[l] != '%')
-      all_num = 1;
-  }
-
-  if (!(isalnum ((unsigned char) token[0]) || (unsigned char) token[0] > 127) && token[0] != '$' && token[0] != '#')
-    all_num = 1;
-
-  /* Ignore tokens that are all numbers, or contain high ASCII characters */
-  if (all_num)
-    return EINVAL;
-
-  /* Shift all previous tokens up */
-  free(previous_tokens[0]);
-  for(i=0;i<SBPH_SIZE-1;i++)
-    previous_tokens[i] = previous_tokens[i+1];
-                                                                                
-  previous_tokens[SBPH_SIZE-1] = strdup (token);
-                                                                                
-  /* Iterate and generate all keys necessary */
-  for(mask=0;mask < _ds_pow2(SBPH_SIZE);mask++) {
-    t = 0;
-
-    key[0] = 0;
-                                                                                
-    /* Each Bit */
-    for(i=0;i<SBPH_SIZE;i++) {
-      if (t)
-        strlcat(key, "+", sizeof(key));
-                                                                                
-      if (mask & (_ds_pow2(i+1)/2) && previous_tokens[i]) {
-        strlcat(key, previous_tokens[i], sizeof(key));
-        t++;
-      }
-    }
-
-    /* If the bucket has at least 2 literals, hit it */
-    if (t>=2) {
-      while(key[strlen(key)-1] == '+')
-        key[strlen(key)-1] = 0;
-
-      crc = _ds_getcrc64(key);
-      ds_diction_touch(diction, crc, key, DSD_CONTEXT);
-    }
-  }
-
-  return 0;
-}
-
-/* 
- *  _ds_degenerate_message()
- *
- * DESCRIPTION
- *   Degenerate the message into tokenizable pieces
- *
- *   This function is responsible for analyzing the actualized message and
- *   degenerating it into only the components which are tokenizable.  This 
- *   process  effectively eliminates much HTML noise, special symbols,  or
- *   other  non-tokenizable/non-desirable components. What is left  is the
- *   bulk of  the message  and only  desired tags,  URLs, and other  data.
- *
- * INPUT ARGUMENTS
- *      header    pointer to buffer containing headers
- *      body      pointer to buffer containing message body
- */
-
-int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
-{
-  char *decode, *x, *y;
-  struct nt_node *node_nt, *node_header;
-  struct nt_c c_nt, c_nt2;
-  int i = 0;
-  char heading[1024];
-
-  if (CTX->message == NULL)
-  {
-    LOG (LOG_WARNING, "_ds_actualize_message() failed");
-    return EUNKNOWN;
-  }
-
-  /* Iterate through each component and create large header/body buffers */
-
-  node_nt = c_nt_first (CTX->message->components, &c_nt);
-  while (node_nt != NULL)
-  {
-    struct _ds_message_block *block = (struct _ds_message_block *) node_nt->ptr;
-
-#ifdef VERBOSE
-    LOGDEBUG ("Processing component %d", i);
-#endif
-
-    if (block->headers == NULL || block->headers->items == 0)
-    {
-#ifdef VERBOSE
-      LOGDEBUG ("  : End of Message Identifier");
-#endif
-    }
-
-    /* Skip Attachments */
-
-    else 
-    {
-      /* Accumulate the headers */
-      node_header = c_nt_first (block->headers, &c_nt2);
-      while (node_header != NULL)
-      {
-        struct _ds_header_field *current_header =
-          (struct _ds_header_field *) node_header->ptr;
-        snprintf (heading, sizeof (heading),
-                  "%s: %s\n", current_header->heading,
-                  current_header->data);
-        buffer_cat (header, heading);
-        node_header = c_nt_next (block->headers, &c_nt2);
-      }
-
-      decode = block->body->data;
-
-      if (block->media_type == MT_TEXT    ||
-               block->media_type == MT_MESSAGE ||
-               block->media_type == MT_UNKNOWN ||
-               (i == 0 && (block->media_type == MT_TEXT      ||
-                           block->media_type == MT_MULTIPART ||
-                           block->media_type == MT_MESSAGE)))
-      {
-
-        /* Accumulate the bodies */
-        if (
-             (block->encoding == EN_BASE64 || 
-              block->encoding == EN_QUOTED_PRINTABLE) && 
-             block->original_signed_body == NULL
-           )
-        {
-          struct _ds_header_field *field;
-          int is_attachment = 0;
-          struct nt_node *node_hnt;
-          struct nt_c c_hnt;
-  
-          node_hnt = c_nt_first (block->headers, &c_hnt);
-          while (node_hnt != NULL)
-          {
-            field = (struct _ds_header_field *) node_hnt->ptr;
-            if (field != NULL && field->heading != NULL && field->data != NULL)
-              if (!strncasecmp (field->heading, "Content-Disposition", 19))
-                if (!strncasecmp (field->data, "attachment", 10))
-                  is_attachment = 1;
-            node_hnt = c_nt_next (block->headers, &c_hnt);
-          }
-  
-          if (!is_attachment)
-          {
-            LOGDEBUG ("decoding message block from encoding type %d",
-                      block->encoding);
-            decode = _ds_decode_block (block);
-          }
-        }
-  
-        if (decode != NULL)
-        {
-          char *decode2 = strdup(decode);
-  
-          /* -- PREFORMATTING BEGIN -- */
-  
-          // Hexadecimal decoding
-          if (block->encoding == EN_8BIT) {
-            char hex[5] = "0x00";
-            int conv;
-
-            x = strchr(decode2, '%');
-            while(x != NULL) {
-              if (isxdigit((unsigned char) x[1]) && 
-                  isxdigit((unsigned char) x[2])) 
-               {
-                hex[2] = x[1];
-                hex[3] = x[2];
-                                                                                
-                conv = strtol(hex, NULL, 16);
-                if (conv) {
-                  x[0] = conv;
-                  memmove(x+1, x+3, strlen(x+3));
-                }
-              }
-              x = strchr(x+1, '%');
-            }
-          }
-  
-          if (block->media_subtype == MST_HTML) {
-  
-            /* Remove long HTML Comments */
-            x = strstr (decode2, "<!--");
-            while (x != NULL)
-            {
-              y = strstr (x, "-->");
-              if (y != NULL)
-              {
-                memmove (x, y + 3, strlen (y + 3) + 1);
-                x = strstr (x, "<!--");
-              }
-              else
-              {
-                x = strstr (x + 4, "<!--");
-              }
-            }
-                                                                                
-            /* Remove short HTML Comments */
-            x = strstr (decode2, "<!");
-            while (x != NULL)
-            {
-              y = strchr (x, '>');
-              if (y != NULL)
-              {
-                memmove (x, y + 1, strlen (y + 1) + 1);
-                x = strstr (x, "<!");
-              }
-              else
-              {
-                x = strstr (x + 2, "<!");
-              }
-            }
-  
-            /* Remove short html tags and useless tags */
-            x = strchr (decode2, '<');
-            while (x != NULL)
-            {
-              y = strchr (x, '>');
-              if (y != NULL
-                  && (y - x <= 15
-                      || !strncasecmp (x + 1, "td ", 3)
-                      || !strncasecmp (x + 1, "!doctype", 8)
-                      || !strncasecmp (x + 1, "blockquote", 10)
-                      || !strncasecmp (x + 1, "table ", 6)
-                      || !strncasecmp (x + 1, "tr ", 3)
-                      || !strncasecmp (x + 1, "div ", 4)
-                      || !strncasecmp (x + 1, "p ", 2)
-                      || !strncasecmp (x + 1, "body ", 5) || !strchr (x, ' ')
-                      || strchr (x, ' ') > y))
-              {
-                memmove (x, y + 1, strlen (y + 1) + 1);
-                x = strstr (x, "<");
-              }
-              else
-              {
-                x = strstr (x + 1, "<");
-              }
-            }
-  
-            /* -- PREFORMATTING END -- */
-          }
-  
-          buffer_cat (body, decode2);
-          free(decode2);
-          if (decode != block->body->data)
-          {
-            block->original_signed_body = block->body;
-  
-            block->body = buffer_create (decode);
-            free (decode);
-          }
-        }
-      }
-    }
-    node_nt = c_nt_next (CTX->message->components, &c_nt);
-    i++;
-  } /* while (node_nt != NULL) */
-
-  if (header->data == NULL)
-    buffer_cat (header, " ");
-
-  if (body->data == NULL)
-    buffer_cat (body, " ");
 
   return 0;
 }
@@ -2699,6 +1799,13 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
   struct _ds_spam_stat stat;
   ds_heap_element_t node_heap;
   ds_heap_element_t heap_list[heap_sort->items];
+
+  /* Naive-Bayesian */
+  float nbay_top = 0.0;
+  float nbay_bot = 0.0;
+  float nbay_result = -1;
+  long nbay_used = 0;            /* Total tokens used in naive bayes */
+  struct nt *factor_nbayes = nt_create(NT_PTR);
 
   /* Graham-Bayesian */
   float bay_top = 0.0; 
@@ -2765,6 +1872,29 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
     else if (CTX->classification == DSR_ISINNOCENT)
       stat.probability = 0.00;
 
+    /* Naive-Bayesian */
+    if (CTX->algorithms & DSA_NAIVE)
+    {
+        LOGDEBUG ("[naive] [%2.6f] %s (%dfrq, %lds, %ldi)",
+                  stat.probability, token_name, ds_term->frequency,
+                  stat.spam_hits, stat.innocent_hits);
+
+      _ds_factor(factor_nbayes, token_name, stat.probability);
+
+      if (nbay_used == 0)
+      {
+        nbay_top = stat.probability;
+        nbay_bot = 1 - stat.probability;
+      }
+      else
+      {
+        nbay_top *= stat.probability;
+        nbay_bot *= (1 - stat.probability);
+      }
+
+      nbay_used++;
+    }
+
     /* Graham-Bayesian */
     if (CTX->algorithms & DSA_GRAHAM && bay_used < 15)
     {
@@ -2827,9 +1957,15 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
 
     /* Robinson's Geometric Mean Definitions */
 
-#define ROB_S	0.010           /* Sensitivity */
-#define ROB_X	0.415           /* Value to use when N = 0 */
-#define ROB_CUTOFF	0.54
+//#define ROB_S	0.010           /* Sensitivity */
+//#define ROB_X	0.415           /* Value to use when N = 0 */
+//#define ROB_CUTOFF	0.54
+
+
+#define ROB_S   0.010           /* Sensitivity */
+#define ROB_X   0.500           /* Value to use when N = 0 */
+#define ROB_CUTOFF      0.50
+
 
     if (rob_used < 25)
     {
@@ -2968,6 +2104,12 @@ CHI_NEXT:
 
   /* BEGIN Calculate Individual Probabilities */
 
+  if (CTX->algorithms & DSA_NAIVE) {
+    nbay_result = (nbay_top) / (nbay_top + nbay_bot);
+    LOGDEBUG ("Naive-Bayesian Probability: %f Samples: %ld", nbay_result,
+              nbay_used);
+  }
+
   if (CTX->algorithms & DSA_GRAHAM) {
     bay_result = (bay_top) / (bay_top + bay_bot);
     LOGDEBUG ("Graham-Bayesian Probability: %f Samples: %ld", bay_result,
@@ -3028,6 +2170,18 @@ CHI_NEXT:
     CTX->probability = 0.0;
   } else {
     struct nt *factor = NULL;
+
+    if (CTX->algorithms & DSA_NAIVE) {
+      factor = factor_nbayes;
+      if ((CTX->algorithms & DSP_MARKOV && nbay_result > 0.5000) ||
+          (!(CTX->algorithms & DSP_MARKOV) && nbay_result >= 0.9))
+      {
+        CTX->result = DSR_ISSPAM;
+        CTX->probability = nbay_result;
+        CTX->factors = factor;
+        LOGDEBUG("using Naive-Bayes factors");
+      }
+    }
 
     if (CTX->algorithms & DSA_GRAHAM) {
       factor = factor_bayes;
@@ -3106,6 +2260,9 @@ CHI_NEXT:
     if (CTX->algorithms & DSA_GRAHAM)
       CTX->probability = bay_result;
 
+    if (CTX->algorithms & DSA_NAIVE)
+      CTX->probability = nbay_result;
+
     if (CTX->probability < 0 && CTX->algorithms & DSA_BURTON)
       CTX->probability = abay_result;
 
@@ -3183,27 +2340,6 @@ int _ds_factor(struct nt *set, char *token_name, float value) {
   nt_add(set, (void *) f);
   return 0;
 }
-
-/*
- *  _ds_spbh_clear
- *
- * DESCRIPTION
- *   Clears the SBPH stack
- *
- *   Clears and frees all of the tokens in the SBPH stack. Used when a 
- *   boundary has been crossed (such as a new message header) where
- *   tokens from the previous boundary are no longer useful.
- */
- 
-void _ds_sbph_clear(char **previous_tokens) {
-  int i;
-  for(i=0;i<SBPH_SIZE;i++) {
-    free(previous_tokens[i]);
-    previous_tokens[i] = NULL;
-  }
-  return;
-}
-
 
 /*
  *  _ds_factor_destroy - destroy a factor tree

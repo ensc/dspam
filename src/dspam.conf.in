@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.47 2005/08/28 04:11:06 jonz Exp $
+## $Id: dspam.conf.in,v 1.48 2005/09/10 18:27:47 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -164,6 +164,7 @@ Feature whitelist
 #
 # Algorithms: Specify the statistical algorithms to use, overriding any
 # defaults configured in the build. The options are:
+#    naive       Naive-Bayesian (All Tokens)
 #    graham      Graham-Bayesian ("A Plan for Spam")
 #    burton      Burton-Bayesian (SpamProbe)
 #    robinson    Robinson's Geometric Mean Test (Obsolete)
@@ -173,11 +174,13 @@ Feature whitelist
 # recommended that you group Bayesian algorithms with other Bayesian
 # algorithms, and any use of Chi-Square remain exclusive.
 #
-# NOTE: For standard "CRM114" Markovian weighting, use Graham
+# NOTE: For standard "CRM114" Markovian weighting, use 'naive', but you may
+#       also consider 'burton' for slightly better accuracy
 #
 # Don't mess with this unless you know what you're doing
 #
 #Algorithm chi-square
+#Algorithm naive
 Algorithm graham burton
 
 #

@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.13 2005/05/12 01:07:13 jonz Exp $ */
+/* $Id: util.c,v 1.14 2005/09/10 18:27:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -582,18 +582,16 @@ int _ds_compute_weight(const char *token) {
 /* Compute the number of adjacent sparse skips in a token */
 
 int _ds_compute_sparse(const char *token) {
-  int sparse = 0;
-  char *a = strstr(token, "++");
-  
-  while(a) {
-    sparse++;
-    a = strstr(a+1, "++");
-  }
+  int sparse = 0, i;
 
-  if (token[0] == '+') 
+ if (!strncmp(token, "#+", 2))
     sparse++;
-  if (token[strlen(token)-1] == '+')
+  if (!strncmp((token+strlen(token))-2, "+#", 2))
     sparse++;
+  for(i=0;token[i];i++) {
+    if (!strncmp(token+i, "+#+", 3))
+      sparse++;
+  }
 
   return sparse;
 }
@@ -610,6 +608,17 @@ int _ds_compute_complexity(const char *token) {
     if (token[i] == '+')
       complexity++;
   }
+
+/*
+  if (!strncmp(token, "#+", 2)) 
+    complexity--;
+  if (!strncmp((token+strlen(token))-2, "+#", 2))
+    complexity--;
+  for(i=0;token[i];i++) {
+    if (!strncmp(token+i, "+#+", 3))
+      complexity--;
+  }
+*/
                                                                                 
   return complexity;
 }
@@ -633,28 +642,6 @@ int _ds_extract_address(char *buf, const char *address, size_t len) {
   strlcpy(buf, x+1, len);
   free(str);
   return 0;
-}
-
-/* Truncate tokens with EOT delimiters */
-char * _ds_truncate_token(const char *token) {
-  char *tweaked;
-  int i;
-
-  if (token == NULL)
-    return NULL;
-
-  tweaked = strdup(token);
-
-  if (tweaked == NULL)
-    return NULL;
-
-  i = strlen(tweaked);
-  while(i>1 && strspn(tweaked+i-2, DELIMITERS_EOT)) {
-    tweaked[i-1] = 0;
-    i--;
-  }
-
-  return tweaked;
 }
 
 double chi2Q (double x, int v)

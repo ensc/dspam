@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.11 2005/05/12 00:56:28 jonz Exp $ */
+/* $Id: read_config.c,v 1.12 2005/09/10 18:27:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -170,6 +170,9 @@ int configure_algorithms(DSPAM_CTX *CTX) {
                                                                                 
   if (_ds_match_attribute(agent_config, "Algorithm", "robinson"))
     CTX->algorithms |= DSA_ROBINSON;
+
+  if (_ds_match_attribute(agent_config, "Algorithm", "naive"))
+    CTX->algorithms |= DSA_NAIVE;
                                                                                 
   if (_ds_match_attribute(agent_config, "PValue", "robinson"))
     CTX->algorithms |= DSP_ROBINSON;
@@ -178,11 +181,10 @@ int configure_algorithms(DSPAM_CTX *CTX) {
   else
     CTX->algorithms |= DSP_GRAHAM;
  
-
   if (_ds_match_attribute(agent_config, "Algorithm", "chi-square"))
   {
     if (CTX->algorithms != 0 && CTX->algorithms != DSP_ROBINSON) {
-      LOG(LOG_WARNING, "Warning: Chi-Square algorithm enabled with other algorithms. False positives may result.");
+      LOG(LOG_WARNING, "Warning: Chi-Square algorithm enabled with other algorithms. False positives may ensue.");
     }
     CTX->algorithms |= DSA_CHI_SQUARE;
   }
