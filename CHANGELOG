@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.338 2005/09/10 18:27:47 jonz Exp $
+$Id: CHANGELOG,v 1.339 2005/09/10 18:29:00 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050910.1400] jonz: minor dspam_stats output changes
+
+SM and IM changed to FN and FP, respectively
+TI (total innocent) changed to TN (total nonspam)
 
 [20050910.1400] jonz: commandline enhancements
 
