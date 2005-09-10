@@ -1,4 +1,4 @@
-/* $Id: css_drv.h,v 1.6 2005/09/10 18:27:47 jonz Exp $ */
+/* $Id: css_drv.h,v 1.7 2005/09/10 18:29:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -33,7 +33,7 @@
 
 /* Number of total records (per concept) to support */
 
-#define CSS_REC_MAX	50000000
+#define CSS_REC_MAX	2000000
 
 typedef struct _css_drv_map
 {
