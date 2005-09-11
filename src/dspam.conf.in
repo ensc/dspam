@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.48 2005/09/10 18:27:47 jonz Exp $
+## $Id: dspam.conf.in,v 1.49 2005/09/11 00:04:38 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -174,8 +174,8 @@ Feature whitelist
 # recommended that you group Bayesian algorithms with other Bayesian
 # algorithms, and any use of Chi-Square remain exclusive.
 #
-# NOTE: For standard "CRM114" Markovian weighting, use 'naive', but you may
-#       also consider 'burton' for slightly better accuracy
+# NOTE: For standard "CRM114" Markovian weighting, use 'naive', or consider
+#       using 'burton' for slightly better accuracy
 #
 # Don't mess with this unless you know what you're doing
 #

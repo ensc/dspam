@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.55 2005/09/10 18:27:47 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.56 2005/09/11 00:04:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -393,7 +393,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
           ATX->flags |= DAF_DELIVER_INNOCENT;
           ATX->flags |= DAF_STDOUT; 
         }
-        if (!strcmp(ptr, "spam")) 
+        else if (!strcmp(ptr, "spam")) 
           ATX->flags |= DAF_DELIVER_SPAM;
         else if (!strcmp(ptr, "innocent") || !strcmp(ptr, "nonspam"))
           ATX->flags |= DAF_DELIVER_INNOCENT;
