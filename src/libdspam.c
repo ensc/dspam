@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.119 2005/09/10 18:27:47 jonz Exp $ */
+/* $Id: libdspam.c,v 1.120 2005/09/11 00:04:20 jonz Exp $ */
 
 /*
  DSPAM
@@ -86,7 +86,7 @@ void *_drv_handle;
 #define CHI_S   0.1     /* Strength */
 #define CHI_X   0.5000  /* Assumed Probability */
 
-#define	C1	8	/* Markov C1 */
+#define	C1	16	/* Markov C1 */
 #define C2	1	/* Markov C2 */
 
 #ifdef DEBUG
@@ -517,17 +517,9 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   CTX->_process_start = time (NULL);
 
   /* Set TOE mode if data is mature enough */
-  if ((CTX->training_mode == DST_TOE     &&
-      CTX->operating_mode == DSM_PROCESS &&
-      CTX->classification == DSR_NONE) ||
-     (CTX->training_mode  == DST_NOTRAIN &&
-      CTX->operating_mode == DSM_PROCESS &&
-      CTX->classification == DSR_NONE)     ||
-     ((CTX->algorithms  & DSP_MARKOV)      &&
-      CTX->training_mode == DST_TOE      &&
-      CTX->classification == DSR_NONE    &&
-      CTX->operating_mode == DSM_PROCESS 
-  ))
+  if (  CTX->operating_mode == DSM_PROCESS &&
+        CTX->classification == DSR_NONE    &&
+       (CTX->training_mode == DST_TOE || CTX->training_mode == DST_NOTRAIN))
   {
     CTX->operating_mode = DSM_CLASSIFY;
     is_toe = 1;
@@ -1489,8 +1481,8 @@ _ds_process_signature (DSPAM_CTX * CTX)
     } else {
       if (CTX->source == DSS_ERROR) {
         CTX->totals.innocent_misclassified++;
-        if ((CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 2500)
-            && CTX->training_mode != DST_NOTRAIN)
+        if (CTX->training_mode != DST_TOE && 
+            CTX->training_mode != DST_NOTRAIN)
         {
           CTX->totals.spam_learned -= (CTX->totals.spam_learned > 0) ? 1:0;
         }
