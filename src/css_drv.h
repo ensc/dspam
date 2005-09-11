@@ -1,4 +1,4 @@
-/* $Id: css_drv.h,v 1.7 2005/09/10 18:29:40 jonz Exp $ */
+/* $Id: css_drv.h,v 1.8 2005/09/11 01:48:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -43,8 +43,7 @@ typedef struct _css_drv_map
 
 struct _css_drv_storage
 {
-  struct _css_drv_map nonspam;
-  struct _css_drv_map spam;
+  struct _css_drv_map db;
 
   FILE *lock;
 
@@ -56,7 +55,8 @@ struct _css_drv_storage
 typedef struct _css_drv_spam_record
 {
   unsigned long long hashcode;
-  long counter;
+  long nonspam;
+  long spam;
 } *css_drv_spam_record_t;
 
 int _css_drv_get_spamtotals (DSPAM_CTX * CTX);

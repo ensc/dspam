@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.339 2005/09/10 18:29:00 jonz Exp $
+$Id: CHANGELOG,v 1.340 2005/09/11 01:48:27 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050910.2145] jonz: css_drv using single .css file
+
+moved counters for both spam and nonspam into single .css file, saving
+considerable disk space by removing extra set of keys
 
 [20050910.1400] jonz: minor dspam_stats output changes
 

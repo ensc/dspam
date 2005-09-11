@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.13 2005/09/10 18:27:47 jonz Exp $ */
+/* $Id: css_drv.c,v 1.14 2005/09/11 01:48:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -192,7 +192,7 @@ int
 _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 {
   struct _css_drv_storage *s = NULL;
-  int r1, r2;
+  int r1;
 
   if (CTX == NULL)
     return EINVAL;
@@ -226,33 +226,23 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   if (CTX->username != NULL)
   {
-    char nonspam[MAX_FILENAME_LENGTH];
-    char spam[MAX_FILENAME_LENGTH];
+    char db[MAX_FILENAME_LENGTH];
     int lock_result;
 
     if (CTX->group == NULL)
-    {
-      _ds_userdir_path(nonspam, CTX->home, CTX->username, "nonspam.css");
-      _ds_userdir_path(spam, CTX->home, CTX->username, "spam.css");
-    }
+      _ds_userdir_path(db, CTX->home, CTX->username, "css");
     else
-    {
-      _ds_userdir_path(nonspam, CTX->home, CTX->group, "nonspam.css");
-      _ds_userdir_path(spam, CTX->home, CTX->group, "sig.css");
-    }
+      _ds_userdir_path(db, CTX->home, CTX->group, "css");
 
     lock_result = _css_drv_lock_get (CTX, s, 
       (CTX->group) ? CTX->group : CTX->username);
     if (lock_result < 0) 
       goto BAIL;
 
-    _ds_prepare_path_for(nonspam);
-    r1 = _css_drv_open(CTX, nonspam, &s->nonspam);
-    r2 = _css_drv_open(CTX, spam, &s->spam);
+    r1 = _css_drv_open(CTX, db, &s->db);
 
-    if (r1 || r2) {
-      _css_drv_close(&s->nonspam);
-      _css_drv_close(&s->spam);
+    if (r1) {
+      _css_drv_close(&s->db);
       free(s);
       return EFAILURE;
     }
@@ -310,8 +300,7 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
     _css_drv_set_spamtotals (CTX);
   }
 
-  _css_drv_close(&s->nonspam);
-  _css_drv_close(&s->spam);
+  _css_drv_close(&s->db);
 
   lock_result =
     _css_drv_lock_free (s, (CTX->group) ? CTX->group : CTX->username);
@@ -331,7 +320,7 @@ _css_drv_get_spamtotals (DSPAM_CTX * CTX)
   char filename[MAX_USERNAME_LENGTH];
   FILE *file;
 
-  if (s->nonspam.addr == 0)
+  if (s->db.addr == 0)
     return EINVAL;
 
   memset (&CTX->totals, 0, sizeof (struct _ds_spam_totals));
@@ -364,7 +353,7 @@ _css_drv_set_spamtotals (DSPAM_CTX * CTX)
   char filename[MAX_FILENAME_LENGTH];
   FILE *file;
 
-  if (s->nonspam.addr == NULL)
+  if (s->db.addr == NULL)
     return EINVAL;
 
   _ds_userdir_path(filename, CTX->home,
@@ -483,16 +472,14 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
 
   stat->probability = 0.00000;
 
-  if (s->nonspam.addr == NULL)
+  if (s->db.addr == NULL)
     return EINVAL;
 
   filepos = (token % CSS_REC_MAX) * sizeof(struct _css_drv_spam_record);
   thumb = filepos;
  
-  /* Nonspam Counter */
-
   wrap = 0;
-  rec = s->nonspam.addr+filepos;
+  rec = s->db.addr+filepos;
   while(rec->hashcode != token && rec->hashcode !=0 && 
         ((wrap && filepos <thumb) || (!wrap)))
   {
@@ -503,32 +490,13 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
       filepos = 0;
       wrap = 1;
     }
-    rec = s->nonspam.addr+filepos;
+    rec = s->db.addr+filepos;
   }
   if (rec->hashcode == 0) 
     return EFAILURE;
 
-  stat->innocent_hits = rec->counter;
-
-  /* Spam Counter */
-
-  wrap = 0;
-  filepos = thumb;
-  rec = s->spam.addr+filepos;
-  while(rec->hashcode != token && rec->hashcode != 0 && 
-        ((wrap && filepos<thumb) || (!wrap)))
-  {
-    filepos += sizeof(struct _css_drv_spam_record);
-    if (!wrap && filepos >= (CSS_REC_MAX * sizeof(struct _css_drv_spam_record)))    {
-      filepos = 0;
-      wrap = 1;
-    }
-    rec = s->spam.addr+filepos;
-  }
-  if (rec->hashcode == 0) 
-    return EFAILURE;
-
-  stat->spam_hits = rec->counter;
+  stat->innocent_hits = rec->nonspam;
+  stat->spam_hits = rec->spam;
 
   return 0;
 }
@@ -542,17 +510,15 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   unsigned long filepos, thumb;
   int wrap, iterations;
 
-  if (s->nonspam.addr == NULL)
+  if (s->db.addr == NULL)
     return EINVAL;
 
   filepos = (token % CSS_REC_MAX) * sizeof(struct _css_drv_spam_record);
   thumb = filepos;
 
-  /* Nonspam Counter */
-
   wrap = 0;
   iterations = 0;
-  rec = s->nonspam.addr+filepos;
+  rec = s->db.addr+filepos;
   while(rec->hashcode != token && rec->hashcode != 0 && 
         ((wrap && filepos<thumb) || (!wrap)))
   {
@@ -564,44 +530,19 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
       filepos = 0;
       wrap = 1;
     }
-    rec = s->nonspam.addr+filepos;
+    rec = s->db.addr+filepos;
   }
   if (rec->hashcode != token && rec->hashcode != 0) {
     LOG(LOG_WARNING, "nonspam.css table full. could not insert %llu. tried %lu times.", token, iterations);
     return EFAILURE;
   }
   rec->hashcode = token;
-  rec->counter = stat->innocent_hits;
-  if (rec->counter < 0) 
-    rec->counter = 0;
-
-  /* Spam Counter */
-
-  wrap = 0;
-  iterations = 0;
-  filepos = thumb;
-  rec = s->spam.addr+filepos;
-  while(rec->hashcode != token && rec->hashcode != 0 && 
-        ((wrap && filepos<thumb) || (!wrap)))
-  {
-    iterations++;
-    filepos += sizeof(struct _css_drv_spam_record);
-
-    if (!wrap && filepos >= (CSS_REC_MAX * sizeof(struct _css_drv_spam_record)))    {
-      filepos = 0;
-      wrap = 1;
-    }
-    rec = s->spam.addr+filepos;
-  }
-
-  if (rec->hashcode != token && rec->hashcode != 0) {
-    LOG(LOG_WARNING, "spam.css table full. could not insert %llu. tried %lu times.", token, iterations);
-    return EFAILURE;
-  }
-  rec->hashcode = token;
-  rec->counter = stat->spam_hits;
-  if (rec->counter < 0)
-    rec->counter = 0;
+  rec->nonspam = stat->innocent_hits;
+  rec->spam = stat->spam_hits;
+  if (rec->nonspam < 0)
+    rec->nonspam = 0;
+  if (rec->spam < 0)
+    rec->spam = 0;
 
   return 0;
 }
@@ -731,7 +672,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
       return NULL;
     }
 
-    memcpy(&rec,s->nonspam.addr+s->offset_nexttoken, sizeof(struct _css_drv_spam_record));
+    memcpy(&rec,s->db.addr+s->offset_nexttoken, sizeof(struct _css_drv_spam_record));
     _ds_get_spamrecord (CTX, rec.hashcode, &stat);
   }
 
@@ -822,11 +763,11 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
       nt_add (s->dir_handles, (void *) ndir);
       return _ds_get_nextuser (CTX);
     }
-    else if (strlen(entry->d_name)>12 &&
-      !strncmp (entry->d_name + strlen (entry->d_name) - 12, ".nonspam.css", 12))
+    else if (strlen(entry->d_name)>4 &&
+      !strncmp ((entry->d_name + strlen (entry->d_name)) - 4, ".css", 4))
     {
       strlcpy (user, entry->d_name, sizeof (user));
-      user[strlen (user) - 12] = 0;
+      user[strlen (user) - 4] = 0;
       return user;
     }
   }
