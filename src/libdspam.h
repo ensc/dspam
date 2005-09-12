@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.17 2005/09/10 18:27:47 jonz Exp $ */
+/* $Id: libdspam.h,v 1.18 2005/09/12 14:59:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -44,6 +44,8 @@ extern "C" {
 #define LIBDSPAM_VERSION_MINOR	6
 #define LIBDSPAM_VERSION_PATCH	0
 
+#define BNR_SIZE 3
+
 /* Public API */
 
 int libdspam_init(const char *);
@@ -76,6 +78,7 @@ int  _ds_process_signature     (DSPAM_CTX * CTX);
 int  _ds_factor                (struct nt *set, char *token_name, float value);
 int _ds_instantiate_bnr        (DSPAM_CTX *CTX, ds_diction_t patterns, 
     struct nt *order, char identifier);
+ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction);
 void _ds_factor_destroy        (struct nt *factors);
 
 /* Standard Return Codes */

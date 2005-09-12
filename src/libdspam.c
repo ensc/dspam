@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.120 2005/09/11 00:04:20 jonz Exp $ */
+/* $Id: libdspam.c,v 1.121 2005/09/12 14:59:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -724,7 +724,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   /* Create our diction (lexical data in message) and patterns */
 
   ds_diction_t diction = ds_diction_create(24593);
-  ds_diction_t bnr_patterns = ds_diction_create(3079);
+  ds_diction_t bnr_patterns = NULL;
   ds_term_t ds_term;
   ds_cursor_t ds_c;
 
@@ -733,9 +733,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 #ifdef LIBBNR_DEBUG
   ds_heap_t heap_nobnr = NULL;
 #endif
-
-  struct nt_node *node_nt;
-  struct nt_c c_nt;
 
   unsigned long long whitelist_token = 0;
   int do_whitelist = 0;
@@ -781,10 +778,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     strcat(CTX->signature->data, body);
   }
 
-  if (!diction || !bnr_patterns)
+  if (!diction)
   {
     ds_diction_destroy(diction);
-    ds_diction_destroy(bnr_patterns);
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     errcode = EUNKNOWN;
     goto bail;
@@ -844,262 +840,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     goto bail;
   }
 
-  /*
-     Bayesian Noise Reduction - Contextual Symmetry Logic
-     http://bnr.nuclearelephant.com
-  */
-
-#define BNR_SIZE 3
-
+  /* Apply Bayesian Noise Reduction */
   if (CTX->flags & DSF_NOISE)
   {
-    struct _ds_spam_stat bnr_tot;
-    unsigned long long crc;
-    BNR_CTX *BTX_S, *BTX_C;
-#ifdef LIBBNR_DEBUG
-    float snr;
-#endif
-
-    BTX_S = bnr_init(BNR_INDEX, 's');
-    BTX_C = bnr_init(BNR_INDEX, 'c');
-
-    if (!BTX_S || !BTX_C) {
-      LOGDEBUG("bnr_init() failed");
-      bnr_destroy(BTX_S);
-      bnr_destroy(BTX_C);
-      errcode = EFAILURE;
-      goto bail;
-    }
-
-    BTX_S->window_size = BNR_SIZE;
-    BTX_C->window_size = BNR_SIZE;
-
-    _ds_instantiate_bnr(CTX, bnr_patterns, diction->order, 's');
-    _ds_instantiate_bnr(CTX, bnr_patterns, diction->chained_order, 'c');
-
-    /* Add BNR totals to the list of load elements */
-    memset(&bnr_tot, 0, sizeof(struct _ds_spam_stat));
-    crc = _ds_getcrc64("bnr.t|");
-    ds_diction_touch(bnr_patterns, crc, "bnr.t|", 0);
-
-    /* Load BNR patterns */
-    LOGDEBUG("Loading %ld BNR patterns", bnr_patterns->items);
-    if (_ds_getall_spamrecords (CTX, bnr_patterns)) {
-      LOGDEBUG ("_ds_getall_spamrecords() failed");
-      errcode = EUNKNOWN;
-      goto bail;
-    }
-
-    /* Perform BNR Processing */
-
-    if (CTX->classification == DSR_NONE	&&
-        CTX->_sig_provided == 0		&&
-        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 2500)
-    {
-      int elim;
-#ifdef LIBBNR_DEBUG
-      char fn[MAX_FILENAME_LENGTH];
-      FILE *file;
-#endif
-
-      node_nt = c_nt_first(diction->order, &c_nt);
-      while(node_nt != NULL) {
-        ds_term = node_nt->ptr;
-        bnr_add(BTX_S, ds_term->name, ds_term->s.probability);
-        node_nt = c_nt_next(diction->order, &c_nt);
-      }
-
-      node_nt = c_nt_first(diction->chained_order, &c_nt);
-      while(node_nt != NULL) {
-        ds_term = node_nt->ptr;
-        bnr_add(BTX_C, ds_term->name, ds_term->s.probability);
-        node_nt = c_nt_next(diction->chained_order, &c_nt);
-      }
-
-      bnr_instantiate(BTX_S);
-      bnr_instantiate(BTX_C);
-
-      /* Calculate pattern p-values */
-      ds_diction_getstat(bnr_patterns, crc, &bnr_tot);
-      ds_c = ds_diction_cursor(bnr_patterns);
-      ds_term = ds_diction_next(ds_c);
-      while(ds_term) {
-        _ds_calc_stat(CTX, ds_term, &ds_term->s, DTT_BNR, &bnr_tot);
-        if (ds_term->name[4] == 's')
-          bnr_set_pattern(BTX_S, ds_term->name, ds_term->s.probability);
-        else if (ds_term->name[4] == 'c')
-          bnr_set_pattern(BTX_C, ds_term->name, ds_term->s.probability);
-        ds_term = ds_diction_next(ds_c);
-      } 
-      ds_diction_close(ds_c);
-
-      bnr_finalize(BTX_S);
-      bnr_finalize(BTX_C);
-
-      /* Propagate eliminations to DSPAM */
-
-      node_nt = c_nt_first(diction->order, &c_nt);
-      while(node_nt != NULL) {
-        ds_term = node_nt->ptr;
-        bnr_get_token(BTX_S, &elim);
-        if (elim) 
-          ds_term->frequency--;
-        node_nt = c_nt_next(diction->order, &c_nt);
-      }
-
-      node_nt = c_nt_first(diction->chained_order, &c_nt);
-      while(node_nt != NULL) {
-        ds_term = node_nt->ptr;
-        bnr_get_token(BTX_C, &elim);
-        if (elim)
-          ds_term->frequency--;
-        node_nt = c_nt_next(diction->chained_order, &c_nt);
-      }
-
-#ifdef LIBBNR_DEBUG
-      if (BTX_S->stream->items + BTX_C->stream->items +
-          BTX_S->eliminations  + BTX_C->eliminations > 0)
-      {
-        snr = 100.0*((BTX_S->eliminations + BTX_C->eliminations + 0.0)/
-              (BTX_S->stream->items + BTX_C->stream->items +
-               BTX_S->eliminations  + BTX_C->eliminations)); 
-      } else {
-        snr = 0;
-      }
-
-      LOGDEBUG("bnr reported snr of %02.3f", snr);
-
-#ifdef LIBBNR_GRAPH_OUTPUT
-      printf("BEFORE\n\n");
-      node_nt = c_nt_first(diction->order, &c_nt);
-      while(node_nt != NULL) {
-        ds_term = node_nt->ptr;
-        printf("%1.5f\n", ds_term->s.probability);
-        node_nt = c_nt_next(diction->order, &c_nt);
-      }
-
-      printf("\n\nAFTER\n\n");
-      node_nt = c_nt_first(diction->order, &c_nt);
-      while(node_nt != NULL) {
-        ds_term = node_nt->ptr;
-        if (ds_term->frequency > 0)
-          printf("%1.5f\n", ds_term->s.probability);
-        node_nt = c_nt_next(diction->order, &c_nt);
-      }
-      printf("\n");
-#endif
-         
-
-      snprintf(fn, sizeof(fn), "%s/bnr.log", LOGDIR);
-      file = fopen(fn, "a");
-      if (file != NULL) {
-        fprintf(file, "-- BNR Filter Process Results --\n");
-        fprintf(file, "Eliminations:\n");
-        node_nt = c_nt_first(diction->order, &c_nt);
-        while(node_nt != NULL) {
-          ds_term = node_nt->ptr;
-          if (ds_term->frequency <= 0)
-            fprintf(file, "%s ", ds_term->name);
-          node_nt = c_nt_next(diction->order, &c_nt);
-        }
-        fprintf(file, "\n[");
-        node_nt = c_nt_first(diction->order, &c_nt);
-        while(node_nt != NULL) {
-          ds_term = node_nt->ptr;
-          if (ds_term->frequency <= 0)
-            fprintf(file, "%1.2f ", ds_term->s.probability);
-          node_nt = c_nt_next(diction->order, &c_nt);
-        }
-  
-        fprintf(file, "]\n\nRemaining:\n");
-        node_nt = c_nt_first(diction->order, &c_nt);
-        while(node_nt != NULL) {
-          ds_term = node_nt->ptr;
-          if (ds_term->frequency > 0)
-            fprintf(file, "%s ", ds_term->name);
-          node_nt = c_nt_next(diction->order, &c_nt);
-        }
-        fprintf(file, "\n[");
-        node_nt = c_nt_first(diction->order, &c_nt);
-        while(node_nt != NULL) {
-          ds_term = node_nt->ptr;
-          if (ds_term->frequency > 0)
-            fprintf(file, "%1.2f ", ds_term->s.probability);
-          node_nt = c_nt_next(diction->order, &c_nt);
-        }
-
-        fprintf(file, "]\nProcessed for: %s\n\n", CTX->username);
-
-        fprintf(file, "-- Chained Tokens --\n");
-        fprintf(file, "Eliminations:\n");
-        node_nt = c_nt_first(diction->chained_order, &c_nt);
-        while(node_nt != NULL) {
-          ds_term = node_nt->ptr;
-          if (ds_term->frequency <= 0)
-            fprintf(file, "%s ", ds_term->name);
-          node_nt = c_nt_next(diction->chained_order, &c_nt);
-        }
-        fprintf(file, "\n[");
-        node_nt = c_nt_first(diction->chained_order, &c_nt);
-        while(node_nt != NULL) {
-          ds_term = node_nt->ptr;
-          if (ds_term->frequency <= 0)
-            fprintf(file, "%1.2f ", ds_term->s.probability);
-          node_nt = c_nt_next(diction->chained_order, &c_nt);
-        }
-
-        fprintf(file, "]\n\nRemaining:\n");
-        node_nt = c_nt_first(diction->chained_order, &c_nt);
-        while(node_nt != NULL) {
-          ds_term = node_nt->ptr;
-          if (ds_term->frequency > 0)
-            fprintf(file, "%s ", ds_term->name);
-          node_nt = c_nt_next(diction->chained_order, &c_nt);
-        }
-        fprintf(file, "\n[");
-        node_nt = c_nt_first(diction->chained_order, &c_nt);
-        while(node_nt != NULL) {
-          ds_term = node_nt->ptr;
-          if (ds_term->frequency > 0)
-            fprintf(file, "%1.2f ", ds_term->s.probability);
-          node_nt = c_nt_next(diction->chained_order, &c_nt);
-        }
-
-
-        fprintf(file, "]\nProcessed for: %s\n\n", CTX->username);
-        fclose(file);
-      }
-#endif
-
-    }
-
-    bnr_destroy(BTX_S);
-    bnr_destroy(BTX_C);
-
-    /* Add BNR pattern to token hash */
-    if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000) {
-      ds_c = ds_diction_cursor(bnr_patterns);
-      ds_term = ds_diction_next(ds_c);
-      while(ds_term) {
-        ds_term_t t = ds_diction_touch(diction, ds_term->key, ds_term->name, 0);
-        ds_diction_setstat(diction, ds_term->key, &ds_term->s);
-        if (t)
-          t->frequency = 1;
-  
-#ifdef LIBBNR_DEBUG
-        if (fabs(0.5-ds_term->s.probability)>0.25) {
-          LOGDEBUG("Interesting BNR Pattern: %s %01.5f %lds %ldi",
-                   ds_term->name,
-                   ds_term->s.probability,
-                   ds_term->s.spam_hits,
-                   ds_term->s.innocent_hits);
-        }
-#endif
-  
-        ds_term = ds_diction_next(ds_c);
-      }
-      ds_diction_close(ds_c);
-    }
+    _ds_apply_bnr(CTX, diction);
   }
 
   if (CTX->flags & DSF_WHITELIST)
@@ -1403,7 +1147,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   }
 
   ds_diction_destroy (diction);
-  ds_diction_destroy (bnr_patterns);
   ds_heap_destroy (heap_sort);
 #ifdef LIBBNR_DEBUG
   ds_heap_destroy (heap_nobnr);
@@ -2438,3 +2181,269 @@ int _ds_instantiate_bnr(
   return 0;
 }
 
+ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
+
+  /*
+     Bayesian Noise Reduction - Contextual Symmetry Logic
+     http://bnr.nuclearelephant.com
+  */
+
+  ds_diction_t bnr_patterns = ds_diction_create(3079);
+  struct _ds_spam_stat bnr_tot;
+  unsigned long long crc;
+  BNR_CTX *BTX_S, *BTX_C;
+#ifdef LIBBNR_DEBUG
+  float snr;
+#endif
+  struct nt_node *node_nt;
+  struct nt_c c_nt;
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
+
+  if (!bnr_patterns)
+  {
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
+    return NULL;
+  }
+
+  BTX_S = bnr_init(BNR_INDEX, 's');
+  BTX_C = bnr_init(BNR_INDEX, 'c');
+
+  if (!BTX_S || !BTX_C) {
+    LOGDEBUG("bnr_init() failed");
+    bnr_destroy(BTX_S);
+    bnr_destroy(BTX_C);
+    return NULL;
+  }
+
+  BTX_S->window_size = BNR_SIZE;
+  BTX_C->window_size = BNR_SIZE;
+
+  _ds_instantiate_bnr(CTX, bnr_patterns, diction->order, 's');
+  _ds_instantiate_bnr(CTX, bnr_patterns, diction->chained_order, 'c');
+
+  /* Add BNR totals to the list of load elements */
+  memset(&bnr_tot, 0, sizeof(struct _ds_spam_stat));
+  crc = _ds_getcrc64("bnr.t|");
+  ds_diction_touch(bnr_patterns, crc, "bnr.t|", 0);
+
+  /* Load BNR patterns */
+  LOGDEBUG("Loading %ld BNR patterns", bnr_patterns->items);
+  if (_ds_getall_spamrecords (CTX, bnr_patterns)) {
+    LOGDEBUG ("_ds_getall_spamrecords() failed");
+    return NULL;
+  }
+
+  /* Perform BNR Processing */
+
+  if (CTX->classification == DSR_NONE	&&
+      CTX->_sig_provided == 0		&&
+      CTX->totals.innocent_learned + CTX->totals.innocent_classified > 2500)
+  {
+    int elim;
+#ifdef LIBBNR_DEBUG
+    char fn[MAX_FILENAME_LENGTH];
+    FILE *file;
+#endif
+
+    node_nt = c_nt_first(diction->order, &c_nt);
+    while(node_nt != NULL) {
+      ds_term = node_nt->ptr;
+      bnr_add(BTX_S, ds_term->name, ds_term->s.probability);
+      node_nt = c_nt_next(diction->order, &c_nt);
+    }
+
+    node_nt = c_nt_first(diction->chained_order, &c_nt);
+    while(node_nt != NULL) {
+      ds_term = node_nt->ptr;
+      bnr_add(BTX_C, ds_term->name, ds_term->s.probability);
+      node_nt = c_nt_next(diction->chained_order, &c_nt);
+    }
+
+    bnr_instantiate(BTX_S);
+    bnr_instantiate(BTX_C);
+
+    /* Calculate pattern p-values */
+    ds_diction_getstat(bnr_patterns, crc, &bnr_tot);
+    ds_c = ds_diction_cursor(bnr_patterns);
+    ds_term = ds_diction_next(ds_c);
+    while(ds_term) {
+      _ds_calc_stat(CTX, ds_term, &ds_term->s, DTT_BNR, &bnr_tot);
+      if (ds_term->name[4] == 's')
+        bnr_set_pattern(BTX_S, ds_term->name, ds_term->s.probability);
+      else if (ds_term->name[4] == 'c')
+        bnr_set_pattern(BTX_C, ds_term->name, ds_term->s.probability);
+      ds_term = ds_diction_next(ds_c);
+    } 
+    ds_diction_close(ds_c);
+
+    bnr_finalize(BTX_S);
+    bnr_finalize(BTX_C);
+
+    /* Propagate eliminations to DSPAM */
+
+    node_nt = c_nt_first(diction->order, &c_nt);
+    while(node_nt != NULL) {
+      ds_term = node_nt->ptr;
+      bnr_get_token(BTX_S, &elim);
+      if (elim) 
+        ds_term->frequency--;
+      node_nt = c_nt_next(diction->order, &c_nt);
+    }
+
+    node_nt = c_nt_first(diction->chained_order, &c_nt);
+    while(node_nt != NULL) {
+      ds_term = node_nt->ptr;
+      bnr_get_token(BTX_C, &elim);
+      if (elim)
+        ds_term->frequency--;
+      node_nt = c_nt_next(diction->chained_order, &c_nt);
+    }
+
+#ifdef LIBBNR_DEBUG
+    if (BTX_S->stream->items + BTX_C->stream->items +
+        BTX_S->eliminations  + BTX_C->eliminations > 0)
+    {
+      snr = 100.0*((BTX_S->eliminations + BTX_C->eliminations + 0.0)/
+            (BTX_S->stream->items + BTX_C->stream->items +
+             BTX_S->eliminations  + BTX_C->eliminations)); 
+    } else {
+      snr = 0;
+    }
+
+    LOGDEBUG("bnr reported snr of %02.3f", snr);
+
+#ifdef LIBBNR_GRAPH_OUTPUT
+    printf("BEFORE\n\n");
+    node_nt = c_nt_first(diction->order, &c_nt);
+    while(node_nt != NULL) {
+      ds_term = node_nt->ptr;
+      printf("%1.5f\n", ds_term->s.probability);
+      node_nt = c_nt_next(diction->order, &c_nt);
+    }
+
+    printf("\n\nAFTER\n\n");
+    node_nt = c_nt_first(diction->order, &c_nt);
+    while(node_nt != NULL) {
+      ds_term = node_nt->ptr;
+      if (ds_term->frequency > 0)
+        printf("%1.5f\n", ds_term->s.probability);
+      node_nt = c_nt_next(diction->order, &c_nt);
+    }
+    printf("\n");
+#endif
+         
+
+    snprintf(fn, sizeof(fn), "%s/bnr.log", LOGDIR);
+    file = fopen(fn, "a");
+    if (file != NULL) {
+      fprintf(file, "-- BNR Filter Process Results --\n");
+      fprintf(file, "Eliminations:\n");
+      node_nt = c_nt_first(diction->order, &c_nt);
+      while(node_nt != NULL) {
+        ds_term = node_nt->ptr;
+        if (ds_term->frequency <= 0)
+          fprintf(file, "%s ", ds_term->name);
+        node_nt = c_nt_next(diction->order, &c_nt);
+      }
+      fprintf(file, "\n[");
+      node_nt = c_nt_first(diction->order, &c_nt);
+      while(node_nt != NULL) {
+        ds_term = node_nt->ptr;
+        if (ds_term->frequency <= 0)
+          fprintf(file, "%1.2f ", ds_term->s.probability);
+        node_nt = c_nt_next(diction->order, &c_nt);
+      }
+
+      fprintf(file, "]\n\nRemaining:\n");
+      node_nt = c_nt_first(diction->order, &c_nt);
+      while(node_nt != NULL) {
+        ds_term = node_nt->ptr;
+        if (ds_term->frequency > 0)
+          fprintf(file, "%s ", ds_term->name);
+        node_nt = c_nt_next(diction->order, &c_nt);
+      }
+      fprintf(file, "\n[");
+      node_nt = c_nt_first(diction->order, &c_nt);
+      while(node_nt != NULL) {
+        ds_term = node_nt->ptr;
+        if (ds_term->frequency > 0)
+          fprintf(file, "%1.2f ", ds_term->s.probability);
+        node_nt = c_nt_next(diction->order, &c_nt);
+      }
+
+      fprintf(file, "]\nProcessed for: %s\n\n", CTX->username);
+
+      fprintf(file, "-- Chained Tokens --\n");
+      fprintf(file, "Eliminations:\n");
+      node_nt = c_nt_first(diction->chained_order, &c_nt);
+      while(node_nt != NULL) {
+        ds_term = node_nt->ptr;
+        if (ds_term->frequency <= 0)
+          fprintf(file, "%s ", ds_term->name);
+        node_nt = c_nt_next(diction->chained_order, &c_nt);
+      }
+      fprintf(file, "\n[");
+      node_nt = c_nt_first(diction->chained_order, &c_nt);
+      while(node_nt != NULL) {
+        ds_term = node_nt->ptr;
+        if (ds_term->frequency <= 0)
+          fprintf(file, "%1.2f ", ds_term->s.probability);
+        node_nt = c_nt_next(diction->chained_order, &c_nt);
+      }
+
+      fprintf(file, "]\n\nRemaining:\n");
+      node_nt = c_nt_first(diction->chained_order, &c_nt);
+      while(node_nt != NULL) {
+        ds_term = node_nt->ptr;
+        if (ds_term->frequency > 0)
+          fprintf(file, "%s ", ds_term->name);
+        node_nt = c_nt_next(diction->chained_order, &c_nt);
+      }
+      fprintf(file, "\n[");
+      node_nt = c_nt_first(diction->chained_order, &c_nt);
+      while(node_nt != NULL) {
+        ds_term = node_nt->ptr;
+        if (ds_term->frequency > 0)
+          fprintf(file, "%1.2f ", ds_term->s.probability);
+        node_nt = c_nt_next(diction->chained_order, &c_nt);
+      }
+
+
+      fprintf(file, "]\nProcessed for: %s\n\n", CTX->username);
+      fclose(file);
+    }
+#endif
+
+  }
+
+  bnr_destroy(BTX_S);
+  bnr_destroy(BTX_C);
+
+  /* Add BNR pattern to token hash */
+  if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 1000) {
+    ds_c = ds_diction_cursor(bnr_patterns);
+    ds_term = ds_diction_next(ds_c);
+    while(ds_term) {
+      ds_term_t t = ds_diction_touch(diction, ds_term->key, ds_term->name, 0);
+      ds_diction_setstat(diction, ds_term->key, &ds_term->s);
+      if (t)
+        t->frequency = 1;
+  
+#ifdef LIBBNR_DEBUG
+      if (fabs(0.5-ds_term->s.probability)>0.25) {
+        LOGDEBUG("Interesting BNR Pattern: %s %01.5f %lds %ldi",
+                 ds_term->name,
+                 ds_term->s.probability,
+                 ds_term->s.spam_hits,
+                 ds_term->s.innocent_hits);
+      }
+#endif
+  
+      ds_term = ds_diction_next(ds_c);
+    }
+    ds_diction_close(ds_c);
+  }
+
+  return bnr_patterns;
+}
