@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.121 2005/09/12 14:59:54 jonz Exp $ */
+/* $Id: libdspam.c,v 1.122 2005/09/12 18:09:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -483,7 +483,7 @@ int
 dspam_process (DSPAM_CTX * CTX, const char *message)
 {
   buffer *header, *body;
-  int spam_result = 0, is_toe = 0;
+  int spam_result = 0, is_toe = 0, is_undertrain = 0;
 
   if (CTX->signature != NULL)
     CTX->_sig_provided = 1;
@@ -516,9 +516,17 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
  
   CTX->_process_start = time (NULL);
 
+  if (CTX->training_mode == DST_TOE                                           &&
+     (CTX->totals.innocent_learned <= 100 || CTX->totals.spam_learned <= 100) &&
+      (!(CTX->algorithms & DSP_MARKOV)))
+  {
+    is_undertrain = 1;
+    CTX->training_mode = DST_TEFT;
+  }
+
   /* Set TOE mode if data is mature enough */
-  if (  CTX->operating_mode == DSM_PROCESS &&
-        CTX->classification == DSR_NONE    &&
+  if ( CTX->operating_mode == DSM_PROCESS &&
+       CTX->classification == DSR_NONE    &&
        (CTX->training_mode == DST_TOE || CTX->training_mode == DST_NOTRAIN))
   {
     CTX->operating_mode = DSM_CLASSIFY;
@@ -526,6 +534,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   }
 
   /* A signature has been presented for training; process it */
+  /* Non-SPBH Signature */
   if (CTX->operating_mode == DSM_PROCESS && 
       CTX->classification != DSR_NONE    &&
       CTX->flags & DSF_SIGNATURE         &&
@@ -534,6 +543,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     int i = _ds_process_signature (CTX);
     if (is_toe)
       CTX->operating_mode = DSM_PROCESS;
+    if (is_undertrain)
+      CTX->training_mode = DST_TOE;
     return i;
   }
 
@@ -547,6 +558,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     buffer_destroy (body);
     if (is_toe)
       CTX->operating_mode = DSM_PROCESS;
+    if (is_undertrain)
+      CTX->training_mode = DST_TOE;
     return EUNKNOWN;
   }
 
@@ -608,6 +621,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
 
   if (is_toe)
     CTX->operating_mode = DSM_PROCESS;
+  if (is_undertrain)
+    CTX->training_mode = DST_TOE;
 
   if (CTX->result == DSR_ISSPAM || CTX->result == DSR_ISINNOCENT) 
     return 0;
@@ -985,7 +1000,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       else if (SPAM_MISS(CTX))
       {
         CTX->totals.spam_misclassified++;
-        if (CTX->training_mode != DST_TOE) {
+        if (CTX->training_mode != DST_TOE && CTX->training_mode != DST_NOTRAIN)
+        {
           CTX->totals.innocent_learned -=
             (CTX->totals.innocent_learned > 0) ? 1 : 0;
         }
@@ -1012,7 +1028,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         CTX->totals.innocent_learned -= (CTX->totals.innocent_learned >0) ? 1:0;
       } else {
         CTX->totals.innocent_misclassified++;
-        if (CTX->training_mode != DST_TOE) {
+        if (CTX->training_mode != DST_TOE && CTX->training_mode != DST_NOTRAIN)
+        {
           CTX->totals.spam_learned -= (CTX->totals.spam_learned > 0) ? 1 : 0;
         }
       }
@@ -1105,9 +1122,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
       if (SPAM_MISS(CTX) && 
           !(CTX->flags & DSF_UNLEARN) && 
-          CTX->training_mode != DST_TOE) 
+          CTX->training_mode != DST_TOE &&
+          CTX->training_mode != DST_NOTRAIN) 
       { 
-        ds_term->s.innocent_hits-= 1;
+        ds_term->s.innocent_hits -= 1;
       }
     }
 
@@ -1117,7 +1135,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       if (CTX->flags & DSF_UNLEARN) { 
         if (CTX->classification == DSR_ISINNOCENT)
         {
-          ds_term->s.innocent_hits-= (ds_term->s.innocent_hits>0) ? 1:0;
+          ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
         }
       } else {
         ds_term->s.innocent_hits++;
@@ -1125,9 +1143,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
       if (FALSE_POSITIVE(CTX)         && 
           !(CTX->flags & DSF_UNLEARN) && 
-          CTX->training_mode != DST_TOE)
+          CTX->training_mode != DST_TOE &&
+          CTX->training_mode != DST_NOTRAIN)
       {
-        ds_term->s.spam_hits-= 1;
+        ds_term->s.spam_hits -= 1;
       }
     }
 
@@ -1224,8 +1243,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
     } else {
       if (CTX->source == DSS_ERROR) {
         CTX->totals.innocent_misclassified++;
-        if (CTX->training_mode != DST_TOE && 
-            CTX->training_mode != DST_NOTRAIN)
+        if (CTX->training_mode != DST_TOE && CTX->training_mode != DST_NOTRAIN)
         {
           CTX->totals.spam_learned -= (CTX->totals.spam_learned > 0) ? 1:0;
         }
@@ -1246,8 +1264,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
     } else {
       if (CTX->source == DSS_ERROR) {
         CTX->totals.spam_misclassified++;
-        if ((CTX->training_mode != DST_TOE || CTX->totals.innocent_learned <= 2500)
-          && CTX->training_mode != DST_NOTRAIN) 
+        if (CTX->training_mode != DST_TOE && CTX->training_mode != DST_NOTRAIN)
         {
           CTX->totals.innocent_learned -= (CTX->totals.innocent_learned > 0) ? 1:0;
         }
@@ -1285,7 +1302,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
     if (CTX->classification == DSR_ISINNOCENT)
     {
       if (CTX->flags & DSF_UNLEARN) {
-        ds_term->s.innocent_hits-= (ds_term->s.innocent_hits>0) ? 1:0;
+        ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
       } else {
         ds_term->s.innocent_hits++;
         if (CTX->source == DSS_ERROR          && 
