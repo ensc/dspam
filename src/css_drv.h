@@ -1,4 +1,4 @@
-/* $Id: css_drv.h,v 1.9 2005/09/13 12:29:36 jonz Exp $ */
+/* $Id: css_drv.h,v 1.10 2005/09/13 13:45:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -44,7 +44,6 @@ typedef struct _css_drv_map
 {
   void *addr;
   int fd;
-  unsigned long css_rec_max;
   size_t file_len;
   css_drv_header_t header;
 } *css_drv_map_t;
@@ -71,7 +70,7 @@ int _css_drv_set_spamtotals (DSPAM_CTX * CTX);
 int _css_drv_lock_get (DSPAM_CTX * CTX, struct _css_drv_storage *s, 
   const char *username);
 int _css_drv_lock_free (struct _css_drv_storage *s, const char *username);
-int _css_drv_open(DSPAM_CTX *CTX, const char *filename, css_drv_map_t map);
+int _css_drv_open(const char *filename, css_drv_map_t map, unsigned long recmaxifnew);
 int _css_drv_close(css_drv_map_t map);
 
 #endif /* _CSS_DRV_H */

@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.342 2005/09/13 12:29:36 jonz Exp $
+$Id: CHANGELOG,v 1.343 2005/09/13 13:45:45 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050913.0700] jonz: added cssgrow and cssstat tools
+
+in tools.css_drv:
+  cssgrow - grow (or shrink) the capacity of a css file
+  cssstat - report css file statistics (records free, used, max, etc)
 
 [20050910.2145] jonz: css_drv using single .css file
 

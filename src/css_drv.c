@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.15 2005/09/13 12:29:36 jonz Exp $ */
+/* $Id: css_drv.c,v 1.16 2005/09/13 13:45:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -121,7 +121,7 @@ _css_drv_lock_free (struct _css_drv_storage *s, const char *username)
   return r;
 }
 
-int _css_drv_open(DSPAM_CTX *CTX, const char *filename, css_drv_map_t map) {
+int _css_drv_open(const char *filename, css_drv_map_t map, unsigned long recmaxifnew) {
     struct _css_drv_header header;
 
 //  int open_flags = (CTX->operating_mode == DSM_CLASSIFY || CTX->operating_mode == DSM_TOOLS) ? O_RDONLY : O_RDWR;
@@ -131,7 +131,7 @@ int _css_drv_open(DSPAM_CTX *CTX, const char *filename, css_drv_map_t map) {
   int mmap_flags = PROT_READ + PROT_WRITE;
 
   map->fd = open(filename, open_flags);
-  if (map->fd < 0) {
+  if (map->fd < 0 && recmaxifnew) {
     FILE *f;
     struct _css_drv_spam_record rec;
     long recno;
@@ -139,7 +139,7 @@ int _css_drv_open(DSPAM_CTX *CTX, const char *filename, css_drv_map_t map) {
     memset(&header, 0, sizeof(struct _css_drv_header));
     memset(&rec, 0, sizeof(struct _css_drv_spam_record));
 
-    header.css_rec_max = CSS_REC_MAX;
+    header.css_rec_max = recmaxifnew;
 
     f = fopen(filename, "w");
     if (!f) {
@@ -260,7 +260,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     if (lock_result < 0) 
       goto BAIL;
 
-    r1 = _css_drv_open(CTX, db, &s->db);
+    r1 = _css_drv_open(db, &s->db, CSS_REC_MAX);
 
     if (r1) {
       _css_drv_close(&s->db);
