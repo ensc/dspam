@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.343 2005/09/13 13:45:45 jonz Exp $
+$Id: CHANGELOG,v 1.344 2005/09/13 22:02:09 jonz Exp $
 
 Version NEXT
 ------------
@@ -8,6 +8,8 @@ Version NEXT
 in tools.css_drv:
   cssgrow - grow (or shrink) the capacity of a css file
   cssstat - report css file statistics (records free, used, max, etc)
+  cssclean - free all tokens which have only been seen once
+    (there is no date in css files, so only run this once every 30-90 days)
 
 [20050910.2145] jonz: css_drv using single .css file
 
