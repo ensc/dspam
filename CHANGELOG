@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.340 2005/09/11 01:48:27 jonz Exp $
+$Id: CHANGELOG,v 1.341 2005/09/13 11:45:55 jonz Exp $
 
 Version NEXT
 ------------
@@ -15,8 +15,8 @@ TI (total innocent) changed to TN (total nonspam)
 
 [20050910.1400] jonz: commandline enhancements
 
-started using --class=nonspam instead of --class=innocent, however innocent is
-still available for backward compatibility.
+added --class=nonspam which is the same as --class=innocent, depending on how
+users like to specify
 
 added --deliver=stdout which is a shortcut for --deliver=innocent,spam --stdout
 
