@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.341 2005/09/13 11:45:55 jonz Exp $
+$Id: CHANGELOG,v 1.342 2005/09/13 12:29:36 jonz Exp $
 
 Version NEXT
 ------------
@@ -6,7 +6,8 @@ Version NEXT
 [20050910.2145] jonz: css_drv using single .css file
 
 moved counters for both spam and nonspam into single .css file, saving
-considerable disk space by removing extra set of keys
+considerable disk space by removing extra set of keys. also added header
+to css files containing record count, for cssgrow tool.
 
 [20050910.1400] jonz: minor dspam_stats output changes
 

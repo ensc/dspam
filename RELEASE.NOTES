@@ -1,4 +1,4 @@
-$Id: RELEASE.NOTES,v 1.46 2005/08/30 12:33:36 jonz Exp $
+$Id: RELEASE.NOTES,v 1.47 2005/09/13 12:29:36 jonz Exp $
 
 RELEASE 3.6-BETA 2
 
@@ -49,7 +49,9 @@ using a combination of random access files and rapid overflow. It requires no
 dependencies and outperforms all other storage drivers. The only catch is that 
 this driver uses fixed-length storage files, which presently use 32MB of
 disk space per user. This can be adjusted, however once the CSS files are full,
-no additional tokens can be added.
+no additional tokens can be added. NOTE: DSPAM implements a slightly proprietary
+version of CSS to conserve space, so it is not compatible with CRM114's CSS
+files.
 
 Fallback Domain-Based User Support
 Fallback domain support can be used by systems where a user's full email address

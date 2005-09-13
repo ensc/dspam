@@ -1,4 +1,4 @@
-/* $Id: css_drv.h,v 1.8 2005/09/11 01:48:27 jonz Exp $ */
+/* $Id: css_drv.h,v 1.9 2005/09/13 12:29:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -31,14 +31,22 @@
 #include "nodetree.h"
 #include "libdspam.h"
 
-/* Number of total records (per concept) to support */
+/* Default number of total records (per concept) to support */
 
 #define CSS_REC_MAX	2000000
+
+typedef struct _css_drv_header
+{
+  unsigned long css_rec_max;
+} *css_drv_header_t;
 
 typedef struct _css_drv_map
 {
   void *addr;
   int fd;
+  unsigned long css_rec_max;
+  size_t file_len;
+  css_drv_header_t header;
 } *css_drv_map_t;
 
 struct _css_drv_storage
@@ -49,7 +57,6 @@ struct _css_drv_storage
 
   unsigned long offset_nexttoken;
   struct nt *dir_handles;
-
 };
 
 typedef struct _css_drv_spam_record
