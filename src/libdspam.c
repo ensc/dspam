@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.122 2005/09/12 18:09:32 jonz Exp $ */
+/* $Id: libdspam.c,v 1.123 2005/09/14 12:27:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -1997,6 +1997,8 @@ CHI_NEXT:
     }
   }
 
+  if (CTX->factors != factor_nbayes)
+    _ds_factor_destroy(factor_nbayes);
   if (CTX->factors != factor_bayes)
     _ds_factor_destroy(factor_bayes);
   if (CTX->factors != factor_altbayes)
