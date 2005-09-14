@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.2 2005/07/14 13:29:33 jonz Exp $
+# $Id: dspam.cgi,v 1.3 2005/09/14 13:17:42 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 #
@@ -160,8 +160,15 @@ if ($FORM{'template'} eq "performance") {
 # 
 
 sub DisplayHistory {
+  my($history_site) = $FORM{'history_site'};
+  my($all_lines , $end, $begin, $history_pages);
+
   my(@buffer, @history, $line, %rec);
   my($rowclass) = "rowEven";
+
+  if ($CONFIG{'HISTORY_PER_SITE'} == 0) {
+    $CONFIG{'HISTORY_PER_SITE'} = 50;
+  }
 
   if ($FORM{'retrain'} ne "") {
     if ($FORM{'retrain'} eq "innocent") {
@@ -172,16 +179,52 @@ sub DisplayHistory {
   }
 
   my($LOG) = "$USER.log";
-
   if (! -e $LOG) {
     &error("No historical data is available");
   }
 
-  open(LOG, "tail -$CONFIG{'HISTORY_SIZE'} $LOG|");
+  if ($CONFIG{'HISTORY_PER_SITE'} > 0) {
+
+    $history_site = 1 if $history_site eq "";
+
+    open(LINES,"wc -l $LOG|");
+    while (<LINES>){
+      chomp;
+      s/^ +//;
+      if (/([0-9]*)/) { $all_lines = $1; }
+    }
+    close (LINES);
+
+    if ($history_site > 1) {
+      $end = $all_lines - ($history_site * $CONFIG{'HISTORY_PER_SITE'});
+    } else {
+      $end = $all_lines;
+    }
+    $begin = $end - $CONFIG{'HISTORY_PER_SITE'} + 1 ;
+
+    if ($begin < 0) {
+      $begin = 1;
+    } elsif ($begin < $all_lines - $CONFIG{'HISTORY_SIZE'} -  $CONFIG{'HISTORY_PER_SITE'}) {
+      $begin = $all_lines - $CONFIG{'HISTORY_SIZE'}  + 1; 
+    }
+
+    if ($all_lines < $CONFIG{'HISTORY_PER_SITE'}) {
+      warn "here!!";
+      $history_pages = 1;
+    } elsif ($all_lines > $CONFIG{'HISTORY_SIZE'}) {
+      $history_pages = ($CONFIG{'HISTORY_SIZE'} + $CONFIG{'HISTORY_PER_SITE'}) / $CONFIG{'HISTORY_PER_SITE'};
+    } else {
+      $history_pages = $all_lines / $CONFIG{'HISTORY_PER_SITE'};
+    }
+
+    open(LOG, "sed -n \'$begin,$end\p\' $LOG|");
+  }
+
   while(<LOG>) {
     push(@buffer, $_);
   }
   close(LOG);
+
 
   # Preseed retraining information and delivery errors
  
@@ -298,7 +341,19 @@ _END
   }
 
   while($line = pop(@history)) { $DATA{'HISTORY'} .= $line; }
+
+  if ($CONFIG{'HISTORY_PER_SITE'} > 0) {
+    $DATA{'HISTORY'} .= "<center>[";
+    for(my $i = 1; $i <= $history_pages; $i++) {
   
+      if ($i == $history_site) {
+        $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_site=$i\"><big><strong>   $i   </strong></big></a>";
+      } else {
+       $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_site=$i\">   $i   </a>";
+      }
+    }
+    $DATA{'HISTORY'} .= "]</center><BR>";
+  }
   &output(%DATA);
 }
 

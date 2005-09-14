@@ -1,4 +1,4 @@
-$Id: README,v 1.67 2005/08/11 18:52:20 jonz Exp $
+$Id: README,v 1.68 2005/09/14 13:17:42 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -29,11 +29,9 @@ PostgreSQL Driver Maintainer
   Rustam Aliyev <rustam@azernews.com>
 
 Patch Contributors (Past 6 Months)
+  Sep/2005 Norman Maurer <nm@byteaction.de>
   Apr/2005 Alexandre Biancalana <alexandre@biancalanas.net>
   Apr/2005 Simon Burr <simes@bpfh.net>
-  Mar/2005 Ron Bickers <rbickers@logicetc.com>
-  Mar/2005 Denis Shaposhnikov <dsh@vlink.ru>
-  Mar/2005 Leandro Santi <lesanti@fiuba7504.com.ar>
 
 TABLE OF CONTENTS
 

@@ -36,7 +36,8 @@ $CONFIG{'MAIL_QUEUE'}   = "mailq | grep '^[0-9,A-F]' | wc -l";
 $CONFIG{'WEB_ROOT'}     = "/"; # URL location of included htdocs/ files
 
 # Default DSPAM display
-$CONFIG{'HISTORY_SIZE'} = 200;		# Number of items in history
+$CONFIG{'HISTORY_SIZE'} = 799;		# Number of items in history
+$CONFIG{'HISTORY_PER_SITE'} = 50;	# Number of items displayed per site in history. Set to 0 for display all on one page.  
 $CONFIG{'MAX_COL_LEN'}	= 50;		# Max chars in list columns
 $CONFIG{'SORT_DEFAULT'}	= "Date";	# Show quarantine by "Date" or "Rating"
 $CONFIG{'3D_GRAPHS'}	= 1;

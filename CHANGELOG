@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.344 2005/09/13 22:02:09 jonz Exp $
+$Id: CHANGELOG,v 1.345 2005/09/14 13:17:42 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050914.0700] jonz: applied history paging patch
+
+applied patch contributed by Norman Maurer <nm@byteaction.de> to add paging
+to webui history
 
 [20050913.0700] jonz: added cssgrow and cssstat tools
 
