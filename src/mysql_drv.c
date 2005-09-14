@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.51 2005/08/28 01:35:50 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.52 2005/09/14 13:36:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -349,7 +349,7 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
               "spam_corpusfed, innocent_corpusfed, "
               "spam_classified, innocent_classified) "
               "values(%d, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld)",
-              p->pw_uid, CTX->totals.spam_learned,
+              (int) p->pw_uid, CTX->totals.spam_learned,
               CTX->totals.innocent_learned, CTX->totals.spam_misclassified,
               CTX->totals.innocent_misclassified, CTX->totals.spam_corpusfed,
               CTX->totals.innocent_corpusfed, CTX->totals.spam_classified,
@@ -400,7 +400,7 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
               (CTX->totals.innocent_classified >
                s->control_totals.innocent_classified) ? "+" : "-",
               abs (CTX->totals.innocent_classified -
-                  s->control_totals.innocent_classified), p->pw_uid);
+                  s->control_totals.innocent_classified), (int) p->pw_uid);
 
     if (MYSQL_RUN_QUERY (s->dbh, query))
     {
@@ -653,7 +653,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
             (stat.spam_hits > s->control_sh) ? "+" : "-",
             abs (stat.spam_hits - s->control_sh),
             (stat.innocent_hits > s->control_ih) ? "+" : "-",
-            abs (stat.innocent_hits - s->control_ih), p->pw_uid);
+            abs (stat.innocent_hits - s->control_ih), (int) p->pw_uid);
 
   buffer_cat (query, scratch);
 
@@ -702,7 +702,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
         snprintf (ins, sizeof (ins),
                   "%s(%d, '%llu', %d, %d, current_date())",
                    (insert_one) ? ", " : "",
-                   p->pw_uid,
+                   (int) p->pw_uid,
                    ds_term->key,
                    stat.spam_hits > s->control_sh ? 1 : 0,
                    stat.innocent_hits > s->control_ih ? 1 : 0);
@@ -710,7 +710,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
         snprintf (ins, sizeof (ins),
                   "%s(%d, '%llu', %ld, %ld, current_date())",
                    (insert_one) ? ", " : "",
-                   p->pw_uid,
+                   (int) p->pw_uid,
                    ds_term->key,
                    stat2.spam_hits > 0 ? (long) 1 : (long) 0,
                    stat2.innocent_hits > 0 ? (long) 1 : (long) 0);
@@ -848,7 +848,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
 
   snprintf (query, sizeof (query),
             "select spam_hits, innocent_hits from dspam_token_data "
-            "where uid = %d " "and token in('%llu') ", p->pw_uid, token);
+            "where uid = %d " "and token in('%llu') ", (int) p->pw_uid, token);
 
   stat->probability = 0.0;
   stat->spam_hits = 0;
@@ -918,7 +918,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
               "insert into dspam_token_data(uid, token, spam_hits, "
               "innocent_hits, last_hit)"
               " values(%d, '%llu', %ld, %ld, current_date())",
-              p->pw_uid, token, stat->spam_hits, stat->innocent_hits);
+              (int) p->pw_uid, token, stat->spam_hits, stat->innocent_hits);
     result = MYSQL_RUN_QUERY (s->dbh, query);
   }
 
@@ -930,7 +930,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
               "innocent_hits = %ld "
               "where uid = %d "
               "and token = %lld", stat->spam_hits,
-              stat->innocent_hits, p->pw_uid, token);
+              stat->innocent_hits, (int) p->pw_uid, token);
 
     if (MYSQL_RUN_QUERY (s->dbh, query))
     {
@@ -1065,7 +1065,7 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
       LOG(LOG_ERR, "Unable to determine UID for %s", CTX->username);
       return EINVAL;
     }
-    snprintf (session, sizeof (session), "%d,%8lx%d", p->pw_uid, 
+    snprintf (session, sizeof (session), "%d,%8lx%d", (int) p->pw_uid, 
               (long) time(NULL), pid);
   }
   else
@@ -1238,7 +1238,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   snprintf (scratch, sizeof (scratch),
             "insert into dspam_signature_data(uid, signature, length, created_on, data) values(%d, \"%s\", %ld, current_date(), \"",
-            p->pw_uid, signature, SIG->length);
+            (int) p->pw_uid, signature, SIG->length);
   buffer_cat (query, scratch);
   buffer_cat (query, mem);
   buffer_cat (query, "\")");
@@ -1284,7 +1284,7 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
 
   snprintf (query, sizeof (query),
             "delete from dspam_signature_data where uid = %d and signature = \"%s\"",
-            p->pw_uid, signature);
+            (int) p->pw_uid, signature);
   if (MYSQL_RUN_QUERY (s->dbh, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbh), query);
@@ -1323,7 +1323,7 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
 
   snprintf (query, sizeof (query),
             "select signature from dspam_signature_data where uid = %d and signature = \"%s\"",
-            p->pw_uid, signature);
+            (int) p->pw_uid, signature);
   if (MYSQL_RUN_QUERY (s->dbh, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbh), query);
@@ -1462,7 +1462,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   {
     snprintf (query, sizeof (query),
               "select token, spam_hits, innocent_hits, unix_timestamp(last_hit) from dspam_token_data where uid = %d",
-              p->pw_uid);
+              (int) p->pw_uid);
     if (MYSQL_RUN_QUERY (s->dbh, query))
     {
       _mysql_drv_query_error (mysql_error (s->dbh), query);
@@ -1534,7 +1534,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   {
     snprintf (query, sizeof (query),
               "select data, signature, length, unix_timestamp(created_on) from dspam_signature_data where uid = %d",
-              p->pw_uid);
+              (int) p->pw_uid);
     if (mysql_real_query (s->dbh, query, strlen (query)))
     {
       _mysql_drv_query_error (mysql_error (s->dbh), query);
@@ -1759,7 +1759,7 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
 
   snprintf (query, sizeof (query),
             "select %s from %s where %s = '%d'", 
-            virtual_username, virtual_table, virtual_uid, uid);
+            virtual_username, virtual_table, virtual_uid, (int) uid);
 
   if (MYSQL_RUN_QUERY (s->dbh, query))
   {
@@ -1890,7 +1890,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
 
   snprintf (query, sizeof (query),
             "delete from dspam_token_data where uid = %d and token = \"%llu\"",
-            p->pw_uid, token);
+            (int) p->pw_uid, token);
   if (MYSQL_RUN_QUERY (s->dbh, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbh), query);
@@ -1942,7 +1942,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   snprintf (queryhead, sizeof(queryhead),
             "delete from dspam_token_data "
             "where uid = %d and token in(",
-            p->pw_uid);
+            (int) p->pw_uid);
 
   buffer_cat (query, queryhead);
 
@@ -2427,7 +2427,8 @@ int _ds_get_node(DSPAM_CTX * CTX, char *user, struct _ds_neural_record *node) {
   }
 
   snprintf(query, sizeof(query), "select total_correct, total_incorrect from "
-    "dspam_neural_data where uid = %d and node = %d", p->pw_uid, n_uid);
+    "dspam_neural_data where uid = %d and node = %d", (int) p->pw_uid,
+    (int) n_uid);
 
   if (MYSQL_RUN_QUERY (s->dbh, query))
   {
@@ -2500,8 +2501,8 @@ int _ds_set_node (DSPAM_CTX * CTX, char *user, struct _ds_neural_record *node) {
 
   if (node->disk == 'N') {
     snprintf(query, sizeof(query), "insert into dspam_neural_data "
-      "(uid, node, total_correct, total_incorrect) values ("
-      "%d, %d, %ld, %ld)", p->pw_uid, node->uid, node->total_correct, 
+     "(uid, node, total_correct, total_incorrect) values ("
+     "%d, %d, %ld, %ld)", (int) p->pw_uid, (int) node->uid, node->total_correct,
         node->total_incorrect);
 
     if (MYSQL_RUN_QUERY (s->dbh, query))
@@ -2515,7 +2516,7 @@ int _ds_set_node (DSPAM_CTX * CTX, char *user, struct _ds_neural_record *node) {
       "where uid = %d and node = %d", 
         node->total_correct - node->control_correct,
         node->total_incorrect - node->control_incorrect,
-      p->pw_uid, node->uid);
+      (int) p->pw_uid, (int) node->uid);
 
     if (MYSQL_RUN_QUERY (s->dbh, query))
     {
@@ -2561,8 +2562,9 @@ _ds_get_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
   }
 
   snprintf (query, sizeof (query),
-            "select data, length from dspam_neural_decisions where uid = %d and signature = \"%s\"",
-            p->pw_uid, signature);
+    "select data, length from dspam_neural_decisions where uid = %d "
+    "and signature = \"%s\"",
+            (int) p->pw_uid, signature);
   if (mysql_real_query (s->dbh, query, strlen (query)))
   {
     _mysql_drv_query_error (mysql_error (s->dbh), query);
@@ -2655,7 +2657,7 @@ _ds_set_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
 
   snprintf (scratch, sizeof (scratch),
             "insert into dspam_neural_decisions(uid, signature, length, created_on, data) values(%d, \"%s\", %ld, current_date(), \"",
-            p->pw_uid, signature, DEC->length);
+            (int) p->pw_uid, signature, DEC->length);
   buffer_cat (query, scratch);
   buffer_cat (query, mem);
   buffer_cat (query, "\")");
@@ -2698,8 +2700,8 @@ _ds_delete_decision (DSPAM_CTX * CTX, const char *signature)
   }
                                                                                                                               
   snprintf (query, sizeof (query),
-            "delete from dspam_neural_decisions where uid = %d and signature = \"%s\"",
-            p->pw_uid, signature);
+    "delete from dspam_neural_decisions where uid = %d and signature = \"%s\"",
+            (int) p->pw_uid, signature);
   if (MYSQL_RUN_QUERY (s->dbh, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbh), query);
