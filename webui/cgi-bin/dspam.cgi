@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.3 2005/09/14 13:17:42 jonz Exp $
+# $Id: dspam.cgi,v 1.4 2005/09/14 13:27:04 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 #
@@ -166,8 +166,8 @@ sub DisplayHistory {
   my(@buffer, @history, $line, %rec);
   my($rowclass) = "rowEven";
 
-  if ($CONFIG{'HISTORY_PER_SITE'} == 0) {
-    $CONFIG{'HISTORY_PER_SITE'} = 50;
+  if ($CONFIG{'HISTORY_PER_PAGE'} == 0) {
+    $CONFIG{'HISTORY_PER_PAGE'} = 50;
   }
 
   if ($FORM{'retrain'} ne "") {
@@ -183,7 +183,7 @@ sub DisplayHistory {
     &error("No historical data is available");
   }
 
-  if ($CONFIG{'HISTORY_PER_SITE'} > 0) {
+  if ($CONFIG{'HISTORY_PER_PAGE'} > 0) {
 
     $history_site = 1 if $history_site eq "";
 
@@ -196,25 +196,25 @@ sub DisplayHistory {
     close (LINES);
 
     if ($history_site > 1) {
-      $end = $all_lines - ($history_site * $CONFIG{'HISTORY_PER_SITE'});
+      $end = $all_lines - ($history_site * $CONFIG{'HISTORY_PER_PAGE'});
     } else {
       $end = $all_lines;
     }
-    $begin = $end - $CONFIG{'HISTORY_PER_SITE'} + 1 ;
+    $begin = $end - $CONFIG{'HISTORY_PER_PAGE'} + 1 ;
 
     if ($begin < 0) {
       $begin = 1;
-    } elsif ($begin < $all_lines - $CONFIG{'HISTORY_SIZE'} -  $CONFIG{'HISTORY_PER_SITE'}) {
+    } elsif ($begin < $all_lines - $CONFIG{'HISTORY_SIZE'} -  $CONFIG{'HISTORY_PER_PAGE'}) {
       $begin = $all_lines - $CONFIG{'HISTORY_SIZE'}  + 1; 
     }
 
-    if ($all_lines < $CONFIG{'HISTORY_PER_SITE'}) {
+    if ($all_lines < $CONFIG{'HISTORY_PER_PAGE'}) {
       warn "here!!";
       $history_pages = 1;
     } elsif ($all_lines > $CONFIG{'HISTORY_SIZE'}) {
-      $history_pages = ($CONFIG{'HISTORY_SIZE'} + $CONFIG{'HISTORY_PER_SITE'}) / $CONFIG{'HISTORY_PER_SITE'};
+      $history_pages = ($CONFIG{'HISTORY_SIZE'} + $CONFIG{'HISTORY_PER_PAGE'}) / $CONFIG{'HISTORY_PER_PAGE'};
     } else {
-      $history_pages = $all_lines / $CONFIG{'HISTORY_PER_SITE'};
+      $history_pages = $all_lines / $CONFIG{'HISTORY_PER_PAGE'};
     }
 
     open(LOG, "sed -n \'$begin,$end\p\' $LOG|");
@@ -342,7 +342,7 @@ _END
 
   while($line = pop(@history)) { $DATA{'HISTORY'} .= $line; }
 
-  if ($CONFIG{'HISTORY_PER_SITE'} > 0) {
+  if ($CONFIG{'HISTORY_PER_PAGE'} > 0) {
     $DATA{'HISTORY'} .= "<center>[";
     for(my $i = 1; $i <= $history_pages; $i++) {
   
