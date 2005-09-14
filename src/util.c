@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.14 2005/09/10 18:27:47 jonz Exp $ */
+/* $Id: util.c,v 1.15 2005/09/14 12:27:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -586,7 +586,7 @@ int _ds_compute_sparse(const char *token) {
 
  if (!strncmp(token, "#+", 2))
     sparse++;
-  if (!strncmp((token+strlen(token))-2, "+#", 2))
+  if (strlen(token)>=2 && !strncmp((token+strlen(token))-2, "+#", 2))
     sparse++;
   for(i=0;token[i];i++) {
     if (!strncmp(token+i, "+#+", 3))
