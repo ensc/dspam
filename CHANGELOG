@@ -1,14 +1,14 @@
-$Id: CHANGELOG,v 1.345 2005/09/14 13:17:42 jonz Exp $
+$Id: CHANGELOG,v 1.346 2005/09/15 02:19:07 jonz Exp $
 
-Version NEXT
-------------
+Version 3.6.rc1
+---------------
 
 [20050914.0700] jonz: applied history paging patch
 
 applied patch contributed by Norman Maurer <nm@byteaction.de> to add paging
 to webui history
 
-[20050913.0700] jonz: added cssgrow and cssstat tools
+[20050913.0700] jonz: added css tools
 
 in tools.css_drv:
   cssgrow - grow (or shrink) the capacity of a css file
@@ -22,10 +22,11 @@ moved counters for both spam and nonspam into single .css file, saving
 considerable disk space by removing extra set of keys. also added header
 to css files containing record count, for cssgrow tool.
 
+NOTE: new format is incompatible with older development versions
+
 [20050910.1400] jonz: minor dspam_stats output changes
 
 SM and IM changed to FN and FP, respectively
-TI (total innocent) changed to TN (total nonspam)
 
 [20050910.1400] jonz: commandline enhancements
 
