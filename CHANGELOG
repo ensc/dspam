@@ -1,4 +1,13 @@
-$Id: CHANGELOG,v 1.346 2005/09/15 02:19:07 jonz Exp $
+$Id: CHANGELOG,v 1.347 2005/09/15 02:21:02 jonz Exp $
+
+Version NEXT
+------------
+
+[20050914.2215] jonz: added DataSource configuration option
+
+if "DataSource document" is used in dspam.conf, all input will be treated as
+a message "body" (e.g. a document) rather than split up between headers and
+body. this is useful if classifying things other than email.
 
 Version 3.6.rc1
 ---------------

@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.16 2005/09/13 13:45:45 jonz Exp $ */
+/* $Id: css_drv.c,v 1.17 2005/09/15 02:21:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -501,7 +501,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
  
   wrap = 0;
   rec = s->db.addr+filepos;
-  while(rec->hashcode != token && rec->hashcode !=0 && 
+  while(rec->hashcode != token && rec->hashcode != 0 && 
         ((wrap && filepos <thumb) || (!wrap)))
   {
     filepos += sizeof(struct _css_drv_spam_record);

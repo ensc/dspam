@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.1 2005/09/10 18:27:47 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.2 2005/09/15 02:21:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -156,6 +156,9 @@ int _ds_tokenize_ngram(
     int is_received, multiline;
     joined_token[0] = 0;
 
+#ifdef VERBOSE
+    LOGDEBUG("processing line: %s", node_nt->ptr);
+#endif
     line = node_nt->ptr;
     token = strtok_r (line, ":", &ptrptr);
     if (token && token[0] != 32 && token[0] != 9 && !strstr (token, " "))
@@ -275,6 +278,9 @@ int _ds_tokenize_ngram(
    * Body Tokenization
    */
 
+#ifdef VERBOSE
+  LOGDEBUG("parsing message body");
+#endif
   joined_token[0] = 0;
   alloc = 0;
 #ifdef NCORE
@@ -1027,6 +1033,9 @@ int _ds_url_tokenize(ds_diction_t diction, char *body, const char *key)
   int url_length;
   unsigned long long crc;
 
+#ifdef VERBOSE
+  LOGDEBUG("scanning for urls: %s\n", key);
+#endif
   if (!body)
     return EINVAL;
   url_body = strdup(body);

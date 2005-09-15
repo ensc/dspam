@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.49 2005/09/11 00:04:38 jonz Exp $
+## $Id: dspam.conf.in,v 1.50 2005/09/15 02:21:02 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -584,5 +584,11 @@ Opt out
 # touch ip addresses within the directory the rabl_client process is watching.
 #
 #RABLQueue	/var/spool/rabl
+
+# DataSource: If you are using any type of data source that does not include
+# email-like headers (such as documents), uncomment the line below. This
+# will cause the entire input to be treated like a message "body"
+#
+#DataSource      document
 
 ## EOF

@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.123 2005/09/14 12:27:02 jonz Exp $ */
+/* $Id: libdspam.c,v 1.124 2005/09/15 02:21:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -847,6 +847,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     whitelist_token = diction->whitelist_token;
   }
 
+
   /* Load all token statistics */
   if (_ds_getall_spamrecords (CTX, diction))
   {
@@ -854,6 +855,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     errcode = EUNKNOWN;
     goto bail;
   }
+
 
   /* Apply Bayesian Noise Reduction */
   if (CTX->flags & DSF_NOISE)

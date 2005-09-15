@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.56 2005/09/11 00:04:38 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.57 2005/09/15 02:21:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -715,6 +715,11 @@ buffer * read_stdin(AGENT_CTX *ATX) {
   if (msg == NULL) {
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
+  }
+
+  if (_ds_match_attribute(agent_config, "DataSource", "document")) {
+    buffer_cat(msg, "Content-type: text/plain\n\n");
+    body = 1;
   }
 
   /* Only read the message if no signature was provided on commandline */
