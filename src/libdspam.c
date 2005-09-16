@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.127 2005/09/16 13:31:46 jonz Exp $ */
+/* $Id: libdspam.c,v 1.128 2005/09/16 17:05:41 jonz Exp $ */
 
 /*
  DSPAM
@@ -1566,8 +1566,6 @@ _ds_calc_stat (
     den = C1 * (s->spam_hits + s->innocent_hits + C2) * 256;
 
     s->probability = 0.5 + ((double) num / (double) den); 
-    if (s->innocent_hits + s->spam_hits < 1)
-      s->probability = 0.5;
 
   /* Graham and Robinson Start Here */
 
