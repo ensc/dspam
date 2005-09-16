@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.124 2005/09/15 02:21:02 jonz Exp $ */
+/* $Id: libdspam.c,v 1.125 2005/09/16 02:40:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -1626,29 +1626,6 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
     else if (CTX->classification == DSR_ISINNOCENT)
       stat.probability = 0.00;
 
-    /* Naive-Bayesian */
-    if (CTX->algorithms & DSA_NAIVE)
-    {
-        LOGDEBUG ("[naive] [%2.6f] %s (%dfrq, %lds, %ldi)",
-                  stat.probability, token_name, ds_term->frequency,
-                  stat.spam_hits, stat.innocent_hits);
-
-      _ds_factor(factor_nbayes, token_name, stat.probability);
-
-      if (nbay_used == 0)
-      {
-        nbay_top = stat.probability;
-        nbay_bot = 1 - stat.probability;
-      }
-      else
-      {
-        nbay_top *= stat.probability;
-        nbay_bot *= (1 - stat.probability);
-      }
-
-      nbay_used++;
-    }
-
     /* Graham-Bayesian */
     if (CTX->algorithms & DSA_GRAHAM && bay_used < 15)
     {
@@ -1792,7 +1769,7 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
 #define CHI_EXCR	0.4500	/* Exclusionary Radius */
 #define LN2		0.69314718055994530942 /* log e2 */
 
-  if (CTX->algorithms & DSA_CHI_SQUARE)
+  if (CTX->algorithms & DSA_CHI_SQUARE || CTX->algorithms & DSA_NAIVE)
   {
     ds_term_t ds_term;
     ds_cursor_t ds_c;
@@ -1803,49 +1780,75 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
     ds_term = ds_diction_next(ds_c);
     while(ds_term) {
 
-      /* Skip BNR Tokens */
-      if (ds_term->name && !strncmp(ds_term->name, "bnr.", 4))
-        goto CHI_NEXT;
-
-      /* Convert the p-value */
-
-      if (CTX->algorithms & DSP_ROBINSON) {
-        fw = ds_term->s.probability;
-      } else {
-        n = ds_term->s.spam_hits + ds_term->s.innocent_hits;
-        fw = ((CHI_S * CHI_X) + (n * ds_term->s.probability))/(CHI_S + n);
+      /* Naive-Bayesian */
+      if (CTX->algorithms & DSA_NAIVE)
+      {
+          LOGDEBUG ("[naive] [%2.6f] %s (%dfrq, %lds, %ldi)",
+                    ds_term->s.probability, ds_term->name, ds_term->frequency,
+                    ds_term->s.spam_hits, ds_term->s.innocent_hits);
+  
+        _ds_factor(factor_nbayes, ds_term->name, stat.probability);
+  
+        if (nbay_used == 0)
+        {
+          nbay_top = stat.probability;
+          nbay_bot = 1 - stat.probability;
+        }
+        else
+        {
+          nbay_top *= stat.probability;
+          nbay_bot *= (1 - stat.probability);
+        }
+  
+        nbay_used++;
       }
 
-      if (fabs(0.5-fw)>CHI_EXCR) {
-        int iter = _ds_compute_complexity(ds_term->name);
+      if (CTX->algorithms & DSA_CHI_SQUARE) {
 
-        iter = 1;
-        while(iter>0) {
-          iter --;
+        /* Skip BNR Tokens */
+        if (ds_term->name && !strncmp(ds_term->name, "bnr.", 4))
+          goto CHI_NEXT;
+
+        /* Convert the p-value */
+
+      if (CTX->algorithms & DSP_ROBINSON) {
+          fw = ds_term->s.probability;
+        } else {
+          n = ds_term->s.spam_hits + ds_term->s.innocent_hits;
+          fw = ((CHI_S * CHI_X) + (n * ds_term->s.probability))/(CHI_S + n);
+        }
+
+        if (fabs(0.5-fw)>CHI_EXCR) {
+          int iter = _ds_compute_complexity(ds_term->name);
+
+          iter = 1;
+          while(iter>0) {
+            iter --;
 
 #ifndef VERBOSE
-          if (CTX->operating_mode != DSM_CLASSIFY)
-          {
+            if (CTX->operating_mode != DSM_CLASSIFY)
+            {
 #endif
-            LOGDEBUG ("[chi-sq] [%2.6f] %s (%dfrq, %lds, %ldi)",
-                      fw, ds_term->name, ds_term->frequency,
-                      ds_term->s.spam_hits, ds_term->s.innocent_hits);
+              LOGDEBUG ("[chi-sq] [%2.6f] %s (%dfrq, %lds, %ldi)",
+                        fw, ds_term->name, ds_term->frequency,
+                        ds_term->s.spam_hits, ds_term->s.innocent_hits);
 #ifndef VERBOSE
-          }
+            }
 #endif
 
-          _ds_factor(factor_chi, ds_term->name, ds_term->s.probability);
-
-          chi_used++;
-          chi_s *= (1.0 - fw);
-          chi_h *= fw;
-          if (chi_s < 1e-200) {
-            chi_s = frexp(chi_s, &exp);
-            chi_sx += exp;
-          }
-          if (chi_h < 1e-200) {
-            chi_h = frexp(chi_h, &exp);
-            chi_hx += exp; 
+            _ds_factor(factor_chi, ds_term->name, ds_term->s.probability);
+  
+            chi_used++;
+            chi_s *= (1.0 - fw);
+            chi_h *= fw;
+            if (chi_s < 1e-200) {
+              chi_s = frexp(chi_s, &exp);
+              chi_sx += exp;
+            }
+            if (chi_h < 1e-200) {
+              chi_h = frexp(chi_h, &exp);
+              chi_hx += exp; 
+            }
           }
         }
       }
@@ -1981,7 +1984,7 @@ CHI_NEXT:
     if (CTX->algorithms & DSA_CHI_SQUARE) {
      factor = factor_chi;
      if ((CTX->algorithms & DSP_MARKOV && chi_result > 0.5000) ||
-         (!(CTX->algorithms & DSP_MARKOV) && bay_result >= CHI_CUTOFF))
+         (!(CTX->algorithms & DSP_MARKOV) && chi_result >= CHI_CUTOFF))
      {
        CTX->result = DSR_ISSPAM;
        if (CTX->probability < 0)
