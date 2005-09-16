@@ -1,13 +1,17 @@
-$Id: CHANGELOG,v 1.347 2005/09/15 02:21:02 jonz Exp $
+$Id: CHANGELOG,v 1.348 2005/09/16 03:42:32 jonz Exp $
 
 Version NEXT
 ------------
 
-[20050914.2215] jonz: added DataSource configuration option
+[20050914.2215] jonz: added DataSource and ProcessorWordOccurence options
 
 if "DataSource document" is used in dspam.conf, all input will be treated as
 a message "body" (e.g. a document) rather than split up between headers and
 body. this is useful if classifying things other than email.
+
+if "ProcessorWordOccurence" is set to 'occurrence', all word counts are
+based on occurrence rather than per-message. this may be useful when
+classifying large documents.
 
 Version 3.6.rc1
 ---------------

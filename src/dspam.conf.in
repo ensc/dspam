@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.50 2005/09/15 02:21:02 jonz Exp $
+## $Id: dspam.conf.in,v 1.51 2005/09/16 03:42:32 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -590,5 +590,11 @@ Opt out
 # will cause the entire input to be treated like a message "body"
 #
 #DataSource      document
+
+# ProcessorWordFrequency: By default, words are only counted once per message.
+# If you are classifying large documents, however, you may wish to count once
+# per occurrence instead.
+#
+#ProcessorWordFrequency  occurrence
 
 ## EOF

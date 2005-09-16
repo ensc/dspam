@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.2 2005/09/15 02:21:02 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.3 2005/09/16 03:42:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -680,25 +680,32 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
   int i, mask, t;
   unsigned long long crc;
   char key[256];
+  int active = 0, top;
 
   if (_ds_match_attribute(CTX->config->attributes, "IgnoreHeader", heading))
     return 0;
 
   /* Shift all previous tokens up */
   free(previous_tokens[0]);
-  for(i=0;i<SBPH_SIZE-1;i++)
+  for(i=0;i<SBPH_SIZE-1;i++) {
     previous_tokens[i] = previous_tokens[i+1];
+    if (previous_tokens[i])
+      active++;
+  }
 
-  if (token)
+  if (token) {
     previous_tokens[SBPH_SIZE-1] = strdup (token);
+    active++;
+  }
   else
     previous_tokens[SBPH_SIZE-1] = NULL;
 
   /* Iterate and generate all keys necessary */
-  for(mask=0;mask < _ds_pow2(SBPH_SIZE);mask++) {
+  for(mask=0;mask < _ds_pow2(active);mask++) {
     int terms = 0;
     key[0] = 0;
     t = 0;
+    top = 1;
                                                                                 
     /* Each Bit */
     for(i=0;i<SBPH_SIZE;i++) {
@@ -728,12 +735,16 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
         key[kl-2] = 0;
         kl -=2;
       }
-      while(!strncmp(k, "#+", 2)) 
+      while(!strncmp(k, "#+", 2)) {
+        top = 0; 
         k+=2;
+      }
 
-      snprintf(hkey, sizeof(hkey), "%s*%s", heading, k);
-      crc = _ds_getcrc64(hkey);
-      ds_diction_touch(diction, crc, hkey, DSD_CONTEXT);
+      if (top) {
+        snprintf(hkey, sizeof(hkey), "%s*%s", heading, k);
+        crc = _ds_getcrc64(hkey);
+        ds_diction_touch(diction, crc, hkey, DSD_CONTEXT);
+      }
     }
   }
 
@@ -745,25 +756,33 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
                         char **previous_tokens, ds_diction_t diction)
 {
   int i,  mask, t;
+  int top;
   unsigned long long crc;
   char key[256];
+  int active = 0;
 
   /* Shift all previous tokens up */
   free(previous_tokens[0]);
-  for(i=0;i<SBPH_SIZE-1;i++)
+  for(i=0;i<SBPH_SIZE-1;i++) {
     previous_tokens[i] = previous_tokens[i+1];
-                                                                                
-  if (token)
+    if (previous_tokens[i]) 
+      active++;
+  }
+
+  if (token) {
     previous_tokens[SBPH_SIZE-1] = strdup (token);
+    active++;
+  }
   else
     previous_tokens[SBPH_SIZE-1] = NULL;
                                                                                 
   /* Iterate and generate all keys necessary */
-  for(mask=0;mask < _ds_pow2(SBPH_SIZE);mask++) {
+  for(mask=0;mask < _ds_pow2(active);mask++) {
     int terms = 0;
     t = 0;
 
     key[0] = 0;
+    top = 1;
 
     /* Each Bit */
     for(i=0;i<SBPH_SIZE;i++) {
@@ -791,11 +810,15 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
         key[kl-2] = 0;
         kl -=2;
       }
-      while(!strncmp(k, "#+", 2)) 
+      while(!strncmp(k, "#+", 2)) {
+        top = 0; 
         k+=2;
+      }
  
-      crc = _ds_getcrc64(k);
-      ds_diction_touch(diction, crc, k, DSD_CONTEXT);
+      if (top) {
+        crc = _ds_getcrc64(k);
+        ds_diction_touch(diction, crc, k, DSD_CONTEXT);
+      }
     }
   }
 
