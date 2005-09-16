@@ -1,4 +1,4 @@
-/* $Id: config_api.c,v 1.12 2005/09/16 03:42:32 jonz Exp $ */
+/* $Id: config_api.c,v 1.13 2005/09/16 12:19:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -88,7 +88,8 @@ int set_libdspam_attributes(DSPAM_CTX *CTX) {
           !strcasecmp(t->key, "LocalMX")    ||
           !strncasecmp(t->key, "LDAP", 4)   ||
           !strncasecmp(t->key, "Storage", 7) ||
-          !strncasecmp(t->key, "Processor", 9))
+          !strncasecmp(t->key, "Processor", 9) ||
+          !strncasecmp(t->key, "CSS", 3))
       {
         if (profile == NULL || profile[0] == 0)
         {

@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.17 2005/09/15 02:21:02 jonz Exp $ */
+/* $Id: css_drv.c,v 1.18 2005/09/16 12:19:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -59,6 +59,7 @@
 #endif
 
 #include "storage_driver.h"
+#include "config_shared.h"
 #include "css_drv.h"
 #include "libdspam.h"
 #include "config.h"
@@ -260,7 +261,11 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     if (lock_result < 0) 
       goto BAIL;
 
-    r1 = _css_drv_open(db, &s->db, CSS_REC_MAX);
+    if (_ds_read_attribute(CTX->config->attributes, "CSSRecMax")) {
+      r1 = _css_drv_open(db, &s->db, strtol(_ds_read_attribute(CTX->config->attributes, "CSSRecMax"), NULL, 0));
+    } else {
+      r1 = _css_drv_open(db, &s->db, CSS_REC_MAX);
+    }
 
     if (r1) {
       _css_drv_close(&s->db);

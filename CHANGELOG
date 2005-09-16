@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.348 2005/09/16 03:42:32 jonz Exp $
+$Id: CHANGELOG,v 1.349 2005/09/16 12:19:28 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050916.0800] jonz: added override for css_rec_max to dspam.conf
+
+CSSRecMax can now be configured in dspam.conf
 
 [20050914.2215] jonz: added DataSource and ProcessorWordOccurence options
 

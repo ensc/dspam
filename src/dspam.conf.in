@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.51 2005/09/16 03:42:32 jonz Exp $
+## $Id: dspam.conf.in,v 1.52 2005/09/16 12:19:28 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -300,6 +300,14 @@ AllowOverride whitelistThreshold
 # --- SQLite ---
 
 #SQLitePragma   "synchronous = OFF"
+
+# --- CSS ---
+
+# CSSRecMax: Default number of records to create when building CSS files.
+# The hard-coded default is two million. This can also be changed on a per-user
+# basis using cssgrow
+#
+#CSSRecMax	2000000
 
 # LDAP: Perform various LDAP functions depending on LDAPMode variable.
 # Presently, the only mode supported is 'verify', which will verify the existence
