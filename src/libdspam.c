@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.126 2005/09/16 03:42:32 jonz Exp $ */
+/* $Id: libdspam.c,v 1.127 2005/09/16 13:31:46 jonz Exp $ */
 
 /*
  DSPAM
@@ -1441,11 +1441,9 @@ _ds_process_signature (DSPAM_CTX * CTX)
             if (_ds_match_attribute(CTX->config->attributes,
               "ProcessorWordFrequency", "occurrence"))
             {
-              ds_term->s.spam_hits -= ds_term->frequency;
-              if (ds_term->s.spam_hits < 0)
-                ds_term->s.spam_hits = 0;
+              ds_term->s.spam_hits += ds_term->frequency;
             } else {
-              ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
+              ds_term->s.spam_hits++;
             }
 
         }
