@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.40 2005/09/22 17:52:04 jonz Exp $
+dnl $Id: configure.ac,v 1.41 2005/09/22 19:25:35 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -860,7 +860,7 @@ AC_MSG_RESULT([$logdir])
 
 #---------------------------------------------------------
 #   storage driver selection
-storagedrv=sqlite
+storagedrv=sqlite_drv
 storage_drv_subdirs=""
 active_driver=""
 static_driver=yes
@@ -876,7 +876,7 @@ AC_MSG_RESULT([$storagedrv])
 #
 
 ac_save_IFS=$IFS; IFS=,
-for drv in $withval; do
+for drv in $storagedrv; do
   IFS=$ac_save_IFS
 
   if test x"$active_driver" = x
