@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.53 2005/09/22 17:52:04 jonz Exp $
+## $Id: dspam.conf.in,v 1.54 2005/09/22 19:10:45 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -243,6 +243,9 @@ AllowOverride whitelistThreshold
 #MySQLPass    		changeme
 #MySQLDb      	  	dspam
 #MySQLCompress		true
+
+# Use this if you have the 4.1 quote bug (see doc/mysql.txt)
+#MySQLSupressQuote	on
 
 # If you're running DSPAM in client/server (daemon) mode, uncomment the
 # setting below to override the default connection cache size (the number

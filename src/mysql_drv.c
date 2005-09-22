@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.53 2005/09/22 17:52:04 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.54 2005/09/22 19:10:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -495,7 +495,10 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_term = ds_diction_next(ds_c);
   while (ds_term)
   {
-    snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
+    if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+      snprintf(scratch, sizeof(scratch), "%llu", ds_term->key);
+    else
+      snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
     buffer_cat (query, scratch);
     ds_term->s.innocent_hits = 0;
     ds_term->s.spam_hits = 0;
@@ -705,7 +708,11 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     }
 
     if (stat.status & TST_DISK) {
+    if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+      snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
+    else
       snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
+
       buffer_cat (query, scratch);
       update_any = 1;
       use_comma = 1;
@@ -800,7 +807,12 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     return EINVAL;
   }
 
-  snprintf (query, sizeof (query),
+  if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+    snprintf (query, sizeof (query),
+            "select spam_hits, innocent_hits from dspam_token_data "
+            "where uid = %d " "and token in(%llu) ", (int) p->pw_uid, token);
+  else
+    snprintf (query, sizeof (query),
             "select spam_hits, innocent_hits from dspam_token_data "
             "where uid = %d " "and token in('%llu') ", (int) p->pw_uid, token);
 
@@ -1843,10 +1855,15 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
               CTX->username);
     return EINVAL;
   }
-
-  snprintf (query, sizeof (query),
+  if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+    snprintf (query, sizeof (query),
+            "delete from dspam_token_data where uid = %d and token = %llu",
+            (int) p->pw_uid, token);
+  else
+    snprintf (query, sizeof (query),
             "delete from dspam_token_data where uid = %d and token = \"%llu\"",
             (int) p->pw_uid, token);
+
   if (MYSQL_RUN_QUERY (s->dbh, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbh), query);
@@ -1906,7 +1923,10 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
-    snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
+    if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+      snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
+    else
+      snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
     buffer_cat (query, scratch);
     ds_term = ds_diction_next(ds_c);
    
