@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.52 2005/09/16 12:19:28 jonz Exp $
+## $Id: dspam.conf.in,v 1.53 2005/09/22 17:52:04 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -307,7 +307,13 @@ AllowOverride whitelistThreshold
 # The hard-coded default is two million. This can also be changed on a per-user
 # basis using cssgrow
 #
-#CSSRecMax	2000000
+#CSSRecMax		2000000
+
+# CSSConcurrentUser: If you are using a single, stateful CSS database in
+# daemon mode, specifying a concurrent user will cause the user to be 
+# permanently mapped into memory and shared via rwlocks.
+#
+#CSSConcurrentUser	user
 
 # LDAP: Perform various LDAP functions depending on LDAPMode variable.
 # Presently, the only mode supported is 'verify', which will verify the existence

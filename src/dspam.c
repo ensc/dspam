@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.196 2005/09/07 18:37:44 jonz Exp $ */
+/* $Id: dspam.c,v 1.197 2005/09/22 17:52:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -582,7 +582,7 @@ process_message (
   {
     int valid = 0;
 
-    while (valid == 0)
+    while (!valid) 
     {
       _ds_create_signature_id (CTX, ATX->signature, sizeof (ATX->signature));
       if (_ds_verify_signature (CTX, ATX->signature))
@@ -714,8 +714,8 @@ process_message (
 
   /* Add headers, tag, and deliver if necessary */
 
-  if (!_ds_match_attribute(agent_config, "TrainPristine", "on") && 
-        strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "on")) 
+//  if (!_ds_match_attribute(agent_config, "TrainPristine", "on") && 
+//        strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "on")) 
   {
     add_xdspam_headers(CTX, ATX);
   }
@@ -1735,7 +1735,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
     else
     { 
-      char *result_string;
+      char *result_string = NULL;
       result = process_message (ATX, parse_message, username, &result_string);
       presult->classification = result;
 
@@ -3783,7 +3783,7 @@ int daemon_start(AGENT_CTX *ATX) {
     }
 
     set_libdspam_attributes(DTX.CTX);
-    DTX.flags |= DRF_STATEFUL;
+    DTX.flags = DRF_STATEFUL;
 
 #ifdef DEBUG
     if (DO_DEBUG)

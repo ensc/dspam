@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.39 2005/09/02 00:36:22 jonz Exp $
+dnl $Id: configure.ac,v 1.40 2005/09/22 17:52:04 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -1079,7 +1079,7 @@ then
     AC_MSG_ERROR([no valid storage drivers specified])
 fi
 
-if test x"$enable_daemon" = xyes && test x"$mysql_drv" != xyes && test x"$pgsql_drv" != xyes
+if test x"$enable_daemon" = xyes && test x"$mysql_drv" != xyes && test x"$pgsql_drv" != xyes && test x"$css_drv" != xyes
 then
   AC_MSG_ERROR([daemon mode requires one of the following storage drivers: mysql_drv pgsql_drv])
 fi

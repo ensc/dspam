@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.128 2005/09/16 17:05:41 jonz Exp $ */
+/* $Id: libdspam.c,v 1.129 2005/09/22 17:52:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -873,6 +873,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
+
     if (ds_term->s.probability == 0.00000 || CTX->classification != DSR_NONE)
       _ds_calc_stat (CTX, ds_term, &ds_term->s, DTT_DEFAULT, NULL);
 
@@ -1086,7 +1087,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
           ds_term->key == diction->whitelist_token             ||
           CTX->confidence < 0.70))
     {
-      ds_term->s.status |= TST_DIRTY;
+        ds_term->s.status |= TST_DIRTY;
     }
 
     if (ds_term->name && !strncmp(ds_term->name, "bnr.", 4) &&
@@ -1094,7 +1095,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         CTX->flags & DSF_NOISE &&
         CTX->_sig_provided == 0)
     {
-      ds_term->s.status |= TST_DIRTY;
+        ds_term->s.status |= TST_DIRTY;
     }
 
     /* SPAM */
@@ -1376,22 +1377,19 @@ _ds_process_signature (DSPAM_CTX * CTX)
             CTX->training_mode != DST_NOTRAIN && 
             CTX->training_mode != DST_TOE)
         {
-          if (CTX->classification == DSR_ISSPAM)
+          if (_ds_match_attribute(CTX->config->attributes,
+            "ProcessorWordFrequency", "occurrence"))
           {
-            if (_ds_match_attribute(CTX->config->attributes,
-              "ProcessorWordFrequency", "occurrence"))
-            {
-              ds_term->s.spam_hits -= ds_term->frequency;
-              if (ds_term->s.spam_hits < 0)
-                ds_term->s.spam_hits = 0;
-            } else {
-              ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
-            }
+            ds_term->s.spam_hits -= ds_term->frequency;
+            if (ds_term->s.spam_hits < 0)
+              ds_term->s.spam_hits = 0;
+          } else {
+            ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
           }
-
         }
       }
     }
+
 
     /* SPAM */
     else if (CTX->classification == DSR_ISSPAM)
@@ -1415,8 +1413,6 @@ _ds_process_signature (DSPAM_CTX * CTX)
            CTX->training_mode != DST_NOTRAIN && 
            CTX->training_mode != DST_TOE)
        {
-        if (CTX->classification == DSR_ISSPAM)
-        {
           if (_ds_match_attribute(CTX->config->attributes,
             "ProcessorWordFrequency", "occurrence"))
           {
@@ -1426,7 +1422,6 @@ _ds_process_signature (DSPAM_CTX * CTX)
           } else {
             ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
           }
-        }
 
        }
 
@@ -1449,6 +1444,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
         }
       }
     }
+
     ds_term->s.status |= TST_DIRTY;
     ds_term = ds_diction_next(ds_c);
   }

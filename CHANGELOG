@@ -1,7 +1,14 @@
-$Id: CHANGELOG,v 1.349 2005/09/16 12:19:28 jonz Exp $
+$Id: CHANGELOG,v 1.350 2005/09/22 17:52:03 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050920.1800] jonz: added persistent mode support for css_drv
+
+added daemon mode support for css_drv when using CSSConcurrentUser (permanently
+mmap's user's database into memory). no need for daemon mode when NOT using this
+feature so don't bother, but is very fast if you are using a single global 
+css file.
 
 [20050916.0800] jonz: added override for css_rec_max to dspam.conf
 

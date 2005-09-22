@@ -1,4 +1,4 @@
-/* $Id: storage_driver.h,v 1.11 2005/04/25 13:05:48 jonz Exp $ */
+/* $Id: storage_driver.h,v 1.12 2005/09/22 17:52:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -42,6 +42,7 @@ struct _ds_drv_connection
   void *dbh;
 #ifdef DAEMON
   pthread_mutex_t lock;
+  pthread_rwlock_t rwlock;
 #endif
 };
 
@@ -154,6 +155,7 @@ int	_ds_pref_del(config_t , const char *user, const char *home,
 /* Driver context flags */
 
 #define DRF_STATEFUL	0x01
+#define DRF_RWLOCK	0x02
 
 /* Driver statii */
 

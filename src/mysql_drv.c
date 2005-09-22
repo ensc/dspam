@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.52 2005/09/14 13:36:45 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.53 2005/09/22 17:52:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -341,6 +341,8 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
 
   }
 
+  result = -1;
+
   if (s->control_totals.innocent_learned == 0)
   {
     snprintf (query, sizeof (query),
@@ -357,7 +359,7 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
     result = MYSQL_RUN_QUERY (s->dbh, query);
   }
 
-  if (s->control_totals.innocent_learned != 0 || result)
+  if (result)
   {
     snprintf (query, sizeof (query),
               "update dspam_stats set spam_learned = spam_learned %s %d, "
@@ -461,13 +463,13 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
                 CTX->group);
       return EINVAL;
     }
-                                                                                
   }
                                                                                 
   gid = p->pw_uid;
 
-  stat.spam_hits = 0;
+  stat.spam_hits     = 0;
   stat.innocent_hits = 0;
+  stat.probability   = 0.00000;
 
   query = buffer_create (NULL);
   if (query == NULL)
@@ -476,10 +478,17 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EUNKNOWN;
   }
 
-  snprintf (scratch, sizeof (scratch),
+  if (uid != gid) {
+    snprintf (scratch, sizeof (scratch),
             "select uid, token, spam_hits, innocent_hits "
             "from dspam_token_data where (uid = %d or uid = %d) and token in(",
             uid, gid);
+  } else {
+    snprintf (scratch, sizeof (scratch),
+            "select uid, token, spam_hits, innocent_hits "
+            "from dspam_token_data where uid = %d and token in(",
+            uid);
+  }
   buffer_cat (query, scratch);
 
   ds_c = ds_diction_cursor(diction);
@@ -490,7 +499,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     buffer_cat (query, scratch);
     ds_term->s.innocent_hits = 0;
     ds_term->s.spam_hits = 0;
-    ds_term->s.probability = 0;
+    ds_term->s.probability = 0.00000;
     ds_term->s.status = 0;
     ds_term = ds_diction_next(ds_c);
     if (ds_term)
@@ -522,7 +531,6 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EFAILURE;
   }
 
-  stat.probability = 0;
   while ((row = mysql_fetch_row (result)) != NULL)
   {
     int rid = atoi(row[0]);
@@ -534,35 +542,19 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     if (rid == uid) 
       stat.status |= TST_DISK;
 
-    if (stat.spam_hits < 0)
-      stat.spam_hits = 0;
-    if (stat.innocent_hits < 0)
-      stat.innocent_hits = 0;
-
     ds_diction_addstat(diction, token, &stat);
   }
 
-  ds_c = ds_diction_cursor(diction);
-  ds_term = ds_diction_next(ds_c);
-  while(ds_term && !s->control_token) {
-    if (ds_term->s.spam_hits && ds_term->s.innocent_hits) {
-      s->control_token = ds_term->key;
-      s->control_sh = ds_term->s.spam_hits;
-      s->control_ih = ds_term->s.innocent_hits;
-    }
-    ds_term = ds_diction_next(ds_c);
-  }
-  ds_diction_close(ds_c);
-
-  if (!s->control_token)
-  {
-     ds_c = ds_diction_cursor(diction);
-     ds_term = ds_diction_next(ds_c);
-     s->control_token = ds_term->key;
-     s->control_sh = ds_term->s.spam_hits;
-     s->control_ih = ds_term->s.innocent_hits;
-     ds_diction_close(ds_c);
-  }
+  /* Control token */
+  stat.spam_hits = 10;
+  stat.innocent_hits = 10;
+  stat.status = 0;
+  token = _ds_getcrc64("$$CONTROL$$");
+  ds_diction_touch(diction, token, "$$CONTROL$$", 0);
+  ds_diction_addstat(diction, token, &stat);
+  s->control_token = token;
+  s->control_ih = 10;
+  s->control_sh = 10;
 
   mysql_free_result (result);
   buffer_destroy (query);
@@ -573,16 +565,16 @@ int
 _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
-  struct _ds_spam_stat stat, stat2;
+  struct _ds_spam_stat control, stat;
   ds_term_t ds_term;
   ds_cursor_t ds_c;
   buffer *query;
   char scratch[1024];
   struct passwd *p;
-  int update_one = 0;
+  int update_any = 0;
 #if MYSQL_VERSION_ID >= 40100
   buffer *insert;
-  int insert_one = 0;
+  int insert_any = 0;
 #endif
 
   if (s->dbh == NULL)
@@ -592,8 +584,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
   if (CTX->operating_mode == DSM_CLASSIFY && 
-        (CTX->training_mode != DST_TOE || 
-          (diction->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE))))) 
+      (CTX->training_mode != DST_TOE || 
+        (diction->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
     return 0;
 
   if (!CTX->group || CTX->flags & DSF_MERGED)
@@ -625,35 +617,16 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 #endif
 
-  if (s->control_token == 0)
-  {
-    ds_c = ds_diction_cursor(diction);
-    ds_term = ds_diction_next(ds_c);
-    if (!ds_term)
-    {
-      stat.spam_hits = 0;
-      stat.innocent_hits = 0;
-    }
-    else
-    {
-      stat.spam_hits = ds_term->s.spam_hits;
-      stat.innocent_hits = ds_term->s.innocent_hits;
-    }
-    ds_diction_close(ds_c);
-  }
-  else {
-    ds_diction_getstat(diction, s->control_token, &stat);
-  }
-
+  ds_diction_getstat(diction, s->control_token, &control);
   snprintf (scratch, sizeof (scratch),
             "update dspam_token_data set last_hit = current_date(), "
             "spam_hits = greatest(0, spam_hits %s %d), "
             "innocent_hits = greatest(0, innocent_hits %s %d) "
             "where uid = %d and token in(",
-            (stat.spam_hits > s->control_sh) ? "+" : "-",
-            abs (stat.spam_hits - s->control_sh),
-            (stat.innocent_hits > s->control_ih) ? "+" : "-",
-            abs (stat.innocent_hits - s->control_ih), (int) p->pw_uid);
+            (control.spam_hits > s->control_sh) ? "+" : "-",
+            abs (control.spam_hits - s->control_sh),
+            (control.innocent_hits > s->control_ih) ? "+" : "-",
+            abs (control.innocent_hits - s->control_ih), (int) p->pw_uid);
 
   buffer_cat (query, scratch);
 
@@ -662,111 +635,91 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
                        "innocent_hits, last_hit) values");
 #endif
 
+  /*
+   *  Add each token in the diction to either an update or an insert queue 
+   */
+
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
-    int wrote_this = 0;
-    if (CTX->training_mode == DST_TOE           && 
-        CTX->classification == DSR_NONE         &&
-        CTX->operating_mode == DSM_CLASSIFY     &&
-        diction->whitelist_token != ds_term->key  &&
+    int use_comma = 0;
+    if (ds_term->key == s->control_token) {
+      ds_term = ds_diction_next(ds_c);
+      continue;
+    }
+
+    /* Don't write lexical tokens if we're in TOE mode classifying */
+
+    if (CTX->training_mode == DST_TOE            && 
+        CTX->operating_mode == DSM_CLASSIFY      &&
+        ds_term->key != diction->whitelist_token &&
         (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
     {
       ds_term = ds_diction_next(ds_c);
       continue;
     }
       
-    ds_diction_getstat(diction, ds_term->key, &stat2);
+    ds_diction_getstat(diction, ds_term->key, &stat);
 
-    if (!(stat2.status & TST_DIRTY)) {
+    /* Changed tokens are marked as "dirty" by libdspam */
+
+    if (!(stat.status & TST_DIRTY)) {
       ds_term = ds_diction_next(ds_c);
       continue;
     } else {
-      stat2.status &= ~TST_DIRTY;
+      stat.status &= ~TST_DIRTY;
     }
 
-    if (!(stat2.status & TST_DISK))
+    /* This token wasn't originally loaded from disk, so try an insert */
+
+    if (!(stat.status & TST_DISK))
     {
-#if MYSQL_VERSION_ID >= 40100
       char ins[1024];
+#if MYSQL_VERSION_ID >= 40100
+      snprintf (ins, sizeof (ins),
+                "%s(%d, '%llu', %d, %d, current_date())",
+                 (insert_any) ? ", " : "",
+                 (int) p->pw_uid,
+                 ds_term->key,
+                 stat.spam_hits > 0 ? 1 : 0,
+                 stat.innocent_hits > 0 ? 1 : 0);
 
-      /* If we're processing a message with a MERGED group, assign it based on
-         an empty count and not the current count (since the current count
-         also includes the global group's tokens).
-
-         If we're not using MERGED, or if a tool is running, assign it based
-         on the actual count (so that tools like dspam_merge don't break) */
-
-      if (CTX->flags & DSF_MERGED) {
-        snprintf (ins, sizeof (ins),
-                  "%s(%d, '%llu', %d, %d, current_date())",
-                   (insert_one) ? ", " : "",
-                   (int) p->pw_uid,
-                   ds_term->key,
-                   stat.spam_hits > s->control_sh ? 1 : 0,
-                   stat.innocent_hits > s->control_ih ? 1 : 0);
-      } else {
-        snprintf (ins, sizeof (ins),
-                  "%s(%d, '%llu', %ld, %ld, current_date())",
-                   (insert_one) ? ", " : "",
-                   (int) p->pw_uid,
-                   ds_term->key,
-                   stat2.spam_hits > 0 ? (long) 1 : (long) 0,
-                   stat2.innocent_hits > 0 ? (long) 1 : (long) 0);
-      }
-
-      insert_one = 1;
+      insert_any = 1;
       buffer_cat(insert, ins);
 #else
-      char insert[1024];
+      char ins[1024];
 
-      /* If we're processing a message with a MERGED group, assign it based on
-         an empty count and not the current count (since the current count
-         also includes the global group's tokens).
+      snprintf(insert, sizeof (insert),
+               "insert into dspam_token_data(uid, token, spam_hits, "
+               "innocent_hits, last_hit) values(%d, '%llu', %d, %d, "
+               "current_date())",
+               p->pw_uid,
+               ds_term->key,
+               stat.spam_hits > 0 ? 1 : 0,
+               stat.innocent_hits > 0 ? 1 : 0);
 
-         If we're not using MERGED, or if a tool is running, assign it based
-         on the actual count (so that tools like dspam_merge don't break) */
-
-      if (CTX->flags & DSF_MERGED) {
-        snprintf (insert, sizeof (insert),
-                  "insert into dspam_token_data(uid, token, spam_hits, "
-                  "innocent_hits, last_hit) values(%d, '%llu', %d, %d, "
-                  "current_date())",
-                   p->pw_uid,
-                   ds_term->key,
-                   stat.spam_hits > s->control_sh ? 1 : 0,
-                   stat.innocent_hits > s->control_ih ? 1 : 0);
-      } else {
-        snprintf(insert, sizeof (insert),
-                 "insert into dspam_token_data(uid, token, spam_hits, "
-                 "innocent_hits, last_hit) values(%d, '%llu', %d, %d, "
-                 "current_date())",
-                 p->pw_uid,
-                 ds_term->key,
-                 stat2.spam_hits > 0 ? 1 : 0,
-                 stat2.innocent_hits > 0 ? 1 : 0);
-      }
-
-      if (MYSQL_RUN_QUERY (s->dbh, insert))
-        stat2.status |= TST_DISK;
+      if (MYSQL_RUN_QUERY (s->dbh, ins))
+        stat.status |= TST_DISK;
 #endif
     }
 
-    if (stat2.status & TST_DISK) {
+    if (stat.status & TST_DISK) {
       snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
       buffer_cat (query, scratch);
-      update_one = 1;
-      wrote_this = 1;
+      update_any = 1;
+      use_comma = 1;
     }
  
     ds_term->s.status |= TST_DISK;
 
     ds_term = ds_diction_next(ds_c);
-    if (ds_term && wrote_this)
+    if (ds_term && use_comma)
       buffer_cat (query, ",");
   }
   ds_diction_close(ds_c);
+
+  /* Just incase */
 
   if (query->used && query->data[strlen (query->data) - 1] == ',')
   {
@@ -776,11 +729,13 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   buffer_cat (query, ")");
 
-  LOGDEBUG("Control: [%ld %ld] [%ld %ld]", s->control_sh, s->control_ih, stat.spam_hits, stat.innocent_hits);
+  LOGDEBUG("Control: [%ld %ld] [%ld %ld] Delta: [%ld %ld]",
+    s->control_sh, s->control_ih, 
+    control.spam_hits, control.innocent_hits,
+    control.spam_hits - s->control_sh, control.innocent_hits - s->control_ih);
 
-  if (update_one)
+  if (update_any)
   {
-
     if (MYSQL_RUN_QUERY (s->dbh, query->data))
     {
       _mysql_drv_query_error (mysql_error (s->dbh), query->data);
@@ -790,19 +745,18 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
 #if MYSQL_VERSION_ID >= 40100
-  if (insert_one)
+  if (insert_any)
   {
      snprintf (scratch, sizeof (scratch),
             " ON DUPLICATE KEY UPDATE last_hit = current_date(), "
             "spam_hits = greatest(0, spam_hits %s %d), "
             "innocent_hits = greatest(0, innocent_hits %s %d) ",
-            (stat.spam_hits > s->control_sh) ? "+" : "-",
-            abs (stat.spam_hits - s->control_sh) > 0 ? 1 : 0,
-            (stat.innocent_hits > s->control_ih) ? "+" : "-",
-            abs (stat.innocent_hits - s->control_ih) > 0 ? 1 : 0);
+            (control.spam_hits > s->control_sh) ? "+" : "-",
+            abs (control.spam_hits - s->control_sh) > 0 ? 1 : 0,
+            (control.innocent_hits > s->control_ih) ? "+" : "-",
+            abs (control.innocent_hits - s->control_ih) > 0 ? 1 : 0);
 
     buffer_cat(insert, scratch);
-
     if (MYSQL_RUN_QUERY (s->dbh, insert->data))
     {
       _mysql_drv_query_error (mysql_error (s->dbh), insert->data);
@@ -850,7 +804,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
             "select spam_hits, innocent_hits from dspam_token_data "
             "where uid = %d " "and token in('%llu') ", (int) p->pw_uid, token);
 
-  stat->probability = 0.0;
+  stat->probability = 0.00000;
   stat->spam_hits = 0;
   stat->innocent_hits = 0;
   stat->status &= ~TST_DISK;
@@ -1322,7 +1276,8 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   }
 
   snprintf (query, sizeof (query),
-            "select signature from dspam_signature_data where uid = %d and signature = \"%s\"",
+      "select signature from dspam_signature_data "
+      "where uid = %d and signature = \"%s\"",
             (int) p->pw_uid, signature);
   if (MYSQL_RUN_QUERY (s->dbh, query))
   {
@@ -1331,8 +1286,9 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   }
 
   result = mysql_use_result (s->dbh);
-  if (result == NULL)
+  if (result == NULL) {
     return -1;
+  }
 
   row = mysql_fetch_row (result);
   if (row == NULL)

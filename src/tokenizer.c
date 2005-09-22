@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.3 2005/09/16 03:42:32 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.4 2005/09/22 17:52:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -686,19 +686,16 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
     return 0;
 
   /* Shift all previous tokens up */
-  free(previous_tokens[0]);
   for(i=0;i<SBPH_SIZE-1;i++) {
     previous_tokens[i] = previous_tokens[i+1];
     if (previous_tokens[i])
       active++;
   }
 
-  if (token) {
-    previous_tokens[SBPH_SIZE-1] = strdup (token);
+  previous_tokens[SBPH_SIZE-1] = token;
+
+  if (token) 
     active++;
-  }
-  else
-    previous_tokens[SBPH_SIZE-1] = NULL;
 
   /* Iterate and generate all keys necessary */
   for(mask=0;mask < _ds_pow2(active);mask++) {
@@ -762,20 +759,17 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
   int active = 0;
 
   /* Shift all previous tokens up */
-  free(previous_tokens[0]);
   for(i=0;i<SBPH_SIZE-1;i++) {
     previous_tokens[i] = previous_tokens[i+1];
     if (previous_tokens[i]) 
       active++;
   }
 
-  if (token) {
-    previous_tokens[SBPH_SIZE-1] = strdup (token);
+  previous_tokens[SBPH_SIZE-1] = token;
+
+  if (token) 
     active++;
-  }
-  else
-    previous_tokens[SBPH_SIZE-1] = NULL;
-                                                                                
+
   /* Iterate and generate all keys necessary */
   for(mask=0;mask < _ds_pow2(active);mask++) {
     int terms = 0;
@@ -1138,9 +1132,7 @@ char * _ds_truncate_token(const char *token) {
 
 void _ds_sbph_clear(char **previous_tokens) {
   int i;
-  for(i=0;i<SBPH_SIZE;i++) {
-    free(previous_tokens[i]);
+  for(i=0;i<SBPH_SIZE;i++) 
     previous_tokens[i] = NULL;
-  }
   return;
 }

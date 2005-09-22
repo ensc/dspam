@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.25 2005/08/22 13:47:15 jonz Exp $ */
+/* $Id: pref.c,v 1.26 2005/09/22 17:52:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -54,7 +54,7 @@
 */
 
 agent_pref_t _ds_pref_aggregate(agent_pref_t STX, agent_pref_t UTX) {
-  agent_pref_t PTX = malloc(PREF_MAX*sizeof(agent_attrib_t ));
+  agent_pref_t PTX = calloc(1, PREF_MAX*sizeof(agent_attrib_t ));
   int i, j, size = 0;
 
   if (STX) {

@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.104 2005/09/15 02:21:02 jonz Exp $ */
+/* $Id: daemon.c,v 1.105 2005/09/22 17:52:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -688,7 +688,19 @@ GETCMD:
 
     i = (TTX->sockfd % TTX->DTX->connection_cache);
     LOGDEBUG("using database handle id %d", i);
-    pthread_mutex_lock(&TTX->DTX->connections[i]->lock);
+    if (TTX->DTX->flags & DRF_RWLOCK) {
+      if (ATX->operating_mode == DSM_CLASSIFY || 
+          ATX->training_mode == DST_NOTRAIN   ||
+          (ATX->training_mode == DST_TOE && ATX->classification == DSR_NONE))
+      {
+        pthread_rwlock_rdlock(&TTX->DTX->connections[i]->rwlock);
+      } else {
+        pthread_rwlock_wrlock(&TTX->DTX->connections[i]->rwlock);
+      }
+    } else {
+      pthread_mutex_lock(&TTX->DTX->connections[i]->lock);
+    }
+    LOGDEBUG("handle locked");
     ATX->dbh = TTX->DTX->connections[i]->dbh;
     locked = i;
 
@@ -710,7 +722,11 @@ GETCMD:
     if (TTX->DTX->connections[locked]->dbh != ATX->dbh) 
       TTX->DTX->connections[locked]->dbh = ATX->dbh;
 
-    pthread_mutex_unlock(&TTX->DTX->connections[locked]->lock);
+    if (TTX->DTX->flags & DRF_RWLOCK) {
+      pthread_rwlock_unlock(&TTX->DTX->connections[locked]->rwlock);
+    } else {
+      pthread_mutex_unlock(&TTX->DTX->connections[locked]->lock);
+    }
     locked = -1;
 
     /* Send a terminating '.' if --stdout in 'dspam' mode */
@@ -727,7 +743,8 @@ GETCMD:
       if (ATX->recipients)
         node_nt = c_nt_first(ATX->recipients, &c_nt);
       else
-        node_nt = c_nt_next(ATX->users, &c_nt);
+        node_nt = c_nt_first(ATX->users, &c_nt);
+// HERE -> next
 
       if (ATX->results)
         node_res = ATX->results->first;
