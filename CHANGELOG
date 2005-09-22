@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.350 2005/09/22 17:52:03 jonz Exp $
+$Id: CHANGELOG,v 1.351 2005/09/22 21:10:17 jonz Exp $
 
-Version NEXT
-------------
+Version 3.6.rc2
+---------------
+
+[20050922.0400] jonz: added MySQLSupressQuote for MySQL 4.1 quoting bug
+
+documented MySQL quoting bug in some versions of 4.1 (see doc/mysql.txt), and
+added MySQLSupressQuote option to compensate, or alternatively you could just
+upgrade to a better version of MySQL
 
 [20050920.1800] jonz: added persistent mode support for css_drv
 

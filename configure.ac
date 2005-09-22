@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.41 2005/09/22 19:25:35 jonz Exp $
+dnl $Id: configure.ac,v 1.42 2005/09/22 21:10:17 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -11,7 +11,7 @@ dnl    automake (GNU automake) 1.9.2
 dnl
 AC_PREREQ(2.59)
 AC_COPYRIGHT([Copyright (C) 2002-2005 Deep Logic Inc.])
-AC_INIT([dspam],[CVS],[dspam-dev@nuclearelephant.com])
+AC_INIT([dspam],[3.6.rc2],[dspam-dev@nuclearelephant.com])
 CONFIGURE_ARGS=$@
 AC_CONFIG_SRCDIR(./src)
 
