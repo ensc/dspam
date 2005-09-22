@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.19 2005/09/22 17:52:04 jonz Exp $ */
+/* $Id: css_drv.c,v 1.20 2005/09/22 19:25:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -268,7 +268,7 @@ int _css_drv_open(
   read(map->fd, map->header, sizeof(struct _css_drv_header));
   map->file_len = sizeof(struct _css_drv_header) + (map->header->css_rec_max*sizeof(struct _css_drv_spam_record));
 
-  map->addr = mmap(NULL, map->file_len, mmap_flags, MAP_FILE | MAP_SHARED, map->fd, 0);
+  map->addr = mmap(NULL, map->file_len, mmap_flags, MAP_SHARED, map->fd, 0);
   if (map->addr == MAP_FAILED) {
     free(map->header);
     close(map->fd);
