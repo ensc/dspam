@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.43 2005/09/22 21:10:25 jonz Exp $
+dnl $Id: configure.ac,v 1.44 2005/09/23 13:51:07 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -726,65 +726,6 @@ else
     AC_DEFINE(ROBINSON_FW, 1,
              [Defined if Robinson's technique for combining p-values is enabled])
 fi
-
-#
-#   Test-Conditional Training
-#   (users with > 2500 innocent messages will retrain spams + false positives
-#    until test condition is met - 5 iterations max)
-#
-AC_ARG_ENABLE(test-conditional,
-    [AS_HELP_STRING(--disable-test-conditional,Disables test-conditional (loop) training)])
-AC_MSG_CHECKING([whether to enable test-conditional training])
-case x"$enable_test_conditional" in
-    xyes)   # enabled explicity
-            ;;
-    xno)    # disabled explicity
-            enable_test_conditional=no
-            ;;
-    x)      # disabled by default
-            enable_test_conditional=yes
-            ;;
-    *)      AC_MSG_ERROR([unexpected value $enable_test_conditional for --{enable,disable}-test-conditional configure option])
-            ;;
-esac
-if test x"$enable_test_conditional" != xyes
-then
-    enable_test_conditional=no
-else
-    enable_test_conditional=yes    # overkill, but convenient
-    AC_DEFINE(TEST_COND_TRAINING, 1, [Defined if test-conditional training is enabled])
-fi
-AC_MSG_RESULT([$enable_test_conditional])
-
-#
-#   Innocent Bias
-#
-AC_ARG_ENABLE(bias,
-    [AS_HELP_STRING(--disable-bias,
-                        Cause DSPAM to calculate without a bias toward
-                        innocent mail
-                    )])
-AC_MSG_CHECKING([whether to enable bias calculations])
-case x"$enable_bias" in
-    xyes)   # debug output enabled explicity
-            ;;
-    xno)    # debug output disabled explicity
-            enable_bias=no
-            ;;
-    x)      # debug output disabled by default
-            enable_bias=yes
-            ;;
-    *)      AC_MSG_ERROR([unexpected value $enable_bias for --{enable,disable}-bias configure option])
-            ;;
-esac
-if test x"$enable_bias" != xyes
-then
-    enable_bias=no
-else
-    enable_bias=yes    # overkill, but convenient
-    AC_DEFINE(BIAS, 1, [Defined if bias calculations are enabled])
-fi
-AC_MSG_RESULT([$enable_bias])
 
 #
 #   Large scale implementation

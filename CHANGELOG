@@ -1,4 +1,27 @@
-$Id: CHANGELOG,v 1.351 2005/09/22 21:10:17 jonz Exp $
+$Id: CHANGELOG,v 1.352 2005/09/23 13:51:07 jonz Exp $
+
+Version NEXT
+------------
+
+[20050923.0800] jonz: added bias mode for markovian discrimination
+
+added support for ProcessorBias to markovian discrimination calculations.
+NOTE: there is a significant change in results, and you may wish to leave bias
+      turned off (the way Bill intended it). See these sample results:
+
+Without Bias:
+
+sample          TS:   956 TI:   992 FN:    49 FP:    13 SC:     0 IC:     0
+
+With Bias:
+
+sample          TS:   863 TI:  1004 FN:   140 FP:     3 SC:     8 IC:     0
+
+[20050923.0800] jonz: added ProcessorBias and TestConditionalTraining
+
+added these options to dspam.conf, instead of using as configure options.
+be sure to add these to your existing dspam.conf to avoid changes in dspam's
+behavior (see UPGRADING).
 
 Version 3.6.rc2
 ---------------

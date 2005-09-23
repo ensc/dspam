@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.197 2005/09/22 17:52:04 jonz Exp $ */
+/* $Id: dspam.c,v 1.198 2005/09/23 13:51:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -2539,85 +2539,84 @@ int process_neural_decision(DSPAM_CTX *CTX, struct _ds_neural_decision *DEC) {
 
 int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   int result;
-
-#ifdef TEST_COND_TRAINING
   int do_train = 1, iter = 0, ck_result = 0, t_mode = CTX->source;
 
   /* Train until test conditions are met, 5 iterations max */
 
-  while (do_train && iter < 5)
-  {
-    DSPAM_CTX *CLX;
-    int match = (CTX->classification == DSR_ISSPAM) ? 
-                 DSR_ISSPAM : DSR_ISINNOCENT;
-    iter++;
-#endif
-
+  if (!_ds_match_attribute(agent_config, "TestConditionalTraining", "on")) {
     result = dspam_process (CTX, NULL);
-
-#ifdef TEST_COND_TRAINING
-
-    /* Only subtract innocent values once */
-    CTX->source = DSS_CORPUS;
-
-    LOGDEBUG ("reclassifying iteration %d result: %d", iter, result);
-
-    if (t_mode == DSS_CORPUS)
-      do_train = 0;
-
-    /* Only attempt test-conditional training on a mature corpus */
-
-    if (CTX->totals.innocent_learned+CTX->totals.innocent_classified < 1000 && 
-        CTX->classification == DSR_ISSPAM)
+  } else {
+    while (do_train && iter < 5)
     {
-      do_train = 0;
-    }
-    else
-    {
-      int f_all =  DSF_SIGNATURE;
+      DSPAM_CTX *CLX;
+      int match;
 
-      /* CLX = Classify Context */
-      if (ATX->flags & DAF_CHAINED)
-        f_all |= DSF_CHAINED;
+      match = (CTX->classification == DSR_ISSPAM) ? 
+        DSR_ISSPAM : DSR_ISINNOCENT;
+      iter++;
 
-      if (ATX->flags & DAF_NOISE)
-        f_all |= DSF_NOISE;
+      result = dspam_process (CTX, NULL);
 
-      if (ATX->flags & DAF_SBPH)
-        f_all |= DSF_SBPH;
+      /* Only subtract innocent values once */
+      CTX->source = DSS_CORPUS;
 
-      CLX = dspam_create (CTX->username, 
-                        CTX->group, 
-                        _ds_read_attribute(agent_config, "Home"), 
-                        DSM_CLASSIFY, 
-                        f_all);
+      LOGDEBUG ("reclassifying iteration %d result: %d", iter, result);
 
-      if (!CLX)
+      if (t_mode == DSS_CORPUS)
+        do_train = 0;
+
+      /* Only attempt test-conditional training on a mature corpus */
+
+      if (CTX->totals.innocent_learned+CTX->totals.innocent_classified<1000 && 
+          CTX->classification == DSR_ISSPAM)
       {
         do_train = 0;
-        break;
       }
+      else
+      {
+        int f_all =  DSF_SIGNATURE;
 
-      CLX->training_mode = CTX->training_mode;
+        /* CLX = Classify Context */
+        if (ATX->flags & DAF_CHAINED)
+          f_all |= DSF_CHAINED;
 
-      set_libdspam_attributes(CLX);
-      if (attach_context(CLX, ATX->dbh)) {
-        do_train = 0;
-        dspam_destroy(CLX);
-        break;
+        if (ATX->flags & DAF_NOISE)
+          f_all |= DSF_NOISE;
+
+        if (ATX->flags & DAF_SBPH)
+          f_all |= DSF_SBPH;
+
+        CLX = dspam_create (CTX->username, 
+                          CTX->group, 
+                          _ds_read_attribute(agent_config, "Home"), 
+                          DSM_CLASSIFY, 
+                          f_all);
+        if (!CLX)
+        {
+          do_train = 0;
+          break;
+        }
+
+        CLX->training_mode = CTX->training_mode;
+
+        set_libdspam_attributes(CLX);
+        if (attach_context(CLX, ATX->dbh)) {
+          do_train = 0;
+          dspam_destroy(CLX);
+          break;
+        }
+
+        CLX->signature = &ATX->SIG;
+        ck_result = dspam_process (CLX, NULL);
+        if (ck_result || CLX->result == match)
+          do_train = 0;
+        CLX->signature = NULL;
+        dspam_destroy (CLX);
       }
-
-      CLX->signature = &ATX->SIG;
-      ck_result = dspam_process (CLX, NULL);
-      if (ck_result || CLX->result == match)
-        do_train = 0;
-      CLX->signature = NULL;
-      dspam_destroy (CLX);
     }
-  }
 
-  CTX->source = DSS_ERROR;
-#endif
+    CTX->source = DSS_ERROR;
+  }
 
   return 0;
 }

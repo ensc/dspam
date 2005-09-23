@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.129 2005/09/22 17:52:04 jonz Exp $ */
+/* $Id: libdspam.c,v 1.130 2005/09/23 13:51:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -1558,8 +1558,14 @@ _ds_calc_stat (
     }
 
     weight = _ds_compute_weight(term->name);
-    num = weight * (s->spam_hits - s->innocent_hits);
-    den = C1 * (s->spam_hits + s->innocent_hits + C2) * 256;
+
+    if (_ds_match_attribute(CTX->config->attributes, "ProcessorBias", "on")) {
+      num = weight * (s->spam_hits - (s->innocent_hits*2));
+      den = C1 * (s->spam_hits + (s->innocent_hits*2) + C2) * 256;
+    } else {
+      num = weight * (s->spam_hits - s->innocent_hits);
+      den = C1 * (s->spam_hits + s->innocent_hits + C2) * 256;
+    }
 
     s->probability = 0.5 + ((double) num / (double) den); 
 
@@ -1578,17 +1584,16 @@ _ds_calc_stat (
            (s->innocent_hits * 1.0 / bnr_tot->innocent_hits * 1.0));
       } else {
 
-#ifdef BIAS
+        if (_ds_match_attribute(CTX->config->attributes, "ProcessorBias", "on"))
           s->probability =
             (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
             ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
              (s->innocent_hits * 2.0 / CTX->totals.innocent_learned * 1.0));
-#else
+        else
           s->probability =
             (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
             ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
              (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0));
-#endif
 
       }
     }

@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.54 2005/09/22 19:10:45 jonz Exp $
+## $Id: dspam.conf.in,v 1.55 2005/09/23 13:51:07 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -147,6 +147,13 @@ Trust daemon
 # Acceptable values are: toe, tum, teft, notrain
 #
 TrainingMode teft
+
+#
+# TestConditionalTraining: By default, dspam will retrain certain errors
+# until the condition is no longer met. This usually accelerates learning.
+# Some people argue that this can increase the risk of errors, however.
+#
+TestConditionalTraining on
 
 #
 # Features: Specify features to activate by default; can also be specified
@@ -613,5 +620,13 @@ Opt out
 # per occurrence instead.
 #
 #ProcessorWordFrequency  occurrence
+
+# ProcessorBias: Bias causes the filter to lean more toward 'innocent', and
+# usually greatly reduces false positives. It is the default behavior of
+# most Bayesian filters (including dspam). 
+#
+# NOTE: You probably DONT want this if you're using Markovian Weighting
+#
+ProcessorBias on
 
 ## EOF
