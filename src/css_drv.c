@@ -1,4 +1,4 @@
-/* $Id: css_drv.c,v 1.20 2005/09/22 19:25:29 jonz Exp $ */
+/* $Id: css_drv.c,v 1.21 2005/09/23 12:34:20 jonz Exp $ */
 
 /*
  DSPAM
@@ -515,6 +515,11 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
+    if (!(ds_term->s.status & TST_DIRTY)) {  
+      ds_term = ds_diction_next(ds_c);
+      continue;
+    }
+
     if (CTX->training_mode == DST_TOE           &&
         CTX->classification == DSR_NONE         &&
         CTX->operating_mode == DSM_CLASSIFY     &&
@@ -549,6 +554,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   int wrap;
 
   stat->probability = 0.00000;
+  stat->status = 0;
 
   if (s->db->addr == NULL)
     return EINVAL;
