@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.4 2005/01/15 15:08:34 jonz Exp $
+# $Id: Makefile.am,v 1.5 2005/09/23 16:58:44 jonz Exp $
 # tools/Makefile.am
 
 EXTRA_DIST = dspam_corpus.in dspam_genaliases.in dspam_logrotate
@@ -6,7 +6,7 @@ CLEANFILES = dspam_corpus dspam_genaliases
 
 AM_CPPFLAGS = \
   -DLOGDIR=\"$(logdir)\" -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\" \
-  -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -I$(top_srcdir)
+  -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D_GNU_SOURCE -I$(top_srcdir)
 
 CFLAGS = @CFLAGS@ -I$(top_srcdir)/src
 
