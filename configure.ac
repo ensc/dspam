@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.45 2005/09/24 01:06:11 jonz Exp $
+dnl $Id: configure.ac,v 1.46 2005/09/24 13:35:17 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -68,7 +68,7 @@ AC_CHECK_FUNCS([memcpy memset])
 AC_CHECK_FUNCS(localtime_r)
 AC_CHECK_FUNCS(inet_ntoa_r)
 
-LIBS="-lm"
+LIBS="-ldl -lm"
 
 #   Daemon support
 #
