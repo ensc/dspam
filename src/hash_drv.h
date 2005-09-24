@@ -1,4 +1,4 @@
-/* $Id: css_drv.h,v 1.11 2005/09/22 17:52:04 jonz Exp $ */
+/* $Id: hash_drv.h,v 1.1 2005/09/24 01:07:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -35,23 +35,23 @@
 
 #define CSS_REC_MAX	2000000
 
-typedef struct _css_drv_header
+typedef struct _hash_drv_header
 {
   unsigned long css_rec_max;
   struct _ds_spam_totals totals;
-} *css_drv_header_t;
+} *hash_drv_header_t;
 
-typedef struct _css_drv_map
+typedef struct _hash_drv_map
 {
   void *addr;
   int fd;
   size_t file_len;
-  css_drv_header_t header;
-} *css_drv_map_t;
+  hash_drv_header_t header;
+} *hash_drv_map_t;
 
-struct _css_drv_storage
+struct _hash_drv_storage
 {
-  struct _css_drv_map *db;
+  struct _hash_drv_map *db;
   FILE *lock;
   int dbh_attached;
 
@@ -59,19 +59,19 @@ struct _css_drv_storage
   struct nt *dir_handles;
 };
 
-typedef struct _css_drv_spam_record
+typedef struct _hash_drv_spam_record
 {
   unsigned long long hashcode;
   long nonspam;
   long spam;
-} *css_drv_spam_record_t;
+} *hash_drv_spam_record_t;
 
-int _css_drv_get_spamtotals (DSPAM_CTX * CTX);
-int _css_drv_set_spamtotals (DSPAM_CTX * CTX);
-int _css_drv_lock_get (DSPAM_CTX * CTX, struct _css_drv_storage *s, 
+int _hash_drv_get_spamtotals (DSPAM_CTX * CTX);
+int _hash_drv_set_spamtotals (DSPAM_CTX * CTX);
+int _hash_drv_lock_get (DSPAM_CTX * CTX, struct _hash_drv_storage *s, 
   const char *username);
-int _css_drv_lock_free (struct _css_drv_storage *s, const char *username);
-int _css_drv_open(const char *filename, css_drv_map_t map, unsigned long recmaxifnew);
-int _css_drv_close(css_drv_map_t map);
+int _hash_drv_lock_free (struct _hash_drv_storage *s, const char *username);
+int _hash_drv_open(const char *filename, hash_drv_map_t map, unsigned long recmaxifnew);
+int _hash_drv_close(hash_drv_map_t map);
 
 #endif /* _CSS_DRV_H */
