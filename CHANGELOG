@@ -1,7 +1,18 @@
-$Id: CHANGELOG,v 1.353 2005/09/24 01:06:11 jonz Exp $
+$Id: CHANGELOG,v 1.354 2005/09/24 17:48:58 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050924.1345] jonz: relicensed; bound to GPL v2
+
+after reading rms' latest responses hinting at the GPL3, which to some
+degree mandates feature continuity for commercial use, I thought I would
+take the opportunity while I have it to bind to the GPL v2. should the GPL3
+turn out to be sane, we can always open it back up to license under it.
+I have removed the "either version 2 or later versions" and replaced it with
+"version 2". since no later versions existed during the period which dspam
+was available under old terms, it is my understanding that previous versions 
+of dspam may similarly _not_ be applied to the gpl3.
 
 [20050923.2100] jonz: renamed css_drv to hash_drv
 

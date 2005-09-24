@@ -1,4 +1,4 @@
-/* $Id: config_api.c,v 1.14 2005/09/24 01:18:58 jonz Exp $ */
+/* $Id: config_api.c,v 1.15 2005/09/24 17:48:58 jonz Exp $ */
 
 /*
  DSPAM
@@ -6,8 +6,8 @@
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
+ as published by the Free Software Foundation; version 2
+ of the License.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
