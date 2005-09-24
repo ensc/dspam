@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.56 2005/09/24 01:06:11 jonz Exp $
+## $Id: dspam.conf.in,v 1.57 2005/09/24 01:18:58 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -311,19 +311,19 @@ AllowOverride whitelistThreshold
 
 #SQLitePragma   "synchronous = OFF"
 
-# --- CSS (Hash) ---
+# --- Hash ---
 
-# CSSRecMax: Default number of records to create when building CSS files.
+# HashRecMax: Default number of records to create when building hash files.
 # The hard-coded default is two million. This can also be changed on a per-user
 # basis using cssgrow
 #
-#CSSRecMax		2000000
+#HashRecMax		2000000
 
-# CSSConcurrentUser: If you are using a single, stateful CSS database in
+# HashConcurrentUser: If you are using a single, stateful hash database in
 # daemon mode, specifying a concurrent user will cause the user to be 
 # permanently mapped into memory and shared via rwlocks.
 #
-#CSSConcurrentUser	user
+#HashConcurrentUser	user
 
 # LDAP: Perform various LDAP functions depending on LDAPMode variable.
 # Presently, the only mode supported is 'verify', which will verify the existence

@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.1 2005/09/24 01:07:15 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.2 2005/09/24 01:18:58 jonz Exp $ */
 
 /*
  DSPAM
@@ -71,21 +71,21 @@ int
 dspam_init_driver (DRIVER_CTX *DTX)
 {
   DSPAM_CTX *CTX;
-  char *CSSConcurrentUser;
+  char *HashConcurrentUser;
 
   if (DTX == NULL) 
     return 0;
 
   CTX = DTX->CTX;
-  CSSConcurrentUser 
-    = _ds_read_attribute(CTX->config->attributes, "CSSConcurrentUser");
+  HashConcurrentUser 
+    = _ds_read_attribute(CTX->config->attributes, "HashConcurrentUser");
 
 #ifdef DAEMON
   if (DTX->flags & DRF_STATEFUL) {
-    if (CSSConcurrentUser) {
+    if (HashConcurrentUser) {
       char filename[MAX_FILENAME_LENGTH];
       hash_drv_map_t map;
-      unsigned long css_rec_max;
+      unsigned long hash_rec_max;
       int ret;
 
       /* Connection pointer array (just one for hash_drv) */
@@ -98,7 +98,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
       if (DTX->connections[0] == NULL) 
         goto memerr;
 
-      /* Our CSS storage structure */
+      /* Our storage structure */
       DTX->connections[0]->dbh = calloc(1, sizeof(struct _hash_drv_map));
       if (DTX->connections[0]->dbh == NULL) 
         goto memerr;
@@ -109,16 +109,16 @@ dspam_init_driver (DRIVER_CTX *DTX)
         DTX->flags |= DRF_RWLOCK;
       DTX->connection_cache = 1;
 
-      if (_ds_read_attribute(DTX->CTX->config->attributes, "CSSRecMax")) {
-        css_rec_max = strtol(_ds_read_attribute(DTX->CTX->config->attributes,
-          "CSSRecMax"), NULL, 0); 
+      if (_ds_read_attribute(DTX->CTX->config->attributes, "HashRecMax")) {
+        hash_rec_max = strtol(_ds_read_attribute(DTX->CTX->config->attributes,
+          "HashRecMax"), NULL, 0); 
       } else {
-        css_rec_max = CSS_REC_MAX;
+        hash_rec_max = HASH_REC_MAX;
       }
       
-      _ds_userdir_path(filename, DTX->CTX->home, CSSConcurrentUser, "css");
+      _ds_userdir_path(filename, DTX->CTX->home, HashConcurrentUser, "css");
       _ds_prepare_path_for(filename);
-      ret = _hash_drv_open(filename, map, css_rec_max); 
+      ret = _hash_drv_open(filename, map, hash_rec_max); 
       if (ret) {
         LOG(LOG_CRIT, "_hash_drv_open(%s) failed on error %d: %s", filename, ret, strerror(errno)); 
         free(DTX->connections[0]->dbh);
@@ -236,7 +236,7 @@ int _hash_drv_open(
     memset(&header, 0, sizeof(struct _hash_drv_header));
     memset(&rec, 0, sizeof(struct _hash_drv_spam_record));
 
-    header.css_rec_max = recmaxifnew;
+    header.hash_rec_max = recmaxifnew;
 
     f = fopen(filename, "w");
     if (!f) {
@@ -246,7 +246,7 @@ int _hash_drv_open(
 
     fwrite(&header, sizeof(struct _hash_drv_header), 1, f);
 
-    for(recno=0;recno<header.css_rec_max;recno++)
+    for(recno=0;recno<header.hash_rec_max;recno++)
       fwrite(&rec, sizeof(struct _hash_drv_spam_record), 1, f);
     fclose(f);
     map->fd = open(filename, open_flags);
@@ -266,7 +266,7 @@ int _hash_drv_open(
   }
 
   read(map->fd, map->header, sizeof(struct _hash_drv_header));
-  map->file_len = sizeof(struct _hash_drv_header) + (map->header->css_rec_max*sizeof(struct _hash_drv_spam_record));
+  map->file_len = sizeof(struct _hash_drv_header) + (map->header->hash_rec_max*sizeof(struct _hash_drv_spam_record));
 
   map->addr = mmap(NULL, map->file_len, mmap_flags, MAP_SHARED, map->fd, 0);
   if (map->addr == MAP_FAILED) {
@@ -367,10 +367,10 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     if (lock_result < 0) 
       goto BAIL;
 
-    if (_ds_read_attribute(CTX->config->attributes, "CSSRecMax")) {
-      r1 = _hash_drv_open(db, s->db, strtol(_ds_read_attribute(CTX->config->attributes, "CSSRecMax"), NULL, 0));
+    if (_ds_read_attribute(CTX->config->attributes, "HashRecMax")) {
+      r1 = _hash_drv_open(db, s->db, strtol(_ds_read_attribute(CTX->config->attributes, "HashRecMax"), NULL, 0));
     } else {
-      r1 = _hash_drv_open(db, s->db, CSS_REC_MAX);
+      r1 = _hash_drv_open(db, s->db, HASH_REC_MAX);
     }
 
     if (r1) {
@@ -559,7 +559,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if (s->db->addr == NULL)
     return EINVAL;
 
-  filepos = sizeof(struct _hash_drv_header) + ((token % s->db->header->css_rec_max) * sizeof(struct _hash_drv_spam_record));
+  filepos = sizeof(struct _hash_drv_header) + ((token % s->db->header->hash_rec_max) * sizeof(struct _hash_drv_spam_record));
   thumb = filepos;
  
   wrap = 0;
@@ -570,7 +570,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   {
     filepos += sizeof(struct _hash_drv_spam_record);
 
-    if (!wrap && filepos >= (s->db->header->css_rec_max * sizeof(struct _hash_drv_spam_record)))
+    if (!wrap && filepos >= (s->db->header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
     {
       filepos = sizeof(struct _hash_drv_header);
       wrap = 1;
@@ -597,7 +597,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if (s->db->addr == NULL)
     return EINVAL;
 
-  filepos = sizeof(struct _hash_drv_header) + ((token % s->db->header->css_rec_max) * sizeof(struct _hash_drv_spam_record));
+  filepos = sizeof(struct _hash_drv_header) + ((token % s->db->header->hash_rec_max) * sizeof(struct _hash_drv_spam_record));
   thumb = filepos;
 
   wrap = 0;
@@ -609,7 +609,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     iterations++;
     filepos += sizeof(struct _hash_drv_spam_record);
 
-    if (!wrap && filepos >= (s->db->header->css_rec_max * sizeof(struct _hash_drv_spam_record)))
+    if (!wrap && filepos >= (s->db->header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
     {
       filepos = sizeof(struct _hash_drv_header);
       wrap = 1;
@@ -753,7 +753,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
 
   while(rec.hashcode == 0) {
     s->offset_nexttoken += sizeof(struct _hash_drv_spam_record);
-    if (s->offset_nexttoken > s->db->header->css_rec_max * sizeof(struct _hash_drv_spam_record))
+    if (s->offset_nexttoken > s->db->header->hash_rec_max * sizeof(struct _hash_drv_spam_record))
     { 
       free(sr);
       return NULL;

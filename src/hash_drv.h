@@ -1,4 +1,4 @@
-/* $Id: hash_drv.h,v 1.1 2005/09/24 01:07:15 jonz Exp $ */
+/* $Id: hash_drv.h,v 1.2 2005/09/24 01:18:58 jonz Exp $ */
 
 /*
  DSPAM
@@ -20,8 +20,8 @@
 
 */
 
-#ifndef _CSS_DRV_H
-#  define _CSS_DRV_H
+#ifndef _HASH_DRV_H
+#  define _HASH_DRV_H
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -33,11 +33,11 @@
 
 /* Default number of total records (per concept) to support */
 
-#define CSS_REC_MAX	2000000
+#define HASH_REC_MAX	2000000
 
 typedef struct _hash_drv_header
 {
-  unsigned long css_rec_max;
+  unsigned long hash_rec_max;
   struct _ds_spam_totals totals;
 } *hash_drv_header_t;
 
@@ -74,4 +74,4 @@ int _hash_drv_lock_free (struct _hash_drv_storage *s, const char *username);
 int _hash_drv_open(const char *filename, hash_drv_map_t map, unsigned long recmaxifnew);
 int _hash_drv_close(hash_drv_map_t map);
 
-#endif /* _CSS_DRV_H */
+#endif /* _HASH_DRV_H */

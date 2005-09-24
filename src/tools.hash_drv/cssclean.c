@@ -1,4 +1,4 @@
-/* $Id: cssclean.c,v 1.1 2005/09/24 01:06:11 jonz Exp $ */
+/* $Id: cssclean.c,v 1.2 2005/09/24 01:18:58 jonz Exp $ */
 
 /*
  DSPAM
@@ -100,7 +100,7 @@ int cssclean(const char *filename) {
   if (_hash_drv_open(filename, &old, 0)) 
     return EFAILURE;
 
-  if (_hash_drv_open(newfile, &new, old.header->css_rec_max)) {
+  if (_hash_drv_open(newfile, &new, old.header->hash_rec_max)) {
     _hash_drv_close(&old);
     return EFAILURE;
   }
@@ -135,7 +135,7 @@ int set_spamrecord (hash_drv_map_t map, hash_drv_spam_record_t wrec)
   if (!map || !map->addr)
     return EINVAL;
 
-  filepos = sizeof(struct _hash_drv_header) + ((wrec->hashcode % map->header->css_rec_max) * sizeof(struct _hash_drv_spam_record));
+  filepos = sizeof(struct _hash_drv_header) + ((wrec->hashcode % map->header->hash_rec_max) * sizeof(struct _hash_drv_spam_record));
   thumb = filepos;
 
   wrap = 0;
@@ -147,7 +147,7 @@ int set_spamrecord (hash_drv_map_t map, hash_drv_spam_record_t wrec)
     iterations++;
     filepos += sizeof(struct _hash_drv_spam_record);
 
-    if (!wrap && filepos >= (map->header->css_rec_max * sizeof(struct _hash_drv_spam_record)))
+    if (!wrap && filepos >= (map->header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
     {
       filepos = sizeof(struct _hash_drv_header);
       wrap = 1;

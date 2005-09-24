@@ -1,4 +1,4 @@
-/* $Id: cssstat.c,v 1.1 2005/09/24 01:06:11 jonz Exp $ */
+/* $Id: cssstat.c,v 1.2 2005/09/24 01:18:58 jonz Exp $ */
 
 /*
  DSPAM
@@ -100,7 +100,7 @@ int cssstat(const char *filename) {
     return EFAILURE;
 
   printf("file length %ld\n", (long) map.file_len);
-  printf("record max %lu\n", (unsigned long) map.header->css_rec_max);
+  printf("record max %lu\n", (unsigned long) map.header->hash_rec_max);
 
   filepos = sizeof(struct _hash_drv_header);
   while(filepos < map.file_len) {
