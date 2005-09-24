@@ -1,4 +1,4 @@
-$Id: RELEASE.NOTES,v 1.50 2005/09/22 21:10:17 jonz Exp $
+$Id: RELEASE.NOTES,v 1.51 2005/09/24 01:06:11 jonz Exp $
 
 RELEASE 3.6-RELEASE CANDIDATE 2
 
@@ -42,16 +42,16 @@ describing the techniques used in CRM114. Markovian weighting is a lexically
 verbose approach to filtering spam, and provides rather impressive results.
 See doc/markov.txt for more information
 
-CRM Sparse Spectra Storage Driver
-Implemented Bill Yerazunis' CRM Sparse Spectra (CSS) storage approach as a new
-storage driver (css_drv). The CSS driver is an extremely fast storage driver
-using a combination of random access files and rapid overflow. It requires no 
+Self-Contained Hash Driver
+Based on Bill Yerazunis' CRM Sparse Spectra (CSS) storage approach, the
+hash driver (hash_drv) is a very fast, self-contained storage driver
+using a combination of random access files and hash overflow. It requires no 
 dependencies and outperforms all other storage drivers. The only catch is that 
 this driver uses fixed-length storage files, which presently use 32MB of
-disk space per user. This can be adjusted, however once the CSS files are full,
-no additional tokens can be added. NOTE: DSPAM implements a slightly proprietary
-version of CSS to conserve space, so it is not compatible with CRM114's CSS
-files.
+disk space per user. This can be adjusted, however once the file is full,
+no additional tokens can be added until it is grown using the included cssgrow
+utility. Other management tools, such as cssstat and cssclean, are also built
+and installed.
 
 Fallback Domain-Based User Support
 Fallback domain support can be used by systems where a user's full email address

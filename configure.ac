@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.44 2005/09/23 13:51:07 jonz Exp $
+dnl $Id: configure.ac,v 1.45 2005/09/24 01:06:11 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -878,10 +878,10 @@ then
     storage_drv_subdirs="$storage_drv_subdirs tools.libdb3_drv"
 fi
 
-if test x"$drv" = xcss_drv
+if test x"$drv" = xhash_drv
 then
-  css_drv=yes
-  storage_drv_subdirs="$storage_drv_subdirs tools.css_drv"
+  hash_drv=yes
+  storage_drv_subdirs="$storage_drv_subdirs tools.hash_drv"
 fi
 
 if test x"$drv" = xmysql_drv
@@ -990,7 +990,7 @@ done
 
 AM_CONDITIONAL([BUILD_DB4_DRV], [ test x"$db4_drv" = xyes ])
 AM_CONDITIONAL([BUILD_DB3_DRV], [ test x"$db3_drv" = xyes ])
-AM_CONDITIONAL([BUILD_CSS_DRV], [ test x"$css_drv" = xyes ])
+AM_CONDITIONAL([BUILD_HASH_DRV], [ test x"$hash_drv" = xyes ])
 AM_CONDITIONAL([BUILD_ORA_DRV], [ test x"$ora_drv" = xyes ])
 AM_CONDITIONAL([BUILD_SQLITE_DRV], [ test x"$sqlite_drv" = xyes ])
 AM_CONDITIONAL([BUILD_SQLITE3_DRV], [ test x"$sqlite3_drv" = xyes ])
@@ -1006,9 +1006,9 @@ then
 AC_DEFINE([STATIC_DRIVER], 1,
           [Define if using a single, statically linked storage driver])
 AC_MSG_RESULT([yes])
-CPPFLAGS="$CPPFLAGS $libmysql_drv_cppflags $libpgsql_drv_cppflags $libsqlite_drv_cppflags $libsqlite3_drv_cppflags $libora_drv_cppflags $libdb4_drv_cppflags $libdb3_drv_cppflags $libcss_drv_cppflags"
-LIBS="$LIBS $libmysql_drv_libs $libpgsql_drv_libs $libsqlite_drv_libs $libsqlite3_drv_libs $libora_drv_libs $libdb4_drv_libs $libdb3_drv_libs $libcss_drv_libs"
-LDFLAGS="$LDFLAGS $libmysql_drv_ldflags $libpgsql_drv_ldflags $libsqlite_drv_ldflags $libsqlite3_drv_ldflags $libora_drv_ldflags $libdb4_drv_ldflags $libdb3_drv_ldflags $libcss_drv_ldflags"
+CPPFLAGS="$CPPFLAGS $libmysql_drv_cppflags $libpgsql_drv_cppflags $libsqlite_drv_cppflags $libsqlite3_drv_cppflags $libora_drv_cppflags $libdb4_drv_cppflags $libdb3_drv_cppflags $libhash_drv_cppflags"
+LIBS="$LIBS $libmysql_drv_libs $libpgsql_drv_libs $libsqlite_drv_libs $libsqlite3_drv_libs $libora_drv_libs $libdb4_drv_libs $libdb3_drv_libs $libhash_drv_libs"
+LDFLAGS="$LDFLAGS $libmysql_drv_ldflags $libpgsql_drv_ldflags $libsqlite_drv_ldflags $libsqlite3_drv_ldflags $libora_drv_ldflags $libdb4_drv_ldflags $libdb3_drv_ldflags $libhash_drv_ldflags"
 else
 AC_MSG_RESULT([no])
 fi
@@ -1020,7 +1020,7 @@ then
     AC_MSG_ERROR([no valid storage drivers specified])
 fi
 
-if test x"$enable_daemon" = xyes && test x"$mysql_drv" != xyes && test x"$pgsql_drv" != xyes && test x"$css_drv" != xyes
+if test x"$enable_daemon" = xyes && test x"$mysql_drv" != xyes && test x"$pgsql_drv" != xyes && test x"$hash_drv" != xyes
 then
   AC_MSG_ERROR([daemon mode requires one of the following storage drivers: mysql_drv pgsql_drv])
 fi
@@ -1058,7 +1058,7 @@ AC_CONFIG_FILES([txt/Makefile src/tools.pgsql_drv/Makefile ])
 AC_CONFIG_FILES([src/Makefile webui/cgi-bin/templates/Makefile])
 AC_CONFIG_FILES([src/tools.sqlite_drv/Makefile man/Makefile])
 AC_CONFIG_FILES([src/dspam.pc src/dspam-uninstalled.pc])
-AC_CONFIG_FILES([src/win32/Makefile doc/Makefile src/tools.css_drv/Makefile])
+AC_CONFIG_FILES([src/win32/Makefile doc/Makefile src/tools.hash_drv/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/Makefile webui/htdocs/Makefile])
 AC_OUTPUT
 

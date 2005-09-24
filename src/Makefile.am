@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.28 2005/09/22 17:52:04 jonz Exp $
+# $Id: Makefile.am,v 1.29 2005/09/24 01:06:11 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -13,7 +13,7 @@ includedir=@includedir@/dspam
 SUBDIRS = . tools $(storage_drv_subdirs) win32
 DIST_SUBDIRS = . \
 	tools.libdb3_drv tools.libdb4_drv tools.mysql_drv tools.ora_drv \
-	tools.pgsql_drv tools.sqlite_drv tools.css_drv tools win32
+	tools.pgsql_drv tools.sqlite_drv tools.hash_drv tools win32
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dspam.pc
@@ -44,8 +44,8 @@ endif
 if BUILD_DB3_DRV
 lib_LTLIBRARIES += libdb3_drv.la
 endif
-if BUILD_CSS_DRV
-lib_LTLIBRARIES += libcss_drv.la
+if BUILD_HASH_DRV
+lib_LTLIBRARIES += libhash_drv.la
 endif
 if BUILD_ORA_DRV
 lib_LTLIBRARIES += libora_drv.la
@@ -116,8 +116,8 @@ EXTRA_libdspam_la_SOURCES = \
 #if BUILD_DB3_DRV
 #libdspam_la_SOURCES += libdb3_drv.c libdb3_drv.h
 #endif
-#if BUILD_CSS_DRV
-#libdspam_la_SOURCES += libcss_drv.c libcss_drv.h
+#if BUILD_HASH_DRV
+#libdspam_la_SOURCES += libhash_drv.c libhash_drv.h
 #endif
 #if BUILD_ORA_DRV
 #libdspam_la_SOURCES += libora_drv.c libora_drv.h
@@ -205,9 +205,9 @@ libsqlite3_drv_la_LDFLAGS = $(libsqlite3_drv_ldflags)
 libsqlite3_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
 libsqlite3_drv_la_DEPENDENCIES =
 
-libcss_drv_la_SOURCES = \
-	css_drv.c css_drv.h
-libcss_drv_la_LDFLAGS = -rpath '$(libdir)' -version-info $(libversion)
+libhash_drv_la_SOURCES = \
+	hash_drv.c hash_drv.h
+libhash_drv_la_LDFLAGS = -rpath '$(libdir)' -version-info $(libversion)
 
 endif
 

@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.352 2005/09/23 13:51:07 jonz Exp $
+$Id: CHANGELOG,v 1.353 2005/09/24 01:06:11 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050923.2100] jonz: renamed css_drv to hash_drv
+
+to avoid confusion, the CRM Sparse Spectra driver is now known as simply the
+hash driver, and is configured as hash_drv.
 
 [20050923.0800] jonz: added bias mode for markovian discrimination
 
@@ -33,6 +38,8 @@ added MySQLSupressQuote option to compensate, or alternatively you could just
 upgrade to a better version of MySQL
 
 [20050920.1800] jonz: added persistent mode support for css_drv
+
+NOTE: css_drv has since been renamed to hash_drv
 
 added daemon mode support for css_drv when using CSSConcurrentUser (permanently
 mmap's user's database into memory). no need for daemon mode when NOT using this

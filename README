@@ -1,4 +1,4 @@
-$Id: README,v 1.68 2005/09/14 13:17:42 jonz Exp $
+$Id: README,v 1.69 2005/09/24 01:06:11 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -67,6 +67,9 @@ highly-accurate, personalized filtering for each user on even a large system
 and provides an administratively maintenance free solution capable of learning 
 each user's email behaviors with very few false positives.  
 
+While DSPAM is focused around spam filtering, many have found alternative
+uses for all types of two-concept document classification. 
+
 DSPAM is rapidly gaining a large support forum and being used in many large-
 scale implementations. Contributions to the project are welcome via the 
 dspam-dev mailing list or in the form of financial contributions. 
@@ -126,7 +129,7 @@ IMPLEMENTATION OPTIONS
 There are many different ways to deploy DSPAM onto an existing network. The
 most popular approaches are:
 
-1. As a delivery proxy
+1. As a delivery agent proxy
 
 When your mail server gets ready to deliver mail to a user's mailbox it calls 
 a delivery agent of some sort. On most UNIX systems, this is procmail, maildrop,
@@ -218,21 +221,20 @@ FRESH INSTALLATION
  T pgsql_drv:   PostgreSQL client libraries (and a server to connect to)
  * sqlite_drv:  SQLite v2.7.7 or above 
    sqlite3_drv: SQLite v3.x
-   css_drv:     None (CRM Sparse Spectra Driver)
+ T hash_drv:    None (Self-Contained Hash-Based Driver)
 
    Legend:
     * Default storage driver
     T Thread-safe (Required for running DSPAM in server daemon mode)
     D Deprecated  (Not recommended)
 
-   MySQL is the recommended storage driver, even for small implementations, as
-   it is more stable and tested than the other drivers. If you are incapable
-   of running MySQL as a background process, the SQLite drivers are your next 
-   best option. It is STRONGLY RECOMMENDED that you run MySQL v4.1 or greater, 
-   as some critical issues have been addressed in the server.
-
-   In general, MySQL is a faster solution with a smaller storage footprint, 
-   and is well suited for both small and large-scale implementations.
+   In general, MySQL is one of the faster solutions with a smaller storage 
+   footprint, and is well suited for both small and large-scale implementations.
+   The hash driver (based on Bill Yerazunis' CRM Sparse Spectra specification)
+   is the fastest solution by far and requires no dependencies, however each 
+   database uses a preset file size which may consume a significant amount of 
+   disk space on large systems. You will also need to maintain them using the
+   hash css tools (included with this distribution).
 
    Documentation for the setup of your selected storage driver can be found
    in the doc/ directory. You'll need to follow any steps outlined in the
@@ -245,7 +247,7 @@ FRESH INSTALLATION
      You can download PostgreSQL from http://www.postgresql.com.
      You can obtain more information about Oracle at http://www.oracle.com.
      You can download SQLite from http://www.sqlite.org.
-     The CSS driver requires no dependencies.
+     The hash driver requires no dependencies.
 
    Note:
      
@@ -257,13 +259,17 @@ FRESH INSTALLATION
 
    Note for Advanced Users:
 
-     The CRM Sparse Spectra driver is the latest addition to DSPAM and is a very
-     fast random-access file driver originally designed by Bill Yerazunis (the
-     author of CRM114). CSS is very fast (faster than MySQL in many cases) and
+     The hash driver is the latest addition to DSPAM and is a very fast 
+     random-access file driver originally designed by Bill Yerazunis (the
+     author of CRM114) using the same hashing algorithm as his CRM Sparse
+     Spectra format. It is very fast (faster than MySQL in many cases) and
      requires no dependencies. The downside is that the files are fixed-length,
      and by default this requires 32MB of drive space per user. If you are
      configuring DSPAM as a Markovian filter, you should definitely use this
-     driver to avoid performance issues.
+     driver to avoid performance issues. Just be aware that you may run into
+     space issues on large systems, and may need to police the files to ensure
+     they are grown when they fill up. You can do this with the hash css tools
+     included with this distribution (cssgrow, cssstat, etc.).
 
 1. CONFIGURATION
 
@@ -329,7 +335,8 @@ FRESH INSTALLATION
      pgsql_drv:   PostgreSQL Drivers
      sqlite_drv:  SQLite v2.x Drivers 
      sqlite3_drv: SQLite v3.x Drivers
-     css_drv:     CRM Sparse Spectra Driver 
+     hash_drv:    Self-Contained Hash Database
+                  (Based on Bill Yerazunis' CRM Sparse Spectra Specification)
 
      Note:
 
