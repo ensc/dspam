@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.54 2005/09/22 19:10:45 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.55 2005/09/24 13:19:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -691,9 +691,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       insert_any = 1;
       buffer_cat(insert, ins);
 #else
-      char ins[1024];
-
-      snprintf(insert, sizeof (insert),
+      snprintf(ins, sizeof (ins),
                "insert into dspam_token_data(uid, token, spam_hits, "
                "innocent_hits, last_hit) values(%d, '%llu', %d, %d, "
                "current_date())",
