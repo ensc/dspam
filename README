@@ -1,4 +1,4 @@
-$Id: README,v 1.69 2005/09/24 01:06:11 jonz Exp $
+$Id: README,v 1.70 2005/09/24 01:32:41 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -234,11 +234,11 @@ FRESH INSTALLATION
    is the fastest solution by far and requires no dependencies, however each 
    database uses a preset file size which may consume a significant amount of 
    disk space on large systems. You will also need to maintain them using the
-   hash css tools (included with this distribution).
+   css hash tools (included with this distribution).
 
-   Documentation for the setup of your selected storage driver can be found
-   in the doc/ directory. You'll need to follow any steps outlined in the
-   storage driver documentation before continuing.
+   Documentation for any additional setup of your selected storage driver can 
+   be found in the doc/ directory. You'll need to follow any steps outlined in 
+   the storage driver documentation before continuing.
 
    Note:
 
@@ -247,13 +247,12 @@ FRESH INSTALLATION
      You can download PostgreSQL from http://www.postgresql.com.
      You can obtain more information about Oracle at http://www.oracle.com.
      You can download SQLite from http://www.sqlite.org.
-     The hash driver requires no dependencies.
 
    Note:
      
      Some operating system distributions include their own version of
-     libdb3_drv and libdb4_drv.  A majority of these packaged versions
-     do work correctly with DSPAM, however a few do not.  If you experience
+     libdb3 and libdb4.  A majority of these packaged versions do work 
+     correctly with DSPAM, however a few do not.  If you experience
      problems with one of the libdb storage drivers, consider downloading
      and compiling the public source tree from http://www.sleepycat.com.
 
@@ -291,7 +290,7 @@ FRESH INSTALLATION
 
      --sysconfdir=DIR
      Specify an alternative home for the dspam.conf file. The default is
-     /usr/local/etc.
+     prefix/etc.
 
      --with-dspam-home=DIR
      Specify an alternative DSPAM home for installation. This can alternatively
@@ -323,10 +322,10 @@ FRESH INSTALLATION
    INTEGRATION SWITCHES
 
      --with-storage-driver=DRIVER
-     Specify your storage driver selection.  A storage driver is a driver
+     Specify your storage driver selection(s).  A storage driver is a driver
      written specifically for DSPAM to store tokens, signature data, and
      perform other proprietary operations.  The default driver is sqlite_drv,
-     which uses SQLite.  The following drivers have been provided:
+     which uses SQLite. The following drivers have been provided:
 
      libdb4_drv:  Berkeley DB4 Library
      libdb3_drv:  Berkeley DB3 Library
@@ -336,7 +335,15 @@ FRESH INSTALLATION
      sqlite_drv:  SQLite v2.x Drivers 
      sqlite3_drv: SQLite v3.x Drivers
      hash_drv:    Self-Contained Hash Database
-                  (Based on Bill Yerazunis' CRM Sparse Spectra Specification)
+
+     Note: 
+
+     If you are a packager, or wish to have multiple drivers built for any
+     reason, you may specify multiple drivers by separating them with commas.
+     This will cause the storage driver specified in dspam.conf to be 
+     dynamically loaded at runtime rather than statically linked. If you wish
+     to build only one driver, but dynamically, then specify it twice as in
+     --with-storage-driver=mysql_drv,mysql_drv.
 
      Note:
 
@@ -508,18 +515,10 @@ FRESH INSTALLATION
 
    ALGORITHM ACTIVATION
 
-     --disable-bias
-     When bias is disabled, dspam no longer biases the statistics in favor of
-     innocent mail, but measures both spam and innocent tokens equally in the
-     calculation equally.  This may provide more effective spam filtering,
-     but has shown to increase the number of false positives in many
-     unofficial tests.
-
-     Note:
- 
-     The remaining options in this section are now available in dspam.conf,
+     The options in this section are now available in dspam.conf,
      but have been provided for backward-compatibility and compatibility 
-     with third-party application developers using libdspam.
+     with third-party application developers using libdspam. If you are an end
+     user, DO NOT use the options below. Set them in dspam.conf instead.
 
      The default algorithms enabled are quite sufficient, and represent the most
      well-tested algorithms in DSPAM. It is not necessary to change any of
@@ -587,46 +586,6 @@ FRESH INSTALLATION
      Note:
      
      This could potentially decrease accuracy when applied to other algorithms.
-
-   TRAINING SWITCHES
-
-     --disable-test-conditional
-     Disables test-conditional training.  Test-conditional training is a more
-     agressive approach to training than traditional training, and provides more
-     inoculous results rapidly.  
-
-     Enabled by default, this mode of training will automatically re-train the 
-     user's dictionary on spam or false positive until the training condition 
-     is met (e.g. until the user's dictionary no longer results in 
-     misclassification of the message being retrained).  This training has a 
-     maximum number of 5 iterations, and will only invoke when:
-                                                                                
-     - The user has > 1000 innocent messages in their corpus, and is reporting
-       a spam
-                                                                                
-     - The user is reporting a false positive (regardless of the number of 
-       messages in their corpus)
-
-     This method of training has its controversial points as well.  All of these
-     issues revolve around the assumption this approach to training makes that
-     you are likely to receive the same (or very similar) again one or more 
-     times in the future.
-
-     - Since the message is being retrained repeatedly, the learning curve is
-       going to be based solely on that one message rather than the natural flow
-       of similar messages that may contain slightly different text.
-
-     - It's possible a user may agressively train a spam they will only receive
-       once but could potentially increase their risk of false positives by
-       training this agressively.
-
-     - If there is a significant overlap of dictionary tokens between a user's
-       regular mail and the incoming spams being agressively trained, the user
-       could potentially end up retraining with spam, then retraining with
-       false positives, then retraining with spam again.
-
-     In spite of these controversial points, this approach to training has had
-     successful results with several implementations.
 
    ADDITIONAL CONFIGURATION OPTIONS
 
@@ -2062,5 +2021,5 @@ DATA
   DSPAM has been version-tagged in cvs so that you can checkout a particular
   version by using this format:
 
-  co -r dspam-3_2_0 dspam
+  co -r dspam-3_6_0 dspam
 
