@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.58 2005/09/24 17:48:58 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.59 2005/09/25 00:51:56 jonz Exp $ */
 
 /*
  DSPAM
@@ -718,7 +718,7 @@ buffer * read_stdin(AGENT_CTX *ATX) {
   }
 
   if (_ds_match_attribute(agent_config, "DataSource", "document")) {
-    buffer_cat(msg, "Content-type: text/plain\n\n");
+    buffer_cat(msg, ".\n\n");
     body = 1;
   }
 

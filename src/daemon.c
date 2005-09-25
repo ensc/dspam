@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.106 2005/09/24 17:48:58 jonz Exp $ */
+/* $Id: daemon.c,v 1.107 2005/09/25 00:51:56 jonz Exp $ */
 
 /*
  DSPAM
@@ -871,7 +871,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
   }
 
   if (_ds_match_attribute(agent_config, "DataSource", "document")) {
-    buffer_cat(message, "Content-type: text/plain\n\n");    
+    buffer_cat(message, ".\n\n");
     body = 1;
   }
 
