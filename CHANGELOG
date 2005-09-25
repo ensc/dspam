@@ -1,7 +1,18 @@
-$Id: CHANGELOG,v 1.354 2005/09/24 17:48:58 jonz Exp $
+$Id: CHANGELOG,v 1.355 2005/09/25 00:36:49 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050924.2040] jonz: removed legacy algorithm switches from configure
+
+removed vintage (old) algorithm switches from autoconf, e.g. 
+--enable-chi-square as they are now defined in dspam.conf. developers should
+now start using the CTX->algorithms context member and the DSA_ and DSP_
+selections
+
+[20050924.2030] jonz: renamed SM/IM in dspam_stats
+
+renamed SM/IM in dspam_stats to TP (true positives) and TN (true negatives)
 
 [20050924.1345] jonz: relicensed; bound to GPL v2
 

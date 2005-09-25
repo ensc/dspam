@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.131 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: libdspam.c,v 1.132 2005/09/25 00:36:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -228,33 +228,6 @@ DSPAM_CTX * dspam_create (
   CTX->_sig_provided   = 0;
   CTX->factors         = NULL;
   CTX->algorithms      = 0;
-
-  /*
-   *  The algorithms are configured by default based on configure arguments,
-   *  but the agent automatically resets these based on dspam.conf settings.
-   *  This code is here to allow developers to configure a default set of
-   *  algorithms without having to set CTX->algorithms themselves.
-   */
-
-#if defined(GRAHAM_BAYESIAN) 
-  CTX->algorithms |= DSA_GRAHAM;
-#endif
-
-#if defined(BURTON_BAYESIAN)
-  CTX->algorithms |= DSA_BURTON;
-#endif
-
-#if defined(ROBINSON)
-  CTX->algorithms |= DSA_ROBINSON;
-#endif
-
-#if defined(CHI_SQUARE) 
-  CTX->algorithms |= DSA_CHI_SQUARE;
-#endif
-
-#if defined(ROBINSON_FW)
-  CTX->algorithms |= DSP_ROBINSON; 
-#endif
 
   return CTX;
 
@@ -493,6 +466,12 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   if (CTX->operating_mode == DSM_CLASSIFY && CTX->classification != DSR_NONE)
   {
     LOG(LOG_WARNING, "DSM_CLASSIFY can't be used with a classification");
+    return EINVAL;
+  }
+
+  if (CTX->algorithms == 0) 
+  {
+    LOG(LOG_WARNING, "No algorithms configured. Use CTX->algorithms and DSA_");
     return EINVAL;
   }
 
