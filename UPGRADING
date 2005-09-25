@@ -1,4 +1,7 @@
-$Id: UPGRADING,v 1.18 2005/09/23 13:51:07 jonz Exp $
+$Id: UPGRADING,v 1.19 2005/09/25 00:44:40 jonz Exp $
+
+Follow the steps sequentially from the base version you are running up to
+the top.
 
 UPGRADING FROM < 3.6.0
 ----------------------
@@ -12,15 +15,12 @@ UPGRADING FROM < 3.6.0
   in DSPAM, it is strongly recommended that you add "TestConditionalTraining on"
   to dspam.conf
 
-UPGRADING FROM < 3.5.3
-----------------------
-
 - PostgreSQL systems running v8.0+ must create the function lookup_tokens
 added to pgsql_objects.sql. The driver now checks your version and uses this
 function to improve performance on 8.0+.
 
-UPGRADING FROM 3.4
-------------------
+UPGRADING FROM 3.4.1 - 3.4.9
+----------------------------
 
 - Domain-based group wildcards have changed from @domain.tld to *@domain.tld in
   the group file. If you're using any domain wildcards, be sure to add the
@@ -51,18 +51,6 @@ support SMTP delivery:
   can be a list of users similar to --user. If no recipient list is specified,
   the recipient list will mirror the user list.
   --lmtp-mail-from= has been changed to --mail-from=
-
-
-UPGRADING FROM 3.2
-------------------
-
-At the moment, no critical changes to the installation. Just...
-
-configure && make && make install
-
-...over your old copy. You may, however, wish to scan for differences in
-the included dspam.conf to ensure they're propagated into your production
-configuration, as many new features have been added.
 
 SPECIAL NOTES FOR POSTGRESQL SYSTEMS
 
@@ -99,223 +87,7 @@ If you are running 3.0, please download a version of 3.2's UPGRADING and follow
 the steps to upgrade from 3.0 to 3.2, then follow the steps below to upgrade 
 from 3.2 to this release.
 
-
 If you are running 2.10, please download a version of 3.0 and 3.2's UPGRADING
 files, then follow the steps to first upgrade from 2.10 to 3.0, then 3.0 to
 3.2, and finally consult these notes to upgrade from 3.2 to 3.4. 
-
-PRE-PRODUCTION TEST REPORT
---------------------------
-
-DSPAM v3.4 Pre-Production Test
-Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
-
-The pre-production test is a comparison test to previous stable versions of
-DSPAM (in this case, 3.2 and 3.0). The testing framework used is designed to 
-measure any improvement (or degradation) in accuracy to help prevent taking any
-steps backwards and to test and compare different features. It is not by any 
-means a complete simulation, as it does not preserve interleave, does not 
-simultate purges, and doesn't perform corpus validation. This test isn't 
-likely to report levels of accuracy as high as normal for these reasons,
-but it does provide a good ballpark for validating other tests as well as
-comparing the different test runs.
-
-The testing framework trains the first 1000 nonspam and the first 1000
-spam in each folder. It then proceeds to classify (and retrain, if 
-necessary) messages in blocks of 500, reporting at each milestone. Below are
-the results of both tests - the first for the pre-production 3.4, second for
-3.2, and third for 3.0.
-
-Bayesian Noise Reduction was not measured in these tests, because BNR requires
-both an unbroken set of message threads and mail from only one user to train
-properly. The SA corpus doesn't provide this, but I will be testing BNR with
-some live user's corpora in the coming months.
-
-The end results showed a significant improvement between all versions. Version
-3.4 completed with 99.53% accuracy (13 spam misses and 0 false positives).
-Version 3.2 completed with 99.25% accuracy (20 spam misses and 1 false 
-positive).  Finally, version 3.0 scored the lowest (as expected) with 99.07% 
-accuracy (25 spam misses and 1 false positive). Bear in mind that these numbers
-aren't as high as real-world results, primarily due to the corpus being used
-(SpamAssassin) and the lack of true simulation in testing.
-
-This test framework is available upon request. Please email me at
-jonathan@nuclearelephant.com if you're interested in testing.
-
-3.4 +ch +wh +tb=0
-
-Using feature set: --feature=ch,wh,tb=0
-Training 'nonspam' for user jonz...
-Training 'spam' for user jonz...
-Testing nonspam / spam corpora...
-SM: 00481.5c95b526e965fa325044123c4ce29c1f
-SM: 00498.48c3098854d339353f1a28a13b196017
-SM: 00520.892a859ed7b0c96d56ae83e4f6ee6b11
-Spam Correct   : 247
-Spam Missed    : 3
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-SM: 00716.125a0992aa9fd11f5e7a8fa5a93a048e
-SM: 00747.801e88bae96047fb00593129ad02fdca
-SM: 00787.6ac0d6fe5aa9e89ee18e98ed8a556895
-Spam Correct   : 247
-Spam Missed    : 3
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-SM: 01125.46ca779f86e1dd0a03c3ffc67b57f55e
-Spam Correct   : 249
-Spam Missed    : 1
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-SM: 01227.04a4f94c7a73b29cb56bf38c7d526116
-SM: 01231.2a56f1f52d4da9f83870deb4b7e68acb
-SM: 01326.32e7912cae22a40e7b27f7d020de08fe
-Spam Correct   : 247
-Spam Missed    : 3
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-SM: 01374.b902d53d7f737be700d6de60a42122d9
-SM: 01387.84a80f5699b026b15455e803a471b88e
-SM: 01392.891b7eeda19704fc8a990e56e0b52f89
-Spam Correct   : 247
-Spam Missed    : 3
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-Spam Correct   : 147
-Spam Missed    : 0
-Nonspam Correct: 147
-Nonspam Missed : 0
-
-TS:  1384 TI:  1397 SM:    13 IM:     0 SC:  1052 IC:  1000
-SR:   99.07%        IR:  100.00%        OR:   99.53%
-
-3.2 +ch +wh +tb=0
-
-Using feature set: --feature=ch,wh,tb=0
-Training 'nonspam' for user jonz...
-Training 'spam' for user jonz...
-Testing nonspam / spam corpora...
-SM: 00520.892a859ed7b0c96d56ae83e4f6ee6b11
-SM: 00529.0c8a07bb7b14576063ba0c1c4079e209
-SM: 00566.9b3e6f0ed54a232fcf6533c75d5c218e
-Spam Correct   : 247
-Spam Missed    : 3
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-SM: 00714.cd13d8db12cc1f661d6b2eb6fcbb5156
-SM: 00723.7d2f1e26ae8cbab862459e33db405be1
-SM: 00734.0c1975b8c2b17fd6c665827706f89eaf
-SM: 00787.6ac0d6fe5aa9e89ee18e98ed8a556895
-Spam Correct   : 246
-Spam Missed    : 4
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-Spam Correct   : 250
-Spam Missed    : 0
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-SM: 01164.55202a4234914b20004dc7f9264313e5
-FP: 01554.0aed12846b3981a2a13adf793083e4f0
-SM: 01217.d5a1734ec521c1bd55270eca3ab4acd8
-SM: 01227.04a4f94c7a73b29cb56bf38c7d526116
-SM: 01231.2a56f1f52d4da9f83870deb4b7e68acb
-SM: 01243.0676aa0a6a02e5a0373d387b89af0e07
-SM: 01337.e490c19d9987a1532dd2e8f1a2e76fdc
-SM: 01356.8d996c0bc08a47a90611de2e8a829048
-SM: 01359.deafa1d42658c6624c6809a446b7f369
-SM: 01363.85518bca7c7cb9f35e57f3adda762ac9
-Spam Correct   : 241
-Spam Missed    : 9
-Nonspam Correct: 249
-Nonspam Missed : 1
-----------------------
-SM: 01374.b902d53d7f737be700d6de60a42122d9
-SM: 01377.17adb34fc692245ce301d3db0a3e80c8
-SM: 01387.84a80f5699b026b15455e803a471b88e
-SM: 01392.891b7eeda19704fc8a990e56e0b52f89
-Spam Correct   : 246
-Spam Missed    : 4
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-Spam Correct   : 147
-Spam Missed    : 0
-Nonspam Correct: 147
-Nonspam Missed : 0
-
-TS:  1377 TI:  1396 SM:    20 IM:     1 SC:  1080 IC:  1000
-SR:   98.57%        IR:   99.93%        OR:   99.25%
-
-3.0 +ch +wh +tb=0
-
-Using feature set: --feature=ch,wh,tb=0
-Training 'nonspam' for user jonz...
-Training 'spam' for user jonz...
-Testing nonspam / spam corpora...
-SM: 00481.5c95b526e965fa325044123c4ce29c1f
-SM: 00520.892a859ed7b0c96d56ae83e4f6ee6b11
-SM: 00529.0c8a07bb7b14576063ba0c1c4079e209
-SM: 00566.9b3e6f0ed54a232fcf6533c75d5c218e
-Spam Correct   : 246
-Spam Missed    : 4
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-SM: 00705.df125edb37f19c87784942c7b2b164a1
-SM: 00714.cd13d8db12cc1f661d6b2eb6fcbb5156
-SM: 00717.835c303709346693354e01b242ff22da
-SM: 00723.7d2f1e26ae8cbab862459e33db405be1
-SM: 00734.0c1975b8c2b17fd6c665827706f89eaf
-SM: 00787.6ac0d6fe5aa9e89ee18e98ed8a556895
-Spam Correct   : 244
-Spam Missed    : 6
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-SM: 00951.f7044a1b178dc3dcff44932f840b8805
-SM: 01034.925db77dafa8bdaae1cb31e2ed3b05a4
-SM: 01063.e0318e91412291f881f315287050abe4
-SM: 01125.46ca779f86e1dd0a03c3ffc67b57f55e
-SM: 01137.7c5ed50fcc83a610928b75e158ca5554
-Spam Correct   : 245
-Spam Missed    : 5
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-SM: 01164.55202a4234914b20004dc7f9264313e5
-FP: 01554.0aed12846b3981a2a13adf793083e4f0
-SM: 01204.75323a3e0d38fe7a107bd0102daf6f26
-SM: 01227.04a4f94c7a73b29cb56bf38c7d526116
-SM: 01231.2a56f1f52d4da9f83870deb4b7e68acb
-SM: 01243.0676aa0a6a02e5a0373d387b89af0e07
-SM: 01337.e490c19d9987a1532dd2e8f1a2e76fdc
-SM: 01359.deafa1d42658c6624c6809a446b7f369
-Spam Correct   : 243
-Spam Missed    : 7
-Nonspam Correct: 249
-Nonspam Missed : 1
-----------------------
-SM: 01377.17adb34fc692245ce301d3db0a3e80c8
-SM: 01387.84a80f5699b026b15455e803a471b88e
-SM: 01392.891b7eeda19704fc8a990e56e0b52f89
-Spam Correct   : 247
-Spam Missed    : 3
-Nonspam Correct: 250
-Nonspam Missed : 0
-----------------------
-Spam Correct   : 147
-Spam Missed    : 0
-Nonspam Correct: 147
-Nonspam Missed : 0
-
-TS:  1372 TI:  1396 SM:    25 IM:     1 SC:  1099 IC:  1000
-SR:   98.21%        IR:   99.93%        OR:   99.07%
 

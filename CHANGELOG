@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.355 2005/09/25 00:36:49 jonz Exp $
+$Id: CHANGELOG,v 1.356 2005/09/25 00:44:40 jonz Exp $
 
 Version NEXT
 ------------
@@ -17,13 +17,15 @@ renamed SM/IM in dspam_stats to TP (true positives) and TN (true negatives)
 [20050924.1345] jonz: relicensed; bound to GPL v2
 
 after reading rms' latest responses hinting at the GPL3, which to some
-degree mandates feature continuity for commercial use, I thought I would
-take the opportunity while I have it to bind to the GPL v2. should the GPL3
-turn out to be sane, we can always open it back up to license under it.
-I have removed the "either version 2 or later versions" and replaced it with
-"version 2". since no later versions existed during the period which dspam
-was available under old terms, it is my understanding that previous versions 
-of dspam may similarly _not_ be applied to the gpl3.
+degree mandates feature continuity for commercial use and other limits on
+use rather than distribution, I thought I would take the opportunity while 
+I have it to bind to the GPL v2. should the GPLv3 turn out to be sane, we can 
+always open it back up to license under it.  I have removed the "either 
+version 2 or later versions" and replaced it with "version 2". ianal, but
+since no later versions existed during the period which dspam was available 
+under old terms, it is my understanding that previous versions of dspam may 
+similarly _not_ be applied to the GPLv3 as it would create a temporal paradox.
+even if this is incorrect, 3.6 will be released specifically under the GPLv2.
 
 [20050923.2100] jonz: renamed css_drv to hash_drv
 
@@ -38,11 +40,11 @@ NOTE: there is a significant change in results, and you may wish to leave bias
 
 Without Bias:
 
-sample          TS:   956 TI:   992 FN:    49 FP:    13 SC:     0 IC:     0
+sample          TP:   956 TN:   992 FN:    49 FP:    13 SC:     0 IC:     0
 
 With Bias:
 
-sample          TS:   863 TI:  1004 FN:   140 FP:     3 SC:     8 IC:     0
+sample          TP:   863 TN:  1004 FN:   140 FP:     3 SC:     8 IC:     0
 
 [20050923.0800] jonz: added ProcessorBias and TestConditionalTraining
 

@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.57 2005/09/24 01:18:58 jonz Exp $
+## $Id: dspam.conf.in,v 1.58 2005/09/25 00:48:37 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -625,7 +625,8 @@ Opt out
 # usually greatly reduces false positives. It is the default behavior of
 # most Bayesian filters (including dspam). 
 #
-# NOTE: You probably DONT want this if you're using Markovian Weighting
+# NOTE: You probably DONT want this if you're using Markovian Weighting, unless
+# you are paranoid about false positives.
 #
 ProcessorBias on
 
