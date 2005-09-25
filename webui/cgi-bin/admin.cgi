@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.5 2005/09/24 17:49:01 jonz Exp $
+# $Id: admin.cgi,v 1.6 2005/09/25 01:06:19 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 #
@@ -267,7 +267,7 @@ sub DisplayUserStatistics {
       $b = "rowEven";
     }
 
-    my($username, $sl, $il, $sm, $fp, $sc, $ic) = (split(/\s+/))[0,2,4,6,8,10,12]; 
+    my($username, $sl, $il, $fp, $sm, $sc, $ic) = (split(/\s+/))[0,2,4,6,8,10,12]; 
 
     my(%PREFS) = GetPrefs($username, GetPath($username).".prefs");
     $PREFS{'enableBNR'} = "OFF" if ($PREFS{'enableBNR'} ne "on");
