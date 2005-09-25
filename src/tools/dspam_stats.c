@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.17 2005/09/24 17:49:01 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.18 2005/09/25 00:28:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -297,10 +297,10 @@ stat_user (const char *username)
   if (opt_humanfriendly)
   {
     printf("%s:\n\
-        \tTS Total Spam:             %6ld\n\
-        \tTI Total Innocent:         %6ld\n\
-        \tSM Spam Misclassified:     %6ld\n\
-        \tIM Innocent Misclassified: %6ld\n\
+        \tTS True Positives:         %6ld\n\
+        \tTI True Negatives:         %6ld\n\
+        \tIM False Positives:        %6ld\n\
+        \tSM False Negatives:        %6ld\n\
         \tSC Spam Corpusfed:         %6ld\n\
         \tIC Innocent Corpusfed:     %6ld\n\
         \tTL Training Left:          %6ld\n\
@@ -310,7 +310,7 @@ stat_user (const char *username)
         \n",
             username,
             total_spam, total_innocent,
-            spam_misclassified, innocent_misclassified,
+            innocent_misclassified, spam_misclassified, 
             spam_corpusfed, innocent_corpusfed, 
             MAX(0, 2500 - (MTX->totals.innocent_learned +
                            MTX->totals.innocent_classified)),
@@ -328,13 +328,13 @@ stat_user (const char *username)
   else
   {
 #ifdef LONG_USERNAMES
-    printf ("%s\n    TS:%6ld TI:%6ld FN:%6ld FP:%6ld SC:%6ld IC:%6ld\n",
+    printf ("%s\n    TP:%6ld TN:%6ld FP:%6ld FN:%6ld SC:%6ld IC:%6ld\n",
 #else
-    printf ("%-16s  TS:%6ld TI:%6ld FN:%6ld FP:%6ld SC:%6ld IC:%6ld\n",
+    printf ("%-16s  TP:%6ld TN:%6ld FP:%6ld FN:%6ld SC:%6ld IC:%6ld\n",
 #endif
             username,
             total_spam, total_innocent,
-            spam_misclassified, innocent_misclassified,
+            innocent_misclassified, spam_misclassified,
             spam_corpusfed, innocent_corpusfed);
 
     if (opt_stats) 
