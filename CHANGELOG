@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.356 2005/09/25 00:44:40 jonz Exp $
+$Id: CHANGELOG,v 1.357 2005/09/26 14:44:26 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050925.2200] jonz: added infinite improbability drive
+
+added infinite improbability drive, ImprobabilityDrive on
 
 [20050924.2040] jonz: removed legacy algorithm switches from configure
 

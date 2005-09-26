@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.58 2005/09/25 00:48:37 jonz Exp $
+## $Id: dspam.conf.in,v 1.59 2005/09/26 14:44:26 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -210,6 +210,11 @@ PValue graham
 # SupressWebStats: Enable this if you are not using the CGI, and don't want
 # .stats files written.
 #SupressWebStats on
+
+#
+# ImprobabilityDrive: Calculate odds-ratios for ham/spam, and add to
+# X-DSPAM-Improbability headers
+#ImprobabilityDrive on
 
 #
 # Preferences: Specify any preferences to set by default, unless otherwise
