@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.200 2005/09/26 14:44:26 jonz Exp $ */
+/* $Id: dspam.c,v 1.201 2005/09/26 17:05:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -3099,20 +3099,21 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         if (_ds_match_attribute(agent_config, "ImprobabilityDrive", "on"))
         {
           float probability = CTX->probability;
+          char *as;
           if (probability > 0.999999) 
             probability = 0.999999;
           if (probability >= 0.5) { 
-            snprintf(data, sizeof(data), "X-DSPAM-Improbability: 1 in %.3f "
-             "as ham",
-            100*(probability - (1-probability)));
+            as = "ham";
           } else {
+            as = "spam";
             probability = 1-probability;
             if (probability > 0.999999)
               probability = 0.999999;
-            snprintf(data, sizeof(data), "X-DSPAM-Improbability: 1 in %.3f "
-             "as spam",
-            100*(probability - (1-probability)));
           }
+printf("PROBABILITY: %f %f\n", probability, 1.0+(probability/(1-probability)));
+          snprintf(data, sizeof(data), "X-DSPAM-Improbability: 1 in %.0f "
+            "chance of being %s",
+            1.0+(100*(probability / (1-probability))), as);
           head = _ds_create_header_field(data);
           if (head != NULL)
           {
