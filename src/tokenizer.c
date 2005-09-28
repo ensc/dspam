@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.7 2005/09/28 22:07:34 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.8 2005/09/28 23:32:57 jonz Exp $ */
 
 /*
  DSPAM
@@ -110,7 +110,6 @@ int _ds_tokenize_ngram(
   ds_diction_t diction)
 {
   char *token;				/* current token */
-  char joined_token[32] = { 0 };	/* used for de-obfuscating tokens */
   char *previous_token = NULL;		/* used for chained tokens */
 #ifdef NCORE
   nc_strtok_t NTX;
@@ -120,8 +119,7 @@ int _ds_tokenize_ngram(
   char *ptrptr;
 
   char heading[128];			/* current heading */
-  int alloc = 0;			/* did we alloc previous_token? */
-  int l, jl;
+  int l;
 
   struct nt *header = NULL;      /* Header array */
   struct nt_node *node_nt;
@@ -154,21 +152,17 @@ int _ds_tokenize_ngram(
   heading[0] = 0;
   while (node_nt) {
     int is_received, multiline;
-    joined_token[0] = 0;
 
 #ifdef VERBOSE
     LOGDEBUG("processing line: %s", node_nt->ptr);
 #endif
+
     line = node_nt->ptr;
     token = strtok_r (line, ":", &ptrptr);
     if (token && token[0] != 32 && token[0] != 9 && !strstr (token, " "))
     {
       multiline = 0;
       strlcpy (heading, token, 128);
-      if (alloc) {
-        free(previous_token);
-        alloc = 0;
-      }
       previous_token = NULL;
     } else {
       multiline = 1;
@@ -208,48 +202,19 @@ int _ds_tokenize_ngram(
     {
       l = strlen(token);
 
-      if (l > 1 && l < 25)
+      if (l >= 1 && l < 50)
       {
 #ifdef VERBOSE
         LOGDEBUG ("Processing '%s' token in '%s' header", token, heading);
 #endif
-
-        /* Process reassembled tokens (e.g. V/I/A/G/R/A) */
-        jl = strlen(joined_token);
-        if (jl > 1 && jl < 25)
-        {
-          if (!_ds_process_header_token
-                (CTX, joined_token, previous_token, diction, heading)
-              && (CTX->flags & DSF_CHAINED))
-          {
-            /* shift previous token */
-            if (alloc)
-              free(previous_token);
-            alloc = 1;
-            previous_token = strdup (joined_token);
-          }
-          joined_token[0] = 0;
-        }
 
         /* Process "current" token */
         if (!_ds_process_header_token
             (CTX, token, previous_token, diction, heading) && 
             (CTX->flags & DSF_CHAINED))
         {
-          /* shift previous token */
-          if (alloc) {
-            free (previous_token);
-            alloc = 0;
-          }
           previous_token = token;
         }
-      }
-
-      /* push single letters onto reassembly buffer */
-      else if (l == 1
-               || (l == 2 && (strchr (token, '$') || strchr (token, '!'))))
-      {
-        strlcat (joined_token, token, sizeof (joined_token));
       }
 
       if (is_received)
@@ -258,17 +223,7 @@ int _ds_tokenize_ngram(
         token = strtok_r (NULL, DELIMITERS, &ptrptr);
     }
 
-    /* Final token reassembly (anything left in the buffer) */
-    jl = strlen(joined_token);
-    if (jl > 1 && jl < 25) {
-      _ds_process_header_token 
-        (CTX, joined_token, previous_token, diction, heading);
-    }
-
-    if (alloc)
-      free(previous_token);
     previous_token = NULL;
-    alloc = 0;
     node_nt = c_nt_next (header, &c_nt);
   }
 
@@ -282,8 +237,6 @@ int _ds_tokenize_ngram(
   LOGDEBUG("parsing message body");
 #endif
 
-  joined_token[0] = 0;
-  alloc = 0;
 #ifdef NCORE
   token = strtok_n (body, &g_ncDelimiters, &NTX);
 #else
@@ -292,43 +245,15 @@ int _ds_tokenize_ngram(
   while (token != NULL)
   {
     l = strlen (token);
-    if (l > 1 && l < 25)
+    if (l >= 1 && l < 50)
     {
-      jl = strlen(joined_token);
-
-      /* Process reassembled tokens (e.g. V/I/A/G/R/A) */
-      if (jl > 2 && jl < 25)
-      {
-        if (!_ds_process_body_token
-            (CTX, joined_token, previous_token, diction) && 
-            (CTX->flags & DSF_CHAINED))
-        {
-          /* shift previous token */
-          if (alloc)
-            free(previous_token);
-          alloc = 1;
-          previous_token = strdup (joined_token);
-        }
-        joined_token[0] = 0;
-      }
-
       /* Process "current" token */ 
       if (!_ds_process_body_token
           (CTX, token, previous_token, diction) && (CTX->flags & DSF_CHAINED))
       {
-        if (alloc) {
-          alloc = 0;
-          free (previous_token);
-        }
         previous_token = token;
       }
     } 
-    /* push single letters onto reassembly buffer */
-    else if (l == 1
-         || (l == 2 && (strchr (token, '$') || strchr (token, '!'))))
-    {
-      strlcat (joined_token, token, sizeof (joined_token));
-    }
 #ifdef NCORE
     token = strtok_n (NULL, NULL, &NTX);
 #else
@@ -337,14 +262,6 @@ int _ds_tokenize_ngram(
   }
 
   /* Final token reassembly (anything left in the buffer) */
-
-  jl = strlen(joined_token);
-  if (jl > 2 && jl < 25) {
-    _ds_process_body_token (CTX, joined_token, previous_token, diction);
-  }
-
-  if (alloc) 
-    free (previous_token);
 
   return 0;
 }
@@ -450,7 +367,7 @@ int _ds_tokenize_sbph(
     {
       l = strlen(token);
 
-      if (l > 0 && l < 25)
+      if (l > 0 && l < 50)
       {
 #ifdef VERBOSE
         LOGDEBUG ("Processing '%s' token in '%s' header", token, heading);
@@ -485,7 +402,7 @@ int _ds_tokenize_sbph(
   while (token != NULL)
   {
     l = strlen (token);
-    if (l > 0 && l < 25)
+    if (l > 0 && l < 50)
     {
       /* Process "current" token */ 
       _ds_map_body_token (CTX, token, previous_tokens, diction);
@@ -995,10 +912,17 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
             while (x != NULL)
             {
               y = strchr (x, '>');
-              if (y != NULL && (!strncasecmp (x, "</DIV><DIV>", 11))) {
-                memset(x, 32, 11);
-                x = strstr(x + 11, "<");
-              }
+              if (y != NULL && 
+                   ((!strncasecmp (x, "</", 2)) 
+                 || (!strncasecmp (x, "<DIV", 4))
+                 || (!strncasecmp (x, "<BR", 3))
+                 || (!strncasecmp (x, "<TD", 3))
+                 || (!strncasecmp (x, "<TR", 3))))
+               {
+                 memset(x, 32, (y+1)-x);
+                 x = strstr (x + 1, "<");
+               }
+
               else if (y != NULL && (!strncasecmp (x, "</TD><TD>", 9))) {
                 memset(x, 32, 9);
                 x = strstr(x + 9, "<");
