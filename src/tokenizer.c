@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.6 2005/09/28 22:02:40 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.7 2005/09/28 22:07:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -998,6 +998,10 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
               if (y != NULL && (!strncasecmp (x, "</DIV><DIV>", 11))) {
                 memset(x, 32, 11);
                 x = strstr(x + 11, "<");
+              }
+              else if (y != NULL && (!strncasecmp (x, "</TD><TD>", 9))) {
+                memset(x, 32, 9);
+                x = strstr(x + 9, "<");
               }
               else if (y != NULL
                   && (y - x <= 15

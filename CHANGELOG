@@ -1,11 +1,11 @@
-$Id: CHANGELOG,v 1.358 2005/09/28 22:02:40 jonz Exp $
+$Id: CHANGELOG,v 1.359 2005/09/28 22:07:34 jonz Exp $
 
 Version NEXT
 ------------
 
-[20050928.1800] jonz: tweak to tokenizer for concurrent divs
+[20050928.1800] jonz: tweak to tokenizer for concurrent divs and tables
 
-added minor tweak to tokenizer to handle concurrent div's differently
+added minor tweak to tokenizer to handle concurrent div's and tables differently
 
 [20050928.1800] jonz: added signature to deliver=summary
 
