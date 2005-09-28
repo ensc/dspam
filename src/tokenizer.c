@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.5 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.6 2005/09/28 22:02:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -281,6 +281,7 @@ int _ds_tokenize_ngram(
 #ifdef VERBOSE
   LOGDEBUG("parsing message body");
 #endif
+
   joined_token[0] = 0;
   alloc = 0;
 #ifdef NCORE
@@ -994,7 +995,11 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
             while (x != NULL)
             {
               y = strchr (x, '>');
-              if (y != NULL
+              if (y != NULL && (!strncasecmp (x, "</DIV><DIV>", 11))) {
+                memset(x, 32, 11);
+                x = strstr(x + 11, "<");
+              }
+              else if (y != NULL
                   && (y - x <= 15
                       || !strncasecmp (x + 1, "td ", 3)
                       || !strncasecmp (x + 1, "!doctype", 8)

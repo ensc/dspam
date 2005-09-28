@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.201 2005/09/26 17:05:45 jonz Exp $ */
+/* $Id: dspam.c,v 1.202 2005/09/28 22:02:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -780,14 +780,13 @@ process_message (
     }
 
     fprintf(fout, "X-DSPAM-Result: %s; result=\"%s\"; class=\"%s\"; "
-                  "probability=%01.4f; "
-           "confidence=%02.2f\n",
+                  "probability=%01.4f; confidence=%02.2f; signature=%s\n",
            CTX->username,
            data,
            CTX->class,
            CTX->probability,
-           CTX->confidence);
-
+           CTX->confidence,
+           ATX->signature);
   }
 
   ATX->learned = CTX->learned;
@@ -3110,7 +3109,6 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
             if (probability > 0.999999)
               probability = 0.999999;
           }
-printf("PROBABILITY: %f %f\n", probability, 1.0+(probability/(1-probability)));
           snprintf(data, sizeof(data), "X-DSPAM-Improbability: 1 in %.0f "
             "chance of being %s",
             1.0+(100*(probability / (1-probability))), as);
