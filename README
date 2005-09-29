@@ -1,4 +1,4 @@
-$Id: README,v 1.72 2005/09/25 00:36:49 jonz Exp $
+$Id: README,v 1.73 2005/09/29 22:42:34 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -617,7 +617,7 @@ FRESH INSTALLATION
      DSPAM can be configured as an SMTP relay, a.k.a appliance. You
      can set it up to sit in front of your real mail server and then point
      your MX records at it. DSPAM will then pass along the good mail to
-     your real SMTP server. See doc/appliance.txt for more information. The
+     your real SMTP server. See doc/relay.txt for more information. The
      example provided uses Postfix and MySQL.
 
    Trusted users and the MTA
