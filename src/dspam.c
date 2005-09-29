@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.204 2005/09/29 21:18:18 jonz Exp $ */
+/* $Id: dspam.c,v 1.205 2005/09/29 21:27:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -3101,10 +3101,10 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           char *as;
           if (probability > 0.999999) 
             probability = 0.999999;
-          if (probability >= 0.5) { 
-            as = "ham";
-          } else {
+          if (CTX->result == DSR_ISINNOCENT) {
             as = "spam";
+          } else {
+            as = "ham";
             probability = 1-probability;
             if (probability > 0.999999)
               probability = 0.999999;
