@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.364 2005/09/29 14:36:55 jonz Exp $
+$Id: CHANGELOG,v 1.365 2005/09/29 16:41:35 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050929.0700] jonz: added scan for dlopen/-ldl
+
+added a check to see if -ldl is needed to use dlopen/dlsym/etc
 
 [20050929.0700] jonz: fixed termination boundary bug
 
