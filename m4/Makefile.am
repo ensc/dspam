@@ -12,4 +12,5 @@ EXTRA_DIST = 					\
 	netlibs.m4				\
 	ora_drv.m4				\
 	pgsql_drv.m4				\
-	sqlite_drv.m4				
+	sqlite_drv.m4				\
+	dllibs.m4	

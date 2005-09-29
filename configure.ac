@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.47 2005/09/25 00:36:49 jonz Exp $
+dnl $Id: configure.ac,v 1.48 2005/09/29 16:36:42 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -68,7 +68,7 @@ AC_CHECK_FUNCS([memcpy memset])
 AC_CHECK_FUNCS(localtime_r)
 AC_CHECK_FUNCS(inet_ntoa_r)
 
-LIBS="-ldl -lm"
+LIBS="-lm"
 
 #   Daemon support
 #
@@ -125,6 +125,16 @@ then
     AC_MSG_FAILURE([required libraries are not found or not usable])
 fi
 AC_SUBST(NETLIBS)
+
+#
+#   Dynamic linker libraries (usually -ldl)
+#
+DS_DLLIBS(DLLIBS, [success=yes], [success=no])
+if test x"$success" != xyes
+then
+    AC_MSG_FAILURE([required libraries are not found or not usable])
+fi
+LIBS="$LIBS $DLLIBS"
 
 #
 #   Support for NodalCore(tm) C-Series Hardware Extensions
