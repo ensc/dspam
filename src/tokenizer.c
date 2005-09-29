@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.8 2005/09/28 23:32:57 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.9 2005/09/29 00:46:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -462,6 +462,8 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
   for (i = 0; token[i] != 0; i++)
   {
     if (!isdigit ((unsigned char) token[i]))
+      all_num = 0;
+    if (token[i] == '.')
       all_num = 0;
     if (iscntrl ((unsigned char) token[i])) {
       token[i] = 'z';
