@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.202 2005/09/28 22:02:40 jonz Exp $ */
+/* $Id: dspam.c,v 1.203 2005/09/29 14:36:55 jonz Exp $ */
 
 /*
  DSPAM
@@ -3323,6 +3323,7 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       if (dup)
       {
         buffer_cat (block->body, dup);
+        buffer_cat (block->body, "\n\n");
         free (dup);
       }
     }
