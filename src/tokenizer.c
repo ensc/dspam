@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.9 2005/09/29 00:46:45 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.10 2005/09/29 00:54:09 jonz Exp $ */
 
 /*
  DSPAM
@@ -444,9 +444,7 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
                           const char *previous_token, ds_diction_t diction,
                           const char *heading)
 {
-  int all_num = 1, i;
   char combined_token[256];
-  int len = 0;
   int is_received;
   unsigned long long crc;
   char *tweaked_token;
@@ -457,36 +455,6 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
   is_received = (!strcmp (heading, "Received") ? 1 : 0);
 
   if (is_received && strlen (token) < 6)
-    return EINVAL;
-
-  for (i = 0; token[i] != 0; i++)
-  {
-    if (!isdigit ((unsigned char) token[i]))
-      all_num = 0;
-    if (token[i] == '.')
-      all_num = 0;
-    if (iscntrl ((unsigned char) token[i])) {
-      token[i] = 'z';
-      all_num = 0;
-    }
-  }
-
-  len = i - 1;
-
-  if (isdigit ((unsigned char) token[0]))
-  {
-    if (token[len - 1] != '%')
-      all_num = 1;
-  }
-
-  if (!(isalnum ((unsigned char) token[0]) || (unsigned char) token[0] > 127) && token[0] != '$' && token[0] != '#')
-    all_num = 1;
-
-  if (is_received)
-    all_num = 0;
-
-  /* Ignore tokens that are all numbers, or contain high ASCII characters */
-  if (all_num)
     return EINVAL;
 
   /* This is where we used to ignore certain headings */
@@ -533,37 +501,9 @@ int
 _ds_process_body_token (DSPAM_CTX * CTX, char *token,
                         const char *previous_token, ds_diction_t diction)
 {
-  int all_num = 1, i;
   char combined_token[256];
-  int len;
   unsigned long long crc;
   char *tweaked_token;
-
-  for (i = 0; token[i] != 0; i++)
-  {
-    if (!isdigit ((unsigned char) token[i]))
-      all_num = 0;
-    if (iscntrl ((unsigned char) token[i])) {
-      token[i] = 'z';
-      all_num = 0;
-    }
-  }
-
-  len = i - 1;
-
-  if (isdigit ((unsigned char) token[0]))
-  {
-    int l = len - 1;
-    if (token[l] != '%')
-      all_num = 1;
-  }
-
-  if (!(isalnum ((unsigned char) token[0]) || (unsigned char) token[0] > 127) && token[0] != '$' && token[0] != '#')
-    all_num = 1;
-
-  /* Ignore tokens that are all numbers, or contain high ASCII characters */
-  if (all_num)
-    return EINVAL;
 
   tweaked_token = _ds_truncate_token(token);
   if (tweaked_token == NULL)

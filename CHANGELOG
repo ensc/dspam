@@ -1,4 +1,11 @@
-$Id: CHANGELOG,v 1.361 2005/09/29 00:24:28 jonz Exp $
+$Id: CHANGELOG,v 1.362 2005/09/29 00:54:09 jonz Exp $
+
+Version NEXT
+------------
+
+[20050928.2100] jonz: tokenizer tweak: don't ignore digits
+
+stopped ignoring digits to further improve accuracy (old, paranoid code)
 
 Version 3.6.rc3
 ---------------
