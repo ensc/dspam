@@ -1,12 +1,12 @@
-$Id: CHANGELOG,v 1.360 2005/09/28 23:32:57 jonz Exp $
+$Id: CHANGELOG,v 1.361 2005/09/29 00:24:28 jonz Exp $
 
-Version NEXT
-------------
+Version 3.6.rc3
+---------------
 
 [20050928.1800] jonz: removed token reassembly from ngram tokenizer
 
 removed token reassembly (individual letters, and chained letters appear to
-be more accurate)
+be 1% more accurate during training)
 
 [20050928.1800] jonz: added signature to deliver=summary
 
