@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.205 2005/09/29 21:27:14 jonz Exp $ */
+/* $Id: dspam.c,v 1.206 2005/09/29 23:00:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -3105,9 +3105,6 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
             as = "spam";
           } else {
             as = "ham";
-            probability = 1-probability;
-            if (probability > 0.999999)
-              probability = 0.999999;
           }
           snprintf(data, sizeof(data), "X-DSPAM-Improbability: 1 in %.0f "
             "chance of being %s",
