@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.362 2005/09/29 00:54:09 jonz Exp $
+$Id: CHANGELOG,v 1.363 2005/09/29 01:13:16 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050928.2100] jonz: fixed bugs in _ds_pref_set dynamic functions
+
+bug causing segfault, was calling the driver inappropriately
 
 [20050928.2100] jonz: tokenizer tweak: don't ignore digits
 
