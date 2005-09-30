@@ -1,4 +1,4 @@
-/* $Id: cssstat.c,v 1.4 2005/09/30 07:01:14 jonz Exp $ */
+/* $Id: cssstat.c,v 1.5 2005/09/30 19:16:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -20,10 +20,10 @@
 
 */
 
-/*
- * cssstat.c - Print css file information
- *
- */
+/* cssstat.c - Print hash file statistics */
+
+#define READ_ATTRIB(A)		_ds_read_attribute(agent_config, A)
+#define MATCH_ATTRIB(A, B)	_ds_match_attribute(agent_config, A, B)
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -61,7 +61,9 @@ int DO_DEBUG
 #endif
 ;
 
+#include "read_config.h"
 #include "hash_drv.h"
+#include "language.h"
 #include "error.h"
  
 #define SYNTAX "syntax: cssstat [filename]"
@@ -77,6 +79,12 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
    
+  agent_config = read_config(NULL);
+  if (!agent_config) {
+    LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
+    exit(EXIT_FAILURE);
+  }
+
   filename = argv[1];
 
   r = cssstat(filename);
@@ -98,15 +106,38 @@ int cssstat(const char *filename) {
   unsigned long extents = 0;
   unsigned long i;
 
-  printf("filename %s\n", filename);
-  if (_hash_drv_open(filename, &map, 0)) 
+  unsigned long hash_rec_max = HASH_REC_MAX;
+  unsigned long max_seek     = HASH_SEEK_MAX;
+  unsigned long max_extents  = 0;
+  unsigned long extent_size  = HASH_EXTENT_MAX;
+  int flags = 0;
+
+  if (READ_ATTRIB("HashRecMax"))
+    hash_rec_max = strtol(READ_ATTRIB("HashRecMax"), NULL, 0);
+
+  if (READ_ATTRIB("HashExtentSize"))
+    extent_size = strtol(READ_ATTRIB("HashExtentSize"), NULL, 0);
+
+  if (READ_ATTRIB("HashMaxExtents"))
+    max_extents = strtol(READ_ATTRIB("HashMaxExtents"), NULL, 0);
+
+  if (MATCH_ATTRIB("HashAutoExtend", "on"))
+    flags = HMAP_AUTOEXTEND;
+
+  if (READ_ATTRIB("HashMaxSeek"))
+     max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
+
+  if (_hash_drv_open(filename, &map, 0, max_seek, 
+                     max_extents, extent_size, flags))
+  {
     return EFAILURE;
+  }
 
   header = map.addr;
-  printf("file length %ld\n", (long) map.file_len);
+  printf("filename %s length %ld\n", filename, (long) map.file_len);
 
   while(filepos < map.file_len) {
-    printf("extent %lu record max %lu\n", extents, 
+    printf("extent %lu: record length %lu\n", extents, 
       (unsigned long) header->hash_rec_max);
     efree = eused = 0;
     for(i=0;i<header->hash_rec_max;i++) {
@@ -124,15 +155,15 @@ int cssstat(const char *filename) {
     filepos += sizeof(struct _hash_drv_header);
     extents++;
 
-    printf("extent records used %lu\n", eused);
-    printf("extent records free %lu\n\n", efree);
+    printf("\textent records used %lu\n", eused);
+    printf("\textent records free %lu\n", efree);
   }
 
   _hash_drv_close(&map);
 
-  printf("total records used %lu\n", nused);
-  printf("total records free %lu\n", nfree);
-  printf("total extents      %lu\n", extents);
+  printf("total database records used %lu\n", nused);
+  printf("total database records free %lu\n", nfree);
+  printf("total extents               %lu\n", extents);
   return 0;
 }
 

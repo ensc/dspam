@@ -10,22 +10,15 @@ AM_CPPFLAGS = \
 
 CFLAGS = @CFLAGS@ -I$(top_srcdir)/src
 
-bin_PROGRAMS = cssgrow cssstat cssclean csscompress
+bin_PROGRAMS = cssstat csscompress cssclean
 
 DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
        -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\"\
        -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D_GNU_SOURCE
 
-cssgrow_SOURCES = cssgrow.c ../util.c ../diction.c ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c
-cssgrow_LDFLAGS = -static
-if DYNAMIC_DRIVER
-if BUILD_HASH_DRV
-cssgrow_CPPFLAGS = $(libhash_drv_cppflags)
-cssgrow_LDFLAGS += $(libhash_drv_libs) $(libhash_drv_ldflags)
-endif
-endif
-
-cssstat_SOURCES = cssstat.c ../util.c ../diction.c ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c
+cssstat_SOURCES =  cssstat.c ../read_config.c ../util.c ../diction.c \
+                   ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
+                   ../pref.c
 cssstat_LDFLAGS = -static
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
@@ -34,7 +27,9 @@ cssstat_LDFLAGS += $(libhash_drv_libs) $(libhash_drv_ldflags)
 endif
 endif
 
-cssclean_SOURCES = cssclean.c ../util.c ../diction.c ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c
+cssclean_SOURCES = cssclean.c ../read_config.c ../util.c ../diction.c \
+                   ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
+                   ../pref.c
 cssclean_LDFLAGS = -static
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
@@ -43,7 +38,9 @@ cssclean_LDFLAGS += $(libhash_drv_libs) $(libhash_drv_ldflags)
 endif
 endif
 
-csscompress_SOURCES = csscompress.c ../util.c ../diction.c ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c
+csscompress_SOURCES = csscompress.c ../read_config.c ../util.c ../diction.c \
+                   ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
+                   ../pref.c
 csscompress_LDFLAGS = -static
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV

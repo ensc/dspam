@@ -1,4 +1,4 @@
-/* $Id: csscompress.c,v 1.1 2005/09/30 07:01:14 jonz Exp $ */
+/* $Id: csscompress.c,v 1.2 2005/09/30 19:16:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -20,11 +20,7 @@
 
 */
 
-/*
- * csscompress.c - Compress a file with extents into a single large segment.
- * Once the file is in one segment, cssgrow can be used to further reduce it.
- *
- */
+/* csscompress.c - Compress a hash database's extents */
 
 #ifdef HAVE_CONFIG_H
 #include <auto-config.h>
@@ -54,6 +50,9 @@
 #   endif
 #endif
 
+#define READ_ATTRIB(A)          _ds_read_attribute(agent_config, A)
+#define MATCH_ATTRIB(A, B)      _ds_match_attribute(agent_config, A, B)
+
 int DO_DEBUG 
 #ifdef DEBUG
 = 1
@@ -62,16 +61,16 @@ int DO_DEBUG
 #endif
 ;
 
+#include "read_config.h"
 #include "hash_drv.h"
 #include "error.h"
+#include "language.h"
  
 #define SYNTAX "syntax: csscompress [filename]" 
 
 int csscompress(const char *filename);
-int set_spamrecord (hash_drv_map_t map, hash_drv_spam_record_t wrec);
 
 int main(int argc, char *argv[]) {
-  char *filename;
   int r;
 
   if (argc<2) {
@@ -79,9 +78,13 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
    
-  filename = argv[1];
+  agent_config = read_config(NULL);
+  if (!agent_config) {
+    LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
+    exit(EXIT_FAILURE);
+  }
 
-  r = csscompress(filename);
+  r = csscompress(argv[1]);
   
   if (r) {
     fprintf(stderr, "csscompress failed on error %d\n", r);
@@ -94,16 +97,40 @@ int csscompress(const char *filename) {
   int i;
   hash_drv_header_t header;
   void *offset;
-  unsigned long reclen;
+  unsigned long reclen, extent = 0;
   struct _hash_drv_map old, new;
   hash_drv_spam_record_t rec;
   unsigned long filepos;
   char newfile[128];
 
+  unsigned long hash_rec_max = HASH_REC_MAX;
+  unsigned long max_seek     = HASH_SEEK_MAX;
+  unsigned long max_extents  = 0;
+  unsigned long extent_size  = HASH_EXTENT_MAX;
+  int flags = 0;
+
+  if (READ_ATTRIB("HashRecMax"))
+    hash_rec_max = strtol(READ_ATTRIB("HashRecMax"), NULL, 0);
+
+  if (READ_ATTRIB("HashExtentSize"))
+    extent_size = strtol(READ_ATTRIB("HashExtentSize"), NULL, 0);
+
+  if (READ_ATTRIB("HashMaxExtents"))
+    max_extents = strtol(READ_ATTRIB("HashMaxExtents"), NULL, 0);
+
+  if (MATCH_ATTRIB("HashAutoExtend", "on"))
+    flags = HMAP_AUTOEXTEND;
+
+  if (READ_ATTRIB("HashMaxSeek"))
+     max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
+
   snprintf(newfile, sizeof(newfile), "/tmp/%u.css", (unsigned int) getpid());
 
-  if (_hash_drv_open(filename, &old, 0)) 
+  if (_hash_drv_open(filename, &old, 0, max_seek,
+                     max_extents, extent_size, flags))
+  {
     return EFAILURE;
+  }
 
   /* determine total record length */
   header = old.addr;
@@ -118,7 +145,9 @@ int csscompress(const char *filename) {
     header = offset;
   }
 
-  if (_hash_drv_open(newfile, &new, reclen)) {
+  if (_hash_drv_open(newfile, &new, reclen,  max_seek,
+                     max_extents, extent_size, flags))
+  {
     _hash_drv_close(&old);
     return EFAILURE;
   }
@@ -126,11 +155,12 @@ int csscompress(const char *filename) {
   filepos = sizeof(struct _hash_drv_header);
   header = old.addr;
   while(filepos < old.file_len) {
-    printf("processing %lu records\n", header->hash_rec_max);
+    printf("compressing %lu records in extent %lu\n", header->hash_rec_max, extent);
+    extent++;
     for(i=0;i<header->hash_rec_max;i++) {
       rec = old.addr+filepos;
       if (rec->hashcode) {
-        if (set_spamrecord(&new, rec)) {
+        if (_hash_drv_set_spamrecord(&new, rec)) {
           LOG(LOG_WARNING, "aborting on error");
           _hash_drv_close(&new);
           _hash_drv_close(&old);
@@ -148,43 +178,6 @@ int csscompress(const char *filename) {
   _hash_drv_close(&new);
   _hash_drv_close(&old);
   rename(newfile, filename);
-  return 0;
-}
-
-int set_spamrecord (hash_drv_map_t map, hash_drv_spam_record_t wrec)
-{
-  hash_drv_spam_record_t rec;
-  unsigned long filepos, thumb;
-  int wrap, iterations;
-
-  if (!map || !map->addr)
-    return EINVAL;
-
-  filepos = sizeof(struct _hash_drv_header) + ((wrec->hashcode % map->header->hash_rec_max) * sizeof(struct _hash_drv_spam_record));
-  thumb = filepos;
-
-  wrap = 0;
-  iterations = 0;
-  rec = map->addr+filepos;
-  while(rec->hashcode != wrec->hashcode && rec->hashcode != 0 &&
-        ((wrap && filepos<thumb) || (!wrap)))
-  {
-    iterations++;
-    filepos += sizeof(struct _hash_drv_spam_record);
-
-    if (!wrap && filepos >= (map->header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
-    {
-      filepos = sizeof(struct _hash_drv_header);
-      wrap = 1;
-    }
-    rec = map->addr+filepos;
-  }
-  if (rec->hashcode != wrec->hashcode && rec->hashcode != 0) {
-    LOG(LOG_WARNING, "css table full. could not insert %llu. tried %lu times.", wrec->hashcode, iterations);
-    return EFAILURE;
-  }
-  memcpy(rec, wrec, sizeof(struct _hash_drv_spam_record));
-
   return 0;
 }
 
