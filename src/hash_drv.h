@@ -1,4 +1,4 @@
-/* $Id: hash_drv.h,v 1.6 2005/09/30 22:05:31 jonz Exp $ */
+/* $Id: hash_drv.h,v 1.7 2005/09/30 22:05:56 jonz Exp $ */
 
 /*
  DSPAM
@@ -30,8 +30,6 @@
 #include "config.h"
 #include "nodetree.h"
 #include "libdspam.h"
-
-/* Default number of total records (per concept) to support */
 
 #define HASH_REC_MAX	100000
 #define HASH_EXTENT_MAX 50000
