@@ -1,7 +1,14 @@
-$Id: CHANGELOG,v 1.365 2005/09/29 16:41:35 jonz Exp $
+$Id: CHANGELOG,v 1.366 2005/09/30 07:01:14 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050930.0300] jonz: added hash autoextend, csscompress tool
+
+added hash autoextend options to make hashed automatically grow
+added csscompress tool to compress extents (this must be applied before running
+cssgrow or cssclean). 
+made hash_drv default driver.
 
 [20050929.0700] jonz: added scan for dlopen/-ldl
 

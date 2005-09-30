@@ -1,4 +1,4 @@
-/* $Id: cssstat.c,v 1.3 2005/09/24 17:49:01 jonz Exp $ */
+/* $Id: cssstat.c,v 1.4 2005/09/30 07:01:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -90,32 +90,49 @@ int main(int argc, char *argv[]) {
 
 int cssstat(const char *filename) {
   struct _hash_drv_map map;
+  hash_drv_header_t header;
   hash_drv_spam_record_t rec;
-  unsigned long filepos;
-  unsigned long nfree = 0;
-  unsigned long nused = 0;
+  unsigned long filepos = sizeof(struct _hash_drv_header);
+  unsigned long nfree = 0, nused = 0;
+  unsigned long efree, eused;
+  unsigned long extents = 0;
+  unsigned long i;
 
   printf("filename %s\n", filename);
   if (_hash_drv_open(filename, &map, 0)) 
     return EFAILURE;
 
+  header = map.addr;
   printf("file length %ld\n", (long) map.file_len);
-  printf("record max %lu\n", (unsigned long) map.header->hash_rec_max);
 
-  filepos = sizeof(struct _hash_drv_header);
   while(filepos < map.file_len) {
-    rec = map.addr+filepos;
-    if (rec->hashcode) 
-      nused++;
-    else
-      nfree++;
-    filepos += sizeof(struct _hash_drv_spam_record);
+    printf("extent %lu record max %lu\n", extents, 
+      (unsigned long) header->hash_rec_max);
+    efree = eused = 0;
+    for(i=0;i<header->hash_rec_max;i++) {
+      rec = map.addr+filepos;
+      if (rec->hashcode) {
+        eused++; 
+        nused++;
+      } else {
+        efree++;
+        nfree++;
+      }
+      filepos += sizeof(struct _hash_drv_spam_record);
+    }
+    header = map.addr + filepos;
+    filepos += sizeof(struct _hash_drv_header);
+    extents++;
+
+    printf("extent records used %lu\n", eused);
+    printf("extent records free %lu\n\n", efree);
   }
 
   _hash_drv_close(&map);
 
-  printf("records used %lu\n", nused);
-  printf("records free %lu\n", nfree);
+  printf("total records used %lu\n", nused);
+  printf("total records free %lu\n", nfree);
+  printf("total extents      %lu\n", extents);
   return 0;
 }
 

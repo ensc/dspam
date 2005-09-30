@@ -3,6 +3,7 @@ Makefile.in
 cssgrow
 cssstat
 cssclean
+csscompress
 *.o
 .deps
 .libs

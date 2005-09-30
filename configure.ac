@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.48 2005/09/29 16:36:42 jonz Exp $
+dnl $Id: configure.ac,v 1.49 2005/09/30 07:01:14 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -663,12 +663,12 @@ AC_MSG_RESULT([$logdir])
 
 #---------------------------------------------------------
 #   storage driver selection
-storagedrv=sqlite_drv
+storagedrv=hash_drv
 storage_drv_subdirs=""
 active_driver=""
 static_driver=yes
 AC_ARG_WITH(storage-driver,
-   [AS_HELP_STRING(--with-storage-driver=LIST,Specify storage drivers to enable. @<:@default: sqlite_drv@:>@)],
+   [AS_HELP_STRING(--with-storage-driver=LIST,Specify storage drivers to enable. @<:@default: hash_drv@:>@)],
     [ storagedrv="$withval" ])
 
 AC_MSG_CHECKING([which storage drivers to build])

@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.3 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.4 2005/09/30 07:01:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -266,7 +266,8 @@ int _hash_drv_open(
   }
 
   read(map->fd, map->header, sizeof(struct _hash_drv_header));
-  map->file_len = sizeof(struct _hash_drv_header) + (map->header->hash_rec_max*sizeof(struct _hash_drv_spam_record));
+  map->file_len = lseek(map->fd, 0, SEEK_END); 
+//  map->file_len = sizeof(struct _hash_drv_header) + (map->header->hash_rec_max*sizeof(struct _hash_drv_spam_record));
 
   map->addr = mmap(NULL, map->file_len, mmap_flags, MAP_SHARED, map->fd, 0);
   if (map->addr == MAP_FAILED) {
@@ -276,6 +277,7 @@ int _hash_drv_open(
     return EFAILURE;
   }
 
+  strlcpy(map->filename, filename, MAX_FILENAME_LENGTH);
   return 0;
 }
 
@@ -377,6 +379,16 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
       _hash_drv_close(s->db);
       free(s);
       return EFAILURE;
+    }
+  }
+
+  if (_ds_read_attribute(CTX->config->attributes, "HashMaxSeek")) {
+    s->max_seek = strtol(_ds_read_attribute(CTX->config->attributes, "HashMaxSeek"), NULL, 0);
+  } else {
+    if (_ds_read_attribute(CTX->config->attributes, "HashRecMax")) {
+      s->max_seek = strtol(_ds_read_attribute(CTX->config->attributes, "HashRecMax"), NULL, 0);
+    } else {
+      s->max_seek = HASH_REC_MAX;
     }
   }
 
@@ -545,84 +557,73 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 }
 
 int
-_ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
-                    struct _ds_spam_stat *stat)
+_ds_get_spamrecord (
+  DSPAM_CTX * CTX,
+  unsigned long long token,
+  struct _ds_spam_stat *stat)
 {
   hash_drv_spam_record_t rec;
   struct _hash_drv_storage *s = (struct _hash_drv_storage *) CTX->storage;
-  unsigned long thumb, filepos;
-  int wrap;
-
-  stat->probability = 0.00000;
-  stat->status = 0;
+  unsigned long offset = 0, rec_offset = 0;
 
   if (s->db->addr == NULL)
     return EINVAL;
 
-  filepos = sizeof(struct _hash_drv_header) + ((token % s->db->header->hash_rec_max) * sizeof(struct _hash_drv_spam_record));
-  thumb = filepos;
- 
-  wrap = 0;
-  rec = s->db->addr+filepos;
-
-  while(rec->hashcode != token && rec->hashcode != 0 && 
-        ((wrap && filepos <thumb) || (!wrap)))
+  while(rec_offset <= 0 && s->db->file_len >= offset)
   {
-    filepos += sizeof(struct _hash_drv_spam_record);
-
-    if (!wrap && filepos >= (s->db->header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
-    {
-      filepos = sizeof(struct _hash_drv_header);
-      wrap = 1;
+    rec_offset = _hash_drv_seek(CTX, offset, token, 0);
+    if (rec_offset <= 0) {
+      hash_drv_header_t header = s->db->addr + offset;
+      offset += sizeof(struct _hash_drv_header) +
+        (sizeof(struct _hash_drv_spam_record) * header->hash_rec_max);
     }
-    rec = s->db->addr+filepos;
   }
-  if (rec->hashcode == 0) 
+
+  if (rec_offset <= 0) 
     return EFAILURE;
 
+  rec = s->db->addr + offset + rec_offset;
+
+  stat->probability   = 0.00000;
+  stat->status        = 0;
   stat->innocent_hits = rec->nonspam;
-  stat->spam_hits = rec->spam;
+  stat->spam_hits     = rec->spam;
+
   return 0;
 }
 
 int
-_ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
-                    struct _ds_spam_stat *stat)
+_ds_set_spamrecord (
+  DSPAM_CTX * CTX,
+  unsigned long long token,
+  struct _ds_spam_stat *stat)
 {
   hash_drv_spam_record_t rec;
   struct _hash_drv_storage *s = (struct _hash_drv_storage *) CTX->storage;
-  unsigned long filepos, thumb;
-  int wrap, iterations;
+  unsigned long offset = 0, extents = 0, rec_offset = 0;
 
   if (s->db->addr == NULL)
     return EINVAL;
 
-  filepos = sizeof(struct _hash_drv_header) + ((token % s->db->header->hash_rec_max) * sizeof(struct _hash_drv_spam_record));
-  thumb = filepos;
-
-  wrap = 0;
-  iterations = 0;
-  rec = s->db->addr+filepos;
-  while(rec->hashcode != token && rec->hashcode != 0 && 
-        ((wrap && filepos<thumb) || (!wrap)))
+  while(rec_offset <= 0 && s->db->file_len >= offset)
   {
-    iterations++;
-    filepos += sizeof(struct _hash_drv_spam_record);
-
-    if (!wrap && filepos >= (s->db->header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
-    {
-      filepos = sizeof(struct _hash_drv_header);
-      wrap = 1;
+    rec_offset = _hash_drv_seek(CTX, offset, token, HDRV_INSERT);
+    if (rec_offset <= 0) {
+      hash_drv_header_t header = s->db->addr + offset;
+      offset += sizeof(struct _hash_drv_header) + 
+        (sizeof(struct _hash_drv_spam_record) * header->hash_rec_max);
+      extents++;
     }
-    rec = s->db->addr+filepos;
   }
-  if (rec->hashcode != token && rec->hashcode != 0) {
-    LOG(LOG_WARNING, "css table full. could not insert %llu. tried %lu times.", token, iterations);
-    return EFAILURE;
-  }
+
+  if (rec_offset <= 0) 
+    return _hash_drv_autoextend(CTX, extents, token, stat);
+
+  rec = s->db->addr + offset + rec_offset;
   rec->hashcode = token;
   rec->nonspam = stat->innocent_hits;
   rec->spam = stat->spam_hits;
+
   if (rec->nonspam < 0)
     rec->nonspam = 0;
   if (rec->spam < 0)
@@ -748,19 +749,38 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  if (s->offset_nexttoken == 0)
+  if (s->offset_nexttoken == 0) {
+    s->offset_header = s->db->addr;
     s->offset_nexttoken = sizeof(struct _hash_drv_header);
+    memcpy(&rec,s->db->addr+s->offset_nexttoken, sizeof(struct _hash_drv_spam_record));
+    if (rec.hashcode)
+      _ds_get_spamrecord (CTX, rec.hashcode, &stat);
+  }
 
-  while(rec.hashcode == 0) {
+  while(rec.hashcode == 0 ||
+   ((unsigned long) s->db->addr + s->offset_nexttoken ==
+    (unsigned long) s->offset_header + sizeof(struct _hash_drv_header) +
+    (s->offset_header->hash_rec_max * sizeof(struct _hash_drv_spam_record))))
+  {
     s->offset_nexttoken += sizeof(struct _hash_drv_spam_record);
-    if (s->offset_nexttoken > s->db->header->hash_rec_max * sizeof(struct _hash_drv_spam_record))
+
+    if ((unsigned long) s->db->addr + s->offset_nexttoken >
+        (unsigned long) s->offset_header + sizeof(struct _hash_drv_header) +
+      (s->offset_header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
     { 
-      free(sr);
-      return NULL;
+      if (s->offset_nexttoken < s->db->file_len) {
+        s->offset_header = s->db->addr + (s->offset_nexttoken - sizeof(struct _hash_drv_spam_record));
+        s->offset_nexttoken += sizeof(struct _hash_drv_header);
+        s->offset_nexttoken -= sizeof(struct _hash_drv_spam_record);
+      } else {
+        free(sr);
+        return NULL;
+      }
     }
 
     memcpy(&rec,s->db->addr+s->offset_nexttoken, sizeof(struct _hash_drv_spam_record));
     _ds_get_spamrecord (CTX, rec.hashcode, &stat);
+
   }
 
   sr->token = rec.hashcode;
@@ -913,3 +933,96 @@ _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   return 0;
 }
 
+int _hash_drv_autoextend(
+  DSPAM_CTX * CTX, 
+  unsigned long extents,
+  unsigned long long token,
+  struct _ds_spam_stat *stat)
+{
+  struct _hash_drv_storage *s = (struct _hash_drv_storage *) CTX->storage;
+  struct _hash_drv_header header;
+  struct _hash_drv_spam_record rec;
+  unsigned long e_size;
+  int i, max_extents = 0;
+
+  if (!_ds_match_attribute(CTX->config->attributes, "HashAutoExtend", "on")) 
+    goto FULL;
+
+  if (_ds_read_attribute(CTX->config->attributes, "HashMaxExtents")) 
+    max_extents 
+      = atoi(_ds_read_attribute(CTX->config->attributes, "HashMaxExtents"));
+
+  if (max_extents > 0 && extents > max_extents)
+    goto FULL;
+
+  if (_ds_read_attribute(CTX->config->attributes, "HashExtentSize")) {
+    e_size = strtol(_ds_read_attribute(CTX->config->attributes, 
+      "HashExtentSize"), NULL, 0);
+  } else if (_ds_read_attribute(CTX->config->attributes, "HashRecMax")) {
+    e_size = strtol(_ds_read_attribute(CTX->config->attributes, 
+      "HashRecMax"), NULL, 0);
+  } else {
+    e_size = HASH_REC_MAX;
+  }
+
+  _hash_drv_close(s->db);
+
+  s->db->fd = open(s->db->filename, O_RDWR);
+  if (s->db->fd < 0) {
+    LOG(LOG_WARNING, "unable to resize hash. open failed: %s", strerror(errno));
+    return EFAILURE;
+  }
+
+  memset(&header, 0, sizeof(struct _hash_drv_header));
+  memset(&rec, 0, sizeof(struct _hash_drv_spam_record));
+  header.hash_rec_max = e_size;
+  lseek (s->db->fd, 0, SEEK_END);
+  write (s->db->fd, &header, sizeof(struct _hash_drv_header));
+  for(i=0;i<e_size;i++) 
+    write (s->db->fd, &rec, sizeof(struct _hash_drv_spam_record));
+  close(s->db->fd);
+
+  _hash_drv_open(s->db->filename, s->db, 0);
+  return _ds_set_spamrecord(CTX, token, stat);
+
+FULL:
+  LOG(LOG_WARNING, "hash table full for user %s", CTX->username);
+  return EFAILURE;
+}
+
+unsigned long _hash_drv_seek(
+  DSPAM_CTX *CTX,
+  unsigned long offset,
+  unsigned long long token,
+  int flags)
+{
+  struct _hash_drv_storage *s = (struct _hash_drv_storage *) CTX->storage;
+  hash_drv_header_t header = s->db->addr + offset;
+  hash_drv_spam_record_t rec;
+  unsigned long long fpos;
+  unsigned long iterations = 0;
+
+  fpos = sizeof(struct _hash_drv_header) + 
+    ((token % header->hash_rec_max) * sizeof(struct _hash_drv_spam_record));
+
+  rec = s->db->addr + offset + fpos;
+  while(rec->hashcode != token  && /* Match token     */ 
+        rec->hashcode != 0      && /* Insert on empty */
+        iterations < s->max_seek)  /* Max Iterations  */
+  {
+    iterations++;
+    fpos += sizeof(struct _hash_drv_spam_record);
+
+    if (fpos >= (header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
+      fpos = sizeof(struct _hash_drv_header);
+    rec = s->db->addr + offset + fpos;
+  }     
+
+  if (rec->hashcode == token) 
+    return fpos;
+
+  if (rec->hashcode == 0 && (flags & HDRV_INSERT)) 
+    return fpos;
+
+  return 0;
+}

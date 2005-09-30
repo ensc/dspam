@@ -1,4 +1,4 @@
-$Id: README,v 1.73 2005/09/29 22:42:34 jonz Exp $
+$Id: README,v 1.74 2005/09/30 07:01:14 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -219,9 +219,9 @@ FRESH INSTALLATION
  T mysql_drv:   MySQL client libraries      (and a server to connect to) 
    ora_drv:     Oracle Call Interface       (and a server to connect to)
  T pgsql_drv:   PostgreSQL client libraries (and a server to connect to)
- * sqlite_drv:  SQLite v2.7.7 or above 
+   sqlite_drv:  SQLite v2.7.7 or above 
    sqlite3_drv: SQLite v3.x
- T hash_drv:    None (Self-Contained Hash-Based Driver)
+*T hash_drv:    None (Self-Contained Hash-Based Driver)
 
    Legend:
     * Default storage driver

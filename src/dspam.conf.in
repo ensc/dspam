@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.59 2005/09/26 14:44:26 jonz Exp $
+## $Id: dspam.conf.in,v 1.60 2005/09/30 07:01:14 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -318,11 +318,37 @@ AllowOverride whitelistThreshold
 
 # --- Hash ---
 
-# HashRecMax: Default number of records to create when building hash files.
-# The hard-coded default is two million. This can also be changed on a per-user
-# basis using cssgrow
+# HashRecMax: Default number of records to create in the initial segment when
+# building hash files. 100,000 yields files 1.6MB in size, but can fill up
+# fast, so be sure to increase this (to a million or more) if you're not using
+# autoextend.
 #
-#HashRecMax		2000000
+HashRecMax		100000
+
+# HashAutoExtend: Autoextend hash databases when they fill up. This allows
+# them to continue to train by adding extents (extensions) to the file. There 
+# will be a small delay during the growth process, as everything needs to be 
+# closed and remapped. 
+#
+HashAutoExtend		on  
+
+# HashMaxExtents: The maximum number of extents that may be created in a single
+# hash file. Set this to zero for unlimited
+#
+HashMaxExtents		0
+
+# HashExtentSize: The record size for newly created extents. Creating this too
+# small could result in many extents being created. Creating this too large
+# could result in excessive disk space usage.
+#
+HashExtentSize		50000
+
+# HashMaxSeek: The maximum number of records to seek to insert a new record
+# before failing or adding a new extent. Setting this too high will exhaustively
+# scan each segment and kill performance. Typically, a low value is acceptable
+# as even older extents will continue to fill over time.
+#
+HashMaxSeek		100
 
 # HashConcurrentUser: If you are using a single, stateful hash database in
 # daemon mode, specifying a concurrent user will cause the user to be 

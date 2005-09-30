@@ -1,4 +1,4 @@
-/* $Id: hash_drv.h,v 1.3 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: hash_drv.h,v 1.4 2005/09/30 07:01:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -47,6 +47,7 @@ typedef struct _hash_drv_map
   int fd;
   size_t file_len;
   hash_drv_header_t header;
+  char filename[MAX_FILENAME_LENGTH];
 } *hash_drv_map_t;
 
 struct _hash_drv_storage
@@ -56,6 +57,9 @@ struct _hash_drv_storage
   int dbh_attached;
 
   unsigned long offset_nexttoken;
+  hash_drv_header_t offset_header;
+  unsigned long max_seek;
+
   struct nt *dir_handles;
 };
 
@@ -66,12 +70,41 @@ typedef struct _hash_drv_spam_record
   long spam;
 } *hash_drv_spam_record_t;
 
-int _hash_drv_get_spamtotals (DSPAM_CTX * CTX);
-int _hash_drv_set_spamtotals (DSPAM_CTX * CTX);
-int _hash_drv_lock_get (DSPAM_CTX * CTX, struct _hash_drv_storage *s, 
+int _hash_drv_get_spamtotals 
+  (DSPAM_CTX * CTX);
+
+int _hash_drv_set_spamtotals
+  (DSPAM_CTX * CTX);
+
+int _hash_drv_lock_get (
+  DSPAM_CTX * CTX, 
+  struct _hash_drv_storage *s, 
   const char *username);
-int _hash_drv_lock_free (struct _hash_drv_storage *s, const char *username);
-int _hash_drv_open(const char *filename, hash_drv_map_t map, unsigned long recmaxifnew);
-int _hash_drv_close(hash_drv_map_t map);
+
+int _hash_drv_lock_free (
+  struct _hash_drv_storage *s,
+  const char *username);
+
+int _hash_drv_open(
+  const char *filename,
+  hash_drv_map_t map,
+  unsigned long recmaxifnew);
+
+int _hash_drv_close
+  (hash_drv_map_t map);
+
+unsigned long _hash_drv_seek(
+  DSPAM_CTX *CTX,
+  unsigned long offset,
+  unsigned long long token,
+  int flags);
+
+int _hash_drv_autoextend(
+  DSPAM_CTX * CTX,
+  unsigned long extents,
+  unsigned long long token,
+  struct _ds_spam_stat *stat);
+
+#define HDRV_INSERT	0x01
 
 #endif /* _HASH_DRV_H */

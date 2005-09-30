@@ -20,3 +20,4 @@ dspam.conf
 dspam
 dspamc
 stamp-h.in
+.gdb_history
