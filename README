@@ -1,4 +1,4 @@
-$Id: README,v 1.75 2005/09/30 19:16:39 jonz Exp $
+$Id: README,v 1.76 2005/09/30 22:08:47 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -230,11 +230,11 @@ FRESH INSTALLATION
 
    In general, MySQL is one of the faster solutions with a smaller storage 
    footprint, and is well suited for both small and large-scale implementations.
-   The hash driver (based on Bill Yerazunis' CRM Sparse Spectra specification)
-   is the fastest solution by far and requires no dependencies, however each 
-   database uses a preset file size which may consume a significant amount of 
-   disk space on large systems. You will also need to maintain them using the
-   css hash tools (included with this distribution).
+   The hash driver (inspired by Bill Yerazunis' CRM Sparse Spectra algorithm)
+   is the fastest solution by far and requires no dependencies, supports
+   an auto-extend feature to grow the file size as needed, and is very
+   compact. It does, however, lack some features (such as merged groups support)
+   and uses a lot of memory to mmap() users.
 
    Documentation for any additional setup of your selected storage driver can 
    be found in the doc/ directory. You'll need to follow any steps outlined in 
@@ -259,10 +259,10 @@ FRESH INSTALLATION
    Note for Advanced Users:
 
      The hash driver is the latest addition to DSPAM and is a very fast 
-     random-access file driver originally designed by Bill Yerazunis (the
-     author of CRM114) using the same hashing algorithm as his CRM Sparse
-     Spectra format. It is very fast (faster than MySQL in many cases) and
-     requires no dependencies. It is the new default driver in DSPAM. To 
+     random-access file driver inspired by Bill Yerazunis (the author of 
+     CRM114) using a similar hashing algorithm as his CRM Sparse Spectra 
+     format. It is very fast (faster than MySQL in many cases) and requires 
+     no dependencies. It is the new default driver in DSPAM. To 
      maintain file size and growth, you'll want to check the Hash options
      in dspam.conf and see the css tools in tools.hash_drv (cssstat, 
      csscompress, etc.)
