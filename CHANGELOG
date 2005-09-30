@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.367 2005/09/30 19:17:27 jonz Exp $
+$Id: CHANGELOG,v 1.368 2005/09/30 20:08:01 jonz Exp $
 
 Version NEXT
 ------------
+
+[20050930.0300] jonz: fixed spurious tabs in user log
+
+removed tabs from subject and sender in user log to avoid cgi malformatting
 
 [20050930.0300] jonz: added hash autoextend, csscompress tool
 

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.206 2005/09/29 23:00:42 jonz Exp $ */
+/* $Id: dspam.c,v 1.207 2005/09/30 20:08:01 jonz Exp $ */
 
 /*
  DSPAM
@@ -2950,13 +2950,14 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   /* Write USER.log */
 
   if (_ds_match_attribute(agent_config, "UserLog", "on")) {
+    char *c;
     char fromline[256]; 
-    int i;
     snprintf(fromline, sizeof(fromline), "%s", (from == NULL) ? "<None Specified>" : from);
-    for(i=0;i<strlen(fromline);i++) {
-      if (fromline[i] == '\t') 
-        fromline[i] = ' ';
-    } 
+    while(subject && (c=strchr(subject, '\t')))
+      *c = ' ';
+    while((c=strchr(fromline, '\t')))
+      *c = ' ';
+
     snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s\t%s\t%s\t%s\n",
             (long) time(NULL),
             class,
