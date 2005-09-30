@@ -1,4 +1,4 @@
-/* $Id: hash_drv.h,v 1.5 2005/09/30 19:16:39 jonz Exp $ */
+/* $Id: hash_drv.h,v 1.6 2005/09/30 22:05:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -118,6 +118,11 @@ unsigned long _hash_drv_seek(
 
 int
 _hash_drv_set_spamrecord (
+  hash_drv_map_t map,
+  hash_drv_spam_record_t wrec);
+
+int
+_hash_drv_get_spamrecord (
   hash_drv_map_t map,
   hash_drv_spam_record_t wrec);
 

@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.5 2005/09/30 19:16:39 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.6 2005/09/30 22:05:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -21,13 +21,14 @@
 */
 
 /*
- * hash_drv.c - CRM114 sparse spectra storage driver
- *             mmap'd flat-file storage for fast markovian-based filtering
+ * hash_drv.c - hash-based storage driver 
+ *              mmap'd flat-file storage for fast storage
+ *              inspired by crm114 sparse spectra algorithm 
  *
  * DESCRIPTION
- *   This driver uses a flat, fixed-size file for storage. It is exceptionally
- *   fast and does not require any third-party dependencies. The default fixed
- *   size stores up to a million records.
+ *   This driver uses a random access file for storage. It is exceptionally fast
+ *   and does not require any third-party dependencies. The auto-extend
+ *   functionality allows the file to grow as needed.
  */
 
 #define READ_ATTRIB(A)	   _ds_read_attribute(CTX->config->attributes, A)
@@ -83,71 +84,77 @@ dspam_init_driver (DRIVER_CTX *DTX)
   HashConcurrentUser = READ_ATTRIB("HashConcurrentUser");
 
 #ifdef DAEMON
-  if (DTX->flags & DRF_STATEFUL) {
-    if (HashConcurrentUser) {
-      char filename[MAX_FILENAME_LENGTH];
-      hash_drv_map_t map;
-      unsigned long hash_rec_max = HASH_REC_MAX;
-      unsigned long max_seek     = HASH_SEEK_MAX;
-      unsigned long max_extents  = 0;
-      unsigned long extent_size  = HASH_EXTENT_MAX;
-      int flags = 0;
-      int ret;
 
-      if (READ_ATTRIB("HashRecMax"))
-        hash_rec_max = strtol(READ_ATTRIB("HashRecMax"), NULL, 0);
+  /*
+   *  Stateful concurrent hash databases are preloaded into memory and
+   *  shared using a reader-writer lock. At the present moment, only a single
+   *  user can be loaded into any instance of the daemon, so it is only useful
+   *  if you are running with a system-wide filtering user. 
+   */
 
-      if (READ_ATTRIB("HashExtentSize"))
-        extent_size = strtol(READ_ATTRIB("HashExtentSize"), NULL, 0);
+  if (DTX->flags & DRF_STATEFUL && HashConcurrentUser) {
+    char filename[MAX_FILENAME_LENGTH];
+    hash_drv_map_t map;
+    unsigned long hash_rec_max = HASH_REC_MAX;
+    unsigned long max_seek     = HASH_SEEK_MAX;
+    unsigned long max_extents  = 0;
+    unsigned long extent_size  = HASH_EXTENT_MAX;
+    int flags = HMAP_AUTOEXTEND;
+    int ret;
 
-      if (READ_ATTRIB("HashMaxExtents"))
-        max_extents = strtol(READ_ATTRIB("HashMaxExtents"), NULL, 0);
+    if (READ_ATTRIB("HashRecMax"))
+      hash_rec_max = strtol(READ_ATTRIB("HashRecMax"), NULL, 0);
 
-      if (MATCH_ATTRIB("HashAutoExtend", "on"))
-        flags = HMAP_AUTOEXTEND;
+    if (READ_ATTRIB("HashExtentSize"))
+      extent_size = strtol(READ_ATTRIB("HashExtentSize"), NULL, 0);
 
-      if (READ_ATTRIB("HashMaxSeek"))
-         max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
+    if (READ_ATTRIB("HashMaxExtents"))
+      max_extents = strtol(READ_ATTRIB("HashMaxExtents"), NULL, 0);
 
-      /* Connection pointer array (just one for hash_drv) */
-      DTX->connections = calloc(1, sizeof(struct _ds_drv_connection *));
-      if (DTX->connections == NULL) 
-        goto memerr;
+    if (!MATCH_ATTRIB("HashAutoExtend", "on"))
+      flags = 0;
 
-      /* Our single connection */
-      DTX->connections[0] = calloc(1, sizeof(struct _ds_drv_connection));
-      if (DTX->connections[0] == NULL) 
-        goto memerr;
+    if (READ_ATTRIB("HashMaxSeek"))
+       max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
 
-      /* Our storage structure */
-      DTX->connections[0]->dbh = calloc(1, sizeof(struct _hash_drv_map));
-      if (DTX->connections[0]->dbh == NULL) 
-        goto memerr;
+    /* Connection array (just one single connection for hash_drv) */
+    DTX->connections = calloc(1, sizeof(struct _ds_drv_connection *));
+    if (DTX->connections == NULL) 
+      goto memerr;
 
-      map = (hash_drv_map_t) DTX->connections[0]->dbh;
+    /* Our single connection */
+    DTX->connections[0] = calloc(1, sizeof(struct _ds_drv_connection));
+    if (DTX->connections[0] == NULL) 
+      goto memerr;
 
-      if (!(DTX->flags & DRF_RWLOCK))
-        DTX->flags |= DRF_RWLOCK;
-      DTX->connection_cache = 1;
+    /* Our connection's storage structure */
+    DTX->connections[0]->dbh = calloc(1, sizeof(struct _hash_drv_map));
+    if (DTX->connections[0]->dbh == NULL) 
+      goto memerr;
 
-      _ds_userdir_path(filename, DTX->CTX->home, HashConcurrentUser, "css");
-      _ds_prepare_path_for(filename);
-      ret = _hash_drv_open(filename, map, hash_rec_max, max_seek, max_extents, extent_size, flags); 
+    map = (hash_drv_map_t) DTX->connections[0]->dbh;
 
-      if (ret) {
-        LOG(LOG_CRIT, "_hash_drv_open(%s) failed on error %d: %s", filename, ret, strerror(errno)); 
-        free(DTX->connections[0]->dbh);
-        free(DTX->connections[0]);
-        free(DTX->connections);
-        return EFAILURE;
-      }
-       
-#ifdef DAEMON
-      LOGDEBUG("initializing rwlock");
-      pthread_rwlock_init(&DTX->connections[0]->rwlock, NULL);
-#endif
+    /* Tell the server our connection lock will be reader/writer based */
+    if (!(DTX->flags & DRF_RWLOCK))
+      DTX->flags |= DRF_RWLOCK;
+    DTX->connection_cache = 1;
 
+    _ds_userdir_path(filename, DTX->CTX->home, HashConcurrentUser, "css");
+    _ds_prepare_path_for(filename);
+    LOGDEBUG("preloading %s into memory via mmap()", filename);
+    ret = _hash_drv_open(filename, map, hash_rec_max, 
+                         max_seek, max_extents, extent_size, flags); 
+    if (ret) {
+      LOG(LOG_CRIT, "_hash_drv_open(%s) failed on error %d: %s", 
+                    filename, ret, strerror(errno)); 
+      free(DTX->connections[0]->dbh);
+      free(DTX->connections[0]);
+      free(DTX->connections);
+      return EFAILURE;
     }
+       
+    LOGDEBUG("initializing rwlock");
+    pthread_rwlock_init(&DTX->connections[0]->rwlock, NULL);
   }
 #endif
 
@@ -176,6 +183,7 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
 #ifdef DAEMON
   if (DTX && DTX->flags & DRF_STATEFUL) {
     hash_drv_map_t map;
+    LOGDEBUG("unloading hash database from memory");
     if (DTX->connections && DTX->connections[0]) {
       pthread_rwlock_destroy(&DTX->connections[0]->rwlock);
       map = (hash_drv_map_t) DTX->connections[0]->dbh;
@@ -216,7 +224,9 @@ _hash_drv_lock_get (
 }
 
 int
-_hash_drv_lock_free (struct _hash_drv_storage *s, const char *username)
+_hash_drv_lock_free (
+  struct _hash_drv_storage *s, 
+  const char *username)
 {
   int r;
 
@@ -247,10 +257,17 @@ int _hash_drv_open(
   int mmap_flags = PROT_READ + PROT_WRITE;
 
   map->fd = open(filename, open_flags);
+
+  /*
+   *  Create a new hash database if desired. The record count written in the
+   *  first segment will be recmaxifnew. Once the file is created, it's then
+   *  mmap()'d into memory as usual.
+   */
+
   if (map->fd < 0 && recmaxifnew) {
     FILE *f;
     struct _hash_drv_spam_record rec;
-    long recno;
+    int i;
 
     memset(&header, 0, sizeof(struct _hash_drv_header));
     memset(&rec, 0, sizeof(struct _hash_drv_spam_record));
@@ -264,8 +281,7 @@ int _hash_drv_open(
     }
 
     fwrite(&header, sizeof(struct _hash_drv_header), 1, f);
-
-    for(recno=0;recno<header.hash_rec_max;recno++)
+    for(i=0;i<header.hash_rec_max;i++)
       fwrite(&rec, sizeof(struct _hash_drv_spam_record), 1, f);
     fclose(f);
     map->fd = open(filename, open_flags);
@@ -319,8 +335,6 @@ _hash_drv_close(hash_drv_map_t map) {
     LOG(LOG_WARNING, "munmap failed on error %d: %s", r, strerror(errno));
   }
  
-  /* Touch file */
-
   lseek (map->fd, 0, SEEK_SET);
   write (map->fd, &header, sizeof(struct _hash_drv_header));
   close(map->fd);
@@ -331,12 +345,13 @@ _hash_drv_close(hash_drv_map_t map) {
   return r;
 }
 
+
 int
 _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 {
   struct _hash_drv_storage *s = NULL;
   hash_drv_map_t map = NULL;
-  int r1;
+  int ret;
 
   if (CTX == NULL)
     return EINVAL;
@@ -351,9 +366,10 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EINVAL;
   }
 
-  /* don't init if we're already initialized */
-  if (CTX->storage != NULL)
+  if (CTX->storage)
     return EINVAL;
+
+  /* Persistent driver storage */
 
   s = calloc (1, sizeof (struct _hash_drv_storage));
   if (s == NULL)
@@ -361,6 +377,8 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
+
+  /* If running in HashConcurrentUser mode, use existing hash mapping */
 
   if (dbh) {
     map = dbh;
@@ -377,13 +395,13 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   s->map = map;
 
- /* Set hash map defaults */
+  /* Mapping defaults */
 
   s->hash_rec_max = HASH_REC_MAX;
   s->max_seek     = HASH_SEEK_MAX;
   s->max_extents  = 0;
   s->extent_size  = HASH_EXTENT_MAX;
-  s->flags        = 0;
+  s->flags        = HMAP_AUTOEXTEND;
 
   if (READ_ATTRIB("HashRecMax"))
     s->hash_rec_max = strtol(READ_ATTRIB("HashRecMax"), NULL, 0);
@@ -394,8 +412,8 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   if (READ_ATTRIB("HashMaxExtents"))
     s->max_extents = strtol(READ_ATTRIB("HashMaxExtents"), NULL, 0);
 
-  if (MATCH_ATTRIB("HashAutoExtend", "on"))
-    s->flags = HMAP_AUTOEXTEND;
+  if (!MATCH_ATTRIB("HashAutoExtend", "on"))
+    s->flags = 0;
 
   if (READ_ATTRIB("HashMaxSeek"))
     s->max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
@@ -415,9 +433,9 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     if (lock_result < 0) 
       goto BAIL;
 
-    r1 = _hash_drv_open(db, s->map, s->hash_rec_max, s->max_seek, s->max_extents, s->extent_size, s->flags);
-
-    if (r1) {
+    ret = _hash_drv_open(db, s->map, s->hash_rec_max, s->max_seek, 
+                        s->max_extents, s->extent_size, s->flags);
+    if (ret) {
       _hash_drv_close(s->map);
       free(s);
       return EFAILURE;
@@ -453,6 +471,8 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
 
   s  = (struct _hash_drv_storage *) CTX->storage;
 
+  /* Close open file handles to directories (iteration functions) */
+
   node_nt = c_nt_first (s->dir_handles, &c_nt);
   while (node_nt != NULL)
   {
@@ -461,11 +481,12 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
     closedir (dir);
     node_nt = c_nt_next (s->dir_handles, &c_nt);
   }
-
   nt_destroy (s->dir_handles);
 
   if (CTX->operating_mode != DSM_CLASSIFY)
     _hash_drv_set_spamtotals (CTX);
+
+  /* Close connection to hash database only if we're not concurrent */
 
   if (!s->dbh_attached) {
     _hash_drv_close(s->map);
@@ -489,6 +510,7 @@ _hash_drv_get_spamtotals (DSPAM_CTX * CTX)
 
   if (s->map->addr == 0)
     return EINVAL;
+  /* Totals are loaded straight from the hash header */
   memcpy(&CTX->totals, &s->map->header->totals, sizeof(struct _ds_spam_totals));
   return 0;
 }
@@ -500,7 +522,8 @@ _hash_drv_set_spamtotals (DSPAM_CTX * CTX)
 
   if (s->map->addr == NULL)
     return EINVAL;
-  memcpy(&s->map->header->totals, &CTX->totals, sizeof (struct _ds_spam_totals));
+  /* Totals are stored into the hash header */
+  memcpy(&s->map->header->totals, &CTX->totals, sizeof(struct _ds_spam_totals));
   return 0;
 }
 
@@ -594,32 +617,20 @@ _ds_get_spamrecord (
   unsigned long long token,
   struct _ds_spam_stat *stat)
 {
-  hash_drv_spam_record_t rec;
+  struct _hash_drv_spam_record rec;
   struct _hash_drv_storage *s = (struct _hash_drv_storage *) CTX->storage;
-  unsigned long offset = 0, rec_offset = 0;
 
-  if (s->map->addr == NULL)
-    return EINVAL;
+  rec.hashcode = token;
+  rec.nonspam = 0;
+  rec.spam    = 0;
 
-  while(rec_offset <= 0 && s->map->file_len >= offset)
-  {
-    rec_offset = _hash_drv_seek(s->map, offset, token, 0);
-    if (rec_offset <= 0) {
-      hash_drv_header_t header = s->map->addr + offset;
-      offset += sizeof(struct _hash_drv_header) +
-        (sizeof(struct _hash_drv_spam_record) * header->hash_rec_max);
-    }
-  }
-
-  if (rec_offset <= 0) 
+  if (_hash_drv_get_spamrecord(s->map, &rec))
     return EFAILURE;
-
-  rec = s->map->addr + offset + rec_offset;
 
   stat->probability   = 0.00000;
   stat->status        = 0;
-  stat->innocent_hits = rec->nonspam;
-  stat->spam_hits     = rec->spam;
+  stat->innocent_hits = rec.nonspam;
+  stat->spam_hits     = rec.spam;
 
   return 0;
 }
@@ -648,7 +659,11 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   char scratch[128];
   FILE *file;
 
-  _ds_userdir_path(filename, CTX->home, (CTX->group) ? CTX->group : CTX->username, "sig");
+  _ds_userdir_path(filename, 
+                   CTX->home, 
+                   (CTX->group) ? CTX->group : CTX->username, 
+                   "sig");
+
   snprintf(scratch, sizeof(scratch), "/%s.sig", signature);
   strlcat(filename, scratch, sizeof(filename));
   _ds_prepare_path_for(filename);
@@ -673,7 +688,11 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   FILE *file;
   struct stat statbuf;
 
-  _ds_userdir_path(filename, CTX->home, (CTX->group) ? CTX->group : CTX->username, "sig");
+  _ds_userdir_path(filename, 
+                   CTX->home, 
+                   (CTX->group) ? CTX->group : CTX->username,  
+                   "sig");
+
   snprintf(scratch, sizeof(scratch), "/%s.sig", signature);
   strlcat(filename, scratch, sizeof(filename));
 
@@ -731,7 +750,11 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   char scratch[128];
   struct stat statbuf;
 
-  _ds_userdir_path(filename, CTX->home, (CTX->group) ? CTX->group : CTX->username, "sig");
+  _ds_userdir_path(filename, 
+                   CTX->home, 
+                   (CTX->group) ? CTX->group : CTX->username, 
+                   "sig");
+
   snprintf(scratch, sizeof(scratch), "/%s.sig", signature);
   strlcat(filename, scratch, sizeof(filename));
 
@@ -760,7 +783,9 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   if (s->offset_nexttoken == 0) {
     s->offset_header = s->map->addr;
     s->offset_nexttoken = sizeof(struct _hash_drv_header);
-    memcpy(&rec,s->map->addr+s->offset_nexttoken, sizeof(struct _hash_drv_spam_record));
+    memcpy(&rec,
+           s->map->addr+s->offset_nexttoken, 
+           sizeof(struct _hash_drv_spam_record));
     if (rec.hashcode)
       _ds_get_spamrecord (CTX, rec.hashcode, &stat);
   }
@@ -777,7 +802,9 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
       (s->offset_header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
     { 
       if (s->offset_nexttoken < s->map->file_len) {
-        s->offset_header = s->map->addr + (s->offset_nexttoken - sizeof(struct _hash_drv_spam_record));
+        s->offset_header = s->map->addr + 
+          (s->offset_nexttoken - sizeof(struct _hash_drv_spam_record));
+
         s->offset_nexttoken += sizeof(struct _hash_drv_header);
         s->offset_nexttoken -= sizeof(struct _hash_drv_spam_record);
       } else {
@@ -786,9 +813,10 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
       }
     }
 
-    memcpy(&rec,s->map->addr+s->offset_nexttoken, sizeof(struct _hash_drv_spam_record));
+    memcpy(&rec,
+           s->map->addr+s->offset_nexttoken, 
+           sizeof(struct _hash_drv_spam_record));
     _ds_get_spamrecord (CTX, rec.hashcode, &stat);
-
   }
 
   sr->token = rec.hashcode;
@@ -804,13 +832,15 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   char filename[MAX_FILENAME_LENGTH];
   char scratch[128];
 
-  _ds_userdir_path(filename, CTX->home, (CTX->group) ? CTX->group : CTX->username, "sig");
+  _ds_userdir_path(filename, 
+                   CTX->home, 
+                   (CTX->group) ? CTX->group : CTX->username, 
+                   "sig");
+
   snprintf(scratch, sizeof(scratch), "/%s.sig", signature);
   strlcat(filename, scratch, sizeof(filename));  
   return unlink(filename);
 }
-
-/* TODO */
 
 char * 
 _ds_get_nextuser (DSPAM_CTX * CTX) 
@@ -923,8 +953,6 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   if (s->dir_handles->items > 0)
     return _ds_get_nextuser (CTX);
 
-  /* done */
-
   user[0] = 0;
   return NULL;
 }
@@ -964,7 +992,8 @@ int _hash_drv_autoextend(hash_drv_map_t map)
     write (map->fd, &rec, sizeof(struct _hash_drv_spam_record));
   close(map->fd);
 
-  _hash_drv_open(map->filename, map, 0, map->max_seek, map->max_extents, map->extent_size, map->flags);
+  _hash_drv_open(map->filename, map, 0, map->max_seek, 
+                 map->max_extents, map->extent_size, map->flags);
   return 0;
 }
 
@@ -1051,3 +1080,36 @@ FULL:
   LOG(LOG_WARNING, "hash table %s full", map->filename);
   return EFAILURE;
 }
+
+int
+_hash_drv_get_spamrecord (
+  hash_drv_map_t map,
+  hash_drv_spam_record_t wrec)
+{
+  hash_drv_spam_record_t rec;
+  unsigned long offset = 0, extents = 0, rec_offset = 0;
+
+  if (map->addr == NULL)
+    return EINVAL;
+
+  while(rec_offset <= 0 && map->file_len >= offset)
+  {
+    rec_offset = _hash_drv_seek(map, offset, wrec->hashcode, 0);
+    if (rec_offset <= 0) {
+      hash_drv_header_t header = map->addr + offset;
+      offset += sizeof(struct _hash_drv_header) +
+        (sizeof(struct _hash_drv_spam_record) * header->hash_rec_max);
+      extents++;
+    }
+  }
+
+  if (rec_offset <= 0) 
+    return EFAILURE;
+
+  rec = map->addr + offset + rec_offset;
+  
+  wrec->nonspam  = rec->nonspam;
+  wrec->spam     = rec->spam;
+  return 0;
+}
+
