@@ -1,4 +1,4 @@
-/* $Id: dspam_merge.c,v 1.10 2005/09/24 17:49:01 jonz Exp $ */
+/* $Id: dspam_merge.c,v 1.11 2005/10/01 15:21:23 jonz Exp $ */
 
 /*
  DSPAM
@@ -24,6 +24,8 @@
 #include <auto-config.h>
 #endif
 
+#define DEBUG	1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +44,7 @@
 #include "language.h"
 #include "read_config.h"
 #include "config_api.h"
+#include "diction.h"
 
 #define TSYNTAX	"syntax: dspam_merge [user1] [user2] ... [userN] [-o user]"
 
@@ -56,8 +59,8 @@ main (int argc, char **argv)
   struct nt_node *node_nt;
   struct nt_c c_nt;
   struct _ds_storage_record *token;
-  struct _ds_spam_stat s;
-  ds_diction_t merge = NULL;
+  ds_diction_t merge1 = NULL;
+  ds_diction_t merge2 = NULL;
   DSPAM_CTX *CTX, *MTX;
   long i;
 #ifndef _WIN32
@@ -107,9 +110,12 @@ main (int argc, char **argv)
 
   dspam_init_driver (NULL);
   users = nt_create (NT_CHAR);
-  merge = ds_diction_create(196613);
+  merge1 = ds_diction_create(196613);
+  merge2 = ds_diction_create(196613);
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
 
-  if (users == NULL || merge == NULL)
+  if (users == NULL || merge1 == NULL || merge2 == NULL)
   {
     fprintf (stderr, ERR_MEM_ALLOC);
     goto bail;
@@ -138,7 +144,11 @@ main (int argc, char **argv)
     nt_add (users, argv[i]);
   }
 
-  CTX = dspam_create (destuser, NULL, _ds_read_attribute(agent_config, "Home"), DSM_TOOLS, 0);
+#ifdef DEBUG
+  fprintf(stderr, "Destination user: %s\n", destuser);
+#endif
+
+  CTX = dspam_create (destuser, NULL, _ds_read_attribute(agent_config, "Home"), DSM_PROCESS, 0);
   open_ctx = CTX;
   if (CTX == NULL)
   {
@@ -174,35 +184,41 @@ main (int argc, char **argv)
       goto bail;
     }
 
-    CTX->totals.spam_learned += MTX->totals.spam_learned;
-    CTX->totals.innocent_learned += MTX->totals.innocent_learned;
-    CTX->totals.spam_corpusfed += MTX->totals.spam_learned;
-    CTX->totals.innocent_corpusfed += MTX->totals.innocent_learned;
-    CTX->totals.spam_misclassified = 0;
-    CTX->totals.innocent_misclassified = 0;
-    i = 0;
+    CTX->totals.spam_learned       += MTX->totals.spam_learned;
+    CTX->totals.innocent_learned   += MTX->totals.innocent_learned;
+
     token = _ds_get_nexttoken (MTX);
     while (token != NULL)
     {
-      if (ds_diction_getstat (merge, token->token, &s))
-      {
-        s.spam_hits = token->spam_hits;
-        s.innocent_hits = token->innocent_hits;
-        s.status &= ~TST_DISK;
-      }
-      else
-      {
-        s.spam_hits += token->spam_hits;
-        s.innocent_hits += token->innocent_hits;
-      }
-      ds_diction_setstat (merge, token->token, &s);
-      free (token);
-      i++;
+      char tok[128];
+      snprintf(tok, 128, "%llu", token->token);
+      ds_diction_touch (merge1, token->token, tok, 0);
+      ds_diction_touch (merge2, token->token, tok, 0);
       token = _ds_get_nexttoken (MTX);
+    }
+
+    _ds_getall_spamrecords(CTX, merge1);
+    _ds_getall_spamrecords(MTX, merge2);
+
+    ds_c = ds_diction_cursor(merge2);
+    ds_term = ds_diction_next(ds_c);
+    i = 0;
+    while(ds_term) {
+      ds_term_t target = ds_diction_find(merge1, ds_term->key);
+      if (target) {
+        target->s.spam_hits += ds_term->s.spam_hits;
+        target->s.innocent_hits += ds_term->s.innocent_hits;
+        target->s.status |= TST_DIRTY;
+        _ds_set_spamrecord(CTX, target->key, &target->s);
+      }
+      ds_term = ds_diction_next(ds_c);
+      i++;
     }
 #ifdef DEBUG
     printf ("processed %ld tokens\n", i);
 #endif
+    ds_diction_destroy(merge1);
+    ds_diction_destroy(merge2);
     node_nt = c_nt_next (users, &c_nt);
     dspam_destroy (MTX);
     open_mtx = NULL;
@@ -211,12 +227,10 @@ main (int argc, char **argv)
 #ifdef DEBUG
   printf ("storing merged tokens...\n");
 #endif
-  _ds_setall_spamrecords (CTX, merge);
 #ifdef DEBUG
   printf ("completed.\n");
 #endif
   nt_destroy (users);
-  ds_diction_destroy(merge);
   dspam_destroy (CTX);
   open_ctx = NULL;
   dspam_shutdown_driver (NULL);
@@ -231,7 +245,6 @@ bail:
     dspam_destroy (open_mtx);
   dspam_shutdown_driver (NULL);
   nt_destroy(users);
-  ds_diction_destroy(merge);
   _ds_destroy_config(agent_config);
   libdspam_shutdown();
   exit (EXIT_FAILURE);
