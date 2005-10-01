@@ -1,4 +1,4 @@
-/* $Id: storage_driver.h,v 1.14 2005/10/01 00:35:00 jonz Exp $ */
+/* $Id: storage_driver.h,v 1.15 2005/10/01 15:33:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -235,5 +235,8 @@ int _ds_pref_del(
 #define DRS_ONLINE	0x01
 #define DRS_OFFLINE	0x02
 #define DRS_UNKNOWN	0xFF
+
+#define CONTROL_TOKEN	11624422384514212933llu
+			/* $$CONTROL$$ */
 
 #endif /* _STORAGE_DRIVER_H */

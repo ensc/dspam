@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.132 2005/09/25 00:36:49 jonz Exp $ */
+/* $Id: libdspam.c,v 1.133 2005/10/01 15:33:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -853,6 +853,11 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   while(ds_term)
   {
 
+    if (ds_term->key == CONTROL_TOKEN) {
+      ds_term = ds_diction_next(ds_c);
+      continue;
+    }
+
     if (ds_term->s.probability == 0.00000 || CTX->classification != DSR_NONE)
       _ds_calc_stat (CTX, ds_term, &ds_term->s, DTT_DEFAULT, NULL);
 
@@ -865,9 +870,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         do_whitelist = 1;
       }
     }
-
-//    if (CTX->flags & DSF_SBPH)
-//      ds_term->frequency = 1;
 
     if (ds_term->frequency > 0 && 
        (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
@@ -1865,6 +1867,11 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
     ds_c = ds_diction_cursor(diction);
     ds_term = ds_diction_next(ds_c);
     while(ds_term) {
+
+      if (ds_term->key == CONTROL_TOKEN) {
+        ds_term = ds_diction_next(ds_c);
+        continue;
+      }
 
       /* Naive-Bayesian */
       if (CTX->algorithms & DSA_NAIVE)

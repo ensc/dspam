@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.56 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.57 2005/10/01 15:33:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -552,10 +552,9 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   stat.spam_hits = 10;
   stat.innocent_hits = 10;
   stat.status = 0;
-  token = _ds_getcrc64("$$CONTROL$$");
-  ds_diction_touch(diction, token, "$$CONTROL$$", 0);
-  ds_diction_addstat(diction, token, &stat);
-  s->control_token = token;
+  ds_diction_touch(diction, CONTROL_TOKEN, "$$CONTROL$$", 0);
+  ds_diction_addstat(diction, CONTROL_TOKEN, &stat);
+  s->control_token = CONTROL_TOKEN;
   s->control_ih = 10;
   s->control_sh = 10;
 
