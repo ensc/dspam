@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.29 2005/09/24 01:06:11 jonz Exp $
+# $Id: Makefile.am,v 1.30 2005/10/01 20:21:38 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -10,10 +10,10 @@
 
 includedir=@includedir@/dspam
 
-SUBDIRS = . tools $(storage_drv_subdirs) win32
+SUBDIRS = . tools $(storage_drv_subdirs) 
 DIST_SUBDIRS = . \
 	tools.libdb3_drv tools.libdb4_drv tools.mysql_drv tools.ora_drv \
-	tools.pgsql_drv tools.sqlite_drv tools.hash_drv tools win32
+	tools.pgsql_drv tools.sqlite_drv tools.hash_drv tools 
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dspam.pc

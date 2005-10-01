@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.49 2005/09/30 07:01:14 jonz Exp $
+dnl $Id: configure.ac,v 1.50 2005/10/01 20:21:38 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -920,7 +920,7 @@ AC_CONFIG_FILES([txt/Makefile src/tools.pgsql_drv/Makefile ])
 AC_CONFIG_FILES([src/Makefile webui/cgi-bin/templates/Makefile])
 AC_CONFIG_FILES([src/tools.sqlite_drv/Makefile man/Makefile])
 AC_CONFIG_FILES([src/dspam.pc src/dspam-uninstalled.pc])
-AC_CONFIG_FILES([src/win32/Makefile doc/Makefile src/tools.hash_drv/Makefile])
+AC_CONFIG_FILES([doc/Makefile src/tools.hash_drv/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/Makefile webui/htdocs/Makefile])
 AC_OUTPUT
 
