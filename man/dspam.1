@@ -1,4 +1,4 @@
-.\" $Id: dspam.1,v 1.7 2005/06/08 16:11:01 jonz Exp $
+.\" $Id: dspam.1,v 1.8 2005/10/01 15:21:29 jonz Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam3.2
@@ -274,7 +274,7 @@ NOTE: The recipient list should always be balanced with the user list, or empty.
 
 .ne 3
 .TP
-.BI \--mail-from\c
+.BI \--mail-from=\c
 If
 .B DSPAM
 will be cofigured to deliver via LMTP or SMTP, this flag will set the MAIL FROM sent on delivery of the message. The default MAIL FROM depends on how the message was originally relayed to DSPAM. If it was relayed via the commandline, an empty MAIL FROM will be used. If it was relayed via LMTP, the original MAIL FROM will be used. 

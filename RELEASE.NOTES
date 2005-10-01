@@ -1,6 +1,6 @@
-$Id: RELEASE.NOTES,v 1.53 2005/09/29 00:24:28 jonz Exp $
+$Id: RELEASE.NOTES,v 1.54 2005/10/01 15:21:29 jonz Exp $
 
-RELEASE 3.6-RELEASE CANDIDATE 3
+RELEASE 3.6.0-STABLE
 
 ENHANCEMENTS
 
@@ -43,15 +43,12 @@ verbose approach to filtering spam, and provides rather impressive results.
 See doc/markov.txt for more information
 
 Self-Contained Hash Driver
-Based on Bill Yerazunis' CRM Sparse Spectra (CSS) storage approach, the
+Inspired by Bill Yerazunis' CRM Sparse Spectra (CSS) storage algorithm, the
 hash driver (hash_drv) is a very fast, self-contained storage driver
 using a combination of random access files and hash overflow. It requires no 
-dependencies and outperforms all other storage drivers. The only catch is that 
-this driver uses fixed-length storage files, which presently use 32MB of
-disk space per user. This can be adjusted, however once the file is full,
-no additional tokens can be added until it is grown using the included cssgrow
-utility. Other management tools, such as cssstat and cssclean, are also built
-and installed.
+dependencies and outperforms all other storage drivers. Support for auto-
+extending files is included, which allows a database to grow as needed.
+Other management tools, such as cssstat and csscompress, are also included.
 
 Fallback Domain-Based User Support
 Fallback domain support can be used by systems where a user's full email address
