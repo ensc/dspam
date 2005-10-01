@@ -1,4 +1,4 @@
-/* $Id: nodetree.h,v 1.4 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: nodetree.h,v 1.5 2005/10/01 04:29:03 jonz Exp $ */
 
 /*
  DSPAM
@@ -30,29 +30,29 @@
 #define _NODETREE_H
 
 /* Nodetree: An ordered dynamic data collection structure
-
-  Nodetree is designed to provide an ordered collective dynamic data
-structure for arrays of unknown size, where it is impractical to
-overallocate space.  Nodetree allows the user to allocate memory for
-new items as needed, and provides simple management and iteration
-functionality.  It is a linked list on steroids.
-
- Nodetree types:
-
- NT_CHAR	Character Nodetree
-		Treats the passed pointer as a const char * and creates
- 		new storage space for each string
-
- NT_PTR		Pointer Nodetree
-		Does not perform string conversion, instead just stores
-		the pointer's location in the nodetree.  Prior to adding
-                an item, the user should malloc storage for the new
-                structure and pass the pointer to the nodetree functions.
-
- NT_INDEX	Pointer Index
-                Same as Pointer Nodetree, only does not free() the ptr
-                objects upon deletion
-*/
+ *
+ *  Nodetree is designed to provide an ordered collective dynamic data
+ *  structure for arrays of unknown size, where it is impractical to
+ *  overallocate space.  Nodetree allows the user to allocate memory for
+ *  new items as needed, and provides simple management and iteration
+ *  functionality.  It is a linked list on steroids.
+ *
+ *  Nodetree types:
+ *
+ *  NT_CHAR	Character Nodetree
+ *		Treats the passed pointer as a const char * and creates
+ * 		new storage space for each string
+ *
+ *  NT_PTR	Pointer Nodetree
+ *		Does not perform string conversion, instead just stores
+ *		the pointer's location in the nodetree.  Prior to adding
+ *              an item, the user should malloc storage for the new
+ *              structure and pass the pointer to the nodetree functions.
+ *
+ *  NT_INDEX	Pointer Index
+ *              Same as Pointer Nodetree, only does not free() the ptr
+ *              objects upon deletion
+ */
 
 #define NT_CHAR		0x00
 #define NT_PTR		0x01

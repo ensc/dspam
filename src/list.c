@@ -1,4 +1,4 @@
-/* $Id: list.c,v 1.4 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: list.c,v 1.5 2005/10/01 04:31:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -28,6 +28,7 @@
 #include "bnr.h"
 
 /* list_node_create (used internally) to allocate space for a new node */
+
 static struct bnr_list_node *
 bnr_list_node_create (void *data)
 {
@@ -43,6 +44,7 @@ bnr_list_node_create (void *data)
 }
 
 /* list_create allocates space for and initializes a nodetree */
+
 struct bnr_list *
 bnr_list_create (int nodetype)
 {
@@ -60,6 +62,7 @@ bnr_list_create (int nodetype)
 }
 
 /* list_destroy methodically destroys a nodetree, freeing resources */
+
 void
 bnr_list_destroy (struct bnr_list *list)
 {
@@ -83,6 +86,7 @@ bnr_list_destroy (struct bnr_list *list)
 }
 
 /* list_insert adds an item to the nodetree */
+
 struct bnr_list_node *
 bnr_list_insert (struct bnr_list *list, void *data, float value)
 {
@@ -140,6 +144,7 @@ bnr_list_insert (struct bnr_list *list, void *data, float value)
 }
 
 /* c_bnr_list_next returns the next item in a nodetree */
+
 struct bnr_list_node *
 c_bnr_list_next (struct bnr_list *list, struct bnr_list_c *c)
 {
@@ -162,6 +167,7 @@ c_bnr_list_next (struct bnr_list *list, struct bnr_list_c *c)
 }
 
 /* list_first returns the first item in a nodetree */
+
 struct bnr_list_node *
 c_bnr_list_first (struct bnr_list *list, struct bnr_list_c *c)
 {

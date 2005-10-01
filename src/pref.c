@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.27 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: pref.c,v 1.28 2005/10/01 04:27:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -46,12 +46,12 @@
 #include "read_config.h"
 
 /*
-   _ds_pref_aggregate: aggregate system preferences and user preferences
-
-   This function takes a set of system preferences and a set of user 
-   preferences as input and returns an aggregated set of preferences based on 
-   the system's override rules.
-*/
+ *  _ds_pref_aggregate: aggregate system preferences and user preferences
+ *
+ *  This function takes a set of system preferences and a set of user 
+ *  preferences as input and returns an aggregated set of preferences based on 
+ *  the system's override rules.
+ */
 
 agent_pref_t _ds_pref_aggregate(agent_pref_t STX, agent_pref_t UTX) {
   agent_pref_t PTX = calloc(1, PREF_MAX*sizeof(agent_attrib_t ));
@@ -94,8 +94,6 @@ agent_pref_t _ds_pref_aggregate(agent_pref_t STX, agent_pref_t UTX) {
   return PTX;
 }
 
-/* _ds_pref_free: destroys a preference set */
-
 int _ds_pref_free(agent_pref_t PTX) {
   agent_attrib_t pref;
   int i;
@@ -115,11 +113,11 @@ int _ds_pref_free(agent_pref_t PTX) {
 }
 
 /*
-   _ds_pref_val: returns the value of an attribute within a preference set
-
-   To allow this function to work with string operations, "" will be returned 
-   if the value isn't found, insttead of NULL
-*/
+ *  _ds_pref_val: returns the value of an attribute within a preference set
+ *
+ *  To allow this function to work with string operations, "" will be returned 
+ *  if the value isn't found, insttead of NULL
+ */
 
 const char *_ds_pref_val(
   agent_pref_t PTX,
@@ -139,8 +137,6 @@ const char *_ds_pref_val(
 
   return "";
 }
-
-/* _ds_pref_new: creates a new preference attribute/value pair */
 
 agent_attrib_t _ds_pref_new(const char *attribute, const char *value) {
   agent_attrib_t pref;
@@ -220,15 +216,15 @@ agent_pref_t _ds_pref_load(
 }
 
 /*
-  _ds_pref_prepare_file: prepares a backup copy of a preference file
-
-  This operation prepares a backup copy of a given preference file, using a
-  .bak extension and returns an open filehandle to it at the end of the file.
-  This function also allows for an omission to be passed in, which is the name
-  of a preference that should be omitted from the file (if that preference
-  is to be overwritten or deleted. If nlines is provided, it will be set to
-  the number of lines in the file.
-*/
+ *  _ds_pref_prepare_file: prepares a backup copy of a preference file
+ *
+ *  This operation prepares a backup copy of a given preference file, using a
+ *  .bak extension and returns an open filehandle to it at the end of the file.
+ *  This function also allows for an omission to be passed in, which is the name
+ *  of a preference that should be omitted from the file (if that preference
+ *  is to be overwritten or deleted. If nlines is provided, it will be set to
+ *  the number of lines in the file.
+ */
  
 FILE *_ds_pref_prepare_file (
   const char *filename,
@@ -276,9 +272,7 @@ FILE *_ds_pref_prepare_file (
   return out_file;
 }
 
-/*
-   _ds_pref_commit: close scratch copy and commit it as the new live copy
-*/
+/* _ds_pref_commit: close scratch copy and commit it as the new live copy */
 
 int _ds_pref_commit (
   const char *filename,

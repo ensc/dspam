@@ -1,4 +1,4 @@
-/* $Id: list.h,v 1.4 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: list.h,v 1.5 2005/10/01 04:31:16 jonz Exp $ */
 
 /*
  DSPAM
@@ -50,9 +50,15 @@ struct bnr_list_c
   struct bnr_list_node *iter_index;
 };
 
-struct bnr_list_node *bnr_list_insert	(struct bnr_list *list, void *data, float v);
-struct bnr_list_node *c_bnr_list_first	(struct bnr_list *list, struct bnr_list_c *c);
-struct bnr_list_node *c_bnr_list_next	(struct bnr_list *list, struct bnr_list_c *c);
+struct bnr_list_node *bnr_list_insert(
+  struct bnr_list *list, 
+  void *data, float v);
+struct bnr_list_node *c_bnr_list_first(
+  struct bnr_list *list, 
+  struct bnr_list_c *c);
+struct bnr_list_node *c_bnr_list_next(
+  struct bnr_list *list, 
+  struct bnr_list_c *c);
 struct bnr_list *	bnr_list_create	(int node_type);
 void			bnr_list_destroy(struct bnr_list *list);
 

@@ -1,4 +1,4 @@
-/* $Id: storage_driver.c,v 1.4 2005/10/01 00:35:00 jonz Exp $ */
+/* $Id: storage_driver.c,v 1.5 2005/10/01 04:22:28 jonz Exp $ */
 
 /*
  DSPAM
@@ -118,8 +118,10 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   return (*ptr)(CTX, diction);
 }
 
-int _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
-                        struct _ds_spam_stat *stat)
+int _ds_get_spamrecord (
+  DSPAM_CTX * CTX, 
+  unsigned long long token,
+  struct _ds_spam_stat *stat)
 {
   int (*ptr)(DSPAM_CTX *, unsigned long long, struct _ds_spam_stat *);
   ptr = (int (*)(DSPAM_CTX *, unsigned long long, struct _ds_spam_stat *))dlsym(_drv_handle, "_ds_get_spamrecord");
@@ -131,8 +133,10 @@ int _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   return (*ptr)(CTX, token, stat);
 }
 
-int _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
-                        struct _ds_spam_stat *stat)
+int _ds_set_spamrecord (
+  DSPAM_CTX * CTX,
+  unsigned long long token,
+  struct _ds_spam_stat *stat)
 {
   int (*ptr)(DSPAM_CTX *, unsigned long long, struct _ds_spam_stat *);
   ptr = (int (*)(DSPAM_CTX *, unsigned long long, struct _ds_spam_stat *))dlsym(_drv_handle, "_ds_set_spamrecord");
@@ -203,8 +207,10 @@ int _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   return (*ptr)(CTX, signature);
 }
 
-int _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
-                       const char *signature)
+int _ds_get_signature (
+  DSPAM_CTX * CTX, 
+  struct _ds_spam_signature *SIG,
+  const char *signature)
 {
   int (*ptr)(DSPAM_CTX *, struct _ds_spam_signature *, const char *);
   ptr = (int (*)(DSPAM_CTX *, struct _ds_spam_signature *, const char *))dlsym(_drv_handle, "_ds_get_signature");
@@ -215,8 +221,10 @@ int _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   return (*ptr)(CTX, SIG, signature);
 }
 
-int _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
-                       const char *signature)
+int _ds_set_signature (
+  DSPAM_CTX * CTX,
+  struct _ds_spam_signature *SIG,
+  const char *signature)
 {
   int (*ptr)(DSPAM_CTX *, struct _ds_spam_signature *, const char *);  ptr = (int (*)(DSPAM_CTX *, struct _ds_spam_signature *, const char *))dlsym(_drv_handle, "_ds_set_signature");
   if (!ptr) {
@@ -282,8 +290,10 @@ int _ds_get_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
   return (*ptr)(CTX, DEC, signature);
 }
 
-int _ds_set_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
-                      const char *signature)
+int _ds_set_decision (
+  DSPAM_CTX * CTX,
+  struct _ds_neural_decision *DEC,
+  const char *signature)
 {
   int (*ptr)(DSPAM_CTX *, struct _ds_neural_decision *, const char *);
   ptr = (int (*)(DSPAM_CTX *, struct _ds_neural_decision *, const char *))dlsym(_drv_handle, "_ds_set_decision");
@@ -317,8 +327,10 @@ void *_ds_connect (DSPAM_CTX *CTX)
 }
 
 #ifdef PREFERENCES_EXTENSION
-agent_pref_t	_ds_pref_load(config_t config, const char *user,
-                     const char *home, void *dbh)
+agent_pref_t _ds_pref_load(
+  config_t config,
+  const char *user,
+  const char *home, void *dbh)
 {
   agent_pref_t (*ptr)(config_t, const char *, const char *, void *);
   ptr = (agent_pref_t (*)(config_t, const char *, const char *, void *))dlsym(_drv_handle, "_ds_pref_load");
@@ -329,8 +341,12 @@ agent_pref_t	_ds_pref_load(config_t config, const char *user,
   return (*ptr)(config, user, home, dbh);
 }
 
-int	_ds_pref_save(config_t config, const char *user, 
-                     const char *home, agent_pref_t PTX, void *dbh)
+int _ds_pref_save(
+  config_t config,
+  const char *user, 
+  const char *home,
+  agent_pref_t PTX,
+  void *dbh)
 {
   int (*ptr)(config_t, const char *, const char *, void *);
   ptr = (int (*)(config_t, const char *, const char *, void *))dlsym(_drv_handle, "_ds_pref_save");
@@ -342,8 +358,13 @@ int	_ds_pref_save(config_t config, const char *user,
 }
 
 
-int	_ds_pref_set(config_t config, const char *user, const char *home,
-                     const char *attrib, const char *value, void *dbh)
+int _ds_pref_set(
+  config_t config,
+  const char *user,
+  const char *home,
+  const char *attrib,
+  const char *value,
+  void *dbh)
 {
   int (*ptr)(config_t, const char *, const char *, const char *, const char *, void *);
   ptr = (int (*)(config_t, const char *, const char *, const char *, const char *, void *))dlsym(_drv_handle, "_ds_pref_set");
@@ -354,9 +375,12 @@ int	_ds_pref_set(config_t config, const char *user, const char *home,
   return (*ptr)(config, user, home, attrib, value, dbh);
 }
 
-
-int	_ds_pref_del(config_t config, const char *user, const char *home, 
-                     const char *attrib, void *dbh)
+int _ds_pref_del(
+  config_t config,
+  const char *user,
+  const char *home, 
+  const char *attrib,
+  void *dbh)
 {
   int (*ptr)(config_t, const char *, const char *, void *);
   ptr = (int (*)(config_t, const char *, const char *, void *))dlsym(_drv_handle, "_ds_pref_del");

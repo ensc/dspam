@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.13 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: read_config.c,v 1.14 2005/10/01 04:23:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -92,7 +92,6 @@ static char *tokenize(char *text, char **next)
 
   return NULL;
 }
-
 
 config_t read_config(const char *path) {
   config_t attrib, ptr;
