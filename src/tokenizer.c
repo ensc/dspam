@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.10 2005/09/29 00:54:09 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.11 2005/10/01 00:35:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -121,7 +121,7 @@ int _ds_tokenize_ngram(
   char heading[128];			/* current heading */
   int l;
 
-  struct nt *header = NULL;      /* Header array */
+  struct nt *header = NULL;
   struct nt_node *node_nt;
   struct nt_c c_nt;
 
@@ -285,7 +285,7 @@ int _ds_tokenize_sbph(
   char heading[128];			/* current heading */
   int l;
 
-  struct nt *header = NULL;      /* Header array */
+  struct nt *header = NULL;
   struct nt_node *node_nt;
   struct nt_c c_nt;
 

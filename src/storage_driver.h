@@ -1,4 +1,4 @@
-/* $Id: storage_driver.h,v 1.13 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: storage_driver.h,v 1.14 2005/10/01 00:35:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -37,6 +37,17 @@
 #include <pthread.h>
 #endif
 
+/*
+ *  _ds_drv_connection: a storage resource for a server worker thread 
+ *  in stateful (daemon) mode, the storage driver may create a series
+ *  of _ds_drv_connections which are then pooled into a series of worker
+ *  threads. depending on the locking paradigm (mutex or rwlock), one
+ *  connection may or may not service multiple threads simultaneously.
+ *  connections usually contain stateful resources such as connections to
+ *  a backend database or in the case of hash_drv, pointers to an mmap'd
+ *  portion of memory.
+ */
+
 struct _ds_drv_connection
 {
   void *dbh;
@@ -46,6 +57,13 @@ struct _ds_drv_connection
 #endif
 };
 
+/*
+ *  DRIVER_CTX: storage driver context
+ *  a single storage driver context is used to pool connection resources,
+ *  set driver behavior (e.g. locking paradigm), and most importantly connect
+ *  to the dspam context being used by the worker thread. 
+ */
+
 typedef struct {
   DSPAM_CTX *CTX;				/* IN */
   int status;					/* OUT */
@@ -53,6 +71,15 @@ typedef struct {
   int connection_cache;				/* IN */
   struct _ds_drv_connection **connections;	/* OUT */
 } DRIVER_CTX;
+
+/*
+ *  _ds_storage_record: dspam-facing storage structure
+ *  the _ds_storage_record structure is a common structure passed between
+ *  libdspam and the storage abstraction layer. each instance represents a 
+ *  single token in a diction. once the storage driver has it, it can create
+ *  its own internal structures, but must pass this structure back and forth
+ *  to libdspam.
+ */
 
 struct _ds_storage_record
 {
@@ -62,6 +89,15 @@ struct _ds_storage_record
   time_t last_hit;
 };
 
+/*
+ *  _ds_storage_signature: dspam-facing signature structure
+ *  the _ds_storage_signature structure is a common structure passed between
+ *  libdspam and the storage abstraction layer. the signature represents
+ *  binary training data used later for reclassification of errors. once the
+ *  storage driver has it, it can create its own internal structures, but
+ *  must pass this structure back and forth to libdspam.
+ */
+ 
 struct _ds_storage_signature
 {
   char signature[256];
@@ -69,6 +105,13 @@ struct _ds_storage_signature
   long length;
   time_t created_on;
 };
+
+/*
+ *  _ds_storage_decision: dspam-facing neural networking decision
+ *  this structure is used by libdspam's experimental neural networking
+ *  functions to store a "decision" for later retraining. it is much like
+ *  a signature, but contains binary training data for neural nodes instead.
+ */
 
 struct _ds_storage_decision
 {
@@ -78,78 +121,108 @@ struct _ds_storage_decision
   time_t created_on;
 };
 
-/* dspam_init_driver: called by the application to initialize the storage
-       driver.  should only be called once. */
-
-/* dspam_shutdown_driver: called by the application to shutdown the storage
-       driver.  should only be called once. */
-
-/* _ds_init_storage: called prior to any storage calls; 
-       opens database and performs any necessary locking.
-       this function is performed by dspam_init */
-
-/* _ds_shutdown_storage: called after all storage calls 
-       have completed; closes database and unlocks. 
-       this function is performed by dspam_init */
-
-int dspam_init_driver (DRIVER_CTX *DTX);
+int dspam_init_driver     (DRIVER_CTX *DTX);
 int dspam_shutdown_driver (DRIVER_CTX *DTX);
-int _ds_init_storage (DSPAM_CTX * CTX, void *dbh);
-int _ds_shutdown_storage (DSPAM_CTX * CTX);
+int _ds_init_storage      (DSPAM_CTX * CTX, void *dbh);
+int _ds_shutdown_storage  (DSPAM_CTX * CTX);
+void *_ds_connect         (DSPAM_CTX *CTX);
 
-/* Standardized database calls */
 int _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction);
 int _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction);
 int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction);
 
-int _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
-                        struct _ds_spam_stat *stat);
-int _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
-                        struct _ds_spam_stat *stat);
-int _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token);
+int _ds_get_spamrecord(
+  DSPAM_CTX * CTX,
+  unsigned long long token,
+  struct _ds_spam_stat *stat);
+int _ds_set_spamrecord(
+  DSPAM_CTX * CTX,
+  unsigned long long token,
+  struct _ds_spam_stat *stat);
+int _ds_del_spamrecord(
+  DSPAM_CTX * CTX,
+  unsigned long long token);
 
-/* Iteration calls */
 struct _ds_storage_record *_ds_get_nexttoken (DSPAM_CTX * CTX);
 struct _ds_storage_signature *_ds_get_nextsignature (DSPAM_CTX * CTX);
 char *_ds_get_nextuser (DSPAM_CTX * CTX);
 
-/* Signature processing calls */
-int _ds_delete_signature (DSPAM_CTX * CTX, const char *signature);
-int _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
-                       const char *signature);
-int _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
-                       const char *signature);
-int _ds_verify_signature (DSPAM_CTX * CTX, const char *signature);
-int _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len);
+int _ds_delete_signature(
+  DSPAM_CTX * CTX,
+  const char *signature);
+int _ds_get_signature(
+  DSPAM_CTX * CTX,
+  struct _ds_spam_signature *SIG,
+  const char *signature);
+int _ds_set_signature(
+  DSPAM_CTX * CTX,
+  struct _ds_spam_signature *SIG,
+  const char *signature);
+int _ds_verify_signature(
+  DSPAM_CTX * CTX,
+  const char *signature);
+int _ds_create_signature_id(
+  DSPAM_CTX * CTX,
+  char *buf,
+  size_t len);
 
-/* Neural network calls */
-int _ds_get_node(DSPAM_CTX * CTX, char *user, struct _ds_neural_record *node);
-int _ds_set_node(DSPAM_CTX * CTX, char *user, struct _ds_neural_record *node);
+/*  Experimental neural networking functions
+ *  use --enable-neural-networking to enable. the selected storage driver 
+ *  must support neural networking.
+ */
 
-int _ds_get_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
-                      const char *signature);
-int _ds_set_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
-                      const char *signature);
-int _ds_delete_decision (DSPAM_CTX * CTX, const char *signature);
-void *_ds_connect (DSPAM_CTX *CTX);
+int _ds_get_node(
+  DSPAM_CTX * CTX,
+  char *user,
+  struct _ds_neural_record *node);
+int _ds_set_node(
+  DSPAM_CTX * CTX,
+  char *user,
+  struct _ds_neural_record *node);
+int _ds_get_decision(
+  DSPAM_CTX * CTX,
+  struct _ds_neural_decision *DEC,
+  const char *signature);
+int _ds_set_decision(
+  DSPAM_CTX * CTX,
+  struct _ds_neural_decision *DEC,
+  const char *signature);
+int _ds_delete_decision(
+  DSPAM_CTX * CTX,
+  const char *signature);
 
 /*
-   Storage Driver Preferences Extension
-   When defined, the built-in preferences functions are overridden with
-   functions specific to the storage driver. This allows preferences to be
-   alternatively stored in the storage facility instead of flat files. 
-*/
+ *  Storage Driver Preferences Extension
+ *  When defined, the built-in preferences functions are overridden with
+ *  functions specific to the storage driver. This allows preferences to be
+ *  alternatively stored in the storage facility instead of flat files. 
+ *  The selected storage driver must support preference extensions.
+ */
 
 #ifdef PREFERENCES_EXTENSION
-agent_pref_t	_ds_pref_load(config_t config, const char *user,
-                              const char *home, void *dbh);
-int		_ds_pref_save(config_t config, const char *user, 
-                              const char *home, agent_pref_t PTX, void *dbh);
-
-int	_ds_pref_set(config_t config, const char *user, const char *home,
-                     const char *attrib, const char *value, void *dbh);
-int	_ds_pref_del(config_t , const char *user, const char *home, 
-                     const char *attrib, void *dbh);
+agent_pref_t _ds_pref_load(
+  config_t config,
+  const char *user,
+  const char *home, void *dbh);
+int _ds_pref_save(
+  config_t config,
+  const char *user, 
+  const char *home,
+  agent_pref_t PTX,
+  void *dbh);
+int _ds_pref_set(
+  config_t config,
+  const char *user,
+  const char *home,
+  const char *attrib,
+  const char *value,
+   void *dbh);
+int _ds_pref_del(
+  config_t config,
+  const char *user,
+  const char *home, 
+  const char *attrib,
+  void *dbh);
 #endif
 
 /* Driver context flags */
@@ -157,11 +230,10 @@ int	_ds_pref_del(config_t , const char *user, const char *home,
 #define DRF_STATEFUL	0x01
 #define DRF_RWLOCK	0x02
 
-/* Driver statii */
+/* Driver statuses */
 
 #define DRS_ONLINE	0x01
 #define DRS_OFFLINE	0x02
 #define DRS_UNKNOWN	0xFF
 
 #endif /* _STORAGE_DRIVER_H */
-

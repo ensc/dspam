@@ -1,4 +1,4 @@
-/* $Id: tokenizer.h,v 1.2 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: tokenizer.h,v 1.3 2005/10/01 00:35:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -31,22 +31,68 @@
 
 #define SBPH_SIZE       5
 
-int _ds_tokenize (DSPAM_CTX * CTX, char *headers, char *body, ds_diction_t diction);
-int _ds_tokenize_sbph (DSPAM_CTX * CTX, char *headers, char *body, ds_diction_t diction);
-int _ds_tokenize_ngram (DSPAM_CTX * CTX, char *headers, char *body, ds_diction_t diction);
+int _ds_tokenize(
+  DSPAM_CTX * CTX,
+   char *headers,
+   char *body,
+   ds_diction_t diction);
 
-int _ds_process_header_token (DSPAM_CTX * CTX, char *joined_token,
-    const char *previous_token, ds_diction_t diction, const char *heading);
-int _ds_process_body_token (DSPAM_CTX * CTX, char *joined_token,
-    const char *previous_token, ds_diction_t diction); 
-int _ds_map_header_token (DSPAM_CTX * CTX, char *token, char **previous_tokens,
-    ds_diction_t diction, const char *heading);
-int _ds_map_body_token          (DSPAM_CTX * CTX, char *token,
-    char **previous_tokens, ds_diction_t diction);
-int  _ds_degenerate_message    (DSPAM_CTX *CTX, buffer *header, buffer *body);
-int _ds_url_tokenize(ds_diction_t diction, char *body, const char *key);
-void _ds_sbph_clear(char **previous_tokens);
-char * _ds_truncate_token(const char *token);
+int _ds_tokenize_sbph(
+  DSPAM_CTX * CTX, 
+  char *headers, 
+  char *body, 
+  ds_diction_t diction);
+
+int _ds_tokenize_ngram(
+  DSPAM_CTX * CTX,
+  char *headers,
+  char *body,
+  ds_diction_t diction);
+
+/* _ds_process: ngram token generation routines */
+
+int _ds_process_header_token(
+  DSPAM_CTX * CTX,
+  char *joined_token,
+  const char *previous_token,
+  ds_diction_t diction,
+  const char *heading);
+
+int _ds_process_body_token(
+  DSPAM_CTX * CTX,
+  char *joined_token,
+  const char *previous_token,
+  ds_diction_t diction); 
+
+/* _ds_map: sbph token generation routines */
+
+int _ds_map_header_token(
+  DSPAM_CTX * CTX,
+  char *token,
+  char **previous_tokens,
+  ds_diction_t diction,
+  const char *heading);
+
+int _ds_map_body_token(
+  DSPAM_CTX * CTX,
+  char *token,
+  char **previous_tokens,
+  ds_diction_t diction);
+
+int _ds_degenerate_message(
+  DSPAM_CTX *CTX,
+  buffer *header,
+  buffer *body);
+
+int _ds_url_tokenize(
+  ds_diction_t diction,
+  char *body,
+  const char *key);
+
+void _ds_sbph_clear
+  (char **previous_tokens);
+
+char * _ds_truncate_token
+  (const char *token);
 
 #endif
-

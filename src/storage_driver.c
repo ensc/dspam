@@ -1,4 +1,4 @@
-/* $Id: storage_driver.c,v 1.3 2005/09/29 01:13:16 jonz Exp $ */
+/* $Id: storage_driver.c,v 1.4 2005/10/01 00:35:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -31,9 +31,6 @@
 #include "storage_driver.h"
 #include "error.h"
 #include "language.h"
-
-/* All of these pseudo-functions merely dlsym and call the real functions
-   which were linked in at libdspam_init() time. */
 
 int dspam_init_driver (DRIVER_CTX *DTX) {
   int (*ptr)(DRIVER_CTX *);

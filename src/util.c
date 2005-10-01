@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.16 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: util.c,v 1.17 2005/10/01 00:35:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -116,12 +116,6 @@ strsep (char **stringp, const char *delim)
   return (ret);
 }
 #endif
-
-/*
-    Subroutine: chomp
-   Description: removes a trailing newline character
-    Parameters: char *string    string to chomp
-*/
 
 void
 chomp (char *string)
@@ -455,17 +449,6 @@ _ds_prepare_path_for (const char *filename)
   return 0;
 }
 
-
-/*  Subroutine: lc
-   Description: converts a string to lowercase
-    Parameters: char *buffer            pointer to the target buffer
-                const char *string      pointer to the source text
-       Returns: the number of characters converted to lowercase
-                                                                                
-         Notes: buffer and string can safely be set to the same
-                memory pointer
-*/
-
 int
 lc (char *buff, const char *string)
 {
@@ -579,8 +562,6 @@ int _ds_compute_weight(const char *token) {
   return 1;
 }
 
-/* Compute the number of adjacent sparse skips in a token */
-
 int _ds_compute_sparse(const char *token) {
   int sparse = 0, i;
 
@@ -596,8 +577,6 @@ int _ds_compute_sparse(const char *token) {
   return sparse;
 }
 
-/* Compute the complexity of a token */
-
 int _ds_compute_complexity(const char *token) {
   int i, complexity = 1;
                                                                                 
@@ -609,17 +588,6 @@ int _ds_compute_complexity(const char *token) {
       complexity++;
   }
 
-/*
-  if (!strncmp(token, "#+", 2)) 
-    complexity--;
-  if (!strncmp((token+strlen(token))-2, "+#", 2))
-    complexity--;
-  for(i=0;token[i];i++) {
-    if (!strncmp(token+i, "+#+", 3))
-      complexity--;
-  }
-*/
-                                                                                
   return complexity;
 }
 
