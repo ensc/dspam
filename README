@@ -1,4 +1,4 @@
-$Id: README,v 1.76 2005/09/30 22:08:47 jonz Exp $
+$Id: README,v 1.77 2005/10/02 23:20:27 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -30,8 +30,6 @@ PostgreSQL Driver Maintainer
 
 Patch Contributors (Past 6 Months)
   Sep/2005 Norman Maurer <nm@byteaction.de>
-  Apr/2005 Alexandre Biancalana <alexandre@biancalanas.net>
-  Apr/2005 Simon Burr <simes@bpfh.net>
 
 TABLE OF CONTENTS
 
@@ -230,42 +228,30 @@ FRESH INSTALLATION
 
    In general, MySQL is one of the faster solutions with a smaller storage 
    footprint, and is well suited for both small and large-scale implementations.
+
    The hash driver (inspired by Bill Yerazunis' CRM Sparse Spectra algorithm)
    is the fastest solution by far and requires no dependencies, supports
    an auto-extend feature to grow the file size as needed, and is very
-   compact. It does, however, lack some features (such as merged groups support)
-   and uses a lot of memory to mmap() users.
+   fast and compact. It does, however, lack some features (such as merged 
+   groups support) and uses a lot of memory to mmap() users.
 
    Documentation for any additional setup of your selected storage driver can 
    be found in the doc/ directory. You'll need to follow any steps outlined in 
    the storage driver documentation before continuing.
 
-   Note:
+   You can download Berkeley DB from http://www.sleepycat.com.  
+   You can download MySQL from http://www.mysql.com.
+   You can download PostgreSQL from http://www.postgresql.com.
+   You can obtain more information about Oracle at http://www.oracle.com.
+   You can download SQLite from http://www.sqlite.org.
 
-     You can download Berkeley DB from http://www.sleepycat.com.  
-     You can download MySQL from http://www.mysql.com.
-     You can download PostgreSQL from http://www.postgresql.com.
-     You can obtain more information about Oracle at http://www.oracle.com.
-     You can download SQLite from http://www.sqlite.org.
-
-   Note:
+   Note on Berkeley DB:
      
      Some operating system distributions include their own version of
      libdb3 and libdb4.  A majority of these packaged versions do work 
      correctly with DSPAM, however a few do not.  If you experience
      problems with one of the libdb storage drivers, consider downloading
      and compiling the public source tree from http://www.sleepycat.com.
-
-   Note for Advanced Users:
-
-     The hash driver is the latest addition to DSPAM and is a very fast 
-     random-access file driver inspired by Bill Yerazunis (the author of 
-     CRM114) using a similar hashing algorithm as his CRM Sparse Spectra 
-     format. It is very fast (faster than MySQL in many cases) and requires 
-     no dependencies. It is the new default driver in DSPAM. To 
-     maintain file size and growth, you'll want to check the Hash options
-     in dspam.conf and see the css tools in tools.hash_drv (cssstat, 
-     csscompress, etc.)
 
 1. CONFIGURATION
 
@@ -318,7 +304,7 @@ FRESH INSTALLATION
 
    INTEGRATION SWITCHES
 
-     --with-storage-driver=DRIVER
+     --with-storage-driver=DRIVER[,DRIVER2[...,DRIVERN]]
      Specify your storage driver selection(s).  A storage driver is a driver
      written specifically for DSPAM to store tokens, signature data, and
      perform other proprietary operations.  The default driver is sqlite_drv,
@@ -333,8 +319,6 @@ FRESH INSTALLATION
      sqlite3_drv: SQLite v3.x Drivers
      hash_drv:    Self-Contained Hash Database
 
-     Note: 
-
      If you are a packager, or wish to have multiple drivers built for any
      reason, you may specify multiple drivers by separating them with commas.
      This will cause the storage driver specified in dspam.conf to be 
@@ -342,12 +326,9 @@ FRESH INSTALLATION
      to build only one driver, but dynamically, then specify it twice as in
      --with-storage-driver=mysql_drv,mysql_drv.
 
-     Note:
-
      If you will be compiling DSPAM to operate as a server daemon or to deliver
-     via SMTP/LMTP, you will need to use a thread-safe driver.
-
-     Note:
+     via SMTP/LMTP, you will need to use a thread-safe driver (outlined in the
+     chart earlier in this document).
 
      You may also need to use some of the driver-specific configure flags
      (discussed in the DRIVER SPECIFIC CONFIGURATION OPTIONS section below).
