@@ -1,4 +1,4 @@
-/* $Id: dspam_merge.c,v 1.11 2005/10/01 15:21:23 jonz Exp $ */
+/* $Id: dspam_merge.c,v 1.12 2005/10/03 00:35:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -44,7 +44,6 @@
 #include "language.h"
 #include "read_config.h"
 #include "config_api.h"
-#include "diction.h"
 
 #define TSYNTAX	"syntax: dspam_merge [user1] [user2] ... [userN] [-o user]"
 
@@ -62,6 +61,8 @@ main (int argc, char **argv)
   ds_diction_t merge1 = NULL;
   ds_diction_t merge2 = NULL;
   DSPAM_CTX *CTX, *MTX;
+  ds_term_t ds_term;
+  ds_cursor_t ds_c;
   long i;
 #ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
@@ -112,8 +113,6 @@ main (int argc, char **argv)
   users = nt_create (NT_CHAR);
   merge1 = ds_diction_create(196613);
   merge2 = ds_diction_create(196613);
-  ds_term_t ds_term;
-  ds_cursor_t ds_c;
 
   if (users == NULL || merge1 == NULL || merge2 == NULL)
   {
