@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.6 2005/09/30 22:05:31 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.7 2005/10/03 01:07:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -1007,6 +1007,9 @@ unsigned long _hash_drv_seek(
   hash_drv_spam_record_t rec;
   unsigned long long fpos;
   unsigned long iterations = 0;
+
+  if (offset >= map->file_len)
+    return 0;
 
   fpos = sizeof(struct _hash_drv_header) + 
     ((hashcode % header->hash_rec_max) * sizeof(struct _hash_drv_spam_record));
