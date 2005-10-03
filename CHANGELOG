@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.369 2005/10/01 15:21:23 jonz Exp $
+$Id: CHANGELOG,v 1.370 2005/10/03 01:07:14 jonz Exp $
 
 Version 3.6.0
 -------------
+
+[20051002.2100] jonz: dynamic storage driver support for linux and freebsd
+
+added fix for linux and freebsd to work with dynamic storage drivers; added
+-rdynamic to LDFLAGS
 
 [20051001.1100] jonz: fixed dspam_merge tool
 

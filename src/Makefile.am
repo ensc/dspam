@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.30 2005/10/01 20:21:38 jonz Exp $
+# $Id: Makefile.am,v 1.31 2005/10/03 01:07:14 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -207,7 +207,8 @@ libsqlite3_drv_la_DEPENDENCIES =
 
 libhash_drv_la_SOURCES = \
 	hash_drv.c hash_drv.h
-libhash_drv_la_LDFLAGS = -rpath '$(libdir)' -version-info $(libversion)
+libhash_drv_la_LDFLAGS = -rpath '$(libdir)' 
+libhash_drv_la_LDFLAGS += -version-info $(libversion)
 
 endif
 

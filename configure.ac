@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.50 2005/10/01 20:21:38 jonz Exp $
+dnl $Id: configure.ac,v 1.51 2005/10/03 01:07:14 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -204,6 +204,12 @@ case x"$host" in
     *-freebsd*)     default_dspam_mode=4510;;
     *)              default_dspam_mode=2510;;
 esac
+
+case "$host" in
+    *-linux*)       LDFLAGS="$LDFLAGS -rdynamic";;
+    *-freebsd*)     LDFLAGS="$LDFLAGS -rdynamic";;
+esac
+
 AC_ARG_WITH(dspam_mode,
     [AS_HELP_STRING(--with-dspam-mode=MODE,
                         Set access mode for dspam binary[,] default 2510
