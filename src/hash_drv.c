@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.7 2005/10/03 01:07:49 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.8 2005/10/03 01:22:42 jonz Exp $ */
 
 /*
  DSPAM
@@ -1047,7 +1047,7 @@ _hash_drv_set_spamrecord (
   if (map->addr == NULL)
     return EINVAL;
 
-  while(rec_offset <= 0 && map->file_len >= offset)
+  while(rec_offset <= 0 && offset < map->file_len)
   {
     rec_offset = _hash_drv_seek(map, offset, wrec->hashcode, HSEEK_INSERT);
     if (rec_offset <= 0) {
@@ -1095,7 +1095,7 @@ _hash_drv_get_spamrecord (
   if (map->addr == NULL)
     return EINVAL;
 
-  while(rec_offset <= 0 && map->file_len >= offset)
+  while(rec_offset <= 0 && offset < map->file_len)
   {
     rec_offset = _hash_drv_seek(map, offset, wrec->hashcode, 0);
     if (rec_offset <= 0) {
