@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.8 2005/10/03 01:22:42 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.9 2005/10/04 16:06:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -179,9 +179,10 @@ memerr:
 int
 dspam_shutdown_driver (DRIVER_CTX *DTX)
 {
-
 #ifdef DAEMON
-  if (DTX && DTX->flags & DRF_STATEFUL) {
+  DSPAM_CTX *CTX = DTX->CTX;
+
+  if (DTX && DTX->flags & DRF_STATEFUL && READ_ATTRIB("HashConcurrentUser")) {
     hash_drv_map_t map;
     LOGDEBUG("unloading hash database from memory");
     if (DTX->connections && DTX->connections[0]) {
