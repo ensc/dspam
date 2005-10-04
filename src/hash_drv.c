@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.9 2005/10/04 16:06:22 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.10 2005/10/04 16:22:41 jonz Exp $ */
 
 /*
  DSPAM
@@ -180,18 +180,21 @@ int
 dspam_shutdown_driver (DRIVER_CTX *DTX)
 {
 #ifdef DAEMON
-  DSPAM_CTX *CTX = DTX->CTX;
+  DSPAM_CTX *CTX;
 
-  if (DTX && DTX->flags & DRF_STATEFUL && READ_ATTRIB("HashConcurrentUser")) {
-    hash_drv_map_t map;
-    LOGDEBUG("unloading hash database from memory");
-    if (DTX->connections && DTX->connections[0]) {
-      pthread_rwlock_destroy(&DTX->connections[0]->rwlock);
-      map = (hash_drv_map_t) DTX->connections[0]->dbh;
-      _hash_drv_close(map);
-      free(DTX->connections[0]->dbh);
-      free(DTX->connections[0]);
-      free(DTX->connections);
+  if (DTX && DTX->CTX) {
+    CTX = DTX->CTX;
+    if (DTX->flags & DRF_STATEFUL && READ_ATTRIB("HashConcurrentUser")) {
+      hash_drv_map_t map;
+      LOGDEBUG("unloading hash database from memory");
+      if (DTX->connections && DTX->connections[0]) {
+        pthread_rwlock_destroy(&DTX->connections[0]->rwlock);
+        map = (hash_drv_map_t) DTX->connections[0]->dbh;
+        _hash_drv_close(map);
+        free(DTX->connections[0]->dbh);
+        free(DTX->connections[0]);
+        free(DTX->connections);
+      }
     }
   }
 #endif

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.209 2005/10/04 16:05:58 jonz Exp $ */
+/* $Id: dspam.c,v 1.210 2005/10/04 16:22:41 jonz Exp $ */
 
 /*
  DSPAM
@@ -3853,8 +3853,8 @@ int daemon_start(AGENT_CTX *ATX) {
     if (pidfile)
       unlink(pidfile);
 
-    dspam_destroy(DTX.CTX);
     dspam_shutdown_driver(&DTX);
+    dspam_destroy(DTX.CTX);
 
     /* Reload */
     if (__hup) {
