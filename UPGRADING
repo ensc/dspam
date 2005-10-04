@@ -1,4 +1,4 @@
-$Id: UPGRADING,v 1.20 2005/09/30 19:55:53 jonz Exp $
+$Id: UPGRADING,v 1.21 2005/10/04 21:29:48 jonz Exp $
 
 Follow the steps sequentially from the base version you are running up to
 the top.
@@ -10,6 +10,12 @@ UPGRADING FROM < 3.6.0
   enabled. Since ProcessorBias is the default behavior in DSPAM, it is
   strongly recommended that you add "ProcessorBias on" to dspam.conf.
 
+- SBLQueue has been renamed to RABLQueue. Please change this in dspam.conf if
+  you are writing to the RABL. 
+
+- The ServerAddress for the official RABL has changed to 209.51.159.242. Please
+  change this in your rabl_client.conf
+  
 - TestConditionalTraining has been added to dspam.conf and must be specified
   to be enabled. Since TestConditionalTraining is the default behavior
   in DSPAM, it is strongly recommended that you add "TestConditionalTraining on"
