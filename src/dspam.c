@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.208 2005/10/04 15:47:06 jonz Exp $ */
+/* $Id: dspam.c,v 1.209 2005/10/04 16:05:58 jonz Exp $ */
 
 /*
  DSPAM
@@ -162,7 +162,6 @@ main (int argc, char *argv[])
   {
     daemon_start(&ATX);
 
-    libdspam_shutdown();
     if (agent_init) {
       nt_destroy(ATX.users);
       nt_destroy(ATX.recipients);
