@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.207 2005/09/30 20:08:01 jonz Exp $ */
+/* $Id: dspam.c,v 1.208 2005/10/04 15:47:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -1739,7 +1739,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       presult->classification = result;
 
 #ifdef CLAMAV
-      if (!strcmp(result_string, LANG_CLASS_VIRUS)) {
+      if (result_string && !strcmp(result_string, LANG_CLASS_VIRUS)) {
         if (_ds_match_attribute(agent_config, "ClamAVResponse", "reject")) {
           presult->classification = DSR_ISSPAM;
           presult->exitcode = ERC_PERMANENT_DELIVERY;
