@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.133 2005/10/01 15:33:18 jonz Exp $ */
+/* $Id: libdspam.c,v 1.134 2005/10/07 21:08:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -495,6 +495,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
  
   CTX->_process_start = time (NULL);
 
+  /* Set TOE-Mode pretrain option if we haven't seen many messages yet */
   if (CTX->training_mode == DST_TOE                                           &&
      (CTX->totals.innocent_learned <= 100 || CTX->totals.spam_learned <= 100) &&
       (!(CTX->algorithms & DSP_MARKOV)))
