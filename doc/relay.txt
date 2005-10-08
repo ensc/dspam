@@ -10,16 +10,6 @@ mail. The drawback to this is that you need to account for all addresses
 behind your mail server, but you'll find by the end of this exercise that it's
 not very difficult to maintain. 
 
------------------------------------------------------------------------------
-NOTE: This is just some basic setup for a DSPAM relay "model". If you're
-interested in a commercial product configured as an appliance, please ask about
-the DSPAM Appliance. The DSPAM appliance is a commercial-grade unit including a
-completely new user interface, superior administration tools, one-step backup
-and recovery, and much more. It's very different from what you are building
-here. If you are interested in the DSPAM Appliance, please email me at
-jonathan@nuclearelephant.com.
------------------------------------------------------------------------------
-
 When configuring DSPAM as a relay, it's generally a good idea to set 
 up DSPAM on its own server. Therefore, we will assume you've got a fresh server
 running *NIX with an existing MySQL 4.1+ installation. 
