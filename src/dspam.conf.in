@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.60 2005/09/30 07:01:14 jonz Exp $
+## $Id: dspam.conf.in,v 1.61 2005/10/09 20:29:55 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -304,6 +304,14 @@ AllowOverride whitelistThreshold
 # switch to the correct user. Result: you need only one spam alias
 
 #PgSQLUIDInSignature	on 
+
+# If you're using vpopmail or some other type of virtual setup and wish to
+# change the table dspam uses to perform username/uid lookups, you can over-
+# ride it below
+
+#PgSQLVirtualTable          dspam_virtual_uids
+#PgSQLVirtualUIDField       uid
+#PgSQLVirtualUsernameField  username
 
 # --- Oracle ---
 

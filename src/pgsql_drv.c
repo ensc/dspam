@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.46 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.47 2005/10/09 20:29:55 jonz Exp $ */
 
 /*
  DSPAM
@@ -355,12 +355,11 @@ _pgsql_drv_set_spamtotals (DSPAM_CTX * CTX)
               "spam_corpusfed, innocent_corpusfed, "
               "spam_classified, innocent_classified) "
               "VALUES (%d, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld)",
-              p->pw_uid, CTX->totals.spam_learned,
+              (int) p->pw_uid, CTX->totals.spam_learned,
               CTX->totals.innocent_learned, CTX->totals.spam_misclassified,
               CTX->totals.innocent_misclassified, CTX->totals.spam_corpusfed,
               CTX->totals.innocent_corpusfed, CTX->totals.spam_classified,
               CTX->totals.innocent_classified);
-
     result = PQexec(s->dbh, query);
   }
 
@@ -409,7 +408,7 @@ _pgsql_drv_set_spamtotals (DSPAM_CTX * CTX)
               (CTX->totals.innocent_classified >
                s->control_totals.innocent_classified) ? "+" : "-",
               abs (CTX->totals.innocent_classified -
-                  s->control_totals.innocent_classified), p->pw_uid);
+                  s->control_totals.innocent_classified), (int) p->pw_uid);
 
     result = PQexec(s->dbh, query);
 
@@ -475,13 +474,13 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
                 CTX->group);
       return EINVAL;
     }
-
   }
 
   gid = p->pw_uid;
 
-  stat.spam_hits = 0;
+  stat.spam_hits     = 0;
   stat.innocent_hits = 0;
+  stat.probability   = 0.00000;
 
   query = buffer_create (NULL);
   if (query == NULL)
@@ -492,9 +491,9 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   if (gid != uid) {
     snprintf (scratch, sizeof (scratch),
-	      "SELECT uid, token, spam_hits, innocent_hits "
-	      "FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
-	      uid, gid);
+              "SELECT uid, token, spam_hits, innocent_hits "
+              "FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
+              uid, gid);
   } else {
     if (s->pg_major_ver >= 8) {
       snprintf (scratch, sizeof (scratch),
@@ -506,8 +505,8 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
                 uid);
     }
   }
-
   buffer_cat (query, scratch);
+  
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
@@ -516,8 +515,8 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     buffer_cat (query, scratch);
     ds_term->s.innocent_hits = 0;
     ds_term->s.spam_hits = 0;
-    ds_term->s.probability = 0;
-    ds_term->s.status &= ~TST_DISK;
+    ds_term->s.probability = 0.00000;
+    ds_term->s.status = 0;
     ds_term = ds_diction_next(ds_c);
     if (ds_term)
       buffer_cat (query, ",");
@@ -551,8 +550,6 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EFAILURE;
   }
 
-  stat.probability = 0;
-
   ntuples = PQntuples(result);
 
   for (i=0; i<ntuples; i++)
@@ -561,41 +558,23 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     token = _pgsql_drv_token_read (s->pg_token_type, PQgetvalue(result,i,1));
     stat.spam_hits = strtol (PQgetvalue(result,i,2), NULL, 10);
     stat.innocent_hits = strtol (PQgetvalue(result,i,3), NULL, 10);
+    stat.status = 0;
 
     if (rid == uid)
       stat.status |= TST_DISK;
-    else
-      stat.status &= ~TST_DISK;
-
-    if (stat.spam_hits < 0)
-      stat.spam_hits = 0;
-    if (stat.innocent_hits < 0)
-      stat.innocent_hits = 0;
 
     ds_diction_addstat(diction, token, &stat);
   }
 
-  ds_c = ds_diction_cursor(diction);
-  ds_term = ds_diction_next(ds_c);
-  while(ds_term && !s->control_token) {
-    if (ds_term->s.spam_hits && ds_term->s.innocent_hits) {
-      s->control_token = ds_term->key;
-      s->control_sh = ds_term->s.spam_hits;
-      s->control_ih = ds_term->s.innocent_hits;
-    }
-    ds_term = ds_diction_next(ds_c);
-  }
-  ds_diction_close(ds_c);
-
-  if (!s->control_token)
-  {
-     ds_c = ds_diction_cursor(diction);
-     ds_term = ds_diction_next(ds_c);
-     s->control_token = ds_term->key;
-     s->control_sh = ds_term->s.spam_hits;
-     s->control_ih = ds_term->s.innocent_hits;
-     ds_diction_close(ds_c);
-  }
+  /* Control token */
+  stat.spam_hits = 10;
+  stat.innocent_hits = 10;
+  stat.status = 0;
+  ds_diction_touch(diction, CONTROL_TOKEN, "$$CONTROL$$", 0);
+  ds_diction_addstat(diction, CONTROL_TOKEN, &stat);
+  s->control_token = CONTROL_TOKEN;
+  s->control_ih = 10;
+  s->control_sh = 10;
 
   if (result) PQclear(result);
   buffer_destroy(query);
@@ -606,7 +585,7 @@ int
 _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
-  struct _ds_spam_stat stat, stat2;
+  struct _ds_spam_stat control, stat;
   ds_term_t ds_term;
   ds_cursor_t ds_c = NULL;
   buffer *prepare;
@@ -652,26 +631,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EUNKNOWN;
   }
 
-  if (s->control_token == 0)
-  {
-    ds_c = ds_diction_cursor(diction);
-    ds_term = ds_diction_next(ds_c);
-    if (!ds_term)
-    {
-      stat.spam_hits = 0;
-      stat.innocent_hits = 0;
-    }
-    else
-    {
-      stat.spam_hits = ds_term->s.spam_hits;
-      stat.innocent_hits = ds_term->s.innocent_hits;
-    }
-    ds_diction_close(ds_c);
-  }
-  else {
-    ds_diction_getstat(diction, s->control_token, &stat);
-  }
-
+  ds_diction_getstat(diction, s->control_token, &control);
   snprintf (scratch, sizeof (scratch),
             "PREPARE dspam_update_plan (%s) AS UPDATE dspam_token_data "
             "SET last_hit = CURRENT_DATE",
@@ -679,45 +639,45 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   buffer_cat (prepare, scratch);
 
 
-  if ((abs (stat.spam_hits - s->control_sh)) != 0)
+  if ((abs (control.spam_hits - s->control_sh)) != 0)
   {
-    if (stat.spam_hits > s->control_sh)
+    if (control.spam_hits > s->control_sh)
     {
       snprintf (scratch, sizeof (scratch),
                 ", spam_hits = spam_hits + %d",
-                abs (stat.spam_hits - s->control_sh) );
+                abs (control.spam_hits - s->control_sh) );
     } else {
       snprintf (scratch, sizeof (scratch),
                 ", spam_hits = "
                              "CASE WHEN spam_hits - %d <= 0 THEN 0 "
                              "ELSE spam_hits - %d END",
-                abs (stat.spam_hits - s->control_sh),
-                abs (stat.spam_hits - s->control_sh) );
+                abs (control.spam_hits - s->control_sh),
+                abs (control.spam_hits - s->control_sh) );
     }
     buffer_cat (prepare, scratch);
   }
 
-  if ((abs (stat.innocent_hits - s->control_ih)) != 0)
+  if ((abs (control.innocent_hits - s->control_ih)) != 0)
   {
-    if (stat.innocent_hits > s->control_ih)
+    if (control.innocent_hits > s->control_ih)
     {
       snprintf (scratch, sizeof (scratch),
                 ", innocent_hits = innocent_hits + %d",
-                abs (stat.innocent_hits - s->control_ih) );
+                abs (control.innocent_hits - s->control_ih) );
     } else {
       snprintf (scratch, sizeof (scratch),
                 ", innocent_hits = "
                              "CASE WHEN innocent_hits - %d <= 0 THEN 0 "
                              "ELSE innocent_hits - %d END",
-                abs (stat.innocent_hits - s->control_ih),
-                abs (stat.innocent_hits - s->control_ih) );
+                abs (control.innocent_hits - s->control_ih),
+                abs (control.innocent_hits - s->control_ih) );
     }
     buffer_cat (prepare, scratch);
   }
 
   snprintf (scratch, sizeof (scratch),
             " WHERE uid = '%d' AND token = $1;",
-             p->pw_uid);
+             (int) p->pw_uid);
   buffer_cat (prepare, scratch);
 
   snprintf (scratch, sizeof (scratch),
@@ -740,62 +700,62 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
   buffer_destroy(prepare);
-
   buffer_cat (update, "BEGIN;");
+
+  /*
+   *  Add each token in the diction to either an update or an insert queue 
+   */
 
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
-    if (CTX->training_mode == DST_TOE             &&
-        CTX->classification == DSR_NONE           &&
-        CTX->operating_mode == DSM_CLASSIFY       &&
-        diction->whitelist_token != ds_term->key  &&
+    if (ds_term->key == s->control_token) {
+      ds_term = ds_diction_next(ds_c);
+      continue;
+    }
+
+    /* Don't write lexical tokens if we're in TOE mode classifying */
+
+    if (CTX->training_mode == DST_TOE            && 
+        CTX->operating_mode == DSM_CLASSIFY      &&
+        ds_term->key != diction->whitelist_token &&
         (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
     {
       ds_term = ds_diction_next(ds_c);
       continue;
     }
 
-    ds_diction_getstat (diction, ds_term->key, &stat2);
+    ds_diction_getstat(diction, ds_term->key, &stat);
 
-    if (!(stat2.status & TST_DIRTY)) {
+    /* Changed tokens are marked as "dirty" by libdspam */
+
+    if (!(stat.status & TST_DIRTY)) {
       ds_term = ds_diction_next(ds_c);
       continue;
     } else {
-      stat2.status &= ~TST_DIRTY;
+      stat.status &= ~TST_DIRTY;
     }
 
-    if (!(stat2.status & TST_DISK))
+    /* This token wasn't originally loaded from disk, so try an insert */
+
+    if (!(stat.status & TST_DISK))
     {
       char tok_buf[30];
       const char *insertValues[3];
 
       insertValues[0] = _pgsql_drv_token_write(s->pg_token_type, ds_term->key, tok_buf, sizeof(tok_buf));
-
-      /* If we're processing a message with a MERGED group, assign it based on
-         an empty count and not the current count (since the current count
-         also includes the global group's tokens).
-
-         If we're not using MERGED, or if a tool is running, assign it based
-         on the actual count (so that tools like dspam_merge don't break) */
-
-      if (CTX->flags & DSF_MERGED) {
-        insertValues[1] = stat.spam_hits > s->control_sh ? "1" : "0";
-        insertValues[2] = stat.innocent_hits > s->control_ih ? "1" : "0";
-      } else {
-        insertValues[1] = stat2.spam_hits > 0 ? "1" : "0";
-        insertValues[2] = stat2.innocent_hits > 0 ? "1" : "0";
-      }
+      insertValues[1] = stat.spam_hits > 0 ? "1" : "0";
+      insertValues[2] = stat.innocent_hits > 0 ? "1" : "0";
 
       result = PQexecPrepared(s->dbh, "dspam_insert_plan", 3, insertValues, NULL, NULL, 1);
       if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK) {
-        stat2.status |= TST_DISK;
+        stat.status |= TST_DISK;
       }
       PQclear(result);
     }
 
-    if ((stat2.status & TST_DISK)) {
+    if ((stat.status & TST_DISK)) {
       _pgsql_drv_token_write(s->pg_token_type, ds_term->key, scratch, sizeof(scratch));
       buffer_cat (update, "EXECUTE dspam_update_plan (");
       buffer_cat (update, scratch);
@@ -811,7 +771,10 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   buffer_cat (update, "COMMIT;");
 
-  LOGDEBUG("Control: [%ld %ld] [%ld %ld]", s->control_sh, s->control_ih, stat.spam_hits, stat.innocent_hits);
+  LOGDEBUG("Control: [%ld %ld] [%ld %ld] Delta: [%ld %ld]",
+    s->control_sh, s->control_ih, 
+    control.spam_hits, control.innocent_hits,
+    control.spam_hits - s->control_sh, control.innocent_hits - s->control_ih);
 
   if (update_one)
   {
@@ -839,7 +802,6 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
   buffer_destroy(update);
-
   return 0;
 }
 
@@ -876,7 +838,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
             "WHERE uid = '%d' AND token = %s ", p->pw_uid, 
             _pgsql_drv_token_write(s->pg_token_type, token, tok_buf, sizeof(tok_buf)));
 
-  stat->probability = 0.0;
+  stat->probability = 0.00000;
   stat->spam_hits = 0;
   stat->innocent_hits = 0;
   stat->status &= ~TST_DISK;
@@ -942,7 +904,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     snprintf (query, sizeof (query),
               "INSERT INTO dspam_token_data (uid, token, spam_hits, innocent_hits, last_hit)"
               " VALUES (%d, %s, %ld, %ld, CURRENT_DATE)",
-              p->pw_uid, 
+              (int) p->pw_uid, 
               _pgsql_drv_token_write(s->pg_token_type, token, tok_buf, sizeof(tok_buf)),
               stat->spam_hits, stat->innocent_hits);
     result = PQexec(s->dbh, query);
@@ -956,7 +918,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
               "innocent_hits = %ld "
               "WHERE uid = '%d' "
               "AND token = %s", stat->spam_hits,
-              stat->innocent_hits, p->pw_uid,
+              stat->innocent_hits, (int) p->pw_uid,
               _pgsql_drv_token_write(s->pg_token_type, token, tok_buf, sizeof(tok_buf)));
 
     if (result) PQclear(result);
@@ -1383,6 +1345,8 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
 #ifndef VIRTUAL_USERS
   struct passwd *p;
   uid_t uid;
+#else
+  char *virtual_table, *virtual_uid, *virtual_username;
 #endif
   char query[128];
   PGresult *result;
@@ -1392,6 +1356,20 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     LOGDEBUG ("_ds_get_nextuser: invalid database handle (NULL)");
     return NULL;
   }
+
+#ifdef VIRTUAL_USERS
+  if ((virtual_table 
+    = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_uid 
+    = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualUIDField"))==NULL)
+  { virtual_uid = "uid"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes, 
+    "PgSQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; } 
+#endif
 
   if (s->iter_user == NULL)
   {
@@ -1408,7 +1386,9 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
 
     /* Declare Cursor */
 #ifdef VIRTUAL_USERS
-    strcpy (query, "DECLARE dscursor CURSOR FOR SELECT DISTINCT username FROM dspam_virtual_uids");
+    snprintf(query, sizeof(query), "DECLARE dscursor CURSOR FOR SELECT DISTINCT %s FROM %s",
+        virtual_username,
+        virtual_table);
 #else
     strcpy (query, "DECLARE dscursor CURSOR FOR SELECT DISTINCT uid FROM dspam_stats");
 #endif
@@ -1733,6 +1713,19 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 #else
   char query[256];
   PGresult *result;
+  char *virtual_table, *virtual_uid, *virtual_username;
+
+  if ((virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualUIDField"))==NULL)
+  { virtual_uid = "uid"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
+    "PgSQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; }
 
   if (s->p_getpwnam.pw_name != NULL)
   {
@@ -1745,7 +1738,8 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   }
 
   snprintf (query, sizeof (query),
-            "SELECT uid FROM dspam_virtual_uids WHERE username = '%s'", name);
+            "SELECT %s FROM %s WHERE %s = '%s'", 
+            virtual_uid, virtual_table, virtual_username, name);
 
   result = PQexec(s->dbh, query);
   if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
@@ -1788,7 +1782,6 @@ struct passwd *
 _pgsql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
-
 #ifndef VIRTUAL_USERS
   struct passwd *q;
 #if defined(_REENTRANT) && defined(HAVE_GETPWUID_R)
@@ -1803,6 +1796,7 @@ _pgsql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
     {
       return &s->p_getpwuid;
     }
+    free(s->p_getpwuid.pw_name);
     s->p_getpwuid.pw_name = NULL;
   }
 
@@ -1813,13 +1807,32 @@ _pgsql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   q = getpwuid (uid);
 #endif
 
-  s->p_getpwuid.pw_uid = q->pw_uid;
+  if (q == NULL) 
+   return NULL;
+
+  if (s->p_getpwuid.pw_name)
+    free(s->p_getpwuid.pw_name);
+
+  memcpy (&s->p_getpwuid, q, sizeof (struct passwd));
   s->p_getpwuid.pw_name = strdup(q->pw_name);
 
   return &s->p_getpwuid;
 #else
   char query[256];
   PGresult *result;
+  char *virtual_table, *virtual_uid, *virtual_username;
+
+  if ((virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualUIDField"))==NULL)
+  { virtual_uid = "uid"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
+    "PgSQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; }
 
   if (s->p_getpwuid.pw_name != NULL)
   {
@@ -1831,7 +1844,8 @@ _pgsql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   }
 
   snprintf (query, sizeof (query),
-            "SELECT username FROM dspam_virtual_uids WHERE uid = '%d'", uid);
+            "SELECT %s FROM %s WHERE %s = '%d'", 
+            virtual_username, virtual_table, virtual_uid, (int) uid);
 
   result = PQexec(s->dbh, query);
   if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
@@ -1891,8 +1905,21 @@ struct passwd *
 _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
 {
   char query[256];
+  char *virtual_table, *virtual_uid, *virtual_username;
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   PGresult *result;
+
+  if ((virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualUIDField"))==NULL)
+  { virtual_uid = "uid"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
+    "PgSQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; }
 
 #ifdef USE_LDAP
   if (_ds_match_attribute(CTX->config->attributes, "LDAPMode", "verify") &&
@@ -1904,8 +1931,8 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
 #endif
 
   snprintf (query, sizeof (query),
-            "INSERT INTO dspam_virtual_uids (username) VALUES ('%s')",
-            name);
+            "INSERT INTO %s (%s, %s) VALUES (default, '%s')",
+            virtual_table, virtual_uid, virtual_username, name);
 
   /* we need to fail, to prevent a potential loop - even if it was inserted
    * by another process */
