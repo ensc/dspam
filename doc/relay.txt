@@ -6,13 +6,15 @@ then have DSPAM pass along any valid email to your mail server. The example
 provided also provides personalized training for each user it is protecting,
 even if users have multiple email aliases. This allows you to create more than
 just a dumb gateway server, but something smart enough to learn each user's
-mail. The drawback to this is that you need to account for all addresses 
-behind your mail server, but you'll find by the end of this exercise that it's
-not very difficult to maintain. 
+mail. You may either account for all addresses behind your mail server (to
+ward off dictionary attacks) or configure pass-thru for unprovisioned users
+on the system to lighten the work load by provisioning only users who want 
+filtering.
 
 When configuring DSPAM as a relay, it's generally a good idea to set 
 up DSPAM on its own server. Therefore, we will assume you've got a fresh server
-running *NIX with an existing MySQL 4.1+ installation. 
+running *NIX with an existing MySQL 4.1+ installation (you'll want at least 
+4.1.12 to avoid some nasty bugs in MySQL which affect DSPAM).
 
 Step 1: Configure, compile and install Postfix with MySQL support
 
@@ -50,18 +52,9 @@ For example:
 Step 3: Install DSPAM MySQL Objects (With a twist)
 
 Create the MySQL objects as outlined in the mysql DSPAM doc, but use the 
-following SQL call to create the virtual uid table. This basically creates a
-table without a primary key, which we're going to use to manually create any
-aliases we need:
-
-create table dspam_virtual_uids (
-  uid smallint not null,
-  username varchar(128) not null
-) type=MyISAM;
-
-create unique index id_virtual_uids_01 on dspam_virtual_uids(username);
-
-You can also find this script in src/tools.mysql_drv/virtual_user_aliases.sql
+virtual_user_aliases.sql script instead of virtual-users.sql script to create
+a table without a primary key. This will allow you to create multiple email
+addresses with the same uid, which is how DSPAM recognizes users.
 
 Step 4: Configure DSPAM to receive LMTP and delivery SMTP
 
@@ -111,10 +104,12 @@ additiona_conditions =
 
 Step 6: Add a localStore preference for each user
 
-If your users will have aliases, you'll want to specify a common local store
-for each user, so that they don't end up with one set of logs+quarantine
-for each alias. To do this, you'll first need to allow the localStore
-override in dspam.conf:
+The localStore preference defines the web directory name for each user (for
+the WebUI). Since users might have multiple email addresses, you want to avoid
+having a directory for each alias. You can do this by setting their web
+directory to match their uid.
+
+To do this, you'll first need to allow the localStore override in dspam.conf:
 
 AllowOverride	localStore
 
