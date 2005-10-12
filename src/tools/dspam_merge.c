@@ -1,4 +1,4 @@
-/* $Id: dspam_merge.c,v 1.12 2005/10/03 00:35:29 jonz Exp $ */
+/* $Id: dspam_merge.c,v 1.13 2005/10/12 15:58:55 jonz Exp $ */
 
 /*
  DSPAM
@@ -111,10 +111,8 @@ main (int argc, char **argv)
 
   dspam_init_driver (NULL);
   users = nt_create (NT_CHAR);
-  merge1 = ds_diction_create(196613);
-  merge2 = ds_diction_create(196613);
 
-  if (users == NULL || merge1 == NULL || merge2 == NULL)
+  if (users == NULL)
   {
     fprintf (stderr, ERR_MEM_ALLOC);
     goto bail;
@@ -167,6 +165,15 @@ main (int argc, char **argv)
 #ifdef DEBUG
     printf ("Merging user: %s\n", (const char *) node_nt->ptr);
 #endif
+    merge1 = ds_diction_create(196613);
+    merge2 = ds_diction_create(196613);
+
+    if (users == NULL || merge1 == NULL || merge2 == NULL)
+    {
+      fprintf (stderr, ERR_MEM_ALLOC);
+      goto bail;
+    }
+
     MTX = dspam_create ((const char *) node_nt->ptr, NULL, _ds_read_attribute(agent_config, "Home"), DSM_CLASSIFY, 0);
     open_mtx = MTX;
     if (MTX == NULL)
@@ -216,9 +223,9 @@ main (int argc, char **argv)
 #ifdef DEBUG
     printf ("processed %ld tokens\n", i);
 #endif
+    node_nt = c_nt_next (users, &c_nt);
     ds_diction_destroy(merge1);
     ds_diction_destroy(merge2);
-    node_nt = c_nt_next (users, &c_nt);
     dspam_destroy (MTX);
     open_mtx = NULL;
   }
