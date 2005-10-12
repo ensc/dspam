@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.24 2005/09/24 17:48:58 jonz Exp $ */
+/* $Id: decode.c,v 1.25 2005/10/12 14:31:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -513,7 +513,7 @@ _ds_decode_headers (ds_message_block_t block) {
  *     - setting transfer encoding
  *     - adding newly discovered boundaries
  *
- *   based on the heading specified. essentially all headers shoudl be
+ *   based on the heading specified. essentially all headers should be
  *   analyzed for future expansion
  *
  * INPUT ARGUMENTS

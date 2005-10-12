@@ -59,7 +59,7 @@ addresses with the same uid, which is how DSPAM recognizes users.
 Step 4: Configure DSPAM to receive LMTP and delivery SMTP
 
 We're going to configure postfix to connect to DSPAM via LMTP using a domain
-socket. The following configuration properties shoudl be set in dspam.conf:
+socket. The following configuration properties should be set in dspam.conf:
 
 ServerQueueSize		32
 ServerPID		/var/run/dspam.pid
