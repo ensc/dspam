@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.371 2005/10/09 20:29:55 jonz Exp $
+$Id: CHANGELOG,v 1.372 2005/10/13 14:29:19 jonz Exp $
 
 Version 3.6.0
 -------------
+
+[20051013.0820] jonz: fix for header truncation bug
+
+fixed condition where headers could be truncated if > 4k in length
 
 [20051002.2100] jonz: dynamic storage driver support for linux and freebsd
 
