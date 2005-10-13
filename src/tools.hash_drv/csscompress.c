@@ -1,4 +1,4 @@
-/* $Id: csscompress.c,v 1.2 2005/09/30 19:16:39 jonz Exp $ */
+/* $Id: csscompress.c,v 1.3 2005/10/13 12:33:56 jonz Exp $ */
 
 /*
  DSPAM
@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <errno.h>
 
 #ifdef TIME_WITH_SYS_TIME
 #   include <sys/time.h>
@@ -177,7 +178,8 @@ int csscompress(const char *filename) {
 
   _hash_drv_close(&new);
   _hash_drv_close(&old);
-  rename(newfile, filename);
+  if (rename(newfile, filename)) 
+    fprintf(stderr, "rename(%s, %s): %s\n", newfile, filename, strerror(errno));
   return 0;
 }
 
