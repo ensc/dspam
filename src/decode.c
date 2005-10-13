@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.25 2005/10/12 14:31:36 jonz Exp $ */
+/* $Id: decode.c,v 1.26 2005/10/13 14:23:46 jonz Exp $ */
 
 /*
  DSPAM
@@ -350,13 +350,6 @@ _ds_create_header_field (const char *heading)
 
   if (!header || !in) 
     goto MEMFAIL;
-
-  /* Not really necessary, but... */
-
-  header->heading = NULL;
-  header->data    = NULL;
-  header->original_data     = NULL;
-  header->concatenated_data = NULL;
 
   ptr = strsep (&in, ":");
   if (ptr) {
@@ -907,7 +900,7 @@ _ds_assemble_message (ds_message_t message)
   buffer *out = buffer_create (NULL);
   struct nt_node *node_nt, *node_header;
   struct nt_c c_nt, c_nt2;
-  char heading[4096];
+  char *heading;
   char *copyback;
   int i = 0;
 
@@ -939,20 +932,24 @@ _ds_assemble_message (ds_message_t message)
         data = (current_header->original_data == NULL) ? current_header->data :
                current_header->original_data;
 
+        heading = malloc(
+            ((current_header->heading) ? strlen(current_header->heading) : 0) 
+          + ((data) ? strlen(data) : 0)
+          + 4);
+
         if (current_header->heading != NULL &&
-            (!strncmp (current_header->heading, "From ", 5)
-            || !strncmp (current_header->heading, "--", 2)))
-          snprintf (heading, sizeof (heading),
-                    "%s:%s\n", 
-            (current_header->heading == NULL) ? "" : current_header->heading,
-            (data == NULL) ? "" : data);
+            (!strncmp (current_header->heading, "From ", 5) || 
+             !strncmp (current_header->heading, "--", 2)))
+          sprintf (heading, "%s:%s\n", 
+            (current_header->heading) ? current_header->heading : "",
+            (data) ? data: "");
         else
-          snprintf (heading, sizeof (heading),
-                    "%s: %s\n",
-            (current_header->heading == NULL) ? "" : current_header->heading,
-            (data == NULL) ? "" : data);
+          sprintf (heading, "%s: %s\n",
+            (current_header->heading) ? current_header->heading : "",
+            (data) ? data : "");
 
         buffer_cat (out, heading);
+        free(heading);
         node_header = c_nt_next (block->headers, &c_nt2);
       }
     }
