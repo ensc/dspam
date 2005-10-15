@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.7 2005/10/15 03:24:54 jonz Exp $
+# $Id: dspam.cgi,v 1.8 2005/10/15 03:43:27 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 #
@@ -1126,6 +1126,7 @@ sub DisplayIndex {
     $real_missed = $misses-$rtm;
     $real_caught = $spam-$rts;
     $real_fp = $fp-$rfp;
+    if ($real_fp < 0) { $real_fp = 0; }
     $real_innocent = $innocent-$rti; 
     if (($spam-$rts > 0) && ($spam-$rts + $misses-$rtm != 0) &&
         ($real_caught+$real_missed>0) && ($real_fp+$real_innocent>0)) {
