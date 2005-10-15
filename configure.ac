@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.51 2005/10/03 01:07:14 jonz Exp $
+dnl $Id: configure.ac,v 1.52 2005/10/15 03:42:48 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -102,7 +102,7 @@ AC_MSG_RESULT([$enable_daemon])
 #
 if test x"$enable_daemon" = xyes
 then
-  DS_PTHREADS(PT_CPPFLAGS, PT_LDFLAGS, PT_LIBS, [success=yes], [success=np])
+  DS_PTHREADS(PT_CPPFLAGS, PT_LDFLAGS, PT_LIBS, [success=yes], [success=no])
   if test x"$success" != xyes
   then
     AC_MSG_FAILURE([unable to determine how to compile with pthreads])
