@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.6 2005/10/13 16:40:11 jonz Exp $
+# $Id: dspam.cgi,v 1.7 2005/10/15 03:24:54 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 #
@@ -1101,7 +1101,7 @@ sub DisplayIndex {
     open(FILE, "<$GROUP");
     chomp($gspam = <FILE>);
     close(FILE);
-    ($gspam, $ginnocent, $gmisses, $gfp, $gsc, $gic) = split(/\,/, $gspam);
+    ($gspam, $ginnocent, $gfp, $gmisses, $gsc, $gic) = split(/\,/, $gspam);
     $spam     -= $gspam;
     $innocent -= $ginnocent;
     $misses   -= $gmisses;
