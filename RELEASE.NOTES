@@ -1,4 +1,4 @@
-$Id: RELEASE.NOTES,v 1.54 2005/10/01 15:21:29 jonz Exp $
+$Id: RELEASE.NOTES,v 1.55 2005/10/16 14:44:16 jonz Exp $
 
 RELEASE 3.6.0-STABLE
 
@@ -90,6 +90,7 @@ Other Enhancements:
   Domain-based groups changed from @domain.tld to *@domain.tld
   X-DSPAM-Result expanded to support Virus, Blacklisted, and Blocklisted results
   DSPAM WebUI now supports history paging
+  Rewritten documentation for ease of installation
 
 Jonathan Zdziarski
 <jonathan@nuclearelephant.com>
