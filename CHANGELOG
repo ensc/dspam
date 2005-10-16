@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.372 2005/10/13 14:29:19 jonz Exp $
+$Id: CHANGELOG,v 1.373 2005/10/16 23:39:05 jonz Exp $
 
 Version 3.6.0
 -------------
+
+[20051016.1930] jonz: automatic whitelisting now trusted sender system
+
+Instead of senders having to send you zero spam in order to be whitelisted, 
+they will have to send you less than one spam for every fifteen legitimate 
+messages. 
 
 [20051013.0820] jonz: fix for header truncation bug
 

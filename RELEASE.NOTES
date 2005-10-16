@@ -1,8 +1,16 @@
-$Id: RELEASE.NOTES,v 1.55 2005/10/16 14:44:16 jonz Exp $
+$Id: RELEASE.NOTES,v 1.56 2005/10/16 23:39:05 jonz Exp $
 
 RELEASE 3.6.0-STABLE
 
 ENHANCEMENTS
+
+Automatic Whitelisting Improvements
+Automatic whitelisting has been converted into more of a trusted sender
+reputation type system. Instead of senders having to send you zero spam in order
+to be whitelisted, they will have to send you less than one spam for every
+fifteen legitimate messages. This means a user with whom you've conversed much
+and exchanged 45 innocuous messages with will be allowed to spam you up to three
+times before they'll lose their whitelisting status. 
 
 Dynamically Loadable Storage Driver Support
 DSPAM now supports a dynamically loadable storage driver plugin codebase,

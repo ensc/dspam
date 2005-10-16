@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.134 2005/10/07 21:08:14 jonz Exp $ */
+/* $Id: libdspam.c,v 1.135 2005/10/16 23:39:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -864,7 +864,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     if (CTX->flags & DSF_WHITELIST) {
       if (ds_term->key == whitelist_token              && 
-          ds_term->s.spam_hits == 0                    && 
+          ds_term->s.spam_hits <= (ds_term->s.innocent_hits / 15) && 
           ds_term->s.innocent_hits > CTX->wh_threshold && 
           CTX->classification == DSR_NONE)
       {
