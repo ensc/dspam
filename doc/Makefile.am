@@ -13,6 +13,5 @@ EXTRA_DIST = 	courier.txt	\
 		qmail.txt	\
 		sendmail.txt	\
 		sqlite_drv.txt	\
-		win32.txt 	\
 		relay.txt   	\
 		markov.txt
