@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.8 2005/10/15 03:43:27 jonz Exp $
+# $Id: dspam.cgi,v 1.9 2005/10/17 14:26:26 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 #
@@ -195,8 +195,8 @@ sub DisplayHistory {
     }
     close (LINES);
 
-    $end = $all_lines - (($history_site-1) * $CONFIG{'HISTORY_PER_SITE'});
-    $begin = $end - $CONFIG{'HISTORY_PER_SITE'} + 1 ;
+    $end = $all_lines - (($history_site-1) * $CONFIG{'HISTORY_PER_PAGE'});
+    $begin = $end - $CONFIG{'HISTORY_PER_PAGE'} + 1 ;
 
     if ($begin < 0) {
       $begin = 1;
