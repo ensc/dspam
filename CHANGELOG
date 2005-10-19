@@ -1,4 +1,15 @@
-$Id: CHANGELOG,v 1.373 2005/10/16 23:39:05 jonz Exp $
+$Id: CHANGELOG,v 1.374 2005/10/19 19:21:20 jonz Exp $
+
+Version NEXT
+------------
+
+[20051019.0300] jonz: fixed segfault on malformed Content-Type header
+
+fixed a segfault caused by invalid read on malformed Content-Type header
+
+[20051017.0800] jonz: fix for history in dspam.cgi
+
+fixed a typo causing the history to display blank in dspam.cgi
 
 Version 3.6.0
 -------------
