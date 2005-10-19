@@ -37,7 +37,7 @@ $CONFIG{'WEB_ROOT'}     = "/"; # URL location of included htdocs/ files
 
 # Default DSPAM display
 $CONFIG{'HISTORY_SIZE'} = 799;		# Number of items in history
-$CONFIG{'HISTORY_PER_PAGE'} = 50;
+$CONFIG{'HISTORY_PER_PAGE'} = 100;
 $CONFIG{'MAX_COL_LEN'}	= 50;		# Max chars in list columns
 $CONFIG{'SORT_DEFAULT'}	= "Date";	# Show quarantine by "Date" or "Rating"
 $CONFIG{'3D_GRAPHS'}	= 1;
