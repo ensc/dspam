@@ -1,7 +1,17 @@
-$Id: CHANGELOG,v 1.374 2005/10/19 19:21:20 jonz Exp $
+$Id: CHANGELOG,v 1.375 2005/10/20 15:44:34 jonz Exp $
 
 Version NEXT
 ------------
+
+[20051020.0800] jonz: fixed daemon-mode streaming issues
+
+fixed minor bugs causing trailing periods to be outputted after summaries
+causing streaming tools to break
+
+[20051020.0800] jonz: fixed document source bug
+
+fixed a bug causing all documents processed with "DataSource document" to
+fail
 
 [20051019.0300] jonz: fixed segfault on malformed Content-Type header
 
