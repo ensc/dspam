@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.137 2005/10/20 16:03:07 jonz Exp $ */
+/* $Id: libdspam.c,v 1.138 2005/10/20 16:52:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -1540,7 +1540,7 @@ _ds_calc_stat (
 
     weight = _ds_compute_weight(term->name);
 
-    if (_ds_match_attribute(CTX->config->attributes, "ProcessorBias", "on")) {
+    if (CTX->flags & DSF_BIAS) {
       num = weight * (s->spam_hits - (s->innocent_hits*2));
       den = C1 * (s->spam_hits + (s->innocent_hits*2) + C2) * 256;
     } else {
@@ -1548,7 +1548,7 @@ _ds_calc_stat (
       den = C1 * (s->spam_hits + s->innocent_hits + C2) * 256;
     }
 
-    if (_ds_match_attribute(CTX->config->attributes, "ProcessorBias", "on")) {
+    if (CTX->flags & DSF_BIAS) {
       s->probability = 0.49 + ((double) num / (double) den);
     } else {
       s->probability = 0.5 + ((double) num / (double) den); 
@@ -1569,7 +1569,7 @@ _ds_calc_stat (
            (s->innocent_hits * 1.0 / bnr_tot->innocent_hits * 1.0));
       } else {
 
-        if (_ds_match_attribute(CTX->config->attributes, "ProcessorBias", "on"))
+        if (CTX->flags & DSF_BIAS)
           s->probability =
             (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
             ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +

@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.13 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.14 2005/10/20 16:52:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -380,6 +380,7 @@ typedef struct
 
 #define DSF_CHAINED		0x01
 #define DSF_SIGNATURE		0x02
+#define DSF_BIAS		0x04
 #define DSF_NOISE		0x08
 #define DSF_WHITELIST		0x10
 #define DSF_MERGED		0x20

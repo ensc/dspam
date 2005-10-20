@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.210 2005/10/04 16:22:41 jonz Exp $ */
+/* $Id: dspam.c,v 1.211 2005/10/20 16:52:15 jonz Exp $ */
 
 /*
  DSPAM
@@ -1299,6 +1299,16 @@ inoculate_user (
     if (ATX->flags & DAF_SBPH)
       f_all |= DSF_SBPH;
 
+    if (ATX->PTX != NULL && 
+        strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "")) 
+    {
+      if (!strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "on"))
+        f_all |= DSF_BIAS;
+    } else {
+      if (_ds_match_attribute(agent_config, "ProcessorBias", "on")) 
+        f_all |= DSF_BIAS;
+    }
+
     INOC = dspam_create (username, 
                        NULL, 
                        _ds_read_attribute(agent_config, "Home"), 
@@ -1371,6 +1381,14 @@ user_classify (
                                                                                 
   if (ATX->flags & DAF_SBPH)
     f_all |= DSF_SBPH;
+
+  if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "")) {
+    if (!strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "on"))
+      f_all |= DSF_BIAS;
+  } else {
+    if (_ds_match_attribute(agent_config, "ProcessorBias", "on")) 
+      f_all |= DSF_BIAS;
+  }
 
   /* First see if the user needs to be inoculated */
   CLX = dspam_create (username,
@@ -2430,6 +2448,14 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
      f_all |= DSF_NOISE;
   }
 
+  if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "")) {
+    if (!strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "on"))
+      f_all |= DSF_BIAS;
+  } else {
+    if (_ds_match_attribute(agent_config, "ProcessorBias", "on")) 
+      f_all |= DSF_BIAS;
+  }
+
   if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "enableWhitelist"), ""))
   {
     if (!strcmp(_ds_pref_val(ATX->PTX, "enableWhitelist"), "on"))
@@ -2583,6 +2609,16 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
         if (ATX->flags & DAF_SBPH)
           f_all |= DSF_SBPH;
+
+        if (ATX->PTX != NULL && 
+            strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "")) 
+        {
+          if (!strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "on"))
+            f_all |= DSF_BIAS;
+        } else {
+          if (_ds_match_attribute(agent_config, "ProcessorBias", "on")) 
+            f_all |= DSF_BIAS;
+        }
 
         CLX = dspam_create (CTX->username, 
                           CTX->group, 
