@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.135 2005/10/16 23:39:05 jonz Exp $ */
+/* $Id: libdspam.c,v 1.136 2005/10/20 15:12:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -835,7 +835,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     errcode = EUNKNOWN;
     goto bail;
   }
-
 
   /* Apply Bayesian Noise Reduction */
   if (CTX->flags & DSF_NOISE)
