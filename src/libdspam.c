@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.136 2005/10/20 15:12:53 jonz Exp $ */
+/* $Id: libdspam.c,v 1.137 2005/10/20 16:03:07 jonz Exp $ */
 
 /*
  DSPAM
@@ -1548,7 +1548,11 @@ _ds_calc_stat (
       den = C1 * (s->spam_hits + s->innocent_hits + C2) * 256;
     }
 
-    s->probability = 0.5 + ((double) num / (double) den); 
+    if (_ds_match_attribute(CTX->config->attributes, "ProcessorBias", "on")) {
+      s->probability = 0.49 + ((double) num / (double) den);
+    } else {
+      s->probability = 0.5 + ((double) num / (double) den); 
+    }
 
   /* Graham and Robinson Start Here */
 
