@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.376 2005/10/20 16:52:15 jonz Exp $
+$Id: CHANGELOG,v 1.377 2005/10/22 13:45:45 jonz Exp $
 
 Version NEXT
 ------------
+
+[20051022.0945] jonz: added train.pl script
+
+added train.pl script to scripts/ as an example of how to properly train.
+updated markovian discrimination documents
 
 [20051020.0800] jonz: added processorBias preference
 

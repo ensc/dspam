@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.7 2005/09/14 13:37:02 jonz Exp $
+# $Id: Makefile.am,v 1.8 2005/10/22 13:45:45 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -11,7 +11,7 @@
 includedir=@includedir@/dspam
 
 SUBDIRS = . webui m4 man src 
-DIST_SUBDIRS = . webui m4 txt man src doc
+DIST_SUBDIRS = . webui m4 txt man src doc scripts
 
 EXTRA_DIST = autogen.sh RELEASE.NOTES CHANGELOG LICENSE \
   README UPGRADING
