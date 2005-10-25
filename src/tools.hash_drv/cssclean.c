@@ -1,4 +1,4 @@
-/* $Id: cssclean.c,v 1.4 2005/09/30 19:16:39 jonz Exp $ */
+/* $Id: cssclean.c,v 1.5 2005/10/25 12:16:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -66,7 +66,7 @@ int DO_DEBUG
 #include "error.h"
 #include "language.h"
  
-#define SYNTAX "syntax: csscompress [filename]" 
+#define SYNTAX "syntax: cssclean [filename]" 
 
 int cssclean(const char *filename);
 

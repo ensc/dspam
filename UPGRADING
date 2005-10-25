@@ -1,7 +1,15 @@
-$Id: UPGRADING,v 1.21 2005/10/04 21:29:48 jonz Exp $
+$Id: UPGRADING,v 1.22 2005/10/25 12:16:26 jonz Exp $
 
 Follow the steps sequentially from the base version you are running up to
 the top.
+
+UPGRADING FROM < 3.6.1
+----------------------
+
+- For users of hash_drv: A cssconvert tool has been provided to convert all
+  v3.6.0 databases to the correct, 8-byte aligned format used in all newer
+  versions. Please run cssconvert on all of your .css databases before 
+  turning on your new version of dspam.
 
 UPGRADING FROM < 3.6.0
 ----------------------

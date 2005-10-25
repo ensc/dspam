@@ -1,4 +1,4 @@
-/* $Id: hash_drv.h,v 1.7 2005/09/30 22:05:56 jonz Exp $ */
+/* $Id: hash_drv.h,v 1.8 2005/10/25 12:16:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -39,6 +39,7 @@ typedef struct _hash_drv_header
 {
   unsigned long hash_rec_max;
   struct _ds_spam_totals totals;
+  char padding[4]; /* Keep 8-byte alignment */
 } *hash_drv_header_t;
 
 typedef struct _hash_drv_map

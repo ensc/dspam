@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.377 2005/10/22 13:45:45 jonz Exp $
+$Id: CHANGELOG,v 1.378 2005/10/25 12:16:26 jonz Exp $
 
 Version NEXT
 ------------
+
+[20051025.0800] jonz: fixed 8-byte alignment for hash databases
+
+using hash_drv on 64-bit processors caused crashes due to the structures in
+the file not being 8-byte aligned. added cssconvert tool to convert all 3.6.0
+databases to aligned format.
 
 [20051022.0945] jonz: added train.pl script
 
