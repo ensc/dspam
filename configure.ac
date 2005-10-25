@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.53 2005/10/22 13:45:45 jonz Exp $
+dnl $Id: configure.ac,v 1.54 2005/10/25 12:20:02 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -311,7 +311,7 @@ else
     enable_clamav=yes    # overkill, but convenient
     AC_DEFINE(CLAMAV, 1, [Defined if clamav is enabled])
 fi
-AC_MSG_RESULT([$enable_debug])
+AC_MSG_RESULT([$enable_clamav])
 
 #
 #   Debug support
