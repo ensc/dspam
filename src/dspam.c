@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.211 2005/10/20 16:52:15 jonz Exp $ */
+/* $Id: dspam.c,v 1.212 2005/10/25 12:30:57 jonz Exp $ */
 
 /*
  DSPAM
@@ -1525,7 +1525,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_c c_nt, c_rcpt;
   buffer *parse_message;
   agent_result_t presult;
-  char *plus;
+  char *plus, *atsign;
   char mailbox[256];
   FILE *fout;
 
@@ -1582,8 +1582,14 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     if (_ds_match_attribute(agent_config, "EnablePlusedDetail", "on")) {
       strlcpy(mailbox, username, sizeof(mailbox));
       ATX->recipient = mailbox;
-      plus=index(username, '+');
-      if (plus != NULL) *plus='\0';
+      plus = index(username, '+');
+      if (plus) {
+        atsign = index(plus, '@');
+        if (atsign)
+          strcpy(plus, atsign);
+        else
+          *plus='\0';
+      }
     }
 
     parse_message = buffer_create(message->data);

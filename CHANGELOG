@@ -1,7 +1,14 @@
-$Id: CHANGELOG,v 1.378 2005/10/25 12:16:26 jonz Exp $
+$Id: CHANGELOG,v 1.379 2005/10/25 12:30:57 jonz Exp $
 
 Version NEXT
 ------------
+
+[20051025.0800] jonz: plused-detail to work with domains
+
+plused-detail would previously chop off anything after the +, which presented
+a problem for systems using a full email address as a username. this fix
+will cause user@domain.com to be used if user+mailbox@domain.com is specified,
+and plused-detail support is enabled. 
 
 [20051025.0800] jonz: fixed 8-byte alignment for hash databases
 
