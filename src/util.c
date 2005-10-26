@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.17 2005/10/01 00:35:00 jonz Exp $ */
+/* $Id: util.c,v 1.18 2005/10/26 17:39:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -675,6 +675,7 @@ float _ds_round(float n) {
   return (r/100.0);
 }
 
+#ifndef HAVE_STRCASESTR
 char *
 strcasestr(s, find)
 	const char *s, *find;
@@ -695,6 +696,7 @@ strcasestr(s, find)
 	}
 	return ((char *)s);
 }
+#endif
 
 #ifndef HAVE_INET_NTOA_R
 /*

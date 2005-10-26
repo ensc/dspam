@@ -1,8 +1,13 @@
-$Id: CHANGELOG,v 1.380 2005/10/26 17:32:39 jonz Exp $
+$Id: CHANGELOG,v 1.381 2005/10/26 17:39:32 jonz Exp $
 
 Version NEXT
 ------------
 
+[20051025.0130] jonz: added check for strcasestr
+
+for some operating systems that have strcasestr, use the os's version instead
+of our own
+ 
 [20051026.0130] jonz: fix for x-dspam-reclassified heading
 
 added fix for x-dspam-reclassified heading, which appears blank after

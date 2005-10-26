@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.54 2005/10/25 12:20:02 jonz Exp $
+dnl $Id: configure.ac,v 1.55 2005/10/26 17:39:32 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -67,6 +67,7 @@ AC_CHECK_FUNCS(getpwuid_r)
 AC_CHECK_FUNCS([memcpy memset])
 AC_CHECK_FUNCS(localtime_r)
 AC_CHECK_FUNCS(inet_ntoa_r)
+AC_CHECK_FUNCS(strcasestr)
 
 LIBS="-lm"
 
