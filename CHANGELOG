@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.379 2005/10/25 12:30:57 jonz Exp $
+$Id: CHANGELOG,v 1.380 2005/10/26 17:32:39 jonz Exp $
 
 Version NEXT
 ------------
+
+[20051026.0130] jonz: fix for x-dspam-reclassified heading
+
+added fix for x-dspam-reclassified heading, which appears blank after
+corrective training
 
 [20051025.0800] jonz: plused-detail to work with domains
 

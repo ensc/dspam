@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.139 2005/10/22 13:37:46 jonz Exp $ */
+/* $Id: libdspam.c,v 1.140 2005/10/26 17:32:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -1324,6 +1324,13 @@ _ds_process_signature (DSPAM_CTX * CTX)
   }
 
   num_tokens = CTX->signature->length / sizeof (struct _ds_signature_token);
+
+  if (CTX->class[0] == 0) {
+    if (CTX->classification == DSR_ISSPAM)
+      strcpy(CTX->class, LANG_CLASS_SPAM);
+    else if (CTX->classification == DSR_ISINNOCENT)
+      strcpy(CTX->class, LANG_CLASS_INNOCENT);
+  }
 
   LOGDEBUG ("reversing %d tokens", num_tokens);
   for (i = 0; i < num_tokens; i++)
