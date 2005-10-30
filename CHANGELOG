@@ -1,7 +1,17 @@
-$Id: CHANGELOG,v 1.381 2005/10/26 17:39:32 jonz Exp $
+$Id: CHANGELOG,v 1.382 2005/10/30 02:38:19 jonz Exp $
 
 Version NEXT
 ------------
+
+[20051029.2230] jonz: fix for parsetoheaders
+
+fix for parsetoheaders which could have caused a segfault on malformatted "To"
+header
+
+[20051029.2230] jonz: qmail support for tracksources
+
+applied patch contributed by Doug Miller <dnm@prentrom.com> to add support
+for parsing qmail headers
 
 [20051025.0130] jonz: added check for strcasestr
 

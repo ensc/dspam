@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.60 2005/10/20 15:12:53 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.61 2005/10/30 02:38:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -871,7 +871,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
     if (!x)
       x = strstr(buf, ":notspam@");
 
-    if (x != NULL) {
+    if (x && strlen(x) >= 9) {
       y = strdup(x+9);
 
       if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))

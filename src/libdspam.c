@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.140 2005/10/26 17:32:39 jonz Exp $ */
+/* $Id: libdspam.c,v 1.141 2005/10/30 02:38:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -655,6 +655,8 @@ dspam_getsource (
   ds_header_t current_heading = NULL;
   struct nt_node *node_nt;
   struct nt_c c;
+  char firstrx = 1;
+  char qmailmode = 0;
 
   if (CTX->message == NULL)
     return EINVAL;
@@ -671,33 +673,69 @@ dspam_getsource (
     current_heading = (ds_header_t) node_nt->ptr;
     if (!strcmp (current_heading->heading, "Received"))
     {
+      // first Received header contains "(qmail..."
+      if (firstrx)
+      {
+        firstrx = 0;
+        qmailmode = !strncmp(current_heading->data, "(qmail", 6);
+        // we're done with this header line
+        if (qmailmode)
+        {
+          node_nt = c_nt_next (current_block->headers, &c);
+          continue;
+        }
+      }
       char *data = strdup (current_heading->data);
       char *ptr = strstr (data, "from");
       char *tok;
       if (ptr != NULL)
       {
-        char *ptrptr;
-        tok = strtok_r (ptr, "[", &ptrptr);
+        // qmail puts the sending IP inside the last "()" pair at the end of the line
+        if (qmailmode)
+        {
+          tok = strrchr(data, ')');
 
+          if (tok != NULL)
+          {
+              *tok = 0;
+              tok = strrchr(data, '(');
+              if (tok != NULL)
+                tok++;
+          }
+        }
+        else
+        {
+          char *ptrptr;
+          tok = strtok_r (ptr, "[", &ptrptr);
+
+          if (tok != NULL)
+          {
+
+            tok = strtok_r (NULL, "]", &ptrptr);
+          }
+        }
         if (tok != NULL)
         {
           int whitelisted = 0;
+          if (!strncmp (tok, "127.",4) ||        // ignore localhost
+              !strncmp (tok, "10.", 3) ||        // ignore RFC 1918 private addresses
+              !strncmp (tok, "172.16.", 7) ||
+              !strncmp (tok, "192.168.", 8) ||
+              !strncmp (tok, "169.254.", 8))     // ignore local-link
+            whitelisted = 1;
 
-          tok = strtok_r (NULL, "]", &ptrptr);
-          if (tok != NULL)
+          // ignore additional (qmail... lines
+          if (qmailmode && !strncmp(tok, "qmail", 5))
+            whitelisted = 1;
+
+          if (_ds_match_attribute(CTX->config->attributes, "LocalMX", tok))
+            whitelisted = 1;
+
+          if (!whitelisted)
           {
-            if (!strcmp (tok, "127.0.0.1"))
-              whitelisted = 1;
-
-            if (_ds_match_attribute(CTX->config->attributes, "LocalMX", tok))
-              whitelisted = 1;
-
-            if (!whitelisted)
-            {
-              strlcpy (buf, tok, size);
-              free (data);
-              return 0;
-            }
+            strlcpy (buf, tok, size);
+            free (data);
+            return 0;
           }
         }
       }
