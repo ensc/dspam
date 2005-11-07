@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.382 2005/10/30 02:38:19 jonz Exp $
+$Id: CHANGELOG,v 1.383 2005/11/07 22:43:03 jonz Exp $
 
-Version NEXT
-------------
+Version 3.6.1
+-------------
 
 [20051029.2230] jonz: fix for parsetoheaders
 

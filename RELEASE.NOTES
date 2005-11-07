@@ -1,4 +1,19 @@
-$Id: RELEASE.NOTES,v 1.57 2005/10/17 00:49:16 jonz Exp $
+$Id: RELEASE.NOTES,v 1.58 2005/11/07 22:43:03 jonz Exp $
+
+RELEASE 3.6.1-STABLE
+
+3.6.1 is a maintenance release
+
+BUGFIX: ParseToHeaders can segfault on malformatted To header
+BUGFIX: TrackSources does not correctly parse messages when used with QMail
+BUGFIX: Missing check for existing strcasestr
+BUGFIX: X-DSPAM-Reclassified heading appears blank
+BUGFIX: Plused-Detail support does not work with domains
+BUGFIX: Hash databases are not 8-byte aligned (do not work with 64-bit systems)
+BUGFIX: Certain daemon-mode operations append a trailing period
+BUGFIX: DataSource 'document' option causes improper processing
+BUGFIX: Segfaults occur on malformed Content-Type header
+BUGFIX: History appears blank in dspam.cgi
 
 RELEASE 3.6.0-STABLE
 
