@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.142 2005/11/02 19:39:28 jonz Exp $ */
+/* $Id: libdspam.c,v 1.143 2005/11/08 15:26:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -672,6 +672,8 @@ dspam_getsource (
     current_heading = (ds_header_t) node_nt->ptr;
     if (!strcmp (current_heading->heading, "Received"))
     {
+      char *data, *ptr, *tok;
+
       // detect and skip "Received: (qmail..." lines
       if (!strncmp(current_heading->data, "(qmail", 6))
       {
@@ -680,9 +682,8 @@ dspam_getsource (
         continue;
       }
 
-      char *data = strdup (current_heading->data);
-      char *ptr = strstr (data, "from");
-      char *tok;
+      data = strdup (current_heading->data);
+      ptr = strstr (data, "from");
 
       if (ptr != NULL)
       {
