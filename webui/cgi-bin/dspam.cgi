@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.9 2005/10/17 14:26:26 jonz Exp $
+# $Id: dspam.cgi,v 1.10 2005/11/21 16:10:30 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
 #
@@ -205,7 +205,6 @@ sub DisplayHistory {
     }
 
     if ($all_lines < $CONFIG{'HISTORY_PER_PAGE'}) {
-      warn "here!!";
       $history_pages = 1;
     } elsif ($all_lines > $CONFIG{'HISTORY_SIZE'}) {
       $history_pages = ($CONFIG{'HISTORY_SIZE'} + $CONFIG{'HISTORY_PER_PAGE'}) / $CONFIG{'HISTORY_PER_PAGE'};
