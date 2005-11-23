@@ -1,4 +1,4 @@
-$Id: README,v 1.78 2005/10/30 02:38:19 jonz Exp $
+$Id: README,v 1.79 2005/11/23 18:47:08 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -889,6 +889,8 @@ FRESH INSTALLATION
    following be installed on your machine:
 
    - GD Graphics Library (http://www.boutell.com/gd/)
+     Compile with png support
+
    - The following PERL modules:
      (http://www.perl.com/CPAN/modules/by-module/GD/)
 
