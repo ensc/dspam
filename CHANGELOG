@@ -1,4 +1,12 @@
-$Id: CHANGELOG,v 1.383 2005/11/07 22:43:03 jonz Exp $
+$Id: CHANGELOG,v 1.384 2005/11/23 18:21:19 jonz Exp $
+
+Version NEXT
+------------
+
+[20051123.0231] jonz: fix for hash_drv in daemon mode
+
+when hash_drv is used in daemon mode without HashConcurrentUser option, 
+segfaults can occur due to a failure to initialize the locking subsystem.
 
 Version 3.6.1
 -------------

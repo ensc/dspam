@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.10 2005/10/04 16:22:41 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.11 2005/11/23 18:21:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -76,6 +76,9 @@ dspam_init_driver (DRIVER_CTX *DTX)
 {
   DSPAM_CTX *CTX;
   char *HashConcurrentUser;
+#ifdef DAEMON
+   unsigned long connection_cache = 1;
+#endif
 
   if (DTX == NULL) 
     return 0;
@@ -92,7 +95,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
    *  if you are running with a system-wide filtering user. 
    */
 
-  if (DTX->flags & DRF_STATEFUL && HashConcurrentUser) {
+  if (DTX->flags & DRF_STATEFUL) {
     char filename[MAX_FILENAME_LENGTH];
     hash_drv_map_t map;
     unsigned long hash_rec_max = HASH_REC_MAX;
@@ -100,7 +103,12 @@ dspam_init_driver (DRIVER_CTX *DTX)
     unsigned long max_extents  = 0;
     unsigned long extent_size  = HASH_EXTENT_MAX;
     int flags = HMAP_AUTOEXTEND;
-    int ret;
+    int ret, i;
+
+    if (READ_ATTRIB("HashConnectionCache") && !HashConcurrentUser)
+      connection_cache = strtol(READ_ATTRIB("HashConnectionCache"), NULL, 0);
+
+    DTX->connection_cache = connection_cache;
 
     if (READ_ATTRIB("HashRecMax"))
       hash_rec_max = strtol(READ_ATTRIB("HashRecMax"), NULL, 0);
@@ -118,43 +126,50 @@ dspam_init_driver (DRIVER_CTX *DTX)
        max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
 
     /* Connection array (just one single connection for hash_drv) */
-    DTX->connections = calloc(1, sizeof(struct _ds_drv_connection *));
+    DTX->connections = calloc(1, sizeof(struct _ds_drv_connection *) * connection_cache);
     if (DTX->connections == NULL) 
       goto memerr;
 
-    /* Our single connection */
-    DTX->connections[0] = calloc(1, sizeof(struct _ds_drv_connection));
-    if (DTX->connections[0] == NULL) 
-      goto memerr;
+    /* Initialize Connections */
+    for(i=0;i<connection_cache;i++) {
+      DTX->connections[i] = calloc(1, sizeof(struct _ds_drv_connection));
+      if (DTX->connections[i] == NULL) 
+        goto memerr;
 
-    /* Our connection's storage structure */
-    DTX->connections[0]->dbh = calloc(1, sizeof(struct _hash_drv_map));
-    if (DTX->connections[0]->dbh == NULL) 
-      goto memerr;
-
-    map = (hash_drv_map_t) DTX->connections[0]->dbh;
-
-    /* Tell the server our connection lock will be reader/writer based */
-    if (!(DTX->flags & DRF_RWLOCK))
-      DTX->flags |= DRF_RWLOCK;
-    DTX->connection_cache = 1;
-
-    _ds_userdir_path(filename, DTX->CTX->home, HashConcurrentUser, "css");
-    _ds_prepare_path_for(filename);
-    LOGDEBUG("preloading %s into memory via mmap()", filename);
-    ret = _hash_drv_open(filename, map, hash_rec_max, 
-                         max_seek, max_extents, extent_size, flags); 
-    if (ret) {
-      LOG(LOG_CRIT, "_hash_drv_open(%s) failed on error %d: %s", 
-                    filename, ret, strerror(errno)); 
-      free(DTX->connections[0]->dbh);
-      free(DTX->connections[0]);
-      free(DTX->connections);
-      return EFAILURE;
+      /* Our connection's storage structure */
+      if (HashConcurrentUser) {
+        DTX->connections[i]->dbh = calloc(1, sizeof(struct _hash_drv_map));
+        if (DTX->connections[i]->dbh == NULL) 
+          goto memerr;
+        pthread_rwlock_init(&DTX->connections[i]->rwlock, NULL);
+      } else {
+        DTX->connections[i]->dbh = NULL;
+        pthread_mutex_init(&DTX->connections[i]->lock, NULL);
+      }
     }
-       
-    LOGDEBUG("initializing rwlock");
-    pthread_rwlock_init(&DTX->connections[0]->rwlock, NULL);
+
+    /* Load concurrent database into resident memory */
+    if (HashConcurrentUser) {
+      map = (hash_drv_map_t) DTX->connections[0]->dbh;
+
+      /* Tell the server our connection lock will be reader/writer based */
+      if (!(DTX->flags & DRF_RWLOCK))
+        DTX->flags |= DRF_RWLOCK;
+
+      _ds_userdir_path(filename, DTX->CTX->home, HashConcurrentUser, "css");
+      _ds_prepare_path_for(filename);
+      LOGDEBUG("preloading %s into memory via mmap()", filename);
+      ret = _hash_drv_open(filename, map, hash_rec_max, 
+                           max_seek, max_extents, extent_size, flags); 
+      if (ret) {
+        LOG(LOG_CRIT, "_hash_drv_open(%s) failed on error %d: %s", 
+                      filename, ret, strerror(errno)); 
+        free(DTX->connections[0]->dbh);
+        free(DTX->connections[0]);
+        free(DTX->connections);
+        return EFAILURE;
+      }
+    }
   }
 #endif
 
@@ -164,9 +179,12 @@ dspam_init_driver (DRIVER_CTX *DTX)
 memerr:
   if (DTX) {
     if (DTX->connections) {
-      if (DTX->connections[0]) 
-        free(DTX->connections[0]->dbh);
-      free(DTX->connections[0]);
+      int i;
+      for(i=0;i<connection_cache;i++) {
+        if (DTX->connections[i]) 
+          free(DTX->connections[i]->dbh);
+        free(DTX->connections[i]);
+      }
     }
     free(DTX->connections);
   }
@@ -184,15 +202,33 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
 
   if (DTX && DTX->CTX) {
     CTX = DTX->CTX;
-    if (DTX->flags & DRF_STATEFUL && READ_ATTRIB("HashConcurrentUser")) {
+    char *HashConcurrentUser = READ_ATTRIB("HashConcurrentUser");
+
+    if (DTX->flags & DRF_STATEFUL) {
       hash_drv_map_t map;
+      int connection_cache = 1, i;
+
+     if (READ_ATTRIB("HashConnectionCache") && !HashConcurrentUser)
+        connection_cache = strtol(READ_ATTRIB("HashConnectionCache"), NULL, 0);
+
       LOGDEBUG("unloading hash database from memory");
-      if (DTX->connections && DTX->connections[0]) {
-        pthread_rwlock_destroy(&DTX->connections[0]->rwlock);
-        map = (hash_drv_map_t) DTX->connections[0]->dbh;
-        _hash_drv_close(map);
-        free(DTX->connections[0]->dbh);
-        free(DTX->connections[0]);
+      if (DTX->connections) {
+        for(i=0;i<connection_cache;i++) {
+          LOGDEBUG("unloading connection object %d", i);
+          if (DTX->connections[i]) {
+            if (!HashConcurrentUser) {
+              pthread_mutex_destroy(&DTX->connections[i]->lock);
+            }
+            else {
+              pthread_rwlock_destroy(&DTX->connections[i]->rwlock);
+              map = (hash_drv_map_t) DTX->connections[i]->dbh;
+              if (map)
+                _hash_drv_close(map);
+            }
+            free(DTX->connections[i]->dbh);
+            free(DTX->connections[i]);
+          }
+        }
         free(DTX->connections);
       }
     }

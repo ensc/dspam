@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.61 2005/10/09 20:29:55 jonz Exp $
+## $Id: dspam.conf.in,v 1.62 2005/11/23 18:21:19 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -363,6 +363,12 @@ HashMaxSeek		100
 # permanently mapped into memory and shared via rwlocks.
 #
 #HashConcurrentUser	user
+
+# HashConnectionCache: If running in daemon mode, this is the max # of
+# concurrent connections that will be supported. NOTE: If you are using
+# HashConcurrentUser, this option is ignored, as all connections are read-
+# write locked instead of mutex locked.
+HashConnectionCache	10
 
 # LDAP: Perform various LDAP functions depending on LDAPMode variable.
 # Presently, the only mode supported is 'verify', which will verify the existence
