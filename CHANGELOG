@@ -1,9 +1,14 @@
-$Id: CHANGELOG,v 1.385 2005/11/24 00:06:24 jonz Exp $
+$Id: CHANGELOG,v 1.386 2005/11/24 14:09:12 jonz Exp $
 
 Version NEXT
 ------------
 
-[20051905] jonz: fix for get_nexttoken and hash_drv
+[20051124.0900] jonz: bugfixes for token value calculations
+
+two bugs in how token values are calculated caused a significant rise in
+false positives. this is now fixed, cutting false positives nearly in half. 
+
+[20051123.1905] jonz: fix for get_nexttoken and hash_drv
 
 fixed calloc(0) oddity in get_nexttoken in hash_drv
 

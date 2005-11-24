@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.143 2005/11/08 15:26:44 jonz Exp $ */
+/* $Id: libdspam.c,v 1.144 2005/11/24 14:09:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -1645,25 +1645,22 @@ _ds_calc_stat (
 
     if (s->spam_hits == 0 && s->innocent_hits > 0)
     {
-      if (s->innocent_hits > 50)
-        s->probability = 0.0060;
-      else if (s->innocent_hits > 10)
+      if (s->innocent_hits > 10)
         s->probability = 0.0001;
       else
         s->probability = 0.0002;
     }
     else if (s->spam_hits > 0 && s->innocent_hits == 0)
     {
-      if (s->spam_hits >= 10)
+      if (s->spam_hits > 10)
         s->probability = 0.9999;
       else
         s->probability = 0.9998;
     }
-#ifdef BIAS
-    if (s->spam_hits + (2 * s->innocent_hits) < min_hits)
-#else
-    if (s->spam_hits + s->innocent_hits < min_hits)
-#endif
+    if ((CTX->flags & DSF_BIAS && 
+       (s->spam_hits + (2 * s->innocent_hits) < min_hits))
+       || (!(CTX->flags & DSF_BIAS) && 
+        (s->spam_hits + s->innocent_hits < min_hits)))
     {
       s->probability = (CTX->algorithms & DSP_MARKOV) ? .5000 : .4;
     }
