@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.11 2005/11/23 18:21:19 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.12 2005/11/24 00:06:24 jonz Exp $ */
 
 /*
  DSPAM
@@ -814,7 +814,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
 
   rec.hashcode = 0;
 
-  sr = calloc(0, sizeof(struct _ds_storage_record));
+  sr = calloc(1, sizeof(struct _ds_storage_record));
   if (!sr) {
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;

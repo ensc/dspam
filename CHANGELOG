@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.384 2005/11/23 18:21:19 jonz Exp $
+$Id: CHANGELOG,v 1.385 2005/11/24 00:06:24 jonz Exp $
 
 Version NEXT
 ------------
+
+[20051905] jonz: fix for get_nexttoken and hash_drv
+
+fixed calloc(0) oddity in get_nexttoken in hash_drv
 
 [20051123.0231] jonz: fix for hash_drv in daemon mode
 
