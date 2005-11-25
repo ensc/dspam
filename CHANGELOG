@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.386 2005/11/24 14:09:12 jonz Exp $
+$Id: CHANGELOG,v 1.387 2005/11/25 17:46:31 jonz Exp $
 
-Version NEXT
-------------
+Version 3.6.2
+-------------
 
 [20051124.0900] jonz: bugfixes for token value calculations
 
