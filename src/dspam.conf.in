@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.62 2005/11/23 18:21:19 jonz Exp $
+## $Id: dspam.conf.in,v 1.63 2005/11/25 17:47:04 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -458,7 +458,7 @@ HashConnectionCache	10
 # Notifications: Enable the sending of notification emails to users (first
 # message, quarantine full, etc.)
 #
-Notifications	on
+Notifications	off
 
 #
 # Purge configuration: Set dspam_clean purge default options, if not otherwise
