@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.13 2005/11/28 20:02:32 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.14 2005/11/28 20:08:00 jonz Exp $ */
 
 /*
  DSPAM
@@ -201,9 +201,9 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
   DSPAM_CTX *CTX;
 
   if (DTX && DTX->CTX) {
-    char *HashConcurrentUser = READ_ATTRIB("HashConcurrentUser");
+    char *HashConcurrentUser;
     CTX = DTX->CTX;
-
+    HashConcurrentUser = READ_ATTRIB("HashConcurrentUser");
 
     if (DTX->flags & DRF_STATEFUL) {
       hash_drv_map_t map;
