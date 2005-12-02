@@ -1,4 +1,4 @@
-/* $Id: ldap_client.c,v 1.2 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: ldap_client.c,v 1.3 2005/12/02 05:06:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -80,7 +80,9 @@ int ldap_verify(DSPAM_CTX *CTX, const char *username) {
     return EFAILURE;
   }
 
-  result = ldap_count_entries(ld, msg);
+  result = ldap_count_entries(ld, msg) > 0;
+  ldap_msgfree (msg);
+  ldap_unbind(ld);
   return result;
 }
 

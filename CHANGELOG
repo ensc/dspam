@@ -1,4 +1,12 @@
-$Id: CHANGELOG,v 1.387 2005/11/25 17:46:31 jonz Exp $
+$Id: CHANGELOG,v 1.388 2005/12/02 05:06:11 jonz Exp $
+
+Version NEXT
+------------
+
+[20051201.0000] jonz: fix for ldap calls
+
+fix to close connections to ldap after calls
+fix to fail database creation on ldap failure
 
 Version 3.6.2
 -------------
