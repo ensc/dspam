@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.388 2005/12/02 05:06:11 jonz Exp $
+$Id: CHANGELOG,v 1.389 2005/12/13 16:59:45 jonz Exp $
 
 Version NEXT
 ------------
+
+[20051213.1200] jonz: memory leak in bayesian noise reduction
+
+corrected a memory leak generated when using bayesian noise reduction
 
 [20051201.0000] jonz: fix for ldap calls
 
