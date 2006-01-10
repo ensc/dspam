@@ -1,4 +1,4 @@
-$Id: README,v 1.79 2005/11/23 18:47:08 jonz Exp $
+$Id: README,v 1.80 2006/01/10 14:51:04 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2005 Deep Logic, Inc.
@@ -776,10 +776,9 @@ FRESH INSTALLATION
 
      The system log and user logs can fill up fairly quickly, when all that's
      really needed to generate graphs are the last two to three weeks of data. 
-     You can configure a nightly log cleanup using a simple find recipe:
+     You can configure a nightly log cleanup using dspam_logrotate:
 
-     0 0 * * * dspam_logrotate -a 30 /usr/local/var/dspam/system.log \
-               `find /usr/local/var/dspam/data -name "*.log"`
+     0 0 * * * dspam_logrotate -a 30 -d /usr/local/var/dspam/data
 
 7. NOTIFICATIONS
 
