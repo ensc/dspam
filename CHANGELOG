@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.391 2006/01/10 14:59:35 jonz Exp $
+$Id: CHANGELOG,v 1.392 2006/01/10 15:09:09 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060110.0830] jonz: bugfix for ChangeUserOnParse
+
+fixed minor bug causing ChangeUserOnParse to format incorrectly
 
 [20060110.0830] jonz: patch to support multiple users with logrotate
 
