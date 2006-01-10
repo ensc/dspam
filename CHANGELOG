@@ -1,11 +1,11 @@
-$Id: CHANGELOG,v 1.390 2006/01/10 14:53:53 jonz Exp $
+$Id: CHANGELOG,v 1.391 2006/01/10 14:59:35 jonz Exp $
 
 Version NEXT
 ------------
 
 [20060110.0830] jonz: patch to support multiple users with logrotate
 
-applied patch by Norman Maurer <nm@spam-box.de> to add large-scale support
+applied patch by Norman Maurer <nm@byteaction.de> to add large-scale support
 to dspam_logrotate
 
 [20051213.1200] jonz: memory leak in bayesian noise reduction
