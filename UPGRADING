@@ -1,7 +1,12 @@
-$Id: UPGRADING,v 1.22 2005/10/25 12:16:26 jonz Exp $
+$Id: UPGRADING,v 1.23 2006/01/10 15:13:19 jonz Exp $
 
 Follow the steps sequentially from the base version you are running up to
 the top.
+
+UPGRADING FROM < 3.6.3
+----------------------
+
+- dspam_logrotate now requires a leading -l flag prior to specifying log files
 
 UPGRADING FROM < 3.6.1
 ----------------------
