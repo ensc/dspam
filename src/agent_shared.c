@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.61 2005/10/30 02:38:19 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.62 2006/01/10 14:50:49 jonz Exp $ */
 
 /*
  DSPAM
@@ -861,7 +861,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
 
     x = strstr(buf, "<notspam-");
     if (!x)
-      x = strstr(buf, "notspam-");
+      x = strstr(buf, " notspam-");
     if (!x)
       x = strstr(buf, ":notspam-");
     if (!x)
