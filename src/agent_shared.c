@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.62 2006/01/10 14:50:49 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.63 2006/01/11 15:21:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -586,7 +586,8 @@ int apply_defaults(AGENT_CTX *ATX) {
 
   /* Default delivery agent */
 
-  if (!(ATX->flags & DAF_STDOUT)) {
+  if (!(ATX->flags & DAF_STDOUT) &&
+      (ATX->flags & DAF_DELIVER_INNOCENT || ATX->flags & DAF_DELIVER_SPAM)) {
     char key[32];
 #ifdef TRUSTED_USER_SECURITY
     if (!ATX->trusted) 
@@ -604,10 +605,8 @@ int apply_defaults(AGENT_CTX *ATX) {
         strlcat(fmt, ATX->mailer_args, sizeof(fmt));
       strcpy(ATX->mailer_args, fmt);
     } else if (!_ds_read_attribute(agent_config, "DeliveryHost")) {
-      if (!(ATX->flags & DAF_STDOUT)) {
-        LOG(LOG_ERR, ERR_AGENT_NO_AGENT, key);
-        return EINVAL;
-      }
+      LOG(LOG_ERR, ERR_AGENT_NO_AGENT, key);
+      return EINVAL;
     }
   }
 

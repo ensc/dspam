@@ -1,9 +1,10 @@
-$Id: RELEASE.NOTES,v 1.60 2006/01/10 15:15:12 jonz Exp $
+$Id: RELEASE.NOTES,v 1.61 2006/01/11 15:21:08 jonz Exp $
 
 RELEASE 3.6.3-STABLE
 
 3.6.3 is a maintenance release
 
+BUGFIX: "No TrustedDeliveryAgent" error occurs even when no --deliver= used 
 BUGFIX: ChangeUserOnParse can format incorrectly
 BUGFIX: The dspam_logrotate tool does not support multiple mailboxes
 BUGFIX: Memory leak in Bayesian Noise Reduction

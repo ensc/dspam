@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.392 2006/01/10 15:09:09 jonz Exp $
+$Id: CHANGELOG,v 1.393 2006/01/11 15:21:08 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060111.0830] jonz: bugfix for commandline agent error
+
+fixed bug causing "no trusted delivery agent configured" error when calling
+dspam without an agent configured, but not delivering
 
 [20060110.0830] jonz: bugfix for ChangeUserOnParse
 
