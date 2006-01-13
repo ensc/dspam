@@ -1,7 +1,14 @@
-$Id: CHANGELOG,v 1.393 2006/01/11 15:21:08 jonz Exp $
+$Id: CHANGELOG,v 1.394 2006/01/13 21:03:08 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060113.0400] jonz: change for dspam_stats output
+
+updated dspam_stats "-S" output to use more widely accepted readings:
+SHR: Spam Hit Rate (true positive rate)
+HSR: Ham Strike Rate (false positive rate)
+OCA: Overall Classification Accuracy
 
 [20060111.0830] jonz: bugfix for commandline agent error
 

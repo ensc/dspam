@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.18 2005/09/25 00:28:38 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.19 2006/01/13 21:03:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -344,13 +344,14 @@ stat_user (const char *username)
 #else
 "                  "
 #endif
-              "SR: % 7.2f%%        IR: % 7.2f%%        OR: % 7.2f%%\n",
+              "SHR: % 7.2f%%      HSR: % 7.2f%%       OCA: % 7.2f%%\n",
         (all_spam) ?
           (100.0-((float)spam_misclassified / (float)all_spam )*100.0) 
           : 100.0,
         (all_innocent) ? 
+          100.0-
           (100.0-((float)innocent_misclassified / (float)all_innocent )*100.0)
-          : 100.0,
+          : 0.0,
         (all_spam + all_innocent) ? 
           (100.0-(((float)spam_misclassified +(float)innocent_misclassified) / 
                    (float)(all_spam + all_innocent))*100.0) 
