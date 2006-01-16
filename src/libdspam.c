@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.145 2005/12/13 16:59:45 jonz Exp $ */
+/* $Id: libdspam.c,v 1.146 2006/01/16 12:31:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -1556,7 +1556,7 @@ _ds_calc_stat (
 
   ti = CTX->totals.innocent_learned + CTX->totals.innocent_classified;
   ts = CTX->totals.spam_learned + CTX->totals.spam_classified;
-  if (CTX->training_buffer) {
+  if (CTX->training_buffer>1) {
     if (ti < 1000 && ti < ts)
     {
       sed_hits = min_hits+(CTX->training_buffer/2)+
@@ -1569,6 +1569,8 @@ _ds_calc_stat (
       sed_hits = min_hits+(CTX->training_buffer/2)+
                    (CTX->training_buffer*(spams/20));
     }
+  } else if (! CTX->training_buffer) {
+    min_hits = 0;
   }
 
   if (token_type != DTT_DEFAULT || sed_hits > min_hits) 
@@ -1641,7 +1643,6 @@ _ds_calc_stat (
             (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
             ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
              (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0));
-
       }
     }
 
@@ -1659,10 +1660,10 @@ _ds_calc_stat (
       else
         s->probability = 0.9998;
     }
-    if ((CTX->flags & DSF_BIAS && 
-       (s->spam_hits + (2 * s->innocent_hits) < min_hits))
+    if (  (CTX->flags & DSF_BIAS && 
+          (s->spam_hits + (2 * s->innocent_hits) < min_hits))
        || (!(CTX->flags & DSF_BIAS) && 
-        (s->spam_hits + s->innocent_hits < min_hits)))
+          (s->spam_hits + s->innocent_hits < min_hits)))
     {
       s->probability = (CTX->algorithms & DSP_MARKOV) ? .5000 : .4;
     }

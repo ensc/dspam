@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.394 2006/01/13 21:03:08 jonz Exp $
+$Id: CHANGELOG,v 1.395 2006/01/16 12:31:34 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060116.0730] jonz: fix for training buffer
+
+added fix for training buffer where tb=0 failed to turn off buffer
 
 [20060113.0400] jonz: change for dspam_stats output
 
