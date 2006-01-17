@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.109 2006/01/10 14:50:22 jonz Exp $ */
+/* $Id: daemon.c,v 1.110 2006/01/17 23:12:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -743,7 +743,6 @@ GETCMD:
         node_nt = c_nt_first(ATX->recipients, &c_nt);
       else
         node_nt = c_nt_first(ATX->users, &c_nt);
-// HERE -> next
 
       if (ATX->results)
         node_res = ATX->results->first;

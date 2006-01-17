@@ -1,4 +1,4 @@
-/* $Id: diction.h,v 1.3 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: diction.h,v 1.4 2006/01/17 23:12:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -45,6 +45,7 @@ typedef struct _ds_term
   int frequency;
   struct _ds_spam_stat s;
   char *name;
+  char type;
 
 } *ds_term_t;
 

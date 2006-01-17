@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.11 2005/10/01 00:35:00 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.12 2006/01/17 23:12:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -110,14 +110,12 @@ int _ds_tokenize_ngram(
   ds_diction_t diction)
 {
   char *token;				/* current token */
-  char *previous_token = NULL;		/* used for chained tokens */
+  char *previous_token = NULL;		/* used for bigrams (chained tokens) */
 #ifdef NCORE
   nc_strtok_t NTX;
 #endif
-
   char *line = NULL;			/* header broken up into lines */
   char *ptrptr;
-
   char heading[128];			/* current heading */
   int l;
 
@@ -151,7 +149,7 @@ int _ds_tokenize_ngram(
   node_nt = c_nt_first (header, &c_nt);
   heading[0] = 0;
   while (node_nt) {
-    int is_received, multiline;
+    int multiline;
 
 #ifdef VERBOSE
     LOGDEBUG("processing line: %s", node_nt->ptr);
@@ -183,7 +181,7 @@ int _ds_tokenize_ngram(
         if (fromline[0] == 32) 
           fromline++;
         snprintf(wl, sizeof(wl), "%s*%s", heading, fromline);
-        whitelist_token = _ds_getcrc64(wl); 
+        whitelist_token = _ds_getcrc64(wl);
         ds_diction_touch(diction, whitelist_token, wl, 0);
         diction->whitelist_token = whitelist_token;
       }
@@ -192,11 +190,7 @@ int _ds_tokenize_ngram(
     /* Received headers use a different set of delimiters to preserve things
        like ip addresses */
 
-    is_received = (!strcmp (heading, "Received") ? 1 : 0);
-    if (is_received)
-      token = strtok_r ((multiline) ? line : NULL, DELIMITERS_HEADING, &ptrptr);
-    else
-      token = strtok_r ((multiline) ? line : NULL, DELIMITERS, &ptrptr);
+    token = strtok_r ((multiline) ? line : NULL, DELIMITERS_HEADING, &ptrptr);
 
     while (token)
     {
@@ -217,10 +211,7 @@ int _ds_tokenize_ngram(
         }
       }
 
-      if (is_received)
-        token = strtok_r (NULL, DELIMITERS_HEADING, &ptrptr);
-      else
-        token = strtok_r (NULL, DELIMITERS, &ptrptr);
+      token = strtok_r (NULL, DELIMITERS_HEADING, &ptrptr);
     }
 
     previous_token = NULL;
@@ -318,7 +309,7 @@ int _ds_tokenize_sbph(
   node_nt = c_nt_first (header, &c_nt);
   heading[0] = 0;
   while (node_nt) {
-    int is_received, multiline;
+    int multiline;
 
     _ds_sbph_clear(previous_tokens);
 
@@ -357,11 +348,7 @@ int _ds_tokenize_sbph(
     /* Received headers use a different set of delimiters to preserve things
        like ip addresses */
 
-    is_received = (!strcmp (heading, "Received") ? 1 : 0);
-    if (is_received)
-      token = strtok_r ((multiline) ? line : NULL, DELIMITERS_HEADING, &ptrptr);
-    else
-      token = strtok_r ((multiline) ? line : NULL, DELIMITERS, &ptrptr);
+    token = strtok_r ((multiline) ? line : NULL, DELIMITERS_HEADING, &ptrptr);
 
     while (token)
     {
@@ -375,10 +362,7 @@ int _ds_tokenize_sbph(
         _ds_map_header_token (CTX, token, previous_tokens, diction, heading);
       }
 
-      if (is_received)
-        token = strtok_r (NULL, DELIMITERS_HEADING, &ptrptr);
-      else
-        token = strtok_r (NULL, DELIMITERS, &ptrptr);
+      token = strtok_r (NULL, DELIMITERS_HEADING, &ptrptr);
     }
 
     for(i=0;i<SBPH_SIZE;i++) {
@@ -445,17 +429,11 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
                           const char *heading)
 {
   char combined_token[256];
-  int is_received;
   unsigned long long crc;
   char *tweaked_token;
 
   if (_ds_match_attribute(CTX->config->attributes, "IgnoreHeader", heading))
     return 0;
-
-  is_received = (!strcmp (heading, "Received") ? 1 : 0);
-
-  if (is_received && strlen (token) < 6)
-    return EINVAL;
 
   /* This is where we used to ignore certain headings */
 
@@ -477,7 +455,7 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
 #endif
   ds_diction_touch(diction, crc, combined_token, 0);
 
-  if ((CTX->flags & DSF_CHAINED) && previous_token != NULL && !is_received)
+  if ((CTX->flags & DSF_CHAINED) && previous_token != NULL) 
   {
     char *tweaked_previous;
 
@@ -683,7 +661,7 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
  *  _ds_degenerate_message()
  *
  * DESCRIPTION
- *   Degenerate the message into tokenizable pieces
+ *   Degenerate the message into headers, body and tokenizable pieces
  *
  *   This function is responsible for analyzing the actualized message and
  *   degenerating it into only the components which are tokenizable.  This 
@@ -706,7 +684,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 
   if (CTX->message == NULL)
   {
-    LOG (LOG_WARNING, "_ds_actualize_message() failed");
+    LOG (LOG_WARNING, "_ds_actualize_message() failed: CTX->message is NULL");
     return EUNKNOWN;
   }
 
@@ -727,8 +705,6 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
       LOGDEBUG ("  : End of Message Identifier");
 #endif
     }
-
-    /* Skip Attachments */
 
     else 
     {
@@ -755,11 +731,12 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
                            block->media_type == MT_MESSAGE)))
       {
 
-        /* Accumulate the bodies */
+        /* Accumulate the bodies, skip attachments */
+
         if (
-             (block->encoding == EN_BASE64 || 
-              block->encoding == EN_QUOTED_PRINTABLE) && 
-             block->original_signed_body == NULL
+             ( block->encoding == EN_BASE64 || 
+                 block->encoding == EN_QUOTED_PRINTABLE) 
+            && block->original_signed_body == NULL
            )
         {
           struct _ds_header_field *field;
@@ -786,25 +763,28 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
           }
         }
   
+        /* We found a tokenizable body component, add prefilters */
+
         if (decode != NULL)
         {
           char *decode2 = strdup(decode);
   
-          /* -- PREFORMATTING BEGIN -- */
+          /* -- PREFILTERS BEGIN -- */
   
-          // Hexadecimal decoding
+          /* Hexadecimal 8-Bit Encodings */
+
           if (block->encoding == EN_8BIT) {
             char hex[5] = "0x00";
             int conv;
 
             x = strchr(decode2, '%');
-            while(x != NULL) {
+            while(x) {
               if (isxdigit((unsigned char) x[1]) && 
                   isxdigit((unsigned char) x[2])) 
                {
                 hex[2] = x[1];
                 hex[3] = x[2];
-                                                                                
+
                 conv = strtol(hex, NULL, 16);
                 if (conv) {
                   x[0] = conv;
@@ -814,6 +794,8 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
               x = strchr(x+1, '%');
             }
           }
+
+          /* HTML-Specific Filters */
   
           if (block->media_subtype == MST_HTML) {
   
@@ -832,7 +814,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
                 x = strstr (x + 4, "<!--");
               }
             }
-                                                                                
+
             /* Remove short HTML Comments */
             x = strstr (decode2, "<!");
             while (x != NULL)
@@ -848,53 +830,55 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
                 x = strstr (x + 2, "<!");
               }
             }
-  
-            /* Remove short html tags and useless tags */
+
+            /* Remove short HTML tags and those we want to ignore */
             x = strchr (decode2, '<');
             while (x != NULL)
             {
+              int erase = 0;
               y = strchr (x, '>');
-              if (y != NULL && 
-                   ((!strncasecmp (x, "</", 2)) 
-                 || (!strncasecmp (x, "<DIV", 4))
-                 || (!strncasecmp (x, "<BR", 3))
-                 || (!strncasecmp (x, "<TD", 3))
-                 || (!strncasecmp (x, "<TR", 3))))
-               {
-                 memset(x, 32, (y+1)-x);
-                 x = strstr (x + 1, "<");
-               }
-
-              else if (y != NULL && (!strncasecmp (x, "</TD><TD>", 9))) {
-                memset(x, 32, 9);
-                x = strstr(x + 9, "<");
-              }
-              else if (y != NULL
-                  && (y - x <= 15
+              if (y != NULL) {
+                if (y - x <= 15
+                      || x[1] == '/'
                       || !strncasecmp (x + 1, "td ", 3)
-                      || !strncasecmp (x + 1, "!doctype", 8)
-                      || !strncasecmp (x + 1, "blockquote", 10)
                       || !strncasecmp (x + 1, "table ", 6)
                       || !strncasecmp (x + 1, "tr ", 3)
                       || !strncasecmp (x + 1, "div ", 4)
                       || !strncasecmp (x + 1, "p ", 2)
-                      || !strncasecmp (x + 1, "body ", 5) || !strchr (x, ' ')
-                      || strchr (x, ' ') > y))
+                      || !strncasecmp (x + 1, "body ", 5)
+                      || !strncasecmp (x + 1, "!doctype", 8)
+                      || !strncasecmp (x + 1, "blockquote", 10))
+                {
+                  erase = 1;
+                }
+
+                if (!erase) {
+                  char *p = strchr (x, ' ');
+                  if (!p || p > y) 
+                    erase = 1;
+                }
+              }
+              if (erase)
               {
                 memmove (x, y + 1, strlen (y + 1) + 1);
                 x = strstr (x, "<");
               }
               else
               {
-                x = strstr (x + 1, "<");
+                if (y) 
+                  x = strstr (y + 1, "<");
+                else
+                  x = strstr (x + 1, "<");
               }
             }
-  
-            /* -- PREFORMATTING END -- */
           }
+
+          /* -- PREFILTERS END -- */
   
           buffer_cat (body, decode2);
           free(decode2);
+
+          /* If we've decoded the body, save the original copy */
           if (decode != block->body->data)
           {
             block->original_signed_body = block->body;
@@ -920,55 +904,45 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 
 int _ds_url_tokenize(ds_diction_t diction, char *body, const char *key) 
 {
-  char *url_body, *token, *url_ptr;
+  char *token, *url_ptr, *url_token, *ptr;
   char combined_token[256];
-  int url_length;
   unsigned long long crc;
+  int key_len = strlen(key);
 
 #ifdef VERBOSE
   LOGDEBUG("scanning for urls: %s\n", key);
 #endif
   if (!body)
     return EINVAL;
-  url_body = strdup(body);
-  url_ptr = url_body;
+  url_ptr = body;
 
   token = strcasestr(url_ptr, key);
   while (token != NULL)
   {
-    char *ptrurl;
-    char *const url_end = token + strlen(token);
+    int i = 0, old;
 
-    url_ptr = token;
-    token = strtok_r (token, " \n\">", &ptrurl);
-    if (token != NULL)
+    while(token[i] 
+       && token[i] > 32  
+       && token[i] != '>' 
+       && ((token[i] != '\"' && token[i] != '\'') || i <= key_len))
+      i++;
+    old = token[i];
+    token[i] = 0; /* parse in place */
+
+    /* Tokenize URL */
+    url_token = strtok_r (token, DELIMITERS, &ptr);
+    while (url_token != NULL)
     {
-      char *urltoken;
-      char *ptrurl2;
-      url_length = strlen (token);
-
-      /* Individual tokens form the URL */
-      urltoken = strtok_r (token, DELIMITERS, &ptrurl2);
-      while (urltoken != NULL)
-      {
-        snprintf (combined_token, sizeof (combined_token), "Url*%s",
-                  urltoken);
-        crc = _ds_getcrc64 (combined_token);
-        ds_diction_touch(diction, crc, combined_token, 0);
-        urltoken = strtok_r (NULL, DELIMITERS, &ptrurl2);
-      }
-
-      memset (body + (url_ptr - url_body), 32, url_length);
-      url_ptr += url_length + 1;
-      if (url_ptr >= url_end)
-        token = NULL;
-      else 
-        token = strcasestr(url_ptr, key);
+      snprintf (combined_token, sizeof (combined_token), "Url*%s", url_token);
+      crc = _ds_getcrc64 (combined_token);
+      ds_diction_touch(diction, crc, combined_token, 0);
+      url_token = strtok_r (NULL, DELIMITERS, &ptr);
     }
-    else
-      token = NULL;
+    memset (token, 32, i);
+    token[i] = old;
+    url_ptr = token + i;
+    token = strcasestr(url_ptr, key);
   }
-  free (url_body);
   return 0;
 }
 

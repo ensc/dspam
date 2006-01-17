@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.212 2005/10/25 12:30:57 jonz Exp $ */
+/* $Id: dspam.c,v 1.213 2006/01/17 23:12:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -644,7 +644,8 @@ process_message (
     FILE *file;
 
     _ds_userdir_path(dirname, _ds_read_attribute(agent_config, "Home"),
-                 LOOKUP(ATX->PTX, (ATX->managed_group[0]) ? ATX->managed_group :                                   CTX->username), "frag");
+                 LOOKUP(ATX->PTX, (ATX->managed_group[0]) ? ATX->managed_group :
+                                   CTX->username), "frag");
     snprintf(corpusfile, MAX_FILENAME_LENGTH, "%s/%s.frag",
       dirname, ATX->signature);
 
@@ -713,8 +714,6 @@ process_message (
 
   /* Add headers, tag, and deliver if necessary */
 
-//  if (!_ds_match_attribute(agent_config, "TrainPristine", "on") && 
-//        strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "on")) 
   {
     add_xdspam_headers(CTX, ATX);
   }

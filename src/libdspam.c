@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.146 2006/01/16 12:31:34 jonz Exp $ */
+/* $Id: libdspam.c,v 1.147 2006/01/17 23:12:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -82,9 +82,8 @@ void *_drv_handle;
 #include "ncore_adp.h"
 #endif
 
-/* Fisher-Robinson's Inverse Chi-Square Constants */
-#define CHI_S   0.1     /* Strength */
-#define CHI_X   0.5000  /* Assumed Probability */
+#define CHI_S   0.1     /* Chi-Sq Strength */
+#define CHI_X   0.5000  /* Chi-Sq Assumed Probability */
 
 #define	C1	16	/* Markov C1 */
 #define C2	1	/* Markov C2 */
@@ -222,7 +221,7 @@ DSPAM_CTX * dspam_create (
   CTX->confidence      = 0;
   CTX->training_mode   = DST_TEFT;
   CTX->wh_threshold    = 10;
-  CTX->training_buffer = 5;
+  CTX->training_buffer = 0;
   CTX->classification  = DSR_NONE;
   CTX->source          = DSS_NONE;
   CTX->_sig_provided   = 0;
@@ -413,8 +412,7 @@ dspam_destroy (DSPAM_CTX * CTX)
   if (CTX->config && CTX->config->attributes)
     _ds_destroy_config (CTX->config->attributes);
 
-  free(CTX->config);
- 
+  free (CTX->config);
   free (CTX->username);
   free (CTX->group);
   free (CTX->home);
@@ -500,21 +498,19 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     return EINVAL;
   }
  
-  CTX->_process_start = time (NULL);
-
-  /* Set TOE-Mode pretrain option if we haven't seen many messages yet */
-  if (CTX->training_mode == DST_TOE                                           &&
-     (CTX->totals.innocent_learned <= 100 || CTX->totals.spam_learned <= 100) &&
-      (!(CTX->algorithms & DSP_MARKOV)))
+  /* Set TOE mode pretrain option if we haven't seen many messages yet */
+  if (CTX->training_mode == DST_TOE
+  && (CTX->totals.innocent_learned <= 100 || CTX->totals.spam_learned <= 100)
+  && (!(CTX->algorithms & DSP_MARKOV)))
   {
     is_undertrain = 1;
     CTX->training_mode = DST_TEFT;
   }
 
-  /* Set TOE mode if data is mature enough */
-  if ( CTX->operating_mode == DSM_PROCESS &&
-       CTX->classification == DSR_NONE    &&
-       (CTX->training_mode == DST_TOE || CTX->training_mode == DST_NOTRAIN))
+  /* Classify only for TOE / NOTRAIN mode setting if data is mature enough */
+  if ( CTX->operating_mode == DSM_PROCESS 
+    && CTX->classification == DSR_NONE 
+    && (CTX->training_mode == DST_TOE || CTX->training_mode == DST_NOTRAIN))
   {
     CTX->operating_mode = DSM_CLASSIFY;
     is_toe = 1;
@@ -522,10 +518,10 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
 
   /* A signature has been presented for training; process it */
   /* Non-SPBH Signature */
-  if (CTX->operating_mode == DSM_PROCESS && 
-      CTX->classification != DSR_NONE    &&
-      CTX->flags & DSF_SIGNATURE         &&
-   (! (CTX->flags & DSF_SBPH)))
+  if (CTX->operating_mode == DSM_PROCESS 
+   && CTX->classification != DSR_NONE 
+   && CTX->flags & DSF_SIGNATURE 
+   && (! (CTX->flags & DSF_SBPH)))
   {
     int i = _ds_process_signature (CTX);
     if (is_toe)
@@ -537,7 +533,6 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
 
   header = buffer_create (NULL);
   body   = buffer_create (NULL);
-
   if (header == NULL || body == NULL)
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
@@ -551,28 +546,28 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   }
 
   /* Parse the message if it hasn't already been by the client app */
-  if (CTX->message == NULL && message != NULL)
+  if (!CTX->message && message)
     CTX->message = _ds_actualize_message (message);
 
-  /* Analyze the message unless it's a signature based classification */
- 
-  if ( ! (CTX->flags & DSF_SIGNATURE          &&
-          CTX->operating_mode == DSM_CLASSIFY &&
-          CTX->signature != NULL) )
+  /* Analyze and filter (unless it's a signature based classification) */
+  if (! (CTX->flags & DSF_SIGNATURE
+     && CTX->operating_mode == DSM_CLASSIFY
+      && CTX->signature != NULL))
   {
     _ds_degenerate_message(CTX, header, body);
   }
 
+  /*** Perform statistical operations and get a classification result ***/
+
+  /* Initialize */
   CTX->result = DSR_NONE;
 
-  /* Perform statistical operations and get a classification result */
+  /* If SBPH reclassification, recall and operate on saved SBPH text */
 
-  /* SBPH loads text-based signatures */
-
-  if (CTX->flags & DSF_SBPH &&
-      CTX->operating_mode != DSM_CLASSIFY && 
-      CTX->classification != DSR_NONE     &&
-      CTX->flags & DSF_SIGNATURE) 
+  if ( CTX->flags & DSF_SBPH 
+    && CTX->operating_mode != DSM_CLASSIFY 
+    && CTX->classification != DSR_NONE 
+    && CTX->flags & DSF_SIGNATURE)
   {
     char *y, *h, *b;
     char *ptrptr;
@@ -580,13 +575,17 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     y = strdup((const char *) CTX->signature->data);
     h = strtok_r(y, "\001", &ptrptr);
     b = strtok_r(NULL, "\001", &ptrptr);
-
     spam_result = _ds_operate (CTX, h, b);
+
+  /* Otherwise, operate on the input message */
+ 
   } else {
     spam_result = _ds_operate (CTX, header->data, body->data);
   }
 
-  if (spam_result == DSR_ISSPAM  || spam_result == DSR_ISINNOCENT)
+  /* Force decision if a classification was specified */
+
+  if (CTX->classification != DSR_NONE && spam_result >= 0) 
   {
     if (CTX->classification == DSR_ISINNOCENT)
       spam_result = DSR_ISINNOCENT;
@@ -594,17 +593,16 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
       spam_result = DSR_ISSPAM;
   }
 
-  buffer_destroy (header);
-  buffer_destroy (body);
-
+  /* Apply results to context and clean up */
   CTX->result = spam_result;
-
   if (CTX->class[0] == 0) {
     if (CTX->result == DSR_ISSPAM)
       strcpy(CTX->class, LANG_CLASS_SPAM);
     else if (CTX->result == DSR_ISINNOCENT)
       strcpy(CTX->class, LANG_CLASS_INNOCENT);
   }
+  buffer_destroy (header);
+  buffer_destroy (body);
 
   if (is_toe)
     CTX->operating_mode = DSM_PROCESS;
@@ -926,15 +924,14 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       }
     }
 
-    if (ds_term->frequency > 0 && 
-       (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
+    if (ds_term->frequency > 0 && ds_term->type == 'D')
     {
       ds_heap_insert (heap_sort, ds_term->s.probability, ds_term->key,
              ds_term->frequency, _ds_compute_complexity(ds_term->name));
     }
 
 #ifdef LIBBNR_DEBUG
-    if (!ds_term->name || strncmp(ds_term->name, "bnr.", 4))
+    if (ds_term->type == 'D')
     {
       ds_heap_insert (heap_nobnr, ds_term->s.probability, ds_term->key,
              ds_term->frequency, _ds_compute_complexity(ds_term->name));
@@ -1115,7 +1112,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     else if (CTX->classification == DSR_ISINNOCENT) 
       ds_term->s.probability = 0.00;
 
-    if ((! ds_term->name || strncmp(ds_term->name, "bnr.", 4)) &&
+    if (ds_term->type == 'D' &&
         ( CTX->training_mode != DST_TUM  || 
           CTX->source == DSS_ERROR       ||
           CTX->source == DSS_INOCULATION ||
@@ -1126,7 +1123,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
         ds_term->s.status |= TST_DIRTY;
     }
 
-    if (ds_term->name && !strncmp(ds_term->name, "bnr.", 4) &&
+    if (ds_term->type == 'B' &&
         CTX->totals.innocent_learned + CTX->totals.innocent_classified > 500 &&
         CTX->flags & DSF_NOISE &&
         CTX->_sig_provided == 0)
@@ -1556,7 +1553,7 @@ _ds_calc_stat (
 
   ti = CTX->totals.innocent_learned + CTX->totals.innocent_classified;
   ts = CTX->totals.spam_learned + CTX->totals.spam_classified;
-  if (CTX->training_buffer>1) {
+  if (CTX->training_buffer>0) {
     if (ti < 1000 && ti < ts)
     {
       sed_hits = min_hits+(CTX->training_buffer/2)+
@@ -1570,7 +1567,7 @@ _ds_calc_stat (
                    (CTX->training_buffer*(spams/20));
     }
   } else if (! CTX->training_buffer) {
-    min_hits = 0;
+    min_hits = 5;
   }
 
   if (token_type != DTT_DEFAULT || sed_hits > min_hits) 
@@ -1585,8 +1582,11 @@ _ds_calc_stat (
 
   if (CTX->classification == DSR_ISSPAM)
     s->probability = .7;
-  else
+  else {
     s->probability = (CTX->algorithms & DSP_MARKOV) ? .5 : .4;
+  }
+
+  
 
   /* Markovian Weighting */
 
@@ -1622,9 +1622,10 @@ _ds_calc_stat (
 
   } else {
     if (CTX->totals.spam_learned > 0 && 
-        CTX->totals.innocent_learned > 0 &&
-          ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
-           (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0)) > 0)
+        CTX->totals.innocent_learned > 0)
+// &&
+//          ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
+//           (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0)) > 0)
     {
       if (token_type == DTT_BNR) {
         s->probability =
@@ -1648,17 +1649,11 @@ _ds_calc_stat (
 
     if (s->spam_hits == 0 && s->innocent_hits > 0)
     {
-      if (s->innocent_hits > 10)
-        s->probability = 0.0001;
-      else
-        s->probability = 0.0002;
+        s->probability = 0.01;
     }
     else if (s->spam_hits > 0 && s->innocent_hits == 0)
     {
-      if (s->spam_hits > 10)
-        s->probability = 0.9999;
-      else
-        s->probability = 0.9998;
+        s->probability = 0.99;
     }
     if (  (CTX->flags & DSF_BIAS && 
           (s->spam_hits + (2 * s->innocent_hits) < min_hits))
@@ -1669,11 +1664,11 @@ _ds_calc_stat (
     }
   }
 
-  if (s->probability < 0.0001)
-    s->probability = 0.0001;
+  if (s->probability < 0.0100)
+    s->probability = 0.01;
 
-  if (s->probability > 0.9999)
-    s->probability = 0.9999;
+  if (s->probability > 0.9900)
+    s->probability = 0.99;
 
   /* Finish off Robinson */
 
@@ -1769,7 +1764,7 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
       continue;
 
     /* Skip BNR patterns */
-    if (token_name && !strncmp(token_name, "bnr.", 4))
+    if (ds_term->type == 'B')
       continue;
 
     /* Set the probability if we've provided a classification */
@@ -1963,7 +1958,7 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
       if (CTX->algorithms & DSA_CHI_SQUARE) {
 
         /* Skip BNR Tokens */
-        if (ds_term->name && !strncmp(ds_term->name, "bnr.", 4))
+        if (ds_term->type == 'B')
           goto CHI_NEXT;
 
         /* Convert the p-value */
@@ -2325,7 +2320,7 @@ int _ds_instantiate_bnr(
   char identifier)
 {
   float previous_bnr_probs[BNR_SIZE];
-  ds_term_t ds_term;
+  ds_term_t ds_term, ds_touch;
   struct nt_node *node_nt;
   struct nt_c c_nt;
   unsigned long long crc;
@@ -2356,7 +2351,8 @@ int _ds_instantiate_bnr(
 #ifdef VERBOSE
     LOGDEBUG ("BNR pattern instantiated: '%s'", bnr_token);
 #endif
-    ds_diction_touch(patterns, crc, bnr_token, 0);
+    ds_touch = ds_diction_touch(patterns, crc, bnr_token, 0);
+    ds_touch->type = 'B';
     node_nt = c_nt_next(stream, &c_nt);
   }
   return 0;
@@ -2378,7 +2374,7 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
 #endif
   struct nt_node *node_nt;
   struct nt_c c_nt;
-  ds_term_t ds_term;
+  ds_term_t ds_term, ds_touch;
   ds_cursor_t ds_c;
 
   if (!bnr_patterns)
@@ -2406,7 +2402,8 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
   /* Add BNR totals to the list of load elements */
   memset(&bnr_tot, 0, sizeof(struct _ds_spam_stat));
   crc = _ds_getcrc64("bnr.t|");
-  ds_diction_touch(bnr_patterns, crc, "bnr.t|", 0);
+  ds_touch = ds_diction_touch(bnr_patterns, crc, "bnr.t|", 0);
+  ds_touch->type = 'B';
 
   /* Load BNR patterns */
   LOGDEBUG("Loading %ld BNR patterns", bnr_patterns->items);
@@ -2607,6 +2604,7 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
     ds_term = ds_diction_next(ds_c);
     while(ds_term) {
       ds_term_t t = ds_diction_touch(diction, ds_term->key, ds_term->name, 0);
+      t->type = 'B';
       ds_diction_setstat(diction, ds_term->key, &ds_term->s);
       if (t)
         t->frequency = 1;

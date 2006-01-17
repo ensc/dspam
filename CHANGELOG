@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.395 2006/01/16 12:31:34 jonz Exp $
+$Id: CHANGELOG,v 1.396 2006/01/17 23:12:39 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060117.0608] jonz: enhancements to accuracy, performance
+
+made several optimizations to enhance accuracy and performance:
+- rewrote some routines that were strdup'ing message body repeatedly
+- changes to tokenization and probability assignment
 
 [20060116.0730] jonz: fix for training buffer
 

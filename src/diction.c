@@ -1,4 +1,4 @@
-/* $Id: diction.c,v 1.5 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: diction.c,v 1.6 2006/01/17 23:12:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -127,6 +127,7 @@ ds_diction_term_create (ds_key_t key, const char *name)
   } else {
     term->key = key;
     term->frequency = 1;
+    term->type = 'D';
     if (name)
       term->name = strdup(name);
   }
