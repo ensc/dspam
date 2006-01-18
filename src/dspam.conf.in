@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.63 2005/11/25 17:47:04 jonz Exp $
+## $Id: dspam.conf.in,v 1.64 2006/01/18 17:02:38 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -165,8 +165,14 @@ TestConditionalTraining on
 #Feature sbph
 #Feature noise
 Feature chained
-Feature tb=5
 Feature whitelist
+
+# Training Buffer: The training buffer waters down statistics during training.
+# It is designed to prevent false positives, but can also dramatically reduce
+# dspam's catch rate during initial training. This can be a number from 0
+# (no buffering) to 10 (maximum buffering). If you are paranoid about false
+# positives, you should probably enable this option.
+#Feature tb=5
 
 #
 # Algorithms: Specify the statistical algorithms to use, overriding any
