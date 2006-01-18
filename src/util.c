@@ -1,8 +1,8 @@
-/* $Id: util.c,v 1.18 2005/10/26 17:39:32 jonz Exp $ */
+/* $Id: util.c,v 1.19 2006/01/18 16:48:54 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

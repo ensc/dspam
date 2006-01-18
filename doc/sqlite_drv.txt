@@ -1,6 +1,6 @@
  sqlite_drv: SQLite storage driver for DSPAM <jonathan@nuclearelephant.com>
 sqlite3_drv: SQLite3 storage driver for DSPAM <jonathan@nuclearelephant.com>
-Copyright (c) 2002-2005 Deep Logic, Inc.
+Copyright (c) 2002-2006 Deep Logic, Inc.
 http://www.nuclearelephant.com/projects/dspam/
 
 LICENSE

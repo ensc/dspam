@@ -1,8 +1,8 @@
-/* $Id: dspam_merge.c,v 1.13 2005/10/12 15:58:55 jonz Exp $ */
+/* $Id: dspam_merge.c,v 1.14 2006/01/18 16:48:54 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

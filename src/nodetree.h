@@ -1,8 +1,8 @@
-/* $Id: nodetree.h,v 1.5 2005/10/01 04:29:03 jonz Exp $ */
+/* $Id: nodetree.h,v 1.6 2006/01/18 16:48:53 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

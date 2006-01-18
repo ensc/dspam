@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: graph.cgi,v 1.2 2005/09/24 17:49:01 jonz Exp $
+# $Id: graph.cgi,v 1.3 2006/01/18 16:48:54 jonz Exp $
 # DSPAM
-# COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
+# COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

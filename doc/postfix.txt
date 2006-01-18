@@ -1,4 +1,4 @@
-$Id: postfix.txt,v 1.2 2005/08/02 12:54:20 jonz Exp $
+$Id: postfix.txt,v 1.3 2006/01/18 16:48:53 jonz Exp $
 
 POSTFIX INTEGRATION
 
@@ -108,15 +108,6 @@ localhost:10026 inet  n -       n       -       -        smtpd
 You're now good to go! Turn on Postfix and do a little testing. Send a message
 to yourself on port 25. It should have X-DSPAM headers. Send a message to
 yourself on port 10026. It should not.
-
-NOTE: This approach causes all incoming AND OUTGOING mail to pass through
-DSPAM, so it's a good idea to only use this setup on servers managing inbound
-mail exclusively, or to manually manage the users in dspam_virtual_uids. You
-can do this by using the virutal_user_aliases.sql script instead of 
-virtual_users.sql, which will cause any users NOT manually added to 
-dspam_virtual_uids to automatically fail into delivery (without processing). 
-I am working on a wildcard user setting for DSPAM that will make this much
-easier to manage without having to switch to manual virtual user mode.
 
 If you are deadset against running DSPAM as a server daemon, this design can
 be changed to call DSPAM via commandline, and have DSPAM reinject by calling

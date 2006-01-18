@@ -1,8 +1,8 @@
-/* $Id: pgsql_drv.c,v 1.48 2005/12/02 05:06:11 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.49 2006/01/18 16:48:53 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

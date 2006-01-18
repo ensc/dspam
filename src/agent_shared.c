@@ -1,8 +1,8 @@
-/* $Id: agent_shared.c,v 1.64 2006/01/18 16:41:37 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.65 2006/01/18 16:48:53 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -434,7 +434,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     if (!strcmp (argv[i], "--version"))
     {
       printf ("\nDSPAM Anti-Spam Suite %s (agent/library)\n\n", VERSION);
-      printf ("Copyright (c) 2002-2005 Deep Logic, Inc.\n");
+      printf ("Copyright (c) 2002-2006 Deep Logic, Inc.\n");
       printf ("http://dspam.nuclearelephant.com\n\n");
       printf ("DSPAM may be copied only under the terms of the GNU "
               "General Public License,\n");

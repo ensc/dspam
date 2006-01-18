@@ -1,8 +1,8 @@
-/* $Id: cssconvert.c,v 1.1 2005/10/25 21:35:25 jonz Exp $ */
+/* $Id: cssconvert.c,v 1.2 2006/01/18 16:48:54 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

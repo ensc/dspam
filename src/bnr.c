@@ -1,8 +1,8 @@
-/* $Id: bnr.c,v 1.26 2005/09/24 17:48:58 jonz Exp $ */
+/* $Id: bnr.c,v 1.27 2006/01/18 16:48:53 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2005 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

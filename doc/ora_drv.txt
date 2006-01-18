@@ -1,7 +1,7 @@
-$Id: ora_drv.txt,v 1.5 2005/09/24 17:48:58 jonz Exp $
+$Id: ora_drv.txt,v 1.6 2006/01/18 16:48:53 jonz Exp $
 
 ora_drv: Oracle storage driver for DSPAM <jonathan@nuclearelephant.com>
-Copyright (c) 2002-2005 Deep Logic, Inc.
+Copyright (c) 2002-2006 Deep Logic, Inc.
 http://www.nuclearelephant.com/projects/dspam/
 
 LICENSE
