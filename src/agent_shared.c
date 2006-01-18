@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.63 2006/01/11 15:21:08 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.64 2006/01/18 16:41:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -586,8 +586,10 @@ int apply_defaults(AGENT_CTX *ATX) {
 
   /* Default delivery agent */
 
-  if (!(ATX->flags & DAF_STDOUT) &&
-      (ATX->flags & DAF_DELIVER_INNOCENT || ATX->flags & DAF_DELIVER_SPAM)) {
+  if ( ! (ATX->flags & DAF_STDOUT) 
+    && ATX->operating_mode != DSM_CLASSIFY
+    && (ATX->flags & DAF_DELIVER_INNOCENT || ATX->flags & DAF_DELIVER_SPAM)) 
+  {
     char key[32];
 #ifdef TRUSTED_USER_SECURITY
     if (!ATX->trusted) 

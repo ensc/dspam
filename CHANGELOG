@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.396 2006/01/17 23:12:39 jonz Exp $
+$Id: CHANGELOG,v 1.397 2006/01/18 16:41:37 jonz Exp $
 
 Version NEXT
 ------------
@@ -7,11 +7,8 @@ Version NEXT
 
 made several optimizations to enhance accuracy and performance:
 - rewrote some routines that were strdup'ing message body repeatedly
-- changes to tokenization and probability assignment
-
-[20060116.0730] jonz: fix for training buffer
-
-added fix for training buffer where tb=0 failed to turn off buffer
+- changes to tokenization and probability assignment make a noticeable
+  difference in accuracy
 
 [20060113.0400] jonz: change for dspam_stats output
 
@@ -23,7 +20,8 @@ OCA: Overall Classification Accuracy
 [20060111.0830] jonz: bugfix for commandline agent error
 
 fixed bug causing "no trusted delivery agent configured" error when calling
-dspam without an agent configured, but not delivering
+dspam without an agent configured, but not delivering - or when using
+--classify
 
 [20060110.0830] jonz: bugfix for ChangeUserOnParse
 
