@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.50 2006/01/20 17:28:33 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.51 2006/01/20 17:30:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -2372,87 +2372,6 @@ FAIL:
   PQFREEMEM(m1);
   dspam_destroy(CTX);
   return EFAILURE;
-}
-
-int _ds_pref_save(
-  config_t config,
-  const char *username, 
-  const char *home, 
-  agent_pref_t PTX, 
-  void *dbh) 
-{
-  struct _pgsql_drv_storage *s;
-  struct passwd *p;
-  char query[128];
-  DSPAM_CTX *CTX;
-  agent_attrib_t pref;
-  int uid, i = 0;
-  unsigned char *m1, *m2;
-  size_t length;
-  PGresult *result;
-
-  CTX = _pgsql_drv_init_tools(home, config, dbh, DSM_PROCESS);
-  if (CTX == NULL)
-  {
-    LOG (LOG_WARNING, "unable to initialize tools context");
-    return EFAILURE;
-  }
-
-  s = (struct _pgsql_drv_storage *) CTX->storage;
-
-  if (username != NULL) {
-    p = _pgsql_drv_getpwnam (CTX, username);
-
-    if (p == NULL)
-    {
-      LOGDEBUG ("_ds_pref_save: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
-      dspam_destroy(CTX);
-      return EFAILURE;
-    } else {
-      uid = p->pw_uid;
-    }
-  } else {
-    uid = 0; /* Default Preferences */
-  }
-
-  snprintf(query, sizeof(query), "DELETE FROM dspam_preferences "
-                                 "WHERE uid = '%d'", uid);
-
-  result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
-  {
-    _pgsql_drv_query_error (PQresultErrorMessage(result), query);
-    if (result) PQclear(result);
-    dspam_destroy(CTX);
-    return EFAILURE;
-  }
-  PQclear(result);
-  
-  for(i=0;PTX[i];i++) {
-    pref = PTX[i];
-
-    m1 = PQescapeBytea((unsigned char *) pref->attribute, strlen(pref->attribute), &length);
-    m2 = PQescapeBytea((unsigned char *) pref->value, strlen(pref->value), &length);
-
-    snprintf(query, sizeof(query), "INSERT INTO dspam_preferences "
-      "(uid, attribute, value) VALUES ('%d', '%s', '%s')", uid, m1, m2);
-
-    PQFREEMEM(m1);
-    PQFREEMEM(m2);
-    result = PQexec(s->dbh, query);
-    if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
-    {
-      _pgsql_drv_query_error (PQresultErrorMessage(result), query);
-      if (result) PQclear(result);
-      dspam_destroy(CTX);
-      return EFAILURE;
-    }
-    PQclear(result);
-  }
-  
-  dspam_destroy(CTX);
-  return 0;
 }
 
 int _pgsql_drv_set_attributes(DSPAM_CTX *CTX, config_t config) {

@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.60 2006/01/20 17:28:33 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.61 2006/01/20 17:30:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -2250,77 +2250,6 @@ FAIL:
   LOGDEBUG("_ds_pref_del() failed");
   return EFAILURE;
 
-}
-
-int _ds_pref_save(
-  config_t config,
-  const char *username,  
-  const char *home, 
-  agent_pref_t PTX,
-  void *dbh) 
-{
-  struct _mysql_drv_storage *s;
-  struct passwd *p;
-  char query[128];
-  DSPAM_CTX *CTX;
-  agent_attrib_t pref;
-  int uid, i = 0;
-  char m1[257], m2[257];
-
-  CTX = _mysql_drv_init_tools(home, config, dbh, DSM_PROCESS);
-  if (CTX == NULL) {
-    LOG (LOG_WARNING, "unable to initialize tools context");
-    return EUNKNOWN;
-  }
-
-  s = (struct _mysql_drv_storage *) CTX->storage;
-
-  if (username != NULL) {
-    p = _mysql_drv_getpwnam (CTX, username);
-
-    if (p == NULL)
-    {
-      LOGDEBUG ("_ds_pref_save: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
-      dspam_destroy(CTX);
-      return EFAILURE;
-    } else {
-      uid = p->pw_uid;
-    }
-  } else {
-    uid = 0; /* Default Preferences */
-  }
-
-  snprintf(query, sizeof(query), "delete from dspam_preferences where uid = %d",
-     uid);
-
-  if (MYSQL_RUN_QUERY (s->dbh, query))
-  {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
-    dspam_destroy(CTX);
-    return EFAILURE;
-  }
-
-  for(i=0;PTX[i];i++) {
-    pref = PTX[i];
-
-    mysql_real_escape_string (s->dbh, m1, pref->attribute, 
-                              strlen(pref->attribute));
-    mysql_real_escape_string (s->dbh, m2, pref->value, strlen(pref->value));
-
-    snprintf(query, sizeof(query), "insert into dspam_preferences "
-      "(uid, attribute, value) values('%d', '%s', '%s')", uid, m1, m2); 
-
-    if (MYSQL_RUN_QUERY (s->dbh, query))
-    {
-      _mysql_drv_query_error (mysql_error (s->dbh), query);
-      dspam_destroy(CTX);
-      return EFAILURE;
-    }
-  }
-
-  dspam_destroy(CTX);
-  return 0;
 }
 
 int _mysql_drv_set_attributes(DSPAM_CTX *CTX, config_t config) {
