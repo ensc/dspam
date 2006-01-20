@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.15 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.16 2006/01/20 17:28:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -1155,5 +1155,25 @@ _hash_drv_get_spamrecord (
   wrec->nonspam  = rec->nonspam;
   wrec->spam     = rec->spam;
   return 0;
+}
+
+/* Preference Stubs for Flat-File */
+
+agent_pref_t _ds_pref_load(config_t config, const char *user,
+  const char *home, void *dbh)
+{
+  return _ds_ff_pref_load(config, user, home, dbh);
+}
+
+int _ds_pref_set(config_t config, const char *user, const char *home,
+  const char *attrib, const char *value, void *dbh)
+{
+  return _ds_ff_pref_set(config, user, home, attrib, value, dbh);
+}
+
+int _ds_pref_del(config_t config, const char *user, const char *home,
+  const char *attrib, void *dbh)
+{
+  return _ds_pref_del(config, user, home, attrib, dbh);
 }
 

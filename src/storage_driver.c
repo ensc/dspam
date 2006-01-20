@@ -1,4 +1,4 @@
-/* $Id: storage_driver.c,v 1.6 2006/01/18 16:48:54 jonz Exp $ */
+/* $Id: storage_driver.c,v 1.7 2006/01/20 17:28:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -326,7 +326,6 @@ void *_ds_connect (DSPAM_CTX *CTX)
   return (*ptr)(CTX);
 }
 
-#ifdef PREFERENCES_EXTENSION
 agent_pref_t _ds_pref_load(
   config_t config,
   const char *user,
@@ -340,23 +339,6 @@ agent_pref_t _ds_pref_load(
   }
   return (*ptr)(config, user, home, dbh);
 }
-
-int _ds_pref_save(
-  config_t config,
-  const char *user, 
-  const char *home,
-  agent_pref_t PTX,
-  void *dbh)
-{
-  int (*ptr)(config_t, const char *, const char *, void *);
-  ptr = (int (*)(config_t, const char *, const char *, void *))dlsym(_drv_handle, "_ds_pref_save");
-  if (!ptr) {
-    LOG(LOG_CRIT, "dlsym(_ds_pref_save) failed: %s", dlerror());
-    return EFAILURE;
-  }
-  return (*ptr)(config, user, home, dbh);
-}
-
 
 int _ds_pref_set(
   config_t config,
@@ -390,6 +372,4 @@ int _ds_pref_del(
   }
   return (*ptr)(config, user, home, dbh);
 }
-
-#endif
 

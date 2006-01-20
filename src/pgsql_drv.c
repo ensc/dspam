@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.49 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.50 2006/01/20 17:28:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -62,9 +62,7 @@
 #include "error.h"
 #include "language.h"
 #include "util.h"
-#ifdef PREFERENCES_EXTENSION
 #include "pref.h"
-#endif
 
 
 #ifdef HAVE_PQFREEMEM
@@ -2492,6 +2490,27 @@ int _pgsql_drv_set_attributes(DSPAM_CTX *CTX, config_t config) {
   }
 
   return 0;
+}
+
+#else
+/* Preference Stubs for Flat-File */
+
+agent_pref_t _ds_pref_load(config_t config, const char *user,
+  const char *home, void *dbh)
+{
+  return _ds_ff_pref_load(config, user, home, dbh);
+}
+
+int _ds_pref_set(config_t config, const char *user, const char *home,
+  const char *attrib, const char *value, void *dbh)
+{
+  return _ds_ff_pref_set(config, user, home, attrib, value, dbh);
+}
+
+int _ds_pref_del(config_t config, const char *user, const char *home,
+  const char *attrib, void *dbh)
+{
+  return _ds_pref_del(config, user, home, attrib, dbh);
 }
 
 #endif

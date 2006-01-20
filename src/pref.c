@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.29 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: pref.c,v 1.30 2006/01/20 17:28:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -154,10 +154,10 @@ agent_attrib_t _ds_pref_new(const char *attribute, const char *value) {
   return pref;
 }
 
-/* ifndef PREFERENCES_EXTENSION: Driver independent flat file operations */
+/* flat-file preference extensions (defaulted to if storage driver extensions
+   are not found) */
 
-#ifndef PREFERENCES_EXTENSION
-agent_pref_t _ds_pref_load(
+agent_pref_t _ds_ff_pref_load(
   config_t config,
   const char *user, 
   const char *home,
@@ -216,7 +216,7 @@ agent_pref_t _ds_pref_load(
 }
 
 /*
- *  _ds_pref_prepare_file: prepares a backup copy of a preference file
+ *  _ds_ff_pref_prepare_file: prepares a backup copy of a preference file
  *
  *  This operation prepares a backup copy of a given preference file, using a
  *  .bak extension and returns an open filehandle to it at the end of the file.
@@ -226,7 +226,7 @@ agent_pref_t _ds_pref_load(
  *  the number of lines in the file.
  */
  
-FILE *_ds_pref_prepare_file (
+FILE *_ds_ff_pref_prepare_file (
   const char *filename,
   const char *omission,
   int *nlines)
@@ -274,7 +274,7 @@ FILE *_ds_pref_prepare_file (
 
 /* _ds_pref_commit: close scratch copy and commit it as the new live copy */
 
-int _ds_pref_commit (
+int _ds_ff_pref_commit (
   const char *filename,
   FILE *out_file)
 {
@@ -295,7 +295,7 @@ int _ds_pref_commit (
   return 0;
 }
 
-int _ds_pref_set (
+int _ds_ff_pref_set (
   config_t config,
   const char *username,
   const char *home,
@@ -312,17 +312,17 @@ int _ds_pref_set (
     _ds_userdir_path (filename, home, username, "prefs");
   }
 
-  out_file = _ds_pref_prepare_file(filename, preference, NULL);
+  out_file = _ds_ff_pref_prepare_file(filename, preference, NULL);
 
   if (out_file == NULL)
     return EFAILURE;
 
   fprintf(out_file, "%s=%s\n", preference, value);
 
-  return _ds_pref_commit(filename, out_file);
+  return _ds_ff_pref_commit(filename, out_file);
 }
 
-int _ds_pref_del (
+int _ds_ff_pref_del (
   config_t config,
   const char *username,
   const char *home,
@@ -339,7 +339,7 @@ int _ds_pref_del (
     _ds_userdir_path (filename, home, username, "prefs");
   }
 
-  out_file = _ds_pref_prepare_file(filename, preference, &nlines);
+  out_file = _ds_ff_pref_prepare_file(filename, preference, &nlines);
 
   if (out_file == NULL)
     return EFAILURE;
@@ -352,7 +352,5 @@ int _ds_pref_del (
     return unlink(filename);
   }
 
-  return _ds_pref_commit(filename, out_file);
+  return _ds_ff_pref_commit(filename, out_file);
 }
-#endif
-

@@ -1,4 +1,4 @@
-/* $Id: storage_driver.h,v 1.16 2006/01/18 16:48:54 jonz Exp $ */
+/* $Id: storage_driver.h,v 1.17 2006/01/20 17:28:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -29,10 +29,8 @@
 
 #include "libdspam_objects.h"
 #include "diction.h"
-#ifdef PREFERENCES_EXTENSION
 #include "pref.h"
 #include "config_shared.h"
-#endif
 #ifdef DAEMON
 #include <pthread.h>
 #endif
@@ -199,17 +197,10 @@ int _ds_delete_decision(
  *  The selected storage driver must support preference extensions.
  */
 
-#ifdef PREFERENCES_EXTENSION
 agent_pref_t _ds_pref_load(
   config_t config,
   const char *user,
   const char *home, void *dbh);
-int _ds_pref_save(
-  config_t config,
-  const char *user, 
-  const char *home,
-  agent_pref_t PTX,
-  void *dbh);
 int _ds_pref_set(
   config_t config,
   const char *user,
@@ -223,7 +214,6 @@ int _ds_pref_del(
   const char *home, 
   const char *attrib,
   void *dbh);
-#endif
 
 /* Driver context flags */
 

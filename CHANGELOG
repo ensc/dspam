@@ -1,7 +1,20 @@
-$Id: CHANGELOG,v 1.397 2006/01/18 16:41:37 jonz Exp $
+$Id: CHANGELOG,v 1.398 2006/01/20 17:28:33 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060120.0500] jonz: packaging problem with preferences-extension support
+
+packagers trying to build all available storage drivers, but using 
+preferences-extension support would end up with a bombed build if they included
+any drivers that didn't support preferences-extensions. this has been
+corrected so that each driver has a stub to the flat-file preferences code,
+which will be called if preferences extensions are disables or unsupported
+for that driver. in other words, it should be possible to build all drivers
+now with one build, even using preferences-extensions.
+
+Version 3.6.3
+-------------
 
 [20060117.0608] jonz: enhancements to accuracy, performance
 

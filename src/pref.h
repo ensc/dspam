@@ -1,4 +1,4 @@
-/* $Id: pref.h,v 1.15 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: pref.h,v 1.16 2006/01/20 17:28:33 jonz Exp $ */
 
 /*
  DSPAM
@@ -52,32 +52,30 @@ int             _ds_pref_free (agent_pref_t PTX);
 agent_pref_t	_ds_pref_aggregate (agent_pref_t, agent_pref_t);
 agent_attrib_t	_ds_pref_new (const char *attribute, const char *value);
 
-#ifndef PREFERENCES_EXTENSION
-agent_pref_t  _ds_pref_load(
+agent_pref_t  _ds_ff_pref_load(
   config_t config,
   const char *user, 
   const char *home, 
   void *ignore);
-int _ds_pref_set(
+int _ds_ff_pref_set(
   config_t config,
   const char *user,
   const char *home,
   const char *preference,
   const char *value,
   void *ignore);
-int _ds_pref_del(
+int _ds_ff_pref_del(
   config_t config,
   const char *user,
   const char *home, 
   const char *preference,
   void *ignore);
-FILE *_ds_pref_prepare_file(
+FILE *_ds_ff_pref_prepare_file(
   const char *filename,
   const char *omission,
   int *nlines);
-int _ds_pref_commit (
+int _ds_ff_pref_commit (
   const char *filename,
   FILE *out_file);
-#endif
 
 #endif /* _PREF_H */
