@@ -1,4 +1,4 @@
-/* $Id: decode.h,v 1.10 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: decode.h,v 1.11 2006/01/21 23:38:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -48,7 +48,7 @@ typedef struct _ds_header_field
 } *ds_header_t;
 
 /*
- * _ds_message_block
+ * _ds_message_part
  * 
  * DESCRIPTION
  *   a message block (or part) within a message. in a single-part message, 
@@ -61,7 +61,7 @@ typedef struct _ds_header_field
  *    - boundary and terminating boundary information
  */
 
-typedef struct _ds_message_block
+typedef struct _ds_message_part
 {
   struct nt *	headers;
   buffer *	body;
@@ -72,7 +72,8 @@ typedef struct _ds_message_block
   int 		original_encoding;
   int 		media_type;
   int 		media_subtype;
-} *ds_message_block_t;
+  int           content_disposition;
+} *ds_message_part_t;
 
 /*
  * _ds_message
@@ -83,7 +84,7 @@ typedef struct _ds_message_block
  *   in multipart emails, however, the first message block will represent the 
  *   header (with a NULL body_data or something like "This is a multi-part 
  *   message"), and each additional block within the email will be given its 
- *   own message_block structure with its own headers, boundary, etc.
+ *   own message_part structure with its own headers, boundary, etc.
  *
  *   embedded multipart messages are not realized by the structure, but can
  *   be identified by examining the media type or headers.
@@ -109,20 +110,20 @@ ds_message_t _ds_actualize_message (const char *message);
 char *  _ds_assemble_message (ds_message_t message);
 char *  _ds_find_header (ds_message_t message, const char *heading, int flags);
 
-ds_message_block_t _ds_create_message_block (void);
+ds_message_part_t _ds_create_message_part (void);
 ds_header_t        _ds_create_header_field  (const char *heading);
 void               _ds_analyze_header
-  (ds_message_block_t block, ds_header_t  header, struct nt *boundaries);
+  (ds_message_part_t block, ds_header_t  header, struct nt *boundaries);
 
 void _ds_destroy_message	(ds_message_t message);
-void _ds_destroy_headers	(ds_message_block_t block);
-void _ds_destroy_block		(ds_message_block_t block);
+void _ds_destroy_headers	(ds_message_part_t block);
+void _ds_destroy_block		(ds_message_part_t block);
 
-char *	_ds_decode_block	(ds_message_block_t block);
-int	_ds_encode_block	(ds_message_block_t block, int encoding);
+char *	_ds_decode_block	(ds_message_part_t block);
+int	_ds_encode_block	(ds_message_part_t block, int encoding);
 char *	_ds_encode_base64	(const char *body);
 char *	_ds_encode_quoted	(const char *body);
-int     _ds_decode_headers      (ds_message_block_t block);
+int     _ds_decode_headers      (ds_message_part_t block);
 
 int	_ds_push_boundary	(struct nt *stack, const char *boundary);
 int	_ds_match_boundary	(struct nt *stack, const char *buff);
@@ -161,6 +162,13 @@ char *	_ds_pop_boundary	(struct nt *stack);
 #define MST_ENCRYPTED		0x08
 #define MST_UNKNOWN		0xFE
 #define MST_OTHER		0xFF
+
+/* Part Content-Dispositions */
+
+#define PCD_INLINE		0x00
+#define PCD_ATTACHMENT		0x01
+#define PCD_UNKNOWN		0xFE
+#define PCD_OTHER		0xFF
 
 /* Block position; used when analyzing a message */
 

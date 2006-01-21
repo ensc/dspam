@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.398 2006/01/20 17:28:33 jonz Exp $
+$Id: CHANGELOG,v 1.399 2006/01/21 23:38:30 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060121.1835] jonz: code cleanup / performance improvements
+
+cleaned up text preprocessors (decoders and html scrubbers), avoided using
+repeated strlen() functions which were consuming around 25% of the total
+processing time. renamed _ds_message_block to _ds_message_part (no reason).
 
 [20060120.0500] jonz: packaging problem with preferences-extension support
 

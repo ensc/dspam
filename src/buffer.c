@@ -1,4 +1,4 @@
-/* $Id: buffer.c,v 1.7 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: buffer.c,v 1.8 2006/01/21 23:38:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -34,14 +34,17 @@ buffer_create (const char *s)
   long len;
 
   b = malloc (sizeof (buffer));
-  if (b == NULL)
+  if (!b)
     return NULL;
 
-  if (s == NULL)
+  if (!s)
   {
-    b->size = 0;
+    b->size = 1024;
     b->used = 0;
-    b->data = NULL;
+    b->data = malloc(b->size);
+    if (!b->data) 
+      return NULL;
+    b->data[0] = 0;
     return b;
   }
 
@@ -123,19 +126,13 @@ buffer_cat (buffer * b, const char *s)
   long size;
   long len, used;
 
-  if (b == NULL)
+  if (!b || !s)
     return -1;
 
   size = b->size;
-
-  if (s == NULL)
-    return -1;
-
   len = strlen (s);
-  if (b->data == NULL)
-  {
+  if (! b->data)
     return buffer_copy (b, s);
-  }
 
   used = b->used + len;
   if (used >= size)
@@ -143,7 +140,7 @@ buffer_cat (buffer * b, const char *s)
     size *= 2;
     size += len;
     new_data = realloc (b->data, size);
-    if (new_data == NULL)
+    if (!new_data)
       return -1;
     b->data = new_data;
     b->size = size;

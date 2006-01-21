@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.28 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: decode.c,v 1.29 2006/01/21 23:38:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -69,7 +69,7 @@ ds_message_t
 _ds_actualize_message (const char *message)
 {
   char *line, *in = strdup (message), *m_in;
-  ds_message_block_t current_block;
+  ds_message_part_t current_block;
   ds_header_t current_heading = NULL;
   struct nt *boundaries = nt_create (NT_CHAR);
   ds_message_t out = (ds_message_t) calloc (1, sizeof (struct _ds_message));
@@ -85,7 +85,7 @@ _ds_actualize_message (const char *message)
   if (!out->components)
     goto MEMFAIL;
 
-  current_block = _ds_create_message_block ();
+  current_block = _ds_create_message_part ();
   if (!current_block) 
     goto MEMFAIL;
 
@@ -114,7 +114,7 @@ _ds_actualize_message (const char *message)
         current_block->original_encoding = current_block->encoding;
 
         _ds_decode_headers(current_block);
-        current_block = _ds_create_message_block ();
+        current_block = _ds_create_message_part ();
 
         if (!current_block) 
         {
@@ -235,7 +235,7 @@ _ds_actualize_message (const char *message)
         current_block->original_encoding = current_block->encoding;
 
         _ds_decode_headers(current_block);
-        current_block = _ds_create_message_block ();
+        current_block = _ds_create_message_part ();
 
         if (!current_block)
           goto MEMFAIL;
@@ -276,21 +276,21 @@ MEMFAIL:
 }
 
 /*
- * _ds_create_message_block
+ * _ds_create_message_part
  *
  * DESCRIPTION
  *   create and initialize a new message block component
  *
  * RETURN VALUES
- *   pointer to an allocated message block (ds_message_block_t), NULL on failure
+ *   pointer to an allocated message block (ds_message_part_t), NULL on failure
  *
  */
 
-ds_message_block_t
-_ds_create_message_block (void)
+ds_message_part_t
+_ds_create_message_part (void)
 {
-  ds_message_block_t block = 
-    (ds_message_block_t) calloc (1, sizeof (struct _ds_message_block));
+  ds_message_part_t block = 
+    (ds_message_part_t) calloc (1, sizeof (struct _ds_message_part));
 
   if (!block) 
     goto MEMFAIL;
@@ -307,6 +307,7 @@ _ds_create_message_block (void)
   block->media_type = MT_TEXT;
   block->media_subtype     = MST_PLAIN;
   block->original_encoding = EN_UNKNOWN;
+  block->content_disposition = PCD_UNKNOWN;
 
   /* Not really necessary, but.. */
 
@@ -394,7 +395,7 @@ MEMFAIL:
 }
 
 /*
- * _ds_decode_headers (ds_message_block_t block)
+ * _ds_decode_headers (ds_message_part_t block)
  *
  * DESCRIPTION
  *   decodes in-line encoded headers
@@ -404,7 +405,7 @@ MEMFAIL:
  */
 
 int
-_ds_decode_headers (ds_message_block_t block) {
+_ds_decode_headers (ds_message_part_t block) {
   char *ptr, *dptr, *rest, *enc;
   ds_header_t header;
   struct nt_node *node_nt;
@@ -497,7 +498,7 @@ _ds_decode_headers (ds_message_block_t block) {
 }
 
 /*
- *  _ds_analyze_header (ds_message_block_t block, ds_header_t header,
+ *  _ds_analyze_header (ds_message_part_t block, ds_header_t header,
  *                      struct nt *boundaries)
  *
  * DESCRIPTION
@@ -517,7 +518,7 @@ _ds_decode_headers (ds_message_block_t block) {
 
 void
 _ds_analyze_header (
-  ds_message_block_t block, 
+  ds_message_part_t block, 
   ds_header_t header,
   struct nt *boundaries)
 {
@@ -610,6 +611,16 @@ _ds_analyze_header (
       block->encoding = EN_OTHER;
   }
 
+  if (!strcasecmp (header->heading, "Content-Disposition"))
+  {
+    if (!strncasecmp (header->data, "inline", 6)) 
+      block->content_disposition = PCD_INLINE;
+    else if (!strncasecmp (header->data, "attachment", 10))
+      block->content_disposition = PCD_ATTACHMENT;
+    else
+      block->content_disposition = PCD_OTHER;
+  }
+
   return;
 }
 
@@ -637,7 +648,7 @@ _ds_destroy_message (ds_message_t message)
     node_nt = c_nt_first (message->components, &c);
     while (node_nt != NULL)
     {
-      ds_message_block_t block = (ds_message_block_t) node_nt->ptr;
+      ds_message_part_t block = (ds_message_part_t) node_nt->ptr;
       _ds_destroy_block(block);
       node_nt = c_nt_next (message->components, &c);
       i++;
@@ -649,7 +660,7 @@ _ds_destroy_message (ds_message_t message)
 }
 
 /*
- * _ds_destroy_headers (ds_message_block_t block)
+ * _ds_destroy_headers (ds_message_part_t block)
  *
  * DESCRIPTION
  *   destroys a message block's header pairs
@@ -660,7 +671,7 @@ _ds_destroy_message (ds_message_t message)
  */
 
 void
-_ds_destroy_headers (ds_message_block_t block)
+_ds_destroy_headers (ds_message_part_t block)
 {
   struct nt_node *node_nt;
   struct nt_c c;
@@ -687,7 +698,7 @@ _ds_destroy_headers (ds_message_block_t block)
 }
 
 /*
- * _ds_destroy_block (ds_message_block_t block)
+ * _ds_destroy_block (ds_message_part_t block)
  *
  * DESCRIPTION
  *   destroys a message block
@@ -697,7 +708,7 @@ _ds_destroy_headers (ds_message_block_t block)
  */
 
 void
-_ds_destroy_block (ds_message_block_t block)
+_ds_destroy_block (ds_message_part_t block)
 {
   if (!block)
     return;
@@ -716,7 +727,7 @@ _ds_destroy_block (ds_message_block_t block)
 }
 
 /*
- * _ds_decode_block (ds_message_block_t block)
+ * _ds_decode_block (ds_message_part_t block)
  *   
  * DESCRIPTION
  *   decodes a message block
@@ -730,7 +741,7 @@ _ds_destroy_block (ds_message_block_t block)
  */
 
 char *
-_ds_decode_block (ds_message_block_t block)
+_ds_decode_block (ds_message_part_t block)
 {
   if (block->encoding == EN_BASE64)
     return _ds_decode_base64 (block->body->data);
@@ -770,28 +781,31 @@ char *
 _ds_decode_quoted (const char *body)
 {
   char *out, *x;
+  char hex[3];
+  int val;
+  size_t len;
 
-  if (body == NULL)
+  if (!body)
     return NULL;
 
   out = strdup (body);
-  if (out == NULL)
+  if (!out)
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
+  len = strlen(out) + 1;
 
+  hex[2] = 0;
   x = strchr (out, '=');
   while (x != NULL)
   {
-    char hex[3];
-    int val;
-    hex[2] = 0;
     hex[0] = x[1];
     hex[1] = x[2];
     if (x[1] == '\n')
     {
-      memmove(x, x+2, strlen(x+2)+1);
+      memmove(x, x+2, len-((x+2)-out)); //strlen(x+2)+1);
+      len -= 2;
       x = strchr (x, '=');
     }
     else
@@ -806,18 +820,20 @@ _ds_decode_quoted (const char *body)
         val = (int) strtol (hex, NULL, 16);
         if (val) {
           x[0] = val;
-          memmove(x+1, x+3, strlen(x+3)+1);
+          memmove(x+1, x+3, len-((x+3)-out)); //strlen(x+3)+1);
+          len -= 2;
         }
       }
       x = strchr (x + 1, '=');
     }
   }
+
   return out;
 }
 #endif /* NCORE */
 
 /*
- * _ds_encode_block (ds_message_block_t block, int encoding)
+ * _ds_encode_block (ds_message_part_t block, int encoding)
  *   
  * DESCRIPTION
  *   encodes a message block using the encoding specified and replaces the
@@ -832,7 +848,7 @@ _ds_decode_quoted (const char *body)
  */
 
 int
-_ds_encode_block (ds_message_block_t block, int encoding)
+_ds_encode_block (ds_message_part_t block, int encoding)
 {
   /* we can't encode a block with the same encoding */
 
@@ -913,8 +929,8 @@ _ds_assemble_message (ds_message_t message)
   node_nt = c_nt_first (message->components, &c_nt);
   while (node_nt != NULL && node_nt->ptr != NULL)
   {
-    ds_message_block_t block =
-      (ds_message_block_t) node_nt->ptr;
+    ds_message_part_t block =
+      (ds_message_part_t) node_nt->ptr;
 #ifdef VERBOSE
     LOGDEBUG ("assembling component %d", i);
 #endif
@@ -1115,7 +1131,7 @@ _ds_extract_boundary (char *buf, size_t size, char *mem)
 
 char *
 _ds_find_header (ds_message_t message, const char *heading, int flags) {
-  ds_message_block_t block;
+  ds_message_part_t block;
   ds_header_t head;
   struct nt_node *node_nt;
 

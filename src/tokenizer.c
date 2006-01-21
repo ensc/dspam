@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.13 2006/01/18 16:48:54 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.14 2006/01/21 23:38:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -682,7 +682,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
   int i = 0;
   char heading[1024];
 
-  if (CTX->message == NULL)
+  if (! CTX->message) 
   {
     LOG (LOG_WARNING, "_ds_actualize_message() failed: CTX->message is NULL");
     return EUNKNOWN;
@@ -693,13 +693,13 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
   node_nt = c_nt_first (CTX->message->components, &c_nt);
   while (node_nt != NULL)
   {
-    struct _ds_message_block *block = (struct _ds_message_block *) node_nt->ptr;
+    struct _ds_message_part *block = (struct _ds_message_part *) node_nt->ptr;
 
 #ifdef VERBOSE
     LOGDEBUG ("Processing component %d", i);
 #endif
 
-    if (block->headers == NULL || block->headers->items == 0)
+    if (! block->headers || ! block->headers->items)
     {
 #ifdef VERBOSE
       LOGDEBUG ("  : End of Message Identifier");
@@ -708,12 +708,13 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 
     else 
     {
+      struct _ds_header_field *current_header;
+
       /* Accumulate the headers */
       node_header = c_nt_first (block->headers, &c_nt2);
       while (node_header != NULL)
       {
-        struct _ds_header_field *current_header =
-          (struct _ds_header_field *) node_header->ptr;
+        current_header = (struct _ds_header_field *) node_header->ptr;
         snprintf (heading, sizeof (heading),
                   "%s: %s\n", current_header->heading,
                   current_header->data);
@@ -726,36 +727,16 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
       if (block->media_type == MT_TEXT    ||
                block->media_type == MT_MESSAGE ||
                block->media_type == MT_UNKNOWN ||
-               (i == 0 && (block->media_type == MT_TEXT      ||
-                           block->media_type == MT_MULTIPART ||
-                           block->media_type == MT_MESSAGE)))
+               (block->media_type == MT_MULTIPART && !i))
       {
-
         /* Accumulate the bodies, skip attachments */
 
         if (
-             ( block->encoding == EN_BASE64 || 
-                 block->encoding == EN_QUOTED_PRINTABLE) 
-            && block->original_signed_body == NULL
-           )
+             (   block->encoding == EN_BASE64 
+              || block->encoding == EN_QUOTED_PRINTABLE)
+            && ! block->original_signed_body)
         {
-          struct _ds_header_field *field;
-          int is_attachment = 0;
-          struct nt_node *node_hnt;
-          struct nt_c c_hnt;
-  
-          node_hnt = c_nt_first (block->headers, &c_hnt);
-          while (node_hnt != NULL)
-          {
-            field = (struct _ds_header_field *) node_hnt->ptr;
-            if (field != NULL && field->heading != NULL && field->data != NULL)
-              if (!strncasecmp (field->heading, "Content-Disposition", 19))
-                if (!strncasecmp (field->data, "attachment", 10))
-                  is_attachment = 1;
-            node_hnt = c_nt_next (block->headers, &c_hnt);
-          }
-  
-          if (!is_attachment)
+          if (block->content_disposition != PCD_ATTACHMENT)
           {
             LOGDEBUG ("decoding message block from encoding type %d",
                       block->encoding);
@@ -765,9 +746,10 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
   
         /* We found a tokenizable body component, add prefilters */
 
-        if (decode != NULL)
+        if (decode)
         {
           char *decode2 = strdup(decode);
+          size_t len = strlen(decode2) + 1;
   
           /* -- PREFILTERS BEGIN -- */
   
@@ -788,7 +770,8 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
                 conv = strtol(hex, NULL, 16);
                 if (conv) {
                   x[0] = conv;
-                  memmove(x+1, x+3, strlen(x+3));
+                  memmove(x+1, x+3, len-((x+3)-decode2));
+                  len -=2;
                 }
               }
               x = strchr(x+1, '%');
@@ -804,9 +787,10 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
             while (x != NULL)
             {
               y = strstr (x, "-->");
-              if (y != NULL)
+              if (y)
               {
-                memmove (x, y + 3, strlen (y + 3) + 1);
+                memmove(x, y + 3, len-((y+3)-decode2)); //strlen (y + 3) + 1);
+                len -= ((y+3) - x);
                 x = strstr (x, "<!--");
               }
               else
@@ -822,7 +806,8 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
               y = strchr (x, '>');
               if (y != NULL)
               {
-                memmove (x, y + 1, strlen (y + 1) + 1);
+                memmove(x, y + 1, len-((y+1)-decode2)); //strlen (y + 1) + 1);
+                len -= ((y+1) - x);
                 x = strstr (x, "<!");
               }
               else
@@ -860,7 +845,8 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
               }
               if (erase)
               {
-                memmove (x, y + 1, strlen (y + 1) + 1);
+                memmove(x, y + 1, len-((y+1)-decode2)); //strlen (y + 1) + 1);
+                len -= ((y+1) - x);
                 x = strstr (x, "<");
               }
               else
@@ -882,7 +868,6 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
           if (decode != block->body->data)
           {
             block->original_signed_body = block->body;
-  
             block->body = buffer_create (decode);
             free (decode);
           }

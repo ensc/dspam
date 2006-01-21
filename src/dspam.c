@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.214 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: dspam.c,v 1.215 2006/01/21 23:38:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -1025,7 +1025,7 @@ deliver_message (
 
 int tag_message(AGENT_CTX *ATX, ds_message_t message)
 {
-  ds_message_block_t block = message->components->first->ptr;
+  ds_message_part_t block = message->components->first->ptr;
   struct nt_node *node_header = block->headers->first;
   int tagged = 0;
   char spam_subject[16];
@@ -2014,7 +2014,7 @@ RSET:
 int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   struct nt_node *node_nt, *prev_node = NULL;
   struct nt_c c, c2;
-  ds_message_block_t block = NULL;
+  ds_message_part_t block = NULL;
   char first_boundary[512];
   int is_signed = 0, i = 0;
   char *signature_begin = NULL, *signature_end, *erase_begin;
@@ -2033,7 +2033,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   node_nt = c_nt_first (CTX->message->components, &c);
   while (node_nt != NULL)
   {
-    block = (ds_message_block_t) node_nt->ptr;
+    block = (ds_message_part_t) node_nt->ptr;
 
     if (block->media_type == MT_MULTIPART && block->media_subtype == MST_SIGNED)
       is_signed = 1;
@@ -2047,10 +2047,8 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
     if (block->media_type == MT_TEXT
         || block->media_type == MT_MESSAGE 
-        || block->media_type == MT_UNKNOWN ||
-                (i == 0 && (block->media_type == MT_TEXT ||
-                            block->media_type == MT_MULTIPART ||
-                            block->media_type == MT_MESSAGE) ))
+        || block->media_type == MT_UNKNOWN 
+        || (!i && block->media_type == MT_MULTIPART))
     {
       char *body;
 
@@ -2083,24 +2081,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       if (block->encoding == EN_BASE64
           || block->encoding == EN_QUOTED_PRINTABLE)
       {
-        ds_header_t field;
-        int is_attachment = 0;
-        struct nt_node *node_hnt;
-        struct nt_c c_hnt;
-
-        node_hnt = c_nt_first (block->headers, &c_hnt);
-        while (node_hnt != NULL)
-        {
-          field = (ds_header_t) node_hnt->ptr;
-          if (field != NULL
-              && field->heading != NULL && field->data != NULL)
-            if (!strncasecmp (field->heading, "Content-Disposition", 19))
-              if (!strncasecmp (field->data, "attachment", 10))
-                is_attachment = 1;
-          node_hnt = c_nt_next (block->headers, &c_hnt);
-        }
-
-        if (!is_attachment)
+        if (block->content_disposition != PCD_ATTACHMENT)
         {
 #ifdef VERBOSE
           LOGDEBUG ("decoding message block from encoding type %d",
@@ -2937,7 +2918,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   node_nt = c_nt_first (CTX->message->components, &c_nt);
   if (node_nt != NULL)
   {
-    ds_message_block_t block;
+    ds_message_part_t block;
                                                                               
     block = node_nt->ptr;
     if (block->headers != NULL)
@@ -3079,7 +3060,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   node_nt = c_nt_first (CTX->message->components, &c_nt);
   if (node_nt != NULL)
   {
-    ds_message_block_t block = node_nt->ptr;
+    ds_message_part_t block = node_nt->ptr;
     struct nt_node *node_ft;
     struct nt_c c_ft;
     if (block != NULL && block->headers != NULL)
@@ -3262,7 +3243,7 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   struct nt_node *node_nt;
   struct nt_c c_nt;
   char toplevel_boundary[128] = { 0 }; 
-  ds_message_block_t block;
+  ds_message_part_t block;
   int i = 0;
 
   if (CTX->training_mode == DST_NOTRAIN || ! ATX->signature[0])
@@ -3302,27 +3283,7 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
                 && block->media_type != MT_MULTIPART))
         && (toplevel_boundary[0] == 0 || (block->body && block->body->used)))
     {
-      int is_attachment = 0;
-      ds_header_t field;
-      struct nt_node *node_hnt;
-      struct nt_c c_hnt;
-
-      node_hnt = c_nt_first (block->headers, &c_hnt);
-      while (node_hnt != NULL)
-      {
-        field = (ds_header_t) node_hnt->ptr;
-        if (field != NULL && field->heading != NULL && field->data != NULL) {
-          if (!strncasecmp (field->heading, "Content-Disposition", 19)) {
-            if (!strncasecmp (field->data, "attachment", 10))
-            {
-              is_attachment = 1;
-            }
-          }
-        }
-        node_hnt = c_nt_next (block->headers, &c_hnt);
-      }
-
-      if (is_attachment)
+      if (block->content_disposition != PCD_ATTACHMENT)
       {
         node_nt = c_nt_next (CTX->message->components, &c_nt);
         i++;
@@ -3389,7 +3350,7 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   struct nt_node *node_nt, *node_block, *parent;
   struct nt_c c_nt;
-  ds_message_block_t block, newblock;
+  ds_message_part_t block, newblock;
   ds_header_t field;
   char scratch[256], data[256];
 
@@ -3401,7 +3362,7 @@ int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   /* Construct a new block to contain the signed message */
 
-  newblock = (ds_message_block_t) malloc(sizeof(struct _ds_message_block));
+  newblock = (ds_message_part_t) malloc(sizeof(struct _ds_message_part));
   if (newblock == NULL)
     goto MEM_ALLOC;
 
@@ -3484,8 +3445,8 @@ int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   /* Create a new message part containing only the boundary delimiter */
 
-  newblock = (ds_message_block_t)
-    malloc(sizeof(struct _ds_message_block));
+  newblock = (ds_message_part_t)
+    malloc(sizeof(struct _ds_message_part));
   if (newblock == NULL)
     goto MEM_ALLOC;
 
@@ -3505,7 +3466,7 @@ int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   /* Create a new message part containing the signature */
 
-  newblock = (ds_message_block_t) malloc(sizeof(struct _ds_message_block));
+  newblock = (ds_message_part_t) malloc(sizeof(struct _ds_message_part));
   if (newblock == NULL)
     goto MEM_ALLOC;
 

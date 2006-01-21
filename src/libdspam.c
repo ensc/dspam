@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.148 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: libdspam.c,v 1.149 2006/01/21 23:38:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -649,7 +649,7 @@ dspam_getsource (
   char *buf,
   size_t size)
 {
-  ds_message_block_t current_block;
+  ds_message_part_t current_block;
   ds_header_t current_heading = NULL;
   struct nt_node *node_nt;
   struct nt_c c;
@@ -662,7 +662,7 @@ dspam_getsource (
   if (node_nt == NULL)
     return EINVAL;
 
-  current_block = (ds_message_block_t) node_nt->ptr;
+  current_block = (ds_message_part_t) node_nt->ptr;
 
   node_nt = c_nt_first (current_block->headers, &c);
   while (node_nt != NULL)
@@ -769,7 +769,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Create our diction (lexical data in message) and patterns */
 
-  ds_diction_t diction = ds_diction_create(24593);
+  ds_diction_t diction = ds_diction_create(24593ul);
   ds_diction_t bnr_patterns = NULL;
   ds_term_t ds_term;
   ds_cursor_t ds_c;
@@ -1294,7 +1294,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
 {
   struct _ds_signature_token t;
   int num_tokens, i;
-  ds_diction_t diction = ds_diction_create(24593);
+  ds_diction_t diction = ds_diction_create(24593ul);
   ds_term_t ds_term;
   ds_cursor_t ds_c;
 
