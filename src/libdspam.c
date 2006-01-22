@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.149 2006/01/21 23:38:30 jonz Exp $ */
+/* $Id: libdspam.c,v 1.150 2006/01/22 03:27:25 jonz Exp $ */
 
 /*
  DSPAM
@@ -1582,11 +1582,8 @@ _ds_calc_stat (
 
   if (CTX->classification == DSR_ISSPAM)
     s->probability = .7;
-  else {
+  else 
     s->probability = (CTX->algorithms & DSP_MARKOV) ? .5 : .4;
-  }
-
-  
 
   /* Markovian Weighting */
 
@@ -1621,11 +1618,7 @@ _ds_calc_stat (
   /* Graham and Robinson Start Here */
 
   } else {
-    if (CTX->totals.spam_learned > 0 && 
-        CTX->totals.innocent_learned > 0)
-// &&
-//          ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
-//           (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0)) > 0)
+    if (CTX->totals.spam_learned > 0 && CTX->totals.innocent_learned > 0)
     {
       if (token_type == DTT_BNR) {
         s->probability =
@@ -1648,13 +1641,10 @@ _ds_calc_stat (
     }
 
     if (s->spam_hits == 0 && s->innocent_hits > 0)
-    {
         s->probability = 0.01;
-    }
     else if (s->spam_hits > 0 && s->innocent_hits == 0)
-    {
         s->probability = 0.99;
-    }
+
     if (  (CTX->flags & DSF_BIAS && 
           (s->spam_hits + (2 * s->innocent_hits) < min_hits))
        || (!(CTX->flags & DSF_BIAS) && 
