@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.150 2006/01/22 03:27:25 jonz Exp $ */
+/* $Id: libdspam.c,v 1.151 2006/01/22 23:10:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -1618,6 +1618,10 @@ _ds_calc_stat (
   /* Graham and Robinson Start Here */
 
   } else {
+    int ih = 1;
+    if (CTX->flags & DSF_BIAS)
+      ih = 2;
+
     if (CTX->totals.spam_learned > 0 && CTX->totals.innocent_learned > 0)
     {
       if (token_type == DTT_BNR) {
@@ -1626,24 +1630,43 @@ _ds_calc_stat (
           ((s->spam_hits * 1.0 / bnr_tot->spam_hits * 1.0) +
            (s->innocent_hits * 1.0 / bnr_tot->innocent_hits * 1.0));
       } else {
-
-        if (CTX->flags & DSF_BIAS)
-          s->probability =
-            (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
-            ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
-             (s->innocent_hits * 2.0 / CTX->totals.innocent_learned * 1.0));
-        else
-          s->probability =
-            (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
-            ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
-             (s->innocent_hits * 1.0 / CTX->totals.innocent_learned * 1.0));
+        s->probability =
+          (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
+          ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
+           (s->innocent_hits * ih * 1.0 / CTX->totals.innocent_learned * 1.0));
       }
     }
 
-    if (s->spam_hits == 0 && s->innocent_hits > 0)
-        s->probability = 0.01;
-    else if (s->spam_hits > 0 && s->innocent_hits == 0)
-        s->probability = 0.99;
+    if (s->spam_hits == 0 && s->innocent_hits > 0) {
+      s->probability = 0.01;
+      if (CTX->totals.spam_learned > 0 && CTX->totals.innocent_learned > 0)
+      {
+        if ((1.0 / CTX->totals.spam_learned * 1.0) /
+           ((1.0 / CTX->totals.spam_learned * 1.0) +
+           (s->innocent_hits * ih * 1.0 / CTX->totals.innocent_learned * 1.0))
+          < 0.01) 
+        {
+          s->probability = (1.0 / CTX->totals.spam_learned * 1.0) /
+           ((1.0 / CTX->totals.spam_learned * 1.0) +
+            (s->innocent_hits * ih *1.0 / CTX->totals.innocent_learned * 1.0));
+        }
+      }
+    }
+    else if (s->spam_hits > 0 && s->innocent_hits == 0) {
+      s->probability = 0.99;
+      if (CTX->totals.spam_learned > 0 && CTX->totals.innocent_learned > 0)
+      {
+        if ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) /
+           ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) +
+           (ih * 1.0 / CTX->totals.innocent_learned * 1.0))
+          > 0.99)
+        {
+          s->probability = (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0)
+           / ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) 
+           + (ih * 1.0 / CTX->totals.innocent_learned * 1.0));
+        }
+      }
+    }
 
     if (  (CTX->flags & DSF_BIAS && 
           (s->spam_hits + (2 * s->innocent_hits) < min_hits))
@@ -1654,11 +1677,11 @@ _ds_calc_stat (
     }
   }
 
-  if (s->probability < 0.0100)
-    s->probability = 0.01;
+  if (s->probability < 0.0001)
+    s->probability = 0.0001;
 
-  if (s->probability > 0.9900)
-    s->probability = 0.99;
+  if (s->probability > 0.9999)
+    s->probability = 0.9999;
 
   /* Finish off Robinson */
 

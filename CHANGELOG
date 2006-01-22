@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.399 2006/01/21 23:38:30 jonz Exp $
+$Id: CHANGELOG,v 1.400 2006/01/22 23:10:45 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060122.1700] jonz: more enhancements to accuracy
+
+- extended range for probabilities from .01/.99 to .0001/.9999
+- if a single-corpus token would have a stronger probability with one hit than
+none, use the stronger probability
 
 [20060121.1835] jonz: code cleanup / performance improvements
 
