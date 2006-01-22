@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.14 2006/01/21 23:38:30 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.15 2006/01/22 03:11:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -771,7 +771,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
                 if (conv) {
                   x[0] = conv;
                   memmove(x+1, x+3, len-((x+3)-decode2));
-                  len -=2;
+                  len -= 2;
                 }
               }
               x = strchr(x+1, '%');

@@ -1,4 +1,4 @@
-/* $Id: diction.c,v 1.8 2006/01/21 23:38:30 jonz Exp $ */
+/* $Id: diction.c,v 1.9 2006/01/22 03:11:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -120,18 +120,17 @@ ds_diction_destroy (ds_diction_t diction)
 ds_term_t
 ds_diction_term_create (ds_key_t key, const char *name)
 {
-  ds_term_t term = (ds_term_t) calloc(1,sizeof(struct _ds_term));
+  ds_term_t term = (ds_term_t) calloc(1, sizeof(struct _ds_term));
 
   if (!term) {
     perror("ds_diction_term_create: calloc() failed");
   } else {
-    term->key       = key;
+    term->key = key;
     term->frequency = 1;
-    term->type      = 'D';
+    term->type = 'D';
     if (name)
       term->name = strdup(name);
   }
-
   return term;
 }
 
@@ -164,7 +163,6 @@ ds_diction_touch(
   ds_term_t term;
 
   term = diction->tbl[bucket];
-
   while (term) {
     if (key == term->key) {
       insert = term;
@@ -258,7 +256,6 @@ ds_diction_next (ds_cursor_t cur)
     return NULL;
 
   term = cur->iter_next;
-
   if (term) {
     cur->iter_next = term->next;
     return term;
