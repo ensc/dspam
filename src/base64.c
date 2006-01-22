@@ -1,4 +1,4 @@
-/* $Id: base64.c,v 1.7 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: base64.c,v 1.8 2006/01/22 01:59:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -47,7 +47,7 @@ base64decode (const char *buf)
   int pos = 0, dpos = 0;
   char *decoded;
 
-  decoded = malloc (strlen (buf) * 2);
+  decoded = malloc ((strlen (buf) * 2) + 2);
   if (decoded == NULL)
     return NULL;
   decoded[0] = 0;
@@ -121,6 +121,8 @@ base64decode (const char *buf)
       break;
     }
   }
+  if (decoded[strlen(decoded)-1]!='\n')
+    strcat(decoded, "\n");
   return decoded;
 }
 #endif /* NCORE */
