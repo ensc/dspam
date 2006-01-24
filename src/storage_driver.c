@@ -1,4 +1,4 @@
-/* $Id: storage_driver.c,v 1.7 2006/01/20 17:28:33 jonz Exp $ */
+/* $Id: storage_driver.c,v 1.8 2006/01/24 14:39:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -253,66 +253,6 @@ int _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
     return EFAILURE;
   }
   return (*ptr)(CTX, buf, len);
-}
-
-int _ds_get_node(DSPAM_CTX * CTX, char *user, struct _ds_neural_record *node)
-{
-  int (*ptr)(DSPAM_CTX *, char *, struct _ds_neural_record *);
-  ptr = (int (*)(DSPAM_CTX *, char *, struct _ds_neural_record *))dlsym(_drv_handle, "_ds_get_node");
-  if (!ptr) {
-    LOG(LOG_CRIT, "dlsym(_ds_get_node) failed: %s", dlerror());
-    return EFAILURE;
-  }
-  return (*ptr)(CTX, user, node);
-}
-
-
-int _ds_set_node(DSPAM_CTX * CTX, char *user, struct _ds_neural_record *node)
-{
-  int (*ptr)(DSPAM_CTX *, char *, struct _ds_neural_record *);
-  ptr = (int (*)(DSPAM_CTX *, char *, struct _ds_neural_record *))dlsym(_drv_handle, "_ds_set_node");
-  if (!ptr) {
-    LOG(LOG_CRIT, "dlsym(_ds_set_node) failed: %s", dlerror());
-    return EFAILURE;
-  }
-  return (*ptr)(CTX, user, node);
-}
-
-int _ds_get_decision (DSPAM_CTX * CTX, struct _ds_neural_decision *DEC,
-                      const char *signature)
-{
-  int (*ptr)(DSPAM_CTX *, struct _ds_neural_decision *, const char *);
-  ptr = (int (*)(DSPAM_CTX *, struct _ds_neural_decision *, const char *))dlsym(_drv_handle, "_ds_get_decision");
-  if (!ptr) {
-    LOG(LOG_CRIT, "dlsym(_ds_get_decision) failed: %s", dlerror());
-    return EFAILURE;
-  }
-  return (*ptr)(CTX, DEC, signature);
-}
-
-int _ds_set_decision (
-  DSPAM_CTX * CTX,
-  struct _ds_neural_decision *DEC,
-  const char *signature)
-{
-  int (*ptr)(DSPAM_CTX *, struct _ds_neural_decision *, const char *);
-  ptr = (int (*)(DSPAM_CTX *, struct _ds_neural_decision *, const char *))dlsym(_drv_handle, "_ds_set_decision");
-  if (!ptr) {
-    LOG(LOG_CRIT, "dlsym(_ds_set_decision) failed: %s", dlerror());
-    return EFAILURE;
-  }
-  return (*ptr)(CTX, DEC, signature);
-}
-
-int _ds_delete_decision (DSPAM_CTX * CTX, const char *signature)
-{
-  int (*ptr)(DSPAM_CTX *, const char *);
-  ptr = (int (*)(DSPAM_CTX *, const char *))dlsym(_drv_handle, "_ds_delete_decision");
-  if (!ptr) {
-    LOG(LOG_CRIT, "dlsym(_ds_delete_decision) failed: %s", dlerror());
-    return EFAILURE;
-  }
-  return (*ptr)(CTX, signature);
 }
 
 void *_ds_connect (DSPAM_CTX *CTX)

@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.34 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: dspam.h,v 1.35 2006/01/24 14:39:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -76,10 +76,6 @@ agent_pref_t load_aggregated_prefs (AGENT_CTX *ATX, const char *username);
 
 #ifdef DAEMON
 int daemon_start       (AGENT_CTX *ATX);
-#endif
-
-#ifdef NEURAL
-int process_neural_decision(DSPAM_CTX *CTX, struct _ds_neural_decision *DEC);
 #endif
 
 #define DSM_DAEMON	0xFE

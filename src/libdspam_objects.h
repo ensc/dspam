@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.15 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.16 2006/01/24 14:39:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -121,62 +121,6 @@ typedef struct _ds_spam_stat
   long innocent_hits;
   char status;
 } *ds_spam_stat_t;
-
-/*
- *  struct _ds_neural_record - A neural network node
- *
- *  A single node in the filter instance's neural network.  This usually 
- *  represents  another user  on the system.  The  values populated  are 
- *  specific to  the neural  node's relationship  to the  current  user.
- *
- *  uid
- *    The uid (or virtual uid) of the node [user]
- *
- *  total_correct, total_incorrect
- *    The total number of decisions queried by the current user for this
- *    node in  the past. These values are  used to calculate reliability
- *    of the node.
- *
- *  control_correct, control_incorrect
- *    These values are used to cache the original  values when read from 
- *    disk so that SQL-Based storage drivers can issue mathematical (+1,
- *    -1) updates  instead of setting  hard values,  which would require
- *    locking.
- *
- *  disk
- *    If the node's  data was loaded from  the storage  interface,  this 
- *    value  is  set to  Y. This  allows  SQL-Based  storage  drivers to 
- *    perform inserts only when necessary.
- */
-
-struct _ds_neural_record
-{
-  uid_t uid;
-  long total_correct;
-  long total_incorrect;
-  long control_correct;
-  long control_incorrect;
-  char disk;
-};
-
-/*
- *  struct _ds_neural_decision - A historical neural decision signature
- *
- *  A neural  decision is a binary  representation of the neural  nodes 
- *  which were  consulted in the  classification of  a message.  If the 
- *  message is later submitted for retraining (e.g. was misclassified),
- *  this  information is used to  increment the total_incorrect  values 
- *  for each node in relationship to the current user.
- *
- *  The binary data stored  includes the uid  (or virtual uid) of  each 
- *  node [user] and the decision  made ('I' for innocent, 'S' for spam).
- */
-
-struct _ds_neural_decision
-{
-  void *data;
-  long length;
-};
 
 /*
  *  struct _ds_spam_signature - A historical classification signature

@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.22 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.23 2006/01/24 14:39:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -83,9 +83,6 @@ typedef struct {
 #ifdef DEBUG
   char debug_args[1024];
 #endif
-#ifdef NEURAL
-  struct _ds_neural_decision DEC;       /* neural decision */
-#endif
 #ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
   struct passwd *p;
@@ -128,7 +125,6 @@ buffer *read_stdin	(AGENT_CTX *ATX);
 #define DAF_SUMMARY		0x200
 #define DAF_SBPH		0x400
 #define DAF_UNLEARN		0x800
-#define DAF_NEURAL		0x1000 
 
 #endif /* _AGENT_SHARED_H */
 

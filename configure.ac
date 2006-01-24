@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.58 2006/01/18 16:49:16 jonz Exp $
+dnl $Id: configure.ac,v 1.59 2006/01/24 14:39:38 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -399,35 +399,6 @@ else
     AC_DEFINE(HOMEDIR, 1, [Defined if home directory support is enabled])
 fi
 AC_MSG_RESULT([$enable_homedir])
-
-#
-#   Neural Networking
-#
-AC_ARG_ENABLE(neural-networking,
-    [AS_HELP_STRING(--enable-neural-networking,
-                        Activates DSPAM's experimental neural-networking 
-                        functions.
-                    )])
-AC_MSG_CHECKING([whether to enable neural-networking])
-case x"$enable_neural_networking" in
-    xyes)   # enabled explicity
-            ;;
-    xno)    # disabled explicity
-            ;;
-    x)      # disabled by default
-            enable_neural_networking=no
-            ;;
-    *)      AC_MSG_ERROR([unexpected value $enable_neural_networking for --{enable,disable}-neural-networking configure option])
-            ;;
-esac
-if test x"$enable_neural_networking" != xyes
-then
-    enable_neural_networking=no
-else
-    enable_neural_networking=yes    # overkill, but convenient
-    AC_DEFINE(NEURAL, 1, [Defined if neural-networking is enabled])
-fi
-AC_MSG_RESULT([$enable_neural_networking])
 
 #
 #   MySQL4 Initialization

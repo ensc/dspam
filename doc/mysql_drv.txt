@@ -1,4 +1,4 @@
-$Id: mysql_drv.txt,v 1.6 2006/01/18 16:48:53 jonz Exp $
+$Id: mysql_drv.txt,v 1.7 2006/01/24 14:39:38 jonz Exp $
 
 mysql_drv: MySQL storage driver for DSPAM <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Deep Logic, Inc.
@@ -104,8 +104,6 @@ and a user with full access to SELECT, INSERT, UPDATE, and DELETE.
 
 If you plan on enabling virtual users (something you'll need to do if the users
 don't actually exist on your system), also run virtual_users.sql.
-
-If you plan on enabling neural networking (EXPERIMENTAL), run neural.sql.
 
 NOTE: If you plan on having more than 32,768 users on the system, you'll want
 to change 'smallint' to 'int' for all uid fields.

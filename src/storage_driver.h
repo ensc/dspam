@@ -1,4 +1,4 @@
-/* $Id: storage_driver.h,v 1.17 2006/01/20 17:28:33 jonz Exp $ */
+/* $Id: storage_driver.h,v 1.18 2006/01/24 14:39:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -104,21 +104,6 @@ struct _ds_storage_signature
   time_t created_on;
 };
 
-/*
- *  _ds_storage_decision: dspam-facing neural networking decision
- *  this structure is used by libdspam's experimental neural networking
- *  functions to store a "decision" for later retraining. it is much like
- *  a signature, but contains binary training data for neural nodes instead.
- */
-
-struct _ds_storage_decision
-{
-  char signature[256];
-  void *data;
-  long length; 
-  time_t created_on;
-};
-
 int dspam_init_driver     (DRIVER_CTX *DTX);
 int dspam_shutdown_driver (DRIVER_CTX *DTX);
 int _ds_init_storage      (DSPAM_CTX * CTX, void *dbh);
@@ -163,31 +148,6 @@ int _ds_create_signature_id(
   DSPAM_CTX * CTX,
   char *buf,
   size_t len);
-
-/*  Experimental neural networking functions
- *  use --enable-neural-networking to enable. the selected storage driver 
- *  must support neural networking.
- */
-
-int _ds_get_node(
-  DSPAM_CTX * CTX,
-  char *user,
-  struct _ds_neural_record *node);
-int _ds_set_node(
-  DSPAM_CTX * CTX,
-  char *user,
-  struct _ds_neural_record *node);
-int _ds_get_decision(
-  DSPAM_CTX * CTX,
-  struct _ds_neural_decision *DEC,
-  const char *signature);
-int _ds_set_decision(
-  DSPAM_CTX * CTX,
-  struct _ds_neural_decision *DEC,
-  const char *signature);
-int _ds_delete_decision(
-  DSPAM_CTX * CTX,
-  const char *signature);
 
 /*
  *  Storage Driver Preferences Extension

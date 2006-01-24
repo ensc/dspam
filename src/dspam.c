@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.215 2006/01/21 23:38:30 jonz Exp $ */
+/* $Id: dspam.c,v 1.216 2006/01/24 14:39:38 jonz Exp $ */
 
 /*
  DSPAM
@@ -452,27 +452,12 @@ process_message (
 
       }
     }
-#ifdef NEURAL
-    if (_ds_get_decision (CTX, &ATX->DEC, ATX->signature))
-      have_decision = 0;
-#endif
   } else if (CTX->operating_mode == DSM_CLASSIFY || 
              CTX->classification != DSR_NONE)
   {
     CTX->flags = CTX->flags ^ DSF_SIGNATURE;
     CTX->signature = NULL;
   }
-
-  /* Set reliability of each neural node */
-
-#ifdef NEURAL
-  if (have_decision                   &&
-      CTX->classification != DSR_NONE && 
-      CTX->source == DSS_ERROR)
-  {
-    process_neural_decision(CTX, &ATX->DEC);
-  }
-#endif
 
   if (have_signature && CTX->classification != DSR_NONE) {
 
@@ -599,10 +584,6 @@ process_message (
           LOG(LOG_WARNING, "_ds_set_signature() failed with error %d", x);
         }
       }
-#ifdef NEURAL
-      if (ATX->DEC.length != 0)
-        _ds_set_decision(CTX, &ATX->DEC, ATX->signature);
-#endif
     }
   }
 
@@ -2350,8 +2331,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
                            sizeof(ATX->managed_group));
   
               }
-              else if (!strcasecmp (type, "CLASSIFICATION") ||
-                       !strcasecmp (type, "NEURAL")) 
+              else if (!strcasecmp (type, "CLASSIFICATION"))
               {
                 char *l = list, *u;
                 u = strsep (&l, ":");
@@ -2363,8 +2343,6 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
                   {
                     LOGDEBUG ("adding user %s to classification group %s", u,
                               group);
-                    if (!strcasecmp (type, "NEURAL"))
-                    ATX->flags |= DAF_NEURAL;
                
                     if (u[0] == '*') {
                       ATX->flags |= DAF_GLOBAL;
@@ -2496,44 +2474,6 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
 }
 
 /*
- * process_neural_decision(DSPAM_CTX *CTX, struct _ds_neural_decision *DEC)
- *
- * DESCRIPTION
- *   Determine the realiability of nodes based on those making correct
- *   classifications of a message
- *
- * INPUT ARGUMENTS
- *   CTX          DSPAM context containing the message classification
- *   DEC          Neural decision
- *
- * RETURN VALUES
- *   returns 0 on success, standard errors on failure
- */
-
-#ifdef NEURAL
-int process_neural_decision(DSPAM_CTX *CTX, struct _ds_neural_decision *DEC) {
-  struct _ds_neural_record r;
-  char d;
-  void *ptr;
-
-  for(ptr = DEC->data;ptr<DEC->data+DEC->length;ptr+=sizeof(uid_t)+1) {
-     memcpy(&r.uid, ptr, sizeof(uid_t));
-     memcpy(&d, ptr+sizeof(uid_t), 1);
-     if ((d == 'S' && CTX->classification == DSR_ISINNOCENT) ||
-         (d == 'I' && CTX->classification == DSR_ISSPAM)) {
-       if (!_ds_get_node(CTX, NULL, &r)) {
-         r.total_incorrect++;
-         r.total_correct--;
-         _ds_set_node(CTX, NULL, &r);
-       }
-     }
-  }
-  free(DEC->data);
-  return 0;
-}
-#endif
-
-/*
  * retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX)
  *
  * DESCRIPTION
@@ -2645,7 +2585,7 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
  * ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX, ATX, int result)
  *
  * DESCRIPTION
- *   Consult a global group, neural network, or classification network if
+ *   Consult a global group or classification network if
  *   the user's filter instance isn't confident in its result
  *
  * INPUT ARGUMENTS
@@ -2657,7 +2597,7 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
  *   returns result networks believe the message should be
  */
 
-/* ensure_confident_result: consult global group, neural network, or
+/* ensure_confident_result: consult global group or
    clasification network if the user isn't confident in their result */
 
 int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
@@ -2683,107 +2623,6 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       CTX->classification == DSR_NONE    && 
       CTX->confidence < 0.65) 
   {
-
-#ifdef NEURAL
-    /* Consult neural network */
-    if (ATX->flags & DAF_NEURAL) {
-      struct _ds_neural_record r;
-      struct nt_node *node_int;
-      struct nt_c c_i;
-      ds_heap_t heap_sort;
-      ds_heap_element_t heap_element;
-      int total_nodes = ATX->classify_users->items;
-      float bay_top = 0.0;
-      float bay_bot = 0.0;
-      float bay_result;
-      int bay_used = 0;
-      int res, i = 0;
-
-      ATX->DEC.length = (total_nodes * (sizeof(uid_t)+1));
-      ATX->DEC.data = calloc(1, ATX->DEC.length);
-      
-      if (ATX->DEC.data == NULL) {
-        LOG(LOG_CRIT, ERR_MEM_ALLOC);
-        return EUNKNOWN;
-      }
-
-      total_nodes /= 5;
-      if (total_nodes<2)
-        total_nodes = 2;
-      heap_sort = ds_heap_create(total_nodes, HP_VALUE);
-      
-      node_int = c_nt_first (ATX->classify_users, &c_i);
-      while (node_int != NULL) 
-      {
-        res = _ds_get_node(CTX, node_int->ptr, &r);
-        if (!res) {
-          memcpy(ATX->DEC.data+(i*(sizeof(uid_t)+1)), &r.uid, sizeof(uid_t));
-          memset(ATX->DEC.data+(i*(sizeof(uid_t)+1))+sizeof(uid_t), 'E', 1);
-       
-          LOGDEBUG ("querying node %s", (const char *) node_int->ptr);
-          res = user_classify (ATX, (const char *) node_int->ptr,
-                                  CTX->signature, NULL);
-
-          if ((res == DSR_ISSPAM || res == DSR_ISINNOCENT) && 
-              r.total_incorrect+r.total_correct>4) 
-          {
-            ds_heap_insert(heap_sort,
-               (double) r.total_correct / (r.total_correct+r.total_incorrect),
-               r.uid, res, 0);
-          }
-          r.total_correct++;
-          _ds_set_node(CTX, NULL, &r);
-
-          if (res == DSR_ISSPAM)
-            memset(ATX->DEC.data+(i*(sizeof(uid_t)+1))+sizeof(uid_t), 'S', 1);
-          else if (res == DSR_ISINNOCENT)
-            memset(ATX->DEC.data+(i*(sizeof(uid_t)+1))+sizeof(uid_t), 'I', 1);
-
-          i++;
-        }
-        node_int = c_nt_next (ATX->classify_users, &c_i);
-      }
-
-      total_nodes /= 5;
-      if (total_nodes<2)
-        total_nodes = 2;
-      heap_element = heap_sort->root;
-
-      /* include the top n reliable sources */
-      while(heap_element && total_nodes>0) {
-        float probability = (heap_element->frequency == DSR_ISINNOCENT) ?
-          1-heap_element->probability : heap_element->probability;
-
-        LOGDEBUG("including node %llu [%2.6f]", heap_element->token, probability);
-        if (bay_used == 0)
-        {
-          bay_top = probability;
-          bay_bot = 1 - probability; 
-        }
-        else
-        {
-          bay_top *= probability;
-          bay_bot *= (1 - probability);
-        }
-      
-        bay_used++;
-        total_nodes--;
-        heap_element = heap_element->next;
-      }
-      ds_heap_destroy(heap_sort);
-
-      if (bay_used) { 
-        bay_result = (bay_top) / (bay_top + bay_bot);
-        if (bay_result > 0.80) { 
-          result = DSR_ISSPAM;
-        }
-
-        LOGDEBUG("Neural Network Result: %2.6f", bay_result); 
-      }
-
-    /* Consult classification network */
-    } else {
-#endif
       struct nt_node *node_int;
       struct nt_c c_i;
 
@@ -2801,9 +2640,6 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
   
         node_int = c_nt_next (ATX->classify_users, &c_i);
       }
-#ifdef NEURAL
-    }
-#endif
 
     /* Re-add as spam */
 

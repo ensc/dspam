@@ -1,4 +1,4 @@
-/* $Id: pgsql_objects.sql,v 1.9 2005/08/03 12:37:47 jonz Exp $ */
+/* $Id: pgsql_objects.sql,v 1.10 2006/01/24 14:39:38 jonz Exp $ */
 
 CREATE TABLE dspam_token_data (
   uid smallint,
@@ -28,25 +28,6 @@ CREATE TABLE dspam_stats (
   innocent_corpusfed int,
   spam_classified int,
   innocent_classified int
-) WITHOUT OIDS;
-
-CREATE TABLE dspam_neural_data (
-  uid smallint,
-  node smallint,
-  total_correct int,
-  total_incorrect int,
-  UNIQUE (node, uid)
-) WITHOUT OIDS;
-
-CREATE INDEX id_neural_data_01 ON dspam_neural_data(uid);
-
-CREATE TABLE dspam_neural_decisions (
-  uid smallint,
-  signature varchar(128),
-  data bytea,
-  length int,
-  created_on date,
-  UNIQUE (signature, uid)
 ) WITHOUT OIDS;
 
 CREATE TABLE dspam_preferences (

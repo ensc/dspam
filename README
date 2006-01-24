@@ -1,4 +1,4 @@
-$Id: README,v 1.82 2006/01/18 16:48:53 jonz Exp $
+$Id: README,v 1.83 2006/01/24 14:39:38 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Deep Logic, Inc.
@@ -481,11 +481,6 @@ FRESH INSTALLATION
      unless you have serious issues you can't resolve.
 
    FEATURE ACTIVATION
-
-     --enable-neural-networking (EXPERIMENTAL)
-     Enables neural networking support (see the section NEURAL NETWORKING).
-     This feature is only presently supported by the mysq_drv and pgsql_drv 
-     storage drivers, and is still considered experimental.
 
      --enable-clamav
      Enables support for Clam Antivirus. DSPAM can interface directly with 
@@ -1471,28 +1466,6 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
   Each sender should specify the correct sender id when sending an 
   inoculation, and should generate their checksum based on the shared secret
   established between both parties.
-
-  NEURAL NETWORK
-
-  Neural networks are similar to classification networks, however with some 
-  differences.  First, all nodes in the network are queried sequentially,
-  increasing execution time depending on the number of nodes in a network.
-  Once the results from all nodes has been returned, the results from the most 
-  reliable nodes are used.  Reliable nodes are determined based on how accurate
-  they have been in the past.  Depending on the size of the network, the top
-  20% of nodes (with a minimum of two nodes) are used. The reliability (and 
-  results) are then combined to form a probability based on the results.  
-
-  The advantage to using a neural network over a classification network is 
-  that the filter is capable of "learning" which users have dictionaries 
-  closer to their own mail behavior therefore providing better results.  
-  This data can be used in the future to create dynamic classification of 
-  groups.
-
-  Neural networking must be explicitly enabled using the configure flag
-  --enable-neural-networking.  Neural networking is presently only
-  supported by the mysql_drv and pgsql_drv storage drivers, and is still 
-  experimental.
 
   GLOBAL GROUPS
 
