@@ -1,4 +1,4 @@
-.\" $Id: dspam_corpus.1,v 1.3 2006/01/18 16:48:53 jonz Exp $
+.\" $Id: dspam_corpus.1,v 1.4 2006/01/24 15:43:12 jonz Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam_corpus3.2
@@ -11,13 +11,13 @@
 .TH dspam_corpus 1  "May 31, 2004" "DSPAM" "DSPAM"
 
 .SH NAME
-dspam_corpus - train a corpus of mail
+dspam_corpus - corpus-feed a corpus of mail
 
 .SH SYNOPSIS
 .na
 .B dspam_corpus
 [\c
-.I \--addspam\fR\c
+.I \--spam|--nonspam\fR\c
 ]
 [\c
 .I \--quiet\fR\c
@@ -33,17 +33,18 @@ dspam_corpus - train a corpus of mail
 .SH DESCRIPTION 
 .LP
 .B dspam_corpus
-is used to train a corpus of mail (in mailbox format). This tool may be used
-to train only nonspam or both nonspam and spam. Spam should never be
-trained alone (without nonspam). 
+is used to feed a corpus of mail (in mailbox format). This tool may be used
+to build a database of spam, nonspam, or both. NOTE: It is recommended that
+dspam_train be used instead of dspam_corpus for day-to-day training. The
+dspam_corpus tool is useful for building corpuses of data, but this is likely
+to be far less accurate in real-world use than dspam_train.
 
 .SH OPTIONS
 .LP
 .ne 3
 .TP
-.BI \--addspam\fR\c
-Identifies that the corpus being trained is a corpus of spam. If this flag is
-omitted, the corpus will be trained as nonspam.
+.BI \--spam|--nonspam\fR\c
+Identifies that the corpus being trained is a corpus of spam or nonspam. 
  
 .n3
 .TP
@@ -52,12 +53,12 @@ Quiet mode. Supresses output.
 
 .n3 3
 .TP
-.BI \[username]\c
+.BI [username]\c
 Specifies the user to train.
 
 .n3 3
 .TP
-.BI \[filename]\c
+.BI [filename]\c
 Specifies the pathname to the mailbox file containing the corpus mail.
 
 .SH EXIT VALUE

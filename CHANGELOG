@@ -1,7 +1,19 @@
-$Id: CHANGELOG,v 1.401 2006/01/24 14:39:38 jonz Exp $
+$Id: CHANGELOG,v 1.402 2006/01/24 15:43:12 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060124.0830] jonz: added dspam_train
+
+a true training and testing mechanism, useful for building pretrained databases
+or training a user with their own corpus. also provides a test jig for 
+measuring efficiency/accuracy with a corpus over a configuration. 
+
+[20060124.0830] jonz: fixes for dspam_corpus
+
+fixes for dspam_corpus:
+- uses default settings for features and training modes, instead of its own
+- now requires --spam or --nonspam arguments
 
 [20060124.0830] jonz: removed neural networking functions
 

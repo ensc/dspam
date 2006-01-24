@@ -4,6 +4,7 @@ Makefile
 Makefile.in
 dspam_clean
 dspam_convert
+dspam_train
 dspam_crc
 dspam_dump
 dspam_genaliases

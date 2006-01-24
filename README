@@ -1,4 +1,4 @@
-$Id: README,v 1.83 2006/01/24 14:39:38 jonz Exp $
+$Id: README,v 1.84 2006/01/24 15:43:12 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Deep Logic, Inc.
@@ -119,7 +119,7 @@ TOOLS
 
 Some basic tools which have been provided to manage dictionaries, automate
 corpus feeding, and perform other diagnostic operations related to DSPAM.
-Some of these include dspam_corpus, dspam_stats, and dspam_dump.
+Some of these include dspam_train, dspam_stats, and dspam_dump.
 
 1.1 INSTALLATION
 
@@ -1024,14 +1024,30 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
     the preferences extension). Available functions are listed in the tool's
     usage output.
 
+  dspam_train - Used to train and test a corpus of ham and spam (in maildir
+    format). 
+    Syntax: dspam_train [username] [spam_dir] [nonspam_dir]
+    where username is the username of the user to apply the training to, and
+    the two dirs represent directories containing messages in individual
+    files (e.g. maildir/corpus format). dspam_train can be used on an existing
+    user's database, to further improve accuracy, or to train from scratch.
+    it also provides a solid test jig for testing the efficiency and accuracy
+    of a test corpus against the filter. 
+    NOTE: dspam_train will automatically balance training of the corpus to
+          ensure both spam and nonspam are trained based on the ratio of 
+          spam/nonspam. this means if you have twice as much spam as nonspam,
+          two spam will be trained for every nonspam.
+    
   dspam_corpus - Used to feed an existing corpus of mail (in mailbox format)
-    into the dspam system.  
-    Syntax: dspam_corpus [username] [filename] [--addspam]
+    into the dspam system.
+    Syntax: dspam_corpus [--spam|--nonspam] [username] [filename]
     where username is the username of the user to apply the corpus to,
     filename represents the filename of the mailbox, and the optional flag
     to specify if this corpus is known spam (to add as spam into the user's
-    dictionary).  
- 
+    dictionary). NOTE: while this is useful for building databases in some
+    circumstances, it's much better to use dspam_train as it better simulates
+    real-world training, and will likely give you a better final accuracy.
+
   dspam_dump - Dumps a DSPAM dictionary. This can be used to view the 
     entire contents of a user's dictionary, or used in combination 
     with grep to view a subset of data.  Syntax: dspam_dump [username] [token] 
