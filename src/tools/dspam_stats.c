@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.20 2006/01/18 16:48:54 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.21 2006/01/28 20:13:37 jonz Exp $ */
 
 /*
  DSPAM
@@ -297,15 +297,15 @@ stat_user (const char *username)
   if (opt_humanfriendly)
   {
     printf("%s:\n\
-        \tTS True Positives:         %6ld\n\
-        \tTI True Negatives:         %6ld\n\
-        \tIM False Positives:        %6ld\n\
-        \tSM False Negatives:        %6ld\n\
+        \tTP True Positives:         %6ld\n\
+        \tTN True Negatives:         %6ld\n\
+        \tFP False Positives:        %6ld\n\
+        \tFN False Negatives:        %6ld\n\
         \tSC Spam Corpusfed:         %6ld\n\
-        \tIC Innocent Corpusfed:     %6ld\n\
+        \tNC Nonspam Corpusfed:      %6ld\n\
         \tTL Training Left:          %6ld\n\
-        \tSR Spam Catch Rate:      % 7.2f%%\n\
-        \tIR Innocent Catch Rate:  % 7.2f%%\n\
+        \tSHR Spam Hit Rate        % 7.2f%%\n\
+        \tHSR Ham Strike Rate:     % 7.2f%%\n\
         \tOR Overall Rate/Accuracy:% 7.2f%%\n\
         \n",
             username,
@@ -318,7 +318,7 @@ stat_user (const char *username)
           (100.0-((float)spam_misclassified / (float)all_spam )*100.0)
           : 100.0,
         (all_innocent) ?
-          (100.0-((float)innocent_misclassified / (float)all_innocent )*100.0)
+          100-(100.0-((float)innocent_misclassified / (float)all_innocent )*100.0)
           : 100.0,
         (all_spam + all_innocent) ?
           (100.0-(((float)spam_misclassified +(float)innocent_misclassified) /
@@ -328,9 +328,9 @@ stat_user (const char *username)
   else
   {
 #ifdef LONG_USERNAMES
-    printf ("%s\n    TP:%6ld TN:%6ld FP:%6ld FN:%6ld SC:%6ld IC:%6ld\n",
+    printf ("%s\n    TP:%6ld TN:%6ld FP:%6ld FN:%6ld SC:%6ld NC:%6ld\n",
 #else
-    printf ("%-16s  TP:%6ld TN:%6ld FP:%6ld FN:%6ld SC:%6ld IC:%6ld\n",
+    printf ("%-16s  TP:%6ld TN:%6ld FP:%6ld FN:%6ld SC:%6ld NC:%6ld\n",
 #endif
             username,
             total_spam, total_innocent,
@@ -344,7 +344,7 @@ stat_user (const char *username)
 #else
 "                  "
 #endif
-              "SHR: % 7.2f%%      HSR: % 7.2f%%       OCA: % 7.2f%%\n",
+              "SHR: % 7.2f%%       HSR: % 7.2f%%       OCA: % 7.2f%%\n",
         (all_spam) ?
           (100.0-((float)spam_misclassified / (float)all_spam )*100.0) 
           : 100.0,
