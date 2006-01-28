@@ -1,4 +1,4 @@
-$Id: README,v 1.84 2006/01/24 15:43:12 jonz Exp $
+$Id: README,v 1.85 2006/01/28 20:15:37 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Deep Logic, Inc.
@@ -941,7 +941,7 @@ Opt out of DSPAM filtering
   3. Run dspam_stats [username] on the server.  You should see a value of 1 
   for "TI" or "Total Innocent" as shown below:
 
-  dspam-test            0 TS       1 TI       0 TM       0 FP
+  dspam-test            0 TP       1 TN       0 FN       0 FP
 
   If you receive an error such as "unable to open /usr/local/var/dspam... for
   reading", then the dspam agent is not configured correctly.  The problem
@@ -967,11 +967,11 @@ Opt out of DSPAM filtering
   5. Forward the test message to the spam alias you've created for the test 
   account.  Provide enough time for the message to have processed.
 
-  6. Run dspam_stats [username] on the server again.  Now, the value for TI 
-  should be zero and the value for TM (total misses) should be 1 as shown
+  6. Run dspam_stats [username] on the server again.  Now, the value for TN 
+  should be zero and the value for FN (false negatives) should be 1 as shown
   below:
 
-dspam-test            0 TS       0 TI       1 TM       0 FP
+dspam-test            0 TP       0 TN       1 FN       0 FP
 
   If this is not the case, check the group permissions of the dspam agent as
   well as the permissions your MTA uses when piping to aliases.
@@ -1044,7 +1044,7 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
     where username is the username of the user to apply the corpus to,
     filename represents the filename of the mailbox, and the optional flag
     to specify if this corpus is known spam (to add as spam into the user's
-    dictionary). NOTE: while this is useful for building databases in some
+    dictionary). NOTE: while this is useful for adding to databases in some
     circumstances, it's much better to use dspam_train as it better simulates
     real-world training, and will likely give you a better final accuracy.
 
@@ -1109,10 +1109,8 @@ dspam-test            0 TS       0 TI       1 TM       0 FP
 
   dspam_stats - Displays the spam statistics for one or all users on the system.
     Syntax: dspam_stats [username].  If no username is provided, all users 
-    will be displayed.  Displays TS (Total Spams), TI (Total Innocent), TM
-    (Total Spam Misses) and FP (Total False Positives).  Spam misses are
-    spams that were forwarded in by the user.  To calculate the total number
-    of spams caught by DSPAM, subtract TM from TS. 
+    will be displayed.  Displays TP (true positives), TN (true negatives),
+    FN (false negatives), and FP (false positives).
 
   dspam_genaliases - Reads the /etc/passwd file and outputs a dspam aliases
     table which can be included in the master aliases table.  You may try
