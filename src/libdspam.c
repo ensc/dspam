@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.151 2006/01/22 23:10:45 jonz Exp $ */
+/* $Id: libdspam.c,v 1.152 2006/01/28 17:23:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -1080,162 +1080,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       CTX->totals.innocent_classified++;
   }
 
-  /* Increment and Store Tokens */
-
-  i = 0;
-  ds_c = ds_diction_cursor(diction);
-  ds_term = ds_diction_next(ds_c);
-  while(ds_term) {
-    unsigned long long crc;
-
-    crc = ds_term->key;
-
-    /* Create a signature if we're processing a message */
-
-    if ((!(CTX->flags & DSF_SBPH))  && 
-        CTX->flags & DSF_SIGNATURE && 
-       (CTX->operating_mode != DSM_CLASSIFY || !(CTX->_sig_provided)))
-    {
-      struct _ds_signature_token t;
-
-      memset(&t, 0, sizeof(t));
-      t.token = crc;
-      t.frequency = ds_term->frequency;
-      memcpy ((char *) CTX->signature->data +
-              (i * sizeof (struct _ds_signature_token)), &t,
-              sizeof (struct _ds_signature_token));
-    }
-
-    /* If classification was provided, force probabilities */
-    if (CTX->classification == DSR_ISSPAM)
-      ds_term->s.probability = 1.00;
-    else if (CTX->classification == DSR_ISINNOCENT) 
-      ds_term->s.probability = 0.00;
-
-    if (ds_term->type == 'D' &&
-        ( CTX->training_mode != DST_TUM  || 
-          CTX->source == DSS_ERROR       ||
-          CTX->source == DSS_INOCULATION ||
-          ds_term->s.spam_hits + ds_term->s.innocent_hits < 50 ||
-          ds_term->key == diction->whitelist_token             ||
-          CTX->confidence < 0.70))
-    {
-        ds_term->s.status |= TST_DIRTY;
-    }
-
-    if (ds_term->type == 'B' &&
-        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 500 &&
-        CTX->flags & DSF_NOISE &&
-        CTX->_sig_provided == 0)
-    {
-        ds_term->s.status |= TST_DIRTY;
-    }
-
-    /* SPAM */
-    if (CTX->result == DSR_ISSPAM)
-    {
-      /* Inoculations increase token count considerably */
-      if (CTX->source == DSS_INOCULATION)
-      {
-        if (ds_term->s.innocent_hits < 2 && ds_term->s.spam_hits < 5)
-          ds_term->s.spam_hits += 5;
-        else
-          ds_term->s.spam_hits += 2;
-      }
-
-      /* Standard increase */
-      else
-      {
-        if (CTX->flags & DSF_UNLEARN) {
-          if (CTX->classification == DSR_ISSPAM)
-          {
-            if (_ds_match_attribute(CTX->config->attributes, 
-              "ProcessorWordFrequency", "occurrence"))
-            {
-              ds_term->s.spam_hits -= ds_term->frequency;
-              if (ds_term->s.spam_hits < 0)
-                ds_term->s.spam_hits = 0;
-            } else {
-              ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
-            }
-          }
-        } else {
-          if (_ds_match_attribute(CTX->config->attributes,
-             "ProcessorWordFrequency", "occurrence"))
-          {
-            ds_term->s.spam_hits += ds_term->frequency;
-          } else {
-            ds_term->s.spam_hits++;
-          }
-        }
-      }
-
-      if (SPAM_MISS(CTX) && 
-          !(CTX->flags & DSF_UNLEARN) && 
-          CTX->training_mode != DST_TOE &&
-          CTX->training_mode != DST_NOTRAIN) 
-      { 
-        if (_ds_match_attribute(CTX->config->attributes,
-           "ProcessorWordFrequency", "occurrence"))
-        {
-          ds_term->s.innocent_hits -= ds_term->frequency;
-          if (ds_term->s.innocent_hits < 0)
-            ds_term->s.innocent_hits = 0;
-        } else {
-          ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
-        }
-      }
-    }
-
-    /* INNOCENT */
-    else
-    {
-      if (CTX->flags & DSF_UNLEARN) { 
-        if (CTX->classification == DSR_ISINNOCENT)
-        {
-          if (_ds_match_attribute(CTX->config->attributes,
-             "ProcessorWordFrequency", "occurrence"))
-          {
-            ds_term->s.innocent_hits -= ds_term->frequency;
-            if (ds_term->s.innocent_hits < 0)
-              ds_term->s.innocent_hits = 0;
-          } else {
-            ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
-          }
-        }
-      } else {
-        if (_ds_match_attribute(CTX->config->attributes,
-         "ProcessorWordFrequency", "occurrence"))
-        {
-          ds_term->s.innocent_hits += ds_term->frequency;
-        } else {
-          ds_term->s.innocent_hits++;
-        }
-      }
-
-      if (FALSE_POSITIVE(CTX)         && 
-          !(CTX->flags & DSF_UNLEARN) && 
-          CTX->training_mode != DST_TOE &&
-          CTX->training_mode != DST_NOTRAIN)
-      {
-
-        if (_ds_match_attribute(CTX->config->attributes,
-          "ProcessorWordFrequency", "occurrence"))
-        {
-          ds_term->s.spam_hits -= ds_term->frequency;
-          if (ds_term->s.spam_hits < 0)
-            ds_term->s.spam_hits = 0;
-        } else {
-          ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
-        }
-
-      }
-    }
-
-    ds_term = ds_diction_next(ds_c);
-    i++;
-  }
-  ds_diction_close(ds_c);
+  _ds_increment_tokens(CTX, diction);
 
   /* Store all tokens */
   if (CTX->training_mode != DST_NOTRAIN) {
@@ -2638,4 +2483,165 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
   }
 
   return bnr_patterns;
+}
+
+int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
+  ds_cursor_t ds_c;
+  ds_term_t ds_term;
+  int i = 0;
+
+  ds_c = ds_diction_cursor(diction);
+  ds_term = ds_diction_next(ds_c);
+  while(ds_term) {
+    unsigned long long crc;
+
+    crc = ds_term->key;
+
+    /* Create a signature if we're processing a message */
+
+    if ((!(CTX->flags & DSF_SBPH))  && 
+        CTX->flags & DSF_SIGNATURE && 
+       (CTX->operating_mode != DSM_CLASSIFY || !(CTX->_sig_provided)))
+    {
+      struct _ds_signature_token t;
+
+      memset(&t, 0, sizeof(t));
+      t.token = crc;
+      t.frequency = ds_term->frequency;
+      memcpy ((char *) CTX->signature->data +
+              (i * sizeof (struct _ds_signature_token)), &t,
+              sizeof (struct _ds_signature_token));
+    }
+
+    /* If classification was provided, force probabilities */
+    if (CTX->classification == DSR_ISSPAM)
+      ds_term->s.probability = 1.00;
+    else if (CTX->classification == DSR_ISINNOCENT) 
+      ds_term->s.probability = 0.00;
+
+    if (ds_term->type == 'D' &&
+        ( CTX->training_mode != DST_TUM  || 
+          CTX->source == DSS_ERROR       ||
+          CTX->source == DSS_INOCULATION ||
+          ds_term->s.spam_hits + ds_term->s.innocent_hits < 50 ||
+          ds_term->key == diction->whitelist_token             ||
+          CTX->confidence < 0.70))
+    {
+        ds_term->s.status |= TST_DIRTY;
+    }
+
+    if (ds_term->type == 'B' &&
+        CTX->totals.innocent_learned + CTX->totals.innocent_classified > 500 &&
+        CTX->flags & DSF_NOISE &&
+        CTX->_sig_provided == 0)
+    {
+        ds_term->s.status |= TST_DIRTY;
+    }
+
+    /* SPAM */
+    if (CTX->result == DSR_ISSPAM)
+    {
+      /* Inoculations increase token count considerably */
+      if (CTX->source == DSS_INOCULATION)
+      {
+        if (ds_term->s.innocent_hits < 2 && ds_term->s.spam_hits < 5)
+          ds_term->s.spam_hits += 5;
+        else
+          ds_term->s.spam_hits += 2;
+      }
+
+      /* Standard increase */
+      else
+      {
+        if (CTX->flags & DSF_UNLEARN) {
+          if (CTX->classification == DSR_ISSPAM)
+          {
+            if (_ds_match_attribute(CTX->config->attributes, 
+              "ProcessorWordFrequency", "occurrence"))
+            {
+              ds_term->s.spam_hits -= ds_term->frequency;
+              if (ds_term->s.spam_hits < 0)
+                ds_term->s.spam_hits = 0;
+            } else {
+              ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
+            }
+          }
+        } else {
+          if (_ds_match_attribute(CTX->config->attributes,
+             "ProcessorWordFrequency", "occurrence"))
+          {
+            ds_term->s.spam_hits += ds_term->frequency;
+          } else {
+            ds_term->s.spam_hits++;
+          }
+        }
+      }
+
+      if (SPAM_MISS(CTX) && 
+          !(CTX->flags & DSF_UNLEARN) && 
+          CTX->training_mode != DST_TOE &&
+          CTX->training_mode != DST_NOTRAIN) 
+      { 
+        if (_ds_match_attribute(CTX->config->attributes,
+           "ProcessorWordFrequency", "occurrence"))
+        {
+          ds_term->s.innocent_hits -= ds_term->frequency;
+          if (ds_term->s.innocent_hits < 0)
+            ds_term->s.innocent_hits = 0;
+        } else {
+          ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
+        }
+      }
+    }
+
+    /* INNOCENT */
+    else
+    {
+      if (CTX->flags & DSF_UNLEARN) { 
+        if (CTX->classification == DSR_ISINNOCENT)
+        {
+          if (_ds_match_attribute(CTX->config->attributes,
+             "ProcessorWordFrequency", "occurrence"))
+          {
+            ds_term->s.innocent_hits -= ds_term->frequency;
+            if (ds_term->s.innocent_hits < 0)
+              ds_term->s.innocent_hits = 0;
+          } else {
+            ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
+          }
+        }
+      } else {
+        if (_ds_match_attribute(CTX->config->attributes,
+         "ProcessorWordFrequency", "occurrence"))
+        {
+          ds_term->s.innocent_hits += ds_term->frequency;
+        } else {
+          ds_term->s.innocent_hits++;
+        }
+      }
+
+      if (FALSE_POSITIVE(CTX)         && 
+          !(CTX->flags & DSF_UNLEARN) && 
+          CTX->training_mode != DST_TOE &&
+          CTX->training_mode != DST_NOTRAIN)
+      {
+
+        if (_ds_match_attribute(CTX->config->attributes,
+          "ProcessorWordFrequency", "occurrence"))
+        {
+          ds_term->s.spam_hits -= ds_term->frequency;
+          if (ds_term->s.spam_hits < 0)
+            ds_term->s.spam_hits = 0;
+        } else {
+          ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
+        }
+
+      }
+    }
+
+    ds_term = ds_diction_next(ds_c);
+    i++;
+  }
+  ds_diction_close(ds_c);
+  return 0;
 }

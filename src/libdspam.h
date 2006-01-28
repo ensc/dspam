@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.20 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: libdspam.h,v 1.21 2006/01/28 17:23:50 jonz Exp $ */
 
 /*
  DSPAM
@@ -73,6 +73,7 @@ void dspam_destroy        (DSPAM_CTX * CTX);
 int _ds_calc_stat (DSPAM_CTX * CTX, ds_term_t term, struct _ds_spam_stat *s,
      int type, struct _ds_spam_stat *bnr_tot);
 int _ds_calc_result (DSPAM_CTX * CTX, ds_heap_t sort, ds_diction_t diction); 
+int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction);
 int  _ds_operate               (DSPAM_CTX * CTX, char *headers, char *body);
 int  _ds_process_signature     (DSPAM_CTX * CTX);
 int  _ds_factor                (struct nt *set, char *token_name, float value);
@@ -80,6 +81,7 @@ int _ds_instantiate_bnr        (DSPAM_CTX *CTX, ds_diction_t patterns,
     struct nt *order, char identifier);
 ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction);
 void _ds_factor_destroy        (struct nt *factors);
+
 
 /* Standard Return Codes */
 
