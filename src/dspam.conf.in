@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.64 2006/01/18 17:02:38 jonz Exp $
+## $Id: dspam.conf.in,v 1.65 2006/01/29 03:56:57 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -61,6 +61,9 @@ TrustedDeliveryAgent "@delivery_agent@"
 # configure with --enable-daemon to use host delivery, however you do not need 
 # to operate in daemon mode. Specify an IP address or UNIX path to a domain 
 # socket below as a host.
+#
+# If you would like to set up DeliveryHost's on a per-domain basis, use
+# the syntax: DeliveryHost.domain.com 1.2.3.4
 #
 #DeliveryHost        127.0.0.1
 #DeliveryPort        24

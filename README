@@ -1,4 +1,4 @@
-$Id: README,v 1.85 2006/01/28 20:15:37 jonz Exp $
+$Id: README,v 1.86 2006/01/29 03:56:57 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Deep Logic, Inc.
@@ -1782,7 +1782,7 @@ SERVER> 250 2.0.0 <jane> Message accepted for delivery: SPAM
   section will briefly provide instructions for configuring either or both of
   these advanced options.
 
-  LMTP DELIVERY
+  LMTP (AND SMTP) DELIVERY
 
   DSPAM supports LMTP delivery for admins who would prefer to use this instead
   of local delivery. While LMTP delivery doesn't _require_ operating in
@@ -1792,7 +1792,11 @@ SERVER> 250 2.0.0 <jane> Message accepted for delivery: SPAM
 
   1. Compile DSPAM with --enable-daemon to enable LMTP delivery code
 
-  2. Configure your LMTPDeliveryHost and LMTPDeliveryIdent in dspam.conf
+  2. Configure your DeliveryHost and DeliveryIdent in dspam.conf. Set 
+     DeliveryProto based on whether you would like to delivery via LMTP or SMTP.
+f
+     NOTE: If you would like to delivery to different hosts based on domain,
+     specify DeliveryHost.domain.com as the configuration directive
 
   3. Add the --lmtp-recipient flag to the arguments passed into DSPAM. This is
      used to specify the destination address for the message. For example, in
