@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.402 2006/01/24 15:43:12 jonz Exp $
+$Id: CHANGELOG,v 1.403 2006/01/29 05:17:08 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060129.0000] jonz: dramatic reduction of token separators
+
+changed token separators in config.h, made noticeable improvement in accuracy
+across a few different corpora. old delimiters are still there if we need
+to change back.
 
 [20060124.0830] jonz: added dspam_train
 

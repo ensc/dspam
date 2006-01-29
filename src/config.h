@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.7 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: config.h,v 1.8 2006/01/29 05:17:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -43,9 +43,17 @@
 #endif
 
 /* Acceptable Word Delimiters */
+/*
+OLD DELIMITERS
 #define DELIMITERS              " .,;:\"/\\[]}{=+_()<>|&\n\t\r@-*~`?"
 #define DELIMITERS_NCORE        "[ .,;:\"/\\\\[\\]}{=+_()<>|&\n\t\r@-*~`?]"
 #define DELIMITERS_HEADING      " ,;:\"/\\[]}{=+()<>|&\n\t\r@*~`?"
+*/
+
+#define DELIMITERS              " .,;:\n\t\r@"
+#define DELIMITERS_NCORE        "[ .,;:\"/\\\\[\\]}{=+_()<>|&\n\t\r@-*~`?]"
+#define DELIMITERS_HEADING      " ,;:\n\t\r@"
+
 #define DELIMITERS_EOT		"!"
 
 /* Our 64-bit Polynomial */
