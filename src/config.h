@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.9 2006/01/29 11:15:40 jonz Exp $ */
+/* $Id: config.h,v 1.10 2006/01/30 19:49:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -48,11 +48,15 @@ OLD DELIMITERS
 #define DELIMITERS              " .,;:\"/\\[]}{=+_()<>|&\n\t\r@-*~`?"
 #define DELIMITERS_NCORE        "[ .,;:\"/\\\\[\\]}{=+_()<>|&\n\t\r@-*~`?]"
 #define DELIMITERS_HEADING      " ,;:\"/\\[]}{=+()<>|&\n\t\r@*~`?"
+
+| " : +FP,+ FN
+ - : -FP, -FN
++ *: 
 */
 
-#define DELIMITERS              " .,;:\n\t\r@-"
+#define DELIMITERS              " .,;:\n\t\r@-+*"
 #define DELIMITERS_NCORE        "[ .,;:\"/\\\\[\\]}{=+_()<>|&\n\t\r@-*~`?]"
-#define DELIMITERS_HEADING      " ,;:\n\t\r@-"
+#define DELIMITERS_HEADING      " ,;:\n\t\r@-+*"
 
 #define DELIMITERS_EOT		"!"
 
