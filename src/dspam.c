@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.216 2006/01/24 14:39:38 jonz Exp $ */
+/* $Id: dspam.c,v 1.217 2006/01/30 17:00:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -3119,7 +3119,7 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
                 && block->media_type != MT_MULTIPART))
         && (toplevel_boundary[0] == 0 || (block->body && block->body->used)))
     {
-      if (block->content_disposition != PCD_ATTACHMENT)
+      if (block->content_disposition == PCD_ATTACHMENT)
       {
         node_nt = c_nt_next (CTX->message->components, &c_nt);
         i++;
