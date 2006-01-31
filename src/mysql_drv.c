@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.62 2006/01/24 14:39:38 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.63 2006/01/31 16:02:55 jonz Exp $ */
 
 /*
  DSPAM
@@ -1588,6 +1588,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   MYSQL_RES *result;
   MYSQL_ROW row;
   char *virtual_table, *virtual_uid, *virtual_username;
+  char *sql_username;
 
   if ((virtual_table
     = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
@@ -1611,9 +1612,20 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     s->p_getpwnam.pw_name = NULL;
   }
 
+  sql_username = malloc ((2 * strlen(name)) + 1);
+  if (sql_username == NULL)
+  {
+    return NULL;
+  }
+
+  mysql_real_escape_string (s->dbh, sql_username, name,
+                            strlen(name));
+
   snprintf (query, sizeof (query),
             "select %s from %s where %s = '%s'", 
-            virtual_uid, virtual_table, virtual_username, name);
+            virtual_uid, virtual_table, virtual_username, sql_username);
+
+  free (sql_username);
 
   if (MYSQL_RUN_QUERY (s->dbh, query))
   {
@@ -1787,6 +1799,7 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   char query[256];
   char *virtual_table, *virtual_uid, *virtual_username;
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
+  char *sql_username;
 
   if ((virtual_table
     = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
@@ -1809,9 +1822,20 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   }
 #endif
 
+  sql_username = malloc (strlen(name) * 2 + 1);
+  if (sql_username == NULL)
+  {
+    return NULL;
+  }
+
+  mysql_real_escape_string (s->dbh, sql_username, name,
+                            strlen(name));
+
   snprintf (query, sizeof (query),
             "insert into %s (%s, %s) values(NULL, '%s')",
-            virtual_table, virtual_uid, virtual_username, name);
+            virtual_table, virtual_uid, virtual_username, sql_username);
+
+  free (sql_username);
 
   /* we need to fail, to prevent a potential loop - even if it was inserted
    * by another process */
@@ -2324,17 +2348,20 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
   char buffer[128];
   char hostname[128] = { 0 };
   char user[64] = { 0 };
-  char password[32] = { 0 };
+  char password[64] = { 0 };
   char db[64] = { 0 };
   int port = 3306, i = 0, real_connect_flag = 0;
+  char *p;
 
   /* Read storage attributes */
-  if (_ds_read_attribute(CTX->config->attributes, "MySQLServer")) {
-    char *p;
+  if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLServer"))) {
 
-    strlcpy(hostname, 
-            _ds_read_attribute(CTX->config->attributes, "MySQLServer"), 
-            sizeof(hostname));
+    strlcpy(hostname, p, sizeof(hostname));
+    if (strlen(p) >= sizeof(hostname))
+    {
+      LOG(LOG_WARNING, "Truncating MySQLServer to %d characters.",
+          sizeof(hostname)-1);
+    }
 
     if (_ds_read_attribute(CTX->config->attributes, "MySQLPort"))
       port = atoi(_ds_read_attribute(CTX->config->attributes, "MySQLPort"));
@@ -2342,11 +2369,32 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
       port = 0;
 
     if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLUser")))
+    {
       strlcpy(user, p, sizeof(user));
+      if (strlen(p) >= sizeof(user))
+      {
+        LOG(LOG_WARNING, "Truncating MySQLUser to %d characters.",
+            sizeof(user)-1);
+      }
+    }
     if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLPass")))
+    {
       strlcpy(password, p, sizeof(password));
+      if (strlen(p) >= sizeof(password))
+      {
+        LOG(LOG_WARNING, "Truncating MySQLPass to %d characters.",
+            sizeof(password)-1);
+      }
+    }
     if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLDb")))
+    {
       strlcpy(db, p, sizeof(db)); 
+      if (strlen(p) >= sizeof(db))
+      {
+        LOG(LOG_WARNING, "Truncating MySQLDb to %d characters.",
+            sizeof(db)-1);
+      }
+    }
 
     if (_ds_match_attribute(CTX->config->attributes, "MySQLCompress", "true"))
       real_connect_flag = CLIENT_COMPRESS;
