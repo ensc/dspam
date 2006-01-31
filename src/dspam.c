@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.217 2006/01/30 17:00:14 jonz Exp $ */
+/* $Id: dspam.c,v 1.218 2006/01/31 07:52:01 jonz Exp $ */
 
 /*
  DSPAM
@@ -1353,6 +1353,11 @@ user_classify (
   int result = 0;
   int f_all = 0;
 
+  if (SIG == NULL && message == NULL) {
+    LOG(LOG_WARNING, "user_classify(): SIG == NULL, message == NULL");
+    return EINVAL;
+  }
+
   if (ATX->flags & DAF_CHAINED)
     f_all |= DSF_CHAINED;
                                                                                 
@@ -1393,6 +1398,10 @@ user_classify (
     }
     else
     {
+      if (message == NULL) {
+        LOG(LOG_WARNING, "user_classify: SIG = %ld, message = NULL\n", (unsigned long) SIG);
+        return EFAILURE;
+      } 
       result = dspam_process (CLX, message);
     }
 
