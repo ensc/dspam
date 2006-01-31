@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.218 2006/01/31 07:52:01 jonz Exp $ */
+/* $Id: dspam.c,v 1.219 2006/01/31 16:08:35 jonz Exp $ */
 
 /*
  DSPAM
@@ -765,7 +765,7 @@ process_message (
            CTX->class,
            CTX->probability,
            CTX->confidence,
-           ATX->signature);
+           (ATX->signature[0]) ? ATX->signature : "N/A");
   }
 
   ATX->learned = CTX->learned;
