@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.403 2006/01/29 05:17:08 jonz Exp $
+$Id: CHANGELOG,v 1.404 2006/01/31 15:52:11 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060131.0830] jonz: bugfix in --classify in client/server mode
+
+fixed a bug causing no output when using --classify in client/server mode
 
 [20060129.0000] jonz: dramatic reduction of token separators
 

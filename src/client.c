@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.58 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: client.c,v 1.59 2006/01/31 15:52:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -163,11 +163,9 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
 
   if (ATX->flags & DAF_STDOUT || ATX->operating_mode == DSM_CLASSIFY) {
     char *line = NULL;
-    int head = 0;
+    int head = !(ATX->flags & DAF_STDOUT);
 
     line = client_getline(&TTX, 300);
-    if (line)
-      chomp(line);
 
     while(line != NULL && strcmp(line, ".")) {
       chomp(line);
