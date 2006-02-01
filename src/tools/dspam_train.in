@@ -95,16 +95,16 @@ sub TestNonspam {
     my($code, $cmd, $response);
     my($dir, $msg) = @_;
     print "[test: nonspam] " . substr($msg . " " x 32, 0, 32) .  " result: ";
-    $cmd = "$CONFIG{'DSPAM_BINARY'} --user $USER --deliver=stdout < $dir/$msg";
+    $cmd = "$CONFIG{'DSPAM_BINARY'} --user $USER --deliver=summary < $dir/$msg";
     $response = `$cmd`;
 
     $code = "UNKNOWN";
-    if ($response =~ /X-DSPAM-Result: (\S+)/i) {
+    if ($response =~ /class="(\S+)"/i) {
         $code = $1;
     }
     if ($code eq "UNKNOWN") {
         print "\n===== WOAH THERE =====\n";
-        print "I was unable to parse the X-DSPAM-Result. Test Broken.\n";
+        print "I was unable to parse the result. Test Broken.\n";
         print "======================\n";
         exit(0);
     }
@@ -114,11 +114,11 @@ sub TestNonspam {
     } else {
         my($class) = "UNKNOWN";
         my($signature) = "UNKNOWN";
-        if ($response =~ /X-DSPAM-Result: (\S+)/i) {
+        if ($response =~ /class="(\S+)"/i) {
             $class = $1;
         }
 
-        if ($response =~ /X-DSPAM-Signature: (\S+)/i) {
+        if ($response =~ /signature=(\S+)/i) {
             $signature = $1;
         } else {
             print "\n===== WOAH THERE =====\n";
@@ -154,16 +154,16 @@ sub TestSpam {
     my($dir, $msg) = @_;
 
     print "[test: spam   ] " . substr($msg . " " x 32, 0, 32) . " result: ";
-    $cmd = "$CONFIG{'DSPAM_BINARY'} --user $USER --deliver=stdout < $dir/$msg";
+    $cmd = "$CONFIG{'DSPAM_BINARY'} --user $USER --deliver=summary < $dir/$msg";
     $response = `$cmd`;
 
     $code = "UNKNOWN";
-    if ($response =~ /X-DSPAM-Result: (\S+)/i) {
+    if ($response =~ /class="(\S+)"/i) {
         $code = $1;
     }
     if ($code eq "UNKNOWN") {
         print "\n===== WOAH THERE =====\n";
-        print "I was unable to parse the X-DSPAM-Result. Test Broken.\n";
+        print "I was unable to parse the result. Test Broken.\n";
         print "======================\n";
         exit(0);
     }
@@ -173,11 +173,11 @@ sub TestSpam {
     } else {
         my($class) = "UNKNOWN";
         my($signature) = "UNKNOWN";
-        if ($response =~ /X-DSPAM-Result: (\S+)/i) {
+        if ($response =~ /class="(\S+)"/i) {
             $class = $1;
         }
 
-        if ($response =~ /X-DSPAM-Signature: (\S+)/i) {
+        if ($response =~ /signature=(\S+)/i) {
             $signature = $1;
         } else {
             print "\n===== WOAH THERE =====\n";
