@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.15 2006/01/22 03:11:22 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.16 2006/02/01 20:45:18 jonz Exp $ */
 
 /*
  DSPAM
@@ -435,6 +435,9 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
   if (_ds_match_attribute(CTX->config->attributes, "IgnoreHeader", heading))
     return 0;
 
+  if (!strncmp(heading, "X-DSPAM-", 8))
+    return 0;
+
   /* This is where we used to ignore certain headings */
 
   if (heading[0] != 0)
@@ -521,6 +524,9 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
   int active = 0, top;
 
   if (_ds_match_attribute(CTX->config->attributes, "IgnoreHeader", heading))
+    return 0;
+
+  if (!strncmp(heading, "X-DSPAM-", 8))
     return 0;
 
   /* Shift all previous tokens up */
