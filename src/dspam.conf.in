@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.65 2006/01/29 03:56:57 jonz Exp $
+## $Id: dspam.conf.in,v 1.66 2006/02/02 21:36:19 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -143,6 +143,12 @@ Trust daemon
 #Debug bob bill
 #
 #DebugOpt process spam fp
+
+#
+# ClassAlias: Alias a particular class to spam/nonspam. This is useful if
+# classifying things other than spam.
+#ClassAliasSpam badstuff
+#ClassAliasNonspam goodstuff
 
 #
 # Training Mode: The default training mode to use for all operations, when

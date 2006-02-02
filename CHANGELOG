@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.405 2006/02/02 17:13:11 jonz Exp $
+$Id: CHANGELOG,v 1.406 2006/02/02 21:36:19 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060202.1630] jonz: added ClassAlias options
+
+added ClassAlias options to dspam.conf to alias spam/nonspam classes
 
 [20060202.1200] jonz: bugfix for segfault on UIDInSignature with bad UID
 

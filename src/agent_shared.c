@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.65 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.66 2006/02/02 21:36:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -334,10 +334,16 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     if (!strncmp (argv[i], "--class=", 8))
     {
       char *ptr = strchr(argv[i], '=')+1;
-      if (!strcmp(ptr, "spam"))
+      char *spam = _ds_read_attribute(agent_config, "ClassAliasSpam");
+      char *nonspam = _ds_read_attribute(agent_config, "ClassAliasNonspam");
+      if (!strcmp(ptr, "spam") || (spam && !strcmp(ptr, spam)))
+      {
         ATX->classification = DSR_ISSPAM;
-      else if (!strcmp(ptr, "innocent") || !strcmp(ptr, "nonspam"))
+      } else if (!strcmp(ptr, "innocent") || !strcmp(ptr, "nonspam") ||
+                 (nonspam && !strcmp(ptr, nonspam)))
+      {
         ATX->classification = DSR_ISINNOCENT;
+      }
       else
       {
         LOG(LOG_ERR, ERR_AGENT_NO_SUCH_CLASS, ptr);
