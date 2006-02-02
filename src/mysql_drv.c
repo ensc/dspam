@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.63 2006/01/31 16:02:55 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.64 2006/02/02 17:13:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -1092,6 +1092,11 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     /* Change the context's username and reinitialize storage */
 
     p = _mysql_drv_getpwuid (CTX, uid);
+    if (p == NULL) {
+      LOG(LOG_CRIT, "_ds_get_signature(): _mysql_drv_getpwuid(%d) failed: aborting", uid);
+      return EFAILURE;
+    }
+
     username = strdup(p->pw_name);
     _ds_shutdown_storage(CTX);
     free(CTX->username);

@@ -1,8 +1,13 @@
-$Id: CHANGELOG,v 1.404 2006/01/31 15:52:11 jonz Exp $
+$Id: CHANGELOG,v 1.405 2006/02/02 17:13:11 jonz Exp $
 
 Version NEXT
 ------------
 
+[20060202.1200] jonz: bugfix for segfault on UIDInSignature with bad UID
+
+fixed a bug which causes a segfault when using UIDInSignature if a bad uid
+is specified in the signature
+ 
 [20060131.0830] jonz: bugfix in --classify in client/server mode
 
 fixed a bug causing no output when using --classify in client/server mode
