@@ -1,4 +1,4 @@
-$Id: README,v 1.86 2006/01/29 03:56:57 jonz Exp $
+$Id: README,v 1.87 2006/02/06 19:35:22 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Deep Logic, Inc.
@@ -50,6 +50,7 @@ Advanced DSPAM functionality
   2.2 External Inoculation Theory
   2.3 Client/Server Mode
   2.4 LMTP 
+  2.5 DSPAM User Preferences
 
 Miscellaneous
 
@@ -1875,6 +1876,85 @@ DATA
   %s - The MAIL FROM passed in via LMTP
 
   In both cases, the content provided between < > is what is actually used.
+
+2.5 DSPAM USER PREFERENCES
+
+  Preferences are settings that can be configured globally in dspam.conf or
+  for individual users via the dspam_admin command.
+
+  trainingMode { TOE | TUM | TEFT | NOTRAIN } 
+    How DSPAM should train messages it analyzes. See section 1.5 --mode
+    (default:teft, see dspam.conf)
+
+  spamAction { quarantine | tag | deliver } 
+    What to do with spam. The tag and deliver options both deliver, but tag
+    adds a special prefix to the subject, whereas deliver merely sets
+    X-DSPAM-Result. (default:quarantine)
+
+  spamSubject 
+    A customized subject to prefix when spamAction=tag. (default:[SPAM])
+
+  statisticalSedation { 0 - 10 }
+    The level of dampening during training (0-10, 0 = no dampening, default:0)
+
+  enableBNR { on | off }
+    Enables or disables bayesian noise reduction (default:off)
+ 
+  enableWhitelist { on | off }
+    Enables or disables automatic whitelisting (default:on)
+
+  signatureLocation { message | headers }
+    Where to place the DSPAM signature. Placement affects forwarding approach.
+    (default:message)
+
+  showFactors { on | off }
+    Whether to include an X-DSPAM-Factors header including decision-making
+    factors (clues). NOTE: This can break RFC in some cases, and should only
+    be used for debugging. (default:off)
+
+  optIn / optOut { on | off }
+    Depending on whether the system is opt-in or opt-out, sets the user's
+    membership. If user is opted out (or not opted in), mail will be delivered
+    by DSPAM without being processed.
+
+  whitelistThreshold { Integer }
+    Overrides the default number of times a From: header has been seen before
+    it is automatically whitelisted. (default:10)
+
+  makeCorpus { on | off }
+    When activated, a maildir-style corpus is maintained in the user's data
+    directory (DSPAM_HOME/DATA/USERNAME), suitable for future retraining or
+    other analysis. (default:off)
+
+  storeFragments { on | off }
+    When activated, the first 1k of each message are temporarily stored on 
+    the server for reference via the webui's history function. (default:off)
+
+  localStore { on | off }
+    Overrides the directory name used for the user's dspam data directory. This
+    is useful when using recipient addresses as usernames, as it will allow 
+    all addresses belonging to a specific user to be written to a single
+    webui directory. (default:username)
+    
+  processorBias { on | off }
+    Overrides the "bias" setting in dspam.conf, which biases mail as 
+    innocent. (default:on, see dspam.conf)
+
+  fallbackDomain { on | off }
+    Allows a dspam user ("@domain.com") to be marked as a fallback user for
+    the entire domain, so if the destination dspam user does not exist in
+    the database, the fallback user's database will be used. The
+    dspam.conf "FallbackDomains" setting must also be "on". (default:off)
+
+  trainPristine { on | off }
+    Override's the default signature mode and treats messages as if they were
+    in pristine format when retraining. This requires all retraining to use
+    the original message that was processed as no dspam signature is stored
+    for pristine training. (default:off)
+
+  optOutClamAV { on | off }
+    Opts out of ClamAV virus scanning (if ClamAV is directly integrated with
+    dspam via dspam.conf). (default:off)
 
 3.0 BUGS, PORTS, AND THE LIKE
 
