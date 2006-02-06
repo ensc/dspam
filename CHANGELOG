@@ -1,8 +1,12 @@
-$Id: CHANGELOG,v 1.406 2006/02/02 21:36:19 jonz Exp $
+$Id: CHANGELOG,v 1.407 2006/02/06 19:39:21 jonz Exp $
 
 Version NEXT
 ------------
 
+[20060206.1430] jonz: documented user preference options
+
+documented all available user preferences in 2.5 of README
+ 
 [20060202.1630] jonz: added ClassAlias options
 
 added ClassAlias options to dspam.conf to alias spam/nonspam classes
