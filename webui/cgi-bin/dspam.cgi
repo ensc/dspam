@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.12 2006/02/07 21:23:24 jonz Exp $
+# $Id: dspam.cgi,v 1.13 2006/02/07 21:33:57 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -232,6 +232,7 @@ sub DisplayHistory {
         $rec{$signature}->{'info'} = $info;
       } elsif ($class eq "F" || $class eq "M") {
         $rec{$signature}->{'class'} = $class;
+        $rec{$signature}->{'count'}++;
         $rec{$signature}->{'info'} = $info 
           if ($rec{$signature}->{'info'} eq "");
       }
@@ -277,8 +278,20 @@ sub DisplayHistory {
     $class = $rec{$signature}->{'class'} if ($rec{$signature}->{'class'} ne "");
     if ($class eq "S") { $cl = "spam"; $cllabel="SPAM"; }
     elsif ($class eq "I") { $cl = "innocent"; $cllabel="Good"; }
-    elsif ($class eq "F") { $cl = "false"; $cllabel="Miss"; }
-    elsif ($class eq "M") { $cl = "missed"; $cllabel="Miss"; }
+    elsif ($class eq "F") {
+      if ($rec{$signature}->{'count'} % 2 != 0) {
+        $cl = "false"; $cllabel="Miss"; 
+      } else {
+        $cl = "innocent"; $cllabel="Good"; 
+      }
+    }
+    elsif ($class eq "M") { 
+      if ($rec{$signature}->{'count'} % 2 != 0) {
+          $cl = "missed"; $cllabel="Miss"; 
+      } else {
+          $cl = "spam"; $cllabel="SPAM";
+      }
+    }
     elsif ($class eq "N") { $cl = "inoculation"; $cllabel="Spam"; }
     elsif ($class eq "C") { $cl = "blacklisted"; $cllabel="RBL"; }
     elsif ($class eq "W") { $cl = "whitelisted"; $cllabel="Whitelist"; }
@@ -302,7 +315,7 @@ sub DisplayHistory {
     $time = sprintf("%01.2f", $time);
 
     my($retrain);
-    if ($rec{$signature}->{'class'} =~ /^(M|F)$/) {
+    if ($rec{$signature}->{'class'} =~ /^(M|F)$/ && $rec{$signature}->{'count'} % 2 != 0) {
       $retrain = "<b>Retrained</b>";
     }
 
