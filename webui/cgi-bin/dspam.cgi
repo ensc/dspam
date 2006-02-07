@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.14 2006/02/07 21:50:34 jonz Exp $
+# $Id: dspam.cgi,v 1.15 2006/02/07 21:57:24 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -1187,7 +1187,7 @@ sub DisplayIndex {
     }
 
     if ($real_fp+$real_innocent>0) {
-      $fpratio = sprintf("%2.0f", ($real_fp/($real_fp+$real_innocent)*100));
+      $fpratio = sprintf("%2.3f", ($real_fp/($real_fp+$real_innocent)*100));
     } else {
       $fpratio = 0;
     }
