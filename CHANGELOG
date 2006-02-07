@@ -1,11 +1,12 @@
-$Id: CHANGELOG,v 1.408 2006/02/07 21:23:24 jonz Exp $
+$Id: CHANGELOG,v 1.409 2006/02/07 21:50:34 jonz Exp $
 
 Version NEXT
 ------------
 
-[20060207.0400] jonz: added Undo option to WebUI
+[20060207.0400] jonz: cgi improvements
 
-added Undo option to undo retraining
+- added Undo option to undo retraining
+- added support for existing storeFragments option to recall message in history
 
 [20060206.1430] jonz: documented user preference options
 

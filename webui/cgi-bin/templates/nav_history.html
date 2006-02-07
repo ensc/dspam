@@ -53,5 +53,21 @@ $HISTORY$
 </p>
 </div>
 
+<script language="javascript">
+<!--
+var remote = null;
+
+function openwin(width, height, scroll, url) {
+  remote = window.open('', 'SpecialIntro', 'width=' + width + ',height='
+                  + height + ',resizable=1,dependent,scrollbars=' + scroll +
+                  ',status=0');
+  if (remote != null) {
+    if (remote.opener == null) { remote.opener = self; }
+    remote.location.href = url;
+  }
+}
+//-->
+</script>
+
 </BODY>
 </HTML>

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.13 2006/02/07 21:33:57 jonz Exp $
+# $Id: dspam.cgi,v 1.14 2006/02/07 21:50:34 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -151,6 +151,8 @@ if ($FORM{'template'} eq "performance") {
 # History
 } elsif ($FORM{'template'} eq "history") {
   &DisplayHistory;
+} elsif ($FORM{'template'} eq "fragment") {
+  &DisplayFragment;
 } else {
   &error("Invalid Command $FORM{'COMMAND'}");
 }
@@ -158,6 +160,20 @@ if ($FORM{'template'} eq "performance") {
 #
 # History Functions
 # 
+
+sub DisplayFragment {
+  $FORM{'signatureID'} =~ s/\///g;
+  $DATA{'FROM'} = $FORM{'from'};
+  $DATA{'SUBJECT'} = $FORM{'subject'};
+  $DATA{'INFO'} = $FORM{'info'};
+  $DATA{'TIME'} = $FORM{'time'};
+  open(FILE, "<$USER.frag/$FORM{'signatureID'}.frag") || &error($!);
+  while(<FILE>) {
+    $DATA{'MESSAGE'} .= $_;
+  }
+  close(FILE);
+  &output(%DATA);
+}
 
 sub DisplayHistory {
   my($history_site) = $FORM{'history_site'};
@@ -329,6 +345,21 @@ sub DisplayHistory {
         } else {
           $retrain .= qq! (<A HREF="$CONFIG{'ME'}?template=$FORM{'template'}&user=$FORM{'user'}&retrain=$rclass&signatureID=$signature">Undo</A>)!;
         }
+    }
+
+    my($path) = "$USER.frag/$signature.frag";
+    if (-e $path) {
+      my(%pairs);
+      $pairs{'template'} = "fragment";
+      $pairs{'signatureID'} = $signature;
+      $subject =~ s/#//g;
+      $pairs{'subject'} = $subject;
+      $pairs{'from'} = $from;
+      $pairs{'info'} = $info;
+      $pairs{'time'} = $ctime;
+      $pairs{'user'} = $FORM{'user'};
+      my($url) = &SafeVars(%pairs);
+      $from = qq!<a href="javascript:openwin(580,400,1,'$CONFIG{'DSPAM_CGI'}?$url')">$from</a>!;
     }
 
     my($entry) = <<_END;
