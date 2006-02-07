@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.15 2006/02/07 21:57:24 jonz Exp $
+# $Id: dspam.cgi,v 1.16 2006/02/07 22:06:25 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -169,6 +169,8 @@ sub DisplayFragment {
   $DATA{'TIME'} = $FORM{'time'};
   open(FILE, "<$USER.frag/$FORM{'signatureID'}.frag") || &error($!);
   while(<FILE>) {
+    s/</&lt\;/g;
+    s/>/&gt\;/g;
     $DATA{'MESSAGE'} .= $_;
   }
   close(FILE);
