@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.407 2006/02/06 19:39:21 jonz Exp $
+$Id: CHANGELOG,v 1.408 2006/02/07 21:23:24 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060207.0400] jonz: added Undo option to WebUI
+
+added Undo option to undo retraining
 
 [20060206.1430] jonz: documented user preference options
 

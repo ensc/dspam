@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.11 2006/01/18 16:48:54 jonz Exp $
+# $Id: dspam.cgi,v 1.12 2006/02/07 21:23:24 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -304,15 +304,18 @@ sub DisplayHistory {
     my($retrain);
     if ($rec{$signature}->{'class'} =~ /^(M|F)$/) {
       $retrain = "<b>Retrained</b>";
-    } else {
+    }
+
+    {
       my($rclass);
-      $rclass = "spam" if ($class eq "I" || $class eq "W");
-      $rclass = "innocent" if ($class eq "S");
+      $rclass = "spam" if ($class eq "I" || $class eq "W" || $class eq "F");
+      $rclass = "innocent" if ($class eq "S" || $class eq "M");
  
-      if ($rclass ne "") {
-        $retrain = qq!<A HREF="$CONFIG{'ME'}?template=$FORM{'template'}&user=$FORM{'user'}&retrain=$rclass&signatureID=$signature">As ! . ucfirst($rclass) . "</
-A>";
-      }
+        if ($retrain eq "") {
+          $retrain = qq!<A HREF="$CONFIG{'ME'}?template=$FORM{'template'}&user=$FORM{'user'}&retrain=$rclass&signatureID=$signature">As ! . ucfirst($rclass) . "</A>";
+        } else {
+          $retrain .= qq! (<A HREF="$CONFIG{'ME'}?template=$FORM{'template'}&user=$FORM{'user'}&retrain=$rclass&signatureID=$signature">Undo</A>)!;
+        }
     }
 
     my($entry) = <<_END;
