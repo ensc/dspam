@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.8 2006/01/18 16:48:54 jonz Exp $
+# $Id: admin.cgi,v 1.9 2006/02/07 22:02:47 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -512,7 +512,7 @@ sub DisplayStatus {
   $DATA{'AVG_PROCESSING_TIME'} = sprintf("%01.6f", $DATA{'AVG_PROCESSING_TIME'});
 
   # Calculate Number of processes, Uptime and Mail Queue length
-  $DATA{'DSPAM_PROCESSES'} = `$CONFIG{'ALL_PROCS'} | grep dspam | grep -v grep | grep -v cgi | wc -l`;
+  $DATA{'DSPAM_PROCESSES'} = `$CONFIG{'ALL_PROCS'} | grep dspam | grep -v grep | grep -v cgi | grep -v sock | wc -l`;
   $DATA{'UPTIME'} = `uptime`;
   $DATA{'MAIL_QUEUE'} = `$CONFIG{'MAIL_QUEUE'}`;
   
