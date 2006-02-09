@@ -1,4 +1,4 @@
-/* $Id: hash_drv.h,v 1.9 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: hash_drv.h,v 1.10 2006/02/09 23:26:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -31,8 +31,8 @@
 #include "nodetree.h"
 #include "libdspam.h"
 
-#define HASH_REC_MAX	100000
-#define HASH_EXTENT_MAX 50000
+#define HASH_REC_MAX	98317
+#define HASH_EXTENT_MAX 49157
 #define HASH_SEEK_MAX   100
 
 typedef struct _hash_drv_header
