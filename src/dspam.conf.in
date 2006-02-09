@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.66 2006/02/02 21:36:19 jonz Exp $
+## $Id: dspam.conf.in,v 1.67 2006/02/09 19:18:20 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -346,7 +346,7 @@ AllowOverride whitelistThreshold
 # fast, so be sure to increase this (to a million or more) if you're not using
 # autoextend.
 #
-HashRecMax		100000
+HashRecMax		98317
 
 # HashAutoExtend: Autoextend hash databases when they fill up. This allows
 # them to continue to train by adding extents (extensions) to the file. There 
@@ -364,7 +364,7 @@ HashMaxExtents		0
 # small could result in many extents being created. Creating this too large
 # could result in excessive disk space usage.
 #
-HashExtentSize		50000
+HashExtentSize		49157
 
 # HashMaxSeek: The maximum number of records to seek to insert a new record
 # before failing or adding a new extent. Setting this too high will exhaustively
