@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.21 2006/01/28 20:13:37 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.22 2006/02/11 21:51:26 jonz Exp $ */
 
 /*
  DSPAM
@@ -306,7 +306,7 @@ stat_user (const char *username)
         \tTL Training Left:          %6ld\n\
         \tSHR Spam Hit Rate        % 7.2f%%\n\
         \tHSR Ham Strike Rate:     % 7.2f%%\n\
-        \tOR Overall Rate/Accuracy:% 7.2f%%\n\
+        \tOCA Overall Accuracy:    % 7.2f%%\n\
         \n",
             username,
             total_spam, total_innocent,
