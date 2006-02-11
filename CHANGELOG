@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.410 2006/02/11 00:34:42 jonz Exp $
+$Id: CHANGELOG,v 1.411 2006/02/11 20:14:57 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060211.1515] jonz: added index support for dspam_train
+
+added support for training using an index file to define the order of ham/spam
+by specifying dspam_train [username] -i [indexname]. format of index file is
+"class filename" where class can be spam/nonspam.
 
 [20060209.1930] jonz: cgi mass retraining patch
 

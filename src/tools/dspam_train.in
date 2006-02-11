@@ -18,11 +18,11 @@ if ($NONSPAM_CORPUS eq "") {
 }
 
 sub usage {
-    print STDERR "Usage: $0 [username] [spam_dir] [nonspam_dir]\n";
+    print STDERR "Usage: $0 [username] [[-i index]|[spam_dir] [nonspam_dir]]\n";
     exit(-1);
 }
 
-if (! -d $SPAM_CORPUS || ! -d $NONSPAM_CORPUS) {
+if ($SPAM_CORPUS != "-i" && (! -d $SPAM_CORPUS || ! -d $NONSPAM_CORPUS)) {
     print STDERR "ERROR: " . ((-d $SPAM_CORPUS) ? "nonspam" : "spam" ) . "corpus must be path to maildir directory\n";
     usage(); 
 }
@@ -38,6 +38,24 @@ sub Train {
     my($msg);
 
     print "Training $nonspam / $spam corpora...\n";
+
+    # Train on index
+    if ($SPAM_CORPUS eq "-i") {
+      open(INDEX, "<$NONSPAM_CORPUS");
+      while(<INDEX>) {
+        chomp;
+        my($class, $filename) = split(/\s+/);
+        if ($class eq "ham" || $class eq "nonspam") {
+            TestNonspam(".", $filename);
+        } elsif ($class eq "spam") {
+            TestSpam(".", $filename);
+        } else {
+            die "ERROR: Unknown class '$class'. Test Broken.";
+        }
+      }
+      return FinishTraining();
+    }
+
     @nonspam_corpus = GetFiles($nonspam);
     @spam_corpus = GetFiles($spam); 
 
@@ -74,6 +92,12 @@ sub Train {
             }
         }
     }
+
+    FinishTraining();
+
+}
+
+sub FinishTraining() {
     print "TRAINING COMPLETE\n";
     print "\nTraining Snapshot:\n";
     system("$CONFIG{'BINDIR'}/dspam_stats -S -s $USER");
