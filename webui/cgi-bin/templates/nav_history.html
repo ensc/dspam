@@ -33,6 +33,11 @@ The messages that have been processed by the filter are shown below. The most re
 deliver any false positives that are still in your quarantine.
 </p>
 
+<form name="history" action="dspam.cgi" method="POST">
+<input type="submit" value="Retrain Checked">
+<input type="hidden" name="template" value="history">
+<input type="hidden" name="command" value="retrainChecked">
+<input type="hidden" name="user" value="$REMOTE_USER$">
 <table border="0" cellspacing="0" cellpadding="2" width="100%">
 <tr>
 	<th>Type</th>
@@ -44,6 +49,8 @@ deliver any false positives that are still in your quarantine.
 </tr>
 $HISTORY$
 </table>
+<input type="submit" value="Retrain Checked">
+</form>
 
 </div>
 

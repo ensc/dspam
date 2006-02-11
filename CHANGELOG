@@ -1,8 +1,12 @@
-$Id: CHANGELOG,v 1.409 2006/02/07 21:50:34 jonz Exp $
+$Id: CHANGELOG,v 1.410 2006/02/11 00:34:42 jonz Exp $
 
 Version NEXT
 ------------
 
+[20060209.1930] jonz: cgi mass retraining patch
+
+applied mass retraining patch submitted by Cove Schneider <cove@wildpackets.com>
+ 
 [20060207.0400] jonz: cgi improvements
 
 - added Undo option to undo retraining

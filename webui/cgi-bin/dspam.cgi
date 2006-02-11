@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.16 2006/02/07 22:06:25 jonz Exp $
+# $Id: dspam.cgi,v 1.17 2006/02/11 00:34:42 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -178,7 +178,7 @@ sub DisplayFragment {
 }
 
 sub DisplayHistory {
-  my($history_site) = $FORM{'history_site'};
+  my($history_page) = $FORM{'history_page'};
   my($all_lines , $end, $begin, $history_pages);
 
   my(@buffer, @history, $line, %rec);
@@ -188,11 +188,24 @@ sub DisplayHistory {
     $CONFIG{'HISTORY_PER_PAGE'} = 50;
   }
 
-  if ($FORM{'retrain'} ne "") {
-    if ($FORM{'retrain'} eq "innocent") {
-      &ProcessFalsePositive();
-    } else {
-      system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($FORM{'retrain'}) . " --signature=" . quotemeta($FORM{'signatureID'}) . " --user " . quotemeta("$CURRENT_USER"));
+  if ($FORM{'command'} eq "retrainChecked") {
+    foreach my $i (0 .. $#{ $FORM{retrain_checked} }) {
+        my ($retrain, $signature) = split(/:/, $FORM{retrain_checked}[$i]);
+        if ($retrain eq "innocent") {
+          $FORM{'signatureID'} = quotemeta($signature);
+          &ProcessFalsePositive();
+          undef $FORM{'signatureID'};
+         } elsif ($retrain eq "innocent" or $retrain eq "spam") {
+           system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($retrain) . " --signature=" . quotemeta($signature) . " --user " . quotemeta("$CURRENT_USER"));
+         }
+    }
+  } else {
+    if ($FORM{'retrain'} ne "") {
+       if ($FORM{'retrain'} eq "innocent") {
+         &ProcessFalsePositive();
+       } else {
+         system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($FORM{'retrain'}) . " --signature=" . quotemeta($FORM{'signatureID'}) . " --user " . quotemeta("$CURRENT_USER"));
+       }
     }
   }
 
@@ -203,7 +216,7 @@ sub DisplayHistory {
 
   if ($CONFIG{'HISTORY_PER_PAGE'} > 0) {
 
-    $history_site = 1 if $history_site eq "";
+    $history_page = 1 if $history_page eq "";
 
     open(LINES,"wc -l $LOG|");
     while (<LINES>){
@@ -213,8 +226,8 @@ sub DisplayHistory {
     }
     close (LINES);
 
-    $end = $all_lines - (($history_site-1) * $CONFIG{'HISTORY_PER_PAGE'});
-    $begin = $end - $CONFIG{'HISTORY_PER_PAGE'} + 1 ;
+    $begin = $all_lines - ($CONFIG{'HISTORY_PER_PAGE'} * $history_page);
+    $end = $all_lines - ($CONFIG{'HISTORY_PER_PAGE'} * ($history_page - 1));
 
     if ($begin < 0) {
       $begin = 1;
@@ -257,6 +270,7 @@ sub DisplayHistory {
     }
   }
 
+  my $retrain_checked_msg_no = 0;
   while($line = shift(@buffer)) {
     chomp($line);
     my($time, $class, $from, $signature, $subject, $info, $messageid) 
@@ -332,21 +346,19 @@ sub DisplayHistory {
     $subject = substr($subject, 0, 40) . "..." if (length($subject)>40);
     $time = sprintf("%01.2f", $time);
 
+    my($rclass);
+    $rclass = "spam" if ($class eq "I" || $class eq "W" || $class eq "F");
+    $rclass = "innocent" if ($class eq "S" || $class eq "M");
+
     my($retrain);
     if ($rec{$signature}->{'class'} =~ /^(M|F)$/ && $rec{$signature}->{'count'} % 2 != 0) {
       $retrain = "<b>Retrained</b>";
-    }
+    } 
 
-    {
-      my($rclass);
-      $rclass = "spam" if ($class eq "I" || $class eq "W" || $class eq "F");
-      $rclass = "innocent" if ($class eq "S" || $class eq "M");
- 
-        if ($retrain eq "") {
-          $retrain = qq!<A HREF="$CONFIG{'ME'}?template=$FORM{'template'}&user=$FORM{'user'}&retrain=$rclass&signatureID=$signature">As ! . ucfirst($rclass) . "</A>";
-        } else {
-          $retrain .= qq! (<A HREF="$CONFIG{'ME'}?template=$FORM{'template'}&user=$FORM{'user'}&retrain=$rclass&signatureID=$signature">Undo</A>)!;
-        }
+    if ($retrain eq "") {
+      $retrain = qq!<A HREF="$CONFIG{'ME'}?template=$FORM{'template'}&history_page=$history_page&user=$FORM{'user'}&retrain=$rclass&signatureID=$signature">As ! . ucfirst($rclass) . "</A>";
+    } else {
+      $retrain .= qq! (<A HREF="$CONFIG{'ME'}?template=$FORM{'template'}&history_page=$history_page&user=$FORM{'user'}&retrain=$rclass&signatureID=$signature">Undo</A>)!;
     }
 
     my($path) = "$USER.frag/$signature.frag";
@@ -361,19 +373,23 @@ sub DisplayHistory {
       $pairs{'time'} = $ctime;
       $pairs{'user'} = $FORM{'user'};
       my($url) = &SafeVars(%pairs);
-      $from = qq!<a href="javascript:openwin(580,400,1,'$CONFIG{'DSPAM_CGI'}?$url')">$from</a>!;
+      #$from = qq!<a href="javascript:openwin(580,400,1,'$CONFIG{'DSPAM_CGI'}?$url')">$from</a>!;
+      $from = qq!<a href="javascript:openwin(580,400,1,'$CONFIG{'ME'}?$url')">$from</a>!;
     }
 
     my($entry) = <<_END;
 <tr>
 	<td class="$cl $rowclass" nowrap="true"><small>$cllabel</td>
-        <td class="$rowclass" nowrap="true"><small>$retrain</td>
+        <td class="$rowclass" nowrap="true"><small>
+	 <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature">
+	 $retrain</td>
 	<td class="$rowclass" nowrap="true"><small>$ctime</td>
 	<td class="$rowclass" nowrap="true"><small>$from</td>
 	<td class="$rowclass" nowrap="true"><small>$subject</td>
 	<td class="$rowclass" nowrap="true"><small>$info</td>
 </tr>
 _END
+    $retrain_checked_msg_no++;
     push(@history, $entry);
 
     if ($rowclass eq "rowEven") {
@@ -384,16 +400,21 @@ _END
 
   }
 
+  my $entry = <<_END;
+	<input name="history_page" type="hidden" value="$history_page">
+_END
+  push(@history, $entry);
+
   while($line = pop(@history)) { $DATA{'HISTORY'} .= $line; }
 
   if ($CONFIG{'HISTORY_PER_PAGE'} > 0) {
     $DATA{'HISTORY'} .= "<center>[";
     for(my $i = 1; $i <= $history_pages; $i++) {
   
-      if ($i == $history_site) {
-        $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_site=$i\"><big><strong>   $i   </strong></big></a>";
+      if ($i == $history_page) {
+        $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\"><big><strong>   $i   </strong></big></a>";
       } else {
-       $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_site=$i\">   $i   </a>";
+       $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\">   $i   </a>";
       }
     }
     $DATA{'HISTORY'} .= "]</center><BR>";
@@ -1385,7 +1406,12 @@ sub ReadParse {
     $value =~ tr/+/ /;
     $value =~ s/%([a-fA-F0-9][a-fA-F0-9])/pack("C", hex($1))/eg;
     $value =~ s/<!--(.|\n)*-->//g;
-    $FORM{$name} = $value;
+
+    if ($name =~ /^msgid[\d]+$/) {
+	push(@{ $FORM{retrain_checked} }, $value);
+    } else {
+	$FORM{$name} = $value;
+    }
   }
   return %FORM;
 }
