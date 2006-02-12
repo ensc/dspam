@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.411 2006/02/11 20:14:57 jonz Exp $
+$Id: CHANGELOG,v 1.412 2006/02/12 12:04:47 jonz Exp $
 
-Version NEXT
-------------
+Version 3.6.4
+-------------
 
 [20060211.1515] jonz: added index support for dspam_train
 

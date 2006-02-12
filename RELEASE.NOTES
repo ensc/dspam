@@ -1,4 +1,22 @@
-$Id: RELEASE.NOTES,v 1.62 2006/01/18 16:41:37 jonz Exp $
+$Id: RELEASE.NOTES,v 1.63 2006/02/12 12:04:47 jonz Exp $
+
+RELEASE 3.6.4-STABLE
+
+3.6.4 is a maintenance release
+
+DOC: Documented user preferences in README
+MAINT: Added dspam_train tool, replacing most functions of dspam_corpus
+MAINT: Code cleanup and performance improvements
+MAINT: Significant improvements in accuracy, specifically reduced false pos.
+MAINT: Removed experimental neural collaboration functions
+MAINT: Added ClassAlias configuration directive to dspam.conf
+MAINT: Added undo option for retraining via WebUI
+MAINT: Added storeFragments support to WebUI
+MAINT: Added mass-retraining support to WebUI
+BUGFIX: DSPAM segfaults when invalid UID specified using UIDInSignature
+BUGFIX: No output when using --classify with --client
+BUGFIX: dspam_corpus overrides default dspam.conf settings
+BUGFIX: Multi-driver builds fail when preferences-extension is not supported
 
 RELEASE 3.6.3-STABLE
 
