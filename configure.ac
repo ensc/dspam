@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.59 2006/01/24 14:39:38 jonz Exp $
+dnl $Id: configure.ac,v 1.60 2006/02/13 18:31:41 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -23,7 +23,7 @@ AC_CANONICAL_HOST
 #	C language relative
 AC_LANG(C)
 AC_PROG_CC
-AC_PROG_CPP
+#AC_PROG_CPP
 AC_PROG_LIBTOOL
 AC_PROG_MAKE_SET
 
