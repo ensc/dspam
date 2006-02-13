@@ -33,7 +33,7 @@ $CONFIG{'TEMPLATES'}	= "./templates";	# Location of HTML templates
 $CONFIG{'ALL_PROCS'}	= "ps auxw";		# use ps -deaf for Solaris
 $CONFIG{'MAIL_QUEUE'}   = "mailq | grep '^[0-9,A-F]' | wc -l";
 
-$CONFIG{'WEB_ROOT'}     = "/"; # URL location of included htdocs/ files
+$CONFIG{'WEB_ROOT'}     = ""; # URL location of included htdocs/ files
 
 # Default DSPAM display
 $CONFIG{'HISTORY_SIZE'} = 799;		# Number of items in history
