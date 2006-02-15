@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.17 2006/02/11 00:34:42 jonz Exp $
+# $Id: dspam.cgi,v 1.18 2006/02/15 16:27:50 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -1205,8 +1205,13 @@ sub DisplayIndex {
         (100-((($real_missed+$real_fp) / 
         ($real_fp+$real_innocent+$real_caught+$real_missed))*100)));
     } else {
-      $monthly = 100;
-      $overall = 100;
+      if ($real_caught == 0 && $real_missed > 0) {
+        $monthly = 0;
+        $overall = 0;
+      } else {
+        $monthly = 100;
+        $overall = 100;
+      }
     }
 
     if ($real_fp+$real_innocent>0) {
