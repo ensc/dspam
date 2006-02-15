@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.152 2006/01/28 17:23:50 jonz Exp $ */
+/* $Id: libdspam.c,v 1.153 2006/02/15 19:42:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -2075,13 +2075,24 @@ CHI_NEXT:
 
   /* Calculate Confidence */
 
-  if (CTX->result == DSR_ISSPAM)
-  {
-    CTX->confidence = rob_result;
-  }
-  else
-  {
-    CTX->confidence = 1.0 - rob_result;
+  if (CTX->algorithms & DSP_MARKOV) {
+    if (CTX->result == DSR_ISSPAM)
+    {
+      CTX->confidence = CTX->probability;
+    }
+    else
+    {
+      CTX->confidence = 1.0 - CTX->probability;
+    }
+  } else {
+    if (CTX->result == DSR_ISSPAM)
+    {
+      CTX->confidence = rob_result;
+    }
+    else
+    {
+      CTX->confidence = 1.0 - rob_result;
+    }
   }
 
   LOGDEBUG("Result Confidence: %1.2f", CTX->confidence);

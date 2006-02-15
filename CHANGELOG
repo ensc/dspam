@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.413 2006/02/15 17:57:24 jonz Exp $
+$Id: CHANGELOG,v 1.414 2006/02/15 19:42:22 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060215.1230] jonz: Markovian result used as X-DSPAM-Confidence
+
+X-DSPAM-Confidence is set using markovian result, whenever markovian
+pvalues are used. 
 
 [20060215.1200] jonz: bugfix for dspamc and --deliver=summary
 
