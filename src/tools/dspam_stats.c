@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.22 2006/02/11 21:51:26 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.23 2006/02/15 20:02:46 jonz Exp $ */
 
 /*
  DSPAM
@@ -53,8 +53,8 @@ int opt_reset;
 int opt_snapshot;
 int opt_stats;
 
-int stat_user (const char *username);
-int process_all_users (void);
+int stat_user (const char *username, struct _ds_spam_totals *totals);
+int process_all_users (struct _ds_spam_totals *totals);
 void dieout (int signal);
 void usage (void);
 
@@ -65,6 +65,7 @@ main (int argc, char **argv)
 #ifndef HAVE_GETOPT
   int optind = 1;
 #endif
+  struct _ds_spam_totals totals;
 
 #ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
@@ -72,6 +73,9 @@ main (int argc, char **argv)
                                                                                 
 #endif
 #endif
+
+
+ memset(&totals, 0, sizeof(struct _ds_spam_totals));
 
  /* Read dspam.conf */
                                                                                 
@@ -173,14 +177,15 @@ main (int argc, char **argv)
   for (i=0; i < argc; i++)
   {
       if (strncmp(argv[i], "--", 2)) {
-        stat_user(argv[i]);
+        stat_user(argv[i], &totals);
         users++;
       }
   }
 
   if (!users)
-    process_all_users ();
+    process_all_users (&totals);
 
+  stat_user(NULL, &totals);
   dspam_shutdown_driver (NULL);
   _ds_destroy_config(agent_config);
   libdspam_shutdown();
@@ -192,7 +197,7 @@ BAIL:
 }
 
 int
-process_all_users (void)
+process_all_users (struct _ds_spam_totals *totals)
 {
   DSPAM_CTX *CTX;
   char *user;
@@ -215,7 +220,7 @@ process_all_users (void)
   user = _ds_get_nextuser (CTX);
   while (user != NULL)
   {
-    stat_user (user);
+    stat_user (user, totals);
     user = _ds_get_nextuser (CTX);
   }
 
@@ -225,44 +230,58 @@ process_all_users (void)
 }
 
 int
-stat_user (const char *username)
+stat_user (const char *username, struct _ds_spam_totals *totals)
 {
-  DSPAM_CTX *MTX;
+  DSPAM_CTX *MTX = NULL;
   long total_spam, total_innocent, spam_misclassified, innocent_misclassified, spam_corpusfed, innocent_corpusfed, all_spam, all_innocent;
   char filename[MAX_FILENAME_LENGTH];
   FILE *file;
+  struct _ds_spam_totals *tptr;
 
-  MTX = dspam_create (username, NULL, _ds_read_attribute(agent_config, "Home"), DSM_CLASSIFY, 0);
-  open_mtx = MTX;
-  if (MTX == NULL)
-  {
-    fprintf (stderr, "Could not init context: %s\n", strerror (errno));
-    return EUNKNOWN;
-  }
-
-  set_libdspam_attributes(MTX);
-  if (dspam_attach(MTX, NULL)) {
-    LOG (LOG_WARNING, "unable to attach dspam context");
-    return EUNKNOWN;
+  if (username) {
+    MTX = dspam_create (username, NULL, _ds_read_attribute(agent_config, "Home"), DSM_CLASSIFY, 0);
+    open_mtx = MTX;
+    if (MTX == NULL)
+    {
+      fprintf (stderr, "Could not init context: %s\n", strerror (errno));
+      return EUNKNOWN;
+    }
+    set_libdspam_attributes(MTX);
+    if (dspam_attach(MTX, NULL)) {
+      LOG (LOG_WARNING, "unable to attach dspam context");
+      return EUNKNOWN;
+    }
+    tptr = &MTX->totals;
+  } else {
+    tptr = totals;
   }
 
   /* Convenience variables. Compiling with optimization will cause this to 
      have 0 slowdown, as it is essentially dead code */
   total_spam =
-      MAX(0, (MTX->totals.spam_learned + MTX->totals.spam_classified) -
-        (MTX->totals.spam_misclassified + MTX->totals.spam_corpusfed));
+      MAX(0, (tptr->spam_learned + tptr->spam_classified) -
+        (tptr->spam_misclassified + tptr->spam_corpusfed));
   total_innocent =
-      MAX(0, (MTX->totals.innocent_learned + MTX->totals.innocent_classified) - 
-        (MTX->totals.innocent_misclassified + MTX->totals.innocent_corpusfed));
-  spam_misclassified     = MTX->totals.spam_misclassified;
-  innocent_misclassified = MTX->totals.innocent_misclassified;
-  spam_corpusfed         = MTX->totals.spam_corpusfed;
-  innocent_corpusfed     = MTX->totals.innocent_corpusfed;
+      MAX(0, (tptr->innocent_learned + tptr->innocent_classified) - 
+        (tptr->innocent_misclassified + tptr->innocent_corpusfed));
+  spam_misclassified     = tptr->spam_misclassified;
+  innocent_misclassified = tptr->innocent_misclassified;
+  spam_corpusfed         = tptr->spam_corpusfed;
+  innocent_corpusfed     = tptr->innocent_corpusfed;
+
+  if (MTX) {
+    totals->spam_learned += MTX->totals.spam_learned;
+    totals->innocent_learned += MTX->totals.innocent_learned;
+    totals->spam_misclassified += MTX->totals.spam_misclassified;
+    totals->innocent_misclassified += MTX->totals.innocent_misclassified;
+    totals->spam_corpusfed += MTX->totals.spam_corpusfed;
+    totals->innocent_corpusfed += MTX->totals.innocent_corpusfed; 
+  }
 
   /* Subtract the snapshot from the current totals to get stats "since last
      reset" for the user */
 
-  if (opt_snapshot) {
+  if (opt_snapshot && username) {
     long s_total_spam, s_total_innocent, s_spam_misclassified,
          s_innocent_misclassified, s_spam_corpusfed, s_innocent_corpusfed;
 
@@ -290,7 +309,6 @@ stat_user (const char *username)
     }
   }
 
-
   all_spam = total_spam + spam_misclassified,
   all_innocent = total_innocent + innocent_misclassified;
 
@@ -308,12 +326,12 @@ stat_user (const char *username)
         \tHSR Ham Strike Rate:     % 7.2f%%\n\
         \tOCA Overall Accuracy:    % 7.2f%%\n\
         \n",
-            username,
+            (username) ? username : "TOTAL",
             total_spam, total_innocent,
             innocent_misclassified, spam_misclassified, 
             spam_corpusfed, innocent_corpusfed, 
-            MAX(0, 2500 - (MTX->totals.innocent_learned +
-                           MTX->totals.innocent_classified)),
+            MAX(0, 2500 - (tptr->innocent_learned +
+                           tptr->innocent_classified)),
        (all_spam) ?
           (100.0-((float)spam_misclassified / (float)all_spam )*100.0)
           : 100.0,
@@ -332,7 +350,7 @@ stat_user (const char *username)
 #else
     printf ("%-16s  TP:%6ld TN:%6ld FP:%6ld FN:%6ld SC:%6ld NC:%6ld\n",
 #endif
-            username,
+            (username) ? username : "TOTAL",
             total_spam, total_innocent,
             innocent_misclassified, spam_misclassified,
             spam_corpusfed, innocent_corpusfed);
@@ -358,7 +376,7 @@ stat_user (const char *username)
           : 100.0);
   }
 
-  if (opt_reset) {
+  if (opt_reset && username) {
     _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), 
                      username, "rstats");
     _ds_prepare_path_for (filename);
@@ -366,24 +384,26 @@ stat_user (const char *username)
     if (file == NULL)
     {
       LOG(LOG_ERR, ERR_IO_FILE_WRITE, filename, strerror (errno));
-      dspam_destroy (MTX);
+      if (MTX)
+        dspam_destroy (MTX);
       open_mtx = NULL;
       return EFILE;
     }
 
     fprintf (file, "%ld,%ld,%ld,%ld,%ld,%ld\n",
-     MAX(0,(MTX->totals.spam_learned + MTX->totals.spam_classified) -
-       (MTX->totals.spam_misclassified + MTX->totals.spam_corpusfed)),
-     MAX(0,(MTX->totals.innocent_learned + MTX->totals.innocent_classified) -
-       (MTX->totals.innocent_misclassified + MTX->totals.innocent_corpusfed)),
-     MTX->totals.spam_misclassified, 
-     MTX->totals.innocent_misclassified,
-     MTX->totals.spam_corpusfed, 
-     MTX->totals.innocent_corpusfed);
+     MAX(0,(tptr->spam_learned + tptr->spam_classified) -
+       (tptr->spam_misclassified + tptr->spam_corpusfed)),
+     MAX(0,(tptr->innocent_learned + tptr->innocent_classified) -
+       (tptr->innocent_misclassified + tptr->innocent_corpusfed)),
+     tptr->spam_misclassified, 
+     tptr->innocent_misclassified,
+     tptr->spam_corpusfed, 
+     tptr->innocent_corpusfed);
     fclose(file);
   }
 
-  dspam_destroy (MTX);
+  if (MTX)
+    dspam_destroy (MTX);
   open_mtx = NULL;
   return 0;
 }
