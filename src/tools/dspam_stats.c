@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.23 2006/02/15 20:02:46 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.24 2006/02/15 20:05:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -45,13 +45,14 @@
 #include "language.h"
 #include "util.h"
 
-#define TSYNTAX	"syntax: dspam_stats [-hHrsS] [username]"
+#define TSYNTAX	"syntax: dspam_stats [-hHrsSt] [username]"
 
 DSPAM_CTX *open_ctx, *open_mtx;
 int opt_humanfriendly;
 int opt_reset;
 int opt_snapshot;
 int opt_stats;
+int opt_total;
 
 int stat_user (const char *username, struct _ds_spam_totals *totals);
 int process_all_users (struct _ds_spam_totals *totals);
@@ -129,7 +130,7 @@ main (int argc, char **argv)
 
   /* Process command line */
   ch = opt_humanfriendly = 0;
-  opt_reset = opt_snapshot = opt_stats = 0;
+  opt_reset = opt_snapshot = opt_stats = opt_total =  0;
 
 #ifdef HAVE_GETOPT
   while((ch = getopt(argc, argv, "hHrsS")) != -1)
@@ -156,6 +157,9 @@ main (int argc, char **argv)
         break;
       case 'S':
         opt_stats = 1;
+        break;
+      case 't':
+        opt_total = 1;
         break;
 
 #ifndef HAVE_GETOPT
@@ -185,7 +189,8 @@ main (int argc, char **argv)
   if (!users)
     process_all_users (&totals);
 
-  stat_user(NULL, &totals);
+  if (opt_total)
+    stat_user(NULL, &totals);
   dspam_shutdown_driver (NULL);
   _ds_destroy_config(agent_config);
   libdspam_shutdown();

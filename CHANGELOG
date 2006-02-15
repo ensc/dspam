@@ -1,11 +1,12 @@
-$Id: CHANGELOG,v 1.415 2006/02/15 20:02:46 jonz Exp $
+$Id: CHANGELOG,v 1.416 2006/02/15 20:05:08 jonz Exp $
 
 Version NEXT
 ------------
 
-[20060215.1230] jonz: dspam_stats to total all stats displayed
+[20060215.1230] jonz: dspam_stats to total all stats displayed with -t
 
 dspam_stats now displays a total of all stats included in the original query
+when -t is used
 
 [20060215.1230] jonz: Markovian result used as X-DSPAM-Confidence
 
