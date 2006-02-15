@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.64 2006/02/02 17:13:11 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.65 2006/02/15 17:57:34 jonz Exp $ */
 
 /*
  DSPAM
@@ -65,14 +65,6 @@
 #include "pref.h"
 #include "config_shared.h"
 
-int test(MYSQL *, char *);
-
-int test(MYSQL *dbh, char *query) {
-  int i;
-  i = mysql_query(dbh, query);
-  return i;
-}
-
 #define MYSQL_RUN_QUERY(A, B) mysql_query(A, B)
 
 int
@@ -113,7 +105,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
         LOGDEBUG("initializing lock %d", i);
         pthread_mutex_init(&DTX->connections[i]->lock, NULL);
 #endif
-        DTX->connections[i]->dbh = (void *) _mysql_drv_connect(DTX->CTX);
+        DTX->connections[i]->dbh = (void *) _ds_connect(DTX->CTX);
       }
     }
   }
@@ -130,8 +122,13 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
 
       for(i=0;i<DTX->connection_cache;i++) {
         if (DTX->connections[i]) {
-          if (DTX->connections[i]->dbh)
-            mysql_close((MYSQL *) DTX->connections[i]->dbh);
+          if (DTX->connections[i]->dbh) {
+            _mysql_drv_dbh_t dbt = (_mysql_drv_dbh_t) DTX->connections[i]->dbh;
+            mysql_close(dbt->dbh_read);
+            if (dbt->dbh_write != dbt->dbh_read)
+              mysql_close(dbt->dbh_write);
+          }
+             
 #ifdef DAEMON
           LOGDEBUG("destroying lock %d", i);
           pthread_mutex_destroy(&DTX->connections[i]->lock);
@@ -162,7 +159,7 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
   struct _ds_spam_totals user, group;
   int uid = -1, gid = -1;
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_mysql_drv_get_spamtotals: invalid database handle (NULL)");
     return EINVAL;
@@ -213,13 +210,13 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
             "spam_classified, innocent_classified "
             " from dspam_stats where (uid = %d or uid = %d)",
             uid, gid);
-  if (MYSQL_RUN_QUERY (s->dbh, query))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     return EFAILURE;
   }
 
-  result = mysql_use_result (s->dbh);
+  result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL) {
     LOGDEBUG("mysql_use_result() failed in _ds_get_spamtotals()");
     return EFAILURE;
@@ -296,7 +293,7 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
   int result = 0;
   struct _ds_spam_totals user;
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_mysql_drv_set_spamtotals: invalid database handle (NULL)");
     return EINVAL;
@@ -354,7 +351,7 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
               CTX->totals.innocent_misclassified, CTX->totals.spam_corpusfed,
               CTX->totals.innocent_corpusfed, CTX->totals.spam_classified,
               CTX->totals.innocent_classified);
-    result = MYSQL_RUN_QUERY (s->dbh, query);
+    result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
   }
 
   if (result)
@@ -402,9 +399,9 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
               abs (CTX->totals.innocent_classified -
                   s->control_totals.innocent_classified), (int) p->pw_uid);
 
-    if (MYSQL_RUN_QUERY (s->dbh, query))
+    if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
     {
-      _mysql_drv_query_error (mysql_error (s->dbh), query);
+      _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
       if (CTX->flags & DSF_MERGED)
         memcpy(&CTX->totals, &user, sizeof(struct _ds_spam_totals));
       return EFAILURE;
@@ -433,7 +430,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   int get_one = 0;
   int uid, gid;
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_getall_spamrecords: invalid database handle (NULL)");
     return EINVAL;
@@ -518,14 +515,14 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   if (!get_one) 
     return 0;
 
-  if (MYSQL_RUN_QUERY (s->dbh, query->data))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query->data))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query->data);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query->data);
     buffer_destroy(query);
     return EFAILURE;
   }
 
-  result = mysql_use_result (s->dbh);
+  result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL) {
     buffer_destroy(query);
     LOGDEBUG("mysql_use_result() failed in _ds_getall_spamrecords()"); 
@@ -577,7 +574,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   int insert_any = 0;
 #endif
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_setall_spamrecords: invalid database handle (NULL)");
     return EINVAL;
@@ -697,7 +694,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
                stat.spam_hits > 0 ? 1 : 0,
                stat.innocent_hits > 0 ? 1 : 0);
 
-      if (MYSQL_RUN_QUERY (s->dbh, ins))
+      if (MYSQL_RUN_QUERY (s->dbt->dbh_write, ins))
         stat.status |= TST_DISK;
 #endif
     }
@@ -738,9 +735,9 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   if (update_any)
   {
-    if (MYSQL_RUN_QUERY (s->dbh, query->data))
+    if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data))
     {
-      _mysql_drv_query_error (mysql_error (s->dbh), query->data);
+      _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
       buffer_destroy(query);
       return EFAILURE;
     }
@@ -759,9 +756,9 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
             abs (control.innocent_hits - s->control_ih) > 0 ? 1 : 0);
 
     buffer_cat(insert, scratch);
-    if (MYSQL_RUN_QUERY (s->dbh, insert->data))
+    if (MYSQL_RUN_QUERY (s->dbt->dbh_write, insert->data))
     {
-      _mysql_drv_query_error (mysql_error (s->dbh), insert->data);
+      _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), insert->data);
       buffer_destroy(insert);
       return EFAILURE;
     }
@@ -784,7 +781,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   MYSQL_RES *result;
   MYSQL_ROW row;
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_get_spamrecord: invalid database handle (NULL)");
     return EINVAL;
@@ -816,13 +813,13 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   stat->innocent_hits = 0;
   stat->status &= ~TST_DISK;
 
-  if (MYSQL_RUN_QUERY (s->dbh, query))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     return EFAILURE;
   }
 
-  result = mysql_use_result (s->dbh);
+  result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL) {
     LOGDEBUG("mysql_use_result() failed in _ds_get_spamrecord()"); 
     return EFAILURE;
@@ -851,7 +848,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   struct passwd *p;
   int result = 0;
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_set_spamrecord: invalid database handle (NULL)");
     return EINVAL;
@@ -880,7 +877,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
               "innocent_hits, last_hit)"
               " values(%d, '%llu', %ld, %ld, current_date())",
               (int) p->pw_uid, token, stat->spam_hits, stat->innocent_hits);
-    result = MYSQL_RUN_QUERY (s->dbh, query);
+    result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
   }
 
   if ((stat->status & TST_DISK) || result)
@@ -893,9 +890,9 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
               "and token = %lld", stat->spam_hits,
               stat->innocent_hits, (int) p->pw_uid, token);
 
-    if (MYSQL_RUN_QUERY (s->dbh, query))
+    if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
     {
-      _mysql_drv_query_error (mysql_error (s->dbh), query);
+      _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
       return EFAILURE;
     }
   }
@@ -907,6 +904,7 @@ int
 _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 {
   struct _mysql_drv_storage *s;
+  _mysql_drv_dbh_t dbt = (_mysql_drv_dbh_t) dbh;
 
   if (CTX == NULL) {
     return EINVAL;
@@ -919,8 +917,8 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EINVAL;
   }
 
-  if (dbh) {
-    if (mysql_ping((MYSQL *) dbh))
+  if (dbt) {
+    if (mysql_ping(dbt->dbh_read))
       return EFAILURE;
   }
 
@@ -931,17 +929,17 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EUNKNOWN;
   }
 
-  s->dbh_attached = (dbh) ? 1 : 0;
+  s->dbh_attached = (dbt) ? 1 : 0;
   s->u_getnextuser[0] = 0;
   memset(&s->p_getpwnam, 0, sizeof(struct passwd));
   memset(&s->p_getpwuid, 0, sizeof(struct passwd));
 
-  if (dbh)
-    s->dbh = dbh;
+  if (dbt)
+    s->dbt = dbt;
   else
-    s->dbh = _mysql_drv_connect(CTX);
+    s->dbt = _ds_connect(CTX);
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG
       ("_ds_init_storage: mysql_init: unable to initialize handle to database");
@@ -983,7 +981,7 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
     return EINVAL;
   }
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_shutdown_storage: invalid database handle (NULL)");
     return EINVAL;
@@ -996,9 +994,11 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
   }
 
   if (! s->dbh_attached) {
-    mysql_close (s->dbh);
+    mysql_close (s->dbt->dbh_read);
+    if (s->dbt->dbh_write != s->dbt->dbh_read)
+      mysql_close (s->dbt->dbh_write);
   }
-  s->dbh = NULL;
+  s->dbt = NULL;
 
   if (s->p_getpwnam.pw_name)
     free(s->p_getpwnam.pw_name);
@@ -1055,7 +1055,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   MYSQL_ROW row;
   int uid;
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_get_signature: invalid database handle (NULL)");
     return EINVAL;
@@ -1076,7 +1076,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
   {
     char *u, *sig, *username;
-    void *dbh = s->dbh;
+    void *dbt = s->dbt;
     int dbh_attached = s->dbh_attached;
     sig = strdup(signature);
     u = strchr(sig, ',');
@@ -1101,7 +1101,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     _ds_shutdown_storage(CTX);
     free(CTX->username);
     CTX->username = username;
-    _ds_init_storage(CTX, (dbh_attached) ? dbh : NULL);
+    _ds_init_storage(CTX, (dbh_attached) ? dbt : NULL);
     s = (struct _mysql_drv_storage *) CTX->storage;
   } else {
     uid = p->pw_uid;
@@ -1111,13 +1111,13 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
           "select data, length from dspam_signature_data "
           "where uid = %d and signature = \"%s\"", uid, signature);
 
-  if (mysql_real_query (s->dbh, query, strlen (query)))
+  if (mysql_real_query (s->dbt->dbh_read, query, strlen (query)))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     return EFAILURE;
   }
 
-  result = mysql_use_result (s->dbh);
+  result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL) {
     LOGDEBUG("mysql_use_result() failed in _ds_get_signature");
     return EFAILURE;
@@ -1167,7 +1167,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   buffer *query;
   struct passwd *p;
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_set_signature; invalid database handle (NULL)");
     return EINVAL;
@@ -1200,7 +1200,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EUNKNOWN;
   }
 
-  length = mysql_real_escape_string (s->dbh, mem, SIG->data, SIG->length);
+  length = mysql_real_escape_string (s->dbt->dbh_write, mem, SIG->data, SIG->length);
 
   snprintf (scratch, sizeof (scratch),
             "insert into dspam_signature_data(uid, signature, length, created_on, data) values(%d, \"%s\", %ld, current_date(), \"",
@@ -1209,9 +1209,9 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   buffer_cat (query, mem);
   buffer_cat (query, "\")");
 
-  if (mysql_real_query (s->dbh, query->data, query->used))
+  if (mysql_real_query (s->dbt->dbh_write, query->data, query->used))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query->data);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
     buffer_destroy(query);
     free(mem);
     return EFAILURE;
@@ -1229,7 +1229,7 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   struct passwd *p;
   char query[128];
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_delete_signature: invalid database handle (NULL)");
     return EINVAL;
@@ -1251,9 +1251,9 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   snprintf (query, sizeof (query),
             "delete from dspam_signature_data where uid = %d and signature = \"%s\"",
             (int) p->pw_uid, signature);
-  if (MYSQL_RUN_QUERY (s->dbh, query))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     return EFAILURE;
   }
 
@@ -1269,7 +1269,7 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   MYSQL_RES *result;
   MYSQL_ROW row;
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_verify_signature: invalid database handle (NULL)");
     return EINVAL;
@@ -1291,13 +1291,13 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
       "select signature from dspam_signature_data "
       "where uid = %d and signature = \"%s\"",
             (int) p->pw_uid, signature);
-  if (MYSQL_RUN_QUERY (s->dbh, query))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     return EFAILURE;
   }
 
-  result = mysql_use_result (s->dbh);
+  result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL) {
     return -1;
   }
@@ -1326,7 +1326,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   char query[128];
   MYSQL_ROW row;
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_get_nextuser: invalid database handle (NULL)");
     return NULL;
@@ -1355,13 +1355,13 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
 #else
     strcpy (query, "select distinct uid from dspam_stats");
 #endif
-    if (MYSQL_RUN_QUERY (s->dbh, query))
+    if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
     {
-      _mysql_drv_query_error (mysql_error (s->dbh), query);
+      _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
       return NULL;
     }
 
-    s->iter_user = mysql_use_result (s->dbh);
+    s->iter_user = mysql_use_result (s->dbt->dbh_read);
     if (s->iter_user == NULL)
       return NULL;
   }
@@ -1401,7 +1401,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   MYSQL_ROW row;
   struct passwd *p;
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_get_nexttoken: invalid database handle (NULL)");
     return NULL;
@@ -1431,14 +1431,14 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     snprintf (query, sizeof (query),
               "select token, spam_hits, innocent_hits, unix_timestamp(last_hit) from dspam_token_data where uid = %d",
               (int) p->pw_uid);
-    if (MYSQL_RUN_QUERY (s->dbh, query))
+    if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
     {
-      _mysql_drv_query_error (mysql_error (s->dbh), query);
+      _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
       free(st);
       return NULL;
     }
 
-    s->iter_token = mysql_use_result (s->dbh);
+    s->iter_token = mysql_use_result (s->dbt->dbh_read);
     if (s->iter_token == NULL) {
       free(st);
       return NULL;
@@ -1473,7 +1473,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   struct passwd *p;
   char *mem;
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_get_nextsignature: invalid database handle (NULL)");
     return NULL;
@@ -1503,14 +1503,14 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     snprintf (query, sizeof (query),
               "select data, signature, length, unix_timestamp(created_on) from dspam_signature_data where uid = %d",
               (int) p->pw_uid);
-    if (mysql_real_query (s->dbh, query, strlen (query)))
+    if (mysql_real_query (s->dbt->dbh_read, query, strlen (query)))
     {
-      _mysql_drv_query_error (mysql_error (s->dbh), query);
+      _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
       free(st);
       return NULL;
     }
 
-    s->iter_sig = mysql_use_result (s->dbh);
+    s->iter_sig = mysql_use_result (s->dbt->dbh_read);
     if (s->iter_sig == NULL) {
       free(st); 
       return NULL;
@@ -1623,7 +1623,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     return NULL;
   }
 
-  mysql_real_escape_string (s->dbh, sql_username, name,
+  mysql_real_escape_string (s->dbt->dbh_read, sql_username, name,
                             strlen(name));
 
   snprintf (query, sizeof (query),
@@ -1632,13 +1632,13 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 
   free (sql_username);
 
-  if (MYSQL_RUN_QUERY (s->dbh, query))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     return NULL;
   }
 
-  result = mysql_use_result (s->dbh);
+  result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL) {
     if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS)
       return NULL;
@@ -1741,13 +1741,13 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
             "select %s from %s where %s = '%d'", 
             virtual_username, virtual_table, virtual_uid, (int) uid);
 
-  if (MYSQL_RUN_QUERY (s->dbh, query))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     return NULL;
   }
 
-  result = mysql_use_result (s->dbh);
+  result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL)
     return NULL;
 
@@ -1833,7 +1833,7 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
     return NULL;
   }
 
-  mysql_real_escape_string (s->dbh, sql_username, name,
+  mysql_real_escape_string (s->dbt->dbh_write, sql_username, name,
                             strlen(name));
 
   snprintf (query, sizeof (query),
@@ -1844,9 +1844,9 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
 
   /* we need to fail, to prevent a potential loop - even if it was inserted
    * by another process */
-  if (MYSQL_RUN_QUERY (s->dbh, query))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     return NULL;
   }
 
@@ -1862,7 +1862,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
   struct passwd *p;
   char query[128];
 
-  if (s->dbh == NULL)
+  if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_delete_signature: invalid database handle (NULL)");
     return EINVAL;
@@ -1888,9 +1888,9 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
             "delete from dspam_token_data where uid = %d and token = \"%llu\"",
             (int) p->pw_uid, token);
 
-  if (MYSQL_RUN_QUERY (s->dbh, query))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     return EFAILURE;
   }
                                                                                 
@@ -1911,7 +1911,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   if (diction->items < 1)
     return 0;
 
-  if (s->dbh == NULL)
+  if (s->dbt->dbh_write == NULL)
   {
     LOGDEBUG ("_ds_delall_spamrecords: invalid database handle (NULL)");
     return EINVAL;
@@ -1957,9 +1957,9 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     if (writes > 2500 || !ds_term) {
       buffer_cat (query, ")");
 
-      if (MYSQL_RUN_QUERY (s->dbh, query->data))
+      if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data))
       {
-        _mysql_drv_query_error (mysql_error (s->dbh), query->data);
+        _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
         buffer_destroy(query);
         return EFAILURE;
       }
@@ -1977,9 +1977,9 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   if (writes) {
     buffer_cat (query, ")");
 
-    if (MYSQL_RUN_QUERY (s->dbh, query->data))
+    if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data))
     {
-      _mysql_drv_query_error (mysql_error (s->dbh), query->data);
+      _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
       buffer_destroy(query);
       return EFAILURE;
     }
@@ -1993,12 +1993,12 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 DSPAM_CTX *_mysql_drv_init_tools(
  const char *home,
  config_t config,
- void *dbh, 
+ void *dbt, 
  int mode)
 {
   DSPAM_CTX *CTX;
   struct _mysql_drv_storage *s;
-  int dbh_attached = (dbh) ? 1 : 0;
+  int dbh_attached = (dbt) ? 1 : 0;
 
   CTX = dspam_create (NULL, NULL, home, mode, 0);
 
@@ -2007,13 +2007,13 @@ DSPAM_CTX *_mysql_drv_init_tools(
 
   _mysql_drv_set_attributes(CTX, config);
 
-  if (!dbh)
-    dbh = _mysql_drv_connect(CTX);
+  if (!dbt)
+    dbt = _ds_connect(CTX);
 
-  if (!dbh)
+  if (!dbt)
     goto BAIL;
 
-  if (dspam_attach(CTX, dbh))
+  if (dspam_attach(CTX, dbt))
     goto BAIL;
 
   s = CTX->storage;
@@ -2029,7 +2029,7 @@ agent_pref_t _ds_pref_load(
   config_t config,
   const char *username, 
   const char *home,
-  void *dbh)
+  void *dbt)
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
@@ -2041,7 +2041,7 @@ agent_pref_t _ds_pref_load(
   agent_attrib_t pref;
   int uid, i = 0;
 
-  CTX = _mysql_drv_init_tools(home, config, dbh, DSM_TOOLS);
+  CTX = _mysql_drv_init_tools(home, config, dbt, DSM_TOOLS);
   if (CTX == NULL)
   {
     LOG (LOG_WARNING, "unable to initialize tools context");
@@ -2071,14 +2071,14 @@ agent_pref_t _ds_pref_load(
   snprintf(query, sizeof(query), "select preference, value "
     "from dspam_preferences where uid = %d", uid);
 
-  if (MYSQL_RUN_QUERY (s->dbh, query))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     dspam_destroy(CTX);
     return NULL;
   }
 
-  result = mysql_store_result (s->dbh);
+  result = mysql_store_result (s->dbt->dbh_read);
   if (result == NULL) {
     dspam_destroy(CTX);
     return NULL;
@@ -2133,7 +2133,7 @@ int _ds_pref_set (
  const char *home,
  const char *preference,
  const char *value,
- void *dbh) 
+ void *dbt) 
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
@@ -2142,7 +2142,7 @@ int _ds_pref_set (
   int uid;
   char *m1, *m2;
 
-  CTX = _mysql_drv_init_tools(home, config, dbh, DSM_PROCESS);
+  CTX = _mysql_drv_init_tools(home, config, dbt, DSM_PROCESS);
   if (CTX == NULL) {
     LOG (LOG_WARNING, "unable to initialize tools context");
     return EUNKNOWN;
@@ -2177,24 +2177,24 @@ int _ds_pref_set (
     return EUNKNOWN;
   }
                                                                                 
-  mysql_real_escape_string (s->dbh, m1, preference, strlen(preference));   
-  mysql_real_escape_string (s->dbh, m2, value, strlen(value)); 
+  mysql_real_escape_string (s->dbt->dbh_write, m1, preference, strlen(preference));   
+  mysql_real_escape_string (s->dbt->dbh_write, m2, value, strlen(value)); 
 
   snprintf(query, sizeof(query), "delete from dspam_preferences "
     "where uid = %d and preference = '%s'", uid, m1);
 
-  if (MYSQL_RUN_QUERY (s->dbh, query))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     goto FAIL;
   }
 
   snprintf(query, sizeof(query), "insert into dspam_preferences "
     "(uid, preference, value) values(%d, '%s', '%s')", uid, m1, m2);
 
-  if (MYSQL_RUN_QUERY (s->dbh, query))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     goto FAIL;
   }
 
@@ -2216,7 +2216,7 @@ int _ds_pref_del (
  const char *username,
  const char *home,
  const char *preference,
- void *dbh)
+ void *dbt)
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
@@ -2225,7 +2225,7 @@ int _ds_pref_del (
   int uid;
   char *m1;
                                                                                 
-  CTX = _mysql_drv_init_tools(home, config, dbh, DSM_TOOLS);
+  CTX = _mysql_drv_init_tools(home, config, dbt, DSM_TOOLS);
   if (CTX == NULL) {
     LOG (LOG_WARNING, "unable to initialize tools context");
     return EUNKNOWN;
@@ -2258,14 +2258,14 @@ int _ds_pref_del (
     return EUNKNOWN;
   }
                                                                                 
-  mysql_real_escape_string (s->dbh, m1, preference, strlen(preference));
+  mysql_real_escape_string (s->dbt->dbh_write, m1, preference, strlen(preference));
 
   snprintf(query, sizeof(query), "delete from dspam_preferences "
     "where uid = %d and preference = '%s'", uid, m1);
                                                                                 
-  if (MYSQL_RUN_QUERY (s->dbh, query))
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
-    _mysql_drv_query_error (mysql_error (s->dbh), query);
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     goto FAIL;
   }
 
@@ -2342,10 +2342,20 @@ int _ds_pref_del(config_t config, const char *user, const char *home,
 
 void *_ds_connect (DSPAM_CTX *CTX)
 {
-  return (void *) _mysql_drv_connect(CTX);
+  _mysql_drv_dbh_t dbt = calloc(1, sizeof(struct _mysql_drv_dbh));
+  dbt->dbh_read = _mysql_drv_connect(CTX, "MySQL");
+  if (!dbt->dbh_read) { 
+    free(dbt);
+    return NULL;
+  }
+  if (_ds_read_attribute(CTX->config->attributes, "MySQLWriteServer"))
+    dbt->dbh_write = _mysql_drv_connect(CTX, "MySQLWrite");
+  else
+    dbt->dbh_write = dbt->dbh_read;
+  return (void *) dbt;
 }
 
-MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
+MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix) 
 {
   MYSQL *dbh;
   FILE *file;
@@ -2357,9 +2367,14 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
   char db[64] = { 0 };
   int port = 3306, i = 0, real_connect_flag = 0;
   char *p;
+  char attrib[128];
+
+  if (!prefix) 
+    prefix = "MySQL";
 
   /* Read storage attributes */
-  if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLServer"))) {
+  snprintf(attrib, sizeof(attrib), "%sServer", prefix);
+  if ((p = _ds_read_attribute(CTX->config->attributes, attrib))) {
 
     strlcpy(hostname, p, sizeof(hostname));
     if (strlen(p) >= sizeof(hostname))
@@ -2368,12 +2383,14 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
           sizeof(hostname)-1);
     }
 
-    if (_ds_read_attribute(CTX->config->attributes, "MySQLPort"))
-      port = atoi(_ds_read_attribute(CTX->config->attributes, "MySQLPort"));
+    snprintf(attrib, sizeof(attrib), "%sPort", prefix);
+    if (_ds_read_attribute(CTX->config->attributes, attrib))
+      port = atoi(_ds_read_attribute(CTX->config->attributes, attrib));
     else
       port = 0;
 
-    if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLUser")))
+    snprintf(attrib, sizeof(attrib), "%sUser", prefix);
+    if ((p = _ds_read_attribute(CTX->config->attributes, attrib)))
     {
       strlcpy(user, p, sizeof(user));
       if (strlen(p) >= sizeof(user))
@@ -2382,7 +2399,8 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
             sizeof(user)-1);
       }
     }
-    if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLPass")))
+    snprintf(attrib, sizeof(attrib), "%sPass", prefix);
+    if ((p = _ds_read_attribute(CTX->config->attributes, attrib)))
     {
       strlcpy(password, p, sizeof(password));
       if (strlen(p) >= sizeof(password))
@@ -2391,7 +2409,8 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
             sizeof(password)-1);
       }
     }
-    if ((p = _ds_read_attribute(CTX->config->attributes, "MySQLDb")))
+    snprintf(attrib, sizeof(attrib), "%sDb", prefix);
+    if ((p = _ds_read_attribute(CTX->config->attributes, attrib)))
     {
       strlcpy(db, p, sizeof(db)); 
       if (strlen(p) >= sizeof(db))
@@ -2401,7 +2420,8 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX)
       }
     }
 
-    if (_ds_match_attribute(CTX->config->attributes, "MySQLCompress", "true"))
+    snprintf(attrib, sizeof(attrib), "%sCompress", prefix);
+    if (_ds_match_attribute(CTX->config->attributes, attrib, "true"))
       real_connect_flag = CLIENT_COMPRESS;
 
   } else {

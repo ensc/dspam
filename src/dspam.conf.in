@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.68 2006/02/11 20:13:14 jonz Exp $
+## $Id: dspam.conf.in,v 1.69 2006/02/15 17:57:34 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -269,6 +269,20 @@ AllowOverride whitelistThreshold
 #MySQLUser 	     	dspam
 #MySQLPass    		changeme
 #MySQLDb      	  	dspam
+#MySQLCompress		true
+
+# If you are using replication for clustering, you can also specify a separate
+# server to perform all writes to.
+# NOTE: It is very important that updates take place in close to real-time.
+#       Users will not be able to retrain if the dspam_signature_data table
+#       is not propagated from the time they receive a spam to the time they
+#       correct it in training.
+#
+#MySQLWriteServer	/var/lib/mysql/mysql.sock
+#MySQLWritePort		
+#MySQLWriteUser		dspam
+#MySQLWritePass		changeme
+#MySQLWriteDb		dspam_write
 #MySQLCompress		true
 
 # Use this if you have the 4.1 quote bug (see doc/mysql.txt)
