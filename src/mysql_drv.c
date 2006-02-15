@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.65 2006/02/15 17:57:34 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.66 2006/02/15 18:19:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -1054,12 +1054,19 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   MYSQL_RES *result;
   MYSQL_ROW row;
   int uid;
+  MYSQL *dbh;
 
   if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_get_signature: invalid database handle (NULL)");
     return EINVAL;
   }
+
+  if (_ds_match_attribute(CTX->config->attributes, "MySQLReadSignaturesFromWriteDb", "on"))
+    dbh = s->dbt->dbh_write;
+  else
+    dbh = s->dbt->dbh_read;
+
 
   if (!CTX->group || CTX->flags & DSF_MERGED)
     p = _mysql_drv_getpwnam (CTX, CTX->username);
@@ -1111,13 +1118,13 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
           "select data, length from dspam_signature_data "
           "where uid = %d and signature = \"%s\"", uid, signature);
 
-  if (mysql_real_query (s->dbt->dbh_read, query, strlen (query)))
+  if (mysql_real_query (dbh, query, strlen (query)))
   {
-    _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
+    _mysql_drv_query_error (mysql_error (dbh), query);
     return EFAILURE;
   }
 
-  result = mysql_use_result (s->dbt->dbh_read);
+  result = mysql_use_result (dbh);
   if (result == NULL) {
     LOGDEBUG("mysql_use_result() failed in _ds_get_signature");
     return EFAILURE;

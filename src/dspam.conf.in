@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.69 2006/02/15 17:57:34 jonz Exp $
+## $Id: dspam.conf.in,v 1.70 2006/02/15 18:19:40 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -273,10 +273,6 @@ AllowOverride whitelistThreshold
 
 # If you are using replication for clustering, you can also specify a separate
 # server to perform all writes to.
-# NOTE: It is very important that updates take place in close to real-time.
-#       Users will not be able to retrain if the dspam_signature_data table
-#       is not propagated from the time they receive a spam to the time they
-#       correct it in training.
 #
 #MySQLWriteServer	/var/lib/mysql/mysql.sock
 #MySQLWritePort		
@@ -284,6 +280,12 @@ AllowOverride whitelistThreshold
 #MySQLWritePass		changeme
 #MySQLWriteDb		dspam_write
 #MySQLCompress		true
+
+# If your replication isn't close to real-time, your retraining might fail if 
+# the  signature isn't found. One workaround for this is to use the write
+# database for all signature reads:
+#
+#MySQLReadSignaturesFromWriteDb	on
 
 # Use this if you have the 4.1 quote bug (see doc/mysql.txt)
 #MySQLSupressQuote	on
