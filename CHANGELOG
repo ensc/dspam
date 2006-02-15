@@ -1,4 +1,16 @@
-$Id: CHANGELOG,v 1.412 2006/02/12 12:04:47 jonz Exp $
+$Id: CHANGELOG,v 1.413 2006/02/15 17:57:24 jonz Exp $
+
+Version NEXT
+------------
+
+[20060215.1200] jonz: bugfix for dspamc and --deliver=summary
+
+fixed a bug causing --deliver=summary to return no output when used in dspamc
+
+[20060215.1200] jonz: support for read/write servers in mysql_drv
+
+added support for separate read/write servers to be used with mysql_drv. see
+dspam.conf for more information.
 
 Version 3.6.4
 -------------
