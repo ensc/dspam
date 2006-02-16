@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.8 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: error.c,v 1.9 2006/02/16 20:50:04 jonz Exp $ */
 
 /*
  DSPAM
@@ -70,6 +70,9 @@ LOG(int priority, const char *err, ... )
 {
   va_list ap;
   char buf[1024], date[128];
+#ifdef LOGFILE
+  FILE *file;
+#endif
 
 #ifdef DAEMON
   pthread_mutex_lock(&__syslog_lock);
@@ -80,10 +83,18 @@ LOG(int priority, const char *err, ... )
 
   fprintf(stderr, "%ld: [%s] %s\n", (long) getpid(), format_date_r(date), buf);
 
+#ifdef USE_SYSLOG
   openlog ("dspam", LOG_PID | LOG_CONS | LOG_NOWAIT, LOG_MAIL);
   vsyslog (priority, err, ap);
   closelog ();
   va_end (ap);
+#endif
+
+#ifdef LOGFILE
+  file = fopen(LOGFILE, "a");
+  fprintf(file, "%ld: [%s] %s\n", (long) getpid(), format_date_r(date), buf); 
+  fclose(file);
+#endif
 
 #ifdef DAEMON
   pthread_mutex_unlock(&__syslog_lock);

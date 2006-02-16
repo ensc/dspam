@@ -1,8 +1,13 @@
-$Id: CHANGELOG,v 1.416 2006/02/15 20:05:08 jonz Exp $
+$Id: CHANGELOG,v 1.417 2006/02/16 20:50:04 jonz Exp $
 
 Version NEXT
 ------------
 
+[20060216.1545] jonz: added syslog and logfile flags
+
+added --disable-syslog function to turn off syslogging
+added --with-logfile= funciton to define a flat file for logging
+ 
 [20060215.1230] jonz: dspam_stats to total all stats displayed with -t
 
 dspam_stats now displays a total of all stats included in the original query

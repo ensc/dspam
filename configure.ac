@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.60 2006/02/13 18:31:41 jonz Exp $
+dnl $Id: configure.ac,v 1.61 2006/02/16 20:50:04 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -200,6 +200,14 @@ AC_SUBST(dspam_home_mode)
 AC_SUBST(dspam_home_owner)
 AC_SUBST(dspam_home_group)
 
+AC_ARG_WITH(logfile,
+    [AS_HELP_STRING(--with-logfile=LOGFILE,
+                        Set flat logfile pathname for logging
+                    )],
+    [ AC_DEFINE_UNQUOTED(LOGFILE, ["$withval"], [Logfile]) ],
+    [ logfile='' ]
+    )
+
 # dspam binary ownership
 case x"$host" in
     *-freebsd*)     default_dspam_mode=4510;;
@@ -342,6 +350,34 @@ else
     AC_DEFINE(DEBUG, 1, [Defined if debug output is enabled])
 fi
 AC_MSG_RESULT([$enable_debug])
+
+#
+#   Enable syslog
+#
+AC_ARG_ENABLE(syslog,
+    [AS_HELP_STRING(--enable-syslog,
+                        Enable (or disable) syslog support
+                    )])
+AC_MSG_CHECKING([whether to enable syslog output])
+case x"$enable_syslog" in
+    xyes)   # enabled explicity
+            ;;
+    xno)    # disabled explicity
+            ;;
+    x)      # enabled by default
+            enable_syslog=yes
+            ;;
+    *)      AC_MSG_ERROR([unexpected value $enable_syslog for --{enable,disable}-syslog configure option])
+            ;;
+esac
+if test x"$enable_syslog" != xyes
+then
+    enable_syslog=no
+else
+    enable_syslog=yes    # overkill, but convenient
+    AC_DEFINE(USE_SYSLOG, 1, [Defined if syslog is enabled])
+fi
+AC_MSG_RESULT([$enable_syslog])
 
 #
 #   BNR Debug
