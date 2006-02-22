@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.66 2006/02/02 21:36:19 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.67 2006/02/22 13:53:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -495,7 +495,7 @@ int process_features(AGENT_CTX *ATX, const char *in) {
   char *ptr, *dup, *ptrptr;
   int ret = 0;
 
-  if (in[0]==0)
+  if (!in || in[0]==0)
     return 0;
 
   dup = strdup(in);
@@ -548,6 +548,9 @@ int process_features(AGENT_CTX *ATX, const char *in) {
  */
 
 int process_mode(AGENT_CTX *ATX, const char *mode) {
+
+  if (!mode)
+    return EINVAL;
 
   if (!strcmp(mode, "toe"))
     ATX->training_mode = DST_TOE;
@@ -843,6 +846,9 @@ bail:
 int process_parseto(AGENT_CTX *ATX, const char *buf) {
   char *y = NULL;
   char *x;
+
+  if (!buf) 
+    return EINVAL;
 
   x = strstr(buf, "<spam-");
   if (!x)

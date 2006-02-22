@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.417 2006/02/16 20:50:04 jonz Exp $
+$Id: CHANGELOG,v 1.418 2006/02/22 13:53:11 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060222.0830] jonz: fixed segfault on bad configuration
+
+fixed a segfault which can occur if TrainingMode is not specified in dspam.conf
 
 [20060216.1545] jonz: added syslog and logfile flags
 
