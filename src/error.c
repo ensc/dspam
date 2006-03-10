@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.9 2006/02/16 20:50:04 jonz Exp $ */
+/* $Id: error.c,v 1.10 2006/03/10 21:43:08 jonz Exp $ */
 
 /*
  DSPAM
@@ -80,15 +80,15 @@ LOG(int priority, const char *err, ... )
 
   va_start (ap, err);
   vsnprintf (buf, sizeof (buf), err, ap);
-
   fprintf(stderr, "%ld: [%s] %s\n", (long) getpid(), format_date_r(date), buf);
 
 #ifdef USE_SYSLOG
   openlog ("dspam", LOG_PID | LOG_CONS | LOG_NOWAIT, LOG_MAIL);
   vsyslog (priority, err, ap);
   closelog ();
-  va_end (ap);
 #endif
+
+  va_end (ap);
 
 #ifdef LOGFILE
   file = fopen(LOGFILE, "a");
