@@ -1,4 +1,4 @@
-$Id: README,v 1.88 2006/02/11 00:34:42 jonz Exp $
+$Id: README,v 1.89 2006/03/24 13:56:50 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Deep Logic, Inc.
@@ -627,7 +627,7 @@ FRESH INSTALLATION
    discuss this shortly in section 1.1.8.
 
    The more common approach to training, discussed here, is to allow users to
-   simpmly forward their spam to an email address where DSPAM can analyze and
+   simply forward their spam to an email address where DSPAM can analyze and
    learn it. DSPAM uses a signature-based system, where a serial number of
    sorts is appended to each email processed by DSPAM. DSPAM reads this serial
    number when the user forwards (or bounced) a message to what is called their
