@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.219 2006/01/31 16:08:35 jonz Exp $ */
+/* $Id: dspam.c,v 1.220 2006/03/24 13:51:41 jonz Exp $ */
 
 /*
  DSPAM
@@ -3277,15 +3277,16 @@ int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   while (node_nt)
   {
     if (!node_nt->next && parent) {
-      parent->next = node_nt->next;
+      parent->next = NULL;
       CTX->message->components->items--;
       CTX->message->components->insert = NULL;
       _ds_destroy_block(node_nt->ptr);    
       free(node_nt);
+      node_nt = NULL;
     } else {
       parent = node_nt;
+      node_nt = node_nt->next;
     }
-    node_nt = node_nt->next;
   }
 
   /* Create a new message part containing only the boundary delimiter */
