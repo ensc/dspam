@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.220 2006/03/24 13:51:41 jonz Exp $ */
+/* $Id: dspam.c,v 1.221 2006/03/24 13:54:52 jonz Exp $ */
 
 /*
  DSPAM
@@ -616,8 +616,9 @@ process_message (
    *  find recipe for purging 
    */
 
-  if (ATX->PTX != NULL && !strcmp(_ds_pref_val(ATX->PTX, "storeFragments"), 
-      "on")) 
+  if (ATX->PTX != NULL 
+      && !strcmp(_ds_pref_val(ATX->PTX, "storeFragments"), "on")
+      && CTX->source != DSS_ERROR) 
   {
     char dirname[MAX_FILENAME_LENGTH];
     char corpusfile[MAX_FILENAME_LENGTH];

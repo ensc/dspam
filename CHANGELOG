@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.419 2006/03/24 13:51:41 jonz Exp $
+$Id: CHANGELOG,v 1.420 2006/03/24 13:54:52 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060324.0845] jonz: fragment overwrite bug
+
+fixed a bug where a fragment file is overwritten on retrain
 
 [20060324.0845] jonz: fixed invalid read/segfault
 
