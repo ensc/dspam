@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.221 2006/03/24 13:54:52 jonz Exp $ */
+/* $Id: dspam.c,v 1.222 2006/03/31 14:26:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -3418,6 +3418,7 @@ int has_virus(buffer *message) {
   int addr_len;
   char *host = _ds_read_attribute(agent_config, "ClamAVHost");
   FILE *sock;
+  FILE *sockout;
   char buf[128];
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -3434,8 +3435,10 @@ int has_virus(buffer *message) {
 
   setsockopt(sockfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
 
-  sock = fdopen(sockfd, "r+");
-  fprintf(sock, "STREAM\r\n");
+  sock = fdopen(sockfd, "r");
+  sockout = fdopen(sockfd, "w");
+  fprintf(sockout, "STREAM\r\n");
+  fflush(sockout);
 
   if ((fgets(buf, sizeof(buf), sock))!=NULL && !strncmp(buf, "PORT", 4)) {
     int s_port = atoi(buf+5);
@@ -3447,6 +3450,7 @@ int has_virus(buffer *message) {
     }
   }
   fclose(sock);
+  fclose(sockout);
   close(sockfd);
   
   return virus;

@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.420 2006/03/24 13:54:52 jonz Exp $
+$Id: CHANGELOG,v 1.421 2006/03/31 14:26:19 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060331.0800] jonz: fix for ClamAV
+
+applied patch to fix clamav issues
 
 [20060324.0845] jonz: fragment overwrite bug
 
