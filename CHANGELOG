@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.421 2006/03/31 14:26:19 jonz Exp $
+$Id: CHANGELOG,v 1.422 2006/04/12 13:49:01 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060412.0900] jonz: fix for segfault on empty username
+
+fixed a bug where a NULL username can sneak in and cause a segfault on strdup
 
 [20060331.0800] jonz: fix for ClamAV
 

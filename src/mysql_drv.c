@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.66 2006/02/15 18:19:40 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.67 2006/04/12 13:49:01 jonz Exp $ */
 
 /*
  DSPAM
@@ -1670,7 +1670,10 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   }
 
   s->p_getpwnam.pw_uid = strtol (row[0], NULL, 0);
-  s->p_getpwnam.pw_name = strdup (name);
+  if (name == NULL)
+    s->p_getpwnam.pw_name = strdup("");
+  else
+    s->p_getpwnam.pw_name = strdup (name);
 
   mysql_free_result (result);
   return &s->p_getpwnam;
