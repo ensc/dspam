@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.222 2006/03/31 14:26:19 jonz Exp $ */
+/* $Id: dspam.c,v 1.223 2006/04/18 18:38:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -3422,6 +3422,10 @@ int has_virus(buffer *message) {
   char buf[128];
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (sockfd < 0) {
+    LOG(LOG_ERR, "socket(AF_INET, SOCK_STREAM, 0): %s", strerror(errno));
+    return 0;
+  }
   memset(&addr, 0, sizeof(struct sockaddr_in));
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = inet_addr(host);
@@ -3436,7 +3440,15 @@ int has_virus(buffer *message) {
   setsockopt(sockfd,SOL_SOCKET,TCP_NODELAY,&yes,sizeof(int));
 
   sock = fdopen(sockfd, "r");
+  if (sock == NULL) {
+    LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+    return 0;
+  }
   sockout = fdopen(sockfd, "w");
+  if (sockout == NULL) {
+    LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+    return 0;
+  }
   fprintf(sockout, "STREAM\r\n");
   fflush(sockout);
 

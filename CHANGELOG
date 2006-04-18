@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.422 2006/04/12 13:49:01 jonz Exp $
+$Id: CHANGELOG,v 1.423 2006/04/18 18:38:29 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060418.1435] jonz: fix for segfault on clamav connect error
+
+fixed a bug where certain problems establishing connectivity to clamav can
+segfault dspam
 
 [20060412.0900] jonz: fix for segfault on empty username
 
