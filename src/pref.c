@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.30 2006/01/20 17:28:33 jonz Exp $ */
+/* $Id: pref.c,v 1.31 2006/04/18 18:42:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -256,7 +256,7 @@ FILE *_ds_ff_pref_prepare_file (
 
       lineno++;
   
-      if (fputs(line, out_file)) {
+      if (fputs(line, out_file)<0) {
         LOG(LOG_ERR, ERR_IO_FILE_WRITE, out_filename, strerror(errno));
         fclose(in_file);
         fclose(out_file);

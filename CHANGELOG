@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.423 2006/04/18 18:38:29 jonz Exp $
+$Id: CHANGELOG,v 1.424 2006/04/18 18:42:27 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060418.1435] jonz: bugfix for flat preference read
+
+fixed a bug causing writing of flat-file preferences to fail on some systems
 
 [20060418.1435] jonz: fix for segfault on clamav connect error
 
