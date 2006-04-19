@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.427 2006/04/19 16:52:04 jonz Exp $
+$Id: CHANGELOG,v 1.428 2006/04/19 17:22:47 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060419.1300] jonz: admin graph fixes
+
+prevents carriage returns in subjects/fromlines from being written
+improves parsing of admin graphs to avoid "last day stackup" scenario 
 
 [20060419.1200] jonz: webui patch
 

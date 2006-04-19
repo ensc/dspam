@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.10 2006/04/19 12:39:54 jonz Exp $
+# $Id: admin.cgi,v 1.11 2006/04/19 17:22:47 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -394,6 +394,7 @@ sub DisplayStatus {
   open(LOG, "<$LOG") || &error("Unable to open logfile: $!");
   while(<LOG>) {
     my($t_log, $c_log, $signature, $e_log) = (split(/\t/))[0,1,3,5];
+    next if ($t_log > time);
 
     $last_message = $t_log;
 
@@ -404,6 +405,7 @@ sub DisplayStatus {
       $tyear += 1900;
 
       # Weekly Graph
+      $c_weekly = 0;
       while($period_weekly[$c_weekly] ne "$tmon/$tday/$tyear" && $c_weekly<24) {
         $c_weekly++;
       }

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.223 2006/04/18 18:38:29 jonz Exp $ */
+/* $Id: dspam.c,v 1.224 2006/04/19 17:22:47 jonz Exp $ */
 
 /*
  DSPAM
@@ -2823,6 +2823,10 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     while(subject && (c=strchr(subject, '\t')))
       *c = ' ';
     while((c=strchr(fromline, '\t')))
+      *c = ' ';
+    while(subject && (c=strchr(subject, '\n')))
+      *c = ' ';
+    while((c=strchr(fromline, '\n')))
       *c = ' ';
 
     snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s\t%s\t%s\t%s\n",
