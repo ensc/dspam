@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.424 2006/04/18 18:42:27 jonz Exp $
+$Id: CHANGELOG,v 1.425 2006/04/19 12:35:39 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060418.0830] jonz: dspam_admin patch
+
+corrects the output of "dspam_admin aggr pref"
 
 [20060418.1435] jonz: bugfix for flat preference read
 

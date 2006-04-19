@@ -1,4 +1,4 @@
-/* $Id: dspam_admin.c,v 1.16 2006/01/18 16:48:54 jonz Exp $ */
+/* $Id: dspam_admin.c,v 1.17 2006/04/19 12:35:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -259,6 +259,7 @@ int list_preference_attributes(const char *username)
   }
 
   _ds_pref_free(PTX);
+  free(PTX);
   return 0;
 }
 
@@ -290,14 +291,13 @@ int list_aggregate_preference_attributes(const char *username)
     UTX = _ds_pref_load(agent_config, username,  _ds_read_attribute(agent_config, "Home"), NULL);
   }
 
-  if (UTX == NULL) 
-    return 0;
-
   PTX = _ds_pref_aggregate(STX, UTX);
   _ds_pref_free(STX);
   free(STX);
-  _ds_pref_free(UTX);
-  free(UTX);
+  if (UTX != NULL) {
+    _ds_pref_free(UTX);
+    free(UTX);
+  }
 
   for(i=0;PTX[i];i++) {
     pref = PTX[i];
