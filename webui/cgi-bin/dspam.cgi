@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.19 2006/04/19 12:38:54 jonz Exp $
+# $Id: dspam.cgi,v 1.20 2006/04/19 12:39:54 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -1486,7 +1486,7 @@ sub GetPrefs {
   my($FILE) = "$USER.prefs";
 
   if ($CONFIG{'PREFERENCES_EXTENSION'} == 1) {
-    open(PIPE, "$CONFIG{'DSPAM_BIN'}/dspam_admin l pref " . quotemeta($CURRENT_USER) . "|");
+    open(PIPE, "$CONFIG{'DSPAM_BIN'}/dspam_admin agg pref " . quotemeta($CURRENT_USER) . "|");
     while(<PIPE>) {
       chomp;
       my($directive, $value) = split(/\=/);
