@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.18 2006/02/15 16:27:50 jonz Exp $
+# $Id: dspam.cgi,v 1.19 2006/04/19 12:38:54 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -342,8 +342,8 @@ sub DisplayHistory {
     $subject =~ s/</&lt;/g;
     $subject =~ s/>/&gt;/g;
 
-    $from = substr($from, 0, 32) . "..." if (length($from)>32);
-    $subject = substr($subject, 0, 40) . "..." if (length($subject)>40);
+    $from = substr($from, 0, $CONFIG{'MAX_COL_LEN'}) . "..." if (length($from)>$CONFIG{'MAX_COL_LEN'});
+    $subject = substr($subject, 0, $CONFIG{'MAX_COL_LEN'}) . "..." if (length($subject)>$CONFIG{'MAX_COL_LEN'});
     $time = sprintf("%01.2f", $time);
 
     my($rclass);

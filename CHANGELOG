@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.425 2006/04/19 12:35:39 jonz Exp $
+$Id: CHANGELOG,v 1.426 2006/04/19 12:38:54 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060418.0830] jonz: dspam.cgi to use MAX_COL_LEN
+
+MAX_COL_LEN used for calculating column length in WebUI
 
 [20060418.0830] jonz: dspam_admin patch
 
