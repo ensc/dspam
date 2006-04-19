@@ -41,7 +41,7 @@ $CONFIG{'WEB_ROOT'}     = ""; # URL location of included htdocs/ files
 $CONFIG{'HISTORY_SIZE'} = 799;		# Number of items in history
 $CONFIG{'HISTORY_PER_PAGE'} = 100;
 $CONFIG{'MAX_COL_LEN'}	= 50;		# Max chars in list columns
-$CONFIG{'SORT_DEFAULT'}	= "Date";	# Show quarantine by "Date" or "Rating"
+$CONFIG{'SORT_DEFAULT'}	= "Rating";	# Show quarantine by "Date" or "Rating"
 $CONFIG{'3D_GRAPHS'}	= 1;
 $CONFIG{'OPTMODE'}	= "NONE";	# OUT=OptOut IN=OptIn NONE=not selectable
 $CONFIG{'LOCAL_DOMAIN'}	= "localhost";
