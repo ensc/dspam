@@ -19,9 +19,9 @@
 		<li><a href="$CGI$?$USER$template=performance">Performance</a></li>
 		<li id="active"><a id="current" href="$CGI$?$USER$template=preferences">Preferences</a></li>
 		<li><a href="$CGI$?$USER$template=alerts">Alerts</a></li>
-		<li><a href="$CGI$?$USER$template=quarantine&sortby=Rating">Quarantine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">Quarantine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
 		<li><a href="$CGI$?$USER$template=analysis">Analysis</a></li>
-		<li><a href="$CGI$?$USER$template=history">History</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">History</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -92,6 +92,7 @@ When a SPAM message is identified:<br><br>
 <div id="content">
 	<h3><strong>Features</strong> - Tuning SPAM filtering</h3>
 <p>
+$OPTION$
 <INPUT TYPE=CHECKBOX NAME=enableBNR $C_BNR$>
 Enable noise reduction, which usually improves filtering accuracy<br>
 <INPUT TYPE=CHECKBOX NAME=enableWhitelist $C_WHITELIST$>

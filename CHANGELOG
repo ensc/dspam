@@ -1,7 +1,34 @@
-$Id: CHANGELOG,v 1.426 2006/04/19 12:38:54 jonz Exp $
+$Id: CHANGELOG,v 1.427 2006/04/19 16:52:04 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060419.1200] jonz: webui patch
+
+Applied patch submitted by Stefan Huelswitt <s.huelswitt@gmx.de>
+
+Using HTTP redirect to redirect the browser back to the original template
+  after the user has executed a link. Doesn't allow the browser to show the URL
+  location with the embedded command e.g. retrain=spam. Protects the user from
+  accidental re-execute of the command by reloading the page.
+Changed DisplayHistory to scan the entire logfile first and only then decide
+  which information has to be displayed based on history_page. Avoids wrong
+  display due to incomplete information available.
+Discard 'resent' messages in history display.
+Quote single-quote ' (mostly from subject) in javascript command for fragment
+  display. Prevents execution of the command.
+Added links to previous/next history page.
+Added 'history_page=1' to all templates for consistency.
+Apply MAX_COL_LEN to history display as well.
+Added DATE_FORMAT to configure.pl to allow customized date format in history
+   and quarantine (using strftime).
+Added OPTMODE to configure.pl to customize preferences tab for OptIn, OptOut
+  or no selectable option.
+Touching a mailbox timestamp file every time the user displays the quarantine.
+This file can be used in a report_quarantine script.
+Removed 'sortby=Rating' from all templates as it renders SORT_DEFAULT useless.
+In quarantine, keep selected sort method after processing mails.
+In GetPrefs, read default prefs first and overlay them with user prefs.
 
 [20060418.0830] jonz: dspam.cgi to use MAX_COL_LEN
 

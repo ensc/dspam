@@ -19,9 +19,9 @@
 		<li><a href="$CGI$?$USER$template=performance">Performance</a></li>
 		<li><a href="$CGI$?$USER$template=preferences">Preferences</a></li>
 		<li><a href="$CGI$?$USER$template=alerts">Alerts</a></li>
-		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine&sortby=Rating">Quarantine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Quarantine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
 		<li><a href="$CGI$?$USER$template=analysis">Analysis</a></li>
-		<li><a href="$CGI$?$USER$template=history">History</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">History</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -40,6 +40,7 @@ Use the checkboxes and <strong>Deliver Checked</strong> to deliver messages you 
 <input type="hidden" name="command" value="processQuarantine" >
 <input type="hidden" name="template" value="quarantine" >
 <input type="hidden" name="user" value="$REMOTE_USER$" >
+<input type="hidden" name="sortby" value="$SORTBY$" >
 <input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
 &nbsp;
 <input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED messages in quarantine?')==false) { return false; }" />

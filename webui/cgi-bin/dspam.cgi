@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.20 2006/04/19 12:39:54 jonz Exp $
+# $Id: dspam.cgi,v 1.21 2006/04/19 16:52:05 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -26,6 +26,10 @@ require "ctime.pl";
 
 # Read configuration parameters common to all CGI scripts
 require "configure.pl";
+
+if($CONFIG{"DATE_FORMAT"}) {
+  use POSIX qw(strftime);
+}
 
 #
 # The current CGI script
@@ -108,6 +112,9 @@ if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
   $FORM{'template'} = "performance";
 }
 
+my($MYURL);
+$MYURL = "$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}";
+
 #
 # Set up initial display variables
 #
@@ -120,25 +127,44 @@ $DATA{'REMOTE_USER'} = $CURRENT_USER;
 
 # Performance
 if ($FORM{'template'} eq "performance") {
-  &ResetStats if ($FORM{'command'} eq "resetStats");
-  &Tweak if ($FORM{'command'} eq "tweak");
-  &DisplayIndex;
+  if ($FORM{'command'} eq "resetStats") {
+    &ResetStats;
+    redirect($MYURL);
+  } elsif ($FORM{'command'} eq "tweak") {
+    &Tweak;
+    redirect($MYURL);
+  } else {
+    &DisplayIndex;
+  }
 
 # Quarantine
 } elsif ($FORM{'template'} eq "quarantine") {
   if ($FORM{'command'} eq "viewMessage") {
     &Quarantine_ViewMessage;
   } else {
-    &ProcessQuarantine if ($FORM{'command'} eq "processQuarantine");
-    &ProcessFalsePositive if ($FORM{'command'} eq "processFalsePositive");
-    &DisplayQuarantine;
+    $MYURL .= "&sortby=$FORM{'sortby'}" if ($FORM{'sortby'} ne "");
+    if ($FORM{'command'} eq "processQuarantine") {
+      &ProcessQuarantine;
+      redirect($MYURL);
+    } elsif ($FORM{'command'} eq "processFalsePositive") {
+      &ProcessFalsePositive;
+      redirect($MYURL);
+    } else {
+      &DisplayQuarantine;
+    }
   }
 
 # Alerts
 } elsif ($FORM{'template'} eq "alerts") {
-  &AddAlert if ($FORM{'command'} eq "addAlert");
-  &DeleteAlert if ($FORM{'command'} eq "deleteAlert");
-  &DisplayAlerts;
+  if ($FORM{'command'} eq "addAlert") {
+    &AddAlert;
+    redirect($MYURL);
+  } elsif ($FORM{'command'} eq "deleteAlert") {
+    &DeleteAlert;
+    redirect($MYURL);
+  } else {
+    &DisplayAlerts;
+  }
 
 # Preferences
 } elsif ($FORM{'template'} eq "preferences") {
@@ -178,8 +204,8 @@ sub DisplayFragment {
 }
 
 sub DisplayHistory {
-  my($history_page) = $FORM{'history_page'};
-  my($all_lines , $end, $begin, $history_pages);
+  my($all_lines , $begin, $history_pages, $rec, $history_page);
+  unless ($history_page = $FORM{'history_page'}) { $history_page = 1;}
 
   my(@buffer, @history, $line, %rec);
   my($rowclass) = "rowEven";
@@ -199,6 +225,7 @@ sub DisplayHistory {
            system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($retrain) . " --signature=" . quotemeta($signature) . " --user " . quotemeta("$CURRENT_USER"));
          }
     }
+  redirect("$MYURL&history_page=$history_page");
   } else {
     if ($FORM{'retrain'} ne "") {
        if ($FORM{'retrain'} eq "innocent") {
@@ -206,6 +233,7 @@ sub DisplayHistory {
        } else {
          system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($FORM{'retrain'}) . " --signature=" . quotemeta($FORM{'signatureID'}) . " --user " . quotemeta("$CURRENT_USER"));
        }
+    redirect("$MYURL&history_page=$history_page");
     }
   }
 
@@ -214,49 +242,12 @@ sub DisplayHistory {
     &error("No historical data is available");
   }
 
-  if ($CONFIG{'HISTORY_PER_PAGE'} > 0) {
-
-    $history_page = 1 if $history_page eq "";
-
-    open(LINES,"wc -l $LOG|");
-    while (<LINES>){
-      chomp;
-      s/^ +//;
-      if (/([0-9]*)/) { $all_lines = $1; }
-    }
-    close (LINES);
-
-    $begin = $all_lines - ($CONFIG{'HISTORY_PER_PAGE'} * $history_page);
-    $end = $all_lines - ($CONFIG{'HISTORY_PER_PAGE'} * ($history_page - 1));
-
-    if ($begin < 0) {
-      $begin = 1;
-    } elsif ($begin < $all_lines - $CONFIG{'HISTORY_SIZE'} -  $CONFIG{'HISTORY_PER_PAGE'}) {
-      $begin = $all_lines - $CONFIG{'HISTORY_SIZE'}  + 1; 
-    }
-
-    if ($all_lines < $CONFIG{'HISTORY_PER_PAGE'}) {
-      $history_pages = 1;
-    } elsif ($all_lines > $CONFIG{'HISTORY_SIZE'}) {
-      $history_pages = ($CONFIG{'HISTORY_SIZE'} + $CONFIG{'HISTORY_PER_PAGE'}) / $CONFIG{'HISTORY_PER_PAGE'};
-    } else {
-      $history_pages = $all_lines / $CONFIG{'HISTORY_PER_PAGE'};
-    }
-
-    open(LOG, "sed -n \'$begin,$end\p\' $LOG|");
-  }
-
-  while(<LOG>) {
-    push(@buffer, $_);
-  }
-  close(LOG);
-
-
   # Preseed retraining information and delivery errors
  
-  foreach $line (@buffer) {
+  open(LOG, "< $LOG") or die "Can't open log file $LOG";
+  while(<LOG>) {
     my($time, $class, $from, $signature, $subject, $info, $messageid) 
-      = split(/\t/, $line);
+      = split(/\t/, $_);
     next if ($signature eq "");
     if ($class eq "M" || $class eq "F" || $class eq "E") { 
       if ($class eq "E") {
@@ -267,14 +258,47 @@ sub DisplayHistory {
         $rec{$signature}->{'info'} = $info 
           if ($rec{$signature}->{'info'} eq "");
       }
+      # filter out resents if there are any.  Since it's the same
+      # message we only allow retraining on the 1st occurence of it.
+    } elsif ($messageid == ''
+	     || $rec{$signature}->{'messageid'} != $messageid) {
+      $rec{$signature}->{'time'} = $time;
+      $rec{$signature}->{'class'} = $class;
+      $rec{$signature}->{'from'} = $from;
+      $rec{$signature}->{'signature'} = $signature;
+      $rec{$signature}->{'subject'} = $subject;
+      $rec{$signature}->{'info'} = $info;
+      $rec{$signature}->{'messageid'} = $messageid;
+
+      unshift(@buffer, $rec{$signature});
     }
   }
+  close(LOG);
+
+  if($CONFIG{'HISTORY_SIZE'} < ($#buffer+1)) {
+    $history_pages = int($CONFIG{'HISTORY_SIZE'} / $CONFIG{'HISTORY_PER_PAGE'});
+    $history_pages += 1 if($CONFIG{'HISTORY_SIZE'} % $CONFIG{'HISTORY_PER_PAGE'});
+  } else {
+    $history_pages = int( ($#buffer+1) / $CONFIG{'HISTORY_PER_PAGE'});
+    $history_pages += 1 if(($#buffer+1) % $CONFIG{'HISTORY_PER_PAGE'});
+  }
+  $begin = int(($history_page - 1) * $CONFIG{'HISTORY_PER_PAGE'}) ;
+
+  # Now lets just keep the information that we really need. 
+  @buffer = splice(@buffer, $begin,$CONFIG{'HISTORY_PER_PAGE'});
 
   my $retrain_checked_msg_no = 0;
-  while($line = shift(@buffer)) {
-    chomp($line);
-    my($time, $class, $from, $signature, $subject, $info, $messageid) 
-      = split(/\t/, $line);
+  while ($rec = pop@buffer) {
+    my($time, $class, $from, $signature, $subject, $info, $messageid);
+
+    $time = $rec->{'time'};
+    $class = $rec->{'class'};
+    $from = $rec->{'from'};
+    $signature = $rec->{'signature'};
+    $subject = $rec->{'subject'};
+    $info = $rec->{'info'};
+    $messageid = $rec->{'messageid'};
+
     next if ($signature eq "");
     next if ($rec{$signature}->{'displayed'} ne "");
     next if ($class eq "E");
@@ -296,13 +320,18 @@ sub DisplayHistory {
     $from = "<None Specified>" if ($from eq "");
     $subject = "<None Specified>" if ($subject eq "");
 
-    my($ctime) = ctime($time);
-    my(@t) = split(/\:/, (split(/\s+/, $ctime))[3]);
-    my($x) = (split(/\s+/, $ctime))[0];
-    my($m) = "a";
-    if ($t[0]>12) { $t[0] -= 12; $m = "p"; }
-    if ($t[0] == 0) { $t[0] = 12; }
-    $ctime = "$x $t[0]:$t[1]$m";
+    my $ctime;
+    if($CONFIG{"DATE_FORMAT"}) {
+      $ctime = strftime($CONFIG{"DATE_FORMAT"}, localtime($time));
+    } else {
+      $ctime = ctime($time);
+      my(@t) = split(/\:/, (split(/\s+/, $ctime))[3]);
+      my($x) = (split(/\s+/, $ctime))[0];
+      my($m) = "a";
+      if ($t[0]>12) { $t[0] -= 12; $m = "p"; }
+      if ($t[0] == 0) { $t[0] = 12; }
+      $ctime = "$x $t[0]:$t[1]$m";
+    }
 
     # Set the appropriate type and label for this message
 
@@ -344,7 +373,6 @@ sub DisplayHistory {
 
     $from = substr($from, 0, $CONFIG{'MAX_COL_LEN'}) . "..." if (length($from)>$CONFIG{'MAX_COL_LEN'});
     $subject = substr($subject, 0, $CONFIG{'MAX_COL_LEN'}) . "..." if (length($subject)>$CONFIG{'MAX_COL_LEN'});
-    $time = sprintf("%01.2f", $time);
 
     my($rclass);
     $rclass = "spam" if ($class eq "I" || $class eq "W" || $class eq "F");
@@ -366,14 +394,15 @@ sub DisplayHistory {
       my(%pairs);
       $pairs{'template'} = "fragment";
       $pairs{'signatureID'} = $signature;
-      $subject =~ s/#//g;
-      $pairs{'subject'} = $subject;
+      my($sub) = $subject;
+      $sub =~ s/#//g;
+      $sub =~ s/(['])/\\$1/g;
+      $pairs{'subject'} = $sub;
       $pairs{'from'} = $from;
       $pairs{'info'} = $info;
       $pairs{'time'} = $ctime;
       $pairs{'user'} = $FORM{'user'};
       my($url) = &SafeVars(%pairs);
-      #$from = qq!<a href="javascript:openwin(580,400,1,'$CONFIG{'DSPAM_CGI'}?$url')">$from</a>!;
       $from = qq!<a href="javascript:openwin(580,400,1,'$CONFIG{'ME'}?$url')">$from</a>!;
     }
 
@@ -409,13 +438,21 @@ _END
 
   if ($CONFIG{'HISTORY_PER_PAGE'} > 0) {
     $DATA{'HISTORY'} .= "<center>[";
+    if (($history_pages > 1) && ($history_page > 1)) {
+      my $i = $history_page-1;
+      $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\">&nbsp;&lt;&nbsp;</a>";
+    }
     for(my $i = 1; $i <= $history_pages; $i++) {
   
       if ($i == $history_page) {
-        $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\"><big><strong>   $i   </strong></big></a>";
+        $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\"><big><strong>&nbsp;$i&nbsp;</strong></big></a>";
       } else {
-       $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\">   $i   </a>";
+       $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\">&nbsp;$i&nbsp;</a>";
       }
+    }
+    if (($history_pages > 1) && ($history_page < $history_pages)) {
+      my $i = $history_page+1;
+      $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\">&nbsp;&gt;&nbsp;</a>";
     }
     $DATA{'HISTORY'} .= "]</center><BR>";
   }
@@ -602,6 +639,7 @@ signatureLocation=$FORM{'signatureLocation'}
 _END
       close(FILE);
     }
+  redirect("$CONFIG{'ME'}?user=$FORM{'user'}&template=preferences");
   }
 
   %PREFS = GetPrefs();
@@ -625,6 +663,14 @@ _END
   }
   if ($PREFS{"enableWhitelist"} eq "on") {
     $DATA{"C_WHITELIST"} = "CHECKED";
+  }
+
+  if ($CONFIG{'OPTMODE'} eq "OUT") {
+    $DATA{"OPTION"} = "<INPUT TYPE=CHECKBOX NAME=optOut " . $DATA{'C_OPTOUT'} . ">Disable DSPAM filtering<br>";
+  } elsif ($CONFIG{'OPTMODE'} eq "IN") {
+    $DATA{"OPTION"} = "<INPUT TYPE=CHECKBOX NAME=optIn " . $DATA{'C_OPTIN'} . ">Enable DSPAM filtering<br>";
+  } else {
+    $DATA{"OPTION"} = "";
   }
 
   &output(%DATA);
@@ -917,6 +963,10 @@ sub DisplayQuarantine {
   print(FILE "$size");
   close(FILE);
 
+  open(FILE, ">$MAILBOX.stamp");
+  close(FILE);
+  chmod 0660, "$MAILBOX.stamp";
+
   open(FILE, "<$USER.alerts");
   while(<FILE>) {
     chomp;
@@ -1023,6 +1073,7 @@ sub DisplayQuarantine {
     @headings = reverse @headings;
   }
 
+  $DATA{'SORTBY'} = $sortBy;
   $DATA{'SORT_SELECTOR'} .=  "Sort by: <a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Rating&user=$FORM{'user'}\">";
   if ($sortBy eq "Rating") {
     $DATA{'SORT_SELECTOR'} .= "<strong>Rating</strong>";
@@ -1080,10 +1131,28 @@ sub DisplayQuarantine {
 
     my(@ptfields) = split(/\s+/, $row->{'X-DSPAM-Processed'});
     my(@times) = split(/\:/, $ptfields[3]);
-    my($mer) = "a";
-    if ($times[0] > 12) { $times[0] -= 12; $mer = "p"; }
-    if ($times[0] == 0) { $times[0] = "12"; }
-    my($ptime) = "$ptfields[1] $ptfields[2] $times[0]:$times[1]$mer";
+    my($ptime);
+    if($CONFIG{"DATE_FORMAT"}) {
+      my($month);
+      $month->{'Jan'}=0;
+      $month->{'Feb'}=1;
+      $month->{'Mar'}=2;
+      $month->{'Apr'}=3;
+      $month->{'May'}=4;
+      $month->{'Jun'}=5;
+      $month->{'Jul'}=6;
+      $month->{'Aug'}=7;
+      $month->{'Sep'}=8;
+      $month->{'Oct'}=9;
+      $month->{'Nov'}=10;
+      $month->{'Dec'}=11;
+      $ptime = strftime($CONFIG{"DATE_FORMAT"}, $times[2],$times[1],$times[0],$ptfields[2],$month->{$ptfields[1]},$ptfields[4]-1900);
+    } else {
+      my($mer) = "a";
+      if ($times[0] > 12) { $times[0] -= 12; $mer = "p"; }
+      if ($times[0] == 0) { $times[0] = "12"; }
+      $ptime = "$ptfields[1] $ptfields[2] $times[0]:$times[1]$mer";
+      }
 
     $DATA{'QUARANTINE'} .= <<_END;
 <tr>
@@ -1332,6 +1401,15 @@ _end
 # Global Functions
 #
 
+sub redirect {
+  my($loc) = @_;
+  print "Expires: now\n";
+  print "Pragma: no-cache\n";
+  print "Cache-control: no-cache\n";
+  print "Location: $loc\n\n";
+  exit(0);
+  }
+
 sub output {
   if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
     $FORM{'template'} = "performance";
@@ -1496,22 +1574,27 @@ sub GetPrefs {
   }
 
   if (keys(%PREFS) eq "0" || $CONFIG{'PREFERENCES_EXTENSION'} != 1) {
-    if (! -e $FILE) {
-      $FILE = "./default.prefs";
-    }
 
-    if (! -e $FILE) {
+    if (! -e "./default.prefs") {
       &error("Unable to load default preferences");
     }
-
-    open(FILE, "<$FILE");
+    open(FILE, "<./default.prefs");
     while(<FILE>) {
       chomp;
       my($directive, $value) = split(/\=/);
       $PREFS{$directive} = $value;
     }
     close(FILE);
-  }
 
+    if( -e $FILE) {
+      open(FILE, "<$FILE");
+      while(<FILE>) {
+	chomp;
+	my($directive, $value) = split(/\=/);
+	$PREFS{$directive} = $value;
+      }
+      close(FILE);
+    }
+  }
   return %PREFS
 }

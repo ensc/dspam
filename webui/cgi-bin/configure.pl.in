@@ -36,11 +36,14 @@ $CONFIG{'MAIL_QUEUE'}   = "mailq | grep '^[0-9,A-F]' | wc -l";
 $CONFIG{'WEB_ROOT'}     = ""; # URL location of included htdocs/ files
 
 # Default DSPAM display
+#$CONFIG{'DATE_FORMAT'}  = "%d.%m.%Y %H:%M"; # Date format in strftime style
+					     # if undefined use default DSPAM display format
 $CONFIG{'HISTORY_SIZE'} = 799;		# Number of items in history
 $CONFIG{'HISTORY_PER_PAGE'} = 100;
 $CONFIG{'MAX_COL_LEN'}	= 50;		# Max chars in list columns
 $CONFIG{'SORT_DEFAULT'}	= "Date";	# Show quarantine by "Date" or "Rating"
 $CONFIG{'3D_GRAPHS'}	= 1;
+$CONFIG{'OPTMODE'}	= "NONE";	# OUT=OptOut IN=OptIn NONE=not selectable
 $CONFIG{'LOCAL_DOMAIN'}	= "localhost";
 
 # Add customized settings below
