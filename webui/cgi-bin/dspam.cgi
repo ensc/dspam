@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.21 2006/04/19 16:52:05 jonz Exp $
+# $Id: dspam.cgi,v 1.22 2006/04/19 17:43:00 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
 #
@@ -261,7 +261,8 @@ sub DisplayHistory {
       # filter out resents if there are any.  Since it's the same
       # message we only allow retraining on the 1st occurence of it.
     } elsif ($messageid == ''
-	     || $rec{$signature}->{'messageid'} != $messageid) {
+	     || $rec{$signature}->{'messageid'} != $messageid
+	     || $CONFIG{'HISTORY_DUPLICATES'} ne "no") {
       $rec{$signature}->{'time'} = $time;
       $rec{$signature}->{'class'} = $class;
       $rec{$signature}->{'from'} = $from;

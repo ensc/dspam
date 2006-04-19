@@ -40,6 +40,7 @@ $CONFIG{'WEB_ROOT'}     = ""; # URL location of included htdocs/ files
 					     # if undefined use default DSPAM display format
 $CONFIG{'HISTORY_SIZE'} = 799;		# Number of items in history
 $CONFIG{'HISTORY_PER_PAGE'} = 100;
+$CONFIG{'HISTORY_DUPLICATES'} = "yes";	# Wether to show duplicate entries in history "yes" or "no"
 $CONFIG{'MAX_COL_LEN'}	= 50;		# Max chars in list columns
 $CONFIG{'SORT_DEFAULT'}	= "Rating";	# Show quarantine by "Date" or "Rating"
 $CONFIG{'3D_GRAPHS'}	= 1;
