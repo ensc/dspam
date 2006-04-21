@@ -1,4 +1,4 @@
-/* $Id: pgsql_objects.sql,v 1.10 2006/01/24 14:39:38 jonz Exp $ */
+/* $Id: pgsql_objects.sql,v 1.11 2006/04/21 20:39:36 jonz Exp $ */
 
 CREATE TABLE dspam_token_data (
   uid smallint,
@@ -55,3 +55,16 @@ begin
   return;
 end;';
 
+/* For much better performance
+/* see http://archives.postgresql.org/pgsql-performance/2004-11/msg00416.php
+ * and http://archives.postgresql.org/pgsql-performance/2004-11/msg00417.php
+ * for details
+ */
+alter table "dspam_token_data" alter "token" set statistics 200;
+alter table dspam_signature_data alter signature set statistics 200;
+alter table dspam_neural_data alter node set statistics 200;
+alter table dspam_neural_decisions alter signature set statistics 200;
+alter table dspam_token_data alter innocent_hits set statistics 200;
+alter table dspam_token_data alter spam_hits set statistics 200;
+CREATE INDEX id_token_data_sumhits ON dspam_token_data ((spam_hits + innocent_hits));
+analyze;
