@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.224 2006/04/19 17:22:47 jonz Exp $ */
+/* $Id: dspam.c,v 1.225 2006/04/21 20:51:14 jonz Exp $ */
 
 /*
  DSPAM
@@ -1903,15 +1903,19 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
             {
               /* Use standard quarantine procedure */
               if (ATX->source == DSS_INOCULATION ||
-                  ATX->classification == DSR_NONE) 
+                  ATX->classification == DSR_NONE)
               {
-                if (ATX->managed_group[0] == 0)
-                  retcode = 
-                    quarantine_message (ATX, parse_message->data, username);
-                else
-                  retcode = 
-                    quarantine_message (ATX, parse_message->data, 
-                                        ATX->managed_group);
+                if (ATX->flags & DAF_SUMMARY) {
+                  retcode = 0;
+                } else {
+                  if (ATX->managed_group[0] == 0)
+                    retcode = 
+                      quarantine_message (ATX, parse_message->data, username);
+                  else
+                    retcode = 
+                      quarantine_message (ATX, parse_message->data, 
+                                          ATX->managed_group);
+                }
               }
             }
 
