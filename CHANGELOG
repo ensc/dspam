@@ -1,7 +1,7 @@
-$Id: CHANGELOG,v 1.430 2006/04/21 20:51:14 jonz Exp $
+$Id: CHANGELOG,v 1.431 2006/04/25 13:37:49 jonz Exp $
 
-Version NEXT
-------------
+Version 3.6.5
+-------------
 
 [20060421.1645] jonz: do not quarantine when delivering summary
 

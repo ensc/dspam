@@ -1,4 +1,27 @@
-$Id: RELEASE.NOTES,v 1.63 2006/02/12 12:04:47 jonz Exp $
+$Id: RELEASE.NOTES,v 1.64 2006/04/25 13:37:49 jonz Exp $
+
+RELEASE 3.6.5-STABLE
+
+3.6.5 is a maintenance release
+
+MAINT: PgSQL SQL tuning
+MAINT: WebUI aesthetic and functional fixes
+MAINT: Added --disable-syslog and --with-logfile= configuration flags
+MAINT: Added -t flag for dspam_stats to total stats
+MAINT: Markov result used as X-DSPAM-Confidence when Markov used
+MAINT: Support for separate read/write servers to be used with mysql_drv
+BUGFIX: Spam are quarantined when --deliver=summary
+BUGFIX: Admin graphs malformatted when subject contains newline character
+BUGFIX: WebUI does not use MAX_COL_LEN
+BUGFIX: Output for dspam_admin aggr pref incorrect
+BUGFIX: Flat-file preference writes fail on some systems
+BUGFIX: Failure to connect to ClamAV causes segmentation fault
+BUGFIX: NULL username in system causes segmentation fault
+BUGFIX: ClamAV processing and cleanup issues
+BUGFIX: Fragment files overwritten on retrain
+BUGFIX: Miscellaneous invalid read / segmentation fault bugs
+BUGFIX: If TrainingMode not specified in dspam.conf or passed in, segmentation fault
+BUGFIX: No output returned when using --deliver=summary with dspamc
 
 RELEASE 3.6.4-STABLE
 
