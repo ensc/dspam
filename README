@@ -1,4 +1,4 @@
-$Id: README,v 1.89 2006/03/24 13:56:50 jonz Exp $
+$Id: README,v 1.90 2006/05/10 17:35:22 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Deep Logic, Inc.
@@ -52,6 +52,7 @@ Advanced DSPAM functionality
   2.3 Client/Server Mode
   2.4 LMTP 
   2.5 DSPAM User Preferences
+  2.6 Fallback Domains
 
 Miscellaneous
 
@@ -1946,6 +1947,7 @@ DATA
     the entire domain, so if the destination dspam user does not exist in
     the database, the fallback user's database will be used. The
     dspam.conf "FallbackDomains" setting must also be "on". (default:off)
+    NOTE: You will need to set "FallbackDomains on" in dspam.conf to use this.
 
   trainPristine { on | off }
     Override's the default signature mode and treats messages as if they were
@@ -1956,6 +1958,39 @@ DATA
   optOutClamAV { on | off }
     Opts out of ClamAV virus scanning (if ClamAV is directly integrated with
     dspam via dspam.conf). (default:off)
+
+2.6 FALLBACK DOMAINS
+
+  Fallback domains allow you to default some or all users for a particular
+  domain to a single domain user; this allows you to set preferences (including
+  opting out of filtering entirely) for users based on domain name. Any user
+  who does not exist as a known user to DSPAM will be defaulted to the 
+  domain it belongs to if it is designated as a fallback domain. This
+  means that you can create bob@domain.com and alice@domain.com with their own
+  databases and preferences, but also default all other users to @domain.com.
+  Alternatively, you could create just the domain without any other users and
+  default all users to @domain.com
+
+  To use fallback domains, you'll first need to activate this feature in 
+  dspam.conf:
+
+  FallbackDomains on
+
+  Next, you'll need to create a dspam user for each domain you wish to use
+  as a fallback domain. For example, @domain.com. Depending on your
+  implementation, this may be a simple insert into dspam_virtual_uids or may
+  be created automatically when setting a user's preferences.
+
+  Finally, designate that special user as a fallback domain by setting a
+  preference: 
+
+  dspam_admin ch pref @domain.com fallbackDomain on
+
+  Any mail coming in for that domain that does _not_ match a known user in 
+  dspam will now fall back to this user; you can then set specific preferences
+  or even opt out the entire user. Alternatively, you can create a domain-based
+  database for filtering mail specific to that domain, just as you would a 
+  normal user.
 
 3.0 BUGS, PORTS, AND THE LIKE
 
