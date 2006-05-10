@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.70 2006/02/15 18:19:40 jonz Exp $
+## $Id: dspam.conf.in,v 1.71 2006/05/10 17:26:26 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -69,6 +69,16 @@ TrustedDeliveryAgent "@delivery_agent@"
 #DeliveryPort        24
 #DeliveryIdent       localhost
 #DeliveryProto       LMTP
+
+#
+# FallbackDomains: If you want to specify certain domains as fallback domains,
+# enable this option. For example, you could create a user @domain.com, and
+# if bob@domain.com does not resolve to a known user on the system, the user
+# could default to your @domain.com user. NOTE: This also requires designating
+# fallbackDomain for the domain name; 
+# e.g. dspam_admin ch pref domain.com fallbackDomain on 
+#
+#FallbackDomains on
 
 #
 # Quarantine Agent: DSPAM's default behavior is to quarantine all mail it 
