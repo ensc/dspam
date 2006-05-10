@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.225 2006/04/21 20:51:14 jonz Exp $ */
+/* $Id: dspam.c,v 1.226 2006/05/10 19:23:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -450,6 +450,12 @@ process_message (
 
         ATX->PTX = load_aggregated_prefs(ATX, CTX->username);
 
+        ATX->train_pristine = 0;
+        if ((_ds_match_attribute(agent_config, "TrainPristine", "on") ||
+            !strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "on")) &&
+            strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "off")) {
+                ATX->train_pristine = 1;
+        }
       }
     }
   } else if (CTX->operating_mode == DSM_CLASSIFY || 
@@ -468,8 +474,7 @@ process_message (
     retrain_message(CTX, ATX);
   } else {
     CTX->signature = NULL;
-    if (!_ds_match_attribute(agent_config, "TrainPristine", "on") && 
-        strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "on")) {
+    if (! ATX->train_pristine) {
       if (CTX->classification != DSR_NONE && CTX->source == DSS_ERROR) {
         LOG(LOG_WARNING, ERR_AGENT_NO_VALID_SIG);
         result = EFAILURE;
@@ -576,9 +581,7 @@ process_message (
 
     if (CTX->classification == DSR_NONE && CTX->training_mode != DST_NOTRAIN)
     {
-      if (!_ds_match_attribute(agent_config, "TrainPristine", "on") && 
-          strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "on")) {
-
+      if (!ATX->train_pristine) {
         int x = _ds_set_signature (CTX, CTX->signature, ATX->signature);
         if (x) {
           LOG(LOG_WARNING, "_ds_set_signature() failed with error %d", x);
@@ -707,8 +710,7 @@ process_message (
   }
 
   if (strcmp(_ds_pref_val(ATX->PTX, "signatureLocation"), "headers") &&
-      !_ds_match_attribute(agent_config, "TrainPristine", "on") &&
-       strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "on") &&
+      !ATX->train_pristine &&
        (CTX->classification == DSR_NONE || internally_canned))
   {
     i = embed_signature(CTX, ATX);
@@ -1686,6 +1688,13 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       username = domain;
     }
 
+    ATX->train_pristine = 0;
+    if ((_ds_match_attribute(agent_config, "TrainPristine", "on") || 
+        !strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "on")) &&
+        strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "off")) {
+            ATX->train_pristine = 1;
+    }
+
     _ds_userdir_path(filename, 
                      _ds_read_attribute(agent_config, "Home"), 
                      LOOKUP(ATX->PTX, username), "dspam");
@@ -2146,8 +2155,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         }
       }
 
-      if (!_ds_match_attribute(agent_config, "TrainPristine", "on") &&
-        strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "on") && 
+      if (!ATX->train_pristine &&
 
         /* Don't keep searching if we've already found the signature in the
          * headers, and we're using signatureLocation=headers 

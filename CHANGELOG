@@ -1,4 +1,11 @@
-$Id: CHANGELOG,v 1.431 2006/04/25 13:37:49 jonz Exp $
+$Id: CHANGELOG,v 1.432 2006/05/10 19:23:02 jonz Exp $
+
+Version NEXT
+------------
+
+[20060510.0800] jonz: fix to recognize trainPristine "off" in preferences
+
+preference turned "off" should override config turned "on"
 
 Version 3.6.5
 -------------

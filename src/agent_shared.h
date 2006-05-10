@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.23 2006/01/24 14:39:38 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.24 2006/05/10 19:23:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -56,6 +56,7 @@ typedef struct {
   int trusted;		    /* Trusted User?         IN      */
 #endif
   int feature;		    /* Feature Overridden?   IN      */
+  int train_pristine;       /* Train Pristine?       IN      */
   void *dbh;                /* Database Handle       IN      */
   u_int32_t flags;          /* Flags DAF_            IN      */
   int training_buffer;	    /* Sedation Level 0-10   IN      */
