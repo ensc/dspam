@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.h,v 1.11 2006/02/15 17:57:34 jonz Exp $ */
+/* $Id: mysql_drv.h,v 1.12 2006/05/12 18:36:24 jonz Exp $ */
 
 /*
  DSPAM
@@ -64,6 +64,8 @@ int	_mysql_drv_get_spamtotals	(DSPAM_CTX * CTX);
 int	_mysql_drv_set_spamtotals	(DSPAM_CTX * CTX);
 void	_mysql_drv_query_error		(const char *error, const char *query);
 MYSQL	*_mysql_drv_connect		(DSPAM_CTX *CTX, const char *prefix);
+MYSQL	*_mysql_drv_sig_write_handle	(DSPAM_CTX *CTX, 
+	struct _mysql_drv_storage *s);
 struct passwd *_mysql_drv_getpwnam      (DSPAM_CTX * CTX, const char *name);
 struct passwd *_mysql_drv_getpwuid      (DSPAM_CTX * CTX, uid_t uid);
 DSPAM_CTX     *_mysql_drv_init_tools	(const char *home, config_t config,
