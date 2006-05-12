@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.67 2006/04/12 13:49:01 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.68 2006/05/12 17:16:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -1064,9 +1064,8 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   if (_ds_match_attribute(CTX->config->attributes, "MySQLReadSignaturesFromWriteDb", "on"))
     dbh = s->dbt->dbh_write;
-  else
+  else 
     dbh = s->dbt->dbh_read;
-
 
   if (!CTX->group || CTX->flags & DSF_MERGED)
     p = _mysql_drv_getpwnam (CTX, CTX->username);
@@ -1110,6 +1109,11 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     CTX->username = username;
     _ds_init_storage(CTX, (dbh_attached) ? dbt : NULL);
     s = (struct _mysql_drv_storage *) CTX->storage;
+
+    if (_ds_match_attribute(CTX->config->attributes, "MySQLReadSignaturesFromWriteDb", "on"))
+      dbh = s->dbt->dbh_write;
+    else
+      dbh = s->dbt->dbh_read;
   } else {
     uid = p->pw_uid;
   }

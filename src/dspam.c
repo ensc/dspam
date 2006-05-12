@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.226 2006/05/10 19:23:02 jonz Exp $ */
+/* $Id: dspam.c,v 1.227 2006/05/12 17:16:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -339,6 +339,7 @@ process_message (
   if (attach_context(CTX, ATX->dbh)) {
     if (ATX->sockfd) {
       ATX->dbh = _ds_connect(CTX);
+      LOG(LOG_ERR, ERR_CORE_REATTACH);
 
       if (attach_context(CTX, ATX->dbh)) {
         LOG(LOG_ERR, ERR_CORE_ATTACH);

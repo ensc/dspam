@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.432 2006/05/10 19:23:02 jonz Exp $
+$Id: CHANGELOG,v 1.433 2006/05/12 17:16:53 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060512.0100] jonz: segfault fix for UIDInSignature
+
+fixed a critical bug that can cause segfaults when correcting messages using
+UIDInSignature options. database handle is refreshed, but new pointer is never
+used.
 
 [20060510.0800] jonz: fix to recognize trainPristine "off" in preferences
 

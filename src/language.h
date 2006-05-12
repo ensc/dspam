@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.23 2006/01/18 16:48:53 jonz Exp $ */
+/* $Id: language.h,v 1.24 2006/05/12 17:16:53 jonz Exp $ */
 
 /*
  DSPAM
@@ -101,6 +101,7 @@ user, e.g.. root or Trusted User [uid=%d(%s)]"
 
 #define ERR_CORE_INIT             "Context initialization failed"
 #define ERR_CORE_ATTACH           "Unable to attach DSPAM context"
+#define ERR_CORE_REATTACH         "Unable to attach DSPAM context. Retrying."
 
 /* Storage driver error codes */
 
