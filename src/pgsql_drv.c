@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.55 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.56 2006/05/13 12:17:06 jonz Exp $ */
 
 /*
  DSPAM
@@ -1142,11 +1142,6 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     CTX->username = username;
     _ds_init_storage(CTX, (dbh_attached) ? dbh : NULL);
     s = (struct _pgsql_drv_storage *) CTX->storage;
-
-    if (_ds_match_attribute(CTX->config->attributes, "PgSQLReadSignaturesFromWriteDb", "on"))
-      dbh = s->dbt->dbh_write;
-    else
-      dbh = s->dbt->dbh_read;
   } else {
     uid = p->pw_uid;
   }
