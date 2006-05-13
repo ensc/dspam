@@ -1,7 +1,6 @@
-# $Id: ora_drv.m4,v 1.1 2004/10/24 20:48:37 jonz Exp $
+# $Id: ora_drv.m4,v 1.2 2006/05/13 13:28:30 jonz Exp $
 # Autuconf macroses for checking for Oracle
 # Jonathan Zdziarski <jonathan@nuclearelephant.com>
-# Andrew W. Nosenko <awn@bcs.zp.ua>
 #
 #   Public available macro:
 #       DS_ORACLE([ora_cppflags_out],

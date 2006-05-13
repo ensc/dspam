@@ -1,7 +1,6 @@
-# $Id: sqlite_drv.m4,v 1.1 2004/10/24 20:48:37 jonz Exp $
+# $Id: sqlite_drv.m4,v 1.2 2006/05/13 13:28:30 jonz Exp $
 # Autuconf macros for checking for SQLite
 # Jonathan Zdziarski <jonathan@nuclearelephant.com>
-# Andrew W. Nosenko <awn@bcs.zp.ua>
 #
 #   Public available macro:
 #       DS_SQLITE([sqlite_cppflags_out],

@@ -1,4 +1,4 @@
-$Id: README,v 1.92 2006/05/13 01:12:58 jonz Exp $
+$Id: README,v 1.93 2006/05/13 13:28:30 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Jonathan A. Zdziarski
@@ -215,8 +215,6 @@ FRESH INSTALLATION
  
    Driver       Requirements
    -------------------------------------------------------------------------
- D libdb4_drv:  Berkeley DB4 libraries
- D libdb3_drv:  Berkeley DB3 libraries
  T mysql_drv:   MySQL client libraries      (and a server to connect to) 
    ora_drv:     Oracle Call Interface       (and a server to connect to)
  T pgsql_drv:   PostgreSQL client libraries (and a server to connect to)
@@ -227,7 +225,6 @@ FRESH INSTALLATION
    Legend:
     * Default storage driver
     T Thread-safe (Required for running DSPAM in server daemon mode)
-    D Deprecated  (Not recommended)
 
    In general, MySQL is one of the faster solutions with a smaller storage 
    footprint, and is well suited for both small and large-scale implementations.
@@ -242,19 +239,10 @@ FRESH INSTALLATION
    be found in the doc/ directory. You'll need to follow any steps outlined in 
    the storage driver documentation before continuing.
 
-   You can download Berkeley DB from http://www.sleepycat.com.  
    You can download MySQL from http://www.mysql.com.
    You can download PostgreSQL from http://www.postgresql.com.
    You can obtain more information about Oracle at http://www.oracle.com.
    You can download SQLite from http://www.sqlite.org.
-
-   Note on Berkeley DB:
-     
-     Some operating system distributions include their own version of
-     libdb3 and libdb4.  A majority of these packaged versions do work 
-     correctly with DSPAM, however a few do not.  If you experience
-     problems with one of the libdb storage drivers, consider downloading
-     and compiling the public source tree from http://www.sleepycat.com.
 
 1. CONFIGURATION
 
@@ -313,8 +301,6 @@ FRESH INSTALLATION
      perform other proprietary operations.  The default driver is sqlite_drv,
      which uses SQLite. The following drivers have been provided:
 
-     libdb4_drv:  Berkeley DB4 Library
-     libdb3_drv:  Berkeley DB3 Library
      mysql_drv:   MySQL Drivers 
      ora_drv:     Oracle Drivers 
      pgsql_drv:   PostgreSQL Drivers
@@ -369,22 +355,6 @@ FRESH INSTALLATION
    DRIVER SPECIFIC CONFIGURE SWITCHES
 
      Some storage drivers have their own custom configuration switches:
-
-     libdb4_drv:
-       --with-db4-includes=DIR
-       Specify a path to the Berkeley db4 includes
-
-       --with-db4-libraries=DIR
-       Specify a path to the Berkeley db4 libraries
-
-     libdb3_drv:
-       --with-db3-includes=DIR
-       Specify a path to the Berkeley db3 includes
-
-       --with-db3-libraries=DIR
-       Specify a path to the Berkeley db3 libraries
-       (Currently links to -ldb3, to you may need to symlink libdb-3.3.so to
-        libdb3.so if it doesn't exist)
 
      mysql_drv:
        --with-mysql-includes=DIR

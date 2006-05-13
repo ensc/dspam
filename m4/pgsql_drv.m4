@@ -1,8 +1,7 @@
-# $Id: pgsql_drv.m4,v 1.2 2004/10/24 22:47:28 jonz Exp $
+# $Id: pgsql_drv.m4,v 1.3 2006/05/13 13:28:30 jonz Exp $
 # Autuconf macroses for checking for PostgreSQL
 # Rustam Aliyev <rustam@azernews.com>
 # Jonathan Zdziarski <jonathan@nuclearelephant.com>
-# Andrew W. Nosenko <awn@bcs.zp.ua>
 #
 #   Public available macro:
 #       DS_PGSQL([pgsql_cppflags_out],

@@ -1,8 +1,7 @@
-# $Id: Makefile.am,v 1.8 2005/10/22 13:45:45 jonz Exp $
+# $Id: Makefile.am,v 1.9 2006/05/13 13:28:30 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
-# Andrew W. Nosenko <awn@bcs.zp.ua>
 #
 # autoconf (GNU Autoconf) 2.59
 # ltmain.sh (GNU libtool) 1.5.6

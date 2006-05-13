@@ -1,7 +1,6 @@
 # $Id*
 # Autuconf macros for checking for SQLite
 # Jonathan Zdziarski <jonathan@nuclearelephant.com>
-# Andrew W. Nosenko <awn@bcs.zp.ua>
 #
 #   Public available macro:
 #       DS_SQLITE3([sqlite_cppflags_out],

@@ -1,9 +1,7 @@
-dnl $Id: configure.ac,v 1.63 2006/05/13 12:23:49 jonz Exp $
+dnl $Id: configure.ac,v 1.64 2006/05/13 13:28:30 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
-dnl
-dnl    Original framework by Andrew W. Nosenko <awn@bcs.zp.ua>
 dnl
 dnl    autoconf (GNU Autoconf) 2.59
 dnl    ltmain.sh (GNU libtool) 1.5.6
@@ -468,50 +466,6 @@ fi
 AC_MSG_RESULT([$enable_mysql4_initialization])
 
 #
-#   DCLASSIFY Storage Driver Extension
-#   Enables the dclassify extension in supporting storage drivers.
-#   For use with dclassify (http://dclassify.nuclearelephant.com)
-#
-AC_ARG_ENABLE(dclassify-extension,
-    [AS_HELP_STRING(--enable-dclassify-extension,
-                        Enables the dclassify extension in supported storage
-                        drivers. For use with DSPAM's libdclassify module.
-                    )])
-case x"$enable_dclassify_extension" in
-    xyes)   # enabled explicity
-            ;;
-    xno)    # disabled explicity
-            ;;
-    x)      # disabled by default
-            enable_dclassify_extension=no
-            ;;
-    *)      AC_MSG_ERROR([unexpected value $enable_dclassify_extension for --{enable,disable}-dclassify-extension configure option])
-            ;;
-esac
-if test x"$enable_dclassify_extension" != xyes
-then
-    enable_dclassify_extension=no
-else
-    enable_dclassify_extension=yes    # overkill, but convenient
-
-    DCLASSIFY_CPPFLAGS=''
-    DCLASSIFY_LDFLAGS=''
-    DCLASSIFY_LIBS=''
-    success=yes
-    DS_DCLASSIFY(DCLASSIFY_CPPFLAGS, DCLASSIFY_LDFLAGS, DCLASSIFY_LIBS,
-             [success=yes], [success=no])
-    if test x"$success" != xyes
-    then
-        AC_MSG_ERROR([Required version of libdclassify was not found])
-    fi
-    CPPFLAGS="$DCLASSIFY_CPPFLAGS $CPPFLAGS"
-    LIBS="$DCLASSIFY_LIBS $LIBS"
-    LDFLAGS="$DCLASSIFY_LDFLAGS $LDFLAGS"
-
-    AC_DEFINE(DCLASSIFY_EXTENSION, 1, [Defined if storage driver supports the DCLASSIFY extension])
-fi
-
-#
 #   Preferences Extension
 #   For storage drivers with preferences extension, the driver's extension is
 #   used instead of the built-in file-based function
@@ -704,56 +658,6 @@ for drv in $storagedrv; do
     static_driver=no
   fi
 
-if test x"$drv" = xlibdb4_drv
-then
-    db_version_major=unknown
-    DS_BERKELEY_DB4(DB_CPPFLAGS, DB_LDFLAGS, DB_LIBS,
-                    db_version_major, [], [],
-                    [success=yes], [success=no])
-    if test x"$success" != xyes
-    then
-        AC_MSG_ERROR([Berkeley DB not found or not usable])
-    fi
-    if test x"$db_version_major" != x4
-    then
-        AC_MSG_ERROR([Berkeley DB v$db_version_major found but v4 is required])
-    fi
-
-    libdb4_drv_cppflags="$DB_CPPFLAGS $CPPFLAGS"
-    libdb4_drv_libs="$DB_LIBS $LIBS"
-    libdb4_drv_ldflags="$DB_LDFLAGS $LDFLAGS"
-    AC_SUBST(libdb4_drv_cppflags)
-    AC_SUBST(libdb4_drv_libs)
-    AC_SUBST(libdb4_drv_ldflags)
-    db4_drv=yes
-    storage_drv_subdirs="$storage_drv_subdirs tools.libdb4_drv"
-fi
-
-if test x"$drv" = xlibdb3_drv
-then
-    db_version_major=unknown
-    DS_BERKELEY_DB3(DB_CPPFLAGS, DB_LDFLAGS, DB_LIBS,
-                    db_version_major, [], [],
-                    [success=yes], [success=no])
-    if test x"$success" != xyes
-    then
-        AC_MSG_ERROR([Berkeley DB not found or not usable])
-    fi
-    if test x"$db_version_major" != x3
-    then
-        AC_MSG_ERROR([Berkeley DB v$db_version_major found but v3 is required])
-    fi
-
-    libdb3_drv_cppflags="$DB_CPPFLAGS $CPPFLAGS"
-    libdb3_drv_libs="$DB_LIBS $LIBS"
-    libdb3_drv_ldflags=LDFLAGS="$DB_LDFLAGS"
-    AC_SUBST(libdb3_drv_cppflags)
-    AC_SUBST(libdb3_drv_libs)
-    AC_SUBST(libdb3_drv_ldflags)
-    db3_drv=yes
-    storage_drv_subdirs="$storage_drv_subdirs tools.libdb3_drv"
-fi
-
 if test x"$drv" = xhash_drv
 then
   hash_drv=yes
@@ -882,9 +786,9 @@ then
 AC_DEFINE([STATIC_DRIVER], 1,
           [Define if using a single, statically linked storage driver])
 AC_MSG_RESULT([yes])
-CPPFLAGS="$CPPFLAGS $libmysql_drv_cppflags $libpgsql_drv_cppflags $libsqlite_drv_cppflags $libsqlite3_drv_cppflags $libora_drv_cppflags $libdb4_drv_cppflags $libdb3_drv_cppflags $libhash_drv_cppflags"
-LIBS="$LIBS $libmysql_drv_libs $libpgsql_drv_libs $libsqlite_drv_libs $libsqlite3_drv_libs $libora_drv_libs $libdb4_drv_libs $libdb3_drv_libs $libhash_drv_libs"
-LDFLAGS="$LDFLAGS $libmysql_drv_ldflags $libpgsql_drv_ldflags $libsqlite_drv_ldflags $libsqlite3_drv_ldflags $libora_drv_ldflags $libdb4_drv_ldflags $libdb3_drv_ldflags $libhash_drv_ldflags"
+CPPFLAGS="$CPPFLAGS $libmysql_drv_cppflags $libpgsql_drv_cppflags $libsqlite_drv_cppflags $libsqlite3_drv_cppflags $libora_drv_cppflags $libhash_drv_cppflags"
+LIBS="$LIBS $libmysql_drv_libs $libpgsql_drv_libs $libsqlite_drv_libs $libsqlite3_drv_libs $libora_drv_libs $libhash_drv_libs"
+LDFLAGS="$LDFLAGS $libmysql_drv_ldflags $libpgsql_drv_ldflags $libsqlite_drv_ldflags $libsqlite3_drv_ldflags $libora_drv_ldflags $libhash_drv_ldflags"
 else
 AC_MSG_RESULT([no])
 fi
@@ -928,7 +832,6 @@ AH_BOTTOM([
 ])
 
 AC_CONFIG_FILES([Makefile src/tools/Makefile webui/Makefile m4/Makefile])
-AC_CONFIG_FILES([src/tools.libdb4_drv/Makefile src/tools.libdb3_drv/Makefile])
 AC_CONFIG_FILES([src/tools.mysql_drv/Makefile src/tools.ora_drv/Makefile])
 AC_CONFIG_FILES([txt/Makefile src/tools.pgsql_drv/Makefile ])
 AC_CONFIG_FILES([src/Makefile webui/cgi-bin/templates/Makefile])

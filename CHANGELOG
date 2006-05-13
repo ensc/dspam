@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.435 2006/05/13 01:12:58 jonz Exp $
+$Id: CHANGELOG,v 1.436 2006/05/13 13:28:30 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060514.0900] jonz: discontinued support for berkeley db
+
+deprecated bdb drivers finally removed from distribution
 
 [20060512.2105] jonz: copyright modifications
 
