@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.434 2006/05/13 01:04:46 jonz Exp $
+$Id: CHANGELOG,v 1.435 2006/05/13 01:12:58 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060512.2105] jonz: copyright modifications
+
+reassignment to Jonathan Zdziarski instead of using my corporate face
 
 [20060512.2100] jonz: removed some legacy piecess
 
@@ -695,7 +699,7 @@ when set to 'on', dspam will store 1k of the message body in user.frag/sig.frag
 [20050425.0700] jonz: changed copyright notice
 
 changed copyright notice to reflect my company name change (I am ditching
-Network Dweebs Corp. in exchange for Deep Logic, Inc.)
+Network Dweebs Corp. in exchange for Jonathan A. Zdziarski)
 
 [20050422.0700] jonz: got rid of report_error and report_error_printf
 

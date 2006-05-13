@@ -1,8 +1,8 @@
-/* $Id: error.c,v 1.10 2006/03/10 21:43:08 jonz Exp $ */
+/* $Id: error.c,v 1.11 2006/05/13 01:12:59 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

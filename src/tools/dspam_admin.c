@@ -1,8 +1,8 @@
-/* $Id: dspam_admin.c,v 1.17 2006/04/19 12:35:39 jonz Exp $ */
+/* $Id: dspam_admin.c,v 1.18 2006/05/13 01:13:01 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

@@ -1,8 +1,8 @@
-/* $Id: libdspam.c,v 1.153 2006/02/15 19:42:22 jonz Exp $ */
+/* $Id: libdspam.c,v 1.154 2006/05/13 01:12:59 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

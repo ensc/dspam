@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.11 2006/04/19 17:22:47 jonz Exp $
+# $Id: admin.cgi,v 1.12 2006/05/13 01:13:01 jonz Exp $
 # DSPAM
-# COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
+# COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

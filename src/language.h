@@ -1,8 +1,8 @@
-/* $Id: language.h,v 1.24 2006/05/12 17:16:53 jonz Exp $ */
+/* $Id: language.h,v 1.25 2006/05/13 01:12:59 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

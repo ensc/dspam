@@ -1,7 +1,7 @@
-$Id: mysql_drv.txt,v 1.7 2006/01/24 14:39:38 jonz Exp $
+$Id: mysql_drv.txt,v 1.8 2006/05/13 01:12:58 jonz Exp $
 
 mysql_drv: MySQL storage driver for DSPAM <jonathan@nuclearelephant.com>
-Copyright (c) 2002-2006 Deep Logic, Inc.
+Copyright (c) 2002-2006 Jonathan A. Zdziarski
 http://www.nuclearelephant.com/projects/dspam/
 
 LICENSE

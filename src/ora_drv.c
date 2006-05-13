@@ -1,8 +1,8 @@
-/* $Id: ora_drv.c,v 1.14 2006/01/20 17:28:33 jonz Exp $ */
+/* $Id: ora_drv.c,v 1.15 2006/05/13 01:12:59 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

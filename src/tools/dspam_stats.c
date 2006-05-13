@@ -1,8 +1,8 @@
-/* $Id: dspam_stats.c,v 1.24 2006/02/15 20:05:08 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.25 2006/05/13 01:13:01 jonz Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2006 DEEP LOGIC INC.
+ COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
