@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.436 2006/05/13 13:28:30 jonz Exp $
+$Id: CHANGELOG,v 1.437 2006/05/13 15:08:05 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060513.1100] jonz: fixed compiler warnings on sqlite drivers
+
+signed-ness warnings, nothing significant
 
 [20060514.0900] jonz: discontinued support for berkeley db
 

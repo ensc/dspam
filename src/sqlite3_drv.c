@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.13 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: sqlite3_drv.c,v 1.14 2006/05/13 15:08:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -1125,10 +1125,10 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  st->token = strtoull (sqlite3_column_text(s->iter_token, 0), NULL, 0);
-  st->spam_hits = strtol (sqlite3_column_text(s->iter_token, 1), NULL, 0);
-  st->innocent_hits = strtol (sqlite3_column_text(s->iter_token, 2), NULL, 0);
-  st->last_hit = (time_t) strtol (sqlite3_column_text(s->iter_token, 3), NULL, 0);
+  st->token = strtoull ((const char *) sqlite3_column_text(s->iter_token, 0), NULL, 0);
+  st->spam_hits = strtol ((const char *) sqlite3_column_text(s->iter_token, 1), NULL, 0);
+  st->innocent_hits = strtol ((const char *) sqlite3_column_text(s->iter_token, 2), NULL, 0);
+  st->last_hit = (time_t) strtol ((const char *) sqlite3_column_text(s->iter_token, 3), NULL, 0);
 
   return st;
 }
@@ -1200,9 +1200,9 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   memcpy(mem, sqlite3_column_blob(s->iter_sig, 0), length);
 
   st->data = mem;
-  strlcpy(st->signature, sqlite3_column_text(s->iter_sig, 1), sizeof(st->signature));
+  strlcpy(st->signature, (const char *) sqlite3_column_text(s->iter_sig, 1), sizeof(st->signature));
   st->length = length;
-  st->created_on = (time_t) strtol(sqlite3_column_text(s->iter_sig, 2), NULL, 0);
+  st->created_on = (time_t) strtol( (const char *) sqlite3_column_text(s->iter_sig, 2), NULL, 0);
 
   return st;
 }

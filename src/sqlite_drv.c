@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.27 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.28 2006/05/13 15:08:05 jonz Exp $ */
 
 /*
  DSPAM
@@ -811,7 +811,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 {
   struct _sqlite_drv_storage *s = (struct _sqlite_drv_storage *) CTX->storage;
   unsigned long length;
-  char *mem;
+  unsigned char *mem;
   char query[128];
   char *err=NULL, **row;
   int nrow, ncolumn;
@@ -852,7 +852,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
    return EUNKNOWN;
   }
 
-  length = sqlite_decode_binary(row[ncolumn], mem);
+  length = sqlite_decode_binary((unsigned char *) row[ncolumn], mem);
   if (length<=0) {
     LOG(LOG_ERR, "sqlite_decode_binary() failed with error %d", length);
     return EFAILURE;
@@ -903,7 +903,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EUNKNOWN;
   }
 
-  length = sqlite_encode_binary(SIG->data, SIG->length, mem);
+  length = sqlite_encode_binary(SIG->data, SIG->length, (unsigned char *) mem);
   if (length<0) {
    LOG(LOG_ERR, "sqlite_encode_binary() failed on error %d", length);
    buffer_destroy(query);
@@ -1173,7 +1173,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   struct _ds_storage_signature *st;
   unsigned long length;
   char query[128];
-  char *mem;
+  unsigned char *mem;
   char *err=NULL;
   const char **row, *query_tail=NULL;
   int ncolumn, x;
