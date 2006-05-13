@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.433 2006/05/12 17:16:53 jonz Exp $
+$Id: CHANGELOG,v 1.434 2006/05/13 01:04:46 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060512.2100] jonz: removed some legacy piecess
+
+- removed dspam_corpus (replaced by newer dspam_train)
+- removed dspam_genaliases (replaced by parse-to-headers, virtual users, etc)
 
 [20060512.0100] jonz: segfault fix for UIDInSignature
 
