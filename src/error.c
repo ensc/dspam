@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.11 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: error.c,v 1.12 2006/05/14 15:53:51 jonz Exp $ */
 
 /*
  DSPAM
@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <errno.h>
 #ifdef HAVE_UNISTD_H
 #   include <unistd.h>
 #endif
@@ -92,8 +93,13 @@ LOG(int priority, const char *err, ... )
 
 #ifdef LOGFILE
   file = fopen(LOGFILE, "a");
-  fprintf(file, "%ld: [%s] %s\n", (long) getpid(), format_date_r(date), buf); 
-  fclose(file);
+  if (file) {
+    fprintf(file, "%ld: [%s] %s\n", (long) getpid(), format_date_r(date), buf); 
+    fclose(file);
+  } else {
+    fprintf(stderr, "%s: %s", LOGFILE, strerror(errno));
+    fprintf(stderr, "%ld: [%s] %s\n", (long)getpid(), format_date_r(date), buf);
+  }
 #endif
 
 #ifdef DAEMON
