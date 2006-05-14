@@ -1,4 +1,4 @@
-.\" $Id: dspam_train.1,v 1.2 2006/05/13 01:12:59 jonz Exp $
+.\" $Id: dspam_train.1,v 1.3 2006/05/14 15:37:30 jonz Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam_train3.6
@@ -30,9 +30,8 @@ dspam_train - train a corpus of mail
 .SH DESCRIPTION 
 .LP
 .B dspam_train
-is used to train and test a corpus of mail (in maildir format). This tool 
-operates differently from dspam_corpus in that, rather than corpus feeding,
-dspam_train will present each message to dspam for a classification and then
+is used to train and test a corpus of mail (in maildir format). This 
+tool will present each message to dspam for a classification and then
 retrain only if the message was incorrect. This provides close to real-world
 training and should be used to build pretrained databases. Upon execution,
 the tool will automatically determine the ratio of spam:nonspam and train

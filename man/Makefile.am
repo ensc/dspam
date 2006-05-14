@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.2 2006/01/24 15:43:12 jonz Exp $
+# $Id: Makefile.am,v 1.3 2006/05/14 15:37:30 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -13,10 +13,10 @@ includedir=@includedir@/dspam
 SUBDIRS = .
 DIST_SUBDIRS = .
 
-man_MANS = dspam.1 dspam_stats.1 dspam_train.1 dspam_corpus.1 dspam_clean.1 dspam_dump.1 \
+man_MANS = dspam.1 dspam_stats.1 dspam_train.1 dspam_clean.1 dspam_dump.1 \
   dspam_merge.1 libdspam.3
 
-EXTRA_DIST = dspam.1 dspam_stats.1 dspam_train.1 dspam_corpus.1 dspam_clean.1 dspam_dump.1 \
+EXTRA_DIST = dspam.1 dspam_stats.1 dspam_train.1 dspam_clean.1 dspam_dump.1 \
   dspam_merge.1 libdspam.3
 
 MAINTAINERCLEANFILES = Makefile.in 

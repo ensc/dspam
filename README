@@ -1,4 +1,4 @@
-$Id: README,v 1.93 2006/05/13 13:28:30 jonz Exp $
+$Id: README,v 1.94 2006/05/14 15:37:30 jonz Exp $
 
 DSPAM v3.6 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Jonathan A. Zdziarski
@@ -1010,16 +1010,6 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
           spam/nonspam. this means if you have twice as much spam as nonspam,
           two spam will be trained for every nonspam.
     
-  dspam_corpus - Used to feed an existing corpus of mail (in mailbox format)
-    into the dspam system.
-    Syntax: dspam_corpus [--spam|--nonspam] [username] [filename]
-    where username is the username of the user to apply the corpus to,
-    filename represents the filename of the mailbox, and the optional flag
-    to specify if this corpus is known spam (to add as spam into the user's
-    dictionary). NOTE: while this is useful for adding to databases in some
-    circumstances, it's much better to use dspam_train as it better simulates
-    real-world training, and will likely give you a better final accuracy.
-
   dspam_dump - Dumps a DSPAM dictionary. This can be used to view the 
     entire contents of a user's dictionary, or used in combination 
     with grep to view a subset of data.  Syntax: dspam_dump [username] [token] 
