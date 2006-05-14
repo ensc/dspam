@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.71 2006/05/10 17:26:26 jonz Exp $
+## $Id: dspam.conf.in,v 1.72 2006/05/14 15:40:42 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -17,8 +17,7 @@ Home @dspam_home@
 # Options include:
 #
 #   libmysql_drv.so     libpgsql_drv.so   libsqlite_drv.so
-#   libsqlite3_drv.so   libora_drv.so     libdb4_drv.so
-#   libdb3_drv.so       libhash_drv.so
+#   libsqlite3_drv.so   libora_drv.so     libhash_drv.so
 #
 # IMPORTANT: Switching storage drivers requires more than merely changing
 # this option. If you do not wish to lose all of your data, you will need to

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.33 2006/05/13 13:28:30 jonz Exp $
+# $Id: Makefile.am,v 1.34 2006/05/14 15:39:55 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -38,12 +38,6 @@ DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
 lib_LTLIBRARIES = libdspam.la 
 
 if DYNAMIC_DRIVER
-if BUILD_DB4_DRV
-lib_LTLIBRARIES += libdb4_drv.la
-endif
-if BUILD_DB3_DRV
-lib_LTLIBRARIES += libdb3_drv.la
-endif
 if BUILD_HASH_DRV
 lib_LTLIBRARIES += libhash_drv.la
 endif
@@ -101,8 +95,6 @@ libdspam_la_SOURCES += storage_driver.c
 endif
 
 EXTRA_libdspam_la_SOURCES = \
-        libdb4_drv.c libdb4_drv.h \
-        libdb3_drv.c libdb3_drv.h \
         mysql_drv.c mysql_drv.h \
         pgsql_drv.c pgsql_drv.h \
         ora_drv.c ora_drv.h \
@@ -110,12 +102,6 @@ EXTRA_libdspam_la_SOURCES = \
         sqlite3_drv.c sqlite3_drv.h
 
 #if STATIC_DRIVER
-#if BUILD_DB4_DRV
-#libdspam_la_SOURCES += libdb4_drv.c libdb4_drv.h
-#endif
-#if BUILD_DB3_DRV
-#libdspam_la_SOURCES += libdb3_drv.c libdb3_drv.h
-#endif
 #if BUILD_HASH_DRV
 #libdspam_la_SOURCES += libhash_drv.c libhash_drv.h
 #endif
@@ -148,22 +134,6 @@ endif
 libdspam_la_LDFLAGS = -rpath '$(libdir)' -version-info $(libversion)
 
 if DYNAMIC_DRIVER
-
-libdb4_drv_la_SOURCES = \
-	libdb4_drv.c libdb4_drv.h 
-libdb4_drv_la_LIBADD = $(libdb4_drv_libs)
-libdb4_drv_la_CPPFLAGS = $(libdb4_drv_cppflags)
-libdb4_drv_la_LDFLAGS = $(libdb4_drv_ldflags)
-libdb4_drv_la_LDFLAGS += -version-info $(libversion)
-libdb4_drv_la_DEPENDENCIES =
-
-libdb3_drv_la_SOURCES = \
-        libdb3_drv.c libdb3_drv.h
-libdb3_drv_la_LIBADD = $(libdb3_drv_libs)
-libdb3_drv_la_CPPFLAGS = $(libdb3_drv_cppflags)
-libdb3_drv_la_LDFLAGS = $(libdb3_drv_ldflags)
-libdb3_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
-libdb3_drv_la_DEPENDENCIES =
 
 libmysql_drv_la_SOURCES = \
 	mysql_drv.c mysql_drv.h 
