@@ -1,4 +1,14 @@
-$Id: RELEASE.NOTES,v 1.64 2006/04/25 13:37:49 jonz Exp $
+$Id: RELEASE.NOTES,v 1.65 2006/05/14 15:27:31 jonz Exp $
+
+RELEASE 3.6.6-STABLE
+
+3.6.6 is a maintenance release
+
+MAINT: Phased out deprecated Berkeley DB drivers
+MAINT: Phased out legacy tools (dspam_corpus, dspam_genaliases)
+BUGFIX: Compiler warnings with sqlite_drv and sqlite3_drv
+BUGFIX: MySQLUIDInSignature causes segfault on retrain
+BUGFIX: trainPristine preference "off" does not override default
 
 RELEASE 3.6.5-STABLE
 
