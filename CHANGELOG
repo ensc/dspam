@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.438 2006/05/14 15:27:31 jonz Exp $
+$Id: CHANGELOG,v 1.439 2006/05/14 15:55:20 jonz Exp $
 
 Version 3.6.6
 -------------
+
+[20060414.1145] jonz: fix for segfault on log write err
+
+when using --with-logfile, if file cannot be opened, dspam segfaulted
 
 [20060513.1100] jonz: fixed compiler warnings on sqlite drivers
 

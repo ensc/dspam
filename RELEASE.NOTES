@@ -1,4 +1,4 @@
-$Id: RELEASE.NOTES,v 1.65 2006/05/14 15:27:31 jonz Exp $
+$Id: RELEASE.NOTES,v 1.66 2006/05/14 15:55:20 jonz Exp $
 
 RELEASE 3.6.6-STABLE
 
@@ -6,6 +6,7 @@ RELEASE 3.6.6-STABLE
 
 MAINT: Phased out deprecated Berkeley DB drivers
 MAINT: Phased out legacy tools (dspam_corpus, dspam_genaliases)
+BUGFIX: When using logfile, write errors result in segfault
 BUGFIX: Compiler warnings with sqlite_drv and sqlite3_drv
 BUGFIX: MySQLUIDInSignature causes segfault on retrain
 BUGFIX: trainPristine preference "off" does not override default
