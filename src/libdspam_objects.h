@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.17 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.18 2006/05/16 20:11:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -34,6 +34,7 @@
 
 #if ((defined(__sun__) && defined(__svr4__)) || (defined(__sun) && defined(__SUNPRO_C))) && !defined(u_int32_t) && !defined(__BIT_TYPES_DEFINED__)
 #define __BIT_TYPES_DEFINED__
+typedef unsigned long long u_int64_t;
 typedef unsigned int u_int32_t;
 typedef unsigned short u_int16_t;
 typedef unsigned char u_int8_t;
@@ -258,13 +259,20 @@ struct _ds_config
  *  flags (input)
  *    Applies different fine-tuning behavior to the context:
  *
- *	DSF_CHAINED		Use chained tokenizer
- *      DSF_SBPH                Use SBPH tokenizer
  *	DSF_NOISE		Apply Bayesian Noise Reduction logic
  *	DSF_SIGNATURE		Signature is provided/requested
  *      DSF_WHITELIST		Use automatic whitelisting logic
  *      DSF_MERGED		Merge user/group data in memory
  *      DSF_UNLEARN		Unlearn the message
+ *      DSF_BIAS		Assign processor bias to unknown tokens
+ *
+ *  tokenizer (input)
+ *    Specifies which tokenizer to use
+ *
+ *      DSZ_WORD		Use WORD (uniGram) tokenizer
+ *      DSZ_CHAIN               Use CHAIN (biGram) tokenizer
+ *      DSZ_SBPH                Use SBPH (Sparse BP Hashing) tokenizer
+ *      DSZ_OSB                 Use OSB (Orthogonal Sparse biGram)
  *
  *  algorithms (input)
  *    Optional API to override the default algorithms. This value is set
@@ -303,6 +311,7 @@ typedef struct
   int		classification;  /* DSR_ */
   int		source;		 /* DSS_ */
   int		learned;	 /* Did we actually learn something? */
+  int           tokenizer;       /* DSZ_ */
   u_int32_t	flags;
   u_int32_t	algorithms;
 
@@ -322,14 +331,19 @@ typedef struct
 
 /* Processing Flags */
 
-#define DSF_CHAINED		0x01
 #define DSF_SIGNATURE		0x02
 #define DSF_BIAS		0x04
 #define DSF_NOISE		0x08
 #define DSF_WHITELIST		0x10
 #define DSF_MERGED		0x20
-#define DSF_SBPH		0x40
 #define DSF_UNLEARN		0x80
+
+/* Tokenizers */
+
+#define DSZ_WORD		0x01
+#define DSZ_CHAIN		0x02
+#define DSZ_SBPH		0x03
+#define DSZ_OSB			0x04
 
 /* Algorithms */
 

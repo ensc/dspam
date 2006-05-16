@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.17 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.18 2006/05/16 20:11:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -97,8 +97,8 @@ _ds_tokenize (DSPAM_CTX * CTX, char *headers, char *body, ds_diction_t diction)
   if (diction == NULL)
     return EINVAL;
 
-  if (CTX->flags & DSF_SBPH) 
-    return _ds_tokenize_sbph(CTX, headers, body, diction);
+  if (CTX->tokenizer == DSZ_SBPH || CTX->tokenizer == DSZ_OSB)
+    return _ds_tokenize_sparse(CTX, headers, body, diction);
   else
     return _ds_tokenize_ngram(CTX, headers, body, diction);
 }
@@ -205,7 +205,7 @@ int _ds_tokenize_ngram(
         /* Process "current" token */
         if (!_ds_process_header_token
             (CTX, token, previous_token, diction, heading) && 
-            (CTX->flags & DSF_CHAINED))
+            (CTX->tokenizer == DSZ_CHAIN))
         {
           previous_token = token;
         }
@@ -239,8 +239,8 @@ int _ds_tokenize_ngram(
     if (l >= 1 && l < 50)
     {
       /* Process "current" token */ 
-      if (!_ds_process_body_token
-          (CTX, token, previous_token, diction) && (CTX->flags & DSF_CHAINED))
+      if ( !_ds_process_body_token(CTX, token, previous_token, diction)
+        && CTX->tokenizer == DSZ_CHAIN)
       {
         previous_token = token;
       }
@@ -257,7 +257,7 @@ int _ds_tokenize_ngram(
   return 0;
 }
 
-int _ds_tokenize_sbph(
+int _ds_tokenize_sparse(
   DSPAM_CTX *CTX, 
   char *headers, 
   char *body, 
@@ -265,7 +265,7 @@ int _ds_tokenize_sbph(
 {
   int i;
   char *token;				/* current token */
-  char *previous_tokens[SBPH_SIZE];	/* sbph chain */
+  char *previous_tokens[SPARSE_WINDOW_SIZE];	/* sparse chain */
 #ifdef NCORE
   nc_strtok_t NTX;
 #endif
@@ -280,7 +280,7 @@ int _ds_tokenize_sbph(
   struct nt_node *node_nt;
   struct nt_c c_nt;
 
-  for(i=0;i<SBPH_SIZE;i++)
+  for(i=0;i<SPARSE_WINDOW_SIZE;i++)
     previous_tokens[i] = NULL;
 
   /* Tokenize URLs in message */
@@ -311,7 +311,7 @@ int _ds_tokenize_sbph(
   while (node_nt) {
     int multiline;
 
-    _ds_sbph_clear(previous_tokens);
+    _ds_sparse_clear(previous_tokens);
 
     line = node_nt->ptr;
     token = strtok_r (line, ":", &ptrptr);
@@ -319,7 +319,7 @@ int _ds_tokenize_sbph(
     {
       multiline = 0;
       strlcpy (heading, token, 128);
-      _ds_sbph_clear(previous_tokens);
+      _ds_sparse_clear(previous_tokens);
     } else {
       multiline = 1;
     }
@@ -365,11 +365,11 @@ int _ds_tokenize_sbph(
       token = strtok_r (NULL, DELIMITERS_HEADING, &ptrptr);
     }
 
-    for(i=0;i<SBPH_SIZE;i++) {
+    for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
       _ds_map_header_token(CTX, NULL, previous_tokens, diction, heading);
     }
 
-    _ds_sbph_clear(previous_tokens);
+    _ds_sparse_clear(previous_tokens);
     node_nt = c_nt_next (header, &c_nt);
   }
   nt_destroy (header);
@@ -399,11 +399,11 @@ int _ds_tokenize_sbph(
 #endif
   }
 
-  for(i=0;i<SBPH_SIZE;i++) {
+  for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
     _ds_map_body_token(CTX, NULL, previous_tokens, diction);
   }
 
-  _ds_sbph_clear(previous_tokens);
+  _ds_sparse_clear(previous_tokens);
 
   return 0;
 }
@@ -458,7 +458,7 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
 #endif
   ds_diction_touch(diction, crc, combined_token, 0);
 
-  if ((CTX->flags & DSF_CHAINED) && previous_token != NULL) 
+  if (CTX->tokenizer == DSZ_CHAIN && previous_token != NULL) 
   {
     char *tweaked_previous;
 
@@ -494,7 +494,7 @@ _ds_process_body_token (DSPAM_CTX * CTX, char *token,
 
   ds_diction_touch(diction, crc, tweaked_token, DSD_CONTEXT);
 
-  if ((CTX->flags & DSF_CHAINED) && previous_token != NULL)
+  if (CTX->tokenizer == DSZ_CHAIN && previous_token != NULL)
   {
     char *tweaked_previous = _ds_truncate_token(previous_token);
     if (tweaked_previous == NULL)
@@ -530,13 +530,13 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
     return 0;
 
   /* Shift all previous tokens up */
-  for(i=0;i<SBPH_SIZE-1;i++) {
+  for(i=0;i<SPARSE_WINDOW_SIZE-1;i++) {
     previous_tokens[i] = previous_tokens[i+1];
     if (previous_tokens[i])
       active++;
   }
 
-  previous_tokens[SBPH_SIZE-1] = token;
+  previous_tokens[SPARSE_WINDOW_SIZE-1] = token;
 
   if (token) 
     active++;
@@ -549,7 +549,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
     top = 1;
                                                                                 
     /* Each Bit */
-    for(i=0;i<SBPH_SIZE;i++) {
+    for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
       if (t) 
         strlcat(key, "+", sizeof(key));
 
@@ -567,8 +567,10 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
       t++;
     }
 
-    /* If the bucket has at least 2 literals, hit it */
-    if (terms) {
+    /* If the bucket has at least 1 literal, hit it */
+    if ((CTX->tokenizer == DSZ_SBPH && terms > 0) ||
+        (CTX->tokenizer == DSZ_OSB  && terms == 2))
+    {
       char hkey[256];
       char *k = key;
       int kl = strlen(key);
@@ -603,13 +605,13 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
   int active = 0;
 
   /* Shift all previous tokens up */
-  for(i=0;i<SBPH_SIZE-1;i++) {
+  for(i=0;i<SPARSE_WINDOW_SIZE-1;i++) {
     previous_tokens[i] = previous_tokens[i+1];
     if (previous_tokens[i]) 
       active++;
   }
 
-  previous_tokens[SBPH_SIZE-1] = token;
+  previous_tokens[SPARSE_WINDOW_SIZE-1] = token;
 
   if (token) 
     active++;
@@ -623,7 +625,7 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
     top = 1;
 
     /* Each Bit */
-    for(i=0;i<SBPH_SIZE;i++) {
+    for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
       if (t)
         strlcat(key, "+", sizeof(key));
       if (mask & (_ds_pow2(i+1)/2)) {
@@ -640,8 +642,10 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
       t++;
     }
 
-    /* If the bucket has at least 2 literals, hit it */
-    if (terms) {
+    /* If the bucket has at least 1 literal, hit it */
+    if ((CTX->tokenizer == DSZ_SBPH && terms > 0) ||
+        (CTX->tokenizer == DSZ_OSB  && terms == 2))
+    {
       char *k = key;
       int kl = strlen(key);
       while(kl>2 && !strcmp((key+kl)-2, "+#")) {
@@ -970,9 +974,9 @@ char * _ds_truncate_token(const char *token) {
  *   tokens from the previous boundary are no longer useful.
  */
 
-void _ds_sbph_clear(char **previous_tokens) {
+void _ds_sparse_clear(char **previous_tokens) {
   int i;
-  for(i=0;i<SBPH_SIZE;i++) 
+  for(i=0;i<SPARSE_WINDOW_SIZE;i++) 
     previous_tokens[i] = NULL;
   return;
 }

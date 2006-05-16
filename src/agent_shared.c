@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.69 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.70 2006/05/16 20:11:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -507,11 +507,7 @@ int process_features(AGENT_CTX *ATX, const char *in) {
 
   ptr = strtok_r(dup, ",", &ptrptr);
   while(ptr != NULL) {
-    if (!strncmp(ptr, "ch",2))
-      ATX->flags |= DAF_CHAINED;
-    else if (!strncmp(ptr, "sb",2) || !strncmp(ptr, "ma", 2))
-      ATX->flags |= DAF_SBPH;
-    else if (!strncmp(ptr, "no",2))
+    if (!strncmp(ptr, "no",2))
       ATX->flags |= DAF_NOISE;
     else if (!strncmp(ptr, "wh", 2))
       ATX->flags |= DAF_WHITELIST;

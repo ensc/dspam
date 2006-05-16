@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.154 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: libdspam.c,v 1.155 2006/05/16 20:11:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -117,8 +117,6 @@ NC_STREAM_CTX	g_ncDelimiters;
  *   The  flags  provided further tune the classification context for a spe-
  *   cific function. Multiple flags may be OR'd together.
  * 
- *    DSF_CHAINED   Use a Chained (Multi-Word) Tokenizer
- *    DSF_SBPH      Use Sparse Binary Polynomial Hashing Tokenizer
  *    DSF_SIGNATURE A binary signature is requested/provided
  *    DSF_NOISE     Apply Bayesian Noise Reduction logic
  *    DSF_WHITELIST Use automatic whitelisting logic
@@ -227,6 +225,7 @@ DSPAM_CTX * dspam_create (
   CTX->_sig_provided   = 0;
   CTX->factors         = NULL;
   CTX->algorithms      = 0;
+  CTX->tokenizer       = DSZ_WORD;
 
   return CTX;
 
@@ -492,12 +491,6 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     return EINVAL;
   }
  
-  if (CTX->flags & DSF_CHAINED && CTX->flags & DSF_SBPH)
-  { 
-    LOG(LOG_WARNING, "DSF_SBPH may not be used with DSF_CHAINED");
-    return EINVAL;
-  }
- 
   /* Set TOE mode pretrain option if we haven't seen many messages yet */
   if (CTX->training_mode == DST_TOE
   && (CTX->totals.innocent_learned <= 100 || CTX->totals.spam_learned <= 100)
@@ -521,7 +514,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   if (CTX->operating_mode == DSM_PROCESS 
    && CTX->classification != DSR_NONE 
    && CTX->flags & DSF_SIGNATURE 
-   && (! (CTX->flags & DSF_SBPH)))
+   && (CTX->tokenizer != DSZ_SBPH))
   {
     int i = _ds_process_signature (CTX);
     if (is_toe)
@@ -564,7 +557,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
 
   /* If SBPH reclassification, recall and operate on saved SBPH text */
 
-  if ( CTX->flags & DSF_SBPH 
+  if ( CTX->tokenizer == DSZ_SBPH
     && CTX->operating_mode != DSM_CLASSIFY 
     && CTX->classification != DSR_NONE 
     && CTX->flags & DSF_SIGNATURE)
@@ -793,11 +786,12 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Allocate SBPH signature (stored as message text) */
 
-  if (CTX->flags & DSF_SBPH   &&
-      CTX->flags & DSF_SIGNATURE && 
-     ((CTX->operating_mode != DSM_CLASSIFY && CTX->classification == DSR_NONE)
-      || ! (CTX->_sig_provided)) && 
-      CTX->source != DSS_CORPUS)
+  if ( CTX->tokenizer == DSZ_SBPH
+    && CTX->flags & DSF_SIGNATURE 
+    && ( (  CTX->operating_mode != DSM_CLASSIFY 
+         && CTX->classification == DSR_NONE)
+       || ! (CTX->_sig_provided)) 
+    && CTX->source != DSS_CORPUS)
   {
     CTX->signature = calloc (1, sizeof (struct _ds_spam_signature));
     if (CTX->signature == NULL)
@@ -957,9 +951,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* Initialize Non-SBPH signature, if requested */
 
-  if (! (CTX->flags & DSF_SBPH) &&
-       CTX->flags & DSF_SIGNATURE && 
-       (CTX->operating_mode != DSM_CLASSIFY || ! CTX->_sig_provided))
+  if ( CTX->tokenizer != DSZ_SBPH
+    && CTX->flags & DSF_SIGNATURE 
+    && (CTX->operating_mode != DSM_CLASSIFY || ! CTX->_sig_provided))
   {
     CTX->signature = calloc (1, sizeof (struct _ds_spam_signature));
     if (CTX->signature == NULL)
@@ -1450,7 +1444,7 @@ _ds_calc_stat (
       num = weight * (s->spam_hits - (s->innocent_hits*2));
       den = C1 * (s->spam_hits + (s->innocent_hits*2) + C2) * 256;
     } else {
-      num = weight * (s->spam_hits - s->innocent_hits);
+      num = (s->spam_hits - s->innocent_hits) * weight;
       den = C1 * (s->spam_hits + s->innocent_hits + C2) * 256;
     }
 
@@ -2510,9 +2504,9 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
 
     /* Create a signature if we're processing a message */
 
-    if ((!(CTX->flags & DSF_SBPH))  && 
-        CTX->flags & DSF_SIGNATURE && 
-       (CTX->operating_mode != DSM_CLASSIFY || !(CTX->_sig_provided)))
+    if (CTX->tokenizer != DSZ_SBPH
+      && CTX->flags & DSF_SIGNATURE 
+      && (CTX->operating_mode != DSM_CLASSIFY || !(CTX->_sig_provided)))
     {
       struct _ds_signature_token t;
 

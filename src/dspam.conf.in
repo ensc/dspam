@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.72 2006/05/14 15:40:42 jonz Exp $
+## $Id: dspam.conf.in,v 1.73 2006/05/16 20:11:22 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -178,11 +178,7 @@ TestConditionalTraining on
 # on the commandline. See the documentation for a list of available features.
 # If _any_ features are specified on the commandline, these are ignored.
 #
-# NOTE: For standard "CRM114" Markovian weighting, use sbph
-#
-#Feature sbph
 #Feature noise
-Feature chained
 Feature whitelist
 
 # Training Buffer: The training buffer waters down statistics during training.
@@ -190,6 +186,7 @@ Feature whitelist
 # dspam's catch rate during initial training. This can be a number from 0
 # (no buffering) to 10 (maximum buffering). If you are paranoid about false
 # positives, you should probably enable this option.
+#
 #Feature tb=5
 
 #
@@ -215,6 +212,30 @@ Feature whitelist
 Algorithm graham burton
 
 #
+# Tokenizer: Specify the tokenizer to use. The tokenizer is the piece
+# responsible for parsing the message into individual tokens. Depending on
+# how many resources you are willing to trade off vs. accuracy, you may
+# choose to use a less or more detailed tokenizer
+#
+# word		uniGram (single word) tokenizer
+#               Tokenizes message into single individual words/tokens
+#               example: "free" and "viagra"
+#
+# chain		biGram (chained tokens) tokenizer (default)
+#               Single words + chains adjacent tokens together
+#               example: "free" and "viagra" and "free viagra"
+#
+# sbph		Sparse Binary Polynomial Hashing tokenizer
+#               Creates sparse token patterns across sliding window of 5-tokens
+#               example: "the quick * fox jumped" and "the * * fox jumped"
+#
+# osb           Orthogonal Sparse biGram
+#               Similar to SBPH, but only uses biGrams
+#               example: "the * * fox" and "the * * * jumped"
+#
+Tokenizer chain
+
+#
 # PValue: Specify the technique used for calculating PValues, overriding any
 # defaults configured in the build. These options are:
 #    graham      Graham's Technique ("A Plan for Spam")
@@ -231,9 +252,8 @@ Algorithm graham burton
 PValue graham
 
 #
-# SupressWebStats: Enable this if you are not using the CGI, and don't want
-# .stats files written.
-#SupressWebStats on
+# WebStats: Enable this if you are using the CGI, which writes .stats files
+WebStats on
 
 #
 # ImprobabilityDrive: Calculate odds-ratios for ham/spam, and add to

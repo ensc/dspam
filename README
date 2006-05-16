@@ -1,6 +1,6 @@
-$Id: README,v 1.94 2006/05/14 15:37:30 jonz Exp $
+$Id: README,v 1.95 2006/05/16 20:11:22 jonz Exp $
 
-DSPAM v3.6 <jonathan@nuclearelephant.com>
+DSPAM v3.8 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Jonathan A. Zdziarski
 http://dspam.nuclearelephant.com
 
@@ -978,7 +978,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
              purging defaults are very lax. You might consider switching to
              TOE (Train-on-Error) mode training if you require a minimal
              database. If you are willing to sacrifice accuracy for disk space,
-             disabling the 'chained' feature from dspam.conf will prevent
+             disabling the 'chain' tokenizer from dspam.conf will prevent
              the use of multi-word (chained) tokens, which will also cut your
              database size considerably. You may also consider more frequent
              calls to dspam_clean -p to purge neutral data, which comprises a
@@ -1233,20 +1233,10 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
       analyze a user's *.stats file and determine the best training mode
       for that user.
 
-  --feature=[chained,noise,whitelist,tb=N,sbph]
+  --feature=[noise,whitelist,tb=N]
   Specifies the features that should be activated for this filter instance.
   The following features may be used individually or combined using a comma
   as a delimiter:
-
-    chained: Chained Tokens (also known as biGrams).  Chained Tokens
-             combines adjacent tokens, presently with a window size of 2, to
-             form token "chains".  Chained tokens uses additional storage
-             resources, but greatly improves accuracy.  Recommended as a
-             default feature.
-
-      sbph:  Sparse Binary Polynomial Hashing. Bill Yerazunis' tokenizer
-             method from CRM114. Tokenizer method only - works with existing
-             combination algorithms. 
 
      noise:  Bayesian Noise Reduction (BNR).  Bayesian Noise Reduction kicks
              in at 2500 innocent messages and provides an advanced progressive
@@ -1278,9 +1268,9 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   
    NOTE: None of the present features are necessary when the source is "error",
          because the original training data is used from the signature to 
-         retrain, instantiating whatever features (such as chained tokens and 
-         whitelisting) were active at the time of the initial classification.
-         Since BNR is only necessary when a message is being classified, the
+         retrain, instantiating whatever features (such as whitelisting) were
+         active at the time of the initial classification.  Since BNR is only 
+         necessary when a message is being classified, the
          --feature flag can be safely omitted from error source calls.
 
   --daemon

@@ -1,4 +1,35 @@
-$Id: CHANGELOG,v 1.439 2006/05/14 15:55:20 jonz Exp $
+$Id: CHANGELOG,v 1.440 2006/05/16 20:11:22 jonz Exp $
+
+Verzion NEXT
+------------
+
+[20060516.0200] jonz: changed SupressWebStats
+
+SupressWebStats is now WebStats in dspam.conf, and setting is inverted.
+
+[20060516.0200] jonz: fix for agent flags
+
+discovered that agent flags required a 64-bit variable to hold all flags, but
+only 32-bit variable was being used; this may have caused unpredictable
+behavior when using SBPH, "unlearning" a message, or processing summaries.
+
+[20060516.0200] jonz: added OSB tokenizer
+
+osb (orthogonal sparse bigram) is similar to sbph, however only bigrams are
+used to form sparse tokens; this uses far fewer resources than sbph with
+very similar results
+
+[20060516.0200] jonz: interface change: added tokenizer variable
+
+added tokenizer variable to DSPAM_CTX and added following tokenizer flags:
+
+      DSZ_WORD                Use WORD (uniGram) tokenizer
+      DSZ_CHAIN               Use CHAIN (biGram) tokenizer
+      DSZ_SBPH                Use SBPH (Sparse BP Hashing) tokenizer
+      DSZ_OSB                 Use OSB (Orthogonal Sparse biGram)
+
+WARNING: This is an API change and constitutes a new major version. Third
+         party applications may fail to compile/run against this.
 
 Version 3.6.6
 -------------

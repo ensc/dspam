@@ -1,4 +1,4 @@
-/* $Id: example.c,v 1.7 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: example.c,v 1.8 2006/05/16 20:11:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -82,10 +82,16 @@ main (int argc, char **argv)
 
     Flags:
 
-    DSF_CHAINED		Use Chained Tokens
     DSF_SIGNATURE	Signature Mode (Use a signature)
     DSF_NOISE		Use Bayesian Noise Reduction
     DSF_WHITELIST	Use Automatic Whitelisting
+
+    Tokenizers:
+
+    DSZ_WORD		Use WORD tokenizer
+    DSZ_CHAIN		Use CHAIN tokenizer
+    DSZ_SBPH		Use SBPH tokenizer
+    DSZ_OSB		Use OSB tokenizer
 
     Training Modes:
 
@@ -128,7 +134,7 @@ main (int argc, char **argv)
 
   /* Initialize the DSPAM context */
   CTX = dspam_init (USERNAME, NULL, dspam_home, DSM_PROCESS,
-                    DSF_CHAINED | DSF_SIGNATURE | DSF_NOISE);
+                    DSF_SIGNATURE | DSF_NOISE);
 
   if (CTX == NULL)
   {
@@ -138,6 +144,9 @@ main (int argc, char **argv)
 
   /* Use graham and robinson algorithms, graham's p-values */
   CTX->algorithms = DSA_GRAHAM | DSA_BURTON | DSP_GRAHAM;
+
+  /* Use CHAIN tokenizer */
+  CTX->tokenizer = DSZ_CHAIN;
 
   /* Call DSPAM's processor with the message text */
   if (dspam_process (CTX, message) != 0)
@@ -168,12 +177,7 @@ main (int argc, char **argv)
   SIG.length = CTX->signature->length;
 
   /* Destroy the context */
-
-  if (dspam_destroy(CTX) != 0)
-  {
-    fprintf (stderr, "ERROR: dspam_destroy failed!");
-    exit (EXIT_FAILURE);
-  }
+  dspam_destroy(CTX);
 
    /* --------------------------- EXAMPLE 2 ----------------------------*/
                  /* SPAM REPORTING (AS MISCLASSIFICATION) */
@@ -188,7 +192,7 @@ main (int argc, char **argv)
   */
 
   /* Initialize the DSPAM context */
-  CTX = dspam_init (USERNAME, NULL, dspam_home, DSM_PROCESS, DSF_CHAINED);
+  CTX = dspam_init (USERNAME, NULL, dspam_home, DSM_PROCESS, 0);
   if (CTX == NULL)
   {
     fprintf (stderr, "ERROR: dspam_init failed!\n");
@@ -202,6 +206,9 @@ main (int argc, char **argv)
   /* Use graham and robinson algorithms, graham's p-values */
   CTX->algorithms = DSA_GRAHAM | DSA_BURTON | DSP_GRAHAM;
 
+  /* Use CHAIN tokenizer */
+  CTX->tokenizer = DSZ_CHAIN;
+
   /* Call DSPAM */
   if (dspam_process(CTX, message) != 0)
   {
@@ -210,12 +217,7 @@ main (int argc, char **argv)
   }
 
   /* Destroy the context */
-
-  if (dspam_destroy (CTX) != 0)
-  {
-    fprintf (stderr, "ERROR: dspam_destroy failed!");
-    exit (EXIT_FAILURE);
-  }
+  dspam_destroy (CTX);
 
   printf("Spam retrained successfully.\n");
 
@@ -231,8 +233,7 @@ main (int argc, char **argv)
 
   /* Initialize DSPAM context */
 
-  CTX = dspam_init (USERNAME, NULL, dspam_home, DSM_PROCESS,
-                    DSF_CHAINED | DSF_SIGNATURE);
+  CTX = dspam_init (USERNAME, NULL, dspam_home, DSM_PROCESS, DSF_SIGNATURE);
   if (CTX == NULL)
   {
     fprintf (stderr, "ERROR: dspam_init failed!\n");
@@ -246,6 +247,10 @@ main (int argc, char **argv)
   /* Use graham and robinson algorithms, graham's p-values */
   CTX->algorithms = DSA_GRAHAM | DSA_BURTON | DSP_GRAHAM;
 
+  /* Use CHAIN tokenizer */
+
+  CTX->tokenizer = DSZ_CHAIN;
+
   /* Attach the signature to the context */
   CTX->signature = &SIG;
 
@@ -257,12 +262,7 @@ main (int argc, char **argv)
   }
 
   /* Destroy the context */
-
-  if (dspam_destroy (CTX) != 0)
-  {
-    fprintf (stderr, "ERROR: dspam_destroy failed!");
-    exit (EXIT_FAILURE);
-  }
+  dspam_destroy(CTX); 
 
   printf("False positive retrained successfully.\n");
 
@@ -277,8 +277,7 @@ main (int argc, char **argv)
                                                                                 
   /* Create the DSPAM context; called just like dspam_init() */
 
-  CTX = dspam_create (USERNAME, NULL,  dspam_home, DSM_PROCESS,
-                    DSF_CHAINED | DSF_SIGNATURE);
+  CTX = dspam_create (USERNAME, NULL,  dspam_home, DSM_PROCESS, DSF_SIGNATURE);
   if (CTX == NULL)
   {
     fprintf (stderr, "ERROR: dspam_create failed!\n");
@@ -298,6 +297,9 @@ main (int argc, char **argv)
 
   /* Use graham and robinson algorithms, graham's p-values */
   CTX->algorithms = DSA_GRAHAM | DSA_BURTON | DSP_GRAHAM;
+
+  /* Use CHAIN tokenizer */
+  CTX->tokenizer = DSZ_CHAIN;
 
   /* Here, we can also pass in any other attributes used by libdspam
      (see dspam.conf). We can also do this after the attach, since they are
@@ -319,14 +321,8 @@ main (int argc, char **argv)
   /* Then proceed like normal and when we're done, destroy the context like
      we normally do */
 
-  /* ... */
+  dspam_destroy(CTX); 
 
-  if (dspam_destroy (CTX) != 0)
-  {
-    fprintf (stderr, "ERROR: dspam_destroy failed!");
-    exit (EXIT_FAILURE);
-  }
-                                                                                
   printf("Create/attach performed successfully.\n");
 
   /* Performs any driver-specific shutdown functions */

@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.25 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.26 2006/05/16 20:11:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -57,8 +57,9 @@ typedef struct {
 #endif
   int feature;		    /* Feature Overridden?   IN      */
   int train_pristine;       /* Train Pristine?       IN      */
+  int tokenizer;            /* Tokenizer             IN      */
   void *dbh;                /* Database Handle       IN      */
-  u_int32_t flags;          /* Flags DAF_            IN      */
+  u_int64_t flags;          /* Flags DAF_            IN      */
   int training_buffer;	    /* Sedation Level 0-10   IN      */
   char *recipient;          /* Current Recipient             */
   char mailer_args[256];        /* Delivery Args     IN      */
@@ -120,12 +121,15 @@ buffer *read_stdin	(AGENT_CTX *ATX);
 #define DAF_WHITELIST		0x08 
 #define DAF_GLOBAL		0x10 
 #define DAF_INOCULATE		0x20 
-#define DAF_CHAINED		0x40
-#define DAF_NOISE		0x80
-#define DAF_MERGED		0x100
-#define DAF_SUMMARY		0x200
-#define DAF_SBPH		0x400
-#define DAF_UNLEARN		0x800
+#define DAF_NOISE		0x40
+#define DAF_MERGED		0x80
+#define DAF_SUMMARY		0x100
+#define DAF_UNLEARN		0x200
+
+#define DAZ_WORD		0x01
+#define DAZ_CHAIN		0x02
+#define DAZ_SBPH		0x03
+#define DAZ_OSB			0x04
 
 #endif /* _AGENT_SHARED_H */
 

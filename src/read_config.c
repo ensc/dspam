@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.16 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: read_config.c,v 1.17 2006/05/16 20:11:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -179,6 +179,16 @@ int configure_algorithms(DSPAM_CTX *CTX) {
     CTX->algorithms |= DSP_MARKOV;
   else
     CTX->algorithms |= DSP_GRAHAM;
+
+  if (_ds_match_attribute(agent_config, "Tokenizer", "word")) 
+    CTX->tokenizer = DSZ_WORD;
+  else if (_ds_match_attribute(agent_config, "Tokenizer", "chain") ||
+           _ds_match_attribute(agent_config, "Tokenizer", "chained"))
+    CTX->tokenizer = DSZ_CHAIN;
+  else if (_ds_match_attribute(agent_config, "Tokenizer", "sbph"))
+    CTX->tokenizer = DSZ_SBPH;
+  else if (_ds_match_attribute(agent_config, "Tokenizer", "osb"))
+    CTX->tokenizer = DSZ_OSB;
  
   if (_ds_match_attribute(agent_config, "Algorithm", "chi-square"))
   {

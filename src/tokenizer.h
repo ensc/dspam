@@ -1,4 +1,4 @@
-/* $Id: tokenizer.h,v 1.5 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: tokenizer.h,v 1.6 2006/05/16 20:11:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -29,7 +29,7 @@
 #include "storage_driver.h"
 #include "decode.h"
 
-#define SBPH_SIZE       5
+#define SPARSE_WINDOW_SIZE       5
 
 int _ds_tokenize(
   DSPAM_CTX * CTX,
@@ -37,7 +37,7 @@ int _ds_tokenize(
    char *body,
    ds_diction_t diction);
 
-int _ds_tokenize_sbph(
+int _ds_tokenize_sparse(
   DSPAM_CTX * CTX, 
   char *headers, 
   char *body, 
@@ -64,7 +64,7 @@ int _ds_process_body_token(
   const char *previous_token,
   ds_diction_t diction); 
 
-/* _ds_map: sbph token generation routines */
+/* _ds_map: sparse token generation routines */
 
 int _ds_map_header_token(
   DSPAM_CTX * CTX,
@@ -89,7 +89,7 @@ int _ds_url_tokenize(
   char *body,
   const char *key);
 
-void _ds_sbph_clear
+void _ds_sparse_clear
   (char **previous_tokens);
 
 char * _ds_truncate_token

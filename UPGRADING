@@ -1,117 +1,63 @@
-$Id: UPGRADING,v 1.23 2006/01/10 15:13:19 jonz Exp $
+$Id: UPGRADING,v 1.24 2006/05/16 20:11:22 jonz Exp $
 
 Follow the steps sequentially from the base version you are running up to
 the top.
 
-UPGRADING FROM < 3.6.3
-----------------------
+UPGRADING FROM 3.6
+------------------
 
-- dspam_logrotate now requires a leading -l flag prior to specifying log files
+1. Add 'Tokenizer' setting to dspam.conf
+   The 'Tokenizer' setting in 3.8.0 replaces tokenizer definitions in the 
+   "Feature" clause of previous version configurations. See src/dspam.conf
+   (after make) for more information about this seting.
+ 
+2. Check calls to dspam_logrotate
+   Earlier versions of 3.6 did not prepend a leading "-l" flag to specifying
+   log file selection. This is now required.
 
-UPGRADING FROM < 3.6.1
-----------------------
+3. Ensure 3.6.0 malaligned hash databases are converted
+   Version 3.6.0 failed to align hash databases to 8-byte boundaries. If you
+   are upgrading from v3.6.0 and are using the hash_drv storage driver, you
+   should run cssconvert to upgrade your .css files to a fully aligned format.
 
-- For users of hash_drv: A cssconvert tool has been provided to convert all
-  v3.6.0 databases to the correct, 8-byte aligned format used in all newer
-  versions. Please run cssconvert on all of your .css databases before 
-  turning on your new version of dspam.
+4. Invert "SupressWebStats" setting in dspam.conf
+   SupressWebStats has been changed to simply WebStats, and the setting is
+   inverted. Be sure to update this in dspam.conf.
 
-UPGRADING FROM < 3.6.0
-----------------------
+UPGRADING FROM 3.4
+------------------
 
-- ProcessorBias has been added to dspam.conf and must be specified to be
-  enabled. Since ProcessorBias is the default behavior in DSPAM, it is
-  strongly recommended that you add "ProcessorBias on" to dspam.conf.
+Follow all of the steps above, and the following steps:
 
-- SBLQueue has been renamed to RABLQueue. Please change this in dspam.conf if
-  you are writing to the RABL. 
+1. Add "ProcessorBias" setting to dspam.conf
+   ProcessorBias has been added to dspam.conf and must be specified.
+   Since ProcessorBias is the default behavior for previous versions of DSPAM,
+   you will need to add "ProcessorBias on" to dspam.conf. If you have
+   specifically disabled bias, or are using a technique such as Markovian
+   discrimination, you may leave this feature off.
 
-- The ServerAddress for the official RABL has changed to 209.51.159.242. Please
-  change this in your rabl_client.conf
-  
-- TestConditionalTraining has been added to dspam.conf and must be specified
-  to be enabled. Since TestConditionalTraining is the default behavior
-  in DSPAM, it is strongly recommended that you add "TestConditionalTraining on"
-  to dspam.conf
+2. Ensure references to SBLQueue are changed to RABLQueue.
+   Older versions of DSPAM used the SBLQueue setting to write files for a 
+   DSPAM SBL setup. This has been renamed to RABLQueue. Please change this in 
+   dspam.conf if you are writing to a SBL/RABL installation.
 
-- PostgreSQL systems running v8.0+ must create the function lookup_tokens
-  added to pgsql_objects.sql. The driver now checks your version and uses this
-  function to improve performance on 8.0+.
+3. Add "TestConditionalTraining" setting to dspam.conf
+   TestConditionalTraining has been added to dspam.conf and must be specified
+   to be enabled. Since TestConditionalTraining is the default behavior
+   in DSPAM, it is strongly recommended that you add 
+   "TestConditionalTraining on" to dspam.conf
 
-- hash_drv is now the new default storage driver. hash_drv has no dependencies
-  and is extremely fast/efficient. If you're not familiar with it, you should
-  check out the readme. If you were previously using SQLite, you will now need
-  to specify it as the storage driver: --with-storage-driver=sqlite_drv
+4. Ensure PostgreSQL installation have a lookup_tokens function
+   PostgreSQL systems running v8.0+ must create the function lookup_tokens
+   added to pgsql_objects.sql. The driver now checks your version and uses this
+   function to improve performance on 8.0+.
 
-UPGRADING FROM 3.4.1 - 3.4.9
-----------------------------
+5. Ensure you are specifying the correct storage driver.
+   hash_drv is now the new default storage driver. hash_drv has no dependencies
+   and is extremely fast/efficient. If you're not familiar with it, you should
+   check out the readme. If you were previously using SQLite, you will now need
+   to specify it as the storage driver: --with-storage-driver=sqlite_drv
 
-- Domain-based group wildcards have changed from @domain.tld to *@domain.tld in
-  the group file. If you're using any domain wildcards, be sure to add the
-  asterisk in the group file prior to upgrading.
-
-UPGRADING FROM 3.4.0
---------------------
-
-LMTP Support Addition
-In addition to LMTP delivery, SMTP delivery has been added. As a result,
-previous LMTPDeliveryHost options have changed. See dspam.conf for more
-information. DeliveryProto option has been added to specify LMTP or SMTP.
-
-False Positive Alias:
-The false positive alias prefix has been changed from fp- to notspam- when using
-ParseToHeader. This helps prevent a conflict with an existing email account.
-
-ParseToHeader Changes:
-Two new configuration options are used in conjunction with ParseToHeader:
-ChangeUserOnParse: Sets the current user to match the local part after prefix
-ChangeModeOnParse: Sets the processing mode to match the prefix provided,
-  eliminating the need for aliases when configured with ChangeUserOnParse.
-
-LMTP Commandline Changes:
-The LMTP commandline options have changed to support multiple rcpt tos and
-support SMTP delivery:
-  --lmtp-rcpt-to and --lmtp-recipient have been changed to --rcpt-to, which
-  can be a list of users similar to --user. If no recipient list is specified,
-  the recipient list will mirror the user list.
-  --lmtp-mail-from= has been changed to --mail-from=
-
-SPECIAL NOTES FOR POSTGRESQL SYSTEMS
-
-The PostgreSQL driver now uses BIGINT instead of NUMERIC(20) type to store 
-tokens in database. This change speedup driver and reduce storage space used 
-by dspam. The new version is fully backward compatible with 3.2. The new 
-driver will automatically detect field type, thus it's possible to use new 
-driver with NUMERIC(20) field too. For those who would like to upgrade, 
-however, a migration tool called dspam_pg2int8 will build and install with 
-your distribution. To migrate, run the migration tool and then follow the
-instructions.
-
-Example:
-    % dspam_pg2int8 /tmp/dspam_mig.sql
-
-If you have not already done so from 3.2.4, you may also wish to create the 
-following index if you are using PostgreSQL. This index is unnecessary, but 
-prevents PostgreSQL's query builder from getting confused, which leads to more 
-time consuming queries:
-
-CREATE INDEX id_token_data_04 ON dspam_token_data(uid);
-
-Great thanks to:
-    Simon Burr <simes@bpfh.net>
-    Kenneth Marshall <ktm@it.is.rice.edu>
-
-UPGRADING FROM VERSIONS PRIOR TO 3.2
-------------------------------------
-
-In order to upgrade to 3.4, it is necessary to perform an incremental upgrade
-from version to version:
-
-If you are running 3.0, please download a version of 3.2's UPGRADING and follow
-the steps to upgrade from 3.0 to 3.2, then follow the steps below to upgrade 
-from 3.2 to this release.
-
-If you are running 2.10, please download a version of 3.0 and 3.2's UPGRADING
-files, then follow the steps to first upgrade from 2.10 to 3.0, then 3.0 to
-3.2, and finally consult these notes to upgrade from 3.2 to 3.4. 
-
+   NOTE: Berkeley DB drivers (libdb3_drv, libdb4_drv) are deprecated and have
+         been removed from the build. You will need to select an alternative
+         storage driver in order to upgrade.

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.228 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: dspam.c,v 1.229 2006/05/16 20:11:22 jonz Exp $ */
 
 /*
  DSPAM
@@ -593,7 +593,7 @@ process_message (
 
   /* Write .stats file for web interface */
 
-  if (CTX->training_mode != DST_NOTRAIN && !_ds_match_attribute(agent_config, "SupressWebStats", "on")) {
+  if (CTX->training_mode != DST_NOTRAIN && _ds_match_attribute(agent_config, "WebStats", "on")) {
     write_web_stats (
       ATX,
       (CTX->group == NULL || CTX->flags & DSF_MERGED) ?
@@ -1274,15 +1274,9 @@ inoculate_user (
   {
     LOGDEBUG ("inoculating user %s", username);
 
-    if (ATX->flags & DAF_CHAINED)
-      f_all |= DSF_CHAINED;
-                                                                                
     if (ATX->flags & DAF_NOISE)
       f_all |= DSF_NOISE;
                                                                                 
-    if (ATX->flags & DAF_SBPH)
-      f_all |= DSF_SBPH;
-
     if (ATX->PTX != NULL && 
         strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "")) 
     {
@@ -1362,15 +1356,9 @@ user_classify (
     return EINVAL;
   }
 
-  if (ATX->flags & DAF_CHAINED)
-    f_all |= DSF_CHAINED;
-                                                                                
   if (ATX->flags & DAF_NOISE)
     f_all |= DSF_NOISE;
                                                                                 
-  if (ATX->flags & DAF_SBPH)
-    f_all |= DSF_SBPH;
-
   if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "")) {
     if (!strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "on"))
       f_all |= DSF_BIAS;
@@ -2420,12 +2408,6 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
   if (ATX->flags & DAF_UNLEARN)
     f_all |= DSF_UNLEARN;
 
-  if (ATX->flags & DAF_CHAINED)
-    f_all |= DSF_CHAINED;
- 
-  if (ATX->flags & DAF_SBPH)
-    f_all |= DSF_SBPH;
-
   /* If there is no preference, defer to commandline */
   if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "enableBNR"), "")) {
     if (!strcmp(_ds_pref_val(ATX->PTX, "enableBNR"), "on"))
@@ -2550,14 +2532,8 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         int f_all =  DSF_SIGNATURE;
 
         /* CLX = Classify Context */
-        if (ATX->flags & DAF_CHAINED)
-          f_all |= DSF_CHAINED;
-
         if (ATX->flags & DAF_NOISE)
           f_all |= DSF_NOISE;
-
-        if (ATX->flags & DAF_SBPH)
-          f_all |= DSF_SBPH;
 
         if (ATX->PTX != NULL && 
             strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "")) 
