@@ -13,22 +13,16 @@ To implement Markovian weighting, the following pieces must be configured:
      email, however for initial training TEFT or a TUNE approach might
      be best.
 
-2. The tokenizer. This is set via 'Features' and is defaulted to 'chained'. 
-   Comment out chained and use 'sbph' instead. This implements Bill
-   Yerazunis' (CRM114) Sparse Binary Polynomial Hashing tokenizer, which is
-   used in Markovian weighting.
+2. The tokenizer. Bill Yerazunis' CRM114 uses OSB/Markovian. You'll want to
+   set the tokenizer to 'osb', or for old-school CRM114, sbph.
 
 3. The value computing algorithm. This should be set to 'markov' which uses
    Markovian weighting. Comment out graham.
 
 4. The combination algorithm (Algorithm). This should be set to 'naive' to
-   act like CRM114 or you may consider 'burton', which gave me slightly
-   better results. Comment out any existing algorithms.
-
-5. Training. Do not corpus train. Rather, consider using something like 
-   the included train.pl example script. You can emulate TUNE training if
-   you really want to by setting your training mode to TOE and re-running
-   the script until no errors are generated.
+   act like CRM114 or you may consider 'burton' or a combination of
+   "graham burton", both which gave me better results than naive. 
+   Comment out any existing algorithms.
 
 This implements the "standard" CRM114ish Markovian type discrimination, but
 you could also mix and match different tokenizers and combination algorithms

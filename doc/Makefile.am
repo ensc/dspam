@@ -14,4 +14,5 @@ EXTRA_DIST = 	courier.txt	\
 		sendmail.txt	\
 		sqlite_drv.txt	\
 		relay.txt   	\
-		markov.txt
+		markov.txt	\
+		tests.txt
