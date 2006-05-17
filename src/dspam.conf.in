@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.74 2006/05/17 17:35:43 jonz Exp $
+## $Id: dspam.conf.in,v 1.75 2006/05/17 18:02:08 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -9,10 +9,13 @@ Home @dspam_home@
 
 #
 # StorageDriver: Specifies the storage driver backend (library) to use.
-# You'll only need to set this if you are using dynamic storage driver plugins.
-# The default when one storage driver is specified is to statically link. Be 
-# sure to include the path to the library if necessary, and some systems may 
-# use an extension other than .so.
+# You'll only need to set this if you are using dynamic storage driver plugins
+# from a binary distribution. The default build statically links the storage
+# driver (when only one is specified at configure time), overriding this
+# setting, which only comes into play if multiple storage drivers are specified
+# at configure time. When using dynamic linking, be sure to include the path 
+# to the library if necessary, and some systems may use an extension other 
+# than .so (e.g. OSX uses .dylib).
 #
 # Options include:
 #
@@ -56,10 +59,10 @@ TrustedDeliveryAgent "@delivery_agent@"
 
 #
 # SMTP or LMTP Delivery: Alternatively, you may wish to use SMTP or LMTP 
-# delivery to deliver your message to the mail server. You will need to 
-# configure with --enable-daemon to use host delivery, however you do not need 
-# to operate in daemon mode. Specify an IP address or UNIX path to a domain 
-# socket below as a host.
+# delivery to deliver your message to the mail server instead of using a
+# delivery agent. You will need to configure with --enable-daemon to use host 
+# delivery, however you do not need to operate in daemon mode. Specify an IP 
+# address or UNIX path to a domain socket below as a host.
 #
 # If you would like to set up DeliveryHost's on a per-domain basis, use
 # the syntax: DeliveryHost.domain.com 1.2.3.4
@@ -120,6 +123,7 @@ TrustedDeliveryAgent "@delivery_agent@"
 #
 OnFail error
 
+#
 # Trusted Users: Only the users specified below will be allowed to perform
 # administrative functions in DSPAM such as setting the active user and
 # accessing tools. All other users attempting to run DSPAM will be restricted;
@@ -156,13 +160,18 @@ Trust daemon
 #
 # ClassAlias: Alias a particular class to spam/nonspam. This is useful if
 # classifying things other than spam.
+#
 #ClassAliasSpam badstuff
 #ClassAliasNonspam goodstuff
 
 #
 # Training Mode: The default training mode to use for all operations, when
 # one has not been specified on the commandline or in the user's preferences.
-# Acceptable values are: toe, tum, teft, notrain
+# Acceptable values are: 
+#     toe     Train on Error (Only)
+#     teft    Train Everything (Trains on every message)
+#     tum     Train Until Mature (Train only tokens without enough data)
+#     notrain Do not train or store signatures (large ISP systems, post-train)
 #
 TrainingMode teft
 
@@ -215,8 +224,7 @@ Algorithm graham burton
 # Tokenizer: Specify the tokenizer to use. The tokenizer is the piece
 # responsible for parsing the message into individual tokens. Depending on
 # how many resources you are willing to trade off vs. accuracy, you may
-# choose to use a less or more detailed tokenizer
-#
+# choose to use a less or more detailed tokenizer:
 #   word    uniGram (single word) tokenizer
 #           Tokenizes message into single individual words/tokens
 #           example: "free" and "viagra"
@@ -236,11 +244,11 @@ Tokenizer chain
 # PValue: Specify the technique used for calculating Probability Values, 
 # overriding any defaults configured in the build. These options are:
 #    bcr         Bayesian Chain Rule (Graham's Technique - "A Plan for Spam")
-#    robinson    Robinson's Technique 
-#    markov      Markovian Weighted Technique
+#    robinson    Robinson's Technique (used in Chi-Square) 
+#    markov      Markovian Weighted Technique (for Markovian discrimination)
 #
-# Unlike algorithms, you may only have one of these defined. Use of the
-# chi-square algorithm automatically changes this to robinson.
+# Unlike the "Algorithms" property, you may only have one of these defined. 
+# Use of the chi-square algorithm automatically changes this to robinson.
 #
 # Don't mess with this unless you know what you're doing.
 #
@@ -255,6 +263,7 @@ WebStats on
 #
 # ImprobabilityDrive: Calculate odds-ratios for ham/spam, and add to
 # X-DSPAM-Improbability headers
+#
 #ImprobabilityDrive on
 
 #
@@ -383,10 +392,14 @@ AllowOverride whitelistThreshold
 
 # --- Hash ---
 
+#
 # HashRecMax: Default number of records to create in the initial segment when
 # building hash files. 100,000 yields files 1.6MB in size, but can fill up
 # fast, so be sure to increase this (to a million or more) if you're not using
 # autoextend.
+#
+# NOTE: If you're using a heavy-weight tokenizer, such as SBPH, you should be
+#       looking for settings in the 'millions' of records.
 #
 # Primes List:
 #  53, 97, 193, 389, 769, 1543, 3079, 6151, 12289, 24593, 49157, 98317, 196613,
@@ -396,6 +409,7 @@ AllowOverride whitelistThreshold
 #
 HashRecMax		98317
 
+#
 # HashAutoExtend: Autoextend hash databases when they fill up. This allows
 # them to continue to train by adding extents (extensions) to the file. There 
 # will be a small delay during the growth process, as everything needs to be 
@@ -403,47 +417,61 @@ HashRecMax		98317
 #
 HashAutoExtend		on  
 
+#
 # HashMaxExtents: The maximum number of extents that may be created in a single
 # hash file. Set this to zero for unlimited
 #
 HashMaxExtents		0
 
+#
 # HashExtentSize: The record size for newly created extents. Creating this too
 # small could result in many extents being created. Creating this too large
-# could result in excessive disk space usage.
+# could result in excessive disk space usage. Typically, a value close to half
+# of the HashRecMax size is good.
 #
 HashExtentSize		49157
 
-# HashMaxSeek: The maximum number of records to seek to insert a new record
+#
+# HashMaxSeek: The maximum number of record seeks when inserting a new record
 # before failing or adding a new extent. Setting this too high will exhaustively
 # scan each segment and kill performance. Typically, a low value is acceptable
-# as even older extents will continue to fill over time.
+# as even older extents will continue to fill as training progresses.
 #
 HashMaxSeek		100
 
+#
 # HashConcurrentUser: If you are using a single, stateful hash database in
-# daemon mode, specifying a concurrent user will cause the user to be 
-# permanently mapped into memory and shared via rwlocks.
+# daemon mode, specifying a concurrent user below will cause the user to be 
+# permanently mapped into memory and shared via rwlocks. This is very fast and
+# very cool if you are running a "userless" relay appliance.
 #
 #HashConcurrentUser	user
 
+#
 # HashConnectionCache: If running in daemon mode, this is the max # of
 # concurrent connections that will be supported. NOTE: If you are using
 # HashConcurrentUser, this option is ignored, as all connections are read-
 # write locked instead of mutex locked.
+#
 HashConnectionCache	10
 
+# -- LDAP --
+
+#
 # LDAP: Perform various LDAP functions depending on LDAPMode variable.
-# Presently, the only mode supported is 'verify', which will verify the existence
-# of an unknown user in LDAP prior to creating them as a new user in the system.
-# This is useful on some systems acting as gateway machines.
+# Presently, the only mode supported is 'verify', which will verify the 
+# existence of an unknown user in LDAP prior to creating them as a new user in 
+# the system.  This is useful on some systems acting as gateway machines.
 #
 #LDAPMode	verify
 #LDAPHost	ldaphost.mydomain.com
 #LDAPFilter	"(mail=%u)"
 #LDAPBase	ou=people,dc=domain,dc=com
 
-# Optionally, you can specify storage profiles, and specify the server to
+# -- Profiles --
+
+#
+# You can specify multiple storage profiles, and specify the server to
 # use on the commandline with --profile. For example:
 #
 #Profile DECAlpha
@@ -570,6 +598,9 @@ UserLog   on
 # and is preserved. DO NOT use this switch unless the original message can be 
 # presented for retraining with the ORIGINAL HEADERS and NO MODIFICATIONS.
 #
+# NOTE: You can't use this setting with dspam_trian; if you're going to use it,
+#       wait until after you train any corpora.
+#
 #TrainPristine on
 
 #
@@ -650,6 +681,8 @@ Opt out
 #ClamAVPort	3310
 #ClamAVHost	127.0.0.1
 #ClamAVResponse accept
+
+# -- CLIENT / SERVER --
 
 #
 # Daemonized Server: If you are running DSPAM as a daemonized server using
