@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.18 2006/05/16 20:11:22 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.19 2006/05/17 20:18:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -393,5 +393,7 @@ typedef struct
 #define DTT_BNR		0x01
 
 #define DSP_UNCALCULATED	-1
+
+#define BURTON_WINDOW_SIZE	27
 
 #endif /* _LIBDSPAM_OBJECTS */

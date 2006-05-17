@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.155 2006/05/16 20:11:22 jonz Exp $ */
+/* $Id: libdspam.c,v 1.156 2006/05/17 20:18:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -778,7 +778,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   int result;
 
   if (CTX->algorithms & DSA_BURTON)
-    heap_sort = ds_heap_create(27, HP_DELTA);
+    heap_sort = ds_heap_create(BURTON_WINDOW_SIZE, HP_DELTA);
   else if (CTX->algorithms & DSA_ROBINSON)
     heap_sort = ds_heap_create(25, HP_DELTA);
   else
@@ -1649,7 +1649,7 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
     }
 
     /* Burton Bayesian */
-    if (CTX->algorithms & DSA_BURTON && abay_used < 27)
+    if (CTX->algorithms & DSA_BURTON && abay_used < BURTON_WINDOW_SIZE)
     {
         LOGDEBUG ("[burton] [%2.6f] %s (%dfrq, %lds, %ldi)",
                   stat.probability, token_name, ds_term->frequency,
@@ -1670,7 +1670,7 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
 
       abay_used++;
 
-      if (abay_used < 27 && ds_term->frequency > 1 )
+      if (abay_used < BURTON_WINDOW_SIZE && ds_term->frequency > 1 )
       {
           LOGDEBUG ("[burton] [%2.6f] %s (%dfrq, %lds, %ldi)",
                     stat.probability, token_name, ds_term->frequency,

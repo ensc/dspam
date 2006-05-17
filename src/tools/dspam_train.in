@@ -119,7 +119,7 @@ sub TestNonspam {
     my($code, $cmd, $response);
     my($dir, $msg) = @_;
     print "[test: nonspam] " . substr($msg . " " x 32, 0, 32) .  " result: ";
-    $cmd = "$CONFIG{'DSPAM_BINARY'} --user $USER --deliver=summary < $dir/$msg";
+    $cmd = "$CONFIG{'DSPAM_BINARY'} --user $USER --deliver=summary < '$dir/$msg'";
     $response = `$cmd`;
 
     $code = "UNKNOWN";
@@ -178,7 +178,7 @@ sub TestSpam {
     my($dir, $msg) = @_;
 
     print "[test: spam   ] " . substr($msg . " " x 32, 0, 32) . " result: ";
-    $cmd = "$CONFIG{'DSPAM_BINARY'} --user $USER --deliver=summary < $dir/$msg";
+    $cmd = "$CONFIG{'DSPAM_BINARY'} --user $USER --deliver=summary < '$dir/$msg'";
     $response = `$cmd`;
 
     $code = "UNKNOWN";
