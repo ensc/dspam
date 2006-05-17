@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.73 2006/05/16 20:11:22 jonz Exp $
+## $Id: dspam.conf.in,v 1.74 2006/05/17 17:35:43 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -217,28 +217,25 @@ Algorithm graham burton
 # how many resources you are willing to trade off vs. accuracy, you may
 # choose to use a less or more detailed tokenizer
 #
-# word		uniGram (single word) tokenizer
-#               Tokenizes message into single individual words/tokens
-#               example: "free" and "viagra"
-#
-# chain		biGram (chained tokens) tokenizer (default)
-#               Single words + chains adjacent tokens together
-#               example: "free" and "viagra" and "free viagra"
-#
-# sbph		Sparse Binary Polynomial Hashing tokenizer
-#               Creates sparse token patterns across sliding window of 5-tokens
-#               example: "the quick * fox jumped" and "the * * fox jumped"
-#
-# osb           Orthogonal Sparse biGram
-#               Similar to SBPH, but only uses biGrams
-#               example: "the * * fox" and "the * * * jumped"
+#   word    uniGram (single word) tokenizer
+#           Tokenizes message into single individual words/tokens
+#           example: "free" and "viagra"
+#   chain   biGram (chained tokens) tokenizer (default)
+#           Single words + chains adjacent tokens together
+#           example: "free" and "viagra" and "free viagra"
+#   sbph    Sparse Binary Polynomial Hashing tokenizer
+#           Creates sparse token patterns across sliding window of 5-tokens
+#           example: "the quick * fox jumped" and "the * * fox jumped"
+#   osb     Orthogonal Sparse biGram
+#           Similar to SBPH, but only uses the biGrams
+#           example: "the * * fox" and "the * * * jumped"
 #
 Tokenizer chain
 
 #
-# PValue: Specify the technique used for calculating PValues, overriding any
-# defaults configured in the build. These options are:
-#    graham      Graham's Technique ("A Plan for Spam")
+# PValue: Specify the technique used for calculating Probability Values, 
+# overriding any defaults configured in the build. These options are:
+#    bcr         Bayesian Chain Rule (Graham's Technique - "A Plan for Spam")
 #    robinson    Robinson's Technique 
 #    markov      Markovian Weighted Technique
 #
@@ -249,7 +246,7 @@ Tokenizer chain
 #
 #PValue robinson
 #PValue markov
-PValue graham
+PValue bcr
 
 #
 # WebStats: Enable this if you are using the CGI, which writes .stats files
