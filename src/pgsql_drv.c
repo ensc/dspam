@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.56 2006/05/13 12:17:06 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.57 2006/05/17 11:53:23 jonz Exp $ */
 
 /*
  DSPAM
@@ -2433,7 +2433,7 @@ int _ds_pref_set(config_t config, const char *user, const char *home,
 int _ds_pref_del(config_t config, const char *user, const char *home,
   const char *attrib, void *dbh)
 {
-  return _ds_pref_del(config, user, home, attrib, dbh);
+  return _ds_ff_pref_del(config, user, home, attrib, dbh);
 }
 
 #endif

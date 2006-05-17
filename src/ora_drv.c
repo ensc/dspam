@@ -1,4 +1,4 @@
-/* $Id: ora_drv.c,v 1.15 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: ora_drv.c,v 1.16 2006/05/17 11:53:23 jonz Exp $ */
 
 /*
  DSPAM
@@ -2503,6 +2503,6 @@ int _ds_pref_set(config_t config, const char *user, const char *home,
 int _ds_pref_del(config_t config, const char *user, const char *home,
   const char *attrib, void *dbh)
 {
-  return _ds_pref_del(config, user, home, attrib, dbh);
+  return _ds_ff_pref_del(config, user, home, attrib, dbh);
 }
 

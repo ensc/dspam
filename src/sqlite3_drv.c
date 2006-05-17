@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.14 2006/05/13 15:08:05 jonz Exp $ */
+/* $Id: sqlite3_drv.c,v 1.15 2006/05/17 11:53:23 jonz Exp $ */
 
 /*
  DSPAM
@@ -1365,6 +1365,6 @@ int _ds_pref_set(config_t config, const char *user, const char *home,
 int _ds_pref_del(config_t config, const char *user, const char *home,
   const char *attrib, void *dbh)
 {
-  return _ds_pref_del(config, user, home, attrib, dbh);
+  return _ds_ff_pref_del(config, user, home, attrib, dbh);
 }
 
