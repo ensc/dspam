@@ -1,8 +1,10 @@
-$Id: README,v 1.95 2006/05/16 20:11:22 jonz Exp $
+$Id: README,v 1.96 2006/05/19 21:15:00 jonz Exp $
 
 DSPAM v3.8 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Jonathan A. Zdziarski
 http://dspam.nuclearelephant.com
+
+Classifier Version: 380
 
 LICENSE
 
