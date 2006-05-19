@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.23 2006/05/13 01:13:01 jonz Exp $
+# $Id: dspam.cgi,v 1.24 2006/05/19 17:16:03 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -1319,8 +1319,10 @@ sub DisplayIndex {
   $DATA{'TOTAL_NONSPAM_MISSED'} = $real_fp;
   $DATA{'TOTAL_NONSPAM_CAUGHT'} = $real_innocent;
 
-  $DATA{'LOCAL_DOMAIN'} = $CONFIG{'LOCAL_DOMAIN'};
-  
+  if ($CURRENT_USER !~ /\@/) {
+    $DATA{'LOCAL_DOMAIN'} = "\@$CONFIG{'LOCAL_DOMAIN'}";
+  }  
+
   &output(%DATA);
 }
 

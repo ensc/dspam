@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.441 2006/05/17 11:53:23 jonz Exp $
+$Id: CHANGELOG,v 1.442 2006/05/19 17:16:03 jonz Exp $
 
 Verzion NEXT
 ------------
+
+[20060519.0100] jonz: fix for performance template / local domain
+
+added fix to display correct local domain in performance template, and only
+display local domain if the username doesn't include an @ sign
 
 [20060517.0700] jonz: fix for preference delete
 
