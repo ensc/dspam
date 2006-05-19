@@ -1,10 +1,15 @@
-Various DSPAM Configurations Tested against SpamAssassin Corpus
+Various DSPAM Configurations Tested 
 All variables not mentioned are stock
+Classifier Version: CVS-20060517
 
 Prefixes:		Flags:
   T - Tokenizer Mode      B - Use Bias (toward innocent)
   P - Probability Rule    N - No Bias
   C - Combination Rule
+
+SPAMASSASSIN PUBLIC CORPUS
+http://spamassassin.apache.org/publiccorpus
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 Tosb,Pmarkov,Cgraham+burton,teft,N   TP:  1730 TN:  4147 FP:     3 FN:   166 
 Tosb,Pbcr,Cgraham+burton,teft,N      TP:  1795 TN:  4143 FP:     7 FN:   101
@@ -39,3 +44,11 @@ Tsbph,Pbcr,Cgraham+burton,toe,N      TP:  1899 TN:  4116 FP:    93 FN:    86
 Tosb,Pmarkov,Cgraham+burton,toe,N    TP:  1898 TN:  4148 FP:    69 FN:    67
 Tosb,Pbcr,Cgraham+burton,toe,N       TP:  1789 TN:  4220 FP:    36 FN:   143
 
+TREC 05P-1 TEST CORPUS
+http://trec.nist.gov/data/spam.html
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+Tosb,Pbcr,Cburton,teft,B             TP: 51186 TN: 39347 FP:    52 FN:  1604
+Tosb,Pbcr,Cgraham+burton,tum,N       TP: 52020 TN: 39210 FP:   189 FN:   770
+Tosb,Pmarkov,Cburton,tum,N           TP: 51958 TN: 39042 FP:   357 FN:   832
+Tosb,Pmarkov,Cburton,toe,N           TP: 52725 TN: 39464 FP:   571 FN:   636 
