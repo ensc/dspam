@@ -48,9 +48,12 @@ TREC 05P-1 TEST CORPUS
 http://trec.nist.gov/data/spam.html
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+Tchain,Pbcr,Cgraham+burton,teft,B    TP: 51831 TN: 39342 FP:    57 FN:   959
+Tchain,Pbcr,Cgraham,teft,B           TP: 51643 TN: 39352 FP:    47 FN:  1147
 Tosb,Pbcr,Cburton,teft,B             TP: 51186 TN: 39347 FP:    52 FN:  1604
+Tosb,Pbcr,Cgraham+burton,teft,B      TP: 51312 TN: 39342 FP:    57 FN:  1478 
 Tosb,Pbcr,Cgraham+burton,tum,N       TP: 52020 TN: 39210 FP:   189 FN:   770
 Tosb,Pmarkov,Cburton,tum,N           TP: 51958 TN: 39042 FP:   357 FN:   832
 Tosb,Pmarkov,Cburton,toe,N           TP: 52725 TN: 39464 FP:   571 FN:   636 
-Tchain,Pbcr,Cgraham+burton,teft,B    TP: 51831 TN: 39342 FP:    57 FN:   959
+
 
