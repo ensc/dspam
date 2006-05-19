@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.442 2006/05/19 17:16:03 jonz Exp $
+$Id: CHANGELOG,v 1.443 2006/05/19 17:36:10 jonz Exp $
 
 Verzion NEXT
 ------------
+
+[20060519.0130] jonx: fix for segfault in dlopen() failure
+
+fixed bug causing segfault when dlopen() to storage driver library fails.
+dspam still won't work any better if dlopen is failing but huzzah.
 
 [20060519.0100] jonz: fix for performance template / local domain
 

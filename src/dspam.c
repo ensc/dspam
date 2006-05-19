@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.229 2006/05/16 20:11:22 jonz Exp $ */
+/* $Id: dspam.c,v 1.230 2006/05/19 17:36:10 jonz Exp $ */
 
 /*
  DSPAM
@@ -220,7 +220,11 @@ main (int argc, char *argv[])
 
   /* Primary (non-client) processing procedure */
 
-  libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
+  if (libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"))) {
+    LOG(LOG_CRIT, ERR_DRV_INIT);
+    exitcode = EXIT_FAILURE;
+    goto BAIL;
+  }
  
   if (dspam_init_driver (NULL))
   {
@@ -3650,7 +3654,10 @@ int daemon_start(AGENT_CTX *ATX) {
   __num_threads = 0;
   __hup = 0;
   pthread_mutex_init(&__lock, NULL);
-  libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
+  if (libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"))) {
+    LOG(LOG_CRIT, ERR_DRV_INIT);
+    exit(EXIT_FAILURE);
+  }
 
   LOG(LOG_INFO, INFO_DAEMON_START);
 
