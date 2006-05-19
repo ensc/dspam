@@ -1,9 +1,13 @@
-$Id: CHANGELOG,v 1.443 2006/05/19 17:36:10 jonz Exp $
+$Id: CHANGELOG,v 1.444 2006/05/19 19:19:27 jonz Exp $
 
 Verzion NEXT
 ------------
 
-[20060519.0130] jonx: fix for segfault in dlopen() failure
+[20060519.0300] jonz: fix for segfault in vsyslog()
+
+fix segfault caused by bad use of va_args when vsyslog is called
+
+[20060519.0130] jonz: fix for segfault in dlopen() failure
 
 fixed bug causing segfault when dlopen() to storage driver library fails.
 dspam still won't work any better if dlopen is failing but huzzah.
