@@ -5,7 +5,7 @@ Classifier Version: CVS-20060517
 Prefixes:		Flags:
   T - Tokenizer Mode      B - Use Bias (toward innocent)
   P - Probability Rule    N - No Bias
-  C - Combination Rule
+  C - Combination Rule    E - No TestConditionalTraining
 
 SPAMASSASSIN PUBLIC CORPUS
 http://spamassassin.apache.org/publiccorpus
@@ -48,7 +48,10 @@ TREC 05P-1 TEST CORPUS
 http://trec.nist.gov/data/spam.html
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+Tword,Pbcr,Cgraham,teft,BE           TP: 51213 TN: 39367 FP:    32 FN:  1577
+Tosb,Pbcr,Cgraham,teft,BE            TP: 50574 TN: 39357 FP:    42 FN:  2216
 Tchain,Pbcr,Cgraham+burton,teft,B    TP: 51831 TN: 39342 FP:    57 FN:   959
+Tchain,Pbcr,Cgraham+burton,teft,BE   TP: 51596 TN: 39354 FP:    45 FN:  1194
 Tchain,Pbcr,Cgraham,teft,B           TP: 51643 TN: 39352 FP:    47 FN:  1147
 Tosb,Pbcr,Cburton,teft,B             TP: 51186 TN: 39347 FP:    52 FN:  1604
 Tosb,Pbcr,Cgraham+burton,teft,B      TP: 51312 TN: 39342 FP:    57 FN:  1478 
@@ -56,5 +59,4 @@ Tosb+word,Pbcr,Cgraham+burton,teft,B TP: 51357 TN: 39343 FP:    56 FN:  1433
 Tosb,Pbcr,Cgraham+burton,tum,N       TP: 52020 TN: 39210 FP:   189 FN:   770
 Tosb,Pmarkov,Cburton,tum,N           TP: 51958 TN: 39042 FP:   357 FN:   832
 Tosb,Pmarkov,Cburton,toe,N           TP: 52725 TN: 39464 FP:   571 FN:   636 
-
-
+Tosb,Pbcr,Cgraham+burton,toe,B       TP: 51864 TN: 40309 FP:   377 FN:  1303
