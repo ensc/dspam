@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.19 2006/05/22 19:34:30 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.20 2006/05/22 19:52:20 jonz Exp $ */
 
 /*
  DSPAM
@@ -523,7 +523,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
                       char **previous_tokens, ds_diction_t diction,
                       const char *heading)
 {
-  int i, mask, t, keylen;
+  int i, mask, t, keylen, pow, pow2;
   unsigned long long crc;
   char key[256];
   int active = 0, top;
@@ -546,8 +546,10 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
   if (token) 
     active++;
 
+  pow = _ds_pow2(active);
+  
   /* Iterate and generate all keys necessary */
-  for(mask=0;mask < _ds_pow2(active);mask++) {
+  for(mask=0;mask < pow;mask++) {
     int terms = 0;
     key[0] = 0;
     keylen = 0;
@@ -556,6 +558,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
                                                                                 
     /* Each Bit */
     for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
+
       if (t) {
         if (keylen < (sizeof(key)-1)) {
           strcat(key, "+");
@@ -563,7 +566,8 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
         }
       }
 
-      if (mask & (_ds_pow2(i+1)/2)) {
+      pow2 = (_ds_pow2(i+1)/2);
+      if (mask & pow2) {
         if (previous_tokens[i] == NULL ||!strcmp(previous_tokens[i], "")) {
           if (keylen < (sizeof(key)-1)) {
             strcat(key, "#");
@@ -619,7 +623,7 @@ int
 _ds_map_body_token (DSPAM_CTX * CTX, char *token,
                         char **previous_tokens, ds_diction_t diction)
 {
-  int i, mask, t, keylen;
+  int i, mask, t, keylen, pow, pow2;
   int top;
   unsigned long long crc;
   char key[256];
@@ -637,8 +641,10 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
   if (token) 
     active++;
 
+  pow = _ds_pow2(active);
+
   /* Iterate and generate all keys necessary */
-  for(mask=0;mask < _ds_pow2(active);mask++) {
+  for(mask=0;mask < pow;mask++) {
     int terms = 0;
     t = 0;
 
@@ -654,7 +660,8 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
            keylen++;
         }
       }
-      if (mask & (_ds_pow2(i+1)/2)) {
+      pow2 = (_ds_pow2(i+1)/2);
+      if (mask & pow2) {
         if (previous_tokens[i] == NULL ||!strcmp(previous_tokens[i], "")) {
           if (keylen < (sizeof(key)-1)) {
             strcat(key, "#");
