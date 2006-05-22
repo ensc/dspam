@@ -1,7 +1,17 @@
-$Id: CHANGELOG,v 1.444 2006/05/19 19:19:27 jonz Exp $
+$Id: CHANGELOG,v 1.445 2006/05/22 19:34:30 jonz Exp $
 
 Verzion NEXT
 ------------
+
+[20060522.0300] jonz: added ProcessorURLContext
+
+ProcessorURLContext creates Url* context-specific tokens for URLs; this is
+the default in previous (and current) versions
+
+[20060522.0300] jonz: optimized osb/sbph tokenizer
+
+replaced several strlcat's with simple len counting to eliminate thousands of
+unnecessary calls to strlen() and speed up osb/sbph tokenization process
 
 [20060519.0300] jonz: fix for segfault in vsyslog()
 

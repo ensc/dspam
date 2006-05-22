@@ -1,4 +1,4 @@
-$Id: UPGRADING,v 1.24 2006/05/16 20:11:22 jonz Exp $
+$Id: UPGRADING,v 1.25 2006/05/22 19:34:30 jonz Exp $
 
 Follow the steps sequentially from the base version you are running up to
 the top.
@@ -23,6 +23,11 @@ UPGRADING FROM 3.6
 4. Invert "SupressWebStats" setting in dspam.conf
    SupressWebStats has been changed to simply WebStats, and the setting is
    inverted. Be sure to update this in dspam.conf.
+
+5. Add "ProcessorURLContext" setting in dspam.conf
+   ProcessorURLContext has been added to toggle whether URL specific tokens
+   are created in the tokenizer process. The "on" value is default for previous
+   versions of DSPAM.
 
 UPGRADING FROM 3.4
 ------------------

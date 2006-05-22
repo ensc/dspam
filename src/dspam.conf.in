@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.75 2006/05/17 18:02:08 jonz Exp $
+## $Id: dspam.conf.in,v 1.76 2006/05/22 19:34:30 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -761,6 +761,12 @@ Opt out
 # per occurrence instead.
 #
 #ProcessorWordFrequency  occurrence
+
+# ProcessorURLContext: By default, a URL context is generated for URLs, which
+# records their tokens as separate from words found in documents. To use
+# URL tokens in the same context as words, turn this feature off. 
+#
+ProcessorURLContext on
 
 # ProcessorBias: Bias causes the filter to lean more toward 'innocent', and
 # usually greatly reduces false positives. It is the default behavior of

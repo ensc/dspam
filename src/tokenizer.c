@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.18 2006/05/16 20:11:22 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.19 2006/05/22 19:34:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -125,9 +125,11 @@ int _ds_tokenize_ngram(
 
   /* Tokenize URLs in message */
 
-  _ds_url_tokenize(diction, body, "http://");
-  _ds_url_tokenize(diction, body, "www.");
-  _ds_url_tokenize(diction, body, "href=");
+  if (_ds_match_attribute(CTX->config->attributes, "ProcessorURLContext", "on"))  {
+    _ds_url_tokenize(diction, body, "http://");
+    _ds_url_tokenize(diction, body, "www.");
+    _ds_url_tokenize(diction, body, "href=");
+  }
 
   /*
    * Header Tokenization 
@@ -285,9 +287,12 @@ int _ds_tokenize_sparse(
 
   /* Tokenize URLs in message */
 
-  _ds_url_tokenize(diction, body, "http://");
-  _ds_url_tokenize(diction, body, "www.");
-  _ds_url_tokenize(diction, body, "href=");
+  if (_ds_match_attribute(CTX->config->attributes, "ProcessorURLContext", "on"))
+  {
+    _ds_url_tokenize(diction, body, "http://");
+    _ds_url_tokenize(diction, body, "www.");
+    _ds_url_tokenize(diction, body, "href=");
+  }
 
   /*
    * Header Tokenization 
@@ -518,7 +523,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
                       char **previous_tokens, ds_diction_t diction,
                       const char *heading)
 {
-  int i, mask, t;
+  int i, mask, t, keylen;
   unsigned long long crc;
   char key[256];
   int active = 0, top;
@@ -545,24 +550,40 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
   for(mask=0;mask < _ds_pow2(active);mask++) {
     int terms = 0;
     key[0] = 0;
+    keylen = 0;
     t = 0;
     top = 1;
                                                                                 
     /* Each Bit */
     for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
-      if (t) 
-        strlcat(key, "+", sizeof(key));
+      if (t) {
+        if (keylen < (sizeof(key)-1)) {
+          strcat(key, "+");
+          keylen++; 
+        }
+      }
 
       if (mask & (_ds_pow2(i+1)/2)) {
-        if (previous_tokens[i] == NULL ||!strcmp(previous_tokens[i], ""))
-          strlcat(key, "#", sizeof(key));
+        if (previous_tokens[i] == NULL ||!strcmp(previous_tokens[i], "")) {
+          if (keylen < (sizeof(key)-1)) {
+            strcat(key, "#");
+            keylen++;
+          }
+        }
         else
         {
-          strlcat(key, previous_tokens[i], sizeof(key));
+          int tl = strlen(previous_tokens[i]);
+          if (keylen + tl < (sizeof(key)-1)) {
+            strcat(key, previous_tokens[i]);
+            keylen += tl;
+          }
           terms++;
         }
       } else {
-        strlcat(key, "#", sizeof(key));
+        if (keylen < (sizeof(key)-1)) {
+          strcat(key, "#");
+          keylen++;
+        }
       }
       t++;
     }
@@ -573,14 +594,14 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
     {
       char hkey[256];
       char *k = key;
-      int kl = strlen(key);
-      while(kl>2 && !strcmp((key+kl)-2, "+#")) {
-        key[kl-2] = 0;
-        kl -=2;
+      while(keylen>2 && !strcmp((key+keylen)-2, "+#")) {
+        key[keylen-2] = 0;
+        keylen -=2;
       }
       while(!strncmp(k, "#+", 2)) {
         top = 0; 
         k+=2;
+        keylen -= 2;
       }
 
       if (top) {
@@ -598,7 +619,7 @@ int
 _ds_map_body_token (DSPAM_CTX * CTX, char *token,
                         char **previous_tokens, ds_diction_t diction)
 {
-  int i,  mask, t;
+  int i, mask, t, keylen;
   int top;
   unsigned long long crc;
   char key[256];
@@ -622,22 +643,38 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
     t = 0;
 
     key[0] = 0;
+    keylen = 0;
     top = 1;
 
     /* Each Bit */
     for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
-      if (t)
-        strlcat(key, "+", sizeof(key));
+      if (t) {
+        if (keylen < (sizeof(key)-1)) {
+           strcat(key, "+");
+           keylen++;
+        }
+      }
       if (mask & (_ds_pow2(i+1)/2)) {
-        if (previous_tokens[i] == NULL ||!strcmp(previous_tokens[i], ""))
-          strlcat(key, "#", sizeof(key));
+        if (previous_tokens[i] == NULL ||!strcmp(previous_tokens[i], "")) {
+          if (keylen < (sizeof(key)-1)) {
+            strcat(key, "#");
+            keylen++;
+          }
+        }
         else
         {
-          strlcat(key, previous_tokens[i], sizeof(key));
+          int tl = strlen(previous_tokens[i]);
+          if (keylen + tl < (sizeof(key)-1)) {
+            strcat(key, previous_tokens[i]);
+            keylen += tl;
+          }
           terms++;
         }
       } else {
-        strlcat(key, "#", sizeof(key));
+        if (keylen < (sizeof(key)-1)) {
+          strcat(key, "#");
+          keylen++;
+        }
       }
       t++;
     }
@@ -647,14 +684,14 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
         (CTX->tokenizer == DSZ_OSB  && terms == 2))
     {
       char *k = key;
-      int kl = strlen(key);
-      while(kl>2 && !strcmp((key+kl)-2, "+#")) {
-        key[kl-2] = 0;
-        kl -=2;
+      while(keylen>2 && !strcmp((key+keylen)-2, "+#")) {
+        key[keylen-2] = 0;
+        keylen -=2;
       }
       while(!strncmp(k, "#+", 2)) {
         top = 0; 
         k+=2;
+        keylen -=2;
       }
  
       if (top) {
