@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.112 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: daemon.c,v 1.113 2006/05/23 19:52:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -861,6 +861,8 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
   buffer *message;
   int body = 0, line = 1;
   char *buf;
+  int strip = _ds_match_attribute(agent_config, "Broken", "lineStripping");
+  int parseto = _ds_match_attribute(agent_config, "ParseToHeaders", "on");
 
   message = buffer_create(NULL);
   if (message == NULL) {
@@ -881,7 +883,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
       return message;
     }
 
-    if (_ds_match_attribute(agent_config, "Broken", "lineStripping")) {
+    if (strip) {
       size_t len = strlen(buf);
   
       while (len>1 && buf[len-2]==13) {
@@ -893,7 +895,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
   
     if (line > 1 || strncmp (buf, "From QUARANTINE", 15))
     {
-      if (_ds_match_attribute(agent_config, "ParseToHeaders", "on")) {
+      if (parseto) {
         if (buf[0] == 0)
           body = 1;
         if (!body && !strncasecmp(buf, "To: ", 4))
@@ -908,10 +910,10 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
     }
 
     /* Use the original user id if we are reversing a false positive */
-    if (!strncasecmp (buf, "X-DSPAM-User: ", 14) && 
-        ATX->operating_mode == DSM_PROCESS    &&
+    if (ATX->source         == DSS_ERROR      &&
         ATX->classification == DSR_ISINNOCENT &&
-        ATX->source         == DSS_ERROR)
+        ATX->operating_mode == DSM_PROCESS    &&
+        !strncasecmp (buf, "X-DSPAM-User: ", 14))
     {
       char user[MAX_USERNAME_LENGTH];
       strlcpy (user, buf + 14, sizeof (user));

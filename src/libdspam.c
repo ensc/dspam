@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.156 2006/05/17 20:18:17 jonz Exp $ */
+/* $Id: libdspam.c,v 1.157 2006/05/23 19:52:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -1136,6 +1136,8 @@ _ds_process_signature (DSPAM_CTX * CTX)
   ds_diction_t diction = ds_diction_create(24593ul);
   ds_term_t ds_term;
   ds_cursor_t ds_c;
+  int occurrence = _ds_match_attribute(CTX->config->attributes, 
+     "ProcessorWordFrequency", "occurrence");
 
   if (diction == NULL) {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
@@ -1232,8 +1234,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
       if (CTX->flags & DSF_UNLEARN) {
         if (CTX->classification == DSR_ISSPAM)
         {
-          if (_ds_match_attribute(CTX->config->attributes,
-            "ProcessorWordFrequency", "occurrence"))
+          if (occurrence)
           {
             ds_term->s.innocent_hits -= ds_term->frequency;
             if (ds_term->s.innocent_hits < 0)
@@ -1244,8 +1245,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
         }
 
       } else {
-        if (_ds_match_attribute(CTX->config->attributes,
-           "ProcessorWordFrequency", "occurrence"))
+        if (occurrence)
         {
           ds_term->s.innocent_hits += ds_term->frequency;
         } else {
@@ -1256,8 +1256,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
             CTX->training_mode != DST_NOTRAIN && 
             CTX->training_mode != DST_TOE)
         {
-          if (_ds_match_attribute(CTX->config->attributes,
-            "ProcessorWordFrequency", "occurrence"))
+          if (occurrence)
           {
             ds_term->s.spam_hits -= ds_term->frequency;
             if (ds_term->s.spam_hits < 0)
@@ -1276,8 +1275,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
       if (CTX->flags & DSF_UNLEARN) {
         if (CTX->classification == DSR_ISSPAM)
         {
-          if (_ds_match_attribute(CTX->config->attributes,
-            "ProcessorWordFrequency", "occurrence"))
+          if (occurrence)
           {
             ds_term->s.spam_hits -= ds_term->frequency;
             if (ds_term->s.spam_hits < 0)
@@ -1292,8 +1290,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
            CTX->training_mode != DST_NOTRAIN && 
            CTX->training_mode != DST_TOE)
        {
-          if (_ds_match_attribute(CTX->config->attributes,
-            "ProcessorWordFrequency", "occurrence"))
+          if (occurrence)
           {
             ds_term->s.innocent_hits -= ds_term->frequency;
             if (ds_term->s.innocent_hits < 0)
@@ -1312,8 +1309,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
             ds_term->s.spam_hits += 2;
         } else /* ERROR or CORPUS */
         {
-            if (_ds_match_attribute(CTX->config->attributes,
-              "ProcessorWordFrequency", "occurrence"))
+            if (occurrence)
             {
               ds_term->s.spam_hits += ds_term->frequency;
             } else {
@@ -2494,6 +2490,8 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
   ds_cursor_t ds_c;
   ds_term_t ds_term;
   int i = 0;
+  int occurrence = _ds_match_attribute(CTX->config->attributes,
+     "ProcessorWordFrequency", "occurrence");
 
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
@@ -2561,8 +2559,7 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
         if (CTX->flags & DSF_UNLEARN) {
           if (CTX->classification == DSR_ISSPAM)
           {
-            if (_ds_match_attribute(CTX->config->attributes, 
-              "ProcessorWordFrequency", "occurrence"))
+            if (occurrence)
             {
               ds_term->s.spam_hits -= ds_term->frequency;
               if (ds_term->s.spam_hits < 0)
@@ -2572,8 +2569,7 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
             }
           }
         } else {
-          if (_ds_match_attribute(CTX->config->attributes,
-             "ProcessorWordFrequency", "occurrence"))
+          if (occurrence)
           {
             ds_term->s.spam_hits += ds_term->frequency;
           } else {
@@ -2587,8 +2583,7 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
           CTX->training_mode != DST_TOE &&
           CTX->training_mode != DST_NOTRAIN) 
       { 
-        if (_ds_match_attribute(CTX->config->attributes,
-           "ProcessorWordFrequency", "occurrence"))
+        if (occurrence)
         {
           ds_term->s.innocent_hits -= ds_term->frequency;
           if (ds_term->s.innocent_hits < 0)
@@ -2605,8 +2600,7 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
       if (CTX->flags & DSF_UNLEARN) { 
         if (CTX->classification == DSR_ISINNOCENT)
         {
-          if (_ds_match_attribute(CTX->config->attributes,
-             "ProcessorWordFrequency", "occurrence"))
+          if (occurrence)
           {
             ds_term->s.innocent_hits -= ds_term->frequency;
             if (ds_term->s.innocent_hits < 0)
@@ -2616,8 +2610,7 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
           }
         }
       } else {
-        if (_ds_match_attribute(CTX->config->attributes,
-         "ProcessorWordFrequency", "occurrence"))
+        if (occurrence)
         {
           ds_term->s.innocent_hits += ds_term->frequency;
         } else {
@@ -2631,8 +2624,7 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
           CTX->training_mode != DST_NOTRAIN)
       {
 
-        if (_ds_match_attribute(CTX->config->attributes,
-          "ProcessorWordFrequency", "occurrence"))
+        if (occurrence)
         {
           ds_term->s.spam_hits -= ds_term->frequency;
           if (ds_term->s.spam_hits < 0)

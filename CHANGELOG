@@ -1,7 +1,18 @@
-$Id: CHANGELOG,v 1.445 2006/05/22 19:34:30 jonz Exp $
+$Id: CHANGELOG,v 1.446 2006/05/23 19:52:40 jonz Exp $
 
 Verzion NEXT
 ------------
+
+[20060524.0300] jonz: added --client support for dspam_train
+
+use --client after username
+
+[20060523.0300] jonz: more code optimizations
+
+various optimizations to:
+- tokenizer core
+- hash_drv driver (store offset for writes)
+- libdspam (preference lookups)
 
 [20060522.0300] jonz: added ProcessorURLContext
 

@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.20 2006/05/22 19:52:20 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.21 2006/05/23 19:52:40 jonz Exp $ */
 
 /*
  DSPAM
@@ -408,7 +408,7 @@ int _ds_tokenize_sparse(
     _ds_map_body_token(CTX, NULL, previous_tokens, diction);
   }
 
-  _ds_sparse_clear(previous_tokens);
+  _ds_sparse_clear(previous_tokens); 
 
   return 0;
 }
@@ -561,39 +561,39 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
 
       if (t) {
         if (keylen < (sizeof(key)-1)) {
-          strcat(key, "+");
-          keylen++; 
+          key[keylen] = '+';
+          key[++keylen] = 0;
         }
       }
 
       pow2 = (_ds_pow2(i+1)/2);
       if (mask & pow2) {
-        if (previous_tokens[i] == NULL ||!strcmp(previous_tokens[i], "")) {
+        if (previous_tokens[i] == NULL || previous_tokens[i][0] == 0) {
           if (keylen < (sizeof(key)-1)) {
-            strcat(key, "#");
-            keylen++;
+            key[keylen] = '#';
+            key[++keylen] = 0;
           }
         }
         else
         {
           int tl = strlen(previous_tokens[i]);
           if (keylen + tl < (sizeof(key)-1)) {
-            strcat(key, previous_tokens[i]);
+            strcpy(key+keylen, previous_tokens[i]);
             keylen += tl;
           }
           terms++;
         }
       } else {
         if (keylen < (sizeof(key)-1)) {
-          strcat(key, "#");
-          keylen++;
+          key[keylen] = '#';
+          key[++keylen] = 0;
         }
       }
       t++;
     }
 
     /* If the bucket has at least 1 literal, hit it */
-    if ((CTX->tokenizer == DSZ_SBPH && terms > 0) ||
+    if ((CTX->tokenizer == DSZ_SBPH && terms != 0) ||
         (CTX->tokenizer == DSZ_OSB  && terms == 2))
     {
       char hkey[256];
@@ -656,38 +656,38 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
     for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
       if (t) {
         if (keylen < (sizeof(key)-1)) {
-           strcat(key, "+");
-           keylen++;
+           key[keylen] = '+';
+           key[++keylen] = 0;
         }
       }
       pow2 = (_ds_pow2(i+1)/2);
       if (mask & pow2) {
-        if (previous_tokens[i] == NULL ||!strcmp(previous_tokens[i], "")) {
+        if (previous_tokens[i] == NULL || previous_tokens[i][0] == 0) {
           if (keylen < (sizeof(key)-1)) {
-            strcat(key, "#");
-            keylen++;
+            key[keylen] = '#';
+            key[++keylen] = 0;
           }
         }
         else
         {
           int tl = strlen(previous_tokens[i]);
           if (keylen + tl < (sizeof(key)-1)) {
-            strcat(key, previous_tokens[i]);
+            strcpy(key+keylen, previous_tokens[i]);
             keylen += tl;
           }
           terms++;
         }
       } else {
         if (keylen < (sizeof(key)-1)) {
-          strcat(key, "#");
-          keylen++;
+          key[keylen] = '#';
+          key[++keylen] = 0;
         }
       }
       t++;
     }
 
     /* If the bucket has at least 1 literal, hit it */
-    if ((CTX->tokenizer == DSZ_SBPH && terms > 0) ||
+    if ((CTX->tokenizer == DSZ_SBPH && terms != 0) ||
         (CTX->tokenizer == DSZ_OSB  && terms == 2))
     {
       char *k = key;

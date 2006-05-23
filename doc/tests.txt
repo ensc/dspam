@@ -14,6 +14,7 @@ http://spamassassin.apache.org/publiccorpus
 Tosb,Pmarkov,Cgraham+burton,teft,N   TP:  1730 TN:  4147 FP:     3 FN:   166 
 Tosb,Pbcr,Cgraham+burton,teft,N      TP:  1795 TN:  4143 FP:     7 FN:   101
 Tchain,Pbcr,Cgraham+burton,teft,B    TP:  1693 TN:  4148 FP:     2 FN:   203 
+Tosb,Pbcr,Cgraham+burton,teft,B      TP:  1677 TN:  4147 FP:     3 FN:   219
 
 Tosb,Pmarkov,Cgraham+burton,tum,N    TP:  1730 TN:  4147 FP:     3 FN:   166
 Tsbph,Pmarkov,Cgraham+burton,tum,N   TP:  1740 TN:  4133 FP:    17 FN:   156

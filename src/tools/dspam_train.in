@@ -11,6 +11,10 @@ $CONFIG{'BINDIR'}        = '@bindir@';
 
 $USER           = shift;
 $SPAM_CORPUS    = shift;
+if ($SPAM_CORPUS eq "--client" || $SPAM_CORPUS eq "-c") {
+  $SPAM_CORPUS = shift;
+  $CONFIG{'DSPAM_BINARY'} .= " --client";
+}
 $NONSPAM_CORPUS = shift;
 
 if ($NONSPAM_CORPUS eq "") {
@@ -18,7 +22,7 @@ if ($NONSPAM_CORPUS eq "") {
 }
 
 sub usage {
-    print STDERR "Usage: $0 [username] [[-i index]|[spam_dir] [nonspam_dir]]\n";
+    print STDERR "Usage: $0 [username] [--client] [[-i index]|[spam_dir] [nonspam_dir]]\n";
     exit(-1);
 }
 
