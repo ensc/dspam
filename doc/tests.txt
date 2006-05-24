@@ -26,9 +26,8 @@ Tsbph,Pbcr,Cgraham+burton,tum,B      TP:  1757 TN:  4146 FP:     4 FN:   139
 Tosb,Pbcr,Cgraham+burton,tum,B       TP:  1677 TN:  4147 FP:     3 FN:   219 
 Tosb,Pbcr,Cgraham+burton,tum,N       TP:  1808 TN:  4142 FP:     8 FN:    88
 
+Tchain,Pbcr,Cburton,tum,N            TP:  1804 TN:  4141 FP:     9 FN:    92
 Tosb,Pbcr,Cburton,tum,B              TP:  1636 TN:  4148 FP:     2 FN:   260 
-
-Tchain,Pbcr,Cburton,tum,N            TP:  1804 TN:  4141 FP:     9 FN:    92 
 Tosb,Pbcr,Cburton,tum,N              TP:  1777 TN:  4143 FP:     7 FN:   119
 
 Tword,Pbcr,Cgraham,tum,B             TP:  1592 TN:  4147 FP:     3 FN:   304
