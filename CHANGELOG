@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.446 2006/05/23 19:52:40 jonz Exp $
+$Id: CHANGELOG,v 1.447 2006/05/25 15:36:39 jonz Exp $
 
 Verzion NEXT
 ------------
+
+[20060525.1100] jonz: fix for segfault on undefined DeliveryHost or ClientHost
+
+fix for segfault in daemon mode when DeliveryHost or ClientHost is not 
+specified
 
 [20060524.0300] jonz: added --client support for dspam_train
 

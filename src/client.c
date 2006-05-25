@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.61 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: client.c,v 1.62 2006/05/25 15:36:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -289,7 +289,7 @@ int client_connect(AGENT_CTX *ATX, int flags) {
     if (_ds_read_attribute(agent_config, "DeliveryPort"))
       port = atoi(_ds_read_attribute(agent_config, "DeliveryPort"));
 
-    if (host[0] == '/') 
+    if (host && host[0] == '/') 
       domain = 1;
 
   } else {
@@ -298,7 +298,7 @@ int client_connect(AGENT_CTX *ATX, int flags) {
     if (_ds_read_attribute(agent_config, "ClientPort"))
       port = atoi(_ds_read_attribute(agent_config, "ClientPort"));
 
-    if (host[0] == '/')
+    if (host && host[0] == '/')
       domain = 1;
   }
 
