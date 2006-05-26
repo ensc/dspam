@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.20 2006/05/23 19:52:40 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.21 2006/05/26 06:44:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -121,7 +121,7 @@ typedef struct _ds_spam_stat
   long spam_hits;
   long innocent_hits;
   char status;
-  void *addr;
+  unsigned long offset;
 } *ds_spam_stat_t;
 
 /*

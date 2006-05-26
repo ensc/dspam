@@ -1,4 +1,4 @@
-/* $Id: diction.c,v 1.11 2006/05/23 19:52:40 jonz Exp $ */
+/* $Id: diction.c,v 1.12 2006/05/26 06:44:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -289,7 +289,7 @@ ds_diction_setstat (ds_diction_t diction, ds_key_t key, ds_spam_stat_t s)
     term->s.spam_hits = s->spam_hits;
     term->s.innocent_hits = s->innocent_hits;
     term->s.status = s->status;
-    term->s.addr = s->addr;
+    term->s.offset = s->offset;
     return 0;
   }
   return -1;
@@ -303,8 +303,8 @@ int ds_diction_addstat (ds_diction_t diction, ds_key_t key, ds_spam_stat_t s)
     term->s.probability += s->probability;
     term->s.spam_hits += s->spam_hits;
     term->s.innocent_hits += s->innocent_hits;
-    if (!term->s.addr)
-      term->s.addr = s->addr; 
+    if (!term->s.offset)
+      term->s.offset = s->offset;
     if (s->status & TST_DISK)
       term->s.status |= TST_DISK;
     if (s->status & TST_DIRTY)
@@ -324,7 +324,7 @@ ds_diction_getstat  (ds_diction_t diction, ds_key_t key, ds_spam_stat_t s)
     s->spam_hits = term->s.spam_hits;
     s->innocent_hits = term->s.innocent_hits;
     s->status = term->s.status;
-    s->addr = term->s.addr;
+    s->offset = term->s.offset;
     return 0;
   }
   return -1;

@@ -1,4 +1,4 @@
-/* $Id: cssconvert.c,v 1.4 2006/05/23 19:52:40 jonz Exp $ */
+/* $Id: cssconvert.c,v 1.5 2006/05/26 06:44:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -150,7 +150,7 @@ int cssconvert(const char *filename) {
   while(filepos < old.file_len) {
     for(i=0;i<header->hash_rec_max;i++) {
       rec = old.addr+filepos;
-      if (_hash_drv_set_spamrecord(&new, rec, NULL)) {
+      if (_hash_drv_set_spamrecord(&new, rec, 0)) {
         LOG(LOG_WARNING, "aborting on error");
         _hash_drv_close(&new);
         _hash_drv_close(&old);

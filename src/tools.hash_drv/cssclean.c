@@ -1,4 +1,4 @@
-/* $Id: cssclean.c,v 1.8 2006/05/23 19:52:40 jonz Exp $ */
+/* $Id: cssclean.c,v 1.9 2006/05/26 06:44:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -144,7 +144,7 @@ int cssclean(const char *filename) {
     for(i=0;i<header->hash_rec_max;i++) {
       rec = old.addr+filepos;
       if (rec->hashcode && rec->nonspam + rec->spam > 1) {
-        if (_hash_drv_set_spamrecord(&new, rec, NULL)) {
+        if (_hash_drv_set_spamrecord(&new, rec, 0)) {
           LOG(LOG_WARNING, "aborting on error");
           _hash_drv_close(&new);
           _hash_drv_close(&old);

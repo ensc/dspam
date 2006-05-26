@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.447 2006/05/25 15:36:39 jonz Exp $
+$Id: CHANGELOG,v 1.448 2006/05/26 06:44:39 jonz Exp $
 
 Verzion NEXT
 ------------
+
+[20060526.0230] jonz: rewrite for hash_drv offset caching
+
+rewrote offset caching in hash_drv; fixed some bugs which may have caused
+a crash on extent addition
 
 [20060525.1100] jonz: fix for segfault on undefined DeliveryHost or ClientHost
 

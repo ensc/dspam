@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.19 2006/05/23 19:52:40 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.20 2006/05/26 06:44:39 jonz Exp $ */
 
 /*
  DSPAM
@@ -586,6 +586,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   {
     ds_term->s.spam_hits = 0;
     ds_term->s.innocent_hits = 0;
+    ds_term->s.offset = 0;
     x = _ds_get_spamrecord (CTX, ds_term->key, p_stat);
     if (!x)
       ds_diction_setstat(diction, ds_term->key, p_stat);
@@ -661,20 +662,18 @@ _ds_get_spamrecord (
 {
   struct _hash_drv_spam_record rec;
   struct _hash_drv_storage *s = (struct _hash_drv_storage *) CTX->storage;
-  void *map_addr;
 
   rec.spam = rec.nonspam = 0;
   rec.hashcode = token;
 
-  map_addr = _hash_drv_get_spamrecord(s->map, &rec);
-  if (!map_addr)
+  stat->offset = _hash_drv_get_spamrecord(s->map, &rec);
+  if (!stat->offset)
     return EFAILURE;
 
   stat->probability   = 0.00000;
   stat->status        = 0;
   stat->innocent_hits = rec.nonspam;
   stat->spam_hits     = rec.spam;
-  stat->addr          = map_addr;
 
   return 0;
 }
@@ -692,7 +691,7 @@ _ds_set_spamrecord (
   rec.nonspam = (stat->innocent_hits > 0) ? stat->innocent_hits : 0;
   rec.spam = (stat->spam_hits > 0) ? stat->spam_hits : 0;
 
-  return _hash_drv_set_spamrecord(s->map, &rec, stat->addr);
+  return _hash_drv_set_spamrecord(s->map, &rec, stat->offset);
 }
 
 int
@@ -1084,7 +1083,7 @@ int
 _hash_drv_set_spamrecord (
   hash_drv_map_t map,
   hash_drv_spam_record_t wrec,
-  hash_drv_spam_record_t map_addr)
+  unsigned long map_offset)
 {
   hash_drv_spam_record_t rec;
   unsigned long offset = 0, extents = 0, rec_offset = 0;
@@ -1092,8 +1091,8 @@ _hash_drv_set_spamrecord (
   if (map->addr == NULL)
     return EINVAL;
 
-  if (map_addr) {
-    rec = map_addr;
+  if (map_offset) {
+    rec = map->addr + map_offset;
   } else {
     while(rec_offset <= 0 && offset < map->file_len)
     {
@@ -1112,7 +1111,7 @@ _hash_drv_set_spamrecord (
           goto FULL;
   
         if (!_hash_drv_autoextend(map))
-          return _hash_drv_set_spamrecord(map, wrec, map_addr);
+          return _hash_drv_set_spamrecord(map, wrec, map_offset);
         else
           return EFAILURE;
       } else {
@@ -1133,7 +1132,7 @@ FULL:
   return EFAILURE;
 }
 
-void *
+unsigned long
 _hash_drv_get_spamrecord (
   hash_drv_map_t map,
   hash_drv_spam_record_t wrec)
@@ -1142,7 +1141,7 @@ _hash_drv_get_spamrecord (
   unsigned long offset = 0, extents = 0, rec_offset = 0;
 
   if (map->addr == NULL)
-    return NULL;
+    return 0;
 
   while(rec_offset <= 0 && offset < map->file_len)
   {
@@ -1156,13 +1155,14 @@ _hash_drv_get_spamrecord (
   }
 
   if (rec_offset <= 0) 
-    return NULL;
+    return 0;
 
-  rec = map->addr + offset + rec_offset;
+  offset += rec_offset;
+  rec = map->addr + offset;
   
   wrec->nonspam  = rec->nonspam;
   wrec->spam     = rec->spam;
-  return (void *) rec;
+  return offset;
 }
 
 /* Preference Stubs for Flat-File */
