@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.21 2006/05/23 19:52:40 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.22 2006/05/26 23:15:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -117,7 +117,7 @@ int _ds_tokenize_ngram(
   char *line = NULL;			/* header broken up into lines */
   char *ptrptr;
   char heading[128];			/* current heading */
-  int l;
+  int l, tokenizer = CTX->tokenizer;
 
   struct nt *header = NULL;
   struct nt_node *node_nt;
@@ -207,7 +207,7 @@ int _ds_tokenize_ngram(
         /* Process "current" token */
         if (!_ds_process_header_token
             (CTX, token, previous_token, diction, heading) && 
-            (CTX->tokenizer == DSZ_CHAIN))
+            (tokenizer == DSZ_CHAIN))
         {
           previous_token = token;
         }
@@ -242,7 +242,7 @@ int _ds_tokenize_ngram(
     {
       /* Process "current" token */ 
       if ( !_ds_process_body_token(CTX, token, previous_token, diction)
-        && CTX->tokenizer == DSZ_CHAIN)
+        && tokenizer == DSZ_CHAIN)
       {
         previous_token = token;
       }
@@ -274,6 +274,7 @@ int _ds_tokenize_sparse(
 
   char *line = NULL;			/* header broken up into lines */
   char *ptrptr;
+  char *bitpattern;
 
   char heading[128];			/* current heading */
   int l;
@@ -284,6 +285,8 @@ int _ds_tokenize_sparse(
 
   for(i=0;i<SPARSE_WINDOW_SIZE;i++)
     previous_tokens[i] = NULL;
+
+  bitpattern = _ds_generate_bitpattern(_ds_pow2(SPARSE_WINDOW_SIZE));
 
   /* Tokenize URLs in message */
 
@@ -302,6 +305,7 @@ int _ds_tokenize_sparse(
   if (header == NULL)
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
+    free(bitpattern);
     return EUNKNOWN;
   }
 
@@ -364,14 +368,14 @@ int _ds_tokenize_sparse(
 #ifdef VERBOSE
         LOGDEBUG ("Processing '%s' token in '%s' header", token, heading);
 #endif
-        _ds_map_header_token (CTX, token, previous_tokens, diction, heading);
+        _ds_map_header_token (CTX, token, previous_tokens, diction, heading, bitpattern);
       }
 
       token = strtok_r (NULL, DELIMITERS_HEADING, &ptrptr);
     }
 
     for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
-      _ds_map_header_token(CTX, NULL, previous_tokens, diction, heading);
+      _ds_map_header_token(CTX, NULL, previous_tokens, diction, heading, bitpattern);
     }
 
     _ds_sparse_clear(previous_tokens);
@@ -394,7 +398,7 @@ int _ds_tokenize_sparse(
     if (l > 0 && l < 50)
     {
       /* Process "current" token */ 
-      _ds_map_body_token (CTX, token, previous_tokens, diction);
+      _ds_map_body_token (CTX, token, previous_tokens, diction, bitpattern);
     } 
 
 #ifdef NCORE
@@ -405,11 +409,12 @@ int _ds_tokenize_sparse(
   }
 
   for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
-    _ds_map_body_token(CTX, NULL, previous_tokens, diction);
+    _ds_map_body_token(CTX, NULL, previous_tokens, diction, bitpattern);
   }
 
   _ds_sparse_clear(previous_tokens); 
 
+  free(bitpattern);
   return 0;
 }
 
@@ -521,12 +526,13 @@ _ds_process_body_token (DSPAM_CTX * CTX, char *token,
 int
 _ds_map_header_token (DSPAM_CTX * CTX, char *token,
                       char **previous_tokens, ds_diction_t diction,
-                      const char *heading)
+                      const char *heading, const char *bitpattern)
 {
-  int i, mask, t, keylen, pow, pow2;
+  int i, t, keylen, breadth;
+  u_int32_t mask;
   unsigned long long crc;
   char key[256];
-  int active = 0, top;
+  int active = 0, top, tokenizer = CTX->tokenizer;
 
   if (_ds_match_attribute(CTX->config->attributes, "IgnoreHeader", heading))
     return 0;
@@ -546,16 +552,17 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
   if (token) 
     active++;
 
-  pow = _ds_pow2(active);
+  breadth = _ds_pow2(active);
   
   /* Iterate and generate all keys necessary */
-  for(mask=0;mask < pow;mask++) {
+  for (mask=0; mask < breadth; mask++) {
     int terms = 0;
+
     key[0] = 0;
     keylen = 0;
     t = 0;
     top = 1;
-                                                                                
+
     /* Each Bit */
     for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
 
@@ -566,8 +573,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
         }
       }
 
-      pow2 = (_ds_pow2(i+1)/2);
-      if (mask & pow2) {
+      if (bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] == '1') {
         if (previous_tokens[i] == NULL || previous_tokens[i][0] == 0) {
           if (keylen < (sizeof(key)-1)) {
             key[keylen] = '#';
@@ -593,8 +599,8 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
     }
 
     /* If the bucket has at least 1 literal, hit it */
-    if ((CTX->tokenizer == DSZ_SBPH && terms != 0) ||
-        (CTX->tokenizer == DSZ_OSB  && terms == 2))
+    if ((tokenizer == DSZ_SBPH && terms != 0) ||
+        (tokenizer == DSZ_OSB  && terms == 2))
     {
       char hkey[256];
       char *k = key;
@@ -620,14 +626,19 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
 }
 
 int
-_ds_map_body_token (DSPAM_CTX * CTX, char *token,
-                        char **previous_tokens, ds_diction_t diction)
+_ds_map_body_token (
+  DSPAM_CTX * CTX,
+  char *token,
+  char **previous_tokens,
+  ds_diction_t diction, 
+  const char *bitpattern)
 {
-  int i, mask, t, keylen, pow, pow2;
-  int top;
+  int i, t, keylen, breadth;
+  int top, tokenizer = CTX->tokenizer;
   unsigned long long crc;
   char key[256];
   int active = 0;
+  u_int32_t mask;
 
   /* Shift all previous tokens up */
   for(i=0;i<SPARSE_WINDOW_SIZE-1;i++) {
@@ -637,14 +648,14 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
   }
 
   previous_tokens[SPARSE_WINDOW_SIZE-1] = token;
-
   if (token) 
     active++;
 
-  pow = _ds_pow2(active);
+  breadth = _ds_pow2(active);
 
   /* Iterate and generate all keys necessary */
-  for(mask=0;mask < pow;mask++) {
+
+  for(mask=0;mask < breadth;mask++) {
     int terms = 0;
     t = 0;
 
@@ -660,8 +671,7 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
            key[++keylen] = 0;
         }
       }
-      pow2 = (_ds_pow2(i+1)/2);
-      if (mask & pow2) {
+      if (bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] == '1') {
         if (previous_tokens[i] == NULL || previous_tokens[i][0] == 0) {
           if (keylen < (sizeof(key)-1)) {
             key[keylen] = '#';
@@ -687,8 +697,8 @@ _ds_map_body_token (DSPAM_CTX * CTX, char *token,
     }
 
     /* If the bucket has at least 1 literal, hit it */
-    if ((CTX->tokenizer == DSZ_SBPH && terms != 0) ||
-        (CTX->tokenizer == DSZ_OSB  && terms == 2))
+    if ((tokenizer == DSZ_SBPH && terms != 0) ||
+        (tokenizer == DSZ_OSB  && terms == 2))
     {
       char *k = key;
       while(keylen>2 && !strcmp((key+keylen)-2, "+#")) {
@@ -1024,3 +1034,39 @@ void _ds_sparse_clear(char **previous_tokens) {
     previous_tokens[i] = NULL;
   return;
 }
+
+/*
+ * _ds_generate_bitpattern
+ *
+ * DESCRIPTION
+ *   Generates a sparse bitpattern for SPARSE_WINDOW_SIZE
+ *
+ *   This pattern is then used to create token patterns when using SBPH or OSB
+ *
+ */
+
+char *_ds_generate_bitpattern(int breadth) {
+  char *bitpattern;
+  unsigned long mask, exp;
+  int i;
+
+  bitpattern = malloc(SPARSE_WINDOW_SIZE * breadth);
+
+  for(mask=0;mask<breadth;mask++) {
+      for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
+          exp = (i) ? _ds_pow2(i) : 1;
+          /* Reverse pos = SPARSE_WINDOW_SIZE - (i+1); */
+          if (mask & exp)
+          {
+              bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] = '1';
+          }
+          else
+          {
+              bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] = '0';
+          }
+      }
+  }
+
+  return bitpattern;
+}
+

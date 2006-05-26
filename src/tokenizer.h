@@ -1,4 +1,4 @@
-/* $Id: tokenizer.h,v 1.6 2006/05/16 20:11:22 jonz Exp $ */
+/* $Id: tokenizer.h,v 1.7 2006/05/26 23:15:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -71,13 +71,15 @@ int _ds_map_header_token(
   char *token,
   char **previous_tokens,
   ds_diction_t diction,
-  const char *heading);
+  const char *heading,
+  const char *bitpattern);
 
 int _ds_map_body_token(
   DSPAM_CTX * CTX,
   char *token,
   char **previous_tokens,
-  ds_diction_t diction);
+  ds_diction_t diction,
+  const char *bitpattern);
 
 int _ds_degenerate_message(
   DSPAM_CTX *CTX,
@@ -94,5 +96,8 @@ void _ds_sparse_clear
 
 char * _ds_truncate_token
   (const char *token);
+
+char *_ds_generate_bitpattern
+  (int breadth);
 
 #endif

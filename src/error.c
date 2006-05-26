@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.13 2006/05/19 19:19:27 jonz Exp $ */
+/* $Id: error.c,v 1.14 2006/05/26 23:15:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -76,7 +76,9 @@ LOG(int priority, const char *err, ... )
 #endif
 
 #ifdef DAEMON
+#if defined(USE_SYSLOG) && defined(LOGFILE)
   pthread_mutex_lock(&__syslog_lock);
+#endif
 #endif
 
   va_start (ap, err);
@@ -103,8 +105,10 @@ LOG(int priority, const char *err, ... )
   }
 #endif
 
-#ifdef DAEMON
+#ifdef DAEMON 
+#if defined(USE_SYSLOG) && defined(LOGFILE)
   pthread_mutex_unlock(&__syslog_lock);
+#endif
 #endif
 
   return;

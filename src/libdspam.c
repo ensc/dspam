@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.157 2006/05/23 19:52:40 jonz Exp $ */
+/* $Id: libdspam.c,v 1.158 2006/05/26 23:15:17 jonz Exp $ */
 
 /*
  DSPAM
@@ -606,10 +606,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   if (CTX->source == DSS_NONE) {
     gettimeofday(&tp2, &tzp);
     LOGDEBUG("total processing time: %01.5fs",
-       (tp2.tv_sec-tp1.tv_sec +
-       (tp2.tv_usec >= tp1.tv_usec) ? tp2.tv_usec - tp1.tv_usec
-                                    : (1000000 - tp1.tv_usec) + tp2.tv_usec)
-       / 1000000.0);
+       (double) (tp2.tv_sec + (tp2.tv_usec / 1000000.0)) -
+       (double) (tp1.tv_sec + (tp1.tv_usec / 1000000.0)));
   }
 #endif
 

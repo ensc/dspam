@@ -1,7 +1,15 @@
-$Id: CHANGELOG,v 1.448 2006/05/26 06:44:39 jonz Exp $
+$Id: CHANGELOG,v 1.449 2006/05/26 23:15:17 jonz Exp $
 
 Verzion NEXT
 ------------
+
+[20060526.1900] jonz: fix for library TIME_ME measurements
+
+fixed bug where negative processing times were reported using TIME_ME
+
+[20060526.1600] jonz: turned off locking when not using syslog or logging
+
+no need to lock on LOG() when not logging
 
 [20060526.0230] jonz: rewrite for hash_drv offset caching
 
@@ -23,6 +31,7 @@ various optimizations to:
 - tokenizer core
 - hash_drv driver (store offset for writes)
 - libdspam (preference lookups)
+- optimizations for osb/sbph
 
 [20060522.0300] jonz: added ProcessorURLContext
 
