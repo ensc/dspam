@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.77 2006/05/27 20:12:46 jonz Exp $
+## $Id: dspam.conf.in,v 1.78 2006/05/27 21:00:36 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -424,12 +424,21 @@ HashAutoExtend		on
 HashMaxExtents		0
 
 #
-# HashExtentSize: The record size for newly created extents. Creating this too
-# small could result in many extents being created. Creating this too large
-# could result in excessive disk space usage. Typically, a value close to half
-# of the HashRecMax size is good.
+# HashExtentSize: The initial record size for newly created extents. Creating 
+# this too small could result in many extents being created. Creating this too 
+# large could result in excessive disk space usage. Typically, a value close 
+# to half of the HashRecMax size is good.
 #
 HashExtentSize		49157
+
+#
+# HashPctIncrease: Increase the next extent size by n% from the size of the
+# last extent. The default behavior, when HashPctIncrease is not used, is to
+# always use HashExtentSize with no increase. This is useful in accommodating
+# systems where the default HashExtentSize can be too small for certain
+# high-volume users.
+#
+HashPctIncrease 10
 
 #
 # HashMaxSeek: The maximum number of record seeks when inserting a new record

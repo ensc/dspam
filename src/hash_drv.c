@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.20 2006/05/26 06:44:39 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.21 2006/05/27 21:00:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -102,6 +102,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
     unsigned long max_seek     = HASH_SEEK_MAX;
     unsigned long max_extents  = 0;
     unsigned long extent_size  = HASH_EXTENT_MAX;
+    int pctincrease = 0;
     int flags = HMAP_AUTOEXTEND;
     int ret, i;
 
@@ -121,6 +122,14 @@ dspam_init_driver (DRIVER_CTX *DTX)
 
     if (!MATCH_ATTRIB("HashAutoExtend", "on"))
       flags = 0;
+
+    if (READ_ATTRIB("HashPctIncrease")) {
+      pctincrease = atoi(READ_ATTRIB("HashPctIncrease"));
+      if (pctincrease > 100) {
+          LOG(LOG_ERR, "HashPctIncrease out of range; ignoring");
+          pctincrease = 0;
+      }
+    }
 
     if (READ_ATTRIB("HashMaxSeek"))
        max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
@@ -160,7 +169,8 @@ dspam_init_driver (DRIVER_CTX *DTX)
       _ds_prepare_path_for(filename);
       LOGDEBUG("preloading %s into memory via mmap()", filename);
       ret = _hash_drv_open(filename, map, hash_rec_max, 
-                           max_seek, max_extents, extent_size, flags); 
+          max_seek, max_extents, extent_size, pctincrease, flags); 
+
       if (ret) {
         LOG(LOG_CRIT, "_hash_drv_open(%s) failed on error %d: %s", 
                       filename, ret, strerror(errno)); 
@@ -291,6 +301,7 @@ int _hash_drv_open(
   unsigned long max_seek,
   unsigned long max_extents,
   unsigned long extent_size,
+  int pctincrease,
   int flags) 
 {
   struct _hash_drv_header header;
@@ -356,6 +367,7 @@ int _hash_drv_open(
   map->max_seek    = max_seek;
   map->max_extents = max_extents;
   map->extent_size = extent_size;
+  map->pctincrease = pctincrease;
   map->flags       = flags;
 
   return 0;
@@ -442,6 +454,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   s->max_seek     = HASH_SEEK_MAX;
   s->max_extents  = 0;
   s->extent_size  = HASH_EXTENT_MAX;
+  s->pctincrease  = 0;
   s->flags        = HMAP_AUTOEXTEND;
 
   if (READ_ATTRIB("HashRecMax"))
@@ -455,6 +468,14 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   if (!MATCH_ATTRIB("HashAutoExtend", "on"))
     s->flags = 0;
+
+  if (READ_ATTRIB("HashPctIncrease")) {
+    s->pctincrease = atoi(READ_ATTRIB("HashPctIncrease"));
+    if (s->pctincrease > 100) {
+        LOG(LOG_ERR, "HashPctIncrease out of range; ignoring");
+        s->pctincrease = 0;
+    }
+  }
 
   if (READ_ATTRIB("HashMaxSeek"))
     s->max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
@@ -475,7 +496,8 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
       goto BAIL;
 
     ret = _hash_drv_open(db, s->map, s->hash_rec_max, s->max_seek, 
-                        s->max_extents, s->extent_size, s->flags);
+        s->max_extents, s->extent_size, s->pctincrease, s->flags);
+
     if (ret) {
       _hash_drv_close(s->map);
       free(s);
@@ -1012,7 +1034,10 @@ _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   return 0;
 }
 
-int _hash_drv_autoextend(hash_drv_map_t map)
+int _hash_drv_autoextend(
+    hash_drv_map_t map, 
+    int extents, 
+    unsigned long last_extent_size)
 {
   struct _hash_drv_header header;
   struct _hash_drv_spam_record rec;
@@ -1028,15 +1053,23 @@ int _hash_drv_autoextend(hash_drv_map_t map)
 
   memset(&header, 0, sizeof(struct _hash_drv_header));
   memset(&rec, 0, sizeof(struct _hash_drv_spam_record));
-  header.hash_rec_max = map->extent_size;
+  
+  if (extents == 0 || !map->pctincrease)
+    header.hash_rec_max = map->extent_size;
+  else
+    header.hash_rec_max = last_extent_size
+                   + (last_extent_size * (map->pctincrease/100.0));
+
+  LOGDEBUG("adding extent last: %d(%ld) new: %d(%ld) pctincrease: %1.2f", extents, last_extent_size, extents+1, header.hash_rec_max, (map->pctincrease/100.0));
+
   lseek (map->fd, 0, SEEK_END);
   write (map->fd, &header, sizeof(struct _hash_drv_header));
-  for(i=0;i<map->extent_size;i++) 
+  for(i=0;i<header.hash_rec_max;i++) 
     write (map->fd, &rec, sizeof(struct _hash_drv_spam_record));
   close(map->fd);
 
   _hash_drv_open(map->filename, map, 0, map->max_seek, 
-                 map->max_extents, map->extent_size, map->flags);
+      map->max_extents, map->extent_size, map->pctincrease, map->flags);
   return 0;
 }
 
@@ -1086,7 +1119,7 @@ _hash_drv_set_spamrecord (
   unsigned long map_offset)
 {
   hash_drv_spam_record_t rec;
-  unsigned long offset = 0, extents = 0, rec_offset = 0;
+  unsigned long offset = 0, extents = 0, last_extent_size = 0, rec_offset = 0;
 
   if (map->addr == NULL)
     return EINVAL;
@@ -1101,6 +1134,7 @@ _hash_drv_set_spamrecord (
         hash_drv_header_t header = map->addr + offset;
         offset += sizeof(struct _hash_drv_header) +
           (sizeof(struct _hash_drv_spam_record) * header->hash_rec_max);
+        last_extent_size = header->hash_rec_max;
         extents++;
       }
     }
@@ -1110,7 +1144,7 @@ _hash_drv_set_spamrecord (
         if (extents > map->max_extents && map->max_extents)
           goto FULL;
   
-        if (!_hash_drv_autoextend(map))
+        if (!_hash_drv_autoextend(map, extents-1, last_extent_size))
           return _hash_drv_set_spamrecord(map, wrec, map_offset);
         else
           return EFAILURE;

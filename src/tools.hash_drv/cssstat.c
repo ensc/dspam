@@ -1,4 +1,4 @@
-/* $Id: cssstat.c,v 1.7 2006/05/13 01:13:01 jonz Exp $ */
+/* $Id: cssstat.c,v 1.8 2006/05/27 21:00:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -128,7 +128,7 @@ int cssstat(const char *filename) {
      max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
 
   if (_hash_drv_open(filename, &map, 0, max_seek, 
-                     max_extents, extent_size, flags))
+                     max_extents, extent_size, 0, flags))
   {
     return EFAILURE;
   }

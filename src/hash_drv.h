@@ -1,4 +1,4 @@
-/* $Id: hash_drv.h,v 1.13 2006/05/26 06:44:39 jonz Exp $ */
+/* $Id: hash_drv.h,v 1.14 2006/05/27 21:00:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -52,6 +52,7 @@ typedef struct _hash_drv_map
   unsigned long max_seek;
   unsigned long max_extents;
   unsigned long extent_size;
+  int pctincrease;
   int flags;
 } *hash_drv_map_t;
 
@@ -67,6 +68,7 @@ struct _hash_drv_storage
   unsigned long max_seek;
   unsigned long max_extents;
   unsigned long extent_size;
+  int pctincrease;
   int flags;
 
   struct nt *dir_handles;
@@ -101,13 +103,14 @@ int _hash_drv_open(
   unsigned long max_seek,
   unsigned long max_extents,
   unsigned long extent_size,
+  int pctincrease,
   int flags);
 
 int _hash_drv_close
   (hash_drv_map_t map);
 
 int _hash_drv_autoextend
-  (hash_drv_map_t map);
+  (hash_drv_map_t map, int extents, unsigned long last_extent_size);
 
 unsigned long _hash_drv_seek(
   hash_drv_map_t map,

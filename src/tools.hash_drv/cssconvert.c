@@ -1,4 +1,4 @@
-/* $Id: cssconvert.c,v 1.5 2006/05/26 06:44:39 jonz Exp $ */
+/* $Id: cssconvert.c,v 1.6 2006/05/27 21:00:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -113,6 +113,7 @@ int cssconvert(const char *filename) {
   unsigned long max_seek     = HASH_SEEK_MAX;
   unsigned long max_extents  = 0;
   unsigned long extent_size  = HASH_EXTENT_MAX;
+  int pctincrease = 0;
   int flags = 0;
 
   if (READ_ATTRIB("HashRecMax"))
@@ -130,16 +131,24 @@ int cssconvert(const char *filename) {
   if (READ_ATTRIB("HashMaxSeek"))
      max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
 
+  if (READ_ATTRIB("HashPctIncrease")) {
+    pctincrease = atoi(READ_ATTRIB("HashPctIncrease"));
+    if (pctincrease > 100) {
+        LOG(LOG_ERR, "HashPctIncrease out of range; ignoring");
+        pctincrease = 0;
+    }
+  }
+
   snprintf(newfile, sizeof(newfile), "/tmp/%u.css", (unsigned int) getpid());
 
   if (_hash_drv_open(filename, &old, 0, max_seek,
-                     max_extents, extent_size, flags))
+                     max_extents, extent_size, pctincrease, flags))
   {
     return EFAILURE;
   }
 
   if (_hash_drv_open(newfile, &new, hash_rec_max, max_seek,
-                     max_extents, extent_size, flags))
+                     max_extents, extent_size, pctincrease, flags))
   {
     _hash_drv_close(&old);
     return EFAILURE;

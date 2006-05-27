@@ -1,7 +1,15 @@
-$Id: CHANGELOG,v 1.450 2006/05/27 19:45:11 jonz Exp $
+$Id: CHANGELOG,v 1.451 2006/05/27 21:00:36 jonz Exp $
 
 Verzion NEXT
 ------------
+
+[20060527.1700] jonz: added HashPctIncrease option in dspam.conf
+
+HashPctIncrease: Increase the next extent size by n% from the size of the
+last extent. The default behavior, when HashPctIncrease is not used, is to
+always use HashExtentSize with no increase. This is useful in accommodating
+systems where the default HashExtentSize can be too small for certain
+high-volume users. 
 
 [20060527.1530] jonz: cache runtime user information
 
