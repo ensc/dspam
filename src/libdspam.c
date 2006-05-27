@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.159 2006/05/27 19:45:11 jonz Exp $ */
+/* $Id: libdspam.c,v 1.160 2006/05/27 19:49:44 jonz Exp $ */
 
 /*
  DSPAM
@@ -459,8 +459,10 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   buffer *header, *body;
   int spam_result = 0, is_toe = 0, is_undertrain = 0;
 
+#ifdef DEBUG
   if (DO_DEBUG)
     gettimeofday(&tp1, &tzp);
+#endif
 
   if (CTX->signature != NULL)
     CTX->_sig_provided = 1;
@@ -602,6 +604,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   if (is_undertrain)
     CTX->training_mode = DST_TOE;
 
+#ifdef DEBUG
   if (DO_DEBUG) {
     if (CTX->source == DSS_NONE) {
       gettimeofday(&tp2, &tzp);
@@ -610,6 +613,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
          (double) (tp1.tv_sec + (tp1.tv_usec / 1000000.0)));
     }
   }
+#endif
 
   if (CTX->result == DSR_ISSPAM || CTX->result == DSR_ISINNOCENT) 
     return 0;
