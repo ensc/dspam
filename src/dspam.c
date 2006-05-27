@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.230 2006/05/19 17:36:10 jonz Exp $ */
+/* $Id: dspam.c,v 1.231 2006/05/27 19:45:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -116,9 +116,22 @@ main (int argc, char *argv[])
   DO_DEBUG = 0;
 #endif
 
+  struct passwd *pwent;
+
 #ifdef DAEMON
   pthread_mutex_init(&__syslog_lock, NULL);
 #endif
+
+  /* Cache my username and uid for trusted user security */
+
+  pwent = getpwuid(getuid());
+  if (pwent == NULL) {
+    LOG(LOG_ERR, ERR_AGENT_RUNTIME_USER);
+    exitcode = EXIT_FAILURE;
+    goto BAIL;
+  }
+  __pw_name = strdup(pwent->pw_name);
+  __pw_uid  = pwent->pw_uid;
 
   /* Read dspam.conf into global config structure (ds_config_t) */
 
@@ -171,6 +184,7 @@ main (int argc, char *argv[])
       _ds_destroy_config(agent_config);
 
     pthread_mutex_destroy(&__syslog_lock);
+    free(__pw_name);
     exit(EXIT_SUCCESS);
   }
 #endif
@@ -283,6 +297,7 @@ BAIL:
 #ifdef DAEMON
   pthread_mutex_destroy(&__syslog_lock);
 #endif
+  free(__pw_name);
   exit(exitcode);
 }
 

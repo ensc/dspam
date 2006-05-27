@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.26 2006/05/16 20:11:22 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.27 2006/05/27 19:45:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -33,6 +33,9 @@
 
 #ifndef _AGENT_SHARED_H
 #  define _AGENT_SHARED_H
+
+extern char *__pw_name;
+extern uid_t __pw_uid;
 
 #define STATUS( ... )   snprintf(ATX->status, sizeof(ATX->status), __VA_ARGS__);
 

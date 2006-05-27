@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.70 2006/05/16 20:11:22 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.71 2006/05/27 19:45:11 jonz Exp $ */
 
 /*
  DSPAM
@@ -58,6 +58,7 @@
 #include "read_config.h"
 #ifdef DAEMON
 #include "daemon.h"
+#include "dspam.h"
 #endif
 
 #ifdef TIME_WITH_SYS_TIME
@@ -75,6 +76,9 @@
 #include "language.h"
 #include "buffer.h"
 
+char * __pw_name = NULL;
+uid_t  __pw_uid;
+
 /*
  * initialize_atx(AGENT_CTX *)
  *
@@ -89,14 +93,6 @@
  */
 
 int initialize_atx(AGENT_CTX *ATX) {
-
-#if defined(TRUSTED_USER_SECURITY) && \
-    defined(_REENTRANT)            && \
-    defined(HAVE_GETPWUID_R)
-
-  char buf[1024];
-#endif
-
   memset(ATX, 0, sizeof(AGENT_CTX));
   ATX->training_mode   = DST_DEFAULT;
   ATX->training_buffer = 0;
@@ -112,30 +108,20 @@ int initialize_atx(AGENT_CTX *ATX) {
   }
 
 #ifdef TRUSTED_USER_SECURITY
-
-  /* Cache the current user's passwd entry and establish trust */
-
-#if defined(_REENTRANT) && defined(HAVE_GETPWUID_R)
-  if (getpwuid_r(getuid(), &ATX->pwbuf, buf, sizeof(buf), &ATX->p)) 
-  {
-    ATX->p = NULL;
-  }
-#else
-  ATX->p = getpwuid (getuid());
-#endif
-
-  if (!ATX->p) {
+  if (!__pw_name) {
     LOG(LOG_ERR, ERR_AGENT_RUNTIME_USER);
     exit(EXIT_FAILURE);
   }
 
-  if (ATX->p->pw_uid == 0)
+  LOGDEBUG("checking trusted user list for %s(%d)", __pw_name, __pw_uid);
+
+  if (__pw_uid == 0)
     ATX->trusted = 1;
   else
-    ATX->trusted = _ds_match_attribute(agent_config, "Trust", ATX->p->pw_name);
+    ATX->trusted = _ds_match_attribute(agent_config, "Trust", __pw_name);
 
   if (!ATX->trusted)
-    nt_add (ATX->users, ATX->p->pw_name);
+    nt_add (ATX->users, __pw_name);
 #endif
 
   return 0;
@@ -263,8 +249,8 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
           strcpy(user, argv[i]);
 
 #ifdef TRUSTED_USER_SECURITY
-        if (!ATX->trusted && strcmp(user, ATX->p->pw_name)) {
-          LOG(LOG_ERR, ERR_TRUSTED_USER, ATX->p->pw_uid, ATX->p->pw_name);
+        if (!ATX->trusted && strcmp(user, __pw_name)) {
+          LOG(LOG_ERR, ERR_TRUSTED_USER, __pw_uid, __pw_name);
           return EINVAL;
         }
 
@@ -289,8 +275,8 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
           strcpy(user, argv[i]);
 
 #ifdef TRUSTED_USER_SECURITY
-        if (!ATX->trusted && strcmp(user, ATX->p->pw_name)) {
-          LOG(LOG_ERR, ERR_TRUSTED_USER, ATX->p->pw_uid, ATX->p->pw_name);
+        if (!ATX->trusted && strcmp(user, __pw_name)) {
+          LOG(LOG_ERR, ERR_TRUSTED_USER, __pw_uid, __pw_name);
           return EINVAL;
         }
 
@@ -313,7 +299,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 #ifdef TRUSTED_USER_SECURITY
       if (!ATX->trusted) {
         LOG(LOG_ERR, ERR_TRUSTED_PRIV, "--profile", 
-            ATX->p->pw_uid, ATX->p->pw_name);
+            __pw_uid, __pw_name);
         return EINVAL;
       }
 #endif

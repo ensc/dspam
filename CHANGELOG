@@ -1,7 +1,19 @@
-$Id: CHANGELOG,v 1.449 2006/05/26 23:15:17 jonz Exp $
+$Id: CHANGELOG,v 1.450 2006/05/27 19:45:11 jonz Exp $
 
 Verzion NEXT
 ------------
+
+[20060527.1530] jonz: cache runtime user information
+
+added caching of runtime user information, so this information is not polled
+every message when running in daemon mode. also elimiates the need for
+getpwuid_r when running in daemon mode (unless using mysql or pgsql), 
+which some operating systems do not have.
+
+[20060527.1530] jonz: moved TIME_ME into DEBUG
+
+when debug is active, TIME_ME automatically runs, reporting processing time
+to debug
 
 [20060526.1900] jonz: fix for library TIME_ME measurements
 
