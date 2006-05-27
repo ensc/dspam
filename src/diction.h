@@ -1,4 +1,4 @@
-/* $Id: diction.h,v 1.6 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: diction.h,v 1.7 2006/05/27 00:50:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -53,7 +53,7 @@ typedef struct _ds_diction_c
 {
   struct _ds_diction *diction;
   unsigned long iter_index;
-  struct _ds_term *iter_next;
+  ds_term_t iter_next;
 } *ds_cursor_t;
 
 typedef unsigned long long ds_key_t;

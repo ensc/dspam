@@ -1,4 +1,4 @@
-/* $Id: diction.c,v 1.12 2006/05/26 06:44:39 jonz Exp $ */
+/* $Id: diction.c,v 1.13 2006/05/27 00:50:59 jonz Exp $ */
 
 /*
  DSPAM
@@ -251,6 +251,7 @@ ds_diction_next (ds_cursor_t cur)
 {
   unsigned long bucket;
   ds_term_t term;
+  ds_term_t tbl_term;
 
   if (!cur)
     return NULL;
@@ -262,10 +263,12 @@ ds_diction_next (ds_cursor_t cur)
   }
 
   while (cur->iter_index < cur->diction->size) {
-    bucket = cur->iter_index++;
-    if (cur->diction->tbl[bucket]) {
-      cur->iter_next = cur->diction->tbl[bucket]->next;
-      return (cur->diction->tbl[bucket]);
+    bucket = cur->iter_index;
+    cur->iter_index++;
+    tbl_term = cur->diction->tbl[bucket];
+    if (tbl_term) {
+      cur->iter_next = tbl_term->next;
+      return (tbl_term);
     }
   }
 
