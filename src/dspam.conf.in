@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.76 2006/05/22 19:34:30 jonz Exp $
+## $Id: dspam.conf.in,v 1.77 2006/05/27 20:12:46 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -433,11 +433,12 @@ HashExtentSize		49157
 
 #
 # HashMaxSeek: The maximum number of record seeks when inserting a new record
-# before failing or adding a new extent. Setting this too high will exhaustively
-# scan each segment and kill performance. Typically, a low value is acceptable
+# before failing or adding a new extent. This ultimately translates into the
+# max # of acceptable seeks per segment. Setting this too high will exhaustively
+# scan each segment and hurt performance. Typically, a low value is acceptable
 # as even older extents will continue to fill as training progresses.
 #
-HashMaxSeek		100
+HashMaxSeek		10
 
 #
 # HashConcurrentUser: If you are using a single, stateful hash database in
