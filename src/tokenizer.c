@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.22 2006/05/26 23:15:17 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.23 2006/05/27 20:17:27 jonz Exp $ */
 
 /*
  DSPAM
@@ -573,7 +573,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
         }
       }
 
-      if (bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] == '1') {
+      if (bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] == 1) {
         if (previous_tokens[i] == NULL || previous_tokens[i][0] == 0) {
           if (keylen < (sizeof(key)-1)) {
             key[keylen] = '#';
@@ -671,7 +671,7 @@ _ds_map_body_token (
            key[++keylen] = 0;
         }
       }
-      if (bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] == '1') {
+      if (bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] == 1) {
         if (previous_tokens[i] == NULL || previous_tokens[i][0] == 0) {
           if (keylen < (sizeof(key)-1)) {
             key[keylen] = '#';
@@ -1058,11 +1058,11 @@ char *_ds_generate_bitpattern(int breadth) {
           /* Reverse pos = SPARSE_WINDOW_SIZE - (i+1); */
           if (mask & exp)
           {
-              bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] = '1';
+              bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] = 1;
           }
           else
           {
-              bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] = '0';
+              bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] = 0;
           }
       }
   }
