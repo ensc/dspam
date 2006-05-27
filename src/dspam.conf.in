@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.79 2006/05/27 21:07:20 jonz Exp $
+## $Id: dspam.conf.in,v 1.80 2006/05/27 21:12:57 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -435,9 +435,10 @@ HashExtentSize		49157
 # HashPctIncrease: Increase the next extent size by n% from the size of the
 # last extent. This is useful in accommodating systems where the default 
 # HashExtentSize can be too small for certain high-volume users, and can also
-# help prevent too many unnecessary extents from being created when using
-# a low HashMaxSeek.  The default behavior, when HashPctIncrease is not used, 
-# is to always use # HashExtentSize with no increase.
+# help keep seeks nice and speedy and/or prevent too many unnecessary extents 
+# from being created when using a low HashMaxSeek. The default behavior, when 
+# HashPctIncrease is not used, is to always use # HashExtentSize with no 
+# increase.
 #
 HashPctIncrease 10
 
