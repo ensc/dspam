@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.451 2006/05/27 21:00:36 jonz Exp $
+$Id: CHANGELOG,v 1.452 2006/05/30 15:36:13 jonz Exp $
 
 Verzion NEXT
 ------------
+
+[20060530.0130] jonz: added logging of viruses
+
+added logging of viruses (and the source) to agent
 
 [20060527.1700] jonz: added HashPctIncrease option in dspam.conf
 

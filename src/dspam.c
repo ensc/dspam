@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.231 2006/05/27 19:45:11 jonz Exp $ */
+/* $Id: dspam.c,v 1.232 2006/05/30 15:36:13 jonz Exp $ */
 
 /*
  DSPAM
@@ -397,6 +397,7 @@ process_message (
       strcmp(_ds_pref_val(ATX->PTX, "optOutClamAV"), "on"))
   {
     if (has_virus(message)) {
+      char ip[32];
       CTX->result = DSR_ISSPAM;
       CTX->probability = 1.0;
       CTX->confidence = 1.0;
@@ -404,6 +405,10 @@ process_message (
       result = DSR_ISSPAM;
       strcpy(CTX->class, LANG_CLASS_VIRUS);
       internally_canned = 1;
+      if (!dspam_getsource (CTX, ip, sizeof (ip)))
+      {
+        LOG(LOG_WARNING, "virus warning: infected message from %s", ip);
+      }
     }
   }
 #endif
