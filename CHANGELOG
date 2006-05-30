@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.452 2006/05/30 15:36:13 jonz Exp $
+$Id: CHANGELOG,v 1.453 2006/05/30 15:49:54 jonz Exp $
 
 Verzion NEXT
 ------------
+
+[20060530.0145] jonz: added connect check for pgsql
+
+added a connection check for pgsql, to reconnect on failure in daemon mode
 
 [20060530.0130] jonz: added logging of viruses
 

@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.57 2006/05/17 11:53:23 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.58 2006/05/30 15:49:54 jonz Exp $ */
 
 /*
  DSPAM
@@ -940,6 +940,7 @@ int
 _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 {
   struct _pgsql_drv_storage *s;
+  int ver = 0;
 
   /* don't init if we're already initted */
   if (CTX->storage != NULL)
@@ -947,12 +948,21 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     LOGDEBUG ("_ds_init_storage: storage already initialized");
     return EINVAL;
   }
-
+  
   s = calloc (1,sizeof (struct _pgsql_drv_storage));
   if (s == NULL)
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
+  }
+
+  if (dbh) {
+      ver = _pgsql_drv_get_dbversion(s);
+      if (ver < 0) {
+          LOG(LOG_WARNING, "_ds_init_storage: connection failed.");
+          free(s);
+          return EFAILURE;
+      }
   }
 
   s->dbh_attached = (dbh) ? 1 : 0;
@@ -994,7 +1004,10 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   s->control_sh = 0;  
 
   /* init db version and token type */
-  s->pg_major_ver = _pgsql_drv_get_dbversion(s);
+  if (ver)
+      s->pg_major_ver = ver;
+  else
+      s->pg_major_ver = _pgsql_drv_get_dbversion(s);
   s->pg_token_type = _pgsql_drv_token_type(s,NULL,0);
 
   /* get spam totals on successful init */
