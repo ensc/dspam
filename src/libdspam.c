@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.160 2006/05/27 19:49:44 jonz Exp $ */
+/* $Id: libdspam.c,v 1.161 2006/05/30 14:51:24 jonz Exp $ */
 
 /*
  DSPAM
@@ -2016,7 +2016,7 @@ CHI_NEXT:
     _ds_factor_destroy(factor_chi);
 
   /* If somehow we haven't yet assigned a probability, assign one */
-  if (CTX->probability) 
+  if (CTX->probability == DSP_UNCALCULATED)
   {
     if (CTX->algorithms & DSA_GRAHAM)
       CTX->probability = bay_result;
