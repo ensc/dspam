@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.25 2006/06/01 19:12:50 jonz Exp $
+# $Id: dspam.cgi,v 1.26 2006/06/01 19:14:14 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -897,12 +897,13 @@ sub Quarantine_DeleteSpam {
       unlink("$USER.mbox.size");
       unlink("$USER.mboxwarn");
     } else {
-      return &DisplayQuarantine;
+      return;
     }
 
     $FORM{'template'} = "performance";
     &CheckQuarantine;
-    return &DisplayIndex; 
+    redirect("$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}");
+    return; 
   }
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
