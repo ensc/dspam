@@ -1,4 +1,4 @@
-/* $Id: storage_driver.c,v 1.10 2006/06/01 21:10:00 jonz Exp $ */
+/* $Id: storage_driver.c,v 1.11 2006/06/01 21:11:30 jonz Exp $ */
 
 /*
  DSPAM
@@ -304,7 +304,7 @@ int _ds_pref_del(
   const char *attrib,
   void *dbh)
 {
-  int (*ptr)(config_t, const char *, const char *, void *);
+  int (*ptr)(config_t, const char *, const char *, const char *, void *);
   ptr = (int (*)(config_t, const char *, const char *, const char *, void *))dlsym(_drv_handle, "_ds_pref_del");
   if (!ptr) {
     LOG(LOG_CRIT, "dlsym(_ds_pref_del) failed: %s", dlerror());
