@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.453 2006/05/30 15:49:54 jonz Exp $
+$Id: CHANGELOG,v 1.454 2006/06/01 19:12:50 jonz Exp $
 
-Verzion NEXT
+Version NEXT
 ------------
+
+[20060601.0300] jonz: webui history fix for 12:00 noon
+
+bugfix to display 12 noon as 12p, not 12a
 
 [20060530.0145] jonz: added connect check for pgsql
 

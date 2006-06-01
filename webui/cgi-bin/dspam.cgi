@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.24 2006/05/19 17:16:03 jonz Exp $
+# $Id: dspam.cgi,v 1.25 2006/06/01 19:12:50 jonz Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -329,7 +329,7 @@ sub DisplayHistory {
       my(@t) = split(/\:/, (split(/\s+/, $ctime))[3]);
       my($x) = (split(/\s+/, $ctime))[0];
       my($m) = "a";
-      if ($t[0]>12) { $t[0] -= 12; $m = "p"; }
+      if ($t[0]>=12) { $t[0] -= 12; $m = "p"; }
       if ($t[0] == 0) { $t[0] = 12; }
       $ctime = "$x $t[0]:$t[1]$m";
     }
