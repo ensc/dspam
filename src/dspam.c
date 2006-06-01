@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.234 2006/06/01 15:04:12 jonz Exp $ */
+/* $Id: dspam.c,v 1.235 2006/06/01 19:23:10 jonz Exp $ */
 
 /*
  DSPAM
@@ -46,9 +46,7 @@
 #include <unistd.h>
 #endif
 #include <sys/types.h>
-#ifdef HAVE_PWD_H
 #include <pwd.h>
-#endif
 #include <signal.h>
 #include <sys/stat.h>
 #include <netdb.h>
@@ -110,6 +108,7 @@ main (int argc, char *argv[])
   int exitcode = EXIT_SUCCESS;
   struct nt_node *node_nt;
   struct nt_c c_nt;
+  struct passwd *pwent;
 
   srand ((long) time << (long) getpid ());
   umask (006);                  /* rw-rw---- */
@@ -117,8 +116,6 @@ main (int argc, char *argv[])
 #ifdef DEBUG
   DO_DEBUG = 0;
 #endif
-
-  struct passwd *pwent;
 
 #ifdef DAEMON
   pthread_mutex_init(&__syslog_lock, NULL);
