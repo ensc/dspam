@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.232 2006/05/30 15:36:13 jonz Exp $ */
+/* $Id: dspam.c,v 1.233 2006/06/01 14:43:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -47,6 +47,7 @@
 #include <pwd.h>
 #endif
 #include <sys/types.h>
+#include <pwd.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <netdb.h>
