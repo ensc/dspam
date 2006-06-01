@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.454 2006/06/01 19:12:50 jonz Exp $
+$Id: CHANGELOG,v 1.455 2006/06/01 21:10:00 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060601.0500] jonz: fix for dynamic storage drivers api
+
+fixed _ds_pref_del call to storage library
 
 [20060601.0300] jonz: webui history fix for 12:00 noon
 
