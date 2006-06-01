@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.64 2006/05/13 13:28:30 jonz Exp $
+dnl $Id: configure.ac,v 1.65 2006/06/01 15:04:12 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -56,6 +56,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 AC_CHECK_HEADERS(string.h)
 AC_CHECK_HEADERS(math.h)
 AC_CHECK_HEADERS(sys/time.h)
+AC_CHECK_HEADERS(pwd.h)
 AC_HEADER_TIME
 AC_CHECK_FUNCS(strlcpy)
 AC_CHECK_FUNCS(strsep)
