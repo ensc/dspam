@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.72 2006/06/03 03:10:43 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.73 2006/06/03 03:19:29 jonz Exp $ */
 
 /*
  DSPAM
@@ -1021,9 +1021,13 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
   pid = getpid ();
   if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
   {
-    p = _mysql_drv_getpwnam (CTX, (CTX->group) ? CTX->group : CTX->username);
+    if (!CTX->group || CTX->flags & DSF_MERGED)
+      p = _mysql_drv_getpwnam (CTX, CTX->username);
+    else
+      p = _mysql_drv_getpwnam (CTX, CTX->group);
+
     if (!p) {
-      LOG(LOG_ERR, "Unable to determine UID for %s", (CTX->group) ? CTX->group : CTX->username);
+      LOG(LOG_ERR, "Unable to determine UID for %s", CTX->username);
       return EINVAL;
     }
     snprintf (session, sizeof (session), "%d,%8lx%d", (int) p->pw_uid, 
