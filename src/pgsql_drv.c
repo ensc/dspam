@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.58 2006/05/30 15:49:54 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.59 2006/06/03 03:11:36 jonz Exp $ */
 
 /*
  DSPAM
@@ -1074,9 +1074,9 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
   pid = getpid ();
   if (_ds_match_attribute(CTX->config->attributes, "PgSQLUIDInSignature", "on"))
   {
-    p = _pgsql_drv_getpwnam (CTX, CTX->username);
+    p = _pgsql_drv_getpwnam (CTX, (CTX->group) ? CTX->group : CTX->username);
     if (!p) {
-      LOG(LOG_ERR, "Unable to determine UID for %s", CTX->username);
+      LOG(LOG_ERR, "Unable to determine UID for %s", (CTX->group) ? CTX->group : CTX->username);
       return EINVAL;
     }
 
