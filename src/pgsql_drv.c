@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.60 2006/06/03 03:19:29 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.61 2006/06/06 15:50:32 jonz Exp $ */
 
 /*
  DSPAM
@@ -957,24 +957,21 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   }
 
   if (dbh) {
+      s->dbh = dbh;
       ver = _pgsql_drv_get_dbversion(s);
       if (ver < 0) {
           LOG(LOG_WARNING, "_ds_init_storage: connection failed.");
           free(s);
           return EFAILURE;
       }
+  } else {
+    s->dbh = _pgsql_drv_connect(CTX);
   }
 
   s->dbh_attached = (dbh) ? 1 : 0;
   s->u_getnextuser[0] = 0;
   memset(&s->p_getpwnam, 0, sizeof(struct passwd));
   memset(&s->p_getpwuid, 0, sizeof(struct passwd));
-
-  if (dbh) {
-    s->dbh = dbh;
-  } else {
-    s->dbh = _pgsql_drv_connect(CTX);
-  }
 
   if (s->dbh == NULL || PQstatus(s->dbh) == CONNECTION_BAD)
   {
