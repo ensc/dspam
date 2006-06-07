@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.455 2006/06/01 21:10:00 jonz Exp $
+$Id: CHANGELOG,v 1.456 2006/06/07 10:43:33 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060606.0000] jonz: added ldap client to build
+
+added ldap client headers to makefile, would not build on some systems
 
 [20060601.0500] jonz: fix for dynamic storage drivers api
 
