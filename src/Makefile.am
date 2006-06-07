@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.35 2006/06/06 17:01:00 jonz Exp $
+# $Id: Makefile.am,v 1.36 2006/06/07 16:14:47 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -12,8 +12,7 @@ includedir=@includedir@/dspam
 
 SUBDIRS = . tools $(storage_drv_subdirs) 
 DIST_SUBDIRS = . \
-	tools.mysql_drv tools.ora_drv \
-	tools.pgsql_drv tools.sqlite_drv tools.hash_drv tools 
+	tools.mysql_drv tools.pgsql_drv tools.sqlite_drv tools.hash_drv tools 
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dspam.pc
@@ -40,9 +39,6 @@ lib_LTLIBRARIES = libdspam.la
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 lib_LTLIBRARIES += libhash_drv.la
-endif
-if BUILD_ORA_DRV
-lib_LTLIBRARIES += libora_drv.la
 endif
 if BUILD_MYSQL_DRV
 lib_LTLIBRARIES += libmysql_drv.la
@@ -97,16 +93,12 @@ endif
 EXTRA_libdspam_la_SOURCES = \
         mysql_drv.c mysql_drv.h \
         pgsql_drv.c pgsql_drv.h \
-        ora_drv.c ora_drv.h \
         sqlite_drv.c sqlite_drv.h \
         sqlite3_drv.c sqlite3_drv.h
 
 #if STATIC_DRIVER
 #if BUILD_HASH_DRV
 #libdspam_la_SOURCES += libhash_drv.c libhash_drv.h
-#endif
-#if BUILD_ORA_DRV
-#libdspam_la_SOURCES += libora_drv.c libora_drv.h
 #endif
 #if BUILD_MYSQL_DRV
 #libdspam_la_SOURCES += libmysql_drv.c libmysql_drv.h
@@ -150,14 +142,6 @@ libpgsql_drv_la_CPPFLAGS = $(libpgsql_drv_cppflags)
 libpgsql_drv_la_LDFLAGS = $(libpgsql_drv_ldflags)
 libpgsql_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
 libpgsql_drv_la_DEPENDENCIES =
-
-libora_drv_la_SOURCES = \
-        ora_drv.c ora_drv.h 
-libora_drv_la_LIBADD = $(libora_drv_libs)
-libora_drv_la_CPPFLAGS = $(libora_drv_cppflags)
-libora_drv_la_LDFLAGS = $(libora_drv_ldflags)
-libora_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
-libora_drv_la_DEPENDENCIES =
 
 libsqlite_drv_la_SOURCES = \
 	sqlite_drv.c sqlite_drv.h 

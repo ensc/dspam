@@ -5,7 +5,6 @@
 EXTRA_DIST = 	courier.txt	\
 		exim.txt	\
 		mysql_drv.txt	\
-		ora_drv.txt	\
 		osx.txt		\
 		pgsql_drv.txt	\
 		pop3filter.txt	\

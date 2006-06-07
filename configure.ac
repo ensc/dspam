@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.66 2006/06/01 19:23:10 jonz Exp $
+dnl $Id: configure.ac,v 1.67 2006/06/07 16:14:47 jonz Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -701,24 +701,6 @@ then
     storage_drv_subdirs="$storage_drv_subdirs tools.pgsql_drv"
 fi
                                                                                 
-if test x"$drv" = xora_drv
-then
-    DS_ORACLE(ORACLE_CPPFLAGS, ORACLE_LDFLAGS, ORACLE_LIBS,
-              [success=yes], [success=no])
-    if test x"$success" != xyes
-    then
-        AC_MSG_ERROR([Required version of libclntsh not found])
-    fi
-    libora_drv_cppflags="$ORACLE_CPPFLAGS $CPPFLAGS"
-    libora_drv_libs="$ORACLE_LIBS $LIBS"
-    libora_drv_ldflags="$ORACLE_LDFLAGS $LDFLAGS"
-    AC_SUBST(libora_drv_cppflags)
-    AC_SUBST(libora_drv_libs)
-    AC_SUBST(libora_drv_ldflags)
-    ora_drv=yes
-    storage_drv_subdirs="$storage_drv_subdirs tools.ora_drv"
-fi
-
 if test x"$drv" = xsqlite_drv
 then
     DS_SQLITE(SQLITE_CPPFLAGS, SQLITE_LDFLAGS, SQLITE_LIBS,
@@ -771,7 +753,6 @@ done
 AM_CONDITIONAL([BUILD_DB4_DRV], [ test x"$db4_drv" = xyes ])
 AM_CONDITIONAL([BUILD_DB3_DRV], [ test x"$db3_drv" = xyes ])
 AM_CONDITIONAL([BUILD_HASH_DRV], [ test x"$hash_drv" = xyes ])
-AM_CONDITIONAL([BUILD_ORA_DRV], [ test x"$ora_drv" = xyes ])
 AM_CONDITIONAL([BUILD_SQLITE_DRV], [ test x"$sqlite_drv" = xyes ])
 AM_CONDITIONAL([BUILD_SQLITE3_DRV], [ test x"$sqlite3_drv" = xyes ])
 AM_CONDITIONAL([BUILD_MYSQL_DRV], [ test x"$mysql_drv" = xyes ])
@@ -786,9 +767,9 @@ then
 AC_DEFINE([STATIC_DRIVER], 1,
           [Define if using a single, statically linked storage driver])
 AC_MSG_RESULT([yes])
-CPPFLAGS="$CPPFLAGS $libmysql_drv_cppflags $libpgsql_drv_cppflags $libsqlite_drv_cppflags $libsqlite3_drv_cppflags $libora_drv_cppflags $libhash_drv_cppflags"
-LIBS="$LIBS $libmysql_drv_libs $libpgsql_drv_libs $libsqlite_drv_libs $libsqlite3_drv_libs $libora_drv_libs $libhash_drv_libs"
-LDFLAGS="$LDFLAGS $libmysql_drv_ldflags $libpgsql_drv_ldflags $libsqlite_drv_ldflags $libsqlite3_drv_ldflags $libora_drv_ldflags $libhash_drv_ldflags"
+CPPFLAGS="$CPPFLAGS $libmysql_drv_cppflags $libpgsql_drv_cppflags $libsqlite_drv_cppflags $libsqlite3_drv_cppflags $libhash_drv_cppflags"
+LIBS="$LIBS $libmysql_drv_libs $libpgsql_drv_libs $libsqlite_drv_libs $libsqlite3_drv_libs $libhash_drv_libs"
+LDFLAGS="$LDFLAGS $libmysql_drv_ldflags $libpgsql_drv_ldflags $libsqlite_drv_ldflags $libsqlite3_drv_ldflags $libhash_drv_ldflags"
 else
 AC_MSG_RESULT([no])
 fi
@@ -832,7 +813,7 @@ AH_BOTTOM([
 ])
 
 AC_CONFIG_FILES([Makefile src/tools/Makefile webui/Makefile m4/Makefile])
-AC_CONFIG_FILES([src/tools.mysql_drv/Makefile src/tools.ora_drv/Makefile])
+AC_CONFIG_FILES([src/tools.mysql_drv/Makefile])
 AC_CONFIG_FILES([txt/Makefile src/tools.pgsql_drv/Makefile ])
 AC_CONFIG_FILES([src/Makefile webui/cgi-bin/templates/Makefile])
 AC_CONFIG_FILES([src/tools.sqlite_drv/Makefile man/Makefile])

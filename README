@@ -1,4 +1,4 @@
-$Id: README,v 1.96 2006/05/19 21:15:00 jonz Exp $
+$Id: README,v 1.97 2006/06/07 16:14:47 jonz Exp $
 
 DSPAM v3.8 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Jonathan A. Zdziarski
@@ -218,7 +218,6 @@ FRESH INSTALLATION
    Driver       Requirements
    -------------------------------------------------------------------------
  T mysql_drv:   MySQL client libraries      (and a server to connect to) 
-   ora_drv:     Oracle Call Interface       (and a server to connect to)
  T pgsql_drv:   PostgreSQL client libraries (and a server to connect to)
    sqlite_drv:  SQLite v2.7.7 or above 
    sqlite3_drv: SQLite v3.x
@@ -243,7 +242,6 @@ FRESH INSTALLATION
 
    You can download MySQL from http://www.mysql.com.
    You can download PostgreSQL from http://www.postgresql.com.
-   You can obtain more information about Oracle at http://www.oracle.com.
    You can download SQLite from http://www.sqlite.org.
 
 1. CONFIGURATION
@@ -304,7 +302,6 @@ FRESH INSTALLATION
      which uses SQLite. The following drivers have been provided:
 
      mysql_drv:   MySQL Drivers 
-     ora_drv:     Oracle Drivers 
      pgsql_drv:   PostgreSQL Drivers
      sqlite_drv:  SQLite v2.x Drivers 
      sqlite3_drv: SQLite v3.x Drivers
@@ -409,20 +406,6 @@ FRESH INSTALLATION
 
        Please see the file doc/pgsql_drv.txt for more information about
        configuring the pgsql_drv storage driver.
-
-     ora_drv:
-       --with-oracle-home=DIR
-       Specify the Oracle Home (or client home)
-
-       --enable-virtual-users
-       Tells DSPAM to create virtual user ids.  Use this if your users don't
-       actually exist on the system (e.g. in /etc/passwd if using a password 
-       file)  
-
-       Note:
-
-       Please see the file doc/ora_drv.txt for more information
-       about configuring the ora_drv storage driver.
 
      sqlite_drv:
      sqlite3_drv:
@@ -1344,13 +1327,10 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   users with different email behavior, however, the users in the group will 
   experience poor spam filtering and a higher number of false positives.
 
-  SHARED GROUP NOTES:
-
-  1. The SQL-based storage drivers support shared groups, but has one caveat:
-     If you are NOT enabling "virtual users" support, you will need to create
-     an actual user on your system named after each group you create.
-
-  2. The ora_drv storage driver does not yet support shared groups
+  NOTE
+    The SQL-based storage drivers support shared groups, but has one caveat:
+    If you are NOT enabling "virtual users" support, you will need to create
+    an actual user on your system named after each group you create.
 
   On top of shared group support, a shared group can also be made to be
   'managed'.  Using the group type 'SHARED,MANAGED' will cause the group to

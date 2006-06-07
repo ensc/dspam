@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.456 2006/06/07 10:43:33 jonz Exp $
+$Id: CHANGELOG,v 1.457 2006/06/07 16:14:47 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060607.1200] jonz: removed depricated oracle driver
+
+removed outdated oracle driver; no maintainer, lack of interest
 
 [20060606.0000] jonz: added ldap client to build
 
