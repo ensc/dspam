@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.113 2006/05/23 19:52:40 jonz Exp $ */
+/* $Id: daemon.c,v 1.114 2006/06/13 14:43:12 jonz Exp $ */
 
 /*
  DSPAM
@@ -747,7 +747,7 @@ GETCMD:
       if (ATX->results)
         node_res = ATX->results->first;
 
-      while(node_nt != NULL) {
+      while(node_res && node_nt != NULL) {
         agent_result_t result = (agent_result_t) node_res->ptr;
 
         if (result != NULL && result->exitcode == ERC_SUCCESS)
