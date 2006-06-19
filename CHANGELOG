@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.457 2006/06/07 16:14:47 jonz Exp $
+$Id: CHANGELOG,v 1.458 2006/06/19 03:00:53 jonz Exp $
 
 Version NEXT
 ------------
@@ -139,6 +139,89 @@ Version 3.6.6
 [20060414.1145] jonz: fix for segfault on log write err
 
 when using --with-logfile, if file cannot be opened, dspam segfaulted
+
+[20060513.1100] jonz: fixed compiler warnings on sqlite drivers
+
+signed-ness warnings, nothing significant
+
+[20060514.0900] jonz: discontinued support for berkeley db
+
+deprecated bdb drivers finally removed from distribution
+
+[20060512.2105] jonz: copyright modifications
+
+reassignment to Jonathan Zdziarski instead of using my corporate face
+
+[20060512.2100] jonz: removed some legacy piecess
+
+- removed dspam_corpus (replaced by newer dspam_train)
+- removed dspam_genaliases (replaced by parse-to-headers, virtual users, etc)
+
+[20060512.0100] jonz: segfault fix for UIDInSignature
+
+fixed a critical bug that can cause segfaults when correcting messages using
+UIDInSignature options. database handle is refreshed, but new pointer is never
+used.
+
+[20060510.0800] jonz: fix to recognize trainPristine "off" in preferences
+
+preference turned "off" should override config turned "on"
+
+Version 3.6.8
+-------------
+
+[20060606.0000] jonz: fixes for pgsql_drv
+
+fixed bugs from last release causing pgsql to fail on connection
+
+[20060606.0000] jonz: added ldap_client headers to build
+
+some operating systems refused to build ldap client due to missing header
+in makefile
+
+Version 3.6.7
+-------------
+
+[20060602.2300] jonz: fix for UIDInSignature with groups
+
+fixed a bug causing the wrong uid to be written when UIDInSignature is used
+in conjunction with groups
+
+[20060530.0145] jonz: added connect check for pgsql
+
+added a connection check for pgsql, to reconnect on failure in daemon mode
+
+[20060530.1100] jonz: fix for incorrect reporting of X-DSPAM-Probability
+
+fixed a bug causing X-DSPAM-Probability to be misreported when using multiple
+algorithms
+
+[20060525.1100] jonz: fix for segfault on undefined DeliveryHost or ClientHost
+
+fix for segfault in daemon mode when DeliveryHost or ClientHost is not
+specified
+
+[20060519.0300] jonz: fix for segfault in vsyslog()
+
+fix segfault caused by bad use of va_args when vsyslog is called
+
+[20060519.0130] jonz: fix for segfault in dlopen() failure
+
+fixed bug causing segfault when dlopen() to storage driver library fails.
+dspam still won't work any better if dlopen is failing but huzzah.
+
+[20060517.0700] jonz: fix for preference delete
+
+fixed infinite loop on all non-preference-extension calls to delete a preference
+
+[20060516.0200] jonz: fix for agent flags
+
+discovered that agent flags required a 64-bit variable to hold all flags, but
+only 32-bit variable was being used; this may have caused unpredictable
+behavior when using SBPH, "unlearning" a message, or processing summaries.
+
+Version 3.6.6
+-------------
 
 [20060513.1100] jonz: fixed compiler warnings on sqlite drivers
 
