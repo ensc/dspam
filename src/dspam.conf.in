@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.81 2006/06/07 16:14:47 jonz Exp $
+## $Id: dspam.conf.in,v 1.82 2006/06/23 03:11:31 jonz Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -378,13 +378,6 @@ AllowOverride whitelistThreshold
 #PgSQLVirtualTable          dspam_virtual_uids
 #PgSQLVirtualUIDField       uid
 #PgSQLVirtualUsernameField  username
-
-# --- Oracle ---
-
-#OraServer       "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT=1521))(CONNECT_DATA=(SID=PROD)))"
-#OraUser         dspam
-#OraPass         changeme
-#OraSchema       dspam
 
 # --- SQLite ---
 
