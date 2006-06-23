@@ -1,4 +1,4 @@
-/* $Id: pgsql_objects.sql,v 1.12 2006/06/23 03:04:54 jonz Exp $ */
+/* $Id: pgsql_objects.sql,v 1.13 2006/06/23 03:26:59 jonz Exp $ */
 
 CREATE TABLE dspam_token_data (
   uid smallint,
@@ -37,6 +37,7 @@ CREATE TABLE dspam_preferences (
   UNIQUE (uid, preference)
 ) WITHOUT OIDS;
 
+create language plpgsql;
 create function lookup_tokens(integer,bigint[])
   returns setof dspam_token_data
   language plpgsql stable
