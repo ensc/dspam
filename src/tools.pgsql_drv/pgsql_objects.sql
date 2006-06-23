@@ -1,4 +1,4 @@
-/* $Id: pgsql_objects.sql,v 1.11 2006/04/21 20:39:36 jonz Exp $ */
+/* $Id: pgsql_objects.sql,v 1.12 2006/06/23 03:04:54 jonz Exp $ */
 
 CREATE TABLE dspam_token_data (
   uid smallint,
@@ -56,7 +56,7 @@ begin
 end;';
 
 /* For much better performance
-/* see http://archives.postgresql.org/pgsql-performance/2004-11/msg00416.php
+ * see http://archives.postgresql.org/pgsql-performance/2004-11/msg00416.php
  * and http://archives.postgresql.org/pgsql-performance/2004-11/msg00417.php
  * for details
  */
