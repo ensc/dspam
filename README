@@ -1,4 +1,4 @@
-$Id: README,v 1.97 2006/06/07 16:14:47 jonz Exp $
+$Id: README,v 1.98 2006/07/06 20:19:46 jonz Exp $
 
 DSPAM v3.8 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Jonathan A. Zdziarski
@@ -850,6 +850,10 @@ FRESH INSTALLATION
      . GDGraph
      . GDTextUtil
      . CGI
+
+     Typically this can be accomplished on the commandline:
+
+     perl -MCPAN -e 'install GD::Graph3d'
 
   Configuring Administrators
 
