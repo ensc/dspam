@@ -1,4 +1,4 @@
-$Id: README,v 1.98 2006/07/06 20:19:46 jonz Exp $
+$Id: README,v 1.99 2006/07/17 00:14:02 jonz Exp $
 
 DSPAM v3.8 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Jonathan A. Zdziarski
@@ -298,8 +298,8 @@ FRESH INSTALLATION
      --with-storage-driver=DRIVER[,DRIVER2[...,DRIVERN]]
      Specify your storage driver selection(s).  A storage driver is a driver
      written specifically for DSPAM to store tokens, signature data, and
-     perform other proprietary operations.  The default driver is sqlite_drv,
-     which uses SQLite. The following drivers have been provided:
+     perform other proprietary operations.  The default driver is hash_drv.
+     The following drivers have been provided:
 
      mysql_drv:   MySQL Drivers 
      pgsql_drv:   PostgreSQL Drivers

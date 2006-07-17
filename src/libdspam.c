@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.161 2006/05/30 14:51:24 jonz Exp $ */
+/* $Id: libdspam.c,v 1.162 2006/07/17 00:14:02 jonz Exp $ */
 
 /*
  DSPAM
@@ -2124,12 +2124,13 @@ void _ds_factor_destroy(struct nt *factors) {
   struct nt_c c;
 
   if (factors == NULL)
-    return;
+        return;
   
   node = c_nt_first(factors, &c);
   while(node != NULL) {
     f = (struct dspam_factor *) node->ptr;
-    free(f->token_name);
+    if (f)
+        free(f->token_name);
     node = c_nt_next(factors, &c);
   }
   nt_destroy(factors);
