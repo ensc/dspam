@@ -1,4 +1,4 @@
-/* $Id: pgsql_objects.sql,v 1.13 2006/06/23 03:26:59 jonz Exp $ */
+/* $Id: pgsql_objects.sql,v 1.14 2006/07/28 15:34:37 jonz Exp $ */
 
 CREATE TABLE dspam_token_data (
   uid smallint,
@@ -63,8 +63,6 @@ end;';
  */
 alter table "dspam_token_data" alter "token" set statistics 200;
 alter table dspam_signature_data alter signature set statistics 200;
-alter table dspam_neural_data alter node set statistics 200;
-alter table dspam_neural_decisions alter signature set statistics 200;
 alter table dspam_token_data alter innocent_hits set statistics 200;
 alter table dspam_token_data alter spam_hits set statistics 200;
 CREATE INDEX id_token_data_sumhits ON dspam_token_data ((spam_hits + innocent_hits));
