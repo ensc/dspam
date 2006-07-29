@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.61 2006/06/06 15:50:32 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.62 2006/07/29 13:38:48 jonz Exp $ */
 
 /*
  DSPAM
@@ -682,7 +682,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
             "PREPARE dspam_insert_plan (%s, int, int) AS INSERT INTO dspam_token_data "
             "(uid, token, spam_hits, innocent_hits, last_hit) VALUES "
             "(%d, $1, $2, $3, CURRENT_DATE);", 
-            s->pg_token_type == 0 ? "numeric" : "bigint", p->pw_uid);
+            s->pg_token_type == 0 ? "numeric" : "bigint", (int)p->pw_uid);
 
   buffer_cat (prepare, scratch);
 
@@ -833,7 +833,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
 
   snprintf (query, sizeof (query),
             "SELECT spam_hits, innocent_hits FROM dspam_token_data "
-            "WHERE uid = '%d' AND token = %s ", p->pw_uid, 
+            "WHERE uid = '%d' AND token = %s ", (int)p->pw_uid, 
             _pgsql_drv_token_write(s->pg_token_type, token, tok_buf, sizeof(tok_buf)));
 
   stat->probability = 0.00000;
@@ -1080,7 +1080,7 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
       return EINVAL;
     }
 
-    snprintf (session, sizeof (session), "%d,%8lx%d", p->pw_uid, 
+    snprintf (session, sizeof (session), "%d,%8lx%d", (int)p->pw_uid, 
               (long) time(NULL), pid);
   }
   else
@@ -1242,7 +1242,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   snprintf (scratch, sizeof (scratch),
             "INSERT INTO dspam_signature_data (uid, signature, length, created_on, data) VALUES (%d, '%s', %ld, CURRENT_DATE, '",
-            p->pw_uid, signature, SIG->length);
+            (int)p->pw_uid, signature, SIG->length);
   buffer_cat (query, scratch);
   buffer_cat (query, (const char *) mem);
   buffer_cat (query, "')");
@@ -1291,7 +1291,7 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
 
   snprintf (query, sizeof (query),
             "DELETE FROM dspam_signature_data WHERE uid = '%d' AND signature = '%s'",
-            p->pw_uid, signature);
+            (int)p->pw_uid, signature);
 
   result = PQexec(s->dbh, query);
   if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
@@ -1333,7 +1333,7 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
 
   snprintf (query, sizeof (query),
             "SELECT signature FROM dspam_signature_data WHERE uid = '%d' AND signature = '%s'",
-            p->pw_uid, signature);
+            (int)p->pw_uid, signature);
 
   result = PQexec(s->dbh, query);
   if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
@@ -1520,7 +1520,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
               "DECLARE dscursor CURSOR FOR SELECT "
               "token, spam_hits, innocent_hits, date_part('epoch', last_hit) "
               "FROM dspam_token_data WHERE uid = '%d'",
-              p->pw_uid);
+              (int)p->pw_uid);
 
     result = PQexec(s->dbh, query);
     if ( PQresultStatus(result) != PGRES_COMMAND_OK )
@@ -1624,7 +1624,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
               "DECLARE dscursor CURSOR FOR SELECT "
               "data, signature, length, date_part('epoch', created_on) "
               "FROM dspam_signature_data WHERE uid = '%d'",
-              p->pw_uid);
+              (int)p->pw_uid);
 
     result = PQexec(s->dbh, query);
     if ( PQresultStatus(result) != PGRES_COMMAND_OK )
@@ -1994,7 +1994,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
 
   snprintf (query, sizeof (query),
             "DELETE FROM dspam_token_data WHERE uid = '%d' AND token = %s",
-            p->pw_uid,
+            (int)p->pw_uid,
             _pgsql_drv_token_write (s->pg_token_type, token, tok_buf, sizeof(tok_buf)) );
 
   result = PQexec(s->dbh, query);
@@ -2052,7 +2052,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   snprintf (queryhead, sizeof(queryhead),
             "DELETE FROM dspam_token_data "
             "WHERE uid = '%d' AND token IN (",
-            p->pw_uid);
+            (int)p->pw_uid);
 
   buffer_cat (query, queryhead);
 
