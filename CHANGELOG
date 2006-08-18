@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.458 2006/06/19 03:00:53 jonz Exp $
+$Id: CHANGELOG,v 1.459 2006/08/18 15:00:31 jonz Exp $
 
 Version NEXT
 ------------
+
+[20060818.0700] jonz: added msg tagging support
+
+added ability to add tagline to messages based on their classification; see
+tagSpam and tagNonspam preferences in README
 
 [20060607.1200] jonz: removed depricated oracle driver
 

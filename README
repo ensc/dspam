@@ -1,4 +1,4 @@
-$Id: README,v 1.100 2006/07/27 23:10:26 jonz Exp $
+$Id: README,v 1.101 2006/08/18 15:00:31 jonz Exp $
 
 DSPAM v3.8 <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Jonathan A. Zdziarski
@@ -1843,6 +1843,14 @@ DATA
   signatureLocation { message | headers }
     Where to place the DSPAM signature. Placement affects forwarding approach.
     (default:message)
+
+  tagSpam / tagNonspam { on | off }
+    Adds a tagline to the end of a message based on its classification; useful
+    for things such as "Scanned by Your ISP.com". If set to on, the file
+    msgtag.spam and/or msgtag.nonspam will be looked for in dspam_home/txt/
+    and appended to appropriate messages. 
+
+    NOTE: Signed messages will not be tagged in this fashion
 
   showFactors { on | off }
     Whether to include an X-DSPAM-Factors header including decision-making

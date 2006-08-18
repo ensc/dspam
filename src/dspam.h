@@ -1,4 +1,4 @@
-/* $Id: dspam.h,v 1.36 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: dspam.h,v 1.37 2006/08/18 15:00:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -61,6 +61,7 @@ int process_users      (AGENT_CTX *ATX, buffer *message);
 int find_signature     (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int add_xdspam_headers (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int embed_signature    (DSPAM_CTX *CTX, AGENT_CTX *ATX);
+int embed_msgtag       (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int embed_signed       (DSPAM_CTX *CTX, AGENT_CTX *ATX);
 int tracksource        (DSPAM_CTX *CTX);
 #ifdef CLAMAV

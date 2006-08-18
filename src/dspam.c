@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.235 2006/06/01 19:23:10 jonz Exp $ */
+/* $Id: dspam.c,v 1.236 2006/08/18 15:00:31 jonz Exp $ */
 
 /*
  DSPAM
@@ -733,6 +733,22 @@ process_message (
     tag_message(ATX, CTX->message);
   }
 
+
+  if (
+         (!strcmp(_ds_pref_val(ATX->PTX, "tagSpam"), "on")
+          && CTX->result == DSR_ISSPAM)
+         ||
+         (!strcmp(_ds_pref_val(ATX->PTX, "tagNonspam"), "on")
+          && CTX->result == DSR_ISINNOCENT)
+     )
+  {
+     i = embed_msgtag(CTX, ATX);
+     if (i<0) {
+         return i;
+         goto RETURN;
+     }
+  }
+
   if (strcmp(_ds_pref_val(ATX->PTX, "signatureLocation"), "headers") &&
       !ATX->train_pristine &&
        (CTX->classification == DSR_NONE || internally_canned))
@@ -743,7 +759,7 @@ process_message (
       goto RETURN;
     }
   }
-  
+
   /* Reassemble message from components */
 
   copyback = _ds_assemble_message (CTX->message);
@@ -3084,6 +3100,133 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       } /* CTX->source != DSS_ERROR */
     }
   }
+  return 0;
+}
+
+/*
+ * embed_msgtag(DSPAM_CTX *CTX, AGENT_CTX *ATX)
+ *
+ * DESCRIPTION
+ *   Embed a message tag
+ *
+ * INPUT ARGUMENTS
+ *   CTX          DSPAM context containing the message
+ *   ATX          Agent context defining processing behavior
+ *
+ * RETURN VALUES
+ *   returns 0 on success, standard errors on failure
+ */
+
+int embed_msgtag(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
+  struct nt_node *node_nt;
+  struct nt_c c_nt;
+  char toplevel_boundary[128] = { 0 }; 
+  ds_message_part_t block;
+  int i = 0;
+  FILE *f;
+  char buff[1024], msgfile[MAX_FILENAME_LENGTH];
+  buffer *b;
+
+  if (CTX->result != DSR_ISSPAM && CTX->result != DSR_ISINNOCENT) 
+      return EINVAL;
+
+  node_nt = c_nt_first (CTX->message->components, &c_nt);
+  if (node_nt == NULL || node_nt->ptr == NULL)
+    return EFAILURE;
+
+  block = node_nt->ptr;
+
+  /* Signed messages cannot be tagged */
+
+  if (block->media_subtype == MST_SIGNED) 
+    return EINVAL;
+
+  /* Load the message tag */
+  snprintf(msgfile, sizeof(msgfile), "%s/txt/msgtag.%s",
+           _ds_read_attribute(agent_config, "Home"),
+           (CTX->result == DSR_ISSPAM) ? "spam" : "nonspam");
+  f = fopen(msgfile, "r");
+  if (!f) {
+    LOG(LOG_ERR, ERR_IO_FILE_OPEN, msgfile, strerror(errno));
+    return EFILE;
+  }
+  b = buffer_create(NULL);
+  if (!b) {
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    fclose(f);
+    return EUNKNOWN;
+  }
+  while(fgets(buff, sizeof(buff), f)!=NULL) {
+      buffer_cat(b, buff);
+  }
+  fclose(f);
+
+  if (block->media_type == MT_MULTIPART && block->terminating_boundary != NULL)
+  {
+    strlcpy(toplevel_boundary, block->terminating_boundary,
+            sizeof(toplevel_boundary));
+  }
+
+  while (node_nt != NULL)
+  {
+    char *body_close = NULL, *dup = NULL;
+
+    block = node_nt->ptr;
+
+    /* Append signature to blocks when... */
+
+    if (block != NULL
+
+        /* Either a text section, or this is a non-multipart message AND...*/
+        && (block->media_type == MT_TEXT
+            || (block->boundary == NULL && i == 0
+                && block->media_type != MT_MULTIPART))
+        && (toplevel_boundary[0] == 0 || (block->body && block->body->used)))
+    {
+      if (block->content_disposition == PCD_ATTACHMENT)
+      {
+        node_nt = c_nt_next (CTX->message->components, &c_nt);
+        i++;
+        continue;
+      }
+
+      /* Some email clients reformat HTML parts, and require that we include
+       * the signature before the HTML close tags (because they're stupid) 
+       */
+
+      if (body_close		== NULL &&
+          block->body		!= NULL &&
+          block->body->data	!= NULL &&
+          block->media_subtype	== MST_HTML)
+
+      {
+        body_close = strcasestr(block->body->data, "</body");
+        if (!body_close)
+          body_close = strcasestr(block->body->data, "</html");
+      }
+
+      /* Save and truncate everything after and including the close tag */
+      if (body_close)
+      {
+        dup = strdup (body_close);
+        block->body->used -= (long) strlen (dup);
+        body_close[0] = 0;
+      }
+
+      buffer_cat (block->body, "\n");
+      buffer_cat (block->body, b->data);
+
+      if (dup)
+      {
+        buffer_cat (block->body, dup);
+        free (dup);
+      }
+    }
+
+    node_nt = c_nt_next (CTX->message->components, &c_nt);
+    i++;
+  }
+  buffer_destroy(b);
   return 0;
 }
 
