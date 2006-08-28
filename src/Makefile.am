@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.36 2006/06/07 16:14:47 jonz Exp $
+# $Id: Makefile.am,v 1.37 2006/08/28 19:13:04 jonz Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -32,7 +32,7 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 auto-config.h.in \
 
 DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
        -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\"\
-       -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D_GNU_SOURCE
+       -D_THREAD_SAFE -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D_GNU_SOURCE
 
 lib_LTLIBRARIES = libdspam.la 
 
