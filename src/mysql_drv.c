@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.73 2006/06/03 03:19:29 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.74 2006/09/21 18:25:19 jonz Exp $ */
 
 /*
  DSPAM
@@ -1573,6 +1573,9 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   char buf[1024];
 #endif
 
+  if (name == NULL)
+      return NULL;
+
   if (s->p_getpwnam.pw_name != NULL)
   {
     /* cache the last name queried */
@@ -1625,6 +1628,9 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     free (s->p_getpwnam.pw_name);
     s->p_getpwnam.pw_name = NULL;
   }
+
+  if (name == NULL)
+      return NULL;
 
   sql_username = malloc ((2 * strlen(name)) + 1);
   if (sql_username == NULL)
