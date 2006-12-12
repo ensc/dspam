@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.236 2006/08/18 15:00:31 jonz Exp $ */
+/* $Id: dspam.c,v 1.237 2006/12/12 15:33:45 jonz Exp $ */
 
 /*
  DSPAM
@@ -762,7 +762,7 @@ process_message (
 
   /* Reassemble message from components */
 
-  copyback = _ds_assemble_message (CTX->message);
+  copyback = _ds_assemble_message (CTX->message, (USE_LMTP || USE_SMTP) ? "\r\n" : "\n");
   buffer_clear (message);
   buffer_cat (message, copyback);
   free (copyback);

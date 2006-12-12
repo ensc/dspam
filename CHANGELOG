@@ -1,7 +1,12 @@
-$Id: CHANGELOG,v 1.459 2006/08/18 15:00:31 jonz Exp $
+$Id: CHANGELOG,v 1.460 2006/12/12 15:33:44 jonz Exp $
 
 Version NEXT
 ------------
+
+[20061210.1435] jonz: fixed message corruption problems with direct delivery
+
+when using direct delivery (e.g. DeliveryHost), certain servers require a
+linefeed after carriage return otherwise the message will become malformatted.
 
 [20060818.0700] jonz: added msg tagging support
 
