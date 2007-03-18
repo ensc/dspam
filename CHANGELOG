@@ -1,4 +1,4 @@
-$Id: CHANGELOG,v 1.461 2007/03/18 16:53:23 jonz Exp $
+$Id: CHANGELOG,v 1.462 2007/03/18 17:08:49 jonz Exp $
 
 Version 3.8.0
 -------------
@@ -142,9 +142,6 @@ added tokenizer variable to DSPAM_CTX and added following tokenizer flags:
 
 WARNING: This is an API change and constitutes a new major version. Third
          party applications may fail to compile/run against this.
-
-Version 3.6.6
--------------
 
 [20060414.1145] jonz: fix for segfault on log write err
 
