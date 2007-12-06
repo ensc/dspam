@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.71 2006/05/27 19:45:11 jonz Exp $ */
+/* $Id: agent_shared.c,v 1.72 2007/12/06 05:10:12 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -829,9 +829,12 @@ bail:
 int process_parseto(AGENT_CTX *ATX, const char *buf) {
   char *y = NULL;
   char *x;
+  char *h;
 
   if (!buf) 
     return EINVAL;
+  h = strstr(buf, "\r\n\r\n");
+  if (!h) h = strstr(buf, "\n\n");
 
   x = strstr(buf, "<spam-");
   if (!x)
@@ -844,6 +847,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
     x = strstr(buf, " spam@");
   if (!x)
     x = strstr(buf, ":spam@");
+  if (x > h) x = NULL;
 
   if (x != NULL) {
     y = strdup(x+6);
@@ -866,6 +870,8 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
       x = strstr(buf, " notspam@");
     if (!x)
       x = strstr(buf, ":notspam@");
+
+    if (x > h) x = NULL;
 
     if (x && strlen(x) >= 9) {
       y = strdup(x+9);
@@ -912,4 +918,19 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
   }
 
   return 0;
+}
+
+int
+init_pwent_cache()
+{
+  struct passwd *pwent;
+  pwent = getpwuid(getuid());
+  if (pwent == NULL) {
+    return 0;
+  }
+  else {
+     __pw_name = strdup(pwent->pw_name);
+     __pw_uid  = pwent->pw_uid;
+  }
+  return 1;
 }

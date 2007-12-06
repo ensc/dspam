@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.27 2006/05/27 19:45:11 jonz Exp $ */
+/* $Id: agent_shared.h,v 1.28 2007/12/06 05:10:13 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -106,6 +106,8 @@ int process_arguments   (AGENT_CTX *ATX, int argc, char **argv);
 int initialize_atx      (AGENT_CTX *ATX);
 int process_parseto	(AGENT_CTX *ATX, const char *buf);
 buffer *read_stdin	(AGENT_CTX *ATX);
+
+int init_pwent_cache();
 
 #ifndef MIN
 #   define MAX(a,b)  ((a)>(b)?(a):(b))

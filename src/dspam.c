@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.237 2006/12/12 15:33:45 jonz Exp $ */
+/* $Id: dspam.c,v 1.238 2007/12/06 05:10:13 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -108,9 +108,8 @@ main (int argc, char *argv[])
   int exitcode = EXIT_SUCCESS;
   struct nt_node *node_nt;
   struct nt_c c_nt;
-  struct passwd *pwent;
 
-  srand ((long) time << (long) getpid ());
+  srand ((long) time(NULL) ^ (long) getpid ());
   umask (006);                  /* rw-rw---- */
   setbuf (stdout, NULL);	/* unbuffered output */
 #ifdef DEBUG
@@ -123,14 +122,11 @@ main (int argc, char *argv[])
 
   /* Cache my username and uid for trusted user security */
 
-  pwent = getpwuid(getuid());
-  if (pwent == NULL) {
+  if (!init_pwent_cache()) {
     LOG(LOG_ERR, ERR_AGENT_RUNTIME_USER);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
-  __pw_name = strdup(pwent->pw_name);
-  __pw_uid  = pwent->pw_uid;
 
   /* Read dspam.conf into global config structure (ds_config_t) */
 
@@ -1602,6 +1598,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     if (_ds_match_attribute(agent_config, "EnablePlusedDetail", "on")) {
       strlcpy(mailbox, username, sizeof(mailbox));
       ATX->recipient = mailbox;
+      if (_ds_match_attribute(agent_config, "PlusedUserLowercase", "on"))
+        lc (username, username);
       plus = index(username, '+');
       if (plus) {
         atsign = index(plus, '@');
@@ -2732,6 +2730,33 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
 }
 
 /*
+ * log_prepare(char *buffer, char *value)
+ *
+ * DESCRIPTION
+ *   Prepares a value for logging by copying it to the buffer and removing
+ *   all potentially dangerous characters.
+ *
+ * INPUT ARGUMENTS
+ *   buffer	  A 256-byte buffer to store the result into
+ *   value	  Value to be logged or NULL
+ *
+ * RETURN VALUES
+ *   None
+ */
+
+static void log_prepare(char *buffer, char *value) {
+  char *p;
+
+  if (!value)
+    value = "<None Specified>";
+  strncpy(buffer, value, 255);
+  buffer[255] = 0;
+  for (p=buffer; *p; p++)
+    if (*p >= 0 && *p < 32)
+      *p = ' ';
+}
+
+/*
  * log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX)
  *
  * DESCRIPTION
@@ -2752,9 +2777,8 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   struct nt_c c_nt;
   FILE *file;
   char class;
-  char x[1024];
+  char x[1024], subject_buf[256], from_buf[256];
   char *messageid = NULL;
-  size_t y;
 
   if (CTX->message) 
     messageid = _ds_find_header(CTX->message, "Message-Id", DDF_ICASE);
@@ -2842,32 +2866,22 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     class = 'E';
   }
 
+  log_prepare(from_buf, from);
+  log_prepare(subject_buf, subject);
+
   /* Write USER.log */
 
   if (_ds_match_attribute(agent_config, "UserLog", "on")) {
-    char *c;
-    char fromline[256]; 
-    snprintf(fromline, sizeof(fromline), "%s", (from == NULL) ? "<None Specified>" : from);
-    while(subject && (c=strchr(subject, '\t')))
-      *c = ' ';
-    while((c=strchr(fromline, '\t')))
-      *c = ' ';
-    while(subject && (c=strchr(subject, '\n')))
-      *c = ' ';
-    while((c=strchr(fromline, '\n')))
-      *c = ' ';
 
     snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s\t%s\t%s\t%s\n",
             (long) time(NULL),
             class,
-            fromline,
+            from_buf,
             ATX->signature,
-            (subject == NULL) ? "<None Specified>" : subject,
+            subject_buf,
             ATX->status,
             (messageid) ? messageid : "");
-    for(y=0;y<strlen(x);y++)
-      if (x[y] == '\n')
-        x[y] = 32;
+
 
     _ds_prepare_path_for(filename);
     file = fopen(filename, "a");
@@ -2893,19 +2907,18 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     if (file != NULL) {
       int i = _ds_get_fcntl_lock(fileno(file));
       if (!i) {
-        char s[1024];
 
-        snprintf(s, sizeof(s), "%ld\t%c\t%s\t%s\t%s\t%f\t%s\t%s\t%s\n",
+        snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s\t%s\t%f\t%s\t%s\t%s\n",
             (long) time(NULL),
             class,
-            (from == NULL) ? "<None Specified>" : from,
+            from_buf,
             ATX->signature,
-            (subject == NULL) ? "<None Specified>" : subject,
+            subject_buf,
             _ds_gettime()-ATX->timestart,
 	    (CTX->username) ? CTX->username: "",
 	    (ATX->status) ? ATX->status : "",
             (messageid) ? messageid : "");
-        fputs(s, file);
+        fputs(x, file);
         _ds_free_fcntl_lock(fileno(file));
       } else {
         LOG(LOG_WARNING, ERR_IO_LOCK, filename, i, strerror(errno));
@@ -3079,9 +3092,16 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
             while(node_ft != NULL) {
               struct dspam_factor *f = (struct dspam_factor *) node_ft->ptr;
               if (f) {
+	        char *s, *t;
                 strlcat(data, ",\n\t", sizeof(data));
-                snprintf(scratch, sizeof(scratch), "%s, %2.5f",
-                         f->token_name, f->value);
+		s = f->token_name;
+		t = scratch;
+		while (*s && t < scratch + sizeof(scratch) - 16)
+		  if (*s >= ' ' && *s < 0x7f && *s != '%')
+		    *t++ = *s++;
+		  else
+		    t += sprintf(t, "%%%02x", (unsigned char) *s++);
+		snprintf(t, 15, ", %2.5f", f->value);
                 strlcat(data, scratch, sizeof(data));
               }
               node_ft = c_nt_next(CTX->factors, &c_ft);
@@ -3531,6 +3551,7 @@ int tracksource(DSPAM_CTX *CTX) {
   {
     if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 2500) {
       if (CTX->result == DSR_ISSPAM && 
+          strcmp(CTX->class, LANG_CLASS_VIRUS) != 0 &&
           _ds_match_attribute(agent_config, "TrackSources", "spam")) {
         FILE *file;
         char dropfile[MAX_FILENAME_LENGTH];

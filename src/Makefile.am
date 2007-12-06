@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.37 2006/08/28 19:13:04 jonz Exp $
+# $Id: Makefile.am,v 1.38 2007/12/06 05:10:12 mjohnson Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -34,7 +34,7 @@ DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
        -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\"\
        -D_THREAD_SAFE -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D_GNU_SOURCE
 
-lib_LTLIBRARIES = libdspam.la 
+lib_LTLIBRARIES = libdspam.la
 
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
@@ -59,7 +59,7 @@ bin_PROGRAMS = dspam dspamc
 # installed for libdspam
 include_HEADERS = buffer.h config_shared.h decode.h error.h diction.h \
 	libdspam.h libdspam_objects.h nodetree.h tokenizer.h ldap_client.h \
-	storage_driver.h heap.h config.h
+	storage_driver.h heap.h config.h pref.h read_config.h
 
 # libdspam.a contans objects common for dspam and tools/* binaries
 libdspam_la_SOURCES = \
@@ -67,19 +67,20 @@ libdspam_la_SOURCES = \
 	libdspam.c libdspam.h \
 	heap.c heap.h \
 	diction.c diction.h \
-        base64.c base64.h \
+	base64.c base64.h \
 	buffer.c buffer.h \
 	util.c util.h \
 	nodetree.c nodetree.h \
-        error.c error.h \
+	error.c error.h \
 	decode.c decode.h \
 	pref.c pref.h \
+	read_config.c read_config.h \
 	config_shared.c config_shared.h \
 	bnr.c bnr.h \
 	hash.c hash.h \
 	list.c list.h \
 	ldap_client.c ldap_client.h \
-        tokenizer.c tokenizer.h \
+	tokenizer.c tokenizer.h \
 	storage_driver.h
 
 if BUILD_NCORE
@@ -129,7 +130,7 @@ if DYNAMIC_DRIVER
 
 libmysql_drv_la_SOURCES = \
 	mysql_drv.c mysql_drv.h 
-libmysql_drv_la_LIBADD = $(libmysql_drv_libs)
+libmysql_drv_la_LIBADD = $(libmysql_drv_libs) $(srcdir)/libdspam.la
 libmysql_drv_la_CPPFLAGS = $(libmysql_drv_cppflags)
 libmysql_drv_la_LDFLAGS = $(libmysql_drv_ldflags)
 libmysql_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion) 
@@ -137,7 +138,7 @@ libmysql_drv_la_DEPENDENCIES =
 
 libpgsql_drv_la_SOURCES = \
 	pgsql_drv.c pgsql_drv.h 
-libpgsql_drv_la_LIBADD = $(libpgsql_drv_libs)
+libpgsql_drv_la_LIBADD = $(libpgsql_drv_libs) $(srcdir)/libdspam.la
 libpgsql_drv_la_CPPFLAGS = $(libpgsql_drv_cppflags)
 libpgsql_drv_la_LDFLAGS = $(libpgsql_drv_ldflags)
 libpgsql_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
@@ -145,7 +146,7 @@ libpgsql_drv_la_DEPENDENCIES =
 
 libsqlite_drv_la_SOURCES = \
 	sqlite_drv.c sqlite_drv.h 
-libsqlite_drv_la_LIBADD = $(libsqlite_drv_libs)
+libsqlite_drv_la_LIBADD = $(libsqlite_drv_libs) $(srcdir)/libdspam.la
 libsqlite_drv_la_CPPFLAGS = $(libsqlite_drv_cppflags)
 libsqlite_drv_la_LDFLAGS = $(libsqlite_drv_ldflags)
 libsqlite_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
@@ -153,7 +154,7 @@ libsqlite_drv_la_DEPENDENCIES =
 
 libsqlite3_drv_la_SOURCES = \
 	sqlite3_drv.c sqlite3_drv.h 
-libsqlite3_drv_la_LIBADD = $(libsqlite3_drv_libs)
+libsqlite3_drv_la_LIBADD = $(libsqlite3_drv_libs) $(srcdir)/libdspam.la
 libsqlite3_drv_la_CPPFLAGS = $(libsqlite3_drv_cppflags)
 libsqlite3_drv_la_LDFLAGS = $(libsqlite3_drv_ldflags)
 libsqlite3_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
@@ -161,7 +162,8 @@ libsqlite3_drv_la_DEPENDENCIES =
 
 libhash_drv_la_SOURCES = \
 	hash_drv.c hash_drv.h
-libhash_drv_la_LDFLAGS = -rpath '$(libdir)' 
+libhash_drv_la_LIBADD = $(srcdir)/libdspam.la
+libhash_drv_la_LDFLAGS = -rpath '$(libdir)'
 libhash_drv_la_LDFLAGS += -version-info $(libversion)
 
 endif
@@ -171,24 +173,23 @@ dspam_SOURCES = \
         dspam.c dspam.h \
         buffer.h \
 	storage_driver.h \
-	read_config.c read_config.h \
+	read_config.h \
 	config_api.c config_api.h \
 	daemon.c daemon.h \
 	client.c client.h \
 	agent_shared.c agent_shared.h
 
 dspam_LDADD = libdspam.la
-dspam_LDFLAGS = -static
 
 dspamc_SOURCES = \
-	config.h libdspam.h language.h \
+	config.h language.h \
 	dspamc.c dspamc.h \
 	buffer.h error.h \
-	read_config.c read_config.h \
+	read_config.h \
 	client.c client.h \
 	agent_shared.c agent_shared.h 
 
-dspamc_LDADD = -lm buffer.o config_shared.o error.o pref.o nodetree.o util.o $(NETLIBS)
+dspamc_LDADD = -lm buffer.o config_shared.o error.o read_config.o pref.o nodetree.o util.o $(NETLIBS)
 dspamc_LDFLAGS = -static
 
 # Failing of chgrp is expected and normal case when someone do

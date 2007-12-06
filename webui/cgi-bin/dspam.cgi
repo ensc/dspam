@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.26 2006/06/01 19:14:14 jonz Exp $
+# $Id: dspam.cgi,v 1.27 2007/12/06 05:10:44 mjohnson Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -214,18 +214,23 @@ sub DisplayHistory {
     $CONFIG{'HISTORY_PER_PAGE'} = 50;
   }
 
+  my($show) = $FORM{'show'};
+  if ($show eq "") {
+    $show = "all";
+  }
+
   if ($FORM{'command'} eq "retrainChecked") {
     foreach my $i (0 .. $#{ $FORM{retrain_checked} }) {
         my ($retrain, $signature) = split(/:/, $FORM{retrain_checked}[$i]);
         if ($retrain eq "innocent") {
-          $FORM{'signatureID'} = quotemeta($signature);
+          $FORM{'signatureID'} = $signature;
           &ProcessFalsePositive();
           undef $FORM{'signatureID'};
          } elsif ($retrain eq "innocent" or $retrain eq "spam") {
            system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($retrain) . " --signature=" . quotemeta($signature) . " --user " . quotemeta("$CURRENT_USER"));
          }
     }
-  redirect("$MYURL&history_page=$history_page");
+  redirect("$MYURL&show=$show&history_page=$history_page");
   } else {
     if ($FORM{'retrain'} ne "") {
        if ($FORM{'retrain'} eq "innocent") {
@@ -233,7 +238,7 @@ sub DisplayHistory {
        } else {
          system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($FORM{'retrain'}) . " --signature=" . quotemeta($FORM{'signatureID'}) . " --user " . quotemeta("$CURRENT_USER"));
        }
-    redirect("$MYURL&history_page=$history_page");
+    redirect("$MYURL&show=$show&history_page=$history_page");
     }
   }
 
@@ -249,6 +254,10 @@ sub DisplayHistory {
     my($time, $class, $from, $signature, $subject, $info, $messageid) 
       = split(/\t/, $_);
     next if ($signature eq "");
+
+    # not good to check for messages to show here, we're skipping
+    # the retraining data so retrained messages won't show
+
     if ($class eq "M" || $class eq "F" || $class eq "E") { 
       if ($class eq "E") {
         $rec{$signature}->{'info'} = $info;
@@ -263,6 +272,12 @@ sub DisplayHistory {
     } elsif ($messageid == ''
 	     || $rec{$signature}->{'messageid'} != $messageid
 	     || $CONFIG{'HISTORY_DUPLICATES'} ne "no") {
+
+      # skip unwanted messages
+      next if ($class ne "S" && $show eq "spam");
+      next if ($class ne "I" && $show eq "innocent");
+      next if ($class ne "W" && $show eq "whitelisted");
+
       $rec{$signature}->{'time'} = $time;
       $rec{$signature}->{'class'} = $class;
       $rec{$signature}->{'from'} = $from;
@@ -385,9 +400,9 @@ sub DisplayHistory {
     } 
 
     if ($retrain eq "") {
-      $retrain = qq!<A HREF="$CONFIG{'ME'}?template=$FORM{'template'}&history_page=$history_page&user=$FORM{'user'}&retrain=$rclass&signatureID=$signature">As ! . ucfirst($rclass) . "</A>";
+      $retrain = qq!<A HREF="$MYURL&show=$show&history_page=$history_page&retrain=$rclass&signatureID=$signature">As ! . ucfirst($rclass) . "</A>";
     } else {
-      $retrain .= qq! (<A HREF="$CONFIG{'ME'}?template=$FORM{'template'}&history_page=$history_page&user=$FORM{'user'}&retrain=$rclass&signatureID=$signature">Undo</A>)!;
+      $retrain .= qq! (<A HREF="$MYURL&show=$show&history_page=$history_page&retrain=$rclass&signatureID=$signature">Undo</A>)!;
     }
 
     my($path) = "$USER.frag/$signature.frag";
@@ -441,22 +456,50 @@ _END
     $DATA{'HISTORY'} .= "<center>[";
     if (($history_pages > 1) && ($history_page > 1)) {
       my $i = $history_page-1;
-      $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\">&nbsp;&lt;&nbsp;</a>";
+      $DATA{'HISTORY'} .= "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;&lt;&nbsp;</a>";
     }
     for(my $i = 1; $i <= $history_pages; $i++) {
   
       if ($i == $history_page) {
-        $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\"><big><strong>&nbsp;$i&nbsp;</strong></big></a>";
+        $DATA{'HISTORY'} .= "<a href=\"$MYURL&show=$show&history_page=$i\"><big><strong>&nbsp;$i&nbsp;</strong></big></a>";
       } else {
-       $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\">&nbsp;$i&nbsp;</a>";
+        $DATA{'HISTORY'} .= "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;$i&nbsp;</a>";
       }
     }
     if (($history_pages > 1) && ($history_page < $history_pages)) {
       my $i = $history_page+1;
-      $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\">&nbsp;&gt;&nbsp;</a>";
+      $DATA{'HISTORY'} .= "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;&gt;&nbsp;</a>";
     }
     $DATA{'HISTORY'} .= "]</center><BR>";
   }
+
+  $DATA{'SHOW'} = $show;
+  $DATA{'SHOW_SELECTOR'} .=  "Show: <a href=\"$MYURL&show=all\">";
+  if ($show eq "all") {
+    $DATA{'SHOW_SELECTOR'} .= "<strong>all</strong>";
+  } else {
+    $DATA{'SHOW_SELECTOR'} .= "all";
+  }
+  $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&show=spam\">";
+  if ($show eq "spam") {
+    $DATA{'SHOW_SELECTOR'} .= "<strong>spam</strong>";
+  } else {
+    $DATA{'SHOW_SELECTOR'} .= "spam";
+  }
+  $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&show=innocent\">";
+  if ($show eq "innocent") {
+    $DATA{'SHOW_SELECTOR'} .= "<strong>innocent</strong>";
+  } else {
+    $DATA{'SHOW_SELECTOR'} .= "innocent";
+  }
+  $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&show=whitelisted\">";
+  if ($show eq "whitelisted") {
+    $DATA{'SHOW_SELECTOR'} .= "<strong>whitelisted</strong>";
+  } else {
+    $DATA{'SHOW_SELECTOR'} .= "whitelisted";
+  }
+  $DATA{'SORT_SELECTOR'} .=  "</a>";
+
   &output(%DATA);
 }
 
