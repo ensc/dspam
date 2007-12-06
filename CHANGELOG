@@ -1,4 +1,55 @@
-$Id: CHANGELOG,v 1.462 2007/03/18 17:08:49 jonz Exp $
+$Id: CHANGELOG,v 1.463 2007/12/06 05:01:08 mjohnson Exp $
+
+Version 3.8.1
+-------------
+
+[20071205:1600] mjohnson: FilteringHistory
+
+Martin Mares posted on 05-25-07. Feature Request #34. Filtering now all | spam
+| innocent | whitelisted
+
+[20071205:1600] mjohnson: 8-bit headers patch
+
+Martin Mares posted on 05-25-07. All characters in X-DSpam-Factors headers except for obviously safe
+regions encoded using %xx syntax.
+
+[20071205:1600] mjohnson: Virus not spam patch
+
+Julien Valroff posted on 11-29-07 for 3.6.8. Updated. 
+
+[20071204:1200] mjohnson: dspam.cgi 'Retrain Checked' bug for false positives
+
+Remi Broemeling discovered on 10-26-07. Combination of
+checkboxes and 'Retrain Checked' button fails for messages marked Spam that
+should be Innocent. 
+
+[20071204:1330] mjohnson: process_parseto bug
+
+Doug Hardie discovered on 06-09-07. Incorrectly parses forwarded messages with
+lines like 'To: spam-trash'. 
+
+[20071204:1530] mjohnson: libdspam linking
+
+Andreas Schneider posted on 10-22-07. Links dspam modules against libdspam
+for compiling with shared storage drivers.
+
+[20071204:1530] mjohnson: read_config support for libdspam
+
+Andreas Schneider posted on 10-22-07. 
+
+[20071204:1530] mjohnson: No such user bug
+
+Andreas Schneider posted on 10-23-07. dspamc wasn't declaring needed entity
+variables (name, uid) for the agent.
+
+[20071204:1600] mjohnson: Enables '+' in addresses, ignores case
+
+Benjamin Donnachie posted on 05-30-07. 
+
+[20071204:1600] mjohnson: Improved random seed initialization
+
+Martin Mares posted on 05-25-07.
+
 
 Version 3.8.0
 -------------
