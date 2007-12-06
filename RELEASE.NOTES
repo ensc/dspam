@@ -1,6 +1,5 @@
-$Id: RELEASE.NOTES,v 1.68 2007/03/18 16:53:23 jonz Exp $
+$Id: RELEASE.NOTES,v 1.69 2007/12/06 04:59:11 mjohnson Exp $
 
-RELEASE 3.8.0-STABLE
+RELEASE 3.8.1-Patch
 
-3.8.0 is a major release. Please see UPGRADING and CHANGELOG for a detailed
-explanation of the differences from previous versions.
+3.8.1 is a patch release including many changes from the dspam-dev mailing list. Please see UPGRADING and CHANGELOG for a detailed explanation of the differences from previous versions.
