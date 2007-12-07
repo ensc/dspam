@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.62 2006/07/29 13:38:48 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.63 2007/12/07 00:11:52 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -2633,7 +2633,7 @@ _pgsql_drv_token_write(int type, unsigned long long token, char *buffer, size_t 
   if (type == 1) {
     snprintf(buffer, bufsz, "%lld", token);
   } else {
-    snprintf(buffer, bufsz, "'%llu'", token);
+    snprintf(buffer, bufsz, "%llu", token);
   }
   return buffer;
 }

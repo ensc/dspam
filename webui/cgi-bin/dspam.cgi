@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.27 2007/12/06 05:10:44 mjohnson Exp $
+# $Id: dspam.cgi,v 1.28 2007/12/07 00:11:52 mjohnson Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -741,7 +741,7 @@ sub ProcessFalsePositive {
   }
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
-    chomp;
+    s/\r?\n$//;
     push(@buffer, $_);
   }
   close(FILE);
@@ -802,7 +802,7 @@ sub Quarantine_ManyNotSpam {
 
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
-    chomp;
+    s/\r?\n$//;
     push(@buffer, $_);
   }
   close(FILE);
@@ -882,7 +882,7 @@ sub Quarantine_ViewMessage {
 
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
-    chomp;
+    s/\r?\n//;
     push(@buffer, $_);
   }
   close(FILE);
@@ -950,7 +950,7 @@ sub Quarantine_DeleteSpam {
   }
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
-    chomp;
+    s/\r?\n//;
     push(@buffer, $_);
   }
   close(FILE);
@@ -1023,7 +1023,7 @@ sub DisplayQuarantine {
   $rowclass="rowEven";
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
-    chomp;
+    s/\r?\n//;
     if ($_ ne "") {
       if ($mode eq "") { 
         if ($_ =~ /^From /) {

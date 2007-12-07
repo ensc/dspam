@@ -123,7 +123,7 @@ sub TestNonspam {
     my($code, $cmd, $response);
     my($dir, $msg) = @_;
     print "[test: nonspam] " . substr($msg . " " x 32, 0, 32) .  " result: ";
-    $cmd = "$CONFIG{'DSPAM_BINARY'} --user $USER --deliver=summary < '$dir/$msg'";
+    $cmd = "$CONFIG{'DSPAM_BINARY'} --user $USER --deliver=summary --stdout < '$dir/$msg'";
     $response = `$cmd`;
 
     $code = "UNKNOWN";
@@ -131,10 +131,12 @@ sub TestNonspam {
         $code = $1;
     }
     if ($code eq "UNKNOWN") {
-        print "\n===== WOAH THERE =====\n";
-        print "I was unable to parse the result. Test Broken.\n";
-        print "======================\n";
-        exit(0);
+        # print "\n===== WOAH THERE =====\n";
+        # print "I was unable to parse the result. Test Broken.\n";
+        # print "======================\n";
+        # exit(0);
+        print "BROKEN result!!\n";
+        return;
     }
 
     if ($code eq "Innocent" || $code eq "Whitelisted") {
@@ -144,16 +146,21 @@ sub TestNonspam {
         my($signature) = "UNKNOWN";
         if ($response =~ /class="(\S+)"/i) {
             $class = $1;
+        } else {
+            print "BROKEN class!!\n";
+            return;
         }
 
         if ($response =~ /signature=(\S+)/i) {
             $signature = $1;
         } else {
-            print "\n===== WOAH THERE =====\n";
-            print "I was unable to find the DSPAM signature. Test Broken.\n";
-            print "======================\n";
-            print "\n$response\n";
-            exit(0);
+            # print "\n===== WOAH THERE =====\n";
+            # print "I was unable to find the DSPAM signature. Test Broken.\n";
+            # print "======================\n";
+            # print "\n$response\n";
+            # exit(0);
+            print "BROKEN signature!!\n";
+            return;
         }
 
         print "FAIL ($class)";
@@ -182,7 +189,7 @@ sub TestSpam {
     my($dir, $msg) = @_;
 
     print "[test: spam   ] " . substr($msg . " " x 32, 0, 32) . " result: ";
-    $cmd = "$CONFIG{'DSPAM_BINARY'} --user $USER --deliver=summary < '$dir/$msg'";
+    $cmd = "$CONFIG{'DSPAM_BINARY'} --user $USER --deliver=summary --stdout < '$dir/$msg'";
     $response = `$cmd`;
 
     $code = "UNKNOWN";
@@ -190,29 +197,36 @@ sub TestSpam {
         $code = $1;
     }
     if ($code eq "UNKNOWN") {
-        print "\n===== WOAH THERE =====\n";
-        print "I was unable to parse the result. Test Broken.\n";
-        print "======================\n";
-        exit(0);
+        # print "\n===== WOAH THERE =====\n";
+        # print "I was unable to parse the result. Test Broken.\n";
+        # print "======================\n";
+        # exit(0);
+        print "BROKEN result!!\n";
+        return;
     }
 
-    if ($code eq "Spam") {
+    if ($code eq "Spam" || $code eq "Blacklisted") {
         print "PASS";
     } else {
         my($class) = "UNKNOWN";
         my($signature) = "UNKNOWN";
         if ($response =~ /class="(\S+)"/i) {
             $class = $1;
+        } else {
+            print "BROKEN class!!\n";
+            return;
         }
 
         if ($response =~ /signature=(\S+)/i) {
             $signature = $1;
         } else {
-            print "\n===== WOAH THERE =====\n";
-            print "I was unable to find the DSPAM signature. Test Broken.\n";
-            print "======================\n";
-            print "\n$response\n";
-            exit(0);
+            # print "\n===== WOAH THERE =====\n";
+            # print "I was unable to find the DSPAM signature. Test Broken.\n";
+            # print "======================\n";
+            # print "\n$response\n";
+            # exit(0);
+            print "BROKEN signature!!\n";
+            return;
         }
         print "FAIL ($class)";
 

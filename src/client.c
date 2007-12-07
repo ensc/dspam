@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.62 2006/05/25 15:36:39 jonz Exp $ */
+/* $Id: client.c,v 1.63 2007/12/07 00:11:51 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -56,6 +56,7 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
+#include <sysexits.h>
 
 #include "client.h"
 #include "dspam.h"
@@ -678,6 +679,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   char *ident = _ds_read_attribute(agent_config, "DeliveryIdent");
   int exitcode = EFAILURE;
   int msglen, code;
+  int buflen;
   char *inp;
   int i;
 
@@ -791,13 +793,34 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   i = 0;
   msglen = strlen(msg);
   while(i<msglen) {
-    int r = send(TTX.sockfd, msg+i, msglen - i, 0);
-    if (r <= 0) {
-      LOG(LOG_ERR, ERR_CLIENT_SEND_FAILED);
-      STATUS(ERR_CLIENT_SEND_FAILED);
-      goto BAIL;
+    int r;
+    int t;
+
+    /* fill buf with partial msg, replacing \n with \r\n */
+    buflen = 0;
+    while (buflen < (sizeof(buf) - 1) && i < msglen) {
+      /* only replace \n and not \r\n */
+      if (i > 0 && msg[i] == '\n' && msg[i - 1] != '\r') {
+        buf[buflen] = '\r';
+        buflen++;
+      }
+
+      buf[buflen] = msg[i];
+      buflen++;
+      i++;
     }
-    i += r;
+
+    /* send buf */
+    t = 0;
+    while (t < buflen) {
+      r = send(TTX.sockfd, buf+t, buflen - t, 0);
+      if (r <= 0) {
+        LOG(LOG_ERR, ERR_CLIENT_SEND_FAILED);
+        STATUS(ERR_CLIENT_SEND_FAILED);
+        goto BAIL;
+      }
+      t += r;
+    }
   }
 
   if (msg[strlen(msg)-1]!= '\n') {
@@ -819,7 +842,9 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   code = client_getcode(&TTX, err, sizeof(err));
   if (code < 200 || code >= 300) {
     LOG(LOG_ERR, ERR_CLIENT_RESPONSE, code, "message data", err);
-    if (code >= 500)
+    if (code >= 400 && code < 500)
+      exitcode = EX_TEMPFAIL;
+    else if (code >= 500)
       exitcode = EINVAL;
     chomp(err);
     STATUS((code >= 500) ? "Fatal: %s" : "Deferred: %s", err);
@@ -835,6 +860,9 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
 QUIT:
   send_socket(&TTX, "QUIT");
   client_getcode(&TTX, err, sizeof(err));
+  buffer_destroy(TTX.packet_buffer);
+  close(TTX.sockfd);
+  return exitcode;
 
 BAIL:
   LOG(LOG_ERR, ERR_CLIENT_DELIVERY_FAILED);

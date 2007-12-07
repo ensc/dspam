@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.38 2007/12/06 05:10:12 mjohnson Exp $
+# $Id: Makefile.am,v 1.39 2007/12/07 00:11:51 mjohnson Exp $
 #
 # Makefile.am
 # Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -31,26 +31,28 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 auto-config.h.in \
 	ltmain.sh missing mkinstalldirs
 
 DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
+       -DCONFDIR=\"$(sysconfdir)\"\
        -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\"\
        -D_THREAD_SAFE -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D_GNU_SOURCE
 
 lib_LTLIBRARIES = libdspam.la
+pkglib_LTLIBRARIES =
 
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
-lib_LTLIBRARIES += libhash_drv.la
+pkglib_LTLIBRARIES += libhash_drv.la
 endif
 if BUILD_MYSQL_DRV
-lib_LTLIBRARIES += libmysql_drv.la
+pkglib_LTLIBRARIES += libmysql_drv.la
 endif
 if BUILD_PGSQL_DRV
-lib_LTLIBRARIES += libpgsql_drv.la
+pkglib_LTLIBRARIES += libpgsql_drv.la
 endif
 if BUILD_SQLITE_DRV
-lib_LTLIBRARIES += libsqlite_drv.la
+pkglib_LTLIBRARIES += libsqlite_drv.la
 endif
 if BUILD_SQLITE3_DRV
-lib_LTLIBRARIES += libsqlite3_drv.la
+pkglib_LTLIBRARIES += libsqlite3_drv.la
 endif
 endif
 
@@ -133,7 +135,7 @@ libmysql_drv_la_SOURCES = \
 libmysql_drv_la_LIBADD = $(libmysql_drv_libs) $(srcdir)/libdspam.la
 libmysql_drv_la_CPPFLAGS = $(libmysql_drv_cppflags)
 libmysql_drv_la_LDFLAGS = $(libmysql_drv_ldflags)
-libmysql_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion) 
+libmysql_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion) 
 libmysql_drv_la_DEPENDENCIES =
 
 libpgsql_drv_la_SOURCES = \
@@ -141,7 +143,7 @@ libpgsql_drv_la_SOURCES = \
 libpgsql_drv_la_LIBADD = $(libpgsql_drv_libs) $(srcdir)/libdspam.la
 libpgsql_drv_la_CPPFLAGS = $(libpgsql_drv_cppflags)
 libpgsql_drv_la_LDFLAGS = $(libpgsql_drv_ldflags)
-libpgsql_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
+libpgsql_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
 libpgsql_drv_la_DEPENDENCIES =
 
 libsqlite_drv_la_SOURCES = \
@@ -149,7 +151,7 @@ libsqlite_drv_la_SOURCES = \
 libsqlite_drv_la_LIBADD = $(libsqlite_drv_libs) $(srcdir)/libdspam.la
 libsqlite_drv_la_CPPFLAGS = $(libsqlite_drv_cppflags)
 libsqlite_drv_la_LDFLAGS = $(libsqlite_drv_ldflags)
-libsqlite_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
+libsqlite_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
 libsqlite_drv_la_DEPENDENCIES =
 
 libsqlite3_drv_la_SOURCES = \
@@ -157,14 +159,13 @@ libsqlite3_drv_la_SOURCES = \
 libsqlite3_drv_la_LIBADD = $(libsqlite3_drv_libs) $(srcdir)/libdspam.la
 libsqlite3_drv_la_CPPFLAGS = $(libsqlite3_drv_cppflags)
 libsqlite3_drv_la_LDFLAGS = $(libsqlite3_drv_ldflags)
-libsqlite3_drv_la_LDFLAGS += -rpath '$(libdir)' -version-info $(libversion)
+libsqlite3_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
 libsqlite3_drv_la_DEPENDENCIES =
 
 libhash_drv_la_SOURCES = \
 	hash_drv.c hash_drv.h
 libhash_drv_la_LIBADD = $(srcdir)/libdspam.la
-libhash_drv_la_LDFLAGS = -rpath '$(libdir)'
-libhash_drv_la_LDFLAGS += -version-info $(libversion)
+libhash_drv_la_LDFLAGS = -rpath '$(pkglibdir)' -version-info $(libversion)
 
 endif
 
@@ -190,7 +191,7 @@ dspamc_SOURCES = \
 	agent_shared.c agent_shared.h 
 
 dspamc_LDADD = -lm buffer.o config_shared.o error.o read_config.o pref.o nodetree.o util.o $(NETLIBS)
-dspamc_LDFLAGS = -static
+dspamc_LDFLAGS = 
 
 # Failing of chgrp is expected and normal case when someone do
 #   make install DESTDIR=...

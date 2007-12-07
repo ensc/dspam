@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.14 2006/05/26 23:15:17 jonz Exp $ */
+/* $Id: error.c,v 1.15 2007/12/07 00:11:51 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -80,11 +80,6 @@ LOG(int priority, const char *err, ... )
   pthread_mutex_lock(&__syslog_lock);
 #endif
 #endif
-
-  va_start (ap, err);
-  vsnprintf (buf, sizeof (buf), err, ap);
-  fprintf(stderr, "%ld: [%s] %s\n", (long) getpid(), format_date_r(date), buf);
-  va_end (ap);
 
 #ifdef USE_SYSLOG
   va_start (ap, err);

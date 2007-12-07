@@ -65,6 +65,7 @@ then
     AC_RUN_IFELSE([AC_LANG_SOURCE([[
         #include <sqlite3.h>
         #include <stdio.h>
+        #include <stdlib.h>
         #ifdef HAVE_UNISTD_H
         #   include <unistd.h>
         #endif
@@ -197,7 +198,8 @@ do
             #include <sqlite3.h>
             ]],
             [[
-              const char *v = sqlite3_version;
+              const char *v = 0;
+	      v = sqlite3_version;
             ]])],
             [ ds_sqlite_libs_success=yes ],
             [ ds_sqlite_libs_success=no ]

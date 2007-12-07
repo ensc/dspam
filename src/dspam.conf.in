@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.82 2006/06/23 03:11:31 jonz Exp $
+## $Id: dspam.conf.in,v 1.83 2007/12/07 00:11:51 mjohnson Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -26,7 +26,7 @@ Home @dspam_home@
 # this option. If you do not wish to lose all of your data, you will need to
 # migrate it to the new backend before making this change.
 #
-StorageDriver @libdir@/@storage_driver@
+StorageDriver @libdir@/dspam/@storage_driver@
 
 #
 # Trusted Delivery Agent: Specifies the local delivery agent DSPAM should call 
@@ -97,9 +97,6 @@ TrustedDeliveryAgent "@delivery_agent@"
 # "user+detail". This is only useful if the LDA can handle "plused users"
 # (for example Cyrus IMAP) and when configured for LMTP delivery above
 #
-# NOTE: Plused detail presently only works when usernames are provided and
-#       not fully qualified email address (@domain).
-#
 #EnablePlusedDetail	on
 
 #
@@ -131,6 +128,8 @@ OnFail error
 # able to specify delivery agent privileges or use tools.
 #
 Trust root
+Trust dspam
+Trust apache
 Trust mail
 Trust mailnull 
 Trust smmsp
@@ -305,6 +304,7 @@ AllowOverride whitelistThreshold
 #MySQLPass    		changeme
 #MySQLDb      	  	dspam
 #MySQLCompress		true
+#MySQLReconnect		true
 
 # If you are using replication for clustering, you can also specify a separate
 # server to perform all writes to.
@@ -315,6 +315,7 @@ AllowOverride whitelistThreshold
 #MySQLWritePass		changeme
 #MySQLWriteDb		dspam_write
 #MySQLCompress		true
+#MySQLReconnect		true
 
 # If your replication isn't close to real-time, your retraining might fail if 
 # the  signature isn't found. One workaround for this is to use the write
@@ -486,6 +487,7 @@ HashConnectionCache	10
 #MySQLPass.DECAlpha     changeme
 #MySQLDb.DECAlpha       dspam
 #MySQLCompress.DECAlpha true
+#MySQLReconnect.DECAlpha	true
 #
 #Profile Sun420R
 #MySQLServer.Sun420R    10.0.0.2
@@ -494,6 +496,7 @@ HashConnectionCache	10
 #MySQLPass.Sun420R      changeme
 #MySQLDb.Sun420R        dspam
 #MySQLCompress.Sun420R  false
+#MySQLReconnect.Sun420R	true
 #
 #DefaultProfile DECAlpha
 

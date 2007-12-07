@@ -1,4 +1,4 @@
-# $Id: purge.sql,v 1.4 2005/05/04 20:14:37 jonz Exp $
+# $Id: purge.sql,v 1.5 2007/12/07 00:15:36 mjohnson Exp $
 set @a=to_days(current_date());
 delete from dspam_token_data 
   where (innocent_hits*2) + spam_hits < 5
@@ -13,3 +13,5 @@ delete from dspam_token_data
   where @a-to_days(last_hit) > 90;
 delete from dspam_signature_data
   where @a-14 > to_days(created_on);
+
+optimize table dspam_token_data, dspam_signature_data;

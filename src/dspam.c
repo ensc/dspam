@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.238 2007/12/06 05:10:13 mjohnson Exp $ */
+/* $Id: dspam.c,v 1.239 2007/12/07 00:11:51 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -51,6 +51,7 @@
 #include <sys/stat.h>
 #include <netdb.h>
 #include <sys/socket.h>
+#include <sysexits.h>
 
 #ifdef _WIN32
 #include <io.h>
@@ -877,10 +878,20 @@ deliver_message (
   if ((_ds_read_attribute(agent_config, "QuarantineMailbox")) &&
       (result == DSR_ISSPAM)) {
     strlcpy(args, ATX->recipient, sizeof(args));
+
+    /* strip trailing @domain, if present: */
+    arg=index(args, '@');
+    if (arg) *arg = '\0';
+
     arg=index(args,'+');
     if (arg != NULL) *arg='\0';
     strlcat(args,_ds_read_attribute(agent_config, "QuarantineMailbox"),
             sizeof(args));
+
+    /* append trailing @domain again, if it was present: */
+    arg=index(ATX->recipient, '@');
+    if (arg) strlcat (args, arg, sizeof(args));
+
     ATX->recipient=args;
   }
 
@@ -1481,8 +1492,7 @@ int send_notice(
 
   time(&now);
                                                                                 
-  snprintf(msgfile, sizeof(msgfile), "%s/txt/%s",
-           _ds_read_attribute(agent_config, "Home"), filename);
+  snprintf(msgfile, sizeof(msgfile), CONFDIR "/txt/%s", filename);
   f = fopen(msgfile, "r");
   if (!f) {
     LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
@@ -2015,11 +2025,11 @@ RSET:
       nt_add(ATX->results, presult);
     else
       free(presult);
-    LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", return_code);
+    LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", retcode);
     buffer_destroy(parse_message);
   }
 
-  return return_code;
+  return retcode;
 }
 // break
 // load_agg
@@ -2342,8 +2352,8 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
   
           while (user != NULL)
           {
-            if (!strcmp (user, username) || user[0] == '*' ||
-               (!strncmp(user, "*@", 2) && !strcmp(user+2, strchr(username,'@'))))
+            if (!strcmp (user, username) || !strcmp(user, "*") ||
+               (!strncmp(user, "*@", 2) && !strcmp(user+1, strchr(username,'@'))))
             {
   
               /* If we're reporting a spam, report it as a spam to all other
@@ -3795,7 +3805,7 @@ int is_blocklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     char buf[256];
     if (heading) {
       char *dup = strdup(heading);
-      char *domain = strchr(dup, '@');
+      char *domain = strrchr(dup, '@');
       if (domain) {
         int i;
         for(i=0;domain[i] && domain[i]!='\r' && domain[i]!='\n'
@@ -3844,8 +3854,11 @@ int daemon_start(AGENT_CTX *ATX) {
 
   LOG(LOG_INFO, INFO_DAEMON_START);
 
+  pidfile = _ds_read_attribute(agent_config, "ServerPID");
+  if ( pidfile == NULL )
+    pidfile = "/var/run/dspam/dspam.pid";
+
   while(__daemon_run) {
-    pidfile = _ds_read_attribute(agent_config, "ServerPID");
 
     DTX.CTX = dspam_create (NULL, NULL,
                       _ds_read_attribute(agent_config, "Home"),
@@ -4035,6 +4048,7 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       LOGDEBUG("sending firstrun.txt to %s (%s): %s",
                CTX->username, filename, strerror(errno));
       send_notice(ATX, "firstrun.txt", ATX->mailer_args, CTX->username);
+      _ds_prepare_path_for(filename);
       file = fopen(filename, "w");
       if (file) {
         fprintf(file, "%ld\n", (long) time(NULL));
@@ -4059,6 +4073,7 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       LOGDEBUG("sending firstspam.txt to %s (%s): %s",
                CTX->username, filename, strerror(errno));
       send_notice(ATX, "firstspam.txt", ATX->mailer_args, CTX->username);
+      _ds_prepare_path_for(filename);
       file = fopen(filename, "w");
       if (file) {
         fprintf(file, "%ld\n", (long) time(NULL));
@@ -4084,6 +4099,7 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       if (stat(qfile, &s)) {
         FILE *f;
 
+        _ds_prepare_path_for(qfile);
         f = fopen(qfile, "w");
         if (f != NULL) {
           fprintf(f, "%ld", (long) time(NULL));

@@ -19,7 +19,7 @@ DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
 cssstat_SOURCES =  cssstat.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
                    ../pref.c
-cssstat_LDFLAGS = -static
+cssstat_LDFLAGS = 
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssstat_CPPFLAGS = $(libhash_drv_cppflags)
@@ -30,7 +30,7 @@ endif
 cssclean_SOURCES = cssclean.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
                    ../pref.c
-cssclean_LDFLAGS = -static
+cssclean_LDFLAGS = 
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssclean_CPPFLAGS = $(libhash_drv_cppflags)
@@ -41,7 +41,7 @@ endif
 cssconvert_SOURCES = cssconvert.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
                    ../pref.c
-cssconvert_LDFLAGS = -static
+cssconvert_LDFLAGS = 
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssconvert_CPPFLAGS = $(libhash_drv_cppflags)
@@ -52,7 +52,7 @@ endif
 csscompress_SOURCES = csscompress.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
                    ../pref.c
-csscompress_LDFLAGS = -static
+csscompress_LDFLAGS = 
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 csscompress_CPPFLAGS = $(libhash_drv_cppflags)

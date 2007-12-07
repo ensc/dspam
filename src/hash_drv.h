@@ -1,4 +1,4 @@
-/* $Id: hash_drv.h,v 1.14 2006/05/27 21:00:36 jonz Exp $ */
+/* $Id: hash_drv.h,v 1.15 2007/12/07 00:11:51 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -88,7 +88,7 @@ int _hash_drv_set_spamtotals
   (DSPAM_CTX * CTX);
 
 int _hash_drv_lock_get (
-  DSPAM_CTX * CTX, 
+  const char *home, 
   struct _hash_drv_storage *s, 
   const char *username);
 

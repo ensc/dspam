@@ -1,7 +1,110 @@
-$Id: CHANGELOG,v 1.463 2007/12/06 05:01:08 mjohnson Exp $
+$Id: CHANGELOG,v 1.464 2007/12/07 00:11:51 mjohnson Exp $
 
 Version 3.8.1
 -------------
+[20071206:1530] mjohnson: Gentoo patch 26 
+
+Relaxed group member matching
+
+[20071206:1530] mjohnson: Gentoo patch 25 
+
+Improved error handling on shutdown
+
+[20071206:1530] mjohnson: Gentoo patch 24 
+
+Ensure notification paths exist
+
+[20071206:1530] mjohnson: Gentoo patch 23 
+
+MySQL reconnect patch
+
+[20071206:1500] mjohnson: Gentoo patch 21 
+
+On client sending errors, send partial message with \r\n instead of \n
+
+[20071206:1500] mjohnson: Gentoo patch 20 
+
+Training skips broken tests and signatures, rather than exiting
+
+[20071206:1500] mjohnson: Gentoo patch 19
+
+Look for the last @ symbol in addresses (not the first)
+
+[20071206:1500] mjohnson: Gentoo patch 18
+
+Optimize database tables with dspam tokens and signature data
+
+[20071206:1500] mjohnson: Gentoo patch 17
+
+Deprecated LDAP
+
+[20071206:1500] mjohnson: Gentoo patch 16
+
+Pkglibdir in Makefile.am
+
+[20071206:1500] mjohnson: Gentoo patch 15
+
+Hash driver and cssclean.cgi
+
+[20071206:1500] mjohnson: Gentoo patch 14 
+
+Improved line-ending for CGI scripts
+
+[20071206:1500] mjohnson: Updated copyright in configure.ac 
+
+NodalCore(r) and Sensory Networks
+
+[20071206:1500] mjohnson: Gentoo patch 13 
+
+Improve config autodetection in configure.ac
+
+[20071206:1330] mjohnson: Gentoo patch 12 
+
+Take the configuration directory value from sysconfdir
+
+[20071206:1330] mjohnson: Gentoo patch 11 
+
+Preserve uid, gid, and permissions on the logfile during rotation
+
+[20071206:1330] mjohnson: Gentoo patch 10 
+
+Updates the storage driver location and trust setting in dspam.conf.in.
+
+[20071206:1300] mjohnson: Gentoo patch 9
+
+Enable domain quarantine.
+
+[20071206:1300] mjohnson: Gentoo patch 7
+
+Set the default pid file to be /var/run/dspam/dspam.pid if not specified.
+
+[20071206:1300] mjohnson: Gentoo patch 6
+
+Fix quotes in PGSQL driver.
+
+[20071206:1300] mjohnson: Gentoo patch 5
+
+Print dspam startup message to stdout instead of stderr
+
+[20071206:1100] mjohnson: Gentoo patch 4
+
+Silences dspam daemon startup
+
+[20071206:1100] mjohnson: Gentoo patch 3
+
+Fixed warnings for MySQL and PGSQL.
+
+[20071206:1100] mjohnson: Gentoo patch 2
+
+Link dynamically instead of statically.
+
+[20071206:1100] mjohnson: Gentoo patch 1
+
+Moved manpages into the right sections.
+
+[20071206:1100] mjohnson: Manpages
+
+Updated copyright to 2007 and changed website to dspam.nuclearelephant.com.
 
 [20071205:1600] mjohnson: FilteringHistory
 

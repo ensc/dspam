@@ -77,8 +77,14 @@ sub rotate {
         close INFILE;
     }
 
-    # Rename our temporary output file to the original log file name.
     close OUTFILE;
+
+    #Set the original uid, gid and perms
+    my @filestat = stat($tempInputFile);
+    chmod @filestat[2], $tempOutputFile;
+    chown @filestat[4], @filestat[5], $tempOutputFile;
+    
+    # Rename our temporary output file to the original log file name.
     rename $tempOutputFile, $filename;
 
     # Remove our temporary input file.

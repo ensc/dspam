@@ -1,4 +1,4 @@
-/* $Id: purge.sql,v 1.4 2006/04/21 20:39:36 jonz Exp $ */
+/* $Id: purge.sql,v 1.5 2007/12/07 00:15:36 mjohnson Exp $ */
 
 DELETE FROM dspam_token_data
   WHERE (innocent_hits*2) + spam_hits < 5
@@ -18,4 +18,5 @@ DELETE FROM dspam_token_data
 DELETE FROM dspam_signature_data
   WHERE created_on < CURRENT_DATE - 14;
 
-VACUUM ANALYSE;
+VACUUM ANALYSE dspam_token_data;
+VACUUM ANALYSE dspam_signature_data;

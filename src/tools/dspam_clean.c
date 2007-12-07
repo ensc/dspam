@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.22 2006/05/13 01:13:01 jonz Exp $ */
+/* $Id: dspam_clean.c,v 1.23 2007/12/07 00:15:36 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -122,7 +122,7 @@ main (int argc, char *argv[])
   }
 
 #ifdef DEBUG
-  fprintf (stderr, "dspam_clean starting\n");
+  fprintf (stdout, "dspam_clean starting\n");
 #endif
 
   if (_ds_read_attribute(agent_config, "PurgeSignatures") &&

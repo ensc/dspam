@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.21 2006/05/27 21:00:36 jonz Exp $ */
+/* $Id: hash_drv.c,v 1.22 2007/12/07 00:11:51 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -251,14 +251,14 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
 
 int
 _hash_drv_lock_get (
-  DSPAM_CTX *CTX,
+  const char *home,
   struct _hash_drv_storage *s,
   const char *username)
 {
   char filename[MAX_FILENAME_LENGTH];
   int r;
 
-  _ds_userdir_path(filename, CTX->home, username, "lock");
+  _ds_userdir_path(filename, home, username, "lock");
   _ds_prepare_path_for(filename);
 
   s->lock = fopen(filename, "a");
@@ -490,7 +490,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     else
       _ds_userdir_path(db, CTX->home, CTX->group, "css");
 
-    lock_result = _hash_drv_lock_get (CTX, s, 
+    lock_result = _hash_drv_lock_get (CTX->home, s, 
       (CTX->group) ? CTX->group : CTX->username);
     if (lock_result < 0) 
       goto BAIL;

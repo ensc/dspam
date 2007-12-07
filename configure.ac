@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.67 2006/06/07 16:14:47 jonz Exp $
+dnl $Id: configure.ac,v 1.68 2007/12/07 00:11:51 mjohnson Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -8,9 +8,8 @@ dnl    ltmain.sh (GNU libtool) 1.5.6
 dnl    automake (GNU automake) 1.9.2
 dnl
 AC_PREREQ(2.59)
-AC_COPYRIGHT([Copyright (C) 2002-2006 Jonathan A. Zdziarski])
+AC_COPYRIGHT([Copyright (C) 2002-2007 Sensory Networks, Inc.])
 AC_INIT([dspam],[CVS],[dspam-dev@nuclearelephant.com])
-CONFIGURE_ARGS=$@
 AC_CONFIG_SRCDIR(./src)
 
 AM_INIT_AUTOMAKE([1.7 foreign])
@@ -27,7 +26,7 @@ AC_PROG_MAKE_SET
 
 AC_C_INLINE
 
-AC_DEFINE_UNQUOTED(CONFIGURE_ARGS, ["$CONFIGURE_ARGS"],
+AC_DEFINE_UNQUOTED(CONFIGURE_ARGS, ["$ac_configure_args"],
     [Configure Arguments])
 
 # Check for various flavors of varargs macros
@@ -136,7 +135,7 @@ fi
 LIBS="$LIBS $DLLIBS"
 
 #
-#   Support for NodalCore(tm) C-Series Hardware Extensions
+#   Support for NodalCore(r) C-Series Hardware Extensions
 #
 DS_NCORE()
 DS_LDAP()
@@ -233,7 +232,11 @@ AC_ARG_WITH(dspam_owner,
     )
 AC_ARG_WITH(dspam_group,
     [AS_HELP_STRING(--with-dspam-group=GROUP,
-                        Set group for dspam binary[,] default mail
+                        Set [20071206:1330] mjohnson: Gentoo patch 12 
+
+Take the configuration directory value from sysconfdir
+
+group for dspam binary[,] default mail
                     )],
     [ dspam_group="$withval" ],
     [ dspam_group='mail' ]
@@ -274,6 +277,10 @@ case x"$enable_trusted_user_security" in
     xyes)   # trusted user security enabled explicity
             ;;
     xno)    # trusted user security disabled explicity
+[20071206:1330] mjohnson: Gentoo patch 12 
+
+Take the configuration directory value from sysconfdir
+
             enable_trusted_user_security=no
             ;;
     x)      # trusted user security enabled by default

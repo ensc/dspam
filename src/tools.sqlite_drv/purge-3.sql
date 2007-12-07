@@ -8,3 +8,5 @@ delete from dspam_token_data
   where julianday('now')-julianday(last_hit) > 90;
 delete from dspam_signature_data
   where julianday('now')-julianday(created_on) > 14;
+
+vacuum;

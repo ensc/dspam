@@ -1,4 +1,4 @@
-/* $Id: ldap_client.c,v 1.5 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: ldap_client.c,v 1.6 2007/12/07 00:11:51 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -26,6 +26,7 @@
 
 #ifdef USE_LDAP
 
+#define LDAP_DEPRECATED 1
 #include <ldap.h>
 #include <stdio.h>
 #include <stdlib.h>

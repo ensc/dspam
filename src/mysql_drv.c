@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.74 2006/09/21 18:25:19 jonz Exp $ */
+/* $Id: mysql_drv.c,v 1.75 2007/12/07 00:11:52 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -2488,6 +2488,16 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
       ("_ds_init_storage: mysql_init: unable to initialize handle to database");
     goto FAILURE;
   }
+
+#if MYSQL_VERSION_ID >= 50013
+  /* enable automatic reconnect for MySQL >= 5.0.13 */
+  snprintf(attrib, sizeof(attrib), "%sReconnect", prefix);
+  if (_ds_match_attribute(CTX->config->attributes, attrib, "true"))
+  {
+      my_bool reconnect = 1;
+      mysql_options(dbh, MYSQL_OPT_RECONNECT, &reconnect);
+  }
+#endif
 
   if (hostname[0] == '/')
   {
