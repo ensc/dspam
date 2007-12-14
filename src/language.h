@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.25 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: language.h,v 1.26 2007/12/14 00:14:32 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -30,6 +30,7 @@
 #define ERR_MEM_ALLOC		"Memory allocation failed"
 #define ERR_IO_FILE_OPEN	"Unable to open file for reading: %s: %s"
 #define ERR_IO_FILE_WRITE	"Unable to open file for writing: %s: %s"
+#define ERR_IO_FILE_WRITING	"Unable to write file: %s: %s"
 #define ERR_IO_FILE_CLOSE	"Unable to close file: %s: %s"
 #define ERR_IO_FILE_RENAME	"Unable to rename file: %s: %s"
 #define ERR_IO_DIR_CREATE	"Unable to create directory: %s: %s"

@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.22 2007/12/07 00:11:51 mjohnson Exp $ */
+/* $Id: hash_drv.c,v 1.23 2007/12/14 00:14:32 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -251,19 +251,19 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
 
 int
 _hash_drv_lock_get (
-  const char *home,
+  DSPAM_CTX *CTX,
   struct _hash_drv_storage *s,
   const char *username)
 {
   char filename[MAX_FILENAME_LENGTH];
   int r;
 
-  _ds_userdir_path(filename, home, username, "lock");
+  _ds_userdir_path(filename, CTX->home, username, "lock");
   _ds_prepare_path_for(filename);
 
   s->lock = fopen(filename, "a");
   if (s->lock == NULL) {
-    LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
+    LOG(LOG_ERR, ERR_IO_FILE_WRITE, filename, strerror(errno));
     return EFAILURE;
   }
   r = _ds_get_fcntl_lock(fileno(s->lock));
@@ -294,6 +294,57 @@ _hash_drv_lock_free (
   return r;
 }
 
+FILE*
+_hash_tools_lock_get (const char *cssfilename)
+{
+  char filename[MAX_FILENAME_LENGTH];
+  char *pPeriod;
+  int r;
+  FILE* lockfile = NULL;
+
+  if (cssfilename == NULL)
+    return NULL;
+  pPeriod = strrchr(cssfilename, '.');
+  if (pPeriod == NULL || strcmp(pPeriod + 1, "css") || pPeriod - cssfilename + 5 >= sizeof(filename))
+    return NULL;
+  strncpy(filename, cssfilename, pPeriod - cssfilename + 1);
+  strcpy(filename + (pPeriod - cssfilename + 1), "lock");
+  _ds_prepare_path_for(filename);
+
+  lockfile = fopen(filename, "a");
+  if (lockfile == NULL) {
+    LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
+    return NULL;
+  }
+  r = _ds_get_fcntl_lock(fileno(lockfile));
+  if (r) {
+    fclose(lockfile);
+	lockfile = NULL;
+    LOG(LOG_ERR, ERR_IO_LOCK, filename, r, strerror(errno));
+  }
+  return lockfile;
+}
+
+int
+_hash_tools_lock_free (
+  const char *cssfilename,
+  FILE* lockfile)
+{
+  int r;
+
+  if (cssfilename == NULL || lockfile == NULL)
+    return 0;
+
+  r = _ds_free_fcntl_lock(fileno(lockfile));
+  if (!r) {
+    fclose(lockfile);
+  } else {
+    LOG(LOG_ERR, ERR_IO_LOCK_FREE, cssfilename, r, strerror(errno));
+  }
+
+  return r;
+}
+
 int _hash_drv_open(
   const char *filename, 
   hash_drv_map_t map, 
@@ -307,6 +358,7 @@ int _hash_drv_open(
   struct _hash_drv_header header;
   int open_flags = O_RDWR;
   int mmap_flags = PROT_READ + PROT_WRITE;
+  FILE *f;
 
   map->fd = open(filename, open_flags);
 
@@ -317,7 +369,6 @@ int _hash_drv_open(
    */
 
   if (map->fd < 0 && recmaxifnew) {
-    FILE *f;
     struct _hash_drv_spam_record rec;
     int i;
 
@@ -328,19 +379,21 @@ int _hash_drv_open(
 
     f = fopen(filename, "w");
     if (!f) {
-      LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
+      LOG(LOG_ERR, ERR_IO_FILE_WRITE, filename, strerror(errno));
       return EFILE;
     }
 
-    fwrite(&header, sizeof(struct _hash_drv_header), 1, f);
+    if(fwrite(&header, sizeof(struct _hash_drv_header), 1, f)!=1)
+      goto WRITE_ERROR;
     for(i=0;i<header.hash_rec_max;i++)
-      fwrite(&rec, sizeof(struct _hash_drv_spam_record), 1, f);
+      if(fwrite(&rec, sizeof(struct _hash_drv_spam_record), 1, f)!=1)
+        goto WRITE_ERROR;
     fclose(f);
     map->fd = open(filename, open_flags);
   }
 
   if (map->fd < 0) {
-    LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
+    LOG(LOG_ERR, ERR_IO_FILE_WRITE, filename, strerror(errno));
     return EFILE;
   }
 
@@ -371,6 +424,12 @@ int _hash_drv_open(
   map->flags       = flags;
 
   return 0;
+
+WRITE_ERROR:
+  fclose(f);
+  unlink(filename);
+  LOG(LOG_ERR, ERR_IO_FILE_WRITING, filename, strerror(errno));
+  return EFILE;
 }
 
 int
@@ -490,7 +549,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     else
       _ds_userdir_path(db, CTX->home, CTX->group, "css");
 
-    lock_result = _hash_drv_lock_get (CTX->home, s, 
+    lock_result = _hash_drv_lock_get (CTX, s, 
       (CTX->group) ? CTX->group : CTX->username);
     if (lock_result < 0) 
       goto BAIL;
@@ -694,8 +753,8 @@ _ds_get_spamrecord (
 
   stat->probability   = 0.00000;
   stat->status        = 0;
-  stat->innocent_hits = rec.nonspam;
-  stat->spam_hits     = rec.spam;
+  stat->innocent_hits = rec.nonspam & 0x0fffffff;
+  stat->spam_hits     = rec.spam & 0x0fffffff;
 
   return 0;
 }
@@ -712,6 +771,9 @@ _ds_set_spamrecord (
   rec.hashcode = token;
   rec.nonspam = (stat->innocent_hits > 0) ? stat->innocent_hits : 0;
   rec.spam = (stat->spam_hits > 0) ? stat->spam_hits : 0;
+
+  if(rec.nonspam>0x0fffffff)rec.nonspam=0x0fffffff;
+  if(rec.spam>0x0fffffff)rec.spam=0x0fffffff;
 
   return _hash_drv_set_spamrecord(s->map, &rec, stat->offset);
 }
@@ -738,7 +800,12 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     LOG(LOG_ERR, ERR_IO_FILE_WRITE, filename, strerror(errno));
     return EFAILURE;
   }
-  fwrite(SIG->data, SIG->length, 1, file);
+  if(fwrite(SIG->data, SIG->length, 1, file)!=1) {
+    fclose(file);
+    unlink(filename);
+    LOG(LOG_ERR, ERR_IO_FILE_WRITING, filename, strerror(errno));
+    return(EFAILURE);
+  }
   fclose(file);
 
   return 0;
@@ -1041,7 +1108,7 @@ int _hash_drv_autoextend(
 {
   struct _hash_drv_header header;
   struct _hash_drv_spam_record rec;
-  int i;
+  int i, lastsize;
 
   _hash_drv_close(map);
 
@@ -1062,10 +1129,20 @@ int _hash_drv_autoextend(
 
   LOGDEBUG("adding extent last: %d(%ld) new: %d(%ld) pctincrease: %1.2f", extents, last_extent_size, extents+1, header.hash_rec_max, (map->pctincrease/100.0));
 
-  lseek (map->fd, 0, SEEK_END);
-  write (map->fd, &header, sizeof(struct _hash_drv_header));
+  lastsize=lseek (map->fd, 0, SEEK_END);
+  if(write (map->fd, &header, sizeof(struct _hash_drv_header))!=sizeof(struct _hash_drv_header)) {
+    ftruncate(map->fd,lastsize);
+    close(map->fd);
+    LOG(LOG_WARNING, "unable to resize hash. open failed: %s", strerror(errno));
+    return EFAILURE;
+  }
   for(i=0;i<header.hash_rec_max;i++) 
-    write (map->fd, &rec, sizeof(struct _hash_drv_spam_record));
+    if(write (map->fd, &rec, sizeof(struct _hash_drv_spam_record))!=sizeof(struct _hash_drv_spam_record)) {
+      ftruncate(map->fd,lastsize);
+      close(map->fd);
+      LOG(LOG_WARNING, "unable to resize hash. open failed: %s", strerror(errno));
+      return EFAILURE;
+    }
   close(map->fd);
 
   _hash_drv_open(map->filename, map, 0, map->max_seek, 

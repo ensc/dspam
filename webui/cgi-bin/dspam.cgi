@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.28 2007/12/07 00:11:52 mjohnson Exp $
+# $Id: dspam.cgi,v 1.29 2007/12/14 00:14:32 mjohnson Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -120,6 +120,11 @@ $MYURL = "$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}";
 #
 &CheckQuarantine;
 $DATA{'REMOTE_USER'} = $CURRENT_USER;
+
+#
+# Display Dspam Version
+#
+$DATA{'DSPAMVERSION'} = "Version " . `$CONFIG{'DSPAM'} --version | grep Suite | cut -d " " -f4`;
 
 #
 # Process Commands

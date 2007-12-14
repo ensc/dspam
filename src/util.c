@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.20 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: util.c,v 1.21 2007/12/14 00:14:32 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -40,6 +40,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #ifdef TIME_WITH_SYS_TIME
 #   include <sys/time.h>
@@ -629,18 +630,27 @@ double chi2Q (double x, int v)
   return MIN(s, 1.0);
 }
 
+void timeout(){}
+
 int _ds_get_fcntl_lock(int fd) {
 #ifdef _WIN32
   return 0;
 #else
   struct flock f;
+  int r;
 
   f.l_type = F_WRLCK;
   f.l_whence = SEEK_SET;
   f.l_start = 0;
   f.l_len = 0;
 
-  return fcntl(fd, F_SETLKW, &f);
+  signal(SIGALRM,timeout);
+  alarm(300);
+  r=fcntl(fd, F_SETLKW, &f);
+  alarm(0);
+  signal(SIGALRM,SIG_DFL);
+
+  return r;
 #endif
 }
 

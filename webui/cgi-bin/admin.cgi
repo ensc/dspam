@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.12 2006/05/13 01:13:01 jonz Exp $
+# $Id: admin.cgi,v 1.13 2007/12/14 00:14:32 mjohnson Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -93,6 +93,11 @@ if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
 # Set up initial display variables
 #
 $DATA{'REMOTE_USER'} = $ENV{'REMOTE_USER'};
+
+#
+# Display Dspam Version
+#
+$DATA{'DSPAMVERSION'} = "Version " . `$CONFIG{'DSPAM'} --version | grep Suite | cut -d " " -f4`;
 
 #
 # Process Commands

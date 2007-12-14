@@ -10,7 +10,7 @@ AM_CPPFLAGS = \
 
 CFLAGS = @CFLAGS@ -I$(top_srcdir)/src
 
-bin_PROGRAMS = cssstat csscompress cssclean cssconvert
+bin_PROGRAMS = cssstat cssclean cssconvert
 
 DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
        -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\"\
@@ -46,16 +46,5 @@ if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssconvert_CPPFLAGS = $(libhash_drv_cppflags)
 cssconvert_LDFLAGS += $(libhash_drv_libs) $(libhash_drv_ldflags)
-endif
-endif
-
-csscompress_SOURCES = csscompress.c ../read_config.c ../util.c ../diction.c \
-                   ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
-                   ../pref.c
-csscompress_LDFLAGS = 
-if DYNAMIC_DRIVER
-if BUILD_HASH_DRV
-csscompress_CPPFLAGS = $(libhash_drv_cppflags)
-csscompress_LDFLAGS += $(libhash_drv_libs) $(libhash_drv_ldflags)
 endif
 endif

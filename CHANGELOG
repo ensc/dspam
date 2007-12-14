@@ -1,7 +1,47 @@
-$Id: CHANGELOG,v 1.464 2007/12/07 00:11:51 mjohnson Exp $
+$Id: CHANGELOG,v 1.465 2007/12/14 00:14:32 mjohnson Exp $
 
 Version 3.8.1
 -------------
+[20071213:1300] mjohnson: Advertise 8-bit MIME support 
+
+Submitted by Aleksander Kemanik.
+
+[20071213:1300] mjohnson: Write checking for hash driver 
+
+Submitted by Boguslaw Juza - Uses ERR_IO_FILE_WRITE instead of
+ERR_IO_FILE_OPEN, improved error handling
+
+[20071213:1600] mjohnson: Lock timeout
+
+Submitted by Boguslaw Juza - Now uses signal.h
+
+[20071213:1300] mjohnson: CSS clean copy header 
+
+Submitted by Boguslaw Juza - Copies the older header into the new header for
+the hash driver
+
+[20071213:1300] mjohnson: Hash time stamp
+
+Submitted by Boguslaw Juza - Adds a README and (heavy) optional flag to hash
+driver cssclean
+
+[20071213:1300] mjohnson: Feature Request 22
+
+Submitted by Kyle Johnson - Add version number to bottom of web interface
+
+[20071213:1300] mjohnson: Gentoo patch 29
+
+Submitted by Steve - Debug fix for BNR
+
+[20071213:1300] mjohnson: Gentoo patch 28
+
+Submitted by Alin Nastac - Fixes to the hash driver
+
+[20071213:1300] mjohnson: fix-unused-variables warnings
+
+Submitted by Steve to fix the warnings generating by the make-daemon-quiet
+patch.
+
 [20071206:1530] mjohnson: Gentoo patch 26 
 
 Relaxed group member matching

@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.114 2006/06/13 14:43:12 jonz Exp $ */
+/* $Id: daemon.c,v 1.115 2007/12/14 00:14:32 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -394,6 +394,9 @@ void *process_connection(void *ptr) {
   if (server_mode == SSM_DSPAM)
     if (daemon_extension(TTX, "DSPAMPROCESSMODE")<=0)
       goto CLOSE;
+
+  if (daemon_extension(TTX, "8BITMIME")<=0)
+    goto CLOSE;
 
   if (daemon_reply(TTX, LMTP_OK, "", "SIZE")<=0)
     goto CLOSE;

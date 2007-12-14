@@ -146,9 +146,6 @@ html>body #navcontainerclear {
 }
 
 #footer a {
-	color: #666666;
-}
-#footer p {
-	color: #666666;
-	padding: 8px;
+	text-align;center;
+	font-size:80%;
 }
