@@ -1,10 +1,14 @@
-$Id: CHANGELOG,v 1.466 2007/12/21 02:00:02 mjohnson Exp $
+$Id: CHANGELOG,v 1.467 2007/12/21 02:09:06 mjohnson Exp $
 
 Version 3.8.1
 -------------
 [20071220:1800] mjohnson: Feature request #23 - dspam_notify
 
 Submitted by Kyle Johnson. Also added Daily Quarantine Summary option. 
+
+[20071220:1730] mjohnson: Gentoo bug 201656
+
+Submitted by Alin Nastac. Hash driver work. 
 
 [20071213:1300] mjohnson: Advertise 8-bit MIME support 
 
