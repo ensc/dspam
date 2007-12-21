@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.29 2007/12/14 00:14:32 mjohnson Exp $
+# $Id: dspam.cgi,v 1.30 2007/12/21 02:00:02 mjohnson Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -634,6 +634,9 @@ sub DisplayPreferences {
     if ($FORM{'enableWhitelist'} ne "on") {
       $FORM{'enableWhitelist'} = "off";
     }
+    if ($FORM{'dailyQuarantineSummary'} ne "on") {
+      $FORM{'dailyQuarantineSummary'} = "off";
+    }
 
     if ($CONFIG{'PREFERENCES_EXTENSION'} == 1) {
 
@@ -670,6 +673,9 @@ sub DisplayPreferences {
       system("$CONFIG{'DSPAM_BIN'}/dspam_admin ch pref ".quotemeta($CURRENT_USER).
         " enableWhitelist "
         . quotemeta($FORM{'enableWhitelist'}) . "> /dev/null");
+      system("$CONFIG{'DSPAM_BIN'}/dspam_admin ch pref ".quotemeta($CURRENT_USER).
+        " dailyQuarantineSummary "
+        . quotemeta($FORM{'dailyQuarantineSummary'}) . "> /dev/null");
 
 
     } else {
@@ -685,6 +691,7 @@ optOut=$FORM{'optOut'}
 showFactors=$FORM{'showFactors'}
 enableWhitelist=$FORM{'enableWhitelist'}
 signatureLocation=$FORM{'signatureLocation'}
+dailyQuarantineSummary=$FORM{'dailyQuarantineSummary'}
 _END
       close(FILE);
     }
@@ -712,6 +719,9 @@ _END
   }
   if ($PREFS{"enableWhitelist"} eq "on") {
     $DATA{"C_WHITELIST"} = "CHECKED";
+  }
+  if ($PREFS{"dailyQuarantineSummary"} eq "on") {
+    $DATA{"C_SUMMARY"} = "CHECKED";
   }
 
   if ($CONFIG{'OPTMODE'} eq "OUT") {

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.13 2007/12/14 00:14:32 mjohnson Exp $
+# $Id: admin.cgi,v 1.14 2007/12/21 02:00:02 mjohnson Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -164,6 +164,9 @@ sub DisplayPreferences {
     if ($FORM{'showFactors'} ne "on") {
       $FORM{'showFactors'} = "off";
     }
+    if ($FORM{'dailyQuarantineSummary'} ne "on") {
+      $FORM{'dailyQuarantineSummary'} = "off";
+    }
 
     if ($CONFIG{'PREFERENCES_EXTENSION'} == 1) {
 
@@ -200,6 +203,9 @@ sub DisplayPreferences {
       system("$CONFIG{'DSPAM_BIN'}/dspam_admin ch pref '".quotemeta($USER).
         "' enableWhitelist "
         . quotemeta($FORM{'enableWhitelist'}) . "> /dev/null");
+      system("$CONFIG{'DSPAM_BIN'}/dspam_admin ch pref '".quotemeta($USER).
+        "' dailyQuarantineSummary "
+        . quotemeta($FORM{'dailyQuarantineSummary'}) . "> /dev/null");
 
     } else {
       open(FILE, ">$FILE") || do { &error("Unable to write preferences: $!"); };
@@ -212,6 +218,7 @@ enableBNR=$FORM{'enableBNR'}
 enableWhitelist=$FORM{'enableWhitelist'}
 signatureLocation=$FORM{'signatureLocation'}
 showFactors=$FORM{'showFactors'}
+dailyQuarantineSummary=$FORM{'dailyQuarantineSummary'}
 _END
       close(FILE);
     }
@@ -244,6 +251,10 @@ _END
   if ($PREFS{"enableWhitelist"} eq "on") {
     $DATA{"C_WHITELIST"} = "CHECKED";
   }
+  if ($PREFS{"dailyQuarantineSummary"} eq "on") {
+    $DATA{"C_SUMMARY"} = "CHECKED";
+  }
+
 
   &output(%DATA);
 }
