@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.68 2007/12/07 00:11:51 mjohnson Exp $
+dnl $Id: configure.ac,v 1.69 2008/02/01 20:13:52 mjohnson Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -232,11 +232,7 @@ AC_ARG_WITH(dspam_owner,
     )
 AC_ARG_WITH(dspam_group,
     [AS_HELP_STRING(--with-dspam-group=GROUP,
-                        Set [20071206:1330] mjohnson: Gentoo patch 12 
-
-Take the configuration directory value from sysconfdir
-
-group for dspam binary[,] default mail
+                        Set group for dspam binary[,] default mail
                     )],
     [ dspam_group="$withval" ],
     [ dspam_group='mail' ]
@@ -277,10 +273,6 @@ case x"$enable_trusted_user_security" in
     xyes)   # trusted user security enabled explicity
             ;;
     xno)    # trusted user security disabled explicity
-[20071206:1330] mjohnson: Gentoo patch 12 
-
-Take the configuration directory value from sysconfdir
-
             enable_trusted_user_security=no
             ;;
     x)      # trusted user security enabled by default
