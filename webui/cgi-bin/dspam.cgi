@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.30 2007/12/21 02:00:02 mjohnson Exp $
+# $Id: dspam.cgi,v 1.31 2008/02/01 21:41:05 mjohnson Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -309,7 +309,9 @@ sub DisplayHistory {
   @buffer = splice(@buffer, $begin,$CONFIG{'HISTORY_PER_PAGE'});
 
   my $retrain_checked_msg_no = 0;
+  my $counter = 0;
   while ($rec = pop@buffer) {
+    $counter++;
     my($time, $class, $from, $signature, $subject, $info, $messageid);
 
     $time = $rec->{'time'};
@@ -431,7 +433,7 @@ sub DisplayHistory {
 <tr>
 	<td class="$cl $rowclass" nowrap="true"><small>$cllabel</td>
         <td class="$rowclass" nowrap="true"><small>
-	 <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature">
+	 <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)">
 	 $retrain</td>
 	<td class="$rowclass" nowrap="true"><small>$ctime</td>
 	<td class="$rowclass" nowrap="true"><small>$from</td>
@@ -1161,9 +1163,11 @@ sub DisplayQuarantine {
   $DATA{'SORT_SELECTOR'} .=  "</a>";
 
 
-  my($row, $rowclass);
+  my($row, $rowclass, $counter);
   $rowclass = "rowEven";
+  $counter = 0;
   for $row (@headings) {
+    $counter++;
     my($rating, $url, $markclass, $outclass);
     $rating = sprintf("%3.0f%%", $row->{'rating'} * 100.0);
     if ($row->{'rating'} > 0.8) {
@@ -1216,7 +1220,7 @@ sub DisplayQuarantine {
 
     $DATA{'QUARANTINE'} .= <<_END;
 <tr>
-	<td class="$outclass" nowrap="true"><input type="checkbox" name="$row->{'X-DSPAM-Signature'}"></td>
+	<td class="$outclass" nowrap="true"><input type="checkbox" name="$row->{'X-DSPAM-Signature'}" id="checkbox-$counter" onclick="checkboxclicked(this)"></td>
 	<td class="$outclass $markclass" nowrap="true">$rating</td>
         <td class="$outclass" nowrap="true">$ptime</td>
 	<td class="$outclass" nowrap="true">$row->{'From'}</td>

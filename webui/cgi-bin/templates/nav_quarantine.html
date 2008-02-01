@@ -1,6 +1,7 @@
 <HTML>
 <HEAD><TITLE>DSPAM v3 Control Center</TITLE>
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
 </HEAD>
 <BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
 <div id="header">
@@ -44,6 +45,8 @@ Use the checkboxes and <strong>Deliver Checked</strong> to deliver messages you 
 <input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
 &nbsp;
 <input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED messages in quarantine?')==false) { return false; }" />
+<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
+	document.forms[1].elements[j].checked = true; } } return false'>Select 200.</a>
 &nbsp;
 <input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Are you sure you want to delete ALL messages in quarantine?')==false) { return false; }" >
 
@@ -64,7 +67,9 @@ $QUARANTINE$
 <p>
 <input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
 &nbsp;
-<input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED messages in quarantine?')==false) { return false; }" /> 
+<input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED messages in quarantine?')==false) { return false; }" />
+<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
+	document.forms[1].elements[j].checked = true; } } return false'>Select 200.</a>
 &nbsp;
 <input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Are you sure you want to delete ALL messages in quarantine?')==false) { return false; }" />
 </p>
