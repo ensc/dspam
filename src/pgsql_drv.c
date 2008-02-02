@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.63 2007/12/07 00:11:52 mjohnson Exp $ */
+/* $Id: pgsql_drv.c,v 1.64 2008/02/02 21:30:17 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -488,10 +488,15 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
   if (gid != uid) {
-    snprintf (scratch, sizeof (scratch),
-              "SELECT uid, token, spam_hits, innocent_hits "
-              "FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
-              uid, gid);
+    if (s->pg_major_ver >= 8) {
+      snprintf (scratch, sizeof (scratch),
+                "SELECT * FROM lookup_tokens(%d, %d, '{", uid, gid);
+    } else {
+      snprintf (scratch, sizeof (scratch),
+                "SELECT uid, token, spam_hits, innocent_hits "
+                "FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
+                uid, gid);
+    }
   } else {
     if (s->pg_major_ver >= 8) {
       snprintf (scratch, sizeof (scratch),

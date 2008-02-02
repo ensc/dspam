@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.468 2008/02/01 21:41:05 mjohnson Exp $
+$Id: CHANGELOG,v 1.469 2008/02/02 21:30:17 mjohnson Exp $
 
 Version 3.8.1
 -------------
+[20080202:1330] mjohnson: PostgreSQL patch 8+ performance patch
+
+Submitted by Kenneth Marshall. 
+
 [20080201:1300] mjohnson: shift-click multiple row-selection
 
 Submitted via web interface. Allows users to select multiple rows by clicking

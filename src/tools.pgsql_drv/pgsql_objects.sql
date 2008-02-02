@@ -1,4 +1,4 @@
-/* $Id: pgsql_objects.sql,v 1.15 2007/12/07 00:15:36 mjohnson Exp $ */
+/* $Id: pgsql_objects.sql,v 1.16 2008/02/02 21:30:18 mjohnson Exp $ */
 
 CREATE TABLE dspam_token_data (
   uid smallint,
@@ -49,6 +49,37 @@ begin
                   and token in (select $2[i]
                                   from generate_series(array_lower($2,1),
                                                        array_upper($2,1)) s(i))
+  loop
+    return next v_rec;
+  end loop;
+  return;
+end;';
+
+
+
+
+create function lookup_tokens(integer,integer,bigint[])
+  returns setof dspam_token_data
+  language plpgsql stable
+  as '
+declare
+  v_rec record;
+begin
+  for v_rec in select * from dspam_token_data
+                where uid=$1
+                  and token in (select $3[i]
+                                  from generate_series(array_lower($3,1),
+                                                       
+array_upper($3,1)) s(i))
+  loop
+    return next v_rec;
+  end loop;
+  for v_rec in select * from dspam_token_data
+                where uid=$2
+                  and token in (select $3[i]
+                                  from generate_series(array_lower($3,1),
+                                                       
+array_upper($3,1)) s(i))
   loop
     return next v_rec;
   end loop;
