@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.26 2007/12/14 00:14:32 mjohnson Exp $ */
+/* $Id: language.h,v 1.27 2008/03/10 04:47:09 steveb Exp $ */
 
 /*
  DSPAM
@@ -114,7 +114,7 @@ user, e.g.. root or Trusted User [uid=%d(%s)]"
 
 #define INFO_DAEMON_START	"Daemon process starting"
 #define INFO_DAEMON_EXIT	"Daemon process exiting"
-#define INFO_DAEMON_BIND        "Binding to :%d"
+#define INFO_DAEMON_BIND        "Binding to %s:%d"
 #define INFO_DAEMON_DOMAINSOCK  "Creating local domain socket %s"
 #define INFO_DAEMON_RELOAD      "Reloading configuration"
 
