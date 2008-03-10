@@ -1,7 +1,13 @@
-$Id: CHANGELOG,v 1.469 2008/02/02 21:30:17 mjohnson Exp $
+$Id: CHANGELOG,v 1.470 2008/03/10 05:01:44 steveb Exp $
 
 Version 3.8.1
 -------------
+[20080310:0556] steveb: Allow daemon to listen to specific TCP host
+
+User-configurable preference ServerHost added (set to '127.0.0.1') to allow using
+specific TCP host when running in daemon mode. Not specifying ServerHost will
+bind to all available interfaces when running in daemon mode and using TCP sockets.
+
 [20080202:1330] mjohnson: PostgreSQL patch 8+ performance patch
 
 Submitted by Kenneth Marshall. 
