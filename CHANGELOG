@@ -1,7 +1,24 @@
-$Id: CHANGELOG,v 1.470 2008/03/10 05:01:44 steveb Exp $
+$Id: CHANGELOG,v 1.471 2008/05/02 23:59:57 mjohnson Exp $
 
 Version 3.8.1
 -------------
+[20080502:1600] mjohnson: Post quarantine method
+
+Submitted by Scott Worley. Changes from Get to Post method
+
+[20080502:1600] mjohnson: Untrusted users statistics
+
+Submitted by Vadim Zeitlin. Untrusted users can see their own statistics.
+
+[20080502:1600] mjohnson: MySQL UIDinSignature option
+
+Submitted by Xavier De Cock. Looks for the userid in sig first, then tries the
+username.
+
+[20080502:1530] mjohnson: Default username for webui patch
+
+Submitted by Hugo Monteiro. Uses 'default' username for default preferences.
+
 [20080310:0556] steveb: Allow daemon to listen to specific TCP host
 
 User-configurable preference ServerHost added (set to '127.0.0.1') to allow using

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.14 2007/12/21 02:00:02 mjohnson Exp $
+# $Id: admin.cgi,v 1.15 2008/05/02 23:59:57 mjohnson Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -126,8 +126,13 @@ if ($FORM{'template'} eq "status") {
 sub DisplayPreferences {
   my(%PREFS, $FILE, $USER);
 
-  $DATA{'USERNAME'} = $FORM{'username'};
-  $USER = $FORM{'username'};
+  if ($FORM{'username'} eq "") {
+    $USER = "default";
+  } else {
+    $USER = $FORM{'username'};
+  }
+
+  $DATA{'USERNAME'} = $USER;
 
   if ($FORM{'username'} eq "") {
     $FILE = "./default.prefs";
@@ -711,6 +716,11 @@ sub GetPrefs {
   my($USER, $FILE) = @_;
 
   if ($CONFIG{'PREFERENCES_EXTENSION'} == 1) {
+
+    if ($USER eq "") {
+      $USER = "default";
+    }
+
     open(PIPE, "$CONFIG{'DSPAM_BIN'}/dspam_admin agg pref ".quotemeta($USER)."|");
     while(<PIPE>) {
       chomp;

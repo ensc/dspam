@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.25 2006/05/13 01:13:01 jonz Exp $ */
+/* $Id: dspam_stats.c,v 1.26 2008/05/02 23:59:57 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -47,6 +47,11 @@
 
 #define TSYNTAX	"syntax: dspam_stats [-hHrsSt] [username]"
 
+#ifdef _WIN32
+/* no trusted users under Windows */
+#undef TRUSTED_USER_SECURITY
+#endif
+
 DSPAM_CTX *open_ctx, *open_mtx;
 int opt_humanfriendly;
 int opt_reset;
@@ -68,11 +73,9 @@ main (int argc, char **argv)
 #endif
   struct _ds_spam_totals totals;
 
-#ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
   struct passwd *p = getpwuid (getuid ());
-                                                                                
-#endif
+  int trusted = 0;                                                                                
 #endif
 
 
@@ -94,14 +97,10 @@ main (int argc, char **argv)
                                                                                 
   libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
 
-#ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
-  if (!_ds_match_attribute(agent_config, "Trust", p->pw_name) && p->pw_uid) {
-    fprintf(stderr, ERR_TRUSTED_MODE "\n");
-    _ds_destroy_config(agent_config);
-    goto BAIL;
+  if (_ds_match_attribute(agent_config, "Trust", p->pw_name) || !p->pw_uid) {
+    trusted = 1;
   }
-#endif
 #endif
 
   for(i=0;i<argc;i++) {
@@ -181,13 +180,32 @@ main (int argc, char **argv)
   for (i=0; i < argc; i++)
   {
       if (strncmp(argv[i], "--", 2)) {
+#ifdef TRUSTED_USER_SECURITY
+        if ( !trusted && strcmp(argv[i], p->pw_name) )
+        {
+          fprintf(stderr, ERR_TRUSTED_MODE "\n");
+          _ds_destroy_config(agent_config);
+          goto BAIL;
+        }
+#endif
         stat_user(argv[i], &totals);
         users++;
       }
   }
 
   if (!users)
+  {
+#ifdef TRUSTED_USER_SECURITY
+    if ( !trusted )
+    {
+      fprintf(stderr, ERR_TRUSTED_MODE "\n");
+      _ds_destroy_config(agent_config);
+      goto BAIL;
+    }
+#endif
+
     process_all_users (&totals);
+  }
 
   if (opt_total)
     stat_user(NULL, &totals);

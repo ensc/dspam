@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.75 2007/12/07 00:11:52 mjohnson Exp $ */
+/* $Id: mysql_drv.c,v 1.76 2008/05/02 23:59:57 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -1057,7 +1057,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   char query[128];
   MYSQL_RES *result;
   MYSQL_ROW row;
-  int uid;
+  int uid=NULL;
   MYSQL *dbh;
 
   if (s->dbt == NULL)
@@ -1072,13 +1072,6 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     p = _mysql_drv_getpwnam (CTX, CTX->username);
   else
     p = _mysql_drv_getpwnam (CTX, CTX->group);
-
-  if (p == NULL)
-  {
-    LOGDEBUG ("_ds_get_signature: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
-    return EINVAL;
-  }
 
   if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
   {
@@ -1112,14 +1105,23 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     s = (struct _mysql_drv_storage *) CTX->storage;
 
     dbh = _mysql_drv_sig_write_handle(CTX, s);
-  } else {
+  }
+
+  if (p == NULL)
+  {
+    LOGDEBUG ("_ds_get_signature: unable to _mysql_drv_getpwnam(%s)",
+              CTX->username);
+    return EINVAL;
+  }
+
+  if (uid == NULL){
     uid = p->pw_uid;
   }
 
   snprintf (query, sizeof (query),
           "select data, length from dspam_signature_data "
           "where uid = %d and signature = \"%s\"", uid, signature);
-
+  
   if (mysql_real_query (dbh, query, strlen (query)))
   {
     _mysql_drv_query_error (mysql_error (dbh), query);
