@@ -1,4 +1,4 @@
-.\" $Id: dspam_train.1,v 1.4 2007/03/18 16:55:07 jonz Exp $
+.\" $Id: dspam_train.1,v 1.5 2008/05/06 21:29:07 mjohnson Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam_train3.8
@@ -20,11 +20,10 @@ dspam_train - train a corpus of mail
 .BI \ username \fR
 ]
 [\c
-.BI \ spam_dir \fR
+.BI \ --client \fR
 ]
-[\c
-.BI \ nonspam_dir \fR
-]
+.BI spam_corpus \fR
+.BI nonspam_corpus \fR
 
 .ad
 .SH DESCRIPTION 
@@ -46,20 +45,27 @@ of a particular corpus against dspam in a given configuration.
 
 .n3 3
 .TP
-.BI [username]\c
-Specifies the user to train.
+.BI --client\c
+If specified, dspam is used in client-server mode.
 
 .n3 3
 .TP
-.BI [spam_dir]\c
-Specifies the pathname to the directory containing the corpus of spam. Each
-message should be separate in its own file.
+.BI username\c
+Specifies the user to train, if omitted the current user name is used.
 
 .n3 3
 .TP
-.BI [nonspam_dir]\c
-Specifies the pathname to the directory containing the corpus of nonspam. Each 
-message should be separate in its own file.
+.BI spam_corpus\c
+Specifies either the pathname to the directory containing the corpus of spam,
+with each in a separate file (e.g. maildir format) or a path to the mailbox in
+the traditional Unix MBOX format.
+
+.n3 3
+.TP
+.BI nonspam_corpus\c
+Specifies either the pathname to the directory containing the corpus of
+nonspam with each message in a separate file or a path to the mailbox in the
+traditional Unix MBOX format.
 
 .SH EXIT VALUE
 .LP

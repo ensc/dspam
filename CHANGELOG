@@ -1,7 +1,25 @@
-$Id: CHANGELOG,v 1.474 2008/05/06 18:51:25 mjohnson Exp $
+$Id: CHANGELOG,v 1.475 2008/05/06 21:29:07 mjohnson Exp $
 
 Version 3.8.1
 -------------
+[20080503:1400] mjohnson: Dspam train with MBOX files
+
+Submitted by Vadim Zeitlin. Allows dspam_train to work with both maildir-like
+directories and also MBOX folders. 
+
+[20080503:1400] mjohnson: Dspam dump fixes
+
+Submitted by Vadim Zeitlin. Allows dspam_dump to be used by normal
+(non-trusted) users for their own usernames, while trusted users can use this
+for other usernames as well. Also updated the manpage to more correctly
+reflect the current usage syntax.
+
+[20080503:1400] mjohnson: Dspam train fixes
+
+Submitted by Vadim Zeitlin. Proper string comparison of spam_dir and ham_dir
+using 'ne' instead of '!='. Fixed disparity between operation and man page for
+username parameter.
+
 [20080503:1100] mjohnson: MySQL driver bug fixes
 
 Corrects error handling of name logging for both user and group names.

@@ -1,4 +1,4 @@
-.\" $Id: dspam_dump.1,v 1.6 2007/03/18 16:55:07 jonz Exp $
+.\" $Id: dspam_dump.1,v 1.7 2008/05/06 21:29:07 mjohnson Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam_dump3.8
@@ -16,9 +16,7 @@ dspam_dump - produce a dump of a user's metadata
 .SH SYNOPSIS
 .na
 .B dspam_dump
-[\c
-.BI \ username \fR
-]
+.BI username \fR
 [\c
 .BI \ token \fR
 ]
@@ -38,14 +36,15 @@ probability.
 .ne 3
 .TP
 .BI \ username \fR\c
-The username of the user to dump
+The username of the user to dump. Only trusted users (or root) can use this
+program for the usernames different from the current one.
  
 .n3
 .TP
 .BI \ token \fR\c
+.br
 The text string of the token to search for and dump. If no token is specified,
-.B all tokens
-will be dumped to stdout.
+all tokens will be dumped to stdout.
 
 .SH EXAMPLES
 .B dspam_dump user "Subject*Viagra"
