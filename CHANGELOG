@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.473 2008/05/06 18:26:07 mjohnson Exp $
+$Id: CHANGELOG,v 1.474 2008/05/06 18:51:25 mjohnson Exp $
 
 Version 3.8.1
 -------------
+[20080503:1100] mjohnson: MySQL driver bug fixes
+
+Corrects error handling of name logging for both user and group names.
+
 [20080503:1100] mjohnson: External user lookup
 
 Submitted by Hugo Monteiro. Allows dspam to lookup a username for the dspam

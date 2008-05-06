@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.77 2008/05/06 18:26:07 mjohnson Exp $ */
+/* $Id: mysql_drv.c,v 1.78 2008/05/06 18:51:25 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -151,6 +151,7 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   char query[1024];
   struct passwd *p;
+  char *name;
   MYSQL_RES *result;
   MYSQL_ROW row;
   struct _ds_spam_totals user, group;
@@ -171,34 +172,35 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
   memset(&CTX->totals, 0, sizeof(struct _ds_spam_totals));
   memset(&user, 0, sizeof(struct _ds_spam_totals));
 
-  if (!CTX->group || CTX->flags & DSF_MERGED) 
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else 
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_mysql_drv_get_spamtotals: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     if (!(CTX->flags & DSF_MERGED))
       return EINVAL;
   } else {
 
     uid = p->pw_uid;
   }
-
-  if (CTX->flags & DSF_MERGED) {
+                                                                                
+  if (CTX->group != NULL && CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
     if (p == NULL)
     {
-      LOGDEBUG ("_mysql_drv_getspamtotals: unable to _mysql_drv_getpwnam(%s)",
+      LOGDEBUG ("_ds_getall_spamtotals: unable to _mysql_drv_getpwnam(%s)",
                 CTX->group);
       return EINVAL;
     }
-
+    gid = p->pw_uid;
   }
-
-  gid = p->pw_uid;
 
   snprintf (query, sizeof (query),
             "select uid, spam_learned, innocent_learned, "
@@ -286,6 +288,7 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct passwd *p;
+  char *name;
   char query[1024];
   int result = 0;
   struct _ds_spam_totals user;
@@ -302,15 +305,18 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
     return 0;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
-    LOGDEBUG ("_mysql_drv_get_spamtotals: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+    LOGDEBUG ("_mysql_drv_set_spamtotals: unable to _mysql_drv_getpwnam(%s)",
+              name);
     return EINVAL;
   }
 
@@ -416,6 +422,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct passwd *p;
+  char *name;
   buffer *query;
   ds_term_t ds_term;
   ds_cursor_t ds_c;
@@ -425,7 +432,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   struct _ds_spam_stat stat;
   unsigned long long token = 0;
   int get_one = 0;
-  int uid, gid;
+  int uid = -1, gid = -1;
 
   if (s->dbt == NULL)
   {
@@ -433,21 +440,24 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_getall_spamrecords: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
   uid = p->pw_uid;
                                                                                 
-  if (CTX->flags & DSF_MERGED) {
+  if (CTX->group != NULL && CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
     if (p == NULL)
     {
@@ -455,9 +465,8 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
                 CTX->group);
       return EINVAL;
     }
+    gid = p->pw_uid;
   }
-                                                                                
-  gid = p->pw_uid;
 
   stat.spam_hits     = 0;
   stat.innocent_hits = 0;
@@ -565,6 +574,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   buffer *query;
   char scratch[1024];
   struct passwd *p;
+  char *name;
   int update_any = 0;
 #if MYSQL_VERSION_ID >= 40100
   buffer *insert;
@@ -582,15 +592,18 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
         (diction->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
     return 0;
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_setall_spamrecords: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -775,6 +788,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   char query[1024];
   struct passwd *p;
+  char *name;
   MYSQL_RES *result;
   MYSQL_ROW row;
 
@@ -784,15 +798,18 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_get_spamrecord: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -843,6 +860,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   char query[1024];
   struct passwd *p;
+  char *name;
   int result = 0;
 
   if (s->dbt == NULL)
@@ -854,15 +872,18 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if (CTX->operating_mode == DSM_CLASSIFY)
     return 0;
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_set_spamrecord: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -1049,6 +1070,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct passwd *p;
+  char *name;
   unsigned long *lengths;
   char *mem;
   char query[128];
@@ -1065,10 +1087,13 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   dbh = _mysql_drv_sig_write_handle(CTX, s);
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
   {
@@ -1107,7 +1132,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   if (p == NULL)
   {
     LOGDEBUG ("_ds_get_signature: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -1174,6 +1199,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   char scratch[1024];
   buffer *query;
   struct passwd *p;
+  char *name;
 
   if (s->dbt == NULL)
   {
@@ -1181,15 +1207,18 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_set_signature: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -1235,6 +1264,7 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct passwd *p;
+  char *name;
   char query[128];
 
   if (s->dbt == NULL)
@@ -1244,15 +1274,18 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   }
 
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_delete_signature: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -1273,6 +1306,7 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct passwd *p;
+  char *name;
   char query[128];
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -1283,15 +1317,18 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_verisy_signature: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -1408,6 +1445,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   char query[128];
   MYSQL_ROW row;
   struct passwd *p;
+  char *name;
 
   if (s->dbt == NULL)
   {
@@ -1415,15 +1453,18 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_get_nexttoken: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return NULL;
   }
 
@@ -1479,6 +1520,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   char query[128];
   MYSQL_ROW row;
   struct passwd *p;
+  char *name;
   char *mem;
 
   if (s->dbt == NULL)
@@ -1487,15 +1529,18 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_get_nextsignature: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return NULL;
   }
 
@@ -1621,19 +1666,24 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   if (s->p_getpwnam.pw_name != NULL)
   {
     /* cache the last name queried */
-    if (name != NULL && !strcmp (s->p_getpwnam.pw_name, name))
+    if (name != NULL && !strcmp (s->p_getpwnam.pw_name, name)) {
+      LOGDEBUG("_mysql_drv_getpwnam returning cached name %s.", name);
       return &s->p_getpwnam;
+    }
 
     free (s->p_getpwnam.pw_name);
     s->p_getpwnam.pw_name = NULL;
   }
 
-  if (name == NULL)
+  if (name == NULL) {
+      LOGDEBUG("_mysql_drv_getpwnam returning NULL.  Caller passed NULL for the name and I can't grok that.");
       return NULL;
+  }
 
   sql_username = malloc ((2 * strlen(name)) + 1);
   if (sql_username == NULL)
   {
+    LOGDEBUG("_mysql_drv_getpwnam returning NULL for name:  %s.  malloc() failed somehow.", name);
     return NULL;
   }
 
@@ -1654,8 +1704,11 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 
   result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL) {
-    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS)
+    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
+      LOGDEBUG("_mysql_drv_getpwnam returning NULL for query on name:  %s that returned a null result", name);
       return NULL;
+    }
+    LOGDEBUG("_mysql_drv_getpwnam setting, then returning passed name:  %s after null mysql result", name);
     return _mysql_drv_setpwnam (CTX, name);
   }
 
@@ -1663,16 +1716,23 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   if (row == NULL)
   {
     mysql_free_result (result);
-    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS)
+    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
+      LOGDEBUG("_mysql_drv_getpwnam returning NULL for query on name:  %s", name);
       return NULL;
+    }
+    LOGDEBUG("_mysql_drv_getpwnam setting, then returning passed name:  %s", name);
     return _mysql_drv_setpwnam (CTX, name);
   }
 
   if (row[0] == NULL)
   {
     mysql_free_result (result);
-    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS)
+    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
+      LOGDEBUG("_mysql_drv_getpwnam returning NULL for query on name:  %s", name);
       return NULL;
+    }
+
+    LOGDEBUG("_mysql_drv_getpwnam setting, then returning passed name:  %s", name);
     return _mysql_drv_setpwnam (CTX, name);
   }
 
@@ -1683,6 +1743,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     s->p_getpwnam.pw_name = strdup (name);
 
   mysql_free_result (result);
+  LOGDEBUG("_mysql_drv_getpwnam successful; returning struct for name:  %s", s->p_getpwnam.pw_name);
   return &s->p_getpwnam;
 
 #endif
@@ -1876,6 +1937,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct passwd *p;
+  char *name;
   char query[128];
 
   if (s->dbt == NULL)
@@ -1884,15 +1946,18 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
     return EINVAL;
   }
                                                                                 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_delete_token: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
   if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
@@ -1922,6 +1987,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   char scratch[1024];
   char queryhead[1024];
   struct passwd *p;
+  char *name;
   int writes = 0;
 
   if (diction->items < 1)
@@ -1933,15 +1999,18 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_delall_spamrecords: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -2037,6 +2106,7 @@ DSPAM_CTX *_mysql_drv_init_tools(
   return CTX;
 
 BAIL:
+  LOGDEBUG ("_mysql_drv_init_tools:  Bailing and returning NULL!");
   dspam_destroy(CTX);
   return NULL;
 }
