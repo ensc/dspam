@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.239 2007/12/07 00:11:51 mjohnson Exp $ */
+/* $Id: dspam.c,v 1.240 2008/05/06 18:26:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -84,6 +84,11 @@
 #   endif
 #endif
 
+#ifdef EXT_LOOKUP
+#include "external_lookup.h"
+int verified_user = 0;
+#endif
+
 #include "dspam.h"
 #include "agent_shared.h"
 #include "pref.h"
@@ -99,6 +104,7 @@
 #define USE_SMTP        (_ds_read_attribute(agent_config, "DeliveryProto") && !strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "SMTP"))
 #define LOOKUP(A, B)	((_ds_pref_val(A, "localStore")[0]) ? _ds_pref_val(A, "localStore") : B)
 
+																							  
 int
 main (int argc, char *argv[])
 {
@@ -129,6 +135,7 @@ main (int argc, char *argv[])
     goto BAIL;
   }
 
+  
   /* Read dspam.conf into global config structure (ds_config_t) */
 
   agent_config = read_config(NULL);
@@ -1588,7 +1595,30 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
      * or the current user if not present. 
      */
 
-    username = node_nt->ptr;
+
+#ifdef EXT_LOOKUP
+	verified_user = 0;
+	if (_ds_match_attribute(agent_config, "ExtLookup", "on")) {
+		LOGDEBUG ("looking up user %s using %s driver.", node_nt->ptr, _ds_read_attribute(agent_config, "ExtLookupDriver"));
+		username = external_lookup(agent_config, node_nt->ptr, username);
+		if (username != NULL) {
+			LOGDEBUG ("external lookup verified user %s", node_nt->ptr);
+			verified_user = 1;
+			if (_ds_match_attribute(agent_config, "ExtLookupMode", "map") ||
+					_ds_match_attribute(agent_config, "ExtLookupMode", "strict")) {
+						LOGDEBUG ("mapping address %s to uid %s", node_nt->ptr, username);
+						node_nt->ptr = username;
+			}
+		} else if (_ds_match_attribute(agent_config, "ExtLookupMode", "map")) {
+				LOGDEBUG ("no match for user %s but mode is %s. continuing...", node_nt->ptr, _ds_read_attribute(agent_config, "ExtLookupMode"));
+				verified_user = 1;
+		}
+	} else {
+		verified_user = 1;
+	}
+#endif
+	username = node_nt->ptr;
+	
     presult = calloc(1, sizeof(struct agent_result));
     if (node_rcpt) { 
       ATX->recipient = node_rcpt->ptr;

@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.27 2008/03/10 04:47:09 steveb Exp $ */
+/* $Id: language.h,v 1.28 2008/05/06 18:26:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -37,12 +37,12 @@
 #define ERR_IO_LOCK             "Failed to lock file %s: %d: %s"
 #define ERR_IO_LOCK_FREE	"Failed to free lock file %s: %d: %s"
 
-/* LDAP related error codes */
+/* External lookup related error codes */
 
-#define ERR_LDAP_INIT_FAIL	"LDAP initialization failed"
-#define ERR_LDAP_PROTO_VER_FAIL	"LDAP failure: unable to set protocol version"
-#define ERR_LDAP_SEARCH_FAIL	"LDAP search failure"
-#define ERR_LDAP_MISCONFIGURED	"LDAP misconfigured"
+#define ERR_EXT_LOOKUP_INIT_FAIL	"Backend initialization failure"
+#define ERR_EXT_LOOKUP_LDAP_PROTO_VER_FAIL	"Unable to set LDAP protocol version"
+#define ERR_EXT_LOOKUP_SEARCH_FAIL	"Backend search failure"
+#define ERR_EXT_LOOKUP_MISCONFIGURED	"External Lookup misconfigured"
 
 /* Agent error codes */
 

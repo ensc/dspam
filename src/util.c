@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.21 2007/12/14 00:14:32 mjohnson Exp $ */
+/* $Id: util.c,v 1.22 2008/05/06 18:26:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -429,8 +429,13 @@ _ds_prepare_path_for (const char *filename)
     /* don't try to create root directory of a drive */
     if ( path[2] != '\0' || path[1] != ':' )
 #endif
-    {
-      if (dir != NULL && stat (path, &s) && path[0] != 0)
+   {
+#ifdef EXT_LOOKUP
+	  /* don't create users data dir if user verification is required */
+      if (dir != NULL && stat (path, &s) && path[0] != 0 && verified_user == 1)
+#else
+	  if (dir != NULL && stat (path, &s) && path[0] != 0)
+#endif
       {
         int x;
         LOGDEBUG ("creating directory '%s'", path);

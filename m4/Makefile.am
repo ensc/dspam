@@ -10,6 +10,6 @@ EXTRA_DIST = 					\
 	pgsql_drv.m4				\
 	sqlite_drv.m4				\
 	dllibs.m4				\
-	ldap.m4					\
+	external_lookup.m4			\
 	pthread.m4				\
 	ncore.m4

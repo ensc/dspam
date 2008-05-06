@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.64 2008/02/02 21:30:17 mjohnson Exp $ */
+/* $Id: pgsql_drv.c,v 1.65 2008/05/06 18:26:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -49,10 +49,6 @@
 #   else
 #       include <time.h>
 #   endif
-#endif
-
-#ifdef USE_LDAP
-#include "ldap_client.h"
 #endif
 
 #include "storage_driver.h"
@@ -1941,15 +1937,14 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
     "PgSQLVirtualUsernameField")) ==NULL)
   { virtual_username = "username"; }
 
-#ifdef USE_LDAP
-  if (_ds_match_attribute(CTX->config->attributes, "LDAPMode", "verify") &&
-      ldap_verify(CTX, name)<=0)
-  {
-    LOGDEBUG("LDAP verification of %s failed: not adding user", name);
+#ifdef EXT_LOOKUP
+  LOGDEBUG("verified_user is %d", verified_user);
+  if (verified_user == 0) {
+    LOGDEBUG("External lookup verification of %s failed: not adding user", name);
     return NULL;
   }
 #endif
-
+  
   snprintf (query, sizeof (query),
             "INSERT INTO %s (%s, %s) VALUES (default, '%s')",
             virtual_table, virtual_uid, virtual_username, name);

@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.69 2008/02/01 20:13:52 mjohnson Exp $
+dnl $Id: configure.ac,v 1.70 2008/05/06 18:26:07 mjohnson Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -138,7 +138,7 @@ LIBS="$LIBS $DLLIBS"
 #   Support for NodalCore(r) C-Series Hardware Extensions
 #
 DS_NCORE()
-DS_LDAP()
+DS_EXT_LOOKUP()
 
 AM_CONDITIONAL([BUILD_NCORE], [ test x$build_ncore = xyes ])
 

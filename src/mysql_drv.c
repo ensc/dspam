@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.76 2008/05/02 23:59:57 mjohnson Exp $ */
+/* $Id: mysql_drv.c,v 1.77 2008/05/06 18:26:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -51,9 +51,6 @@
 #   endif
 #endif
 
-#ifdef USE_LDAP
-#include "ldap_client.h"
-#endif
 
 #include "storage_driver.h"
 #include "mysql_drv.h"
@@ -1838,11 +1835,10 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
     "MySQLVirtualUsernameField")) ==NULL)
   { virtual_username = "username"; }
 
-#ifdef USE_LDAP
-  if (_ds_match_attribute(CTX->config->attributes, "LDAPMode", "verify") &&
-      ldap_verify(CTX, name)<=0) 
-  {
-    LOGDEBUG("LDAP verification of %s failed: not adding user", name);
+#ifdef EXT_LOOKUP
+  LOGDEBUG("verified_user is %d", verified_user);
+  if (verified_user == 0) {
+    LOGDEBUG("External lookup verification of %s failed: not adding user", name);
     return NULL;
   }
 #endif

@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.13 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: util.h,v 1.14 2008/05/06 18:26:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -88,6 +88,10 @@ unsigned int i2a
   (char* dest,unsigned int x);
 char *inet_ntoa_r
   (struct in_addr in, char *buf, int len);
+#endif
+
+#ifdef EXT_LOOKUP
+  int verified_user;
 #endif
 
 const char *	_ds_userdir_path (
