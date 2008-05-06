@@ -7,6 +7,7 @@
 <div id="header">
 	<div id="logo">
 		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
                 $FORM_USER$
@@ -54,14 +55,15 @@ deliver any false positives that are still in your quarantine.
 </tr>
 $HISTORY$
 </table>
+
+$HISTORYPAGES$
+
 <input type="submit" value="Retrain Checked">
 </form>
 
 </div>
 
-<div id="footer">
-$DSPAMVERSION$
-</div>
+
 
 <script language="javascript">
 <!--

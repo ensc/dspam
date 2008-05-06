@@ -1,7 +1,16 @@
-$Id: CHANGELOG,v 1.471 2008/05/02 23:59:57 mjohnson Exp $
+$Id: CHANGELOG,v 1.472 2008/05/06 18:11:17 mjohnson Exp $
 
 Version 3.8.1
 -------------
+[20080502:1600] mjohnson: WebUI changes
+
+Submitted by Kyle Johnson. Number of changes including:
+* Moved the Version listing to underneath of the dspam logo.
+* Completely removed the #footer.
+* Fixed the navigation list to display correctly (correct use of css (floats and clears)).
+* Moved the history page numbers ([ 1  2  3  4  5  6  7  8  > ]) into their own thingy ($HISTORYPAGES$).
+* Moved the "Sort by:" links in the Quarantine tab into the table headers ($SORT_QUARANTINE$).
+
 [20080502:1600] mjohnson: Post quarantine method
 
 Submitted by Scott Worley. Changes from Get to Post method

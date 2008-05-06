@@ -7,6 +7,7 @@
 <div id="header">
 	<div id="logo">
 		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
                 $FORM_USER$
@@ -50,16 +51,11 @@ Use the checkboxes and <strong>Deliver Checked</strong> to deliver messages you 
 &nbsp;
 <input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Are you sure you want to delete ALL messages in quarantine?')==false) { return false; }" >
 
-&nbsp;&nbsp;$SORT_SELECTOR$
-
 </p>
 <table border="0" cellspacing="0" cellpadding="2" width="100%">
 	<tr>
 		<th>&nbsp;</th>
-		<th>Rating</th>
-                <th>Date</th>
-		<th>From</th>
-		<th>Subject</th>
+		$SORT_QUARANTINE$
 	</tr>
 $QUARANTINE$
 </table>
@@ -82,9 +78,7 @@ Color key: <span class="low">Lower SPAM rating</span>, <span class="medium">Medi
 
 </div>
 
-<div id="footer">
-$DSPAMVERSION$
-</div>
+
 
 </BODY>
 </HTML>

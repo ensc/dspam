@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.31 2008/02/01 21:41:05 mjohnson Exp $
+# $Id: dspam.cgi,v 1.32 2008/05/06 18:11:17 mjohnson Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -460,24 +460,24 @@ _END
   while($line = pop(@history)) { $DATA{'HISTORY'} .= $line; }
 
   if ($CONFIG{'HISTORY_PER_PAGE'} > 0) {
-    $DATA{'HISTORY'} .= "<center>[";
+    $DATA{'HISTORYPAGES'} = "<div class=\"historypages\">[";
     if (($history_pages > 1) && ($history_page > 1)) {
       my $i = $history_page-1;
-      $DATA{'HISTORY'} .= "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;&lt;&nbsp;</a>";
+      $DATA{'HISTORYPAGES'} = "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;&lt;&nbsp;</a>";
     }
     for(my $i = 1; $i <= $history_pages; $i++) {
   
       if ($i == $history_page) {
-        $DATA{'HISTORY'} .= "<a href=\"$MYURL&show=$show&history_page=$i\"><big><strong>&nbsp;$i&nbsp;</strong></big></a>";
+        $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&show=$show&history_page=$i\"><big><strong>&nbsp;$i&nbsp;</strong></big></a>";
       } else {
-        $DATA{'HISTORY'} .= "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;$i&nbsp;</a>";
+        $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;$i&nbsp;</a>";
       }
     }
     if (($history_pages > 1) && ($history_page < $history_pages)) {
       my $i = $history_page+1;
-      $DATA{'HISTORY'} .= "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;&gt;&nbsp;</a>";
+      $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;&gt;&nbsp;</a>";
     }
-    $DATA{'HISTORY'} .= "]</center><BR>";
+    $DATA{'HISTORYPAGES'} .= "]</div>";
   }
 
   $DATA{'SHOW'} = $show;
@@ -1136,31 +1136,31 @@ sub DisplayQuarantine {
   }
 
   $DATA{'SORTBY'} = $sortBy;
-  $DATA{'SORT_SELECTOR'} .=  "Sort by: <a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Rating&user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Rating&user=$FORM{'user'}\">";
   if ($sortBy eq "Rating") {
-    $DATA{'SORT_SELECTOR'} .= "<strong>Rating</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>Rating</strong>";
   } else {
-    $DATA{'SORT_SELECTOR'} .= "Rating";
+    $DATA{'SORT_QUARANTINE'} .= "Rating";
   }
-  $DATA{'SORT_SELECTOR'} .=  "</a> | <a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Date&user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Date&user=$FORM{'user'}\">";
   if ($sortBy eq "Date") {
-    $DATA{'SORT_SELECTOR'} .= "<strong>Date</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>Date</strong>";
   } else {
-    $DATA{'SORT_SELECTOR'} .= "Date";
+    $DATA{'SORT_QUARANTINE'} .= "Date";
   }
-  $DATA{'SORT_SELECTOR'} .=  "</a> | <a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Subject&user=$FORM{'user'}\">";
-  if ($sortBy eq "Subject") {
-    $DATA{'SORT_SELECTOR'} .= "<strong>Subject</strong>";
-  } else {
-    $DATA{'SORT_SELECTOR'} .= "Subject";
-  }
-  $DATA{'SORT_SELECTOR'} .=  "</a> | <a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=From&user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=From&user=$FORM{'user'}\">";
   if ($sortBy eq "From") {
-    $DATA{'SORT_SELECTOR'} .= "<strong>From</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>From</strong>";
   } else {
-    $DATA{'SORT_SELECTOR'} .= "From";
+    $DATA{'SORT_QUARANTINE'} .= "From";
   }
-  $DATA{'SORT_SELECTOR'} .=  "</a>";
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Subject&user=$FORM{'user'}\">";
+  if ($sortBy eq "Subject") {
+    $DATA{'SORT_QUARANTINE'} .= "<strong>Subject</strong>";
+  } else {
+    $DATA{'SORT_QUARANTINE'} .= "Subject";
+  }
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>";
 
 
   my($row, $rowclass, $counter);

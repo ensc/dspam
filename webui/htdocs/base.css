@@ -15,6 +15,12 @@ th {
 	font-weight: bold;
 	text-align: left;
 }
+th a{
+	color:white;
+	background-color:black;
+	display:block;
+	text-align:center;
+}
 td {
 	font-size: 11px;
 }
@@ -55,24 +61,22 @@ em {
 	margin: 0;
 	height: 25px;
 }
+#logo *{margin:0; padding:0;}
 #logo {
 	text-align: right;
 	float: right;
 }
-#logo img {
-	padding: 0;
-	margin: 0;
-	border: none;
+#logo img {border: none;}
+#logo p{
+        text-align:center;
+        clear:left;
+        font-size:80%;
 }
 #userinfo {
 }
 
-#navcontainer ul {
-	display: block;
-	list-style: none outside;
-	padding: 0;
-	margin: 24px 0 0 0;
-}
+#navcontainer *{margin:0; padding:0;}
+#navcontainer ul {list-style: none;}
 #navcontainer li {
 	margin: 0 4px 0 0;
 	background-color: lightgray;
@@ -81,8 +85,11 @@ em {
 	/* the next 4 lines are magic:  moves box up to handle link elements */
 	display: block;
 	float: left;
-	position: relative;
-	top: -1.55em;
+}
+#navcontainer li a{
+	display:block;
+	float:left;
+	width:100%;
 }
 #navcontainer a:link, #navcontainer a:visited {
 	background-color: lightgray;
@@ -110,42 +117,42 @@ html>body #navcontainerclear {
 	background-color: #f7f7f7;
 	border: 2px solid black;
 	padding: 8px;
+	clear:left;
 }
 
-#content {
+.content {
 	text-align: left;
 	display: table;
 	width: 100%;
 	background-color: #dddddd;
 	margin-bottom: 8px;
 }
-#content h3 {
+.content h3 {
 	font-size: 11px;
 	font-weight: normal;
 	background-color: #bbbbbb;
 	margin: 0;
 	padding: 2px;
 }
-#content h3 strong {
+.content h3 strong {
 	font-weight: bold;
 }
-#content table,img {
+.content table,img {
 	margin: 8px;
 	display: block;
 	float: left;
 }
-#content img {
+.content img {
 	padding: 4px;
 	background-color:#ddd;
 }
-#content p {
+.content p {
 	padding: 8px;
 	padding-top: 0px;
 	clear: left;
 	float: none;
 }
-
-#footer a {
-	text-align;center;
-	font-size:80%;
+.historypages{
+	text-align:center;
+	font-size:95%;
 }
