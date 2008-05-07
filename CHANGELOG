@@ -1,7 +1,11 @@
-$Id: CHANGELOG,v 1.475 2008/05/06 21:29:07 mjohnson Exp $
+$Id: CHANGELOG,v 1.476 2008/05/07 21:58:47 mjohnson Exp $
 
 Version 3.8.1
 -------------
+[20080507:1500] mjohnson: Added external_lookup.* source files
+
+These files were missed in the previous round of CVS updates. 
+
 [20080503:1400] mjohnson: Dspam train with MBOX files
 
 Submitted by Vadim Zeitlin. Allows dspam_train to work with both maildir-like
