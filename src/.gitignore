@@ -1,6 +1,16 @@
+# Files produced by autotools
 auto-config.h
 auto-config.h.in
 dspam-uninstalled.pc
 dspam.pc
 stamp-h1
 .deps/
+
+# Files produced by build process
+.libs/
+*.o
+*.lo
+*.la
+dspam
+dspam.conf
+dspamc

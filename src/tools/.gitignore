@@ -1,0 +1,9 @@
+# Files produced by the build process
+dspam_2sql
+dspam_admin
+dspam_clean
+dspam_crc
+dspam_dump
+dspam_merge
+dspam_stats
+dspam_train
