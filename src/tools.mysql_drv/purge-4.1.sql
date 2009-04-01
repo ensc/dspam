@@ -1,4 +1,4 @@
-# $Id: purge-4.1.sql,v 1.5 2005/07/14 13:50:10 jonz Exp $
+# $Id: purge-4.1.sql,v 1.6 2007/12/07 00:15:36 mjohnson Exp $
 set @a=to_days(current_date());
 
 START TRANSACTION;
@@ -46,3 +46,5 @@ START TRANSACTION;
 delete from dspam_signature_data
   where @a-14 > to_days(created_on);
 COMMIT;
+
+optimize table dspam_token_data, dspam_signature_data;

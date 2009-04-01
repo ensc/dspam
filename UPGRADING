@@ -1,7 +1,11 @@
-$Id: UPGRADING,v 1.25 2006/05/22 19:34:30 jonz Exp $
+$Id: UPGRADING,v 1.26 2007/12/06 05:01:08 mjohnson Exp $
 
 Follow the steps sequentially from the base version you are running up to
 the top.
+
+UPGRADING FROM 3.8.0
+
+No changes to the interface were made from 3.8.0 to 3.8.1.
 
 UPGRADING FROM 3.6
 ------------------

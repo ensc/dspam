@@ -1,4 +1,4 @@
-/* $Id: dspam_dump.c,v 1.13 2006/05/13 01:13:01 jonz Exp $ */
+/* $Id: dspam_dump.c,v 1.14 2008/05/06 21:29:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -51,6 +51,11 @@
 #include "config_api.h"
 #include "language.h"
 
+#ifdef _WIN32
+/* no trusted users under Windows */
+#undef TRUSTED_USER_SECURITY
+#endif
+
 DSPAM_CTX *open_ctx;
 
 /* headers */
@@ -58,7 +63,7 @@ int dump_database (DSPAM_CTX * CTX, const char *token, int sql);
 void dieout (int signal);
 
 #define TSYNTAX	\
-  "syntax: dspam_dump [--profile=Profile] [-d sqlite_drv] [username [token]]"
+  "syntax: dspam_dump [--profile=Profile] [-d sqlite_drv] username [token]"
 
 #define SQL_SQLITE_DRV	1
 
@@ -68,10 +73,8 @@ main (int argc, char **argv)
   DSPAM_CTX *CTX;
   int r, sql = 0, i;
   char *username = NULL, *token = NULL;
-#ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
   struct passwd *p = getpwuid (getuid ());
-#endif
 #endif
 
   /* Read dspam.conf */
@@ -88,15 +91,6 @@ main (int argc, char **argv)
   }
 
   libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
-
-#ifndef WIN32
-#ifdef TRUSTED_USER_SECURITY
-  if (!_ds_match_attribute(agent_config, "Trust", p->pw_name) && p->pw_uid) {
-    fprintf(stderr, ERR_TRUSTED_MODE "\n");
-    goto BAIL;
-  }
-#endif
-#endif
 
   open_ctx = NULL;
   signal (SIGINT, dieout);
@@ -131,8 +125,17 @@ main (int argc, char **argv)
         goto BAIL;
       }
     } else {
-      if (username == NULL)
+      if (username == NULL) {
         username = argv[i];
+#ifdef TRUSTED_USER_SECURITY
+        if ( strcmp(username, p->pw_name) &&
+              !_ds_match_attribute(agent_config, "Trust", p->pw_name) &&
+                p->pw_uid) {
+          fprintf(stderr, ERR_TRUSTED_MODE "\n");
+          goto BAIL;
+        }
+#endif
+      }
       else
         token = argv[i];
     }

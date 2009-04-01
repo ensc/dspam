@@ -6,6 +6,7 @@
 <div id="header">
 	<div id="logo">
 		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
 		Statistical SPAM Protection for <strong>Administrator ($REMOTE_USER$)</strong>
@@ -29,7 +30,7 @@
 The following graphs and tables summarize the processing done by the filter.
 </p>
 
-<div id="content">
+<div class="content">
 	<h3><strong>Overview</strong></h3>
 			
 	<table border="0" cellspacing="0" cellpadding="4">
@@ -98,23 +99,19 @@ The following graphs and tables summarize the processing done by the filter.
 	</table>
 </div>
 
-<div id="content">
+<div class="content">
 	<h3><strong>24 Hour Activity</strong> - $TS_DAILY$ SPAM, $TI_DAILY$ Good, $SM_DAILY$ Spam Misses, $FP_DAILY$ False Positives, $INOC_DAILY$ Inoculations</h3>
 	<img src="./admingraph.cgi?data=$DATA_DAILY$&x_label=Hour+of+the+day" />
 </div>
 
-<div id="content">
+<div class="content">
 	<h3><strong>Daily Activity</strong> - $TS_WEEKLY$ SPAM, $TI_WEEKLY$ Good, $SM_WEEKLY$ Spam Misses, $FP_WEEKLY$ False Positives, $INOC_WEEKLY$ Inoculations</h3>
 	<img src="./admingraph.cgi?data=$DATA_WEEKLY$&graph=period&x_label=Date" />
 </div>
 
 </div>
 
-<div id="footer">
-<p>
-<a href="http://dspam.nuclearelephant.com">DSPAM</a> is a registered trademark of <a href="http://www.nuclearelephant.com">Jonathan A. Zdziarski</a> Copyright &copy; 2005, Jonathan A. Zdziarski
-</p>
-</div>
+
 
 </body>
 </html>

@@ -1,4 +1,4 @@
-$Id: mysql_drv.txt,v 1.8 2006/05/13 01:12:58 jonz Exp $
+$Id: mysql_drv.txt,v 1.9 2007/12/07 00:15:31 mjohnson Exp $
 
 mysql_drv: MySQL storage driver for DSPAM <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2006 Jonathan A. Zdziarski
@@ -127,6 +127,11 @@ MySQLUser      dspam
 MySQLPass      changeme
 MySQLDb        dspam
 MySQLCompress  true
+MySQLReconnect true
+
+If you are using MySQL >= 5.0.13 and have problems with DSPAM dropping the 
+connection to your MySQL instance, then set MySQLReconnect to true to allow 
+the mysql_drv to try to re-establish stale and/or dead connections.
 
 Or if you'd like to connect via TCP, use the IP address and port of the 
 MySQL server. DSPAM checks to see if the first character of the HOSTNAME field 

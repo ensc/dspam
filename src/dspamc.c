@@ -1,4 +1,4 @@
-/* $Id: dspamc.c,v 1.12 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: dspamc.c,v 1.13 2007/12/06 05:10:13 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -99,19 +99,28 @@ main (int argc, char *argv[])
   int exitcode = EXIT_SUCCESS;
   buffer *message = NULL;       /* input Message */
   int agent_init = 0;		/* agent is initialized */
+  struct passwd *pwent;
 
   setbuf (stdout, NULL);	/* unbuffered output */
 #ifdef DEBUG
   DO_DEBUG = 0;
 #endif
 
-  srand ((long) time << (long) getpid());
+  srand ((long) time(NULL) ^ (long) getpid());
   umask (006);
 
 #ifndef DAEMON
   LOG(LOG_ERR, ERR_DAEMON_NO_SUPPORT);
   exit(EXIT_FAILURE);
 #endif
+
+  /* Cache my username and uid for trusted user security */
+
+  if (!init_pwent_cache()) {
+    LOG(LOG_ERR, ERR_AGENT_RUNTIME_USER);
+    exitcode = EXIT_FAILURE;
+    goto BAIL;
+  }
 
   /* Read dspam.conf into global config structure (ds_config_t) */
 

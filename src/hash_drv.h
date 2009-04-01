@@ -1,4 +1,4 @@
-/* $Id: hash_drv.h,v 1.14 2006/05/27 21:00:36 jonz Exp $ */
+/* $Id: hash_drv.h,v 1.16 2007/12/14 00:14:32 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -77,8 +77,8 @@ struct _hash_drv_storage
 typedef struct _hash_drv_spam_record
 {
   unsigned long long hashcode;
-  long nonspam;
-  long spam;
+  unsigned long nonspam;
+  unsigned long spam;
 } *hash_drv_spam_record_t;
 
 int _hash_drv_get_spamtotals 
@@ -88,13 +88,20 @@ int _hash_drv_set_spamtotals
   (DSPAM_CTX * CTX);
 
 int _hash_drv_lock_get (
-  DSPAM_CTX * CTX, 
+  DSPAM_CTX *CTX,
   struct _hash_drv_storage *s, 
   const char *username);
 
 int _hash_drv_lock_free (
   struct _hash_drv_storage *s,
   const char *username);
+
+/* lock variant used by css tools */
+FILE* _hash_tools_lock_get (const char *cssfilename);
+
+int _hash_tools_lock_free (
+  const char *cssfilename,
+  FILE* lockfile);
 
 int _hash_drv_open(
   const char *filename,

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.12 2006/05/13 01:13:01 jonz Exp $
+# $Id: admin.cgi,v 1.15 2008/05/02 23:59:57 mjohnson Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -95,6 +95,11 @@ if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
 $DATA{'REMOTE_USER'} = $ENV{'REMOTE_USER'};
 
 #
+# Display Dspam Version
+#
+$DATA{'DSPAMVERSION'} = "Version " . `$CONFIG{'DSPAM'} --version | grep Suite | cut -d " " -f4`;
+
+#
 # Process Commands
 #
 
@@ -121,8 +126,13 @@ if ($FORM{'template'} eq "status") {
 sub DisplayPreferences {
   my(%PREFS, $FILE, $USER);
 
-  $DATA{'USERNAME'} = $FORM{'username'};
-  $USER = $FORM{'username'};
+  if ($FORM{'username'} eq "") {
+    $USER = "default";
+  } else {
+    $USER = $FORM{'username'};
+  }
+
+  $DATA{'USERNAME'} = $USER;
 
   if ($FORM{'username'} eq "") {
     $FILE = "./default.prefs";
@@ -158,6 +168,9 @@ sub DisplayPreferences {
 
     if ($FORM{'showFactors'} ne "on") {
       $FORM{'showFactors'} = "off";
+    }
+    if ($FORM{'dailyQuarantineSummary'} ne "on") {
+      $FORM{'dailyQuarantineSummary'} = "off";
     }
 
     if ($CONFIG{'PREFERENCES_EXTENSION'} == 1) {
@@ -195,6 +208,9 @@ sub DisplayPreferences {
       system("$CONFIG{'DSPAM_BIN'}/dspam_admin ch pref '".quotemeta($USER).
         "' enableWhitelist "
         . quotemeta($FORM{'enableWhitelist'}) . "> /dev/null");
+      system("$CONFIG{'DSPAM_BIN'}/dspam_admin ch pref '".quotemeta($USER).
+        "' dailyQuarantineSummary "
+        . quotemeta($FORM{'dailyQuarantineSummary'}) . "> /dev/null");
 
     } else {
       open(FILE, ">$FILE") || do { &error("Unable to write preferences: $!"); };
@@ -207,6 +223,7 @@ enableBNR=$FORM{'enableBNR'}
 enableWhitelist=$FORM{'enableWhitelist'}
 signatureLocation=$FORM{'signatureLocation'}
 showFactors=$FORM{'showFactors'}
+dailyQuarantineSummary=$FORM{'dailyQuarantineSummary'}
 _END
       close(FILE);
     }
@@ -239,6 +256,10 @@ _END
   if ($PREFS{"enableWhitelist"} eq "on") {
     $DATA{"C_WHITELIST"} = "CHECKED";
   }
+  if ($PREFS{"dailyQuarantineSummary"} eq "on") {
+    $DATA{"C_SUMMARY"} = "CHECKED";
+  }
+
 
   &output(%DATA);
 }
@@ -695,6 +716,11 @@ sub GetPrefs {
   my($USER, $FILE) = @_;
 
   if ($CONFIG{'PREFERENCES_EXTENSION'} == 1) {
+
+    if ($USER eq "") {
+      $USER = "default";
+    }
+
     open(PIPE, "$CONFIG{'DSPAM_BIN'}/dspam_admin agg pref ".quotemeta($USER)."|");
     while(<PIPE>) {
       chomp;

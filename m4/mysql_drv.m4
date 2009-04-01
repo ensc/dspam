@@ -1,4 +1,4 @@
-# $Id: mysql_drv.m4,v 1.2 2006/05/13 13:28:30 jonz Exp $
+# $Id: mysql_drv.m4,v 1.3 2007/12/07 00:15:31 mjohnson Exp $
 # Autoconf macros for checking for MySQL
 # Jonathan Zdziarski <jonathan@nuclearelephant.com>
 #
@@ -158,6 +158,7 @@ then
         ]],
         [[
             MYSQL *mysql = mysql_init(NULL);
+	    mysql_close(mysql);
         ]])],
         [ mysql_libs_success=yes ],
         [ mysql_libs_success=no ]

@@ -1,4 +1,4 @@
-/* $Id: language.h,v 1.25 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: language.h,v 1.28 2008/05/06 18:26:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -30,18 +30,19 @@
 #define ERR_MEM_ALLOC		"Memory allocation failed"
 #define ERR_IO_FILE_OPEN	"Unable to open file for reading: %s: %s"
 #define ERR_IO_FILE_WRITE	"Unable to open file for writing: %s: %s"
+#define ERR_IO_FILE_WRITING	"Unable to write file: %s: %s"
 #define ERR_IO_FILE_CLOSE	"Unable to close file: %s: %s"
 #define ERR_IO_FILE_RENAME	"Unable to rename file: %s: %s"
 #define ERR_IO_DIR_CREATE	"Unable to create directory: %s: %s"
 #define ERR_IO_LOCK             "Failed to lock file %s: %d: %s"
 #define ERR_IO_LOCK_FREE	"Failed to free lock file %s: %d: %s"
 
-/* LDAP related error codes */
+/* External lookup related error codes */
 
-#define ERR_LDAP_INIT_FAIL	"LDAP initialization failed"
-#define ERR_LDAP_PROTO_VER_FAIL	"LDAP failure: unable to set protocol version"
-#define ERR_LDAP_SEARCH_FAIL	"LDAP search failure"
-#define ERR_LDAP_MISCONFIGURED	"LDAP misconfigured"
+#define ERR_EXT_LOOKUP_INIT_FAIL	"Backend initialization failure"
+#define ERR_EXT_LOOKUP_LDAP_PROTO_VER_FAIL	"Unable to set LDAP protocol version"
+#define ERR_EXT_LOOKUP_SEARCH_FAIL	"Backend search failure"
+#define ERR_EXT_LOOKUP_MISCONFIGURED	"External Lookup misconfigured"
 
 /* Agent error codes */
 
@@ -113,7 +114,7 @@ user, e.g.. root or Trusted User [uid=%d(%s)]"
 
 #define INFO_DAEMON_START	"Daemon process starting"
 #define INFO_DAEMON_EXIT	"Daemon process exiting"
-#define INFO_DAEMON_BIND        "Binding to :%d"
+#define INFO_DAEMON_BIND        "Binding to %s:%d"
 #define INFO_DAEMON_DOMAINSOCK  "Creating local domain socket %s"
 #define INFO_DAEMON_RELOAD      "Reloading configuration"
 

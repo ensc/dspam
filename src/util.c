@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.20 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: util.c,v 1.22 2008/05/06 18:26:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -40,6 +40,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #ifdef TIME_WITH_SYS_TIME
 #   include <sys/time.h>
@@ -428,8 +429,13 @@ _ds_prepare_path_for (const char *filename)
     /* don't try to create root directory of a drive */
     if ( path[2] != '\0' || path[1] != ':' )
 #endif
-    {
-      if (dir != NULL && stat (path, &s) && path[0] != 0)
+   {
+#ifdef EXT_LOOKUP
+	  /* don't create users data dir if user verification is required */
+      if (dir != NULL && stat (path, &s) && path[0] != 0 && verified_user == 1)
+#else
+	  if (dir != NULL && stat (path, &s) && path[0] != 0)
+#endif
       {
         int x;
         LOGDEBUG ("creating directory '%s'", path);
@@ -629,18 +635,27 @@ double chi2Q (double x, int v)
   return MIN(s, 1.0);
 }
 
+void timeout(){}
+
 int _ds_get_fcntl_lock(int fd) {
 #ifdef _WIN32
   return 0;
 #else
   struct flock f;
+  int r;
 
   f.l_type = F_WRLCK;
   f.l_whence = SEEK_SET;
   f.l_start = 0;
   f.l_len = 0;
 
-  return fcntl(fd, F_SETLKW, &f);
+  signal(SIGALRM,timeout);
+  alarm(300);
+  r=fcntl(fd, F_SETLKW, &f);
+  alarm(0);
+  signal(SIGALRM,SIG_DFL);
+
+  return r;
 #endif
 }
 

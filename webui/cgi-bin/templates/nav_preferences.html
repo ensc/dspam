@@ -6,6 +6,7 @@
 <div id="header">
 	<div id="logo">
 		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
 		$FORM_USER$
@@ -36,7 +37,7 @@ This page lets you configure how the filter will handle your messages.
 <INPUT TYPE=HIDDEN NAME="template" VALUE="preferences">
 <INPUT TYPE=HIDDEN NAME="user" VALUE="$REMOTE_USER$">
 
-<div id="content">
+<div class="content">
 	<h3><strong>Training</strong> - Configure how the filter learns as it processes messages</h3>
 <p>
 <table class="hollow">
@@ -78,7 +79,7 @@ Filter sensitivity <strong>during</strong> the training period:<br>
 
 </div>
 
-<div id="content">
+<div class="content">
 	<h3><strong>Message Handling</strong> - Configure how SPAM is handled</h3>
 <p>
 When a SPAM message is identified:<br><br>
@@ -89,7 +90,7 @@ When a SPAM message is identified:<br><br>
 
 </div>
 
-<div id="content">
+<div class="content">
 	<h3><strong>Features</strong> - Tuning SPAM filtering</h3>
 <p>
 $OPTION$
@@ -98,7 +99,9 @@ Enable noise reduction, which usually improves filtering accuracy<br>
 <INPUT TYPE=CHECKBOX NAME=enableWhitelist $C_WHITELIST$>
 Enable automatic whitelisting to record frequent correspondence<BR>
 <INPUT TYPE=CHECKBOX NAME=showFactors $C_FACTORS$>
-Add the factoring tokens in each email into the message's full headers
+Add the factoring tokens in each email into the message's full headers<br>
+<input type="checkbox" name="dailyQuarantineSummary" id="dailyQuarantineSummary" $C_SUMMARY$>
+<label for="dailyQuarantineSummary">Enable the sending of daily spam quarantine summary emails</label>
 </p>
 
 </div>
@@ -111,11 +114,7 @@ Add the factoring tokens in each email into the message's full headers
 
 </div>
 
-<div id="footer">
-<p>
-<a href="http://dspam.nuclearelephant.com">DSPAM</a> is a registered trademark of <a href="http://www.nuclearelephant.com">Jonathan A. Zdziarski</a> Copyright &copy; 2005, Jonathan A. Zdziarski
-</p>
-</div>
+
 
 </BODY>
 </HTML>

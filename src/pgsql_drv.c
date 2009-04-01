@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.62 2006/07/29 13:38:48 jonz Exp $ */
+/* $Id: pgsql_drv.c,v 1.65 2008/05/06 18:26:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -49,10 +49,6 @@
 #   else
 #       include <time.h>
 #   endif
-#endif
-
-#ifdef USE_LDAP
-#include "ldap_client.h"
 #endif
 
 #include "storage_driver.h"
@@ -488,10 +484,15 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
   if (gid != uid) {
-    snprintf (scratch, sizeof (scratch),
-              "SELECT uid, token, spam_hits, innocent_hits "
-              "FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
-              uid, gid);
+    if (s->pg_major_ver >= 8) {
+      snprintf (scratch, sizeof (scratch),
+                "SELECT * FROM lookup_tokens(%d, %d, '{", uid, gid);
+    } else {
+      snprintf (scratch, sizeof (scratch),
+                "SELECT uid, token, spam_hits, innocent_hits "
+                "FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
+                uid, gid);
+    }
   } else {
     if (s->pg_major_ver >= 8) {
       snprintf (scratch, sizeof (scratch),
@@ -1936,15 +1937,14 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
     "PgSQLVirtualUsernameField")) ==NULL)
   { virtual_username = "username"; }
 
-#ifdef USE_LDAP
-  if (_ds_match_attribute(CTX->config->attributes, "LDAPMode", "verify") &&
-      ldap_verify(CTX, name)<=0)
-  {
-    LOGDEBUG("LDAP verification of %s failed: not adding user", name);
+#ifdef EXT_LOOKUP
+  LOGDEBUG("verified_user is %d", verified_user);
+  if (verified_user == 0) {
+    LOGDEBUG("External lookup verification of %s failed: not adding user", name);
     return NULL;
   }
 #endif
-
+  
   snprintf (query, sizeof (query),
             "INSERT INTO %s (%s, %s) VALUES (default, '%s')",
             virtual_table, virtual_uid, virtual_username, name);
@@ -2633,7 +2633,7 @@ _pgsql_drv_token_write(int type, unsigned long long token, char *buffer, size_t 
   if (type == 1) {
     snprintf(buffer, bufsz, "%lld", token);
   } else {
-    snprintf(buffer, bufsz, "'%llu'", token);
+    snprintf(buffer, bufsz, "%llu", token);
   }
   return buffer;
 }

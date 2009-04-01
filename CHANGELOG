@@ -1,4 +1,294 @@
-$Id: CHANGELOG,v 1.462 2007/03/18 17:08:49 jonz Exp $
+$Id: CHANGELOG,v 1.476 2008/05/07 21:58:47 mjohnson Exp $
+
+Version 3.8.1
+-------------
+[20080507:1500] mjohnson: Added external_lookup.* source files
+
+These files were missed in the previous round of CVS updates. 
+
+[20080503:1400] mjohnson: Dspam train with MBOX files
+
+Submitted by Vadim Zeitlin. Allows dspam_train to work with both maildir-like
+directories and also MBOX folders. 
+
+[20080503:1400] mjohnson: Dspam dump fixes
+
+Submitted by Vadim Zeitlin. Allows dspam_dump to be used by normal
+(non-trusted) users for their own usernames, while trusted users can use this
+for other usernames as well. Also updated the manpage to more correctly
+reflect the current usage syntax.
+
+[20080503:1400] mjohnson: Dspam train fixes
+
+Submitted by Vadim Zeitlin. Proper string comparison of spam_dir and ham_dir
+using 'ne' instead of '!='. Fixed disparity between operation and man page for
+username parameter.
+
+[20080503:1100] mjohnson: MySQL driver bug fixes
+
+Corrects error handling of name logging for both user and group names.
+
+[20080503:1100] mjohnson: External user lookup
+
+Submitted by Hugo Monteiro. Allows dspam to lookup a username for the dspam
+database in an external source. This extends the existing
+ldap_client interface, and also provides a generic interface for scripted
+programs. More detail and the latest versions. This allows the administrator 
+to define custom usernames to be used, not only system usernames or email addresses. 
+
+This gives the possibility to change a users username and/or email address
+without having to worry about losing or migrating the users DSPAM data. It
+also mitigates the problem of user address and email alias matching in mail 
+gateway/anti-spam appliance types of setup.
+
+[20080502:1600] mjohnson: WebUI changes
+
+Submitted by Kyle Johnson. Number of changes including:
+* Moved the Version listing to underneath of the dspam logo.
+* Completely removed the #footer.
+* Fixed the navigation list to display correctly (correct use of css (floats and clears)).
+* Moved the history page numbers ([ 1  2  3  4  5  6  7  8  > ]) into their own thingy ($HISTORYPAGES$).
+* Moved the "Sort by:" links in the Quarantine tab into the table headers ($SORT_QUARANTINE$).
+
+[20080502:1600] mjohnson: Post quarantine method
+
+Submitted by Scott Worley. Changes from Get to Post method
+
+[20080502:1600] mjohnson: Untrusted users statistics
+
+Submitted by Vadim Zeitlin. Untrusted users can see their own statistics.
+
+[20080502:1600] mjohnson: MySQL UIDinSignature option
+
+Submitted by Xavier De Cock. Looks for the userid in sig first, then tries the
+username.
+
+[20080502:1530] mjohnson: Default username for webui patch
+
+Submitted by Hugo Monteiro. Uses 'default' username for default preferences.
+
+[20080310:0556] steveb: Allow daemon to listen to specific TCP host
+
+User-configurable preference ServerHost added (set to '127.0.0.1') to allow using
+specific TCP host when running in daemon mode. Not specifying ServerHost will
+bind to all available interfaces when running in daemon mode and using TCP sockets.
+
+[20080202:1330] mjohnson: PostgreSQL patch 8+ performance patch
+
+Submitted by Kenneth Marshall. 
+
+[20080201:1300] mjohnson: shift-click multiple row-selection
+
+Submitted via web interface. Allows users to select multiple rows by clicking
+on the initial row, holding shift, and clicking on the final row.
+
+[20080201:1300] mjohnson: Select 200 patch
+
+Submitted via web interface. Adds a "select 200" button to the quarantine page. 
+
+[20080201:1300] mjohnson: configure.ac fit
+
+Submitted by Niki Guldbrand. Removed some junk from a previous merge. 
+
+[20071220:1800] mjohnson: Feature request #23 - dspam_notify
+
+Submitted by Kyle Johnson. Also added Daily Quarantine Summary option. 
+
+[20071220:1730] mjohnson: Gentoo bug 201656
+
+Submitted by Alin Nastac. Hash driver work. 
+
+[20071213:1300] mjohnson: Advertise 8-bit MIME support 
+
+Submitted by Aleksander Kemanik.
+
+[20071213:1300] mjohnson: Write checking for hash driver 
+
+Submitted by Boguslaw Juza - Uses ERR_IO_FILE_WRITE instead of
+ERR_IO_FILE_OPEN, improved error handling
+
+[20071213:1600] mjohnson: Lock timeout
+
+Submitted by Boguslaw Juza - Now uses signal.h
+
+[20071213:1300] mjohnson: CSS clean copy header 
+
+Submitted by Boguslaw Juza - Copies the older header into the new header for
+the hash driver
+
+[20071213:1300] mjohnson: Hash time stamp
+
+Submitted by Boguslaw Juza - Adds a README and (heavy) optional flag to hash
+driver cssclean
+
+[20071213:1300] mjohnson: Feature Request 22
+
+Submitted by Kyle Johnson - Add version number to bottom of web interface
+
+[20071213:1300] mjohnson: Gentoo patch 29
+
+Submitted by Steve - Debug fix for BNR
+
+[20071213:1300] mjohnson: Gentoo patch 28
+
+Submitted by Alin Nastac - Fixes to the hash driver
+
+[20071213:1300] mjohnson: fix-unused-variables warnings
+
+Submitted by Steve to fix the warnings generating by the make-daemon-quiet
+patch.
+
+[20071206:1530] mjohnson: Gentoo patch 26 
+
+Relaxed group member matching
+
+[20071206:1530] mjohnson: Gentoo patch 25 
+
+Improved error handling on shutdown
+
+[20071206:1530] mjohnson: Gentoo patch 24 
+
+Ensure notification paths exist
+
+[20071206:1530] mjohnson: Gentoo patch 23 
+
+MySQL reconnect patch
+
+[20071206:1500] mjohnson: Gentoo patch 21 
+
+On client sending errors, send partial message with \r\n instead of \n
+
+[20071206:1500] mjohnson: Gentoo patch 20 
+
+Training skips broken tests and signatures, rather than exiting
+
+[20071206:1500] mjohnson: Gentoo patch 19
+
+Look for the last @ symbol in addresses (not the first)
+
+[20071206:1500] mjohnson: Gentoo patch 18
+
+Optimize database tables with dspam tokens and signature data
+
+[20071206:1500] mjohnson: Gentoo patch 17
+
+Deprecated LDAP
+
+[20071206:1500] mjohnson: Gentoo patch 16
+
+Pkglibdir in Makefile.am
+
+[20071206:1500] mjohnson: Gentoo patch 15
+
+Hash driver and cssclean.cgi
+
+[20071206:1500] mjohnson: Gentoo patch 14 
+
+Improved line-ending for CGI scripts
+
+[20071206:1500] mjohnson: Updated copyright in configure.ac 
+
+NodalCore(r) and Sensory Networks
+
+[20071206:1500] mjohnson: Gentoo patch 13 
+
+Improve config autodetection in configure.ac
+
+[20071206:1330] mjohnson: Gentoo patch 12 
+
+Take the configuration directory value from sysconfdir
+
+[20071206:1330] mjohnson: Gentoo patch 11 
+
+Preserve uid, gid, and permissions on the logfile during rotation
+
+[20071206:1330] mjohnson: Gentoo patch 10 
+
+Updates the storage driver location and trust setting in dspam.conf.in.
+
+[20071206:1300] mjohnson: Gentoo patch 9
+
+Enable domain quarantine.
+
+[20071206:1300] mjohnson: Gentoo patch 7
+
+Set the default pid file to be /var/run/dspam/dspam.pid if not specified.
+
+[20071206:1300] mjohnson: Gentoo patch 6
+
+Fix quotes in PGSQL driver.
+
+[20071206:1300] mjohnson: Gentoo patch 5
+
+Print dspam startup message to stdout instead of stderr
+
+[20071206:1100] mjohnson: Gentoo patch 4
+
+Silences dspam daemon startup
+
+[20071206:1100] mjohnson: Gentoo patch 3
+
+Fixed warnings for MySQL and PGSQL.
+
+[20071206:1100] mjohnson: Gentoo patch 2
+
+Link dynamically instead of statically.
+
+[20071206:1100] mjohnson: Gentoo patch 1
+
+Moved manpages into the right sections.
+
+[20071206:1100] mjohnson: Manpages
+
+Updated copyright to 2007 and changed website to dspam.nuclearelephant.com.
+
+[20071205:1600] mjohnson: FilteringHistory
+
+Martin Mares posted on 05-25-07. Feature Request #34. Filtering now all | spam
+| innocent | whitelisted
+
+[20071205:1600] mjohnson: 8-bit headers patch
+
+Martin Mares posted on 05-25-07. All characters in X-DSpam-Factors headers except for obviously safe
+regions encoded using %xx syntax.
+
+[20071205:1600] mjohnson: Virus not spam patch
+
+Julien Valroff posted on 11-29-07 for 3.6.8. Updated. 
+
+[20071204:1200] mjohnson: dspam.cgi 'Retrain Checked' bug for false positives
+
+Remi Broemeling discovered on 10-26-07. Combination of
+checkboxes and 'Retrain Checked' button fails for messages marked Spam that
+should be Innocent. 
+
+[20071204:1330] mjohnson: process_parseto bug
+
+Doug Hardie discovered on 06-09-07. Incorrectly parses forwarded messages with
+lines like 'To: spam-trash'. 
+
+[20071204:1530] mjohnson: libdspam linking
+
+Andreas Schneider posted on 10-22-07. Links dspam modules against libdspam
+for compiling with shared storage drivers.
+
+[20071204:1530] mjohnson: read_config support for libdspam
+
+Andreas Schneider posted on 10-22-07. 
+
+[20071204:1530] mjohnson: No such user bug
+
+Andreas Schneider posted on 10-23-07. dspamc wasn't declaring needed entity
+variables (name, uid) for the agent.
+
+[20071204:1600] mjohnson: Enables '+' in addresses, ignores case
+
+Benjamin Donnachie posted on 05-30-07. 
+
+[20071204:1600] mjohnson: Improved random seed initialization
+
+Martin Mares posted on 05-25-07.
+
 
 Version 3.8.0
 -------------

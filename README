@@ -1,7 +1,7 @@
-$Id: README,v 1.101 2006/08/18 15:00:31 jonz Exp $
+$Id: README,v 1.103 2008/03/10 04:54:22 steveb Exp $
 
-DSPAM v3.8 <jonathan@nuclearelephant.com>
-Copyright (c) 2002-2006 Jonathan A. Zdziarski
+DSPAM v3.8 <contact@nuclearelephant.com>
+Copyright (c) 2002-2007 Sensory Networks
 http://dspam.nuclearelephant.com
 
 Classifier Version: 380
@@ -1606,6 +1606,11 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   (presently mysql_drv and pgsql_drv are supported). Once you have compiled
   with daemon support, you'll need to modify your dspam.conf to provide the 
   settings necessary for client/server mode:
+
+	ServerHost             127.0.0.1
+
+  The host to listen on. The default is to comment this setting which will
+  force DSPAM to listen on all available interfaces.
 
 	ServerPort             24
 

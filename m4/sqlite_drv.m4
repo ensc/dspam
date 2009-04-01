@@ -1,4 +1,4 @@
-# $Id: sqlite_drv.m4,v 1.2 2006/05/13 13:28:30 jonz Exp $
+# $Id: sqlite_drv.m4,v 1.3 2007/12/07 00:15:31 mjohnson Exp $
 # Autuconf macros for checking for SQLite
 # Jonathan Zdziarski <jonathan@nuclearelephant.com>
 #
@@ -65,6 +65,7 @@ then
     AC_RUN_IFELSE([AC_LANG_SOURCE([[
         #include <sqlite.h>
         #include <stdio.h>
+        #include <stdlib.h>
         #ifdef HAVE_UNISTD_H
         #   include <unistd.h>
         #endif
@@ -197,7 +198,8 @@ do
             #include <sqlite.h>
             ]],
             [[
-              const char *v = sqlite_version;
+              const char *v = 0;
+	      v = sqlite_version;
             ]])],
             [ ds_sqlite_libs_success=yes ],
             [ ds_sqlite_libs_success=no ]

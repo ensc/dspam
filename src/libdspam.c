@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.162 2006/07/17 00:14:02 jonz Exp $ */
+/* $Id: libdspam.c,v 1.163 2007/12/14 00:14:32 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -986,8 +986,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     if (CTX->flags & DSF_NOISE) {
       nobnr_result = _ds_calc_result(CTX, heap_nobnr, diction);
 
-      if (CTX->factors) 
+      if (CTX->factors) {
         _ds_factor_destroy(CTX->factors);
+        CTX->factors = NULL;
+      }
       CTX->result = x;
       CTX->probability = DSP_UNCALCULATED;
     }

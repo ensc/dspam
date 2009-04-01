@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.h,v 1.11 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: pgsql_drv.h,v 1.12 2008/05/06 18:26:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -73,6 +73,10 @@ DSPAM_CTX *_pgsql_drv_init_tools( const char *home, config_t config,
 
 #ifdef VIRTUAL_USERS
 struct passwd *_pgsql_drv_setpwnam	(DSPAM_CTX * CTX, const char *name);
+#endif
+
+#ifdef EXT_LOOKUP
+int verified_user;
 #endif
 
 #ifdef PREFERENCES_EXTENSION

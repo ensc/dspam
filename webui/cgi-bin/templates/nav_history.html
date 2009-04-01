@@ -1,11 +1,13 @@
 <HTML>
 <HEAD><TITLE>DSPAM v3 Control Center</TITLE>
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
 </HEAD>
 <BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
 <div id="header">
 	<div id="logo">
 		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
                 $FORM_USER$
@@ -38,6 +40,10 @@ deliver any false positives that are still in your quarantine.
 <input type="hidden" name="template" value="history">
 <input type="hidden" name="command" value="retrainChecked">
 <input type="hidden" name="user" value="$REMOTE_USER$">
+<input type="hidden" name="show" value="$SHOW$" >
+
+&nbsp;&nbsp;$SHOW_SELECTOR$
+
 <table border="0" cellspacing="0" cellpadding="2" width="100%">
 <tr>
 	<th>Type</th>
@@ -49,16 +55,15 @@ deliver any false positives that are still in your quarantine.
 </tr>
 $HISTORY$
 </table>
+
+$HISTORYPAGES$
+
 <input type="submit" value="Retrain Checked">
 </form>
 
 </div>
 
-<div id="footer">
-<p>
-<a href="http://dspam.nuclearelephant.com">DSPAM</a> is a registered trademark of <a href="http://www.nuclearelephant.com">Jonathan A. Zdziarski</a> Copyright &copy; 2005, Jonathan A. Zdziarski
-</p>
-</div>
+
 
 <script language="javascript">
 <!--

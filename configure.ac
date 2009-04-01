@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.67 2006/06/07 16:14:47 jonz Exp $
+dnl $Id: configure.ac,v 1.70 2008/05/06 18:26:07 mjohnson Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -8,9 +8,8 @@ dnl    ltmain.sh (GNU libtool) 1.5.6
 dnl    automake (GNU automake) 1.9.2
 dnl
 AC_PREREQ(2.59)
-AC_COPYRIGHT([Copyright (C) 2002-2006 Jonathan A. Zdziarski])
+AC_COPYRIGHT([Copyright (C) 2002-2007 Sensory Networks, Inc.])
 AC_INIT([dspam],[CVS],[dspam-dev@nuclearelephant.com])
-CONFIGURE_ARGS=$@
 AC_CONFIG_SRCDIR(./src)
 
 AM_INIT_AUTOMAKE([1.7 foreign])
@@ -27,7 +26,7 @@ AC_PROG_MAKE_SET
 
 AC_C_INLINE
 
-AC_DEFINE_UNQUOTED(CONFIGURE_ARGS, ["$CONFIGURE_ARGS"],
+AC_DEFINE_UNQUOTED(CONFIGURE_ARGS, ["$ac_configure_args"],
     [Configure Arguments])
 
 # Check for various flavors of varargs macros
@@ -136,10 +135,10 @@ fi
 LIBS="$LIBS $DLLIBS"
 
 #
-#   Support for NodalCore(tm) C-Series Hardware Extensions
+#   Support for NodalCore(r) C-Series Hardware Extensions
 #
 DS_NCORE()
-DS_LDAP()
+DS_EXT_LOOKUP()
 
 AM_CONDITIONAL([BUILD_NCORE], [ test x$build_ncore = xyes ])
 

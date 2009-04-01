@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.237 2006/12/12 15:33:45 jonz Exp $ */
+/* $Id: dspam.c,v 1.240 2008/05/06 18:26:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -51,6 +51,7 @@
 #include <sys/stat.h>
 #include <netdb.h>
 #include <sys/socket.h>
+#include <sysexits.h>
 
 #ifdef _WIN32
 #include <io.h>
@@ -83,6 +84,11 @@
 #   endif
 #endif
 
+#ifdef EXT_LOOKUP
+#include "external_lookup.h"
+int verified_user = 0;
+#endif
+
 #include "dspam.h"
 #include "agent_shared.h"
 #include "pref.h"
@@ -98,6 +104,7 @@
 #define USE_SMTP        (_ds_read_attribute(agent_config, "DeliveryProto") && !strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "SMTP"))
 #define LOOKUP(A, B)	((_ds_pref_val(A, "localStore")[0]) ? _ds_pref_val(A, "localStore") : B)
 
+																							  
 int
 main (int argc, char *argv[])
 {
@@ -108,9 +115,8 @@ main (int argc, char *argv[])
   int exitcode = EXIT_SUCCESS;
   struct nt_node *node_nt;
   struct nt_c c_nt;
-  struct passwd *pwent;
 
-  srand ((long) time << (long) getpid ());
+  srand ((long) time(NULL) ^ (long) getpid ());
   umask (006);                  /* rw-rw---- */
   setbuf (stdout, NULL);	/* unbuffered output */
 #ifdef DEBUG
@@ -123,15 +129,13 @@ main (int argc, char *argv[])
 
   /* Cache my username and uid for trusted user security */
 
-  pwent = getpwuid(getuid());
-  if (pwent == NULL) {
+  if (!init_pwent_cache()) {
     LOG(LOG_ERR, ERR_AGENT_RUNTIME_USER);
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
-  __pw_name = strdup(pwent->pw_name);
-  __pw_uid  = pwent->pw_uid;
 
+  
   /* Read dspam.conf into global config structure (ds_config_t) */
 
   agent_config = read_config(NULL);
@@ -881,10 +885,20 @@ deliver_message (
   if ((_ds_read_attribute(agent_config, "QuarantineMailbox")) &&
       (result == DSR_ISSPAM)) {
     strlcpy(args, ATX->recipient, sizeof(args));
+
+    /* strip trailing @domain, if present: */
+    arg=index(args, '@');
+    if (arg) *arg = '\0';
+
     arg=index(args,'+');
     if (arg != NULL) *arg='\0';
     strlcat(args,_ds_read_attribute(agent_config, "QuarantineMailbox"),
             sizeof(args));
+
+    /* append trailing @domain again, if it was present: */
+    arg=index(ATX->recipient, '@');
+    if (arg) strlcat (args, arg, sizeof(args));
+
     ATX->recipient=args;
   }
 
@@ -1485,8 +1499,7 @@ int send_notice(
 
   time(&now);
                                                                                 
-  snprintf(msgfile, sizeof(msgfile), "%s/txt/%s",
-           _ds_read_attribute(agent_config, "Home"), filename);
+  snprintf(msgfile, sizeof(msgfile), CONFDIR "/txt/%s", filename);
   f = fopen(msgfile, "r");
   if (!f) {
     LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
@@ -1582,7 +1595,30 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
      * or the current user if not present. 
      */
 
-    username = node_nt->ptr;
+
+#ifdef EXT_LOOKUP
+	verified_user = 0;
+	if (_ds_match_attribute(agent_config, "ExtLookup", "on")) {
+		LOGDEBUG ("looking up user %s using %s driver.", node_nt->ptr, _ds_read_attribute(agent_config, "ExtLookupDriver"));
+		username = external_lookup(agent_config, node_nt->ptr, username);
+		if (username != NULL) {
+			LOGDEBUG ("external lookup verified user %s", node_nt->ptr);
+			verified_user = 1;
+			if (_ds_match_attribute(agent_config, "ExtLookupMode", "map") ||
+					_ds_match_attribute(agent_config, "ExtLookupMode", "strict")) {
+						LOGDEBUG ("mapping address %s to uid %s", node_nt->ptr, username);
+						node_nt->ptr = username;
+			}
+		} else if (_ds_match_attribute(agent_config, "ExtLookupMode", "map")) {
+				LOGDEBUG ("no match for user %s but mode is %s. continuing...", node_nt->ptr, _ds_read_attribute(agent_config, "ExtLookupMode"));
+				verified_user = 1;
+		}
+	} else {
+		verified_user = 1;
+	}
+#endif
+	username = node_nt->ptr;
+	
     presult = calloc(1, sizeof(struct agent_result));
     if (node_rcpt) { 
       ATX->recipient = node_rcpt->ptr;
@@ -1602,6 +1638,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     if (_ds_match_attribute(agent_config, "EnablePlusedDetail", "on")) {
       strlcpy(mailbox, username, sizeof(mailbox));
       ATX->recipient = mailbox;
+      if (_ds_match_attribute(agent_config, "PlusedUserLowercase", "on"))
+        lc (username, username);
       plus = index(username, '+');
       if (plus) {
         atsign = index(plus, '@');
@@ -2017,11 +2055,11 @@ RSET:
       nt_add(ATX->results, presult);
     else
       free(presult);
-    LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", return_code);
+    LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", retcode);
     buffer_destroy(parse_message);
   }
 
-  return return_code;
+  return retcode;
 }
 // break
 // load_agg
@@ -2344,8 +2382,8 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
   
           while (user != NULL)
           {
-            if (!strcmp (user, username) || user[0] == '*' ||
-               (!strncmp(user, "*@", 2) && !strcmp(user+2, strchr(username,'@'))))
+            if (!strcmp (user, username) || !strcmp(user, "*") ||
+               (!strncmp(user, "*@", 2) && !strcmp(user+1, strchr(username,'@'))))
             {
   
               /* If we're reporting a spam, report it as a spam to all other
@@ -2732,6 +2770,33 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
 }
 
 /*
+ * log_prepare(char *buffer, char *value)
+ *
+ * DESCRIPTION
+ *   Prepares a value for logging by copying it to the buffer and removing
+ *   all potentially dangerous characters.
+ *
+ * INPUT ARGUMENTS
+ *   buffer	  A 256-byte buffer to store the result into
+ *   value	  Value to be logged or NULL
+ *
+ * RETURN VALUES
+ *   None
+ */
+
+static void log_prepare(char *buffer, char *value) {
+  char *p;
+
+  if (!value)
+    value = "<None Specified>";
+  strncpy(buffer, value, 255);
+  buffer[255] = 0;
+  for (p=buffer; *p; p++)
+    if (*p >= 0 && *p < 32)
+      *p = ' ';
+}
+
+/*
  * log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX)
  *
  * DESCRIPTION
@@ -2752,9 +2817,8 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   struct nt_c c_nt;
   FILE *file;
   char class;
-  char x[1024];
+  char x[1024], subject_buf[256], from_buf[256];
   char *messageid = NULL;
-  size_t y;
 
   if (CTX->message) 
     messageid = _ds_find_header(CTX->message, "Message-Id", DDF_ICASE);
@@ -2842,32 +2906,22 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     class = 'E';
   }
 
+  log_prepare(from_buf, from);
+  log_prepare(subject_buf, subject);
+
   /* Write USER.log */
 
   if (_ds_match_attribute(agent_config, "UserLog", "on")) {
-    char *c;
-    char fromline[256]; 
-    snprintf(fromline, sizeof(fromline), "%s", (from == NULL) ? "<None Specified>" : from);
-    while(subject && (c=strchr(subject, '\t')))
-      *c = ' ';
-    while((c=strchr(fromline, '\t')))
-      *c = ' ';
-    while(subject && (c=strchr(subject, '\n')))
-      *c = ' ';
-    while((c=strchr(fromline, '\n')))
-      *c = ' ';
 
     snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s\t%s\t%s\t%s\n",
             (long) time(NULL),
             class,
-            fromline,
+            from_buf,
             ATX->signature,
-            (subject == NULL) ? "<None Specified>" : subject,
+            subject_buf,
             ATX->status,
             (messageid) ? messageid : "");
-    for(y=0;y<strlen(x);y++)
-      if (x[y] == '\n')
-        x[y] = 32;
+
 
     _ds_prepare_path_for(filename);
     file = fopen(filename, "a");
@@ -2893,19 +2947,18 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     if (file != NULL) {
       int i = _ds_get_fcntl_lock(fileno(file));
       if (!i) {
-        char s[1024];
 
-        snprintf(s, sizeof(s), "%ld\t%c\t%s\t%s\t%s\t%f\t%s\t%s\t%s\n",
+        snprintf(x, sizeof(x), "%ld\t%c\t%s\t%s\t%s\t%f\t%s\t%s\t%s\n",
             (long) time(NULL),
             class,
-            (from == NULL) ? "<None Specified>" : from,
+            from_buf,
             ATX->signature,
-            (subject == NULL) ? "<None Specified>" : subject,
+            subject_buf,
             _ds_gettime()-ATX->timestart,
 	    (CTX->username) ? CTX->username: "",
 	    (ATX->status) ? ATX->status : "",
             (messageid) ? messageid : "");
-        fputs(s, file);
+        fputs(x, file);
         _ds_free_fcntl_lock(fileno(file));
       } else {
         LOG(LOG_WARNING, ERR_IO_LOCK, filename, i, strerror(errno));
@@ -3079,9 +3132,16 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
             while(node_ft != NULL) {
               struct dspam_factor *f = (struct dspam_factor *) node_ft->ptr;
               if (f) {
+	        char *s, *t;
                 strlcat(data, ",\n\t", sizeof(data));
-                snprintf(scratch, sizeof(scratch), "%s, %2.5f",
-                         f->token_name, f->value);
+		s = f->token_name;
+		t = scratch;
+		while (*s && t < scratch + sizeof(scratch) - 16)
+		  if (*s >= ' ' && *s < 0x7f && *s != '%')
+		    *t++ = *s++;
+		  else
+		    t += sprintf(t, "%%%02x", (unsigned char) *s++);
+		snprintf(t, 15, ", %2.5f", f->value);
                 strlcat(data, scratch, sizeof(data));
               }
               node_ft = c_nt_next(CTX->factors, &c_ft);
@@ -3531,6 +3591,7 @@ int tracksource(DSPAM_CTX *CTX) {
   {
     if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 2500) {
       if (CTX->result == DSR_ISSPAM && 
+          strcmp(CTX->class, LANG_CLASS_VIRUS) != 0 &&
           _ds_match_attribute(agent_config, "TrackSources", "spam")) {
         FILE *file;
         char dropfile[MAX_FILENAME_LENGTH];
@@ -3774,7 +3835,7 @@ int is_blocklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     char buf[256];
     if (heading) {
       char *dup = strdup(heading);
-      char *domain = strchr(dup, '@');
+      char *domain = strrchr(dup, '@');
       if (domain) {
         int i;
         for(i=0;domain[i] && domain[i]!='\r' && domain[i]!='\n'
@@ -3823,8 +3884,11 @@ int daemon_start(AGENT_CTX *ATX) {
 
   LOG(LOG_INFO, INFO_DAEMON_START);
 
+  pidfile = _ds_read_attribute(agent_config, "ServerPID");
+  if ( pidfile == NULL )
+    pidfile = "/var/run/dspam/dspam.pid";
+
   while(__daemon_run) {
-    pidfile = _ds_read_attribute(agent_config, "ServerPID");
 
     DTX.CTX = dspam_create (NULL, NULL,
                       _ds_read_attribute(agent_config, "Home"),
@@ -4014,6 +4078,7 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       LOGDEBUG("sending firstrun.txt to %s (%s): %s",
                CTX->username, filename, strerror(errno));
       send_notice(ATX, "firstrun.txt", ATX->mailer_args, CTX->username);
+      _ds_prepare_path_for(filename);
       file = fopen(filename, "w");
       if (file) {
         fprintf(file, "%ld\n", (long) time(NULL));
@@ -4038,6 +4103,7 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       LOGDEBUG("sending firstspam.txt to %s (%s): %s",
                CTX->username, filename, strerror(errno));
       send_notice(ATX, "firstspam.txt", ATX->mailer_args, CTX->username);
+      _ds_prepare_path_for(filename);
       file = fopen(filename, "w");
       if (file) {
         fprintf(file, "%ld\n", (long) time(NULL));
@@ -4063,6 +4129,7 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       if (stat(qfile, &s)) {
         FILE *f;
 
+        _ds_prepare_path_for(qfile);
         f = fopen(qfile, "w");
         if (f != NULL) {
           fprintf(f, "%ld", (long) time(NULL));

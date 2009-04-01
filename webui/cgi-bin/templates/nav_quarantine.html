@@ -1,11 +1,13 @@
 <HTML>
 <HEAD><TITLE>DSPAM v3 Control Center</TITLE>
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
 </HEAD>
 <BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
 <div id="header">
 	<div id="logo">
 		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
                 $FORM_USER$
@@ -35,7 +37,7 @@ change how messages are sorted.
 Use the checkboxes and <strong>Deliver Checked</strong> to deliver messages you want to read, or use <strong>Delete All</strong> to empty the quarantine.
 </p>
 
-<form action="$CGI$" method="get">
+<form action="$CGI$" method="post">
 <p>
 <input type="hidden" name="command" value="processQuarantine" >
 <input type="hidden" name="template" value="quarantine" >
@@ -44,19 +46,16 @@ Use the checkboxes and <strong>Deliver Checked</strong> to deliver messages you 
 <input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
 &nbsp;
 <input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED messages in quarantine?')==false) { return false; }" />
+<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
+	document.forms[1].elements[j].checked = true; } } return false'>Select 200.</a>
 &nbsp;
 <input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Are you sure you want to delete ALL messages in quarantine?')==false) { return false; }" >
-
-&nbsp;&nbsp;$SORT_SELECTOR$
 
 </p>
 <table border="0" cellspacing="0" cellpadding="2" width="100%">
 	<tr>
 		<th>&nbsp;</th>
-		<th>Rating</th>
-                <th>Date</th>
-		<th>From</th>
-		<th>Subject</th>
+		$SORT_QUARANTINE$
 	</tr>
 $QUARANTINE$
 </table>
@@ -64,7 +63,9 @@ $QUARANTINE$
 <p>
 <input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
 &nbsp;
-<input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED messages in quarantine?')==false) { return false; }" /> 
+<input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED messages in quarantine?')==false) { return false; }" />
+<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
+	document.forms[1].elements[j].checked = true; } } return false'>Select 200.</a>
 &nbsp;
 <input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Are you sure you want to delete ALL messages in quarantine?')==false) { return false; }" />
 </p>
@@ -77,11 +78,7 @@ Color key: <span class="low">Lower SPAM rating</span>, <span class="medium">Medi
 
 </div>
 
-<div id="footer">
-<p>
-<a href="http://dspam.nuclearelephant.com">DSPAM</a> is a registered trademark of <a href="http://www.nuclearelephant.com">Jonathan A. Zdziarski</a>. Copyright &copy; 2005, Jonathan A. Zdziarski
-</p>
-</div>
+
 
 </BODY>
 </HTML>

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.26 2006/06/01 19:14:14 jonz Exp $
+# $Id: dspam.cgi,v 1.32 2008/05/06 18:11:17 mjohnson Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
 #
@@ -122,6 +122,11 @@ $MYURL = "$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}";
 $DATA{'REMOTE_USER'} = $CURRENT_USER;
 
 #
+# Display Dspam Version
+#
+$DATA{'DSPAMVERSION'} = "Version " . `$CONFIG{'DSPAM'} --version | grep Suite | cut -d " " -f4`;
+
+#
 # Process Commands
 #
 
@@ -214,18 +219,23 @@ sub DisplayHistory {
     $CONFIG{'HISTORY_PER_PAGE'} = 50;
   }
 
+  my($show) = $FORM{'show'};
+  if ($show eq "") {
+    $show = "all";
+  }
+
   if ($FORM{'command'} eq "retrainChecked") {
     foreach my $i (0 .. $#{ $FORM{retrain_checked} }) {
         my ($retrain, $signature) = split(/:/, $FORM{retrain_checked}[$i]);
         if ($retrain eq "innocent") {
-          $FORM{'signatureID'} = quotemeta($signature);
+          $FORM{'signatureID'} = $signature;
           &ProcessFalsePositive();
           undef $FORM{'signatureID'};
          } elsif ($retrain eq "innocent" or $retrain eq "spam") {
            system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($retrain) . " --signature=" . quotemeta($signature) . " --user " . quotemeta("$CURRENT_USER"));
          }
     }
-  redirect("$MYURL&history_page=$history_page");
+  redirect("$MYURL&show=$show&history_page=$history_page");
   } else {
     if ($FORM{'retrain'} ne "") {
        if ($FORM{'retrain'} eq "innocent") {
@@ -233,7 +243,7 @@ sub DisplayHistory {
        } else {
          system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($FORM{'retrain'}) . " --signature=" . quotemeta($FORM{'signatureID'}) . " --user " . quotemeta("$CURRENT_USER"));
        }
-    redirect("$MYURL&history_page=$history_page");
+    redirect("$MYURL&show=$show&history_page=$history_page");
     }
   }
 
@@ -249,6 +259,10 @@ sub DisplayHistory {
     my($time, $class, $from, $signature, $subject, $info, $messageid) 
       = split(/\t/, $_);
     next if ($signature eq "");
+
+    # not good to check for messages to show here, we're skipping
+    # the retraining data so retrained messages won't show
+
     if ($class eq "M" || $class eq "F" || $class eq "E") { 
       if ($class eq "E") {
         $rec{$signature}->{'info'} = $info;
@@ -263,6 +277,12 @@ sub DisplayHistory {
     } elsif ($messageid == ''
 	     || $rec{$signature}->{'messageid'} != $messageid
 	     || $CONFIG{'HISTORY_DUPLICATES'} ne "no") {
+
+      # skip unwanted messages
+      next if ($class ne "S" && $show eq "spam");
+      next if ($class ne "I" && $show eq "innocent");
+      next if ($class ne "W" && $show eq "whitelisted");
+
       $rec{$signature}->{'time'} = $time;
       $rec{$signature}->{'class'} = $class;
       $rec{$signature}->{'from'} = $from;
@@ -289,7 +309,9 @@ sub DisplayHistory {
   @buffer = splice(@buffer, $begin,$CONFIG{'HISTORY_PER_PAGE'});
 
   my $retrain_checked_msg_no = 0;
+  my $counter = 0;
   while ($rec = pop@buffer) {
+    $counter++;
     my($time, $class, $from, $signature, $subject, $info, $messageid);
 
     $time = $rec->{'time'};
@@ -385,9 +407,9 @@ sub DisplayHistory {
     } 
 
     if ($retrain eq "") {
-      $retrain = qq!<A HREF="$CONFIG{'ME'}?template=$FORM{'template'}&history_page=$history_page&user=$FORM{'user'}&retrain=$rclass&signatureID=$signature">As ! . ucfirst($rclass) . "</A>";
+      $retrain = qq!<A HREF="$MYURL&show=$show&history_page=$history_page&retrain=$rclass&signatureID=$signature">As ! . ucfirst($rclass) . "</A>";
     } else {
-      $retrain .= qq! (<A HREF="$CONFIG{'ME'}?template=$FORM{'template'}&history_page=$history_page&user=$FORM{'user'}&retrain=$rclass&signatureID=$signature">Undo</A>)!;
+      $retrain .= qq! (<A HREF="$MYURL&show=$show&history_page=$history_page&retrain=$rclass&signatureID=$signature">Undo</A>)!;
     }
 
     my($path) = "$USER.frag/$signature.frag";
@@ -411,7 +433,7 @@ sub DisplayHistory {
 <tr>
 	<td class="$cl $rowclass" nowrap="true"><small>$cllabel</td>
         <td class="$rowclass" nowrap="true"><small>
-	 <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature">
+	 <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)">
 	 $retrain</td>
 	<td class="$rowclass" nowrap="true"><small>$ctime</td>
 	<td class="$rowclass" nowrap="true"><small>$from</td>
@@ -438,25 +460,53 @@ _END
   while($line = pop(@history)) { $DATA{'HISTORY'} .= $line; }
 
   if ($CONFIG{'HISTORY_PER_PAGE'} > 0) {
-    $DATA{'HISTORY'} .= "<center>[";
+    $DATA{'HISTORYPAGES'} = "<div class=\"historypages\">[";
     if (($history_pages > 1) && ($history_page > 1)) {
       my $i = $history_page-1;
-      $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\">&nbsp;&lt;&nbsp;</a>";
+      $DATA{'HISTORYPAGES'} = "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;&lt;&nbsp;</a>";
     }
     for(my $i = 1; $i <= $history_pages; $i++) {
   
       if ($i == $history_page) {
-        $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\"><big><strong>&nbsp;$i&nbsp;</strong></big></a>";
+        $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&show=$show&history_page=$i\"><big><strong>&nbsp;$i&nbsp;</strong></big></a>";
       } else {
-       $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\">&nbsp;$i&nbsp;</a>";
+        $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;$i&nbsp;</a>";
       }
     }
     if (($history_pages > 1) && ($history_page < $history_pages)) {
       my $i = $history_page+1;
-      $DATA{'HISTORY'} .= "<a href=\"$CONFIG{'DSPAM_CGI'}?user=$FORM{'user'}&template=$FORM{'template'}&history_page=$i\">&nbsp;&gt;&nbsp;</a>";
+      $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;&gt;&nbsp;</a>";
     }
-    $DATA{'HISTORY'} .= "]</center><BR>";
+    $DATA{'HISTORYPAGES'} .= "]</div>";
   }
+
+  $DATA{'SHOW'} = $show;
+  $DATA{'SHOW_SELECTOR'} .=  "Show: <a href=\"$MYURL&show=all\">";
+  if ($show eq "all") {
+    $DATA{'SHOW_SELECTOR'} .= "<strong>all</strong>";
+  } else {
+    $DATA{'SHOW_SELECTOR'} .= "all";
+  }
+  $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&show=spam\">";
+  if ($show eq "spam") {
+    $DATA{'SHOW_SELECTOR'} .= "<strong>spam</strong>";
+  } else {
+    $DATA{'SHOW_SELECTOR'} .= "spam";
+  }
+  $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&show=innocent\">";
+  if ($show eq "innocent") {
+    $DATA{'SHOW_SELECTOR'} .= "<strong>innocent</strong>";
+  } else {
+    $DATA{'SHOW_SELECTOR'} .= "innocent";
+  }
+  $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&show=whitelisted\">";
+  if ($show eq "whitelisted") {
+    $DATA{'SHOW_SELECTOR'} .= "<strong>whitelisted</strong>";
+  } else {
+    $DATA{'SHOW_SELECTOR'} .= "whitelisted";
+  }
+  $DATA{'SORT_SELECTOR'} .=  "</a>";
+
   &output(%DATA);
 }
 
@@ -586,6 +636,9 @@ sub DisplayPreferences {
     if ($FORM{'enableWhitelist'} ne "on") {
       $FORM{'enableWhitelist'} = "off";
     }
+    if ($FORM{'dailyQuarantineSummary'} ne "on") {
+      $FORM{'dailyQuarantineSummary'} = "off";
+    }
 
     if ($CONFIG{'PREFERENCES_EXTENSION'} == 1) {
 
@@ -622,6 +675,9 @@ sub DisplayPreferences {
       system("$CONFIG{'DSPAM_BIN'}/dspam_admin ch pref ".quotemeta($CURRENT_USER).
         " enableWhitelist "
         . quotemeta($FORM{'enableWhitelist'}) . "> /dev/null");
+      system("$CONFIG{'DSPAM_BIN'}/dspam_admin ch pref ".quotemeta($CURRENT_USER).
+        " dailyQuarantineSummary "
+        . quotemeta($FORM{'dailyQuarantineSummary'}) . "> /dev/null");
 
 
     } else {
@@ -637,6 +693,7 @@ optOut=$FORM{'optOut'}
 showFactors=$FORM{'showFactors'}
 enableWhitelist=$FORM{'enableWhitelist'}
 signatureLocation=$FORM{'signatureLocation'}
+dailyQuarantineSummary=$FORM{'dailyQuarantineSummary'}
 _END
       close(FILE);
     }
@@ -664,6 +721,9 @@ _END
   }
   if ($PREFS{"enableWhitelist"} eq "on") {
     $DATA{"C_WHITELIST"} = "CHECKED";
+  }
+  if ($PREFS{"dailyQuarantineSummary"} eq "on") {
+    $DATA{"C_SUMMARY"} = "CHECKED";
   }
 
   if ($CONFIG{'OPTMODE'} eq "OUT") {
@@ -698,7 +758,7 @@ sub ProcessFalsePositive {
   }
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
-    chomp;
+    s/\r?\n$//;
     push(@buffer, $_);
   }
   close(FILE);
@@ -759,7 +819,7 @@ sub Quarantine_ManyNotSpam {
 
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
-    chomp;
+    s/\r?\n$//;
     push(@buffer, $_);
   }
   close(FILE);
@@ -839,7 +899,7 @@ sub Quarantine_ViewMessage {
 
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
-    chomp;
+    s/\r?\n//;
     push(@buffer, $_);
   }
   close(FILE);
@@ -907,7 +967,7 @@ sub Quarantine_DeleteSpam {
   }
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
-    chomp;
+    s/\r?\n//;
     push(@buffer, $_);
   }
   close(FILE);
@@ -980,7 +1040,7 @@ sub DisplayQuarantine {
   $rowclass="rowEven";
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
-    chomp;
+    s/\r?\n//;
     if ($_ ne "") {
       if ($mode eq "") { 
         if ($_ =~ /^From /) {
@@ -1076,36 +1136,38 @@ sub DisplayQuarantine {
   }
 
   $DATA{'SORTBY'} = $sortBy;
-  $DATA{'SORT_SELECTOR'} .=  "Sort by: <a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Rating&user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Rating&user=$FORM{'user'}\">";
   if ($sortBy eq "Rating") {
-    $DATA{'SORT_SELECTOR'} .= "<strong>Rating</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>Rating</strong>";
   } else {
-    $DATA{'SORT_SELECTOR'} .= "Rating";
+    $DATA{'SORT_QUARANTINE'} .= "Rating";
   }
-  $DATA{'SORT_SELECTOR'} .=  "</a> | <a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Date&user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Date&user=$FORM{'user'}\">";
   if ($sortBy eq "Date") {
-    $DATA{'SORT_SELECTOR'} .= "<strong>Date</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>Date</strong>";
   } else {
-    $DATA{'SORT_SELECTOR'} .= "Date";
+    $DATA{'SORT_QUARANTINE'} .= "Date";
   }
-  $DATA{'SORT_SELECTOR'} .=  "</a> | <a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Subject&user=$FORM{'user'}\">";
-  if ($sortBy eq "Subject") {
-    $DATA{'SORT_SELECTOR'} .= "<strong>Subject</strong>";
-  } else {
-    $DATA{'SORT_SELECTOR'} .= "Subject";
-  }
-  $DATA{'SORT_SELECTOR'} .=  "</a> | <a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=From&user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=From&user=$FORM{'user'}\">";
   if ($sortBy eq "From") {
-    $DATA{'SORT_SELECTOR'} .= "<strong>From</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>From</strong>";
   } else {
-    $DATA{'SORT_SELECTOR'} .= "From";
+    $DATA{'SORT_QUARANTINE'} .= "From";
   }
-  $DATA{'SORT_SELECTOR'} .=  "</a>";
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Subject&user=$FORM{'user'}\">";
+  if ($sortBy eq "Subject") {
+    $DATA{'SORT_QUARANTINE'} .= "<strong>Subject</strong>";
+  } else {
+    $DATA{'SORT_QUARANTINE'} .= "Subject";
+  }
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>";
 
 
-  my($row, $rowclass);
+  my($row, $rowclass, $counter);
   $rowclass = "rowEven";
+  $counter = 0;
   for $row (@headings) {
+    $counter++;
     my($rating, $url, $markclass, $outclass);
     $rating = sprintf("%3.0f%%", $row->{'rating'} * 100.0);
     if ($row->{'rating'} > 0.8) {
@@ -1158,7 +1220,7 @@ sub DisplayQuarantine {
 
     $DATA{'QUARANTINE'} .= <<_END;
 <tr>
-	<td class="$outclass" nowrap="true"><input type="checkbox" name="$row->{'X-DSPAM-Signature'}"></td>
+	<td class="$outclass" nowrap="true"><input type="checkbox" name="$row->{'X-DSPAM-Signature'}" id="checkbox-$counter" onclick="checkboxclicked(this)"></td>
 	<td class="$outclass $markclass" nowrap="true">$rating</td>
         <td class="$outclass" nowrap="true">$ptime</td>
 	<td class="$outclass" nowrap="true">$row->{'From'}</td>

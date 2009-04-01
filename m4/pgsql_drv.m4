@@ -1,4 +1,4 @@
-# $Id: pgsql_drv.m4,v 1.3 2006/05/13 13:28:30 jonz Exp $
+# $Id: pgsql_drv.m4,v 1.4 2007/12/07 00:15:31 mjohnson Exp $
 # Autuconf macroses for checking for PostgreSQL
 # Rustam Aliyev <rustam@azernews.com>
 # Jonathan Zdziarski <jonathan@nuclearelephant.com>
@@ -152,6 +152,7 @@ then
         ]],
         [[
             PGconn *pgsql = PQconnectdb(NULL);
+	    PQfinish(pgsql);
         ]])],
         [ pgsql_libs_success=yes ],
         [ pgsql_libs_success=no ]

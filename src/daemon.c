@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.114 2006/06/13 14:43:12 jonz Exp $ */
+/* $Id: daemon.c,v 1.116 2008/03/10 04:50:28 steveb Exp $ */
 
 /*
  DSPAM
@@ -175,9 +175,14 @@ int daemon_listen(DRIVER_CTX *DTX) {
     memset(&local_addr, 0, sizeof(struct sockaddr_in));
     local_addr.sin_family = AF_INET;
     local_addr.sin_port = htons(port);
-    local_addr.sin_addr.s_addr = INADDR_ANY;
-
-    LOGDEBUG(INFO_DAEMON_BIND, port);
+    if (_ds_read_attribute(agent_config, "ServerHost")) {
+      char *host = _ds_read_attribute(agent_config, "ServerHost");
+      local_addr.sin_addr.s_addr = inet_addr(host);
+      LOGDEBUG(INFO_DAEMON_BIND, host, port);
+    } else {
+      local_addr.sin_addr.s_addr = INADDR_ANY;
+      LOGDEBUG(INFO_DAEMON_BIND, "*", port);
+    }
 
     if (bind(listener, (struct sockaddr *)&local_addr, 
              sizeof(struct sockaddr)) == -1) 
@@ -394,6 +399,9 @@ void *process_connection(void *ptr) {
   if (server_mode == SSM_DSPAM)
     if (daemon_extension(TTX, "DSPAMPROCESSMODE")<=0)
       goto CLOSE;
+
+  if (daemon_extension(TTX, "8BITMIME")<=0)
+    goto CLOSE;
 
   if (daemon_reply(TTX, LMTP_OK, "", "SIZE")<=0)
     goto CLOSE;

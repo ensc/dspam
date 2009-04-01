@@ -1,4 +1,4 @@
-/* $Id: cssclean.c,v 1.10 2006/05/27 21:00:36 jonz Exp $ */
+/* $Id: cssclean.c,v 1.12 2007/12/14 00:14:32 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <libgen.h>
 
 #ifdef TIME_WITH_SYS_TIME
 #   include <sys/time.h>
@@ -68,15 +69,18 @@ int DO_DEBUG
  
 #define SYNTAX "syntax: cssclean [filename]" 
 
-int cssclean(const char *filename);
+int cssclean(const char *filename, int heavy);
 
 int main(int argc, char *argv[]) {
   int r;
+  int heavy=0;
 
   if (argc<2) {
     fprintf(stderr, "%s\n", SYNTAX);
     exit(EXIT_FAILURE);
   }
+
+  if ( (argc>=3) && (!strcmp(argv[2], "heavy") ) )heavy=1;
 
   agent_config = read_config(NULL);
   if (!agent_config) {
@@ -84,7 +88,7 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  r = cssclean(argv[1]);
+  r = cssclean(argv[1], heavy);
   
   if (r) {
     fprintf(stderr, "cssclean failed on error %d\n", r);
@@ -93,14 +97,19 @@ int main(int argc, char *argv[]) {
   exit(EXIT_SUCCESS);
 }
 
-int cssclean(const char *filename) {
+int cssclean(const char *filename, int heavy) {
   int i;
   hash_drv_header_t header;
+  FILE* lockfile;
   void *offset;
   struct _hash_drv_map old, new;
   hash_drv_spam_record_t rec;
   unsigned long filepos;
-  char newfile[128];
+  char *dir = NULL;
+  char *newfile = NULL;
+  struct stat st;
+  unsigned long spam, nonspam, cntr;
+  int drop, prb;
 
   unsigned long hash_rec_max = HASH_REC_MAX;
   unsigned long max_seek     = HASH_SEEK_MAX;
@@ -108,6 +117,7 @@ int cssclean(const char *filename) {
   unsigned long extent_size  = HASH_EXTENT_MAX;
   int pctincrease = 0;
   int flags = 0;
+  int rc = EFAILURE;
 
   if (READ_ATTRIB("HashRecMax"))
     hash_rec_max = strtol(READ_ATTRIB("HashRecMax"), NULL, 0);
@@ -132,19 +142,46 @@ int cssclean(const char *filename) {
   if (READ_ATTRIB("HashMaxSeek"))
      max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
 
-  snprintf(newfile, sizeof(newfile), "/tmp/%u.css", (unsigned int) getpid());
+  if (stat(filename, &st) < 0)
+    return EFAILURE;
+
+  /* create a temporary file name */
+  dir = strdup(filename);
+  if (dir == NULL)
+    goto end;
+  newfile = tempnam(dirname(dir), "css");
+  if (newfile == NULL)
+    goto end;
+
+  lockfile = _hash_tools_lock_get (filename);
+  if (lockfile == NULL)
+    goto end;
 
   if (_hash_drv_open(filename, &old, 0, max_seek,
                      max_extents, extent_size, pctincrease, flags))
-  {
-    return EFAILURE;
-  }
+    goto end;
 
   if (_hash_drv_open(newfile, &new, hash_rec_max, max_seek,
-                     max_extents, extent_size, pctincrease, flags))
-  {
+                     max_extents, extent_size, pctincrease, flags)) {
     _hash_drv_close(&old);
-    return EFAILURE;
+    goto end;
+  }
+  
+  /* preserve counters */
+  memcpy(new.header, old.header, sizeof(*new.header));
+
+  if (fchown(new.fd, st.st_uid, st.st_gid) < 0) {
+    _hash_drv_close(&new);
+    _hash_drv_close(&old);
+    unlink(newfile);
+    goto end;
+  }
+
+  if (fchmod(new.fd, st.st_mode) < 0) {
+    _hash_drv_close(&new);
+    _hash_drv_close(&old);
+    unlink(newfile);
+    goto end;
   }
 
   filepos = sizeof(struct _hash_drv_header);
@@ -152,13 +189,43 @@ int cssclean(const char *filename) {
   while(filepos < old.file_len) {
     for(i=0;i<header->hash_rec_max;i++) {
       rec = old.addr+filepos;
-      if (rec->hashcode && rec->nonspam + rec->spam > 1) {
+
+      nonspam = rec->nonspam & 0x0fffffff;
+      spam = rec->spam & 0x0fffffff;
+      cntr = ((rec->nonspam>>28) & 0x0f) |
+             ((rec->spam>>24) & 0xf0);
+
+      if(cntr<255)cntr++;
+      rec->nonspam=nonspam|((cntr&0x0f)<<28);
+      rec->spam=spam|((cntr&0xf0)<<24);
+
+      if(nonspam+spam>0)
+        prb=(abs(nonspam-spam)*1000)/(nonspam+spam);
+      else
+        prb=1000;
+
+      drop=0;
+
+      if(heavy) {
+        if( (nonspam+spam<=1) ||
+            (prb<100)
+          )drop=1;
+      }
+      else {
+        if( ((nonspam*2+spam<5)&&(cntr>60)) ||
+            ((nonspam+spam<=1)&&(cntr>15))  ||
+            ((prb<200)&&(cntr>15)) ||
+            (cntr>120)
+          ) drop=1;
+      }
+
+      if (rec->hashcode && !drop) {
         if (_hash_drv_set_spamrecord(&new, rec, 0)) {
           LOG(LOG_WARNING, "aborting on error");
           _hash_drv_close(&new);
           _hash_drv_close(&old);
           unlink(newfile);
-          return EFAILURE;
+          goto end;
         }
       }
       filepos += sizeof(struct _hash_drv_spam_record);
@@ -168,9 +235,19 @@ int cssclean(const char *filename) {
     filepos += sizeof(struct _hash_drv_header);
   }
 
+  bcopy (old.header, new.header, sizeof(struct _hash_drv_header));
   _hash_drv_close(&new);
   _hash_drv_close(&old);
-  rename(newfile, filename);
-  return 0;
+  if (rename(newfile, filename) < 0)
+    goto end;
+  rc = 0;
+
+end:
+  if (dir)
+    free(dir);
+  if (newfile)
+    free(newfile);
+  _hash_tools_lock_free(filename, lockfile);
+  return rc;
 }
 

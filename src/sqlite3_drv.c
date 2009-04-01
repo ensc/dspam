@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.15 2006/05/17 11:53:23 jonz Exp $ */
+/* $Id: sqlite3_drv.c,v 1.16 2007/12/07 00:11:52 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -135,7 +135,7 @@ _sqlite_drv_set_spamtotals (DSPAM_CTX * CTX)
   struct _sqlite_drv_storage *s = (struct _sqlite_drv_storage *) CTX->storage;
   char query[1024];
   char *err=NULL;
-  int result;
+  int result = SQLITE_OK;
 
   if (s->dbh == NULL)
   {

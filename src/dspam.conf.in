@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.82 2006/06/23 03:11:31 jonz Exp $
+## $Id: dspam.conf.in,v 1.85 2008/05/06 18:26:07 mjohnson Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -26,7 +26,7 @@ Home @dspam_home@
 # this option. If you do not wish to lose all of your data, you will need to
 # migrate it to the new backend before making this change.
 #
-StorageDriver @libdir@/@storage_driver@
+StorageDriver @libdir@/dspam/@storage_driver@
 
 #
 # Trusted Delivery Agent: Specifies the local delivery agent DSPAM should call 
@@ -97,9 +97,6 @@ TrustedDeliveryAgent "@delivery_agent@"
 # "user+detail". This is only useful if the LDA can handle "plused users"
 # (for example Cyrus IMAP) and when configured for LMTP delivery above
 #
-# NOTE: Plused detail presently only works when usernames are provided and
-#       not fully qualified email address (@domain).
-#
 #EnablePlusedDetail	on
 
 #
@@ -131,6 +128,8 @@ OnFail error
 # able to specify delivery agent privileges or use tools.
 #
 Trust root
+Trust dspam
+Trust apache
 Trust mail
 Trust mailnull 
 Trust smmsp
@@ -305,6 +304,7 @@ AllowOverride whitelistThreshold
 #MySQLPass    		changeme
 #MySQLDb      	  	dspam
 #MySQLCompress		true
+#MySQLReconnect		true
 
 # If you are using replication for clustering, you can also specify a separate
 # server to perform all writes to.
@@ -315,6 +315,7 @@ AllowOverride whitelistThreshold
 #MySQLWritePass		changeme
 #MySQLWriteDb		dspam_write
 #MySQLCompress		true
+#MySQLReconnect		true
 
 # If your replication isn't close to real-time, your retraining might fail if 
 # the  signature isn't found. One workaround for this is to use the write
@@ -460,18 +461,42 @@ HashMaxSeek		10
 #
 HashConnectionCache	10
 
-# -- LDAP --
 
+# -- ExtLookup --
+
+# ExtLookup: Prefrom various external lookup functions depending on user-defined variables.
+# ExtLookup can either be set to 'on' or 'off'. The behavior of such lookups are defined by the
+# use of ExtLookupMode, which can be set to 'verify', 'map' and 'strict'.
+#		'verify' will cause dspam to validate the user, prior to creating the user entry in the
+#			system.
+#		'map' will cause dspam to try to map the user address to a certain unique identifier.
+#		'strict' will cause dspam to enforce both 'verify' and 'map'.
+# ExtLookupDriver will set the engine behind the lookups. For now the only supported mechanisms are
+# 'ldap' and 'program'. The first will make dspam talk directly to the configured LDAP server. The
+# second will prefrom the various lookup functions by running a certain binary program or executable
+# script. The program MUST be a binary executable or a script with a well defined interperter in its
+# first line ( #!/path/to/interperter ). There are plans to support TLS/SSL connections to backend
+# databases.
 #
-# LDAP: Perform various LDAP functions depending on LDAPMode variable.
-# Presently, the only mode supported is 'verify', which will verify the 
-# existence of an unknown user in LDAP prior to creating them as a new user in 
-# the system.  This is useful on some systems acting as gateway machines.
-#
-#LDAPMode	verify
-#LDAPHost	ldaphost.mydomain.com
-#LDAPFilter	"(mail=%u)"
-#LDAPBase	ou=people,dc=domain,dc=com
+#ExtLookup			on								# Turns on/off external lookup
+#ExtLookupMode		strict							# available modes are 'verify', 'map' and 'strict'.
+# 'strict' enforces both verify and map
+#ExtLookupDriver	ldap							# Currently only ldap and program are supported.
+# There are plans to support both MySQL and Postgres.
+#ExtLookupServer	ldap.domain.com					# Can either be a database hostname or the full path to
+# an executable lookup program and its arguments.
+#ExtLookupPort		389								# Desired port when connecting to the lookup database.
+#ExtLookupDB		"ou=Users,dc=domain,dc=com"		# Can either be an LDAP search base or a database name (TODO).
+#ExtLookupQuery		"(&(objectClass=qmailUser)(|(mail=%u)(mailAlternateAddress=%u)))"
+# Can either be an LDAP search filter or an SQL query (TODO)
+#ExtLookupLDAPAttribute	"mail"						# Attribute to be used when ExtLookupDriver is 'ldap'
+# and ExtLookupMode 'map' or 'strict'
+#ExtLookupLDAPScope		sub							# Can be set to 'base', 'sub' or 'one'. Only used when ExtLookupDriver is 'ldap'.
+#ExtLookupLDAPVersion	3							# Sets the LDAP protocol version (1, 2 or 3)
+#ExtLookupLogin		"cn=admin,dc=domain,dc=com"		# Login to be used when connecting to any direct database backend.
+#ExtLookupPassword	itsasecret						# Password to use with ExtLookupLogin.
+#ExtLookupCrypto	tls								# Sets the use of TLS on backend communication (only compatible with LDAPv3)
+
 
 # -- Profiles --
 
@@ -486,6 +511,7 @@ HashConnectionCache	10
 #MySQLPass.DECAlpha     changeme
 #MySQLDb.DECAlpha       dspam
 #MySQLCompress.DECAlpha true
+#MySQLReconnect.DECAlpha	true
 #
 #Profile Sun420R
 #MySQLServer.Sun420R    10.0.0.2
@@ -494,6 +520,7 @@ HashConnectionCache	10
 #MySQLPass.Sun420R      changeme
 #MySQLDb.Sun420R        dspam
 #MySQLCompress.Sun420R  false
+#MySQLReconnect.Sun420R	true
 #
 #DefaultProfile DECAlpha
 
@@ -697,6 +724,10 @@ Opt out
 # specified. If you want the client machine to perform delivery, use
 # the --stdout option in conjunction with a local setup. 
 #
+# ServerHost: Not enabling ServerHost will bind DSPAM server to all available
+# interfaces.
+#
+#ServerHost		127.0.0.1
 #ServerPort		24
 #ServerQueueSize	32
 #ServerPID              /var/run/dspam.pid
