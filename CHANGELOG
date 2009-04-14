@@ -1,7 +1,6 @@
-$Id: CHANGELOG,v 1.476 2008/05/07 21:58:47 mjohnson Exp $
-
-Version 3.8.1
+Version 3.9.0
 -------------
+
 [20080507:1500] mjohnson: Added external_lookup.* source files
 
 These files were missed in the previous round of CVS updates. 

@@ -1,10 +1,6 @@
-$Id: README,v 1.103 2008/03/10 04:54:22 steveb Exp $
-
-DSPAM v3.8 <contact@nuclearelephant.com>
-Copyright (c) 2002-2007 Sensory Networks
-http://dspam.nuclearelephant.com
-
-Classifier Version: 380
+DSPAM v3.9.0
+Copyright (c) 2002-2009 Dspam Project
+http://dspam.sourceforge.net/
 
 LICENSE
 
@@ -24,16 +20,26 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 CREDITS
 
-DSPAM Development Lead
-  Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+Original Work By
+  Lead development: Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+  Postgres driver: Rustam Aliyev <rustam@azernews.com>
+  Various: 
+    Feb/2006 Cove Schneider <cove@wildpackets.com>
+    Jan/2006 Norman Maurer <nm@byteaction.de>
 
-PostgreSQL Driver Maintainer
-  Rustam Aliyev <rustam@azernews.com>
+Your name is missing? Let us know with a reference to your commit, and we'll
+add you to the list.
 
-Patch Contributors (Past 6 Months)
-  Feb/2006 Cove Schneider <cove@wildpackets.com>
-  Jan/2006 Norman Maurer <nm@byteaction.de>
+COPYRIGHT
 
+As of 12 January 2009 the copyright is owned by the Dspam Project, represented
+by a team of people, including:
+  Alexander Prinsier
+  Ion-Mihai Tetcu
+  Paul Cockings
+  Dov Zamir
+
+HISTORY OF COPYR
 TABLE OF CONTENTS
 
 General DSPAM Information
@@ -92,8 +98,7 @@ clients, other anti-spam tools, and so on.
 PLEASE NOTE: DSPAM and libdspam are distributed under the GPL license, not the 
 LGPL. Commercial licensing is available for those who seek to redistribute
 DSPAM or some of DSPAM's components/libraries in their non-GPL products.
-Please contact jonathan@nuclearelephant.com for more information about
-commercial licensing.
+Please contact us for more information about commercial licensing.
 
 The DSPAM package is split up into the following pieces:
 
@@ -124,6 +129,19 @@ TOOLS
 Some basic tools which have been provided to manage dictionaries, automate
 corpus feeding, and perform other diagnostic operations related to DSPAM.
 Some of these include dspam_train, dspam_stats, and dspam_dump.
+
+HISTORY OF COPYRIGHT
+
+Original work was done by Jonathan A. Zdziarski.
+
+In 2006 the copyright was handed over to Sensory Networks.
+
+In 2009 Sensory Networks handed over the full copyright to the Dspam Project,
+represented by a team of people, including:
+  Alexander Prinsier
+  Ion-Mihai Tetcu
+  Paul Cockings
+  Dov Zamir
 
 1.1 INSTALLATION
 
@@ -1942,12 +1960,13 @@ DATA
 
 3.0 BUGS, PORTS, AND THE LIKE
 
-  Please see http://dspam.nuclearelephant.com/bugs.shtml for the current known
-  bugs list and proper reporting procedure.
+  Please use our bug tracker on the sourceforge project page at
+  http://sf.net/projects/dspam for the current known bugs list and proper
+  reporting procedure.
 
   If you port DSPAM to another platform, or would like to submit changes to
   the distribution, please email a diff along with any other pertinent 
-  information to the dspam-dev mailing list. 
+  information to the dspam-devel mailing list. 
 
   Note:
 
@@ -1966,21 +1985,9 @@ DATA
     relinquishment of copyright interest in perpetuity of all present and 
     future rights to said submission under copyright law. 
 
-  If you like DSPAM and want to buy the author pizza (or a Ferrari),
-  paypal donations may be sent to jonathan@nuclearelephant.com.
+3.1 GIT ACCESS
 
-  Thanks =)
-
-3.1 CVS ACCESS
-
-  The DSPAM source tree can be downloaded via read-only cvs access using the
+  The DSPAM source tree can be downloaded via read-only git access using the
   following commands:
 
-  cvs -z3 -d :pserver:cvs@cvs.nuclearelephant.com:/usr/local/cvsroot login
-  cvs -z3 -d :pserver:cvs@cvs.nuclearelephant.com:/usr/local/cvsroot co dspam 
-
-  DSPAM has been version-tagged in cvs so that you can checkout a particular
-  version by using this format:
-
-  co -r dspam-3_6_0 dspam
-
+  git clone git://dspam.git.sourceforge.net/gitroot/dspam

@@ -1,5 +1,3 @@
-$Id: RELEASE.NOTES,v 1.69 2007/12/06 04:59:11 mjohnson Exp $
+RELEASE 3.9.0
 
-RELEASE 3.8.1-Patch
-
-3.8.1 is a patch release including many changes from the dspam-dev mailing list. Please see UPGRADING and CHANGELOG for a detailed explanation of the differences from previous versions.
+The 3.9.0 release contains a huge number of bugfixes and some new features since 3.8.0. Please see UPGRADING and CHANGELOG for a detailed explanation of the differences from previous versions.
