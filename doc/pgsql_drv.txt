@@ -2,7 +2,7 @@ $Id: pgsql_drv.txt,v 1.5 2005/09/24 17:48:58 jonz Exp $
 
 pgsql_drv: PostgreSQL storage driver for DSPAM
 API v3.0
-http://www.nuclearelephant.com/projects/dspam/
+http://dspam.sourceforge.net
 
 LICENSE
 

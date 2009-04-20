@@ -428,7 +428,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     {
       printf ("\nDSPAM Anti-Spam Suite %s (agent/library)\n\n", VERSION);
       printf ("Copyright (c) 2002-2009 Dspam Project\n");
-      printf ("http://dspam.nuclearelephant.com\n\n");
+      printf ("http://dspam.sourceforge.net.\n\n");
       printf ("DSPAM may be copied only under the terms of the GNU "
               "General Public License,\n");
       printf ("a copy of which can be found with the DSPAM distribution "

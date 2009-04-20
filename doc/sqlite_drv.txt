@@ -1,7 +1,7 @@
  sqlite_drv: SQLite storage driver for DSPAM <jonathan@nuclearelephant.com>
 sqlite3_drv: SQLite3 storage driver for DSPAM <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2009 Dspam Project
-http://www.nuclearelephant.com/projects/dspam/
+http://dspam.sourceforge.net
 
 LICENSE
 
@@ -25,8 +25,9 @@ sqlite_drv and sqlite3_drv are SQLite storage drivers for DSPAM v3.0 and above.
 These drivers enables DSPAM to read and write all token, signature, and 
 statistics data from individual SQLite databases created for each user.
 
-WARNING: SQLite is not designed to function over NFS. If your system is large            enough to require NFS, it is strongly recommended you use a stateful
-         SQL driver, such as MySQL or PostgreSQL.
+WARNING: SQLite is not designed to function over NFS. If your system is large
+	 enough to require NFS, it is strongly recommended you use a stateful
+	 SQL driver, such as MySQL or PostgreSQL.
 
 1. CONFIGURING DSPAM
 

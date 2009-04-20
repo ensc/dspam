@@ -990,7 +990,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
              calls to dspam_clean -p to purge neutral data, which comprises a
              majority of most databases.
 
-  For more help, please see the DSPAM FAQ at http://dspam.nuclearelephant.com.
+  For more help, please see the DSPAM FAQ at http://dspam.sourceforge.net.
 
 1.4 DSPAM TOOLS
 
