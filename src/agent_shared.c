@@ -2,7 +2,7 @@
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
+ COPYRIGHT (C) 2002-2009 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -427,7 +427,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     if (!strcmp (argv[i], "--version"))
     {
       printf ("\nDSPAM Anti-Spam Suite %s (agent/library)\n\n", VERSION);
-      printf ("Copyright (c) 2002-2006 Jonathan A. Zdziarski\n");
+      printf ("Copyright (c) 2002-2009 Dspam Project\n");
       printf ("http://dspam.nuclearelephant.com\n\n");
       printf ("DSPAM may be copied only under the terms of the GNU "
               "General Public License,\n");

@@ -3,7 +3,7 @@
 /*
   Bayesian Noise Reduction - Contextual Symmetry Logic
   http://bnr.nuclearelephant.com
-  Copyright (c) 2004 Jonathan A. Zdziarski
+  Copyright (c) 2004-2009 Dpsam Project
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

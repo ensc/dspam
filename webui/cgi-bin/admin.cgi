@@ -2,7 +2,7 @@
 
 # $Id: admin.cgi,v 1.15 2008/05/02 23:59:57 mjohnson Exp $
 # DSPAM
-# COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
+# COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

@@ -2,7 +2,7 @@
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2006 JONATHAN A. ZDZIARSKI
+ COPYRIGHT (C) 2002-2009 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
