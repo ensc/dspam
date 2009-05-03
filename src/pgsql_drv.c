@@ -1147,7 +1147,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
     p = _pgsql_drv_getpwuid (CTX, uid);
     if (!p) {
-      LOG(LOG_CRIT, "_ds_get_signature(): _mysql_drv_getpwuid(%d) failed: aborting", uid);
+      LOG(LOG_CRIT, "_ds_get_signature(): _pgsql_drv_getpwuid(%d) failed: aborting", uid);
       return EFAILURE;
     }
     username = strdup(p->pw_name);
