@@ -1239,10 +1239,10 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EUNKNOWN;
   }
 
-  mem = PQescapeBytea(SIG->data, SIG->length, &length);
+  mem = PQescapeByteaConn(s->dbh, SIG->data, SIG->length, &length);
 
   snprintf (scratch, sizeof (scratch),
-            "INSERT INTO dspam_signature_data (uid, signature, length, created_on, data) VALUES (%d, '%s', %ld, CURRENT_DATE, '",
+            "INSERT INTO dspam_signature_data (uid, signature, length, created_on, data) VALUES (%d, '%s', %ld, CURRENT_DATE, E'",
             (int)p->pw_uid, signature, SIG->length);
   buffer_cat (query, scratch);
   buffer_cat (query, (const char *) mem);
