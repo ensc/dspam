@@ -12,4 +12,5 @@ EXTRA_DIST = 					\
 	dllibs.m4				\
 	external_lookup.m4			\
 	pthread.m4				\
-	ncore.m4
+	ncore.m4				\
+	split_configuration.m4

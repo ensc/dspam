@@ -138,13 +138,22 @@ LIBS="$LIBS $DLLIBS"
 #   Support for NodalCore(r) C-Series Hardware Extensions
 #
 DS_NCORE()
-DS_EXT_LOOKUP()
 
 AM_CONDITIONAL([BUILD_NCORE], [ test x$build_ncore = xyes ])
 
 #---------------------------------------------------------
 #   DSPAM features
 #
+
+#
+#  SPLIT_CONFIG -- enable split configuration file support
+#
+DS_SPLIT_CONFIG()
+
+#
+#  EXT_LOOKUP -- enable external user lookup
+#
+DS_EXT_LOOKUP()
 
 #
 #   DSPAM_HOME -- directory where pre-user dictionaries, signatures,
