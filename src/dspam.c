@@ -2738,6 +2738,8 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       memcpy(&CTX->totals, &CTC->totals, sizeof(struct _ds_spam_totals));
       free(CTC);
       CTX->totals.spam_misclassified--;
+      strncpy(CTX->class, LANG_CLASS_SPAM, sizeof(CTX->class));
+      /* should we be resetting CTX->probability and CTX->confidence here as well? */
       CTX->result = result;
     }
 
@@ -2762,6 +2764,8 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       memcpy(&CTX->totals, &CTC->totals, sizeof(struct _ds_spam_totals));
       free(CTC);
       CTX->totals.innocent_misclassified--;
+      strncpy(CTX->class, LANG_CLASS_INNOCENT, sizeof(CTX->class));
+      /* should we be resetting CTX->probability and CTX->confidence here as well? */
       CTX->result = result;
     }
   }
