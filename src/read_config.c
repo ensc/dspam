@@ -27,6 +27,9 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#ifdef SPLIT_CONFIG
+#include <dirent.h>
+#endif
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
@@ -40,6 +43,11 @@
 #include "libdspam.h"
 #include "pref.h"
 #include "util.h"
+
+#ifdef SPLIT_CONFIG
+long dirread(const char *path, config_t *attrib, long num_root);
+long fileread(const char *path, config_t *attrib, long num_root);
+#endif
 
 static char *next_normal_token(char **p)
 {
@@ -93,18 +101,76 @@ static char *tokenize(char *text, char **next)
   return NULL;
 }
 
+#ifdef SPLIT_CONFIG
+// Read the files in the directory and pass it to fileread
+// or if it is a file, pass it to fileread.
+long dirread(const char *path, config_t *attrib, long num_root) {
+  DIR *dir_p;
+  char *fulldir;
+  struct dirent *dir_entry_p;
+  int n, m;
+
+  // Strip "\n"
+  char *ptr = strrchr(path, '\n');
+  if (ptr)
+    *ptr = '\0';
+
+  if ((dir_p = opendir(path))) {
+    while((dir_entry_p = readdir(dir_p)))
+    {
+      // We don't need the . and ..
+      if (strcmp(dir_entry_p->d_name, ".") == 0 ||
+          strcmp(dir_entry_p->d_name, "..") == 0)
+        continue;
+
+      // only use files which end in .conf:
+      if (strncmp(dir_entry_p->d_name + strlen(dir_entry_p->d_name) - 5,
+                 ".conf", 5) != 0) {
+       continue;
+      }
+
+      n = strlen(dir_entry_p->d_name);
+      m = strlen(path);
+      fulldir = (char *)malloc(n+m+2);
+      strcpy(fulldir, (char *)path);
+      strcat(fulldir, "/");
+      strcat(fulldir, dir_entry_p->d_name);
+      num_root = fileread((const char *)fulldir, attrib, num_root);
+      free(fulldir);
+    }
+    closedir(dir_p);
+  } else {
+    // Could be a file.
+    return fileread((const char *)path, attrib, num_root);
+  }
+
+  return num_root;
+}
+
+// Read the file and check if there is an Include directive, if so then pass
+// it to dirread.
+long fileread(const char *path, config_t *attrib, long num_root) {
+  config_t ptr;
+#else
 config_t read_config(const char *path) {
   config_t attrib, ptr;
+#endif
   FILE *file;
+#ifdef SPLIT_CONFIG
+  long attrib_size = 128;
+#else
   long attrib_size = 128, num_root = 0;
+#endif
   char buffer[1024];
   char *a, *c, *v, *bufptr = buffer;
 
+#ifndef SPLIT_CONFIG
   attrib = calloc(1, attrib_size*sizeof(attribute_t));
   if (attrib == NULL) {
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
+#endif
 
   if (path == NULL)
     file = fopen(CONFIG_DEFAULT, "r");
@@ -112,9 +178,19 @@ config_t read_config(const char *path) {
     file = fopen(path, "r");
 
   if (file == NULL) {
+#ifdef SPLIT_CONFIG
+    if (path == NULL) {
+      LOG(LOG_ERR, ERR_IO_FILE_OPEN, CONFIG_DEFAULT, strerror(errno));
+    } else {
+      LOG(LOG_ERR, ERR_IO_FILE_OPEN, path, strerror(errno));
+    }
+    free(*attrib);
+    return 0;
+#else
     LOG(LOG_ERR, ERR_IO_FILE_OPEN, CONFIG_DEFAULT, strerror(errno));
     free(attrib);
     return NULL;
+#endif
   }
 
   while(fgets(buffer, sizeof(buffer), file)!=NULL) {
@@ -130,6 +206,28 @@ config_t read_config(const char *path) {
       continue; /* Ignore whitespace-only lines */
 
     while ((v = tokenize(NULL, &bufptr)) != NULL) {
+#ifdef SPLIT_CONFIG
+      // Check for include directive
+      if (strcmp(a, "Include") == 0) {
+        // Give v (value) to dirraed
+        num_root = dirread(v, attrib, num_root);
+      } else {
+        if (_ds_find_attribute((*attrib), a)!=NULL) { 
+          _ds_add_attribute((*attrib), a, v);
+        }
+        else {
+          num_root++;
+          if (num_root >= attrib_size) {
+            attrib_size *=2;
+            ptr = realloc((*attrib), attrib_size*sizeof(attribute_t)); 
+            if (ptr)
+              *attrib = ptr;
+            else
+              LOG(LOG_CRIT, ERR_MEM_ALLOC);
+          } 
+          _ds_add_attribute((*attrib), a, v);
+        }
+#else
       if (_ds_find_attribute(attrib, a)!=NULL) { 
         _ds_add_attribute(attrib, a, v);
       }
@@ -144,16 +242,36 @@ config_t read_config(const char *path) {
             LOG(LOG_CRIT, ERR_MEM_ALLOC);
         } 
         _ds_add_attribute(attrib, a, v);
+#endif
       }
     }
   }
 
   fclose(file);
 
+#ifdef SPLIT_CONFIG
+  return num_root;
+}
+
+config_t read_config(const char *path) {
+  config_t attrib;
+  long attrib_size = 128, num_root = 0;
+
+  attrib = calloc(1, attrib_size*sizeof(attribute_t));
+  if (attrib == NULL) {
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    return NULL;
+  }
+
+  if (fileread(path, &attrib, num_root) == 0)
+    return NULL;
+#else
   ptr = realloc(attrib, ((num_root+1)*sizeof(attribute_t))+1);
   if (ptr)
     return ptr;
   LOG(LOG_CRIT, ERR_MEM_ALLOC);
+#endif
+
   return attrib;
 }
 
