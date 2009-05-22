@@ -473,8 +473,10 @@ _ds_process_header_token (DSPAM_CTX * CTX, char *token,
     char *tweaked_previous;
 
     tweaked_previous = _ds_truncate_token(previous_token);
-    if (tweaked_previous == NULL)
+    if (tweaked_previous == NULL) {
+      free(tweaked_token);
       return EUNKNOWN;
+    }
 
     snprintf (combined_token, sizeof (combined_token),
               "%s*%s+%s", heading, tweaked_previous, tweaked_token);
@@ -507,8 +509,10 @@ _ds_process_body_token (DSPAM_CTX * CTX, char *token,
   if (CTX->tokenizer == DSZ_CHAIN && previous_token != NULL)
   {
     char *tweaked_previous = _ds_truncate_token(previous_token);
-    if (tweaked_previous == NULL)
+    if (tweaked_previous == NULL) {
+      free(tweaked_token);
       return EUNKNOWN;
+    }
 
     snprintf (combined_token, sizeof (combined_token), "%s+%s",
               tweaked_previous, tweaked_token);
