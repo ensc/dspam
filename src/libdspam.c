@@ -1387,7 +1387,7 @@ _ds_calc_stat (
   struct _ds_spam_stat *bnr_tot)
 {
   int min_hits, sed_hits = 0;
-  long ti, ts;
+  unsigned long ti, ts;
 
   if (token_type == DTT_BNR) {
     min_hits = 25; /* Bayesian Noise Reduction patterns */
@@ -1396,8 +1396,8 @@ _ds_calc_stat (
     min_hits = 5; /* "Standard" token threshold */
   }
 
-  /*  Statistical Sedation: Adjust hapaxial threshold to compensate for a 
-   *  spam corpus imbalance 
+  /*  Statistical Sedation: Adjust hapaxial threshold to compensate for a
+   *  spam corpus imbalance
    */
 
   ti = CTX->totals.innocent_learned + CTX->totals.innocent_classified;
@@ -1419,19 +1419,19 @@ _ds_calc_stat (
     min_hits = 5;
   }
 
-  if (token_type != DTT_DEFAULT || sed_hits > min_hits) 
+  if (token_type != DTT_DEFAULT || sed_hits > min_hits)
     min_hits = sed_hits;
 
   /*  TUM mode training only records up to 20 hits so we need to make sure we
    *  don't require more than that.
    */
 
-  if (CTX->training_mode == DST_TUM && min_hits > 20) 
+  if (CTX->training_mode == DST_TUM && min_hits > 20)
     min_hits = 20;
 
   if (CTX->classification == DSR_ISSPAM)
     s->probability = .7;
-  else 
+  else
     s->probability = (CTX->algorithms & DSP_MARKOV) ? .5 : .4;
 
   /* Markovian Weighting */
@@ -1453,15 +1453,11 @@ _ds_calc_stat (
     if (CTX->flags & DSF_BIAS) {
       num = weight * (s->spam_hits - (s->innocent_hits*2));
       den = C1 * (s->spam_hits + (s->innocent_hits*2) + C2) * 256;
+      s->probability = 0.49 + ((double) num / (double) den);
     } else {
       num = (s->spam_hits - s->innocent_hits) * weight;
       den = C1 * (s->spam_hits + s->innocent_hits + C2) * 256;
-    }
-
-    if (CTX->flags & DSF_BIAS) {
-      s->probability = 0.49 + ((double) num / (double) den);
-    } else {
-      s->probability = 0.5 + ((double) num / (double) den); 
+      s->probability = 0.5 + ((double) num / (double) den);
     }
 
   /* Graham and Robinson Start Here */
@@ -1536,7 +1532,7 @@ _ds_calc_stat (
 
   if (token_type != DTT_BNR && CTX->algorithms & DSP_ROBINSON)
   {
-    int n = s->spam_hits + s->innocent_hits;
+    unsigned long n = s->spam_hits + s->innocent_hits;
     double fw = ((CHI_S * CHI_X) + (n * s->probability))/(CHI_S + n);
     s->probability = fw;
   }
@@ -2264,6 +2260,7 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
     LOGDEBUG("bnr_init() failed");
     bnr_destroy(BTX_S);
     bnr_destroy(BTX_C);
+    ds_diction_destroy(bnr_patterns);
     return NULL;
   }
 
@@ -2283,6 +2280,7 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
   LOGDEBUG("Loading %ld BNR patterns", bnr_patterns->items);
   if (_ds_getall_spamrecords (CTX, bnr_patterns)) {
     LOGDEBUG ("_ds_getall_spamrecords() failed");
+    ds_diction_destroy(bnr_patterns);
     return NULL;
   }
 
