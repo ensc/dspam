@@ -338,16 +338,17 @@ stat_user (const char *username, struct _ds_spam_totals *totals)
   if (opt_humanfriendly)
   {
     printf("%s:\n\
-        \tTP True Positives:         %6ld\n\
-        \tTN True Negatives:         %6ld\n\
-        \tFP False Positives:        %6ld\n\
-        \tFN False Negatives:        %6ld\n\
-        \tSC Spam Corpusfed:         %6ld\n\
-        \tNC Nonspam Corpusfed:      %6ld\n\
-        \tTL Training Left:          %6ld\n\
-        \tSHR Spam Hit Rate        % 7.2f%%\n\
-        \tHSR Ham Strike Rate:     % 7.2f%%\n\
-        \tOCA Overall Accuracy:    % 7.2f%%\n\
+        \tTP True Positives:                %6ld\n\
+        \tTN True Negatives:                %6ld\n\
+        \tFP False Positives:               %6ld\n\
+        \tFN False Negatives:               %6ld\n\
+        \tSC Spam Corpusfed:                %6ld\n\
+        \tNC Nonspam Corpusfed:             %6ld\n\
+        \tTL Training Left:                 %6ld\n\
+        \tSHR Spam Hit Rate               % 7.2f%%\n\
+        \tHSR Ham Strike Rate:            % 7.2f%%\n\
+        \tPPV Positive predictive value:  % 7.2f%%\n\
+        \tOCA Overall Accuracy:           % 7.2f%%\n\
         \n",
             (username) ? username : "TOTAL",
             total_spam, total_innocent,
@@ -360,6 +361,10 @@ stat_user (const char *username, struct _ds_spam_totals *totals)
           : 100.0,
         (all_innocent) ?
           100-(100.0-((float)innocent_misclassified / (float)all_innocent )*100.0)
+          : 100.0,
+        (total_spam + innocent_misclassified) ?
+          100-(100.0-((float)total_spam /
+                  (float)(total_spam + innocent_misclassified))*100)
           : 100.0,
         (all_spam + all_innocent) ?
           (100.0-(((float)spam_misclassified +(float)innocent_misclassified) /
