@@ -176,11 +176,14 @@ DSPAM_CTX * dspam_create (
   DSPAM_CTX *CTX;
 
   CTX = calloc (1, sizeof (DSPAM_CTX));
-  if (CTX == NULL)
+  if (CTX == NULL) {
+    LOG(LOG_WARNING, "dspam_create: unable to allocate space for classification context");
     return NULL;
+  }
 
   CTX->config = calloc(1, sizeof(struct _ds_config));
   if (CTX->config == NULL) {
+    LOG(LOG_WARNING, "dspam_create: unable to allocate space for classification context configuration");
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     goto bail;
   }
@@ -188,6 +191,7 @@ DSPAM_CTX * dspam_create (
   CTX->config->size = 128;
   CTX->config->attributes = calloc(1, sizeof(attribute_t)*128);
   if (CTX->config->attributes == NULL) {
+    LOG(LOG_WARNING, "dspam_create: unable to allocate space for classification context attributes");
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     goto bail;
   }
