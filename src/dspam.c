@@ -433,19 +433,23 @@ process_message (
   if (CTX->classification == DSR_NONE &&
       _ds_read_attribute(agent_config, "Lookup"))
   {
-    int bad = is_blacklisted(CTX, ATX);
-    if (bad) {
-      if (_ds_match_attribute(agent_config, "RBLInoculate", "on")) {
-        LOGDEBUG("source address is blacklisted. learning as spam.");
-        CTX->classification = DSR_ISSPAM;
-        CTX->source = DSS_INOCULATION;
-      } else {
-        CTX->result = DSR_ISSPAM;
-        result = DSR_ISSPAM;
-        CTX->probability = 1.0;
-        CTX->confidence = 1.0;
-        strcpy(CTX->class, LANG_CLASS_BLACKLISTED);
-        internally_canned = 1;
+    if(strcasecmp(_ds_pref_val(ATX->PTX, "ignoreRBLLookups"), "on")) {
+      int bad = is_blacklisted(CTX, ATX);
+      if (bad) {
+        if ((_ds_match_attribute(agent_config, "RBLInoculate", "on") ||
+             !strcasecmp(_ds_pref_val(ATX->PTX, "RBLInoculate"), "on")) &&
+             strcasecmp(_ds_pref_val(ATX->PTX, "RBLInoculate"), "off")) {
+          LOGDEBUG("source address is blacklisted. learning as spam.");
+          CTX->classification = DSR_ISSPAM;
+          CTX->source = DSS_INOCULATION;
+        } else {
+          CTX->result = DSR_ISSPAM;
+          result = DSR_ISSPAM;
+          CTX->probability = 1.0;
+          CTX->confidence = 1.0;
+          strcpy(CTX->class, LANG_CLASS_BLACKLISTED);
+          internally_canned = 1;
+        }
       }
     }
   }
