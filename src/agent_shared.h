@@ -39,7 +39,7 @@ extern uid_t __pw_uid;
 
 #define STATUS( ... )   snprintf(ATX->status, sizeof(ATX->status), __VA_ARGS__);
 
-#define SYNTAX "Syntax: dspam [--client|--daemon] --mode=[toe|tum|teft|notrain|unlearn] --user [user1 user2 ... userN] [--feature=[no,wh,tb=N]] [--class=[spam|innocent]] [--source=[error|corpus|inoculation]] [--profile=[PROFILE]] [--deliver=[spam,innocent,summary]] [--process|--classify] [--stdout] [passthru-arguments]"
+#define SYNTAX "Syntax: dspam [--help|--version|[--client|--daemon] [--debug] --mode=[toe|tum|teft|notrain|unlearn] --user [user1 user2 ... userN] [--feature=[no,wh,tb=N]] [--class=[spam|innocent]] [--source=[error|corpus|inoculation]] [--profile=[PROFILE]] [--deliver=[spam,innocent,summary]] [--process|--classify] [--stdout] [--mail-from=sender-address] [--rcpt-to recipient-address(es)] [--signature=DSPAM-Signature] [passthru-arguments]]"
 
 #define         SIGNATURE_BEGIN		"!DSPAM:"
 #define         SIGNATURE_END		"!"
