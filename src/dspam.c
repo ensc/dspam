@@ -3778,7 +3778,7 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     while(ptr != NULL && i>=0 && i<4) {
       octet[i] = ptr;
       ptr = strtok(NULL, ".");
-      if (ptr == NULL && i<4)
+      if (ptr == NULL && i!=4)
         return 0;
       i--;
     }
@@ -3796,7 +3796,7 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         if (!bad) {
           memcpy(&saddr, res->ai_addr, sizeof(struct sockaddr));
           inet_ntoa_r(saddr.sin_addr, buff, sizeof(buff));
-          if (!strcmp(buff, "127.0.0.2")) {
+          if (strncmp(buff, "127.0.0.", 8) == 0) {
             STATUS("Blacklisted (%s)", attrib->value);
             bad = 1;
   	}
