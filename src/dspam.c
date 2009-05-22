@@ -181,6 +181,7 @@ main (int argc, char *argv[])
     if (agent_init) {
       nt_destroy(ATX.users);
       nt_destroy(ATX.recipients);
+      free(ATX.recipient);
     }
 
     if (agent_config)
@@ -475,6 +476,7 @@ process_message (
         if (ATX->PTX)
           _ds_pref_free(ATX->PTX);
         free(ATX->PTX);
+        ATX->PTX = NULL;
 
         ATX->PTX = load_aggregated_prefs(ATX, CTX->username);
 
@@ -585,6 +587,7 @@ process_message (
     if (CTX->signature) {
       free(CTX->signature->data);
       free(CTX->signature);
+      CTX->signature = NULL;
     }
     CTX->signature = calloc(1, sizeof(struct _ds_spam_signature));
     if (CTX->signature) {
@@ -820,13 +823,19 @@ process_message (
     *result_string = strdup(CTX->class);
 
 RETURN:
-  if (have_signature)
+  if (have_signature) {
     free(ATX->SIG.data);
+    ATX->SIG.data = NULL;
+  }
   ATX->signature[0] = 0;
   nt_destroy (ATX->inoc_users);
   nt_destroy (ATX->classify_users);
   if (CTX) {
     if (CTX->signature == &ATX->SIG) {
+      CTX->signature = NULL;
+    } else if (CTX->signature != NULL) {
+      free (CTX->signature->data);
+      free (CTX->signature);
       CTX->signature = NULL;
     }
     dspam_destroy (CTX);
@@ -1656,8 +1665,14 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       presult->exitcode = ERC_PROCESS;
       strcpy(presult->text, ERR_MEM_ALLOC);
 
-      if (ATX->results)
+      if (ATX->results) {
         nt_add(ATX->results, presult);
+        if (ATX->results->nodetype == NT_CHAR)
+          free(presult);
+      } else
+        free(presult);
+
+      presult = NULL;
 
       continue;
     }
@@ -1848,6 +1863,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       }
 #endif
       free(result_string);
+      result_string = NULL;
 
       /* Exit code 99 for spam (when using broken return codes) */
 
@@ -1867,6 +1883,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
         free(ATX->PTX);
         ATX->PTX = NULL;
         buffer_destroy(parse_message);
+        free(presult);
+        presult = NULL;
         i++;
         continue;
       }
@@ -2051,10 +2069,13 @@ RSET:
     ATX->PTX = NULL;
     node_nt = c_nt_next (ATX->users, &c_nt);
 
-    if (ATX->results) 
+    if (ATX->results) {
       nt_add(ATX->results, presult);
-    else
+      if (ATX->results->nodetype == NT_CHAR)
+        free(presult);
+    } else
       free(presult);
+    presult = NULL;
     LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", retcode);
     buffer_destroy(parse_message);
   }
@@ -2737,6 +2758,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       dspam_process (CTC, NULL);
       memcpy(&CTX->totals, &CTC->totals, sizeof(struct _ds_spam_totals));
       free(CTC);
+      CTC = NULL;
       CTX->totals.spam_misclassified--;
       strncpy(CTX->class, LANG_CLASS_SPAM, sizeof(CTX->class));
       /* should we be resetting CTX->probability and CTX->confidence here as well? */
@@ -2763,6 +2785,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       dspam_process (CTC, NULL);
       memcpy(&CTX->totals, &CTC->totals, sizeof(struct _ds_spam_totals));
       free(CTC);
+      CTC = NULL;
       CTX->totals.innocent_misclassified--;
       strncpy(CTX->class, LANG_CLASS_INNOCENT, sizeof(CTX->class));
       /* should we be resetting CTX->probability and CTX->confidence here as well? */
@@ -3466,6 +3489,7 @@ int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           block->headers->first = node_nt;
         nt_add(newblock->headers, field);
         free(old);
+        old = NULL;
         block->headers->items--;
         continue;
       }
@@ -3569,6 +3593,7 @@ MEM_ALLOC:
     if (newblock->headers)
       nt_destroy(newblock->headers);
     free(newblock);
+    newblock = NULL;
   }
 
   LOG (LOG_CRIT, ERR_MEM_ALLOC);
@@ -3853,6 +3878,7 @@ int is_blocklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         }
       }
       free(dup);
+      dup = NULL;
     }
     fclose(file);
   }
@@ -4037,8 +4063,10 @@ agent_pref_t load_aggregated_prefs(AGENT_CTX *ATX, const char *username) {
   PTX = _ds_pref_aggregate(STX, UTX);
   _ds_pref_free(UTX);
   free(UTX);
+  UTX = NULL;
   _ds_pref_free(STX);
   free(STX);
+  STX = NULL;
 
 #ifdef VERBOSE
   if (PTX) {
