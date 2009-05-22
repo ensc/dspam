@@ -1119,6 +1119,12 @@ bail:
 #endif
   ds_diction_destroy(diction);
   ds_diction_destroy(bnr_patterns);
+  if (CTX->signature != NULL) {
+    if (CTX->signature->data != NULL)
+      free(CTX->signature->data);
+    free (CTX->signature);
+    CTX->signature = NULL;
+  }
   return errcode;
 }
 
