@@ -140,7 +140,7 @@ typedef struct _ds_spam_stat
 struct _ds_spam_signature
 {
   void *data;
-  long length;
+  unsigned long length;
 };
 
 /*
