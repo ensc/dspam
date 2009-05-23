@@ -1,7 +1,7 @@
 $Id: mysql_drv.txt,v 1.9 2007/12/07 00:15:31 mjohnson Exp $
 
 mysql_drv: MySQL storage driver for DSPAM <jonathan@nuclearelephant.com>
-Copyright (c) 2002-2009 Dspam Project
+Copyright (c) 2002-2009 DSPAM Project
 http://dspam.sourceforge.net
 
 LICENSE
