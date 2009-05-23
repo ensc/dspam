@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.116 2008/03/10 04:50:28 steveb Exp $ */
+/* $Id: daemon.c,v 1.117 2009/05/23 19:17:42 sbajic Exp $ */
 
 /*
  DSPAM
@@ -564,6 +564,7 @@ void *process_connection(void *ptr) {
              !strncasecmp(cmdline, "RSET", 4)))
       {
         char username[256];
+        char *at = NULL;
 
         if (!strncasecmp(cmdline, "RSET", 4)) {
           snprintf(buf, sizeof(buf), "%d OK", LMTP_OK);
@@ -573,7 +574,7 @@ void *process_connection(void *ptr) {
         }
 
         if (_ds_extract_address(username, cmdline, sizeof(username)) ||
-            username[0] == 0 || username[0] == '-')
+            username[0] == 0 || username[0] == '-' || username[0] == '@')
         {
           daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERR_LMTP_BAD_RCPT);
           goto GETCMD;
@@ -581,6 +582,13 @@ void *process_connection(void *ptr) {
 
         if (_ds_match_attribute(agent_config, "Broken", "case"))
           lc(username, username);
+
+        /* Chop of @.* from the recipient */
+        if (_ds_match_attribute(agent_config, "StripRcptDomain", "on")) {
+          at = strchr(username, '@');
+          if (at != NULL)
+            *at = '\0';
+        }
 
         if (server_mode == SSM_DSPAM) {
           nt_add(ATX->users, username);
@@ -596,6 +604,8 @@ void *process_connection(void *ptr) {
               goto CLOSE;
             }
           }
+          if (at != NULL)
+            *at = '@'; /* always add complete address (user@domain) to recipient list */
           nt_add(ATX->recipients, username);
         }
 
