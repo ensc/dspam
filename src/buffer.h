@@ -31,10 +31,13 @@ typedef struct
 } buffer;
 
 buffer *buffer_create	(const char *);
+buffer *buffer_ncreate	(const char *, long plen);
 void	buffer_destroy	(buffer *);
 
 int buffer_copy		(buffer *, const char *);
+int buffer_ncopy	(buffer *, const char *, long plen);
 int buffer_cat		(buffer *, const char *);
+int buffer_ncat		(buffer *, const char *, long plen);
 int buffer_clear	(buffer *);
 
 #endif /* _BUFFER_H */

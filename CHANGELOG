@@ -1,6 +1,10 @@
 Version 3.9.0
 -------------
 
+[20090523:1530] sbajic: Improve buffer management
+
+Speedup/Improve buffer management
+
 [20090523:1440] sbajic: MySQL driver changes
 
 * Setting all statistical counters to be unsigned
