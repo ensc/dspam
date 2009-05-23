@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.78 2008/05/06 18:51:25 mjohnson Exp $ */
+/* $Id: mysql_drv.c,v 1.79 2009/05/23 12:45:59 sbajic Exp $ */
 
 /*
  DSPAM
@@ -63,6 +63,7 @@
 #include "config_shared.h"
 
 #define MYSQL_RUN_QUERY(A, B) mysql_query(A, B)
+#define MYSQL_RUN_REAL_QUERY(A, B, C) mysql_real_query(A, B, C)
 
 int
 dspam_init_driver (DRIVER_CTX *DTX)
@@ -167,6 +168,7 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
   MYSQL_ROW row;
   struct _ds_spam_totals user, group;
   int uid = -1, gid = -1;
+  result = NULL;
 
   if (s->dbt == NULL)
   {
@@ -199,7 +201,7 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
       return EINVAL;
   } else {
 
-    uid = p->pw_uid;
+    uid = (int) p->pw_uid;
   }
 
   if (CTX->group != NULL && CTX->flags & DSF_MERGED) {
@@ -210,16 +212,25 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
                 CTX->group);
       return EINVAL;
     }
-    gid = p->pw_uid;
+    gid = (int) p->pw_uid;
   }
 
-  snprintf (query, sizeof (query),
+  if (gid != uid)
+    snprintf (query, sizeof (query),
             "select uid, spam_learned, innocent_learned, "
             "spam_misclassified, innocent_misclassified, "
             "spam_corpusfed, innocent_corpusfed, "
             "spam_classified, innocent_classified "
-            " from dspam_stats where (uid = %d or uid = %d)",
-            uid, gid);
+            " from dspam_stats where in(%d,%d)",
+            (int) uid, (int) gid);
+  else
+    snprintf (query, sizeof (query),
+              "select uid, spam_learned, innocent_learned, "
+              "spam_misclassified, innocent_misclassified, "
+              "spam_corpusfed, innocent_corpusfed, "
+              "spam_classified, innocent_classified "
+              " from dspam_stats where uid = %d",
+              (int) uid);
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
@@ -235,38 +246,107 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
 
   while ((row = mysql_fetch_row (result)) != NULL) {
     int rid = atoi(row[0]);
+    if (rid == INT_MAX && errno == ERANGE) {
+      LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to rid", row[0]);
+      goto FAIL;
+    }
     if (rid == uid) {
-      user.spam_learned			= strtol (row[1], NULL, 0);
-      user.innocent_learned		= strtol (row[2], NULL, 0);
-      user.spam_misclassified		= strtol (row[3], NULL, 0);
-      user.innocent_misclassified  	= strtol (row[4], NULL, 0);
-      user.spam_corpusfed		= strtol (row[5], NULL, 0);
-      user.innocent_corpusfed		= strtol (row[6], NULL, 0);
+      user.spam_learned			= strtoul (row[1], NULL, 0);
+      if (user.spam_learned == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.spam_learned", row[1]);
+        goto FAIL;
+      }
+      user.innocent_learned		= strtoul (row[2], NULL, 0);
+      if (user.innocent_learned == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.innocent_learned", row[2]);
+        goto FAIL;
+      }
+      user.spam_misclassified		= strtoul (row[3], NULL, 0);
+      if (user.spam_misclassified == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.spam_misclassified", row[3]);
+        goto FAIL;
+      }
+      user.innocent_misclassified	= strtoul (row[4], NULL, 0);
+      if (user.innocent_misclassified == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.innocent_misclassified", row[4]);
+        goto FAIL;
+      }
+      user.spam_corpusfed		= strtoul (row[5], NULL, 0);
+      if (user.spam_corpusfed == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.spam_corpusfed", row[5]);
+        goto FAIL;
+      }
+      user.innocent_corpusfed		= strtoul (row[6], NULL, 0);
+      if (user.innocent_corpusfed == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.innocent_corpusfed", row[6]);
+        goto FAIL;
+      }
       if (row[7] != NULL && row[8] != NULL) {
-        user.spam_classified		= strtol (row[7], NULL, 0);
-        user.innocent_classified	= strtol (row[8], NULL, 0);
+        user.spam_classified		= strtoul (row[7], NULL, 0);
+        if (user.spam_classified == ULONG_MAX && errno == ERANGE) {
+          LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.spam_classified", row[7]);
+          goto FAIL;
+        }
+        user.innocent_classified	= strtoul (row[8], NULL, 0);
+        if (user.innocent_classified == ULONG_MAX && errno == ERANGE) {
+          LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.innocent_classified", row[8]);
+          goto FAIL;
+        }
       } else {
         user.spam_classified = 0;
         user.innocent_classified = 0;
       }
     } else {
-      group.spam_learned           = strtol (row[1], NULL, 0);
-      group.innocent_learned       = strtol (row[2], NULL, 0);
-      group.spam_misclassified     = strtol (row[3], NULL, 0);
-      group.innocent_misclassified = strtol (row[4], NULL, 0);
-      group.spam_corpusfed         = strtol (row[5], NULL, 0);
-      group.innocent_corpusfed     = strtol (row[6], NULL, 0);
+      group.spam_learned		= strtoul (row[1], NULL, 0);
+      if (group.spam_learned == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.spam_learned", row[1]);
+        goto FAIL;
+      }
+      group.innocent_learned		= strtoul (row[2], NULL, 0);
+      if (group.innocent_learned == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.innocent_learned", row[2]);
+        goto FAIL;
+      }
+      group.spam_misclassified		= strtoul (row[3], NULL, 0);
+      if (group.spam_misclassified == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.spam_misclassified", row[3]);
+        goto FAIL;
+      }
+      group.innocent_misclassified	= strtoul (row[4], NULL, 0);
+      if (group.innocent_misclassified == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.innocent_misclassified", row[4]);
+        goto FAIL;
+      }
+      group.spam_corpusfed		= strtoul (row[5], NULL, 0);
+      if (group.spam_corpusfed == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.spam_corpusfed", row[5]);
+        goto FAIL;
+      }
+      group.innocent_corpusfed		= strtoul (row[6], NULL, 0);
+      if (group.innocent_corpusfed == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.innocent_corpusfed", row[6]);
+        goto FAIL;
+      }
     if (row[7] != NULL && row[8] != NULL) {
-        group.spam_classified      = strtol (row[7], NULL, 0);
-        group.innocent_classified  = strtol (row[8], NULL, 0);
+        group.spam_classified		= strtoul (row[7], NULL, 0);
+        if (group.spam_classified == ULONG_MAX && errno == ERANGE) {
+          LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.spam_classified", row[7]);
+          goto FAIL;
+        }
+        group.innocent_classified	= strtoul (row[8], NULL, 0);
+        if (group.innocent_classified == ULONG_MAX && errno == ERANGE) {
+          LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.innocent_classified", row[8]);
+          goto FAIL;
+        }
       } else {
-        group.spam_classified = 0;
-        group.innocent_classified = 0;
+        group.spam_classified		= 0;
+        group.innocent_classified	= 0;
       }
     }
   }
 
   mysql_free_result (result);
+  result = NULL;
 
   if (CTX->flags & DSF_MERGED) {
     memcpy(&s->merged_totals, &group, sizeof(struct _ds_spam_totals));
@@ -293,6 +373,11 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
   }
 
   return 0;
+
+FAIL:
+  mysql_free_result (result);
+  result = NULL;
+  return EFAILURE;
 }
 
 int
@@ -302,7 +387,7 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
   struct passwd *p;
   char *name;
   char query[1024];
-  int result = 0;
+  int result = -1;
   struct _ds_spam_totals user;
 
   if (s->dbt == NULL)
@@ -351,8 +436,6 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
 
   }
 
-  result = -1;
-
   if (s->control_totals.innocent_learned == 0)
   {
     snprintf (query, sizeof (query),
@@ -360,7 +443,7 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
               "spam_misclassified, innocent_misclassified, "
               "spam_corpusfed, innocent_corpusfed, "
               "spam_classified, innocent_classified) "
-              "values(%d, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld)",
+              "values(%d, %lu, %lu, %lu, %lu, %lu, %lu, %lu, %lu)",
               (int) p->pw_uid, CTX->totals.spam_learned,
               CTX->totals.innocent_learned, CTX->totals.spam_misclassified,
               CTX->totals.innocent_misclassified, CTX->totals.spam_corpusfed,
@@ -372,14 +455,14 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
   if (result)
   {
     snprintf (query, sizeof (query),
-              "update dspam_stats set spam_learned = spam_learned %s %d, "
-              "innocent_learned = innocent_learned %s %d, "
-              "spam_misclassified = spam_misclassified %s %d, "
-              "innocent_misclassified = innocent_misclassified %s %d, "
-              "spam_corpusfed = spam_corpusfed %s %d, "
-              "innocent_corpusfed = innocent_corpusfed %s %d, "
-              "spam_classified = spam_classified %s %d, "
-              "innocent_classified = innocent_classified %s %d "
+              "update dspam_stats set spam_learned = spam_learned %s %lu, "
+              "innocent_learned = innocent_learned %s %lu, "
+              "spam_misclassified = spam_misclassified %s %lu, "
+              "innocent_misclassified = innocent_misclassified %s %lu, "
+              "spam_corpusfed = spam_corpusfed %s %lu, "
+              "innocent_corpusfed = innocent_corpusfed %s %lu, "
+              "spam_classified = spam_classified %s %lu, "
+              "innocent_classified = innocent_classified %s %lu "
               "where uid = %d",
               (CTX->totals.spam_learned >
                s->control_totals.spam_learned) ? "+" : "-",
@@ -440,12 +523,16 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_term_t ds_term;
   ds_cursor_t ds_c;
   char scratch[1024];
+  char queryhead[1024];
   MYSQL_RES *result;
   MYSQL_ROW row;
   struct _ds_spam_stat stat;
   unsigned long long token = 0;
-  int get_one = 0;
   int uid = -1, gid = -1;
+  result = NULL;
+
+  if (diction->items < 1)
+    return 0;
 
   if (s->dbt == NULL)
   {
@@ -468,7 +555,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EINVAL;
   }
 
-  uid = p->pw_uid;
+  uid = (int) p->pw_uid;
 
   if (CTX->group != NULL && CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
@@ -478,13 +565,40 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
                 CTX->group);
       return EINVAL;
     }
-    gid = p->pw_uid;
+    gid = (int) p->pw_uid;
   }
 
   stat.spam_hits     = 0;
   stat.innocent_hits = 0;
   stat.probability   = 0.00000;
 
+  /* Query max_allowed_packet from MySQL server for this connection. If the value
+   * can not be queried, then assume 1000000 as value.
+   */
+  unsigned long drv_max_packet = 1000000;
+  scratch[0] = 0;
+  snprintf (scratch, sizeof (scratch), "show variables where variable_name='max_allowed_packet'");
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, scratch) == 0) {
+    result = mysql_use_result (s->dbt->dbh_read);
+    if (result != NULL) {
+      row = mysql_fetch_row (result);
+      if (row != NULL) {
+        drv_max_packet = strtoul (row[1], NULL, 0);
+        if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
+          LOGDEBUG("_ds_getall_spamrecords: failed converting %s to max_allowed_packet", row[1]);
+          drv_max_packet = 1000000;
+        }
+      }
+      mysql_free_result (result);
+      result = NULL;
+    }
+    result = NULL;
+  }
+  scratch[0] = 0;
+
+  /* Get the all spam records but split the query when the query size + 1024
+   * reaches drv_max_packet
+   */
   query = buffer_create (NULL);
   if (query == NULL)
   {
@@ -492,75 +606,96 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EUNKNOWN;
   }
 
-  if (uid != gid) {
-    snprintf (scratch, sizeof (scratch),
+  if (uid != gid)
+    snprintf (queryhead, sizeof(queryhead),
             "select uid, token, spam_hits, innocent_hits "
-            "from dspam_token_data where (uid = %d or uid = %d) and token in(",
-            uid, gid);
-  } else {
-    snprintf (scratch, sizeof (scratch),
+            "from dspam_token_data where uid in(%d,%d) and token in(",
+            (int) uid, (int) gid);
+  else
+    snprintf (queryhead, sizeof(queryhead),
             "select uid, token, spam_hits, innocent_hits "
             "from dspam_token_data where uid = %d and token in(",
-            uid);
-  }
-  buffer_cat (query, scratch);
+            (int) uid);
 
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
-  while (ds_term)
-  {
-    if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
-      snprintf(scratch, sizeof(scratch), "%llu", ds_term->key);
-    else
-      snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
-    buffer_cat (query, scratch);
-    ds_term->s.innocent_hits = 0;
-    ds_term->s.spam_hits = 0;
-    ds_term->s.probability = 0.00000;
-    ds_term->s.status = 0;
-    ds_term = ds_diction_next(ds_c);
-    if (ds_term)
-      buffer_cat (query, ",");
-    get_one = 1;
-  }
-  ds_diction_close(ds_c);
-  buffer_cat (query, ")");
+  while (ds_term) {
+    scratch[0] = 0;
+    buffer_copy(query, queryhead);
+    while (ds_term) {
+      if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+        snprintf(scratch, sizeof(scratch), "%llu", ds_term->key);
+      else
+        snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
+      buffer_cat (query, scratch);
+      ds_term->s.innocent_hits = 0;
+      ds_term->s.spam_hits = 0;
+      ds_term->s.probability = 0.00000;
+      ds_term->s.status = 0;
+      if((query->used + 1024) > drv_max_packet) {
+        LOGDEBUG("_ds_getall_spamrecords: Splitting query at %ld characters", query->used);
+        break;
+      }
+      ds_term = ds_diction_next(ds_c);
+      if (ds_term)
+        buffer_cat (query, ",");
+    }
+    buffer_cat (query, ")");
 
 #ifdef VERBOSE
   LOGDEBUG ("mysql query length: %ld\n", query->used);
   _mysql_drv_query_error ("VERBOSE DEBUG (INFO ONLY - NOT AN ERROR)", query->data);
 #endif
 
-  if (!get_one)
-    return 0;
 
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query->data))
-  {
-    _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query->data);
-    buffer_destroy(query);
-    return EFAILURE;
+    if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query->data)) {
+      _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query->data);
+      LOGDEBUG ("_ds_getall_spamrecords: unable to run query: %s", query->data);
+      buffer_destroy(query);
+      ds_diction_close(ds_c);
+      return EFAILURE;
+    }
+    result = mysql_use_result (s->dbt->dbh_read);
+    if (result == NULL) {
+      LOGDEBUG("_ds_getall_spamrecords: failed mysql_use_result()");
+      buffer_destroy(query);
+      ds_diction_close(ds_c);
+      return EFAILURE;
+    }
+    while ((row = mysql_fetch_row (result)) != NULL) {
+      int rid = atoi(row[0]);
+      if (rid == INT_MAX && errno == ERANGE) {
+        LOGDEBUG("_ds_getall_spamrecords: failed converting %s to rid", row[0]);
+        goto FAIL;
+      }
+      token = strtoull (row[1], NULL, 0);
+      if (token == ULLONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_ds_getall_spamrecords: failed converting %s to token", row[1]);
+        goto FAIL;
+      }
+      stat.spam_hits = strtoul (row[2], NULL, 0);
+      if (stat.spam_hits == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_ds_getall_spamrecords: failed converting %s to stat.spam_hits", row[2]);
+        goto FAIL;
+      }
+      stat.innocent_hits = strtoul (row[3], NULL, 0);
+      if (stat.innocent_hits == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_ds_getall_spamrecords: failed converting %s to stat.innocent_hits", row[3]);
+        goto FAIL;
+      }
+      stat.status = 0;
+      if (rid == uid)
+        stat.status |= TST_DISK;
+      ds_diction_addstat(diction, token, &stat);
+    }
+    mysql_free_result (result);
+    result = NULL;
+    ds_term = ds_diction_next(ds_c);
   }
-
-  result = mysql_use_result (s->dbt->dbh_read);
-  if (result == NULL) {
-    buffer_destroy(query);
-    LOGDEBUG("mysql_use_result() failed in _ds_getall_spamrecords()");
-    return EFAILURE;
-  }
-
-  while ((row = mysql_fetch_row (result)) != NULL)
-  {
-    int rid = atoi(row[0]);
-    token = strtoull (row[1], NULL, 0);
-    stat.spam_hits = strtol (row[2], NULL, 0);
-    stat.innocent_hits = strtol (row[3], NULL, 0);
-    stat.status = 0;
-
-    if (rid == uid)
-      stat.status |= TST_DISK;
-
-    ds_diction_addstat(diction, token, &stat);
-  }
+  ds_diction_close(ds_c);
+  buffer_destroy (query);
+  mysql_free_result (result);
+  result = NULL;
 
   /* Control token */
   stat.spam_hits = 10;
@@ -572,9 +707,12 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   s->control_ih = 10;
   s->control_sh = 10;
 
-  mysql_free_result (result);
-  buffer_destroy (query);
   return 0;
+
+FAIL:
+  mysql_free_result (result);
+  result = NULL;
+  return EFAILURE;
 }
 
 int
@@ -593,6 +731,9 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   buffer *insert;
   int insert_any = 0;
 #endif
+
+  if (diction->items < 1)
+    return 0;
 
   if (s->dbt == NULL)
   {
@@ -640,8 +781,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_diction_getstat(diction, s->control_token, &control);
   snprintf (scratch, sizeof (scratch),
             "update dspam_token_data set last_hit = current_date(), "
-            "spam_hits = greatest(0, spam_hits %s %d), "
-            "innocent_hits = greatest(0, innocent_hits %s %d) "
+            "spam_hits = greatest(0, spam_hits %s %lu), "
+            "innocent_hits = greatest(0, innocent_hits %s %lu) "
             "where uid = %d and token in(",
             (control.spam_hits > s->control_sh) ? "+" : "-",
             abs (control.spam_hits - s->control_sh),
@@ -698,7 +839,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       char ins[1024];
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
       snprintf (ins, sizeof (ins),
-                "%s(%d, '%llu', %d, %d, current_date())",
+                "%s(%d, '%llu', %lu, %lu, current_date())",
                  (insert_any) ? ", " : "",
                  (int) p->pw_uid,
                  ds_term->key,
@@ -710,7 +851,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 #else
       snprintf(ins, sizeof (ins),
                "insert into dspam_token_data(uid, token, spam_hits, "
-               "innocent_hits, last_hit) values(%d, '%llu', %d, %d, "
+               "innocent_hits, last_hit) values(%d, '%llu', %lu, %lu, "
                "current_date())",
                p->pw_uid,
                ds_term->key,
@@ -751,7 +892,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   buffer_cat (query, ")");
 
-  LOGDEBUG("Control: [%ld %ld] [%ld %ld] Delta: [%ld %ld]",
+  LOGDEBUG("Control: [%ld %ld] [%lu %lu] Delta: [%lu %lu]",
     s->control_sh, s->control_ih,
     control.spam_hits, control.innocent_hits,
     control.spam_hits - s->control_sh, control.innocent_hits - s->control_ih);
@@ -766,14 +907,15 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       return EFAILURE;
     }
   }
+  buffer_destroy (query);
 
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
   if (insert_any)
   {
      snprintf (scratch, sizeof (scratch),
             " ON DUPLICATE KEY UPDATE last_hit = current_date(), "
-            "spam_hits = greatest(0, spam_hits %s %d), "
-            "innocent_hits = greatest(0, innocent_hits %s %d) ",
+            "spam_hits = greatest(0, spam_hits %s %lu), "
+            "innocent_hits = greatest(0, innocent_hits %s %lu) ",
             (control.spam_hits > s->control_sh) ? "+" : "-",
             abs (control.spam_hits - s->control_sh) > 0 ? 1 : 0,
             (control.innocent_hits > s->control_ih) ? "+" : "-",
@@ -792,7 +934,6 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   buffer_destroy(insert);
 #endif
 
-  buffer_destroy (query);
   return 0;
 }
 
@@ -806,6 +947,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   char *name;
   MYSQL_RES *result;
   MYSQL_ROW row;
+  result = NULL;
 
   if (s->dbt == NULL)
   {
@@ -831,11 +973,11 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
     snprintf (query, sizeof (query),
             "select spam_hits, innocent_hits from dspam_token_data "
-            "where uid = %d " "and token in(%llu) ", (int) p->pw_uid, token);
+            "where uid = %d and token in(%llu) ", (int) p->pw_uid, token);
   else
     snprintf (query, sizeof (query),
             "select spam_hits, innocent_hits from dspam_token_data "
-            "where uid = %d " "and token in('%llu') ", (int) p->pw_uid, token);
+            "where uid = %d and token in('%llu') ", (int) p->pw_uid, token);
 
   stat->probability = 0.00000;
   stat->spam_hits = 0;
@@ -859,13 +1001,27 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if (row == NULL)
   {
     mysql_free_result (result);
+    result = NULL;
     return 0;
   }
 
-  stat->spam_hits = strtol (row[0], NULL, 0);
-  stat->innocent_hits = strtol (row[1], NULL, 0);
+  stat->spam_hits = strtoul (row[0], NULL, 0);
+  if (stat->spam_hits == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_spamrecord: failed converting %s to stat->spam_hits", row[0]);
+    mysql_free_result (result);
+    result = NULL;
+    return EFAILURE;
+  }
+  stat->innocent_hits = strtoul (row[1], NULL, 0);
+  if (stat->innocent_hits == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_spamrecord: failed converting %s to stat->innocent_hits", row[1]);
+    mysql_free_result (result);
+    result = NULL;
+    return EFAILURE;
+  }
   stat->status |= TST_DISK;
   mysql_free_result (result);
+  result = NULL;
   return 0;
 }
 
@@ -877,7 +1033,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   char query[1024];
   struct passwd *p;
   char *name;
-  int result = 0;
+  int result = -1;
 
   if (s->dbt == NULL)
   {
@@ -903,13 +1059,30 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     return EINVAL;
   }
 
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40001
+  /* It's either not on disk or the caller isn't using stat.status */
+  if (!(stat->status & TST_DISK))
+  {
+    snprintf (query, sizeof (query),
+              "insert into dspam_token_data "
+              "(uid, token, spam_hits, innocent_hits, last_hit) "
+              "values(%d, '%llu', %lu, %lu, current_date()) "
+              "on duplicate key update "
+              "spam_hits = %lu, "
+              "innocent_hits = %lu, "
+              "last_hit = current_date()",
+              (int) p->pw_uid, token, stat->spam_hits, stat->innocent_hits,
+              stat->spam_hits, stat->innocent_hits);
+    result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+  }
+#else
   /* It's either not on disk or the caller isn't using stat.status */
   if (!(stat->status & TST_DISK))
   {
     snprintf (query, sizeof (query),
               "insert into dspam_token_data(uid, token, spam_hits, "
               "innocent_hits, last_hit)"
-              " values(%d, '%llu', %ld, %ld, current_date())",
+              " values(%d, '%llu', %lu, %lu, current_date())",
               (int) p->pw_uid, token, stat->spam_hits, stat->innocent_hits);
     result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
   }
@@ -918,18 +1091,20 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   {
     /* insert failed; try updating instead */
     snprintf (query, sizeof (query), "update dspam_token_data "
-              "set spam_hits = %ld, "
-              "innocent_hits = %ld "
+              "set spam_hits = %lu, "
+              "innocent_hits = %lu, "
+              "last_hit = current_date(), "
               "where uid = %d "
-              "and token = %lld", stat->spam_hits,
+              "and token = '%llu'", stat->spam_hits,
               stat->innocent_hits, (int) p->pw_uid, token);
+    result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+  }
+#endif
 
-    if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
-    {
-      _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
-      LOGDEBUG ("_ds_set_spamrecord: unable to run query: %s", query);
-      return EFAILURE;
-    }
+  if (result) {
+    _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
+    LOGDEBUG ("_ds_set_spamrecord: unable to run query: %s", query);
+    return EFAILURE;
   }
 
   return 0;
@@ -1031,10 +1206,27 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
       _mysql_drv_set_spamtotals (CTX);
   }
 
+  if (s->iter_user != NULL) {
+    mysql_free_result (s->iter_user);
+    s->iter_user = NULL;
+  }
+
+  if (s->iter_token != NULL) {
+    mysql_free_result (s->iter_token);
+    s->iter_token = NULL;
+  }
+
+  if (s->iter_sig != NULL) {
+    mysql_free_result (s->iter_token);
+    s->iter_sig = NULL;
+  }
+
   if (! s->dbh_attached) {
     mysql_close (s->dbt->dbh_read);
     if (s->dbt->dbh_write != s->dbt->dbh_read)
       mysql_close (s->dbt->dbh_write);
+    if (s->dbt)
+      free(s->dbt);
   }
   s->dbt = NULL;
 
@@ -1093,11 +1285,12 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   char *name;
   unsigned long *lengths;
   char *mem;
-  char query[128];
+  char query[256];
   MYSQL_RES *result;
   MYSQL_ROW row;
   int uid=NULL;
   MYSQL *dbh;
+  result = NULL;
 
   if (s->dbt == NULL)
   {
@@ -1124,12 +1317,15 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     u = strchr(sig, ',');
     if (!u) {
       LOGDEBUG("_ds_get_signature: unable to locate uid in signature");
+      free(sig);
+      sig = NULL;
       return EFAILURE;
     }
     u[0] = 0;
     u = sig;
     uid = atoi(u);
     free(sig);
+    sig = NULL;
 
     /* Change the context's username and reinitialize storage */
 
@@ -1157,12 +1353,12 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   }
 
   if (uid == NULL){
-    uid = p->pw_uid;
+    uid = (int) p->pw_uid;
   }
 
   snprintf (query, sizeof (query),
           "select data, length from dspam_signature_data "
-          "where uid = %d and signature = \"%s\"", uid, signature);
+          "where uid = %d and signature = \"%s\"", (int) uid, signature);
 
   if (mysql_real_query (dbh, query, strlen (query)))
   {
@@ -1182,6 +1378,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   {
     LOGDEBUG("_ds_get_signature: mysql_fetch_row() failed");
     mysql_free_result (result);
+    result = NULL;
     return EFAILURE;
   }
 
@@ -1190,6 +1387,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   {
     LOGDEBUG("_ds_get_signature: mysql_fetch_lengths() failed");
     mysql_free_result (result);
+    result = NULL;
     return EFAILURE;
   }
 
@@ -1198,14 +1396,19 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     mysql_free_result (result);
+    result = NULL;
     return EUNKNOWN;
   }
 
   memcpy (mem, row[0], lengths[0]);
   SIG->data = mem;
-  SIG->length = strtol (row[1], NULL, 0);
-
+  SIG->length = strtoul (row[1], NULL, 0);
+  if (SIG->length == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_spamrecord: failed converting %s to signature data length", row[1]);
+    SIG->length = lengths[0];
+  }
   mysql_free_result (result);
+  result = NULL;
 
   return 0;
 }
@@ -1250,7 +1453,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EUNKNOWN;
   }
 
-  mem = calloc(1, SIG->length*3);
+  mem = calloc(1, (SIG->length*2)+1));
   if (mem == NULL)
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
@@ -1260,23 +1463,58 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   length = mysql_real_escape_string (s->dbt->dbh_write, mem, SIG->data, SIG->length);
 
+  /* Query max_allowed_packet from MySQL server for this connection. If the value
+   * can not be queried, then assume 1000000 as value.
+   */
+  unsigned long drv_max_packet = 1000000;
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  result = NULL;
+  scratch[0] = 0;
+  snprintf (scratch, sizeof (scratch), "show variables where variable_name='max_allowed_packet'");
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, scratch) == 0) {
+    result = mysql_use_result (s->dbt->dbh_write);
+    if (result != NULL) {
+      row = mysql_fetch_row (result);
+      if (row != NULL) {
+        drv_max_packet = strtoul (row[1], NULL, 0);
+        if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
+          LOGDEBUG("_ds_getall_spamrecords: failed converting %s to max_allowed_packet", row[1]);
+          drv_max_packet = 1000000;
+        }
+      }
+      mysql_free_result (result);
+      result = NULL;
+    }
+    mysql_free_result (result);
+    result = NULL;
+  }
+  scratch[0] = 0;
+  if(length+1024>drv_max_packet) {
+    LOG (LOG_WARNING, "_ds_set_signature: signature data to big to be inserted");
+    LOG (LOG_WARNING, "_ds_set_signature: consider increasing max_allowed_packet to at least %llu",
+              length+1025);
+    return EINVAL;
+  }
+
   snprintf (scratch, sizeof (scratch),
-            "insert into dspam_signature_data(uid, signature, length, created_on, data) values(%d, \"%s\", %ld, current_date(), \"",
-            (int) p->pw_uid, signature, SIG->length);
+            "insert into dspam_signature_data(uid, signature, length, created_on, data) "
+            "values(%d, \"%s\", %lu, current_date(), \"",
+            (int) p->pw_uid, signature, (unsigned long) SIG->length);
   buffer_cat (query, scratch);
   buffer_cat (query, mem);
   buffer_cat (query, "\")");
+  free(mem);
+  mem = NULL;
 
   if (mysql_real_query (s->dbt->dbh_write, query->data, query->used))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
     LOGDEBUG ("_ds_set_signature: unable to run query: %s", query->data);
     buffer_destroy(query);
-    free(mem);
     return EFAILURE;
   }
 
-  free (mem);
   buffer_destroy(query);
   return 0;
 }
@@ -1287,14 +1525,13 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct passwd *p;
   char *name;
-  char query[128];
+  char query[256];
 
   if (s->dbt == NULL)
   {
     LOGDEBUG ("_ds_delete_signature: invalid database handle (NULL)");
     return EINVAL;
   }
-
 
   if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
@@ -1330,9 +1567,10 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct passwd *p;
   char *name;
-  char query[128];
+  char query[256];
   MYSQL_RES *result;
   MYSQL_ROW row;
+  result = NULL;
 
   if (s->dbt == NULL)
   {
@@ -1375,10 +1613,12 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   if (row == NULL)
   {
     mysql_free_result (result);
+    result = NULL;
     return -1;
   }
 
   mysql_free_result (result);
+  result = NULL;
   return 0;
 }
 
@@ -1392,7 +1632,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
 #else
   char *virtual_table, *virtual_uid, *virtual_username;
 #endif
-  char query[128];
+  char query[256];
   MYSQL_ROW row;
 
   if (s->dbt == NULL)
@@ -1448,6 +1688,12 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   strlcpy (s->u_getnextuser, row[0], sizeof (s->u_getnextuser));
 #else
   uid = (uid_t) atoi (row[0]);
+  if (uid == INT_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nextuser: failed converting %s to uid", row[0]);
+    mysql_free_result (s->iter_user);
+    s->iter_user = NULL;
+    return NULL;
+  }
   p = _mysql_drv_getpwuid (CTX, uid);
   if (p == NULL)
   {
@@ -1467,7 +1713,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct _ds_storage_record *st;
-  char query[128];
+  char query[256];
   MYSQL_ROW row;
   struct passwd *p;
   char *name;
@@ -1510,31 +1756,50 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
       LOGDEBUG ("_ds_get_nexttoken: unable to run query: %s", query);
       free(st);
+      st = NULL;
       return NULL;
     }
 
     s->iter_token = mysql_use_result (s->dbt->dbh_read);
     if (s->iter_token == NULL) {
       free(st);
+      st = NULL;
       return NULL;
     }
   }
 
   row = mysql_fetch_row (s->iter_token);
   if (row == NULL)
-  {
-    mysql_free_result (s->iter_token);
-    s->iter_token = NULL;
-    free(st);
-    return NULL;
-  }
+    goto FAIL;
 
   st->token = strtoull (row[0], NULL, 0);
-  st->spam_hits = strtol (row[1], NULL, 0);
-  st->innocent_hits = strtol (row[2], NULL, 0);
+  if (st->token == ULLONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->token", row[0]);
+    goto FAIL;
+  }
+  st->spam_hits = strtoul (row[1], NULL, 0);
+  if (st->spam_hits == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->spam_hits", row[1]);
+    goto FAIL;
+  }
+  st->innocent_hits = strtoul (row[2], NULL, 0);
+  if (st->innocent_hits == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->innocent_hits", row[2]);
+    goto FAIL;
+  }
   st->last_hit = (time_t) strtol (row[3], NULL, 0);
-
+  if (st->last_hit == LONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->last_hit", row[3]);
+    goto FAIL;
+  }
   return st;
+
+FAIL:
+  mysql_free_result (s->iter_token);
+  s->iter_token = NULL;
+  free(st);
+  st = NULL;
+  return NULL;
 }
 
 struct _ds_storage_signature *
@@ -1543,7 +1808,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct _ds_storage_signature *st;
   unsigned long *lengths;
-  char query[128];
+  char query[256];
   MYSQL_ROW row;
   struct passwd *p;
   char *name;
@@ -1587,49 +1852,55 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
       LOGDEBUG ("_ds_get_nextsignature: unable to run query: %s", query);
       free(st);
+      st = NULL;
       return NULL;
     }
 
     s->iter_sig = mysql_use_result (s->dbt->dbh_read);
     if (s->iter_sig == NULL) {
       free(st);
+      st = NULL;
       return NULL;
     }
   }
 
   row = mysql_fetch_row (s->iter_sig);
   if (row == NULL)
-  {
-    mysql_free_result (s->iter_sig);
-    s->iter_sig = NULL;
-    free(st);
-    return NULL;
-  }
+    goto FAIL;
 
   lengths = mysql_fetch_lengths (s->iter_sig);
   if (lengths == NULL || lengths[0] == 0)
-  {
-    mysql_free_result (s->iter_sig);
-    free(st);
-    return NULL;
-  }
+    goto FAIL;
 
   mem = malloc (lengths[0]);
   if (mem == NULL)
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
-    mysql_free_result (s->iter_sig);
-    free(st);
-    return NULL;
+    goto FAIL;
   }
 
   memcpy (mem, row[0], lengths[0]);
   st->data = mem;
   strlcpy (st->signature, row[1], sizeof (st->signature));
-  st->length = strtol (row[2], NULL, 0);
+  st->length = strtoul (row[2], NULL, 0);
+  if (st->length == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nextsignature: failed converting %s to st->length", row[2]);
+    goto FAIL;
+  }
   st->created_on = (time_t) strtol (row[3], NULL, 0);
+  if (st->created_on == LONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nextsignature: failed converting %s to st->created_on", row[3]);
+    goto FAIL;
+  }
 
   return st;
+
+FAIL:
+  mysql_free_result (s->iter_sig);
+  s->iter_sig = NULL;
+  free(st);
+  st = NULL;
+  return NULL;
 }
 
 struct passwd *
@@ -1677,6 +1948,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   MYSQL_ROW row;
   char *virtual_table, *virtual_uid, *virtual_username;
   char *sql_username;
+  result = NULL;
 
   if ((virtual_table
     = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
@@ -1722,6 +1994,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
             virtual_uid, virtual_table, virtual_username, sql_username);
 
   free (sql_username);
+  sql_username = NULL;
 
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
@@ -1744,6 +2017,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   if (row == NULL)
   {
     mysql_free_result (result);
+    result = NULL;
     if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
       LOGDEBUG("_mysql_drv_getpwnam returning NULL for query on name:  %s", name);
       return NULL;
@@ -1755,6 +2029,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   if (row[0] == NULL)
   {
     mysql_free_result (result);
+    result = NULL;
     if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
       LOGDEBUG("_mysql_drv_getpwnam returning NULL for query on name:  %s", name);
       return NULL;
@@ -1764,13 +2039,20 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     return _mysql_drv_setpwnam (CTX, name);
   }
 
-  s->p_getpwnam.pw_uid = strtol (row[0], NULL, 0);
+  s->p_getpwnam.pw_uid = atoi(row[0]);
+  if (s->p_getpwnam.pw_uid == INT_MAX && errno == ERANGE) {
+    LOGDEBUG("_mysql_drv_getpwnam: failed converting %s to s->p_getpwnam.pw_uid", row[0]);
+    mysql_free_result (result);
+    result = NULL;
+    return NULL;
+  }
   if (name == NULL)
     s->p_getpwnam.pw_name = strdup("");
   else
     s->p_getpwnam.pw_name = strdup (name);
 
   mysql_free_result (result);
+  result = NULL;
   LOGDEBUG("_mysql_drv_getpwnam successful; returning struct for name:  %s", s->p_getpwnam.pw_name);
   return &s->p_getpwnam;
 
@@ -1810,7 +2092,10 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
    return NULL;
 
   if (s->p_getpwuid.pw_name)
+  {
     free(s->p_getpwuid.pw_name);
+    s->p_getpwuid.pw_name = NULL;
+  }
 
   memcpy (&s->p_getpwuid, q, sizeof (struct passwd));
   s->p_getpwuid.pw_name = strdup(q->pw_name);
@@ -1821,6 +2106,7 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   MYSQL_RES *result;
   MYSQL_ROW row;
   char *virtual_table, *virtual_uid, *virtual_username;
+  result = NULL;
 
   if ((virtual_table
     = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
@@ -1862,19 +2148,22 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   if (row == NULL)
   {
     mysql_free_result (result);
+    result = NULL;
     return NULL;
   }
 
   if (row[0] == NULL)
   {
     mysql_free_result (result);
+    result = NULL;
     return NULL;
   }
 
   s->p_getpwuid.pw_name = strdup (row[0]);
-  s->p_getpwuid.pw_uid = uid;
+  s->p_getpwuid.pw_uid = (int) uid;
 
   mysql_free_result (result);
+  result = NULL;
   return &s->p_getpwuid;
 #endif
 }
@@ -1947,6 +2236,7 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
             virtual_table, virtual_uid, virtual_username, sql_username);
 
   free (sql_username);
+  sql_username = NULL;
 
   /* we need to fail, to prevent a potential loop - even if it was inserted
    * by another process */
@@ -1968,7 +2258,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   struct passwd *p;
   char *name;
-  char query[128];
+  char query[256];
 
   if (s->dbt == NULL)
   {
@@ -2019,7 +2309,6 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   char queryhead[1024];
   struct passwd *p;
   char *name;
-  int writes = 0;
 
   if (diction->items < 1)
     return 0;
@@ -2057,52 +2346,70 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
             "where uid = %d and token in(",
             (int) p->pw_uid);
 
-  buffer_cat (query, queryhead);
+  /* Query max_allowed_packet from MySQL server for this connection. If the value
+   * can not be queried, then assume 1000000 as value.
+   */
+  unsigned long drv_max_packet = 1000000;
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  result = NULL;
+  scratch[0] = 0;
+  snprintf (scratch, sizeof (scratch), "show variables where variable_name='max_allowed_packet'");
+  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, scratch) == 0) {
+    result = mysql_use_result (s->dbt->dbh_write);
+    if (result != NULL) {
+      row = mysql_fetch_row (result);
+      if (row != NULL) {
+        drv_max_packet = strtoul (row[1], NULL, 0);
+        if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
+          LOGDEBUG("_ds_getall_spamrecords: failed converting %s to max_allowed_packet", row[1]);
+          drv_max_packet = 1000000;
+        }
+      }
+      mysql_free_result (result);
+      result = NULL;
+    }
+    result = NULL;
+  }
+  scratch[0] = 0;
 
+  /* Delete the spam records but split the query when the query size + 1024
+   * reaches drv_max_packet
+   */
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
-  while(ds_term)
-  {
-    if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
-      snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
-    else
-      snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
-    buffer_cat (query, scratch);
-    ds_term = ds_diction_next(ds_c);
-
-    if (writes > 2500 || !ds_term) {
-      buffer_cat (query, ")");
-
-      if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data))
-      {
-        _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
-        LOGDEBUG ("_ds_delall_spamrecords: unable to run query: %s", query->data);
-        buffer_destroy(query);
-        return EFAILURE;
+  while (ds_term) {
+    scratch[0] = 0;
+    buffer_copy(query, queryhead);
+    while (ds_term) {
+      if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+        snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
+      else
+        snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
+      buffer_cat (query, scratch);
+      ds_term = ds_diction_next(ds_c);
+      if((query->used + 1024) > drv_max_packet || !ds_term) {
+        LOGDEBUG("_ds_delall_spamrecords: Splitting query at %lu characters", query->used);
+        break;
       }
-      buffer_copy(query, queryhead);
-      writes = 0;
-
-    } else {
-      writes++;
-      if (ds_term)
-        buffer_cat (query, ",");
+      buffer_cat (query, ",");
     }
-  }
-  ds_diction_close(ds_c);
-
-  if (writes) {
     buffer_cat (query, ")");
 
     if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data))
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
+      LOGDEBUG ("_ds_delall_spamrecords: unable to run query: %s", query->data);
       buffer_destroy(query);
+      query = NULL;
+      ds_diction_close(ds_c);
       return EFAILURE;
     }
   }
 
+  ds_diction_close(ds_c);
   buffer_destroy (query);
+  query = NULL;
   return 0;
 }
 
@@ -2151,13 +2458,14 @@ agent_pref_t _ds_pref_load(
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
-  char query[128];
+  char query[256];
   MYSQL_RES *result;
   MYSQL_ROW row;
   DSPAM_CTX *CTX;
   agent_pref_t PTX;
   agent_attrib_t pref;
   int uid, i = 0;
+  result = NULL;
 
   CTX = _mysql_drv_init_tools(home, config, dbt, DSM_TOOLS);
   if (CTX == NULL)
@@ -2178,7 +2486,7 @@ agent_pref_t _ds_pref_load(
       dspam_destroy(CTX);
       return NULL;
     } else {
-      uid = p->pw_uid;
+      uid = (int) p->pw_uid;
     }
   } else {
     uid = 0; /* Default Preferences */
@@ -2207,6 +2515,8 @@ agent_pref_t _ds_pref_load(
   if (PTX == NULL) {
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     dspam_destroy(CTX);
+    mysql_free_result(result);
+    result = NULL;
     return NULL;
   }
 
@@ -2216,6 +2526,7 @@ agent_pref_t _ds_pref_load(
   if (row == NULL) {
     dspam_destroy(CTX);
     mysql_free_result(result);
+    result = NULL;
     _ds_pref_free(PTX);
     free(PTX);
     return NULL;
@@ -2228,6 +2539,8 @@ agent_pref_t _ds_pref_load(
     pref = malloc(sizeof(struct _ds_agent_attribute));
     if (pref == NULL) {
       LOG(LOG_CRIT, ERR_MEM_ALLOC);
+      mysql_free_result(result);
+      result = NULL;
       dspam_destroy(CTX);
       return PTX;
     }
@@ -2242,6 +2555,7 @@ agent_pref_t _ds_pref_load(
   }
 
   mysql_free_result(result);
+  result = NULL;
   dspam_destroy(CTX);
   return PTX;
 }
@@ -2256,7 +2570,7 @@ int _ds_pref_set (
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
-  char query[128];
+  char query[256];
   DSPAM_CTX *CTX;
   int uid;
   char *m1, *m2;
@@ -2279,7 +2593,7 @@ int _ds_pref_set (
       dspam_destroy(CTX);
       return EUNKNOWN;
     } else {
-      uid = p->pw_uid;
+      uid = (int) p->pw_uid;
     }
   } else {
     uid = 0; /* Default Preferences */
@@ -2292,7 +2606,9 @@ int _ds_pref_set (
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     dspam_destroy(CTX);
     free(m1);
+    m1 = NULL;
     free(m2);
+    m2 = NULL;
     return EUNKNOWN;
   }
 
@@ -2321,14 +2637,18 @@ int _ds_pref_set (
 
   dspam_destroy(CTX);
   free(m1);
+  m1 = NULL;
   free(m2);
+  m2 = NULL;
   return 0;
 
 FAIL:
   free(m1);
+  m1 = NULL;
   free(m2);
+  m2 = NULL;
   dspam_destroy(CTX);
-  LOGDEBUG("_ds_pref_set() failed");
+  LOGDEBUG("_ds_pref_set: failed");
   return EFAILURE;
 }
 
@@ -2341,7 +2661,7 @@ int _ds_pref_del (
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
-  char query[128];
+  char query[256];
   DSPAM_CTX *CTX;
   int uid;
   char *m1;
@@ -2364,7 +2684,7 @@ int _ds_pref_del (
       dspam_destroy(CTX);
       return EUNKNOWN;
     } else {
-      uid = p->pw_uid;
+      uid = (int) p->pw_uid;
     }
   } else {
     uid = 0; /* Default Preferences */
@@ -2376,6 +2696,7 @@ int _ds_pref_del (
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     dspam_destroy(CTX);
     free(m1);
+    m1 = NULL;
     return EUNKNOWN;
   }
 
@@ -2393,12 +2714,14 @@ int _ds_pref_del (
 
   dspam_destroy(CTX);
   free(m1);
+  m1 = NULL;
   return 0;
 
 FAIL:
   free(m1);
+  m1 = NULL;
   dspam_destroy(CTX);
-  LOGDEBUG("_ds_pref_del() failed");
+  LOGDEBUG("_ds_pref_del: failed");
   return EFAILURE;
 
 }
@@ -2430,6 +2753,7 @@ int _mysql_drv_set_attributes(DSPAM_CTX *CTX, config_t config) {
 
             ret += dspam_addattribute(CTX, x, t->value);
             free(x);
+            x = NULL;
           }
         }
       }
@@ -2508,6 +2832,11 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
     snprintf(attrib, sizeof(attrib), "%sPort", prefix);
     if (_ds_read_attribute(CTX->config->attributes, attrib))
       port = atoi(_ds_read_attribute(CTX->config->attributes, attrib));
+      if (port == INT_MAX && errno == ERANGE) {
+        LOGDEBUG("_mysql_drv_connect: failed converting %s to port", _ds_read_attribute(CTX->config->attributes, attrib));
+        goto FAILURE;
+      }
+    }
     else
       port = 0;
 
@@ -2555,7 +2884,7 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
     file = fopen (filename, "r");
     if (file == NULL)
     {
-      LOG (LOG_WARNING, "unable to locate mysql configuration");
+      LOG (LOG_WARNING, "_mysql_drv_connect: unable to locate mysql configuration");
       goto FAILURE;
     }
 
@@ -2566,8 +2895,13 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
       chomp (buffer);
       if (!i)
         strlcpy (hostname, buffer, sizeof (hostname));
-      else if (i == 1)
+      else if (i == 1) {
         port = atoi (buffer);
+        if (port == INT_MAX && errno == ERANGE) {
+          LOGDEBUG("_mysql_drv_connect: failed converting %s to port", buffer);
+          goto FAILURE;
+        }
+      }
       else if (i == 2)
         strlcpy (user, buffer, sizeof (user));
       else if (i == 3)

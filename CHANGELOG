@@ -1,6 +1,15 @@
 Version 3.9.0
 -------------
 
+[20090523:1440] sbajic: MySQL driver changes
+
+* Setting all statistical counters to be unsigned
+* Fixing memory leaks
+* Enhancing speed for MySQL (especially for >= 4.1)
+* Honor MySQL 'max_allowed_packet' setting
+* Reduce memory footprint
+* Updating MySQL database schema
+
 [20090523:0400] sbajic: MySQL driver changes
 
 Adding more debug output (in case of errors) for the MySQL driver
