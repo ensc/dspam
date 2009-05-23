@@ -1,9 +1,43 @@
 Follow the steps sequentially from the base version you are running up to
 the top.
 
-UPGRADING FROM 3.8.0
+UPGRADING FROM 3.8
+------------------
 
-No changes to the interface were made from 3.8.0 to 3.9.0.
+1. Ensure MySQL is using the new database schema. The following clauses 
+   should be executed for upgrading pre-3.9.0 DSPAM MySQL schema to the 
+   3.9.0 schema:
+     ALTER TABLE `dspam_signature_data`
+       CHANGE `uid` `uid` MEDIUMINT UNSIGNED NOT NULL,
+       CHANGE `data` `data` LONGBLOB NOT NULL,
+       CHANGE `length` `length` INT UNSIGNED NOT NULL;
+     ALTER TABLE `dspam_stats`
+       CHANGE `uid` `uid` MEDIUMINT UNSIGNED NOT NULL,
+       CHANGE `spam_learned` `spam_learned` BIGINT UNSIGNED NOT NULL,
+       CHANGE `innocent_learned` `innocent_learned` BIGINT UNSIGNED NOT NULL,
+       CHANGE `spam_misclassified` `spam_misclassified` BIGINT UNSIGNED NOT NULL,
+       CHANGE `innocent_misclassified` `innocent_misclassified` BIGINT UNSIGNED NOT NULL,
+       CHANGE `spam_corpusfed` `spam_corpusfed` BIGINT UNSIGNED NOT NULL,
+       CHANGE `innocent_corpusfed` `innocent_corpusfed` BIGINT UNSIGNED NOT NULL,
+       CHANGE `spam_classified` `spam_classified` BIGINT UNSIGNED NOT NULL,
+       CHANGE `innocent_classified` `innocent_classified` BIGINT UNSIGNED NOT NULL;
+     ALTER TABLE `dspam_token_data`
+       CHANGE `uid` `uid` MEDIUMINT UNSIGNED NOT NULL,
+       CHANGE `spam_hits` `spam_hits` BIGINT UNSIGNED NOT NULL,
+       CHANGE `innocent_hits` `innocent_hits` BIGINT UNSIGNED NOT NULL;
+
+   If you are using preference extension with DSPAM, then you should execute 
+   the following clause for upgrading pre-3.9.0 DSPAM preference MySQL schema
+   to the 3.9.0 schema:
+     ALTER TABLE `dspam_preferences` 
+       CHANGE `uid` `uid` MEDIUMINT UNSIGNED NOT NULL;
+
+   If you are using virtual users in DSPAM, then you should execute the 
+   following clause for upgrading pre-3.9.0 DSPAM preference MySQL schema
+   to the 3.9.0 schema:
+     ALTER TABLE `dspam_virtual_uids`
+       CHANGE `uid` `uid` MEDIUMINT UNSIGNED NOT NULL;
+
 
 UPGRADING FROM 3.6
 ------------------
@@ -30,6 +64,9 @@ UPGRADING FROM 3.6
    ProcessorURLContext has been added to toggle whether URL specific tokens
    are created in the tokenizer process. The "on" value is default for previous
    versions of DSPAM.
+
+6. Follow steps in "UPGRADING FROM 3.8".
+
 
 UPGRADING FROM 3.4
 ------------------
@@ -68,3 +105,5 @@ Follow all of the steps above, and the following steps:
    NOTE: Berkeley DB drivers (libdb3_drv, libdb4_drv) are deprecated and have
          been removed from the build. You will need to select an alternative
          storage driver in order to upgrade.
+
+6. Follow steps in "UPGRADING FROM 3.6".
