@@ -455,14 +455,14 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
   if (result)
   {
     snprintf (query, sizeof (query),
-              "update dspam_stats set spam_learned = spam_learned %s %lu, "
-              "innocent_learned = innocent_learned %s %lu, "
-              "spam_misclassified = spam_misclassified %s %lu, "
-              "innocent_misclassified = innocent_misclassified %s %lu, "
-              "spam_corpusfed = spam_corpusfed %s %lu, "
-              "innocent_corpusfed = innocent_corpusfed %s %lu, "
-              "spam_classified = spam_classified %s %lu, "
-              "innocent_classified = innocent_classified %s %lu "
+              "update dspam_stats set spam_learned = spam_learned %s %d, "
+              "innocent_learned = innocent_learned %s %d, "
+              "spam_misclassified = spam_misclassified %s %d, "
+              "innocent_misclassified = innocent_misclassified %s %d, "
+              "spam_corpusfed = spam_corpusfed %s %d, "
+              "innocent_corpusfed = innocent_corpusfed %s %d, "
+              "spam_classified = spam_classified %s %d, "
+              "innocent_classified = innocent_classified %s %d "
               "where uid = %d",
               (CTX->totals.spam_learned >
                s->control_totals.spam_learned) ? "+" : "-",
@@ -781,8 +781,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_diction_getstat(diction, s->control_token, &control);
   snprintf (scratch, sizeof (scratch),
             "update dspam_token_data set last_hit = current_date(), "
-            "spam_hits = greatest(0, spam_hits %s %lu), "
-            "innocent_hits = greatest(0, innocent_hits %s %lu) "
+            "spam_hits = greatest(0, spam_hits %s %d), "
+            "innocent_hits = greatest(0, innocent_hits %s %d) "
             "where uid = %d and token in(",
             (control.spam_hits > s->control_sh) ? "+" : "-",
             abs (control.spam_hits - s->control_sh),
@@ -1453,7 +1453,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EUNKNOWN;
   }
 
-  mem = calloc(1, (SIG->length*2)+1));
+  mem = calloc(1, (SIG->length*2)+1);
   if (mem == NULL)
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
