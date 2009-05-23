@@ -914,8 +914,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   {
      snprintf (scratch, sizeof (scratch),
             " ON DUPLICATE KEY UPDATE last_hit = current_date(), "
-            "spam_hits = greatest(0, spam_hits %s %lu), "
-            "innocent_hits = greatest(0, innocent_hits %s %lu) ",
+            "spam_hits = greatest(0, spam_hits %s %d), "
+            "innocent_hits = greatest(0, innocent_hits %s %d) ",
             (control.spam_hits > s->control_sh) ? "+" : "-",
             abs (control.spam_hits - s->control_sh) > 0 ? 1 : 0,
             (control.innocent_hits > s->control_ih) ? "+" : "-",
