@@ -206,7 +206,7 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
     p = _mysql_drv_getpwnam (CTX, CTX->group);
     if (p == NULL)
     {
-      LOGDEBUG ("_ds_getall_spamtotals: unable to _mysql_drv_getpwnam(%s)",
+      LOGDEBUG ("_mysql_drv_get_spamtotals: unable to _mysql_drv_getpwnam(%s)",
                 CTX->group);
       return EINVAL;
     }
@@ -223,12 +223,13 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
+    LOGDEBUG ("_mysql_drv_get_spamtotals: unable to run query: %s", query);
     return EFAILURE;
   }
 
   result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL) {
-    LOGDEBUG("mysql_use_result() failed in _ds_get_spamtotals()");
+    LOGDEBUG("_mysql_drv_get_spamtotals: failed mysql_use_result()");
     return EFAILURE;
   }
 
@@ -259,8 +260,8 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
         group.spam_classified      = strtol (row[7], NULL, 0);
         group.innocent_classified  = strtol (row[8], NULL, 0);
       } else {
-      group.spam_classified = 0;
-          group.innocent_classified = 0;
+        group.spam_classified = 0;
+        group.innocent_classified = 0;
       }
     }
   }
@@ -416,6 +417,7 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
     if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
+      LOGDEBUG ("_mysql_drv_get_spamtotals: unable to run query: %s", query);
       if (CTX->flags & DSF_MERGED)
         memcpy(&CTX->totals, &user, sizeof(struct _ds_spam_totals));
       return EFAILURE;
@@ -759,6 +761,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data))
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
+      LOGDEBUG ("_ds_setall_spamrecords: unable to run query: %s", query->data);
       buffer_destroy(query);
       return EFAILURE;
     }
@@ -780,6 +783,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     if (MYSQL_RUN_QUERY (s->dbt->dbh_write, insert->data))
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), insert->data);
+      LOGDEBUG ("_ds_setall_spamrecords: unable to run query: %s", insert->data);
       buffer_destroy(insert);
       return EFAILURE;
     }
@@ -841,12 +845,13 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
+    LOGDEBUG ("_ds_get_spamrecord: unable to run query: %s", query);
     return EFAILURE;
   }
 
   result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL) {
-    LOGDEBUG("mysql_use_result() failed in _ds_get_spamrecord()");
+    LOGDEBUG("_ds_get_spamrecord: failed mysql_use_result()");
     return EFAILURE;
   }
 
@@ -922,6 +927,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
+      LOGDEBUG ("_ds_set_spamrecord: unable to run query: %s", query);
       return EFAILURE;
     }
   }
@@ -947,8 +953,11 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   }
 
   if (dbt) {
-    if (mysql_ping(dbt->dbh_read))
-      return EFAILURE;
+    if (dbt->dbh_read)
+      if (mysql_ping(dbt->dbh_read)) {
+        LOGDEBUG ("_ds_init_storage: MySQL server not responding to mysql_ping()");
+        return EFAILURE;
+      }
   }
 
   s = calloc (1, sizeof (struct _mysql_drv_storage));
@@ -985,10 +994,10 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   /* get spam totals on successful init */
   if (CTX->username != NULL)
   {
-      if (_mysql_drv_get_spamtotals (CTX))
-      {
-        LOGDEBUG ("unable to load totals.  using zero values.");
-      }
+    if (_mysql_drv_get_spamtotals (CTX))
+    {
+      LOGDEBUG ("_ds_init_storage: unable to load totals. Using zero values.");
+    }
   }
   else
   {
@@ -1114,7 +1123,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     sig = strdup(signature);
     u = strchr(sig, ',');
     if (!u) {
-      LOGDEBUG("unable to locate uid in signature");
+      LOGDEBUG("_ds_get_signature: unable to locate uid in signature");
       return EFAILURE;
     }
     u[0] = 0;
@@ -1126,7 +1135,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
     p = _mysql_drv_getpwuid (CTX, uid);
     if (p == NULL) {
-      LOG(LOG_CRIT, "_ds_get_signature(): _mysql_drv_getpwuid(%d) failed: aborting", uid);
+      LOG(LOG_CRIT, "_ds_get_signature: _mysql_drv_getpwuid(%d) failed: aborting", uid);
       return EFAILURE;
     }
 
@@ -1158,28 +1167,29 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   if (mysql_real_query (dbh, query, strlen (query)))
   {
     _mysql_drv_query_error (mysql_error (dbh), query);
+    LOGDEBUG ("_ds_get_signature: unable to run query: %s", query);
     return EFAILURE;
   }
 
   result = mysql_use_result (dbh);
   if (result == NULL) {
-    LOGDEBUG("mysql_use_result() failed in _ds_get_signature");
+    LOGDEBUG("_ds_get_signature: failed mysql_use_result()");
     return EFAILURE;
   }
 
   row = mysql_fetch_row (result);
   if (row == NULL)
   {
+    LOGDEBUG("_ds_get_signature: mysql_fetch_row() failed");
     mysql_free_result (result);
-    LOGDEBUG("mysql_fetch_row() failed in _ds_get_signature");
     return EFAILURE;
   }
 
   lengths = mysql_fetch_lengths (result);
   if (lengths == NULL || lengths[0] == 0)
   {
+    LOGDEBUG("_ds_get_signature: mysql_fetch_lengths() failed");
     mysql_free_result (result);
-    LOGDEBUG("mysql_fetch_lengths() failed in _ds_get_signature");
     return EFAILURE;
   }
 
@@ -1214,7 +1224,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   if (s->dbt == NULL)
   {
-    LOGDEBUG ("_ds_set_signature; invalid database handle (NULL)");
+    LOGDEBUG ("_ds_set_signature: invalid database handle (NULL)");
     return EINVAL;
   }
 
@@ -1260,6 +1270,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   if (mysql_real_query (s->dbt->dbh_write, query->data, query->used))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
+    LOGDEBUG ("_ds_set_signature: unable to run query: %s", query->data);
     buffer_destroy(query);
     free(mem);
     return EFAILURE;
@@ -1306,6 +1317,7 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
+    LOGDEBUG ("_ds_set_signature: unable to run query: %s", query);
     return EFAILURE;
   }
 
@@ -1338,7 +1350,7 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
 
   if (p == NULL)
   {
-    LOGDEBUG ("_ds_verisy_signature: unable to _mysql_drv_getpwnam(%s)",
+    LOGDEBUG ("_ds_verify_signature: unable to _mysql_drv_getpwnam(%s)",
               name);
     return EINVAL;
   }
@@ -1350,6 +1362,7 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
+    LOGDEBUG ("_ds_verify_signature: unable to run query: %s", query);
     return EFAILURE;
   }
 
@@ -1414,6 +1427,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
+      LOGDEBUG ("_ds_get_nextuser: unable to run query: %s", query);
       return NULL;
     }
 
@@ -1494,6 +1508,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
+      LOGDEBUG ("_ds_get_nexttoken: unable to run query: %s", query);
       free(st);
       return NULL;
     }
@@ -1570,6 +1585,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     if (mysql_real_query (s->dbt->dbh_read, query, strlen (query)))
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
+      LOGDEBUG ("_ds_get_nextsignature: unable to run query: %s", query);
       free(st);
       return NULL;
     }
@@ -1710,6 +1726,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
+    LOGDEBUG ("_mysql_drv_getpwnam: unable to run query: %s", query);
     return NULL;
   }
 
@@ -1833,6 +1850,7 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
+    LOGDEBUG ("_mysql_drv_getpwuid: unable to run query: %s", query);
     return NULL;
   }
 
@@ -1935,6 +1953,7 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
+    LOGDEBUG ("_mysql_drv_setpwnam: unable to run query: %s", query);
     return NULL;
   }
 
@@ -1953,7 +1972,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
 
   if (s->dbt == NULL)
   {
-    LOGDEBUG ("_ds_delete_signature: invalid database handle (NULL)");
+    LOGDEBUG ("_ds_del_spamrecord: invalid database handle (NULL)");
     return EINVAL;
   }
 
@@ -1967,7 +1986,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
 
   if (p == NULL)
   {
-    LOGDEBUG ("_ds_delete_token: unable to _mysql_drv_getpwnam(%s)",
+    LOGDEBUG ("_ds_del_spamrecord: unable to _mysql_drv_getpwnam(%s)",
               name);
     return EINVAL;
   }
@@ -1983,6 +2002,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
+    LOGDEBUG ("_ds_del_spamrecord: unable to run query: %s", query);
     return EFAILURE;
   }
 
@@ -2056,6 +2076,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data))
       {
         _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
+        LOGDEBUG ("_ds_delall_spamrecords: unable to run query: %s", query->data);
         buffer_destroy(query);
         return EFAILURE;
       }
@@ -2141,7 +2162,7 @@ agent_pref_t _ds_pref_load(
   CTX = _mysql_drv_init_tools(home, config, dbt, DSM_TOOLS);
   if (CTX == NULL)
   {
-    LOG (LOG_WARNING, "unable to initialize tools context");
+    LOG (LOG_WARNING, "_ds_pref_load: unable to initialize tools context");
     return NULL;
   }
 
@@ -2171,6 +2192,7 @@ agent_pref_t _ds_pref_load(
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
+    LOGDEBUG ("_ds_pref_load: unable to run query: %s", query);
     dspam_destroy(CTX);
     return NULL;
   }
@@ -2241,7 +2263,7 @@ int _ds_pref_set (
 
   CTX = _mysql_drv_init_tools(home, config, dbt, DSM_PROCESS);
   if (CTX == NULL) {
-    LOG (LOG_WARNING, "unable to initialize tools context");
+    LOG (LOG_WARNING, "_ds_pref_set: unable to initialize tools context");
     return EUNKNOWN;
   }
 
@@ -2283,6 +2305,7 @@ int _ds_pref_set (
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
+    LOGDEBUG ("_ds_pref_set: unable to run query: %s", query);
     goto FAIL;
   }
 
@@ -2292,6 +2315,7 @@ int _ds_pref_set (
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
+    LOGDEBUG ("_ds_pref_set: unable to run query: %s", query);
     goto FAIL;
   }
 
@@ -2324,7 +2348,7 @@ int _ds_pref_del (
 
   CTX = _mysql_drv_init_tools(home, config, dbt, DSM_TOOLS);
   if (CTX == NULL) {
-    LOG (LOG_WARNING, "unable to initialize tools context");
+    LOG (LOG_WARNING, "_ds_pref_del: unable to initialize tools context");
     return EUNKNOWN;
   }
 
@@ -2363,6 +2387,7 @@ int _ds_pref_del (
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
+    LOGDEBUG ("_ds_pref_del: unable to run query: %s", query);
     goto FAIL;
   }
 
