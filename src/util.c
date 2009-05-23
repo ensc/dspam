@@ -530,38 +530,14 @@ _ds_getcrc64 (const char *s)
 int _ds_compute_weight(const char *token) {
   int complexity = _ds_compute_complexity(token);
   int sparse = _ds_compute_sparse(token);
+  int weight = 0;
 
-  if (complexity == 1 && sparse == 0) /* the */
-    return 1;
-  if (complexity == 2 && sparse == 0) /* the quick */
-    return 4;
-
-  if (complexity == 3) { 
-    if (sparse == 1) /*		the * brown			*/
-      return 4;
-
-    if (sparse == 0) /*		the quick brown			*/
-      return 16;
-  }
-
-  if (complexity == 4) {
-    if (sparse == 2) /* 	the * * fox			*/
-      return 4;
-    if (sparse == 1) /* 	the quick * fox			*/
-      return 16;
-    if (sparse == 0) /*		the quick brown fox		*/
-      return 64;
-  }
-
-  if (complexity == 5) {
-    if (sparse == 3) /*		the * * * jumped		*/
-      return 4;
-    if (sparse == 2) /*		the quick * * jumped		*/
-      return 16;
-    if (sparse == 1) /*		the quick brown * jumped	*/
-      return 64;
-    if (sparse == 0) /*		the quick brown fox jumped	*/
-      return 256;
+  if (complexity >= 1 && complexity <= SPARSE_WINDOW_SIZE) {
+    weight = (int)pow(2.0,(2*(complexity-sparse-1)));
+    if (weight < 1)
+      return 1;
+    else
+      return weight;
   }
 
   LOG(LOG_WARNING, "no rule to compute markovian weight for '%s'; complexity: %d; sparse: %d", token, complexity, sparse);

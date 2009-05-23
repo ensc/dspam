@@ -1,6 +1,10 @@
 Version 3.9.0
 -------------
 
+[20090523:1535] sbajic: Simplify Markovian weight calculation
+
+Calculate Markovian weight instead of using a bunch of if conditions
+
 [20090523:1530] sbajic: Improve buffer management
 
 Speedup/Improve buffer management
