@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.70 2008/05/06 18:26:07 mjohnson Exp $
+dnl $Id: configure.ac,v 1.71 2009/05/23 16:17:13 sbajic Exp $
 dnl
 dnl    configure.ac
 dnl    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
@@ -8,8 +8,8 @@ dnl    ltmain.sh (GNU libtool) 1.5.6
 dnl    automake (GNU automake) 1.9.2
 dnl
 AC_PREREQ(2.59)
-AC_COPYRIGHT([Copyright (C) 2002-2007 Sensory Networks, Inc.])
-AC_INIT([dspam],[CVS],[dspam-dev@nuclearelephant.com])
+AC_COPYRIGHT([Copyright (C) 2002-2009 DSPAM Project])
+AC_INIT([dspam],[GIT],[dspam-devel@lists.sourceforge.net])
 AC_CONFIG_SRCDIR(./src)
 
 AM_INIT_AUTOMAKE([1.7 foreign])
