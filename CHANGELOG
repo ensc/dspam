@@ -1,6 +1,10 @@
 Version 3.9.0
 -------------
 
+[20090523:0300] sbajic: MySQL driver changes
+
+Added support for MySQL >= 5.0.3 client libraries
+
 [20090523:0200] sbajic: Closing Bug-ID: 2527286 and 2527289
 
 * Added ability to swith RBLInoculate as a user preference.
