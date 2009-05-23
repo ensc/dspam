@@ -67,14 +67,21 @@
 int
 dspam_init_driver (DRIVER_CTX *DTX) 
 {
-#if defined(MYSQL4_INITIALIZATION) && MYSQL_VERSION_ID >= 40001
+#if defined(MYSQL4_INITIALIZATION) && defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40001
   const char *server_default_groups[]=
   { "server", "embedded", "mysql_SERVER", 0 };
 
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 50003
+  if (mysql_library_init(0, NULL, (char**) server_default_groups)) {
+    LOGDEBUG("dspam_init_driver() failed");
+    return EFAILURE;
+  }
+#else
   if (mysql_server_init(0, NULL, (char**) server_default_groups)) {
     LOGDEBUG("dspam_init_driver() failed");
     return EFAILURE;
   }
+#endif
 #endif
 
   if (DTX == NULL)
@@ -139,8 +146,12 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
     }
   }
 
-#if defined(MYSQL4_INITIALIZATION) && MYSQL_VERSION_ID >= 40001
+#if defined(MYSQL4_INITIALIZATION) && defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40001
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 50003
+  mysql_library_end();
+#else
   mysql_server_end();
+#endif
 #endif
   return 0;
 }
@@ -576,7 +587,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   struct passwd *p;
   char *name;
   int update_any = 0;
-#if MYSQL_VERSION_ID >= 40100
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
   buffer *insert;
   int insert_any = 0;
 #endif
@@ -614,7 +625,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EUNKNOWN;
   }
 
-#if MYSQL_VERSION_ID >= 40100
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
   insert = buffer_create(NULL);
   if (insert == NULL)
   {
@@ -637,7 +648,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   buffer_cat (query, scratch);
 
-#if MYSQL_VERSION_ID >= 40100
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
   buffer_copy (insert, "insert into dspam_token_data(uid, token, spam_hits, "
                        "innocent_hits, last_hit) values");
 #endif
@@ -683,7 +694,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     if (!(stat.status & TST_DISK))
     {
       char ins[1024];
-#if MYSQL_VERSION_ID >= 40100
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
       snprintf (ins, sizeof (ins),
                 "%s(%d, '%llu', %d, %d, current_date())",
                  (insert_any) ? ", " : "",
@@ -753,7 +764,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     }
   }
 
-#if MYSQL_VERSION_ID >= 40100
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
   if (insert_any)
   {
      snprintf (scratch, sizeof (scratch),
@@ -2557,7 +2568,7 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
     goto FAILURE;
   }
 
-#if MYSQL_VERSION_ID >= 50013
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 50013
   /* enable automatic reconnect for MySQL >= 5.0.13 */
   snprintf(attrib, sizeof(attrib), "%sReconnect", prefix);
   if (_ds_match_attribute(CTX->config->attributes, attrib, "true"))
