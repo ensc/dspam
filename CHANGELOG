@@ -1,6 +1,10 @@
 Version 3.9.0
 -------------
 
+[20090523:0400] sbajic: MySQL driver changes
+
+Adding more debug output (in case of errors) for the MySQL driver
+
 [20090523:0300] sbajic: MySQL driver changes
 
 Added support for MySQL >= 5.0.3 client libraries
