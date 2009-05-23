@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.63 2007/12/07 00:11:51 mjohnson Exp $ */
+/* $Id: client.c,v 1.64 2008/05/23 19:41:41 sbajic Exp $ */
 
 /*
  DSPAM
@@ -197,8 +197,6 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
       if (line) chomp(line);
     }
     free(line);
-    if (line == NULL)
-      goto BAIL;
   } else {
     for(i=0;i<ATX->users->items;i++) {
       char *input = client_getline(&TTX, 300);

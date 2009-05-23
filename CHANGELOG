@@ -1,6 +1,10 @@
 Version 3.9.0
 -------------
 
+[20090523:1940] sbajic: Improper client exit
+
+Fix improper exit in client code.
+
 [20090523:1920] sbajic: Gentoo patch 30 (b.g.o id #231175)
 
 Cut the domain (including the at sign) from recipients.
