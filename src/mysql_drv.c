@@ -65,7 +65,7 @@
 #define MYSQL_RUN_QUERY(A, B) mysql_query(A, B)
 
 int
-dspam_init_driver (DRIVER_CTX *DTX) 
+dspam_init_driver (DRIVER_CTX *DTX)
 {
 #if defined(MYSQL4_INITIALIZATION) && defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40001
   const char *server_default_groups[]=
@@ -96,7 +96,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
       connection_cache = atoi(_ds_read_attribute(DTX->CTX->config->attributes, "MySQLConnectionCache"));
 
     DTX->connection_cache = connection_cache;
-    DTX->connections = calloc(1, sizeof(struct _ds_drv_connection *)*connection_cache); 
+    DTX->connections = calloc(1, sizeof(struct _ds_drv_connection *)*connection_cache);
     if (DTX->connections == NULL) {
       LOG(LOG_CRIT, ERR_MEM_ALLOC);
       return EUNKNOWN;
@@ -132,7 +132,7 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
             if (dbt->dbh_write != dbt->dbh_read)
               mysql_close(dbt->dbh_write);
           }
-             
+
 #ifdef DAEMON
           LOGDEBUG("destroying lock %d", i);
           pthread_mutex_destroy(&DTX->connections[i]->lock);
@@ -201,7 +201,7 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
 
     uid = p->pw_uid;
   }
-                                                                                
+
   if (CTX->group != NULL && CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
     if (p == NULL)
@@ -270,11 +270,11 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
   if (CTX->flags & DSF_MERGED) {
     memcpy(&s->merged_totals, &group, sizeof(struct _ds_spam_totals));
     memcpy(&s->control_totals, &user, sizeof(struct _ds_spam_totals));
-    CTX->totals.spam_learned 
+    CTX->totals.spam_learned
       = user.spam_learned + group.spam_learned;
-    CTX->totals.innocent_learned 
+    CTX->totals.innocent_learned
       = user.innocent_learned + group.innocent_learned;
-    CTX->totals.spam_misclassified 
+    CTX->totals.spam_misclassified
       = user.spam_misclassified + group.spam_misclassified;
     CTX->totals.innocent_misclassified
       = user.innocent_misclassified + group.innocent_misclassified;
@@ -467,7 +467,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
   uid = p->pw_uid;
-                                                                                
+
   if (CTX->group != NULL && CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->group);
     if (p == NULL)
@@ -529,7 +529,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   _mysql_drv_query_error ("VERBOSE DEBUG (INFO ONLY - NOT AN ERROR)", query->data);
 #endif
 
-  if (!get_one) 
+  if (!get_one)
     return 0;
 
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query->data))
@@ -542,7 +542,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL) {
     buffer_destroy(query);
-    LOGDEBUG("mysql_use_result() failed in _ds_getall_spamrecords()"); 
+    LOGDEBUG("mysql_use_result() failed in _ds_getall_spamrecords()");
     return EFAILURE;
   }
 
@@ -554,7 +554,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     stat.innocent_hits = strtol (row[3], NULL, 0);
     stat.status = 0;
 
-    if (rid == uid) 
+    if (rid == uid)
       stat.status |= TST_DISK;
 
     ds_diction_addstat(diction, token, &stat);
@@ -598,8 +598,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EINVAL;
   }
 
-  if (CTX->operating_mode == DSM_CLASSIFY && 
-      (CTX->training_mode != DST_TOE || 
+  if (CTX->operating_mode == DSM_CLASSIFY &&
+      (CTX->training_mode != DST_TOE ||
         (diction->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
     return 0;
 
@@ -654,7 +654,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 #endif
 
   /*
-   *  Add each token in the diction to either an update or an insert queue 
+   *  Add each token in the diction to either an update or an insert queue
    */
 
   ds_c = ds_diction_cursor(diction);
@@ -669,7 +669,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
     /* Don't write lexical tokens if we're in TOE mode classifying */
 
-    if (CTX->training_mode == DST_TOE            && 
+    if (CTX->training_mode == DST_TOE            &&
         CTX->operating_mode == DSM_CLASSIFY      &&
         ds_term->key != diction->whitelist_token &&
         (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
@@ -677,7 +677,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       ds_term = ds_diction_next(ds_c);
       continue;
     }
-      
+
     ds_diction_getstat(diction, ds_term->key, &stat);
 
     /* Changed tokens are marked as "dirty" by libdspam */
@@ -730,7 +730,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       update_any = 1;
       use_comma = 1;
     }
- 
+
     ds_term->s.status |= TST_DISK;
 
     ds_term = ds_diction_next(ds_c);
@@ -750,7 +750,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   buffer_cat (query, ")");
 
   LOGDEBUG("Control: [%ld %ld] [%ld %ld] Delta: [%ld %ld]",
-    s->control_sh, s->control_ih, 
+    s->control_sh, s->control_ih,
     control.spam_hits, control.innocent_hits,
     control.spam_hits - s->control_sh, control.innocent_hits - s->control_ih);
 
@@ -846,7 +846,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
 
   result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL) {
-    LOGDEBUG("mysql_use_result() failed in _ds_get_spamrecord()"); 
+    LOGDEBUG("mysql_use_result() failed in _ds_get_spamrecord()");
     return EFAILURE;
   }
 
@@ -1059,7 +1059,7 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
       LOG(LOG_ERR, "Unable to determine UID for %s", CTX->username);
       return EINVAL;
     }
-    snprintf (session, sizeof (session), "%d,%8lx%d", (int) p->pw_uid, 
+    snprintf (session, sizeof (session), "%d,%8lx%d", (int) p->pw_uid,
               (long) time(NULL), pid);
   }
   else
@@ -1154,7 +1154,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   snprintf (query, sizeof (query),
           "select data, length from dspam_signature_data "
           "where uid = %d and signature = \"%s\"", uid, signature);
-  
+
   if (mysql_real_query (dbh, query, strlen (query)))
   {
     _mysql_drv_query_error (mysql_error (dbh), query);
@@ -1389,24 +1389,24 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   }
 
 #ifdef VIRTUAL_USERS
-  if ((virtual_table 
+  if ((virtual_table
     = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
   { virtual_table = "dspam_virtual_uids"; }
 
-  if ((virtual_uid 
+  if ((virtual_uid
     = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
   { virtual_uid = "uid"; }
 
-  if ((virtual_username = _ds_read_attribute(CTX->config->attributes, 
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
     "MySQLVirtualUsernameField")) ==NULL)
-  { virtual_username = "username"; } 
+  { virtual_username = "username"; }
 #endif
 
   if (s->iter_user == NULL)
   {
 #ifdef VIRTUAL_USERS
-    snprintf(query, sizeof(query), "select distinct %s from %s", 
-      virtual_username, 
+    snprintf(query, sizeof(query), "select distinct %s from %s",
+      virtual_username,
       virtual_table);
 #else
     strcpy (query, "select distinct uid from dspam_stats");
@@ -1576,7 +1576,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
 
     s->iter_sig = mysql_use_result (s->dbt->dbh_read);
     if (s->iter_sig == NULL) {
-      free(st); 
+      free(st);
       return NULL;
     }
   }
@@ -1648,7 +1648,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 #else
   q = getpwnam (name);
 #endif
-                                                                                
+
   if (q == NULL)
     return NULL;
   s->p_getpwnam.pw_uid = q->pw_uid;
@@ -1702,7 +1702,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
                             strlen(name));
 
   snprintf (query, sizeof (query),
-            "select %s from %s where %s = '%s'", 
+            "select %s from %s where %s = '%s'",
             virtual_uid, virtual_table, virtual_username, sql_username);
 
   free (sql_username);
@@ -1789,7 +1789,7 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   q = getpwuid (uid);
 #endif
 
-  if (q == NULL) 
+  if (q == NULL)
    return NULL;
 
   if (s->p_getpwuid.pw_name)
@@ -1827,7 +1827,7 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   }
 
   snprintf (query, sizeof (query),
-            "select %s from %s where %s = '%d'", 
+            "select %s from %s where %s = '%d'",
             virtual_username, virtual_table, virtual_uid, (int) uid);
 
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
@@ -1881,7 +1881,7 @@ _mysql_drv_query_error (const char *error, const char *query)
     return;
   }
 
-  fprintf (file, "[%s] %d: %s: %s\n", format_date_r(buf), (int) getpid (), 
+  fprintf (file, "[%s] %d: %s: %s\n", format_date_r(buf), (int) getpid (),
     error, query); fclose (file);
   return;
 }
@@ -1956,7 +1956,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
     LOGDEBUG ("_ds_delete_signature: invalid database handle (NULL)");
     return EINVAL;
   }
-                                                                                
+
   if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _mysql_drv_getpwnam (CTX, CTX->username);
     name = CTX->username;
@@ -1985,7 +1985,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     return EFAILURE;
   }
-                                                                                
+
   return 0;
 }
 
@@ -2049,7 +2049,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
     buffer_cat (query, scratch);
     ds_term = ds_diction_next(ds_c);
-   
+
     if (writes > 2500 || !ds_term) {
       buffer_cat (query, ")");
 
@@ -2061,8 +2061,8 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       }
       buffer_copy(query, queryhead);
       writes = 0;
-   
-    } else { 
+
+    } else {
       writes++;
       if (ds_term)
         buffer_cat (query, ",");
@@ -2089,7 +2089,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 DSPAM_CTX *_mysql_drv_init_tools(
  const char *home,
  config_t config,
- void *dbt, 
+ void *dbt,
  int mode)
 {
   DSPAM_CTX *CTX;
@@ -2124,7 +2124,7 @@ BAIL:
 
 agent_pref_t _ds_pref_load(
   config_t config,
-  const char *username, 
+  const char *username,
   const char *home,
   void *dbt)
 {
@@ -2132,7 +2132,7 @@ agent_pref_t _ds_pref_load(
   struct passwd *p;
   char query[128];
   MYSQL_RES *result;
-  MYSQL_ROW row; 
+  MYSQL_ROW row;
   DSPAM_CTX *CTX;
   agent_pref_t PTX;
   agent_attrib_t pref;
@@ -2183,7 +2183,7 @@ agent_pref_t _ds_pref_load(
 
   PTX = malloc(sizeof(agent_attrib_t )*(mysql_num_rows(result)+1));
   if (PTX == NULL) {
-    LOG(LOG_CRIT, ERR_MEM_ALLOC); 
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     dspam_destroy(CTX);
     return NULL;
   }
@@ -2209,7 +2209,7 @@ agent_pref_t _ds_pref_load(
       dspam_destroy(CTX);
       return PTX;
     }
-                                                                                
+
     pref->attribute = strdup(p);
     pref->value = strdup(q);
     PTX[i] = pref;
@@ -2226,11 +2226,11 @@ agent_pref_t _ds_pref_load(
 
 int _ds_pref_set (
  config_t config,
- const char *username, 
+ const char *username,
  const char *home,
  const char *preference,
  const char *value,
- void *dbt) 
+ void *dbt)
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
@@ -2244,18 +2244,18 @@ int _ds_pref_set (
     LOG (LOG_WARNING, "unable to initialize tools context");
     return EUNKNOWN;
   }
-                                                                                
+
   s = (struct _mysql_drv_storage *) CTX->storage;
-                                                                                
+
   if (username != NULL) {
     p = _mysql_drv_getpwnam (CTX, username);
-                                                                                
+
     if (p == NULL)
     {
       LOGDEBUG ("_ds_pref_set: unable to _mysql_drv_getpwnam(%s)",
               CTX->username);
       dspam_destroy(CTX);
-      return EUNKNOWN; 
+      return EUNKNOWN;
     } else {
       uid = p->pw_uid;
     }
@@ -2273,9 +2273,9 @@ int _ds_pref_set (
     free(m2);
     return EUNKNOWN;
   }
-                                                                                
-  mysql_real_escape_string (s->dbt->dbh_write, m1, preference, strlen(preference));   
-  mysql_real_escape_string (s->dbt->dbh_write, m2, value, strlen(value)); 
+
+  mysql_real_escape_string (s->dbt->dbh_write, m1, preference, strlen(preference));
+  mysql_real_escape_string (s->dbt->dbh_write, m2, value, strlen(value));
 
   snprintf(query, sizeof(query), "delete from dspam_preferences "
     "where uid = %d and preference = '%s'", uid, m1);
@@ -2321,7 +2321,7 @@ int _ds_pref_del (
   DSPAM_CTX *CTX;
   int uid;
   char *m1;
-                                                                                
+
   CTX = _mysql_drv_init_tools(home, config, dbt, DSM_TOOLS);
   if (CTX == NULL) {
     LOG (LOG_WARNING, "unable to initialize tools context");
@@ -2329,10 +2329,10 @@ int _ds_pref_del (
   }
 
   s = (struct _mysql_drv_storage *) CTX->storage;
-                                                                                
+
   if (username != NULL) {
     p = _mysql_drv_getpwnam (CTX, username);
-                                                                                
+
     if (p == NULL)
     {
       LOGDEBUG ("_ds_pref_del: unable to _mysql_drv_getpwnam(%s)",
@@ -2345,21 +2345,21 @@ int _ds_pref_del (
   } else {
     uid = 0; /* Default Preferences */
   }
-                                                                                
+
   m1 = calloc(1, strlen(preference)*2+1);
-  if (m1 == NULL) 
+  if (m1 == NULL)
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     dspam_destroy(CTX);
     free(m1);
     return EUNKNOWN;
   }
-                                                                                
+
   mysql_real_escape_string (s->dbt->dbh_write, m1, preference, strlen(preference));
 
   snprintf(query, sizeof(query), "delete from dspam_preferences "
     "where uid = %d and preference = '%s'", uid, m1);
-                                                                                
+
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
@@ -2369,7 +2369,7 @@ int _ds_pref_del (
   dspam_destroy(CTX);
   free(m1);
   return 0;
-                                                                                
+
 FAIL:
   free(m1);
   dspam_destroy(CTX);
@@ -2441,7 +2441,7 @@ void *_ds_connect (DSPAM_CTX *CTX)
 {
   _mysql_drv_dbh_t dbt = calloc(1, sizeof(struct _mysql_drv_dbh));
   dbt->dbh_read = _mysql_drv_connect(CTX, "MySQL");
-  if (!dbt->dbh_read) { 
+  if (!dbt->dbh_read) {
     free(dbt);
     return NULL;
   }
@@ -2452,7 +2452,7 @@ void *_ds_connect (DSPAM_CTX *CTX)
   return (void *) dbt;
 }
 
-MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix) 
+MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
 {
   MYSQL *dbh;
   FILE *file;
@@ -2466,7 +2466,7 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
   char *p;
   char attrib[128];
 
-  if (!prefix) 
+  if (!prefix)
     prefix = "MySQL";
 
   /* Read storage attributes */
@@ -2509,7 +2509,7 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
     snprintf(attrib, sizeof(attrib), "%sDb", prefix);
     if ((p = _ds_read_attribute(CTX->config->attributes, attrib)))
     {
-      strlcpy(db, p, sizeof(db)); 
+      strlcpy(db, p, sizeof(db));
       if (strlen(p) >= sizeof(db))
       {
         LOG(LOG_WARNING, "Truncating MySQLDb to %d characters.",
@@ -2533,9 +2533,9 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
       LOG (LOG_WARNING, "unable to locate mysql configuration");
       goto FAILURE;
     }
-  
+
     db[0] = 0;
-  
+
     while (fgets (buffer, sizeof (buffer), file) != NULL)
     {
       chomp (buffer);
@@ -2580,7 +2580,7 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
 
   if (hostname[0] == '/')
   {
-    if (!mysql_real_connect (dbh, NULL, user, password, db, 0, hostname, 
+    if (!mysql_real_connect (dbh, NULL, user, password, db, 0, hostname,
                         real_connect_flag))
     {
       LOG (LOG_WARNING, "%s", mysql_error (dbh));
