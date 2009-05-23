@@ -1924,6 +1924,18 @@ DATA
     Opts out of ClamAV virus scanning (if ClamAV is directly integrated with
     dspam via dspam.conf). (default:off)
 
+  ignoreRBLLookups { on | off }
+    Overrides the "Lookup" setting in dspam.conf, which lookups senders IP
+    addresses in a Realtime Blackhole List (RBL). (default:off)
+
+  RBLInoculate { on | off }
+    Overrides the "RBLInoculate" setting in dspam.conf, which inoculates mail
+    as spam if lookup result is positive. (default: depending on dspam.conf)
+
+    NOTE: This user preference has higher weight then the one set in dspam.conf.
+    If you don't set this user preference to on/off then whatever is set in
+    dspam.conf will be used for every user.
+
 2.6 FALLBACK DOMAINS
 
   Fallback domains allow you to default some or all users for a particular
