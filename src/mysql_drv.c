@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.79 2009/05/23 12:45:59 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.80 2009/05/23 22:41:19 sbajic Exp $ */
 
 /*
  DSPAM
@@ -221,7 +221,7 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
             "spam_misclassified, innocent_misclassified, "
             "spam_corpusfed, innocent_corpusfed, "
             "spam_classified, innocent_classified "
-            " from dspam_stats where in(%d,%d)",
+            " from dspam_stats where uid in(%d,%d)",
             (int) uid, (int) gid);
   else
     snprintf (query, sizeof (query),

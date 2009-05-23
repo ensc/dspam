@@ -1,6 +1,10 @@
 Version 3.9.0
 -------------
 
+[20090523:2240] sbajic: MySQL driver fixes
+
+Fixing typo in last MySQL patch
+
 [20090523:1940] sbajic: Improper client exit
 
 Fix improper exit in client code.
