@@ -839,7 +839,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       char ins[1024];
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
       snprintf (ins, sizeof (ins),
-                "%s(%d, '%llu', %lu, %lu, current_date())",
+                "%s(%d, '%llu', %d, %d, current_date())",
                  (insert_any) ? ", " : "",
                  (int) p->pw_uid,
                  ds_term->key,
@@ -851,7 +851,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 #else
       snprintf(ins, sizeof (ins),
                "insert into dspam_token_data(uid, token, spam_hits, "
-               "innocent_hits, last_hit) values(%d, '%llu', %lu, %lu, "
+               "innocent_hits, last_hit) values(%d, '%llu', %d, %d, "
                "current_date())",
                p->pw_uid,
                ds_term->key,
@@ -2830,7 +2830,7 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
     }
 
     snprintf(attrib, sizeof(attrib), "%sPort", prefix);
-    if (_ds_read_attribute(CTX->config->attributes, attrib))
+    if (_ds_read_attribute(CTX->config->attributes, attrib)) {
       port = atoi(_ds_read_attribute(CTX->config->attributes, attrib));
       if (port == INT_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_connect: failed converting %s to port", _ds_read_attribute(CTX->config->attributes, attrib));
