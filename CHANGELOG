@@ -1,6 +1,57 @@
 Version 3.9.0
 -------------
 
+[20090523:0200] sbajic: Closing Bug-ID: 2527286 and 2527289
+
+* Added ability to swith RBLInoculate as a user preference.
+* Added ability to ignore RBLLookups as a user preference.
+See ignoreRBLLookups and RBLLookups in README
+
+[20090523:0000] sbajic: Code cleanup / fixing memory leaks in libdspam
+
+* Fixing some memory leaks in libdspam.c
+* Cleaning up code in libdspam.c
+* Total Innocent and Total Spam set to be unsigned long instead of long
+* Fixing calculation for robinson to use unsigned long instead of signed int
+  for spam_hits + innocent_hits
+* Adding more verbose output in case of CTX errors
+
+[20090523:0000] sbajic: Fixing libdspam objects and structs
+
+Setting the 'length' of the DSPAM signature struct to be unsigned long. There
+is no need to have that value signed long.
+
+[20090523:0000] sbajic: Fixing memory leaks / enhancing stats output
+
+* Fixing a bunch of memory leaks in dspam.c
+* Fixing a bunch of memory leaks in tokenizer.c
+* Adding PPV (Positive predictive value) to the output of dspam_stats
+
+[20090522:2130] steeeeeveee: Closing Bug-ID: 2692425
+
+Blacklist if RBL lookup return in the 127.0.0.0/8 network
+
+[20090522:2100] steeeeeveee: Fixing output of syntax/switches for DSPAM
+
+* Added undocumented (but available) switches to DSPAM agent syntax output:
+    --debug
+    --mail-from=
+    --rcpt-to
+    --signature=
+    --help
+    --version
+
+* Added undocumented (but available) mode "unlearn" into the syntax output
+
+* Only "no" (noise), "wh" (whitelist) and "tb" (training buffer) are supported
+  features. The features "ch" (chain/chained) and "sbph" (Sparse Binary Polynomial
+  Hashing) where long time ago moved to tokenizers and are not any more available
+  as features.
+
+[20090522:2030] steeeeeveee: Fixing memory leaks
+
+Fixing a memory leak condition in libdspam.c
+
 [20080507:1500] mjohnson: Added external_lookup.* source files
 
 These files were missed in the previous round of CVS updates. 

@@ -38,6 +38,7 @@ by a team of people, including:
   Ion-Mihai Tetcu
   Paul Cockings
   Dov Zamir
+  Stevan Bajic
 
 TABLE OF CONTENTS
 
@@ -141,6 +142,7 @@ represented by a team of people, including:
   Ion-Mihai Tetcu
   Paul Cockings
   Dov Zamir
+  Stevan Bajic
 
 1.1 INSTALLATION
 
@@ -1239,33 +1241,33 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
       analyze a user's *.stats file and determine the best training mode
       for that user.
 
-  --feature=[noise,whitelist,tb=N]
+  --feature=[no,wh,tb=N]
   Specifies the features that should be activated for this filter instance.
   The following features may be used individually or combined using a comma
   as a delimiter:
 
-     noise:  Bayesian Noise Reduction (BNR).  Bayesian Noise Reduction kicks
-             in at 2500 innocent messages and provides an advanced progressive
-             noise logic to reduce Bayesian Noise (wordlist attacks) in
-             spams.  See http://bnr.nuclearelephant.com for more information.
-             BNR is not for everyone, and so users should try it out after 
-             they've trained to see if it helps improve accuracy.
+    no:  Bayesian Noise Reduction (BNR). Bayesian Noise Reduction kicks in
+         at 2500 innocent messages and provides an advanced progressive
+         noise logic to reduce Bayesian Noise (wordlist attacks) in
+         spams.  See http://bnr.nuclearelephant.com for more information.
+         BNR is not for everyone, and so users should try it out after 
+         they've trained to see if it helps improve accuracy.
 
-      tb=N:  Sets the training loop buffering level.
-             Training loop buffering is the amount of statistical sedation
-             performed to water down statistics and avoid false positives 
-             during the user's training loop.  The training 
-             buffer sets the buffer sensitivity, and should be a number
-             between 0 (no buffering whatsoever) to 10 (heavy buffering).  The 
-             default is 5, half of what previous versions of DSPAM used.  
-             To avoid dulling down statistics at all during the training loop, 
-             set this to 0. This feature should be disabled if you're not
-             paranoid about false positives, as it does increase the number
-             of spam misses significantly during training.
+  tb=N:  Sets the training loop buffering level.
+         Training loop buffering is the amount of statistical sedation
+         performed to water down statistics and avoid false positives 
+         during the user's training loop. The training  buffer sets the
+         buffer sensitivity, and should be a number between 0 (no buffering
+         whatsoever) to 10 (heavy buffering). The default is 5, half of
+         what previous versions of DSPAM used.
+         To avoid dulling down statistics at all during the training loop, 
+         set this to 0. This feature should be disabled if you're not
+         paranoid about false positives, as it does increase the number of
+        spam misses significantly during training.
 
- whitelist:  Automatic whitelisting.  DSPAM will keep track of the entire
-             "From:" line for each message received per user, and automatically
-             whitelist messages from senders with more than 10 innocent
+    wh:  Automatic whitelisting.  DSPAM will keep track of the entire
+         "From:" line for each message received per user, and automatically
+         whitelist messages from senders with more than 10 innocent
              messages and zero spams.  Once the user reports a spam from the
              sender, automatic whitelisting will automatically be deactivated
              for that sender.  Since DSPAM uses the entire "From:" line, and
