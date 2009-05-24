@@ -1,6 +1,13 @@
 Version 3.9.0
 -------------
 
+[20090524:2315] sbajic: Reverting back Markovian weight calculation
+
+Use again a bunch of "if" statements instead of calculating Markovian
+weight. It turns out that using "if" statements is way faster then
+calling the pow() function. Reordered the "if" statements in order to
+speed up weight calculation.
+
 [20090523:2240] sbajic: MySQL driver fixes
 
 Fixing typo in last MySQL patch

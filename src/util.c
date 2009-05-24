@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.22 2008/05/06 18:26:07 mjohnson Exp $ */
+/* $Id: util.c,v 1.23 2009/05/24 22:58:19 sbajic Exp $ */
 
 /*
  DSPAM
@@ -530,17 +530,67 @@ _ds_getcrc64 (const char *s)
 int _ds_compute_weight(const char *token) {
   int complexity = _ds_compute_complexity(token);
   int sparse = _ds_compute_sparse(token);
-  int weight = 0;
 
-  if (complexity >= 1 && complexity <= SPARSE_WINDOW_SIZE) {
-    weight = (int)pow(2.0,(2*(complexity-sparse-1)));
-    if (weight < 1)
-      return 1;
-    else
-      return weight;
+/*
+ * Mathematically correct algorithm (but slower):
+ *
+ * int weight = 0;
+ *
+ * if (complexity >= 1 && complexity <= SPARSE_WINDOW_SIZE) {
+ *   weight = (int)pow(2.0,(2*(complexity-sparse-1)));
+ *   if (weight < 1)
+ *     return 1;
+ *   else
+ *     return weight;
+ * }
+ */
+
+
+/*
+ * The same (+/-) as above but without using an algorithm (and
+ * therefore faster then calling each time the pow() function).
+ * Using reverse order of complexity to speed up processing.
+ *
+ */
+
+  if (complexity == 5) {
+    if (sparse == 3)  /*  the * * * jumped  */
+      return 4;
+    if (sparse == 2)  /*  the * * fox jumped | the * brown * jumped | the quick * * jumped  */
+      return 16;
+    if (sparse == 1)  /*  the * brown fox jumped | the quick * fox jumped | the quick brown * jumped  */
+      return 64;
+    if (sparse == 0)  /*  the quick brown fox jumped  */
+      return 256;
   }
 
-  LOG(LOG_WARNING, "no rule to compute markovian weight for '%s'; complexity: %d; sparse: %d", token, complexity, sparse);
+  if (complexity == 4) {
+    if (sparse == 2)  /*  the * * fox  */
+      return 4;
+    if (sparse == 1)  /*  the quick * fox | the * brown fox  */
+      return 16;
+    if (sparse == 0)  /*  the quick brown fox  */
+      return 64;
+  }
+
+  if (complexity == 3) {
+    if (sparse == 1)  /*  the * brown  */
+      return 4;
+    if (sparse == 0)  /*  the quick brown  */
+      return 16;
+  }
+
+  if (complexity == 2) {
+    if (sparse == 0)  /*  the quick  */
+      return 4;
+  }
+
+  if (complexity == 1) {
+    if (sparse == 0)  /*  the  */
+      return 1;
+  }
+
+  LOG(LOG_WARNING, "_ds_compute_weight: no rule to compute markovian weight for '%s'; complexity: %d; sparse: %d", token, complexity, sparse);
   return 1;
 }
 
