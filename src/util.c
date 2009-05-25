@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.23 2009/05/24 22:58:19 sbajic Exp $ */
+/* $Id: util.c,v 1.24 2009/05/25 02:40:10 sbajic Exp $ */
 
 /*
  DSPAM
@@ -700,13 +700,19 @@ int _ds_free_fcntl_lock(int fd) {
 #endif
 } 
 
+int _ds_pow(int base, unsigned int exp) {
+  int result = 1;
+  while (exp > 0) {
+    if (exp & 1)
+      result *= base;
+    base *= base;
+    exp /= 2;
+  }
+  return result;
+}
+
 int _ds_pow2(int exp) {
-  int j = 1, i;
-  if (!exp)
-    return j;
-  for(i=0;i<exp;i++)
-    j *= 2;
-  return j;
+  return _ds_pow(2, exp);
 }
 
 float _ds_round(float n) {

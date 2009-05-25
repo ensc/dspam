@@ -1,6 +1,11 @@
 Version 3.9.0
 -------------
 
+[20090525:0240] sbajic: Speeding up sbph/osb
+
+Using fast exponentiation (reducing existing algorithm complexity from
+O(n-1) to O(log n)) for sparse token and bitpattern generation.
+
 [20090524:2315] sbajic: Reverting back Markovian weight calculation
 
 Use again a bunch of "if" statements instead of calculating Markovian

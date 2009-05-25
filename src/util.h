@@ -118,6 +118,8 @@ int _ds_free_fcntl_lock (int fd);
 
 unsigned long long _ds_getcrc64
   (const char *);
+int _ds_pow
+  (int base, unsigned int exp);
 int _ds_pow2
   (int exp);
 double chi2Q
