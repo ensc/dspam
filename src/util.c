@@ -554,39 +554,39 @@ int _ds_compute_weight(const char *token) {
  */
 
   if (complexity == 5) {
-    if (sparse == 3)  /*  the * * * jumped  */
-      return 4;
-    if (sparse == 2)  /*  the * * fox jumped | the * brown * jumped | the quick * * jumped  */
-      return 16;
     if (sparse == 1)  /*  the * brown fox jumped | the quick * fox jumped | the quick brown * jumped  */
       return 64;
+    if (sparse == 2)  /*  the * * fox jumped | the * brown * jumped | the quick * * jumped  */
+      return 16;
+    if (sparse == 3)  /*  the * * * jumped  */
+      return 4;
     if (sparse == 0)  /*  the quick brown fox jumped  */
       return 256;
   }
 
   if (complexity == 4) {
-    if (sparse == 2)  /*  the * * fox  */
-      return 4;
-    if (sparse == 1)  /*  the quick * fox | the * brown fox  */
+    if (sparse == 1)  /*  quick * fox jumped | quick brown * jumped  */
       return 16;
-    if (sparse == 0)  /*  the quick brown fox  */
+    if (sparse == 2)  /*  quick * * jumped  */
+      return 4;
+    if (sparse == 0)  /*  quick brown fox jumped  */
       return 64;
   }
 
   if (complexity == 3) {
-    if (sparse == 1)  /*  the * brown  */
+    if (sparse == 1)  /*  bron * jumped  */
       return 4;
-    if (sparse == 0)  /*  the quick brown  */
+    if (sparse == 0)  /*  brown fox jumped  */
       return 16;
   }
 
   if (complexity == 2) {
-    if (sparse == 0)  /*  the quick  */
+    if (sparse == 0)  /*  fox jumped  */
       return 4;
   }
 
   if (complexity == 1) {
-    if (sparse == 0)  /*  the  */
+    if (sparse == 0)  /*  jumped  */
       return 1;
   }
 
