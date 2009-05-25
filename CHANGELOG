@@ -1,6 +1,11 @@
 Version 3.9.0
 -------------
 
+[20090525:1110] sbajic: Speeding up sbph/osb
+
+Slightly speed up algorithm for calculating complexity and algorithm
+for calculating sparse.
+
 [20090525:0240] sbajic: Speeding up sbph/osb
 
 Using fast exponentiation (reducing existing algorithm complexity from

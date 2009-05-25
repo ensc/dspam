@@ -597,13 +597,15 @@ int _ds_compute_weight(const char *token) {
 int _ds_compute_sparse(const char *token) {
   int sparse = 0, i;
 
- if (!strncmp(token, "#+", 2))
+  if (!strncmp(token, "#+", 2))
     sparse++;
   if (strlen(token)>=2 && !strncmp((token+strlen(token))-2, "+#", 2))
     sparse++;
   for(i=0;token[i];i++) {
-    if (!strncmp(token+i, "+#+", 3))
+    if (!strncmp(token+i, "+#+", 3)) {
       sparse++;
+      i++;
+    }
   }
 
   return sparse;
@@ -611,13 +613,15 @@ int _ds_compute_sparse(const char *token) {
 
 int _ds_compute_complexity(const char *token) {
   int i, complexity = 1;
-                                                                                
+
   if (token == NULL)
     return 1;
-                                                                                
+
   for(i=0;token[i];i++) {
-    if (token[i] == '+')
+    if (token[i] == '+') {
       complexity++;
+      i++;
+    }
   }
 
   return complexity;
