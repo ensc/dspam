@@ -1,6 +1,16 @@
 Version 3.9.0
 -------------
 
+[20090525:1240] sbajic: Closing bug id #2796340
+
+Applying patch submitted by Andreas Schneider: Don't exit() if malloc fails.
+
+When a library function calls exit(), it prevents the calling program from
+handling the error, reporting it to the user, closing files properly, and
+cleaning up any state that the program has. It is preferred for the
+library to return an actual error code and let the calling program decide
+how to handle the situation.
+
 [20090525:1215] sbajic: Updating MySQL related items
 
 * Purge scripts

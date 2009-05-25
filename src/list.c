@@ -1,4 +1,4 @@
-/* $Id: list.c,v 1.7 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: list.c,v 1.71 2009/05/25 12:29:00 sbajic Exp $ */
 
 /*
  DSPAM
@@ -33,10 +33,10 @@ static struct bnr_list_node *
 bnr_list_node_create (void *data)
 {
   struct bnr_list_node *node;
-  if ((node = (struct bnr_list_node *) malloc (sizeof (struct bnr_list_node))) == 0)
+  if ((node = (struct bnr_list_node *) malloc (sizeof (struct bnr_list_node))) == NULL)
   {
-    perror("memory allocation error: list_node_create() failed");
-    exit (1);
+    perror("list_node_create: memory allocation error");
+    exit NULL;
   }
   node->ptr = data;
   node->next = (struct bnr_list_node *) NULL;
@@ -51,7 +51,7 @@ bnr_list_create (int nodetype)
   struct bnr_list *list = (struct bnr_list *) malloc (sizeof (struct bnr_list));
   if (list == NULL)
   {
-    perror("memory allocation error: list_create() failed");
+    perror("bnr_list_create: memory allocation error");
     return NULL;
   }
   list->first = (struct bnr_list_node *) NULL;
@@ -113,7 +113,7 @@ bnr_list_insert (struct bnr_list *list, void *data, float value)
     vptr = malloc (size);
     if (vptr == NULL)
     {
-      perror("memory allocation error: list_insert() failed");
+      perror("bnr_list_insert: memory allocation error");
       return NULL;
     }
     strcpy (vptr, data);
@@ -126,6 +126,8 @@ bnr_list_insert (struct bnr_list *list, void *data, float value)
   if (prev)
   {
     node = bnr_list_node_create (vptr);
+    if (node == NULL)
+      return NULL;
     node->value = value;
     node->eliminated = 0;
     prev->next = node;
@@ -135,6 +137,8 @@ bnr_list_insert (struct bnr_list *list, void *data, float value)
   else
   {
     node = bnr_list_node_create (vptr);
+    if (node == NULL)
+      return NULL;
     node->value = value;
     node->eliminated = 0;
     list->first = node;
