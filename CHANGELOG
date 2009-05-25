@@ -1,6 +1,12 @@
 Version 3.9.0
 -------------
 
+[20090525:1215] sbajic: Updating MySQL related items
+
+* Purge scripts
+* Schema
+* Documentation regarding upgrade to 3.9.0
+
 [20090525:1110] sbajic: Speeding up sbph/osb
 
 Slightly speed up algorithm for calculating complexity and algorithm

@@ -1,7 +1,7 @@
-# $Id: mysql_objects-space.sql,v 1.3 2009/05/23 15:95:16 sbajic Exp $
+# $Id: mysql_objects-space.sql,v 1.31 2009/05/25 11:37:21 sbajic Exp $
 
 create table dspam_token_data (
-  uid mediumint unsigned not null,
+  uid int unsigned not null,
   token varchar(20) not null, 
   spam_hits bigint unsigned not null,
   innocent_hits bigint unsigned not null,
@@ -11,7 +11,7 @@ create table dspam_token_data (
 create unique index id_token_data_01 on dspam_token_data(uid,token);
 
 create table dspam_signature_data (
-  uid mediumint unsigned not null,
+  uid int unsigned not null,
   signature varchar(32) not null,
   data longblob not null,
   length int unsigned not null,
@@ -22,7 +22,7 @@ create unique index id_signature_data_01 on dspam_signature_data(uid,signature);
 create index id_signature_data_02 on dspam_signature_data(created_on);
 
 create table dspam_stats (
-  uid mediumint unsigned primary key not null,
+  uid int unsigned primary key not null,
   spam_learned bigint unsigned not null,
   innocent_learned bigint unsigned not null,
   spam_misclassified bigint unsigned not null,
@@ -34,7 +34,7 @@ create table dspam_stats (
 ) type=MyISAM;
 
 create table dspam_preferences (
-  uid mediumint unsigned not null, 
+  uid int unsigned not null, 
   preference varchar(32) not null,
   value varchar(64) not null
 ) type=MyISAM;

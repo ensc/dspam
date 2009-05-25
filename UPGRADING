@@ -4,15 +4,14 @@ the top.
 UPGRADING FROM 3.8
 ------------------
 
-1. Ensure MySQL is using the new database schema. The following clauses 
-   should be executed for upgrading pre-3.9.0 DSPAM MySQL schema to the 
-   3.9.0 schema:
+1. Ensure MySQL is using the new database schema. The following clauses should
+   be executed for upgrading pre-3.9.0 DSPAM MySQL schema to the 3.9.0 schema:
      ALTER TABLE `dspam_signature_data`
-       CHANGE `uid` `uid` MEDIUMINT UNSIGNED NOT NULL,
+       CHANGE `uid` `uid` INT UNSIGNED NOT NULL,
        CHANGE `data` `data` LONGBLOB NOT NULL,
        CHANGE `length` `length` INT UNSIGNED NOT NULL;
      ALTER TABLE `dspam_stats`
-       CHANGE `uid` `uid` MEDIUMINT UNSIGNED NOT NULL,
+       CHANGE `uid` `uid` INT UNSIGNED NOT NULL,
        CHANGE `spam_learned` `spam_learned` BIGINT UNSIGNED NOT NULL,
        CHANGE `innocent_learned` `innocent_learned` BIGINT UNSIGNED NOT NULL,
        CHANGE `spam_misclassified` `spam_misclassified` BIGINT UNSIGNED NOT NULL,
@@ -22,21 +21,35 @@ UPGRADING FROM 3.8
        CHANGE `spam_classified` `spam_classified` BIGINT UNSIGNED NOT NULL,
        CHANGE `innocent_classified` `innocent_classified` BIGINT UNSIGNED NOT NULL;
      ALTER TABLE `dspam_token_data`
-       CHANGE `uid` `uid` MEDIUMINT UNSIGNED NOT NULL,
+       CHANGE `uid` `uid` INT UNSIGNED NOT NULL,
        CHANGE `spam_hits` `spam_hits` BIGINT UNSIGNED NOT NULL,
        CHANGE `innocent_hits` `innocent_hits` BIGINT UNSIGNED NOT NULL;
 
-   If you are using preference extension with DSPAM, then you should execute 
+   If you are using preference extension with DSPAM, then you should execute
    the following clause for upgrading pre-3.9.0 DSPAM preference MySQL schema
    to the 3.9.0 schema:
      ALTER TABLE `dspam_preferences` 
-       CHANGE `uid` `uid` MEDIUMINT UNSIGNED NOT NULL;
+       CHANGE `uid` `uid` INT UNSIGNED NOT NULL;
 
-   If you are using virtual users in DSPAM, then you should execute the 
-   following clause for upgrading pre-3.9.0 DSPAM preference MySQL schema
-   to the 3.9.0 schema:
+   If you are using virtual users (with AUTO_INCREMENT) in DSPAM, then you
+   should execute the following clause for upgrading pre-3.9.0 DSPAM virtual
+   uids MySQL schema to the 3.9.0 schema:
      ALTER TABLE `dspam_virtual_uids`
-       CHANGE `uid` `uid` MEDIUMINT UNSIGNED NOT NULL;
+       CHANGE `uid` `uid` INT UNSIGNED NOT NULL AUTO_INCREMENT;
+
+   If you are using virtual user aliases (aka: DSPAM in relay mode) in DSPAM,
+   then you should execute the following clause for upgrading pre-3.9.0 DSPAM
+   virtual uids MySQL schema to the 3.9.0 schema:
+     ALTER TABLE `dspam_virtual_uids`
+       CHANGE `uid` `uid` INT UNSIGNED NOT NULL;
+
+   If you need to speed up the MySQL purging script and can afford to use more
+   disk space for the DSPAM MySQL data, then consider executing the following
+   clause for adding three additional indices:
+     ALTER TABLE `dspam_token_data`
+       ADD INDEX(`spam_hits`),
+       ADD INDEX(`innocent_hits`),
+       ADD INDEX(`last_hit`); 
 
 
 UPGRADING FROM 3.6

@@ -1,7 +1,7 @@
-# $Id: virtual_user_aliases.sql,v 1.1 2005/03/12 20:39:05 jonz Exp $
+# $Id: virtual_user_aliases.sql,v 1.2 2009/05/25 11:52:02 sbajic Exp $
 
 create table dspam_virtual_uids (
-  uid smallint not null,
+  uid int unsigned not null,
   username varchar(128) not null
 ) type=MyISAM;
 
