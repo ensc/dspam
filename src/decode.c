@@ -1405,7 +1405,7 @@ _ds_strip_html (const char *html)
       int x = 0, y = 0;
       for (y = 0; y < num_chars; y++) {
         x = strlen(charset[y].entity);
-        if (x > 0 && strncmp(html+i,charset[y].entity,x)==0) {
+        if (strncmp(html+i,charset[y].entity,x)==0) {
           if (charset[y].id <= 255)
             html2[j++] = charset[y].id;
           i += x-1;
