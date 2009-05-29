@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.15 2009/05/29 03:24:37 sbajic Exp $ */
+/* $Id: util.h,v 1.14 2008/05/06 18:26:07 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -126,8 +126,5 @@ double chi2Q
   (double x, int v);
 float _ds_round
   (float n);
-
-static int hex_to_bin
-  (unsigned char c);
 
 #endif /* _UTIL_H */

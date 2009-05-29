@@ -744,7 +744,7 @@ _ds_map_body_token (
 
 int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 {
-  char *decode;
+  char *decode, *x, *y;
   struct nt_node *node_nt, *node_header;
   struct nt_c c_nt, c_nt2;
   int i = 0;
@@ -821,10 +821,8 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 
           /* Hexadecimal 8-Bit Encodings */
 
-          char *decode2, *decode3;
-
           if (block->encoding == EN_8BIT) {
-            char hexbuf[3];
+            char *decode2, hexbuf[3];
             int i, j;
             size_t d1_pos = 0, d2_pos = 0, decode_len;
             hexbuf[2] = '\0';
@@ -845,15 +843,15 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
             }
             decode2[d2_pos] = '\0';
           } else {
-            decode2 = strdup(decode);
+            char *decode2 = strdup(decode);
           }
 
           /* HTML-Specific Filters */
 
           if (block->media_subtype == MST_HTML) {
-            decode3 = _ds_strip_html (decode2);
+            char *decode3 = _ds_strip_html (decode2);
           } else {
-            decode3 = strdup(decode2);
+            char *decode3 = strdup(decode2);
           }
           free(decode2);
 
