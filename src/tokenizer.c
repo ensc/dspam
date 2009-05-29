@@ -867,8 +867,8 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
           {
             block->original_signed_body = block->body;
             block->body = buffer_create (decode);
-            free (decode);
           }
+          free (decode);
         }
       }
     }
