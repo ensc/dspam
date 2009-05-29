@@ -130,6 +130,8 @@ int	_ds_match_boundary	(struct nt *stack, const char *buff);
 int     _ds_extract_boundary    (char *buf, size_t size, char *data);
 char *	_ds_pop_boundary	(struct nt *stack);
 
+int	_ds_hex2dec		(unsigned char hex);
+
 /* Encoding values */
 
 #define EN_7BIT			0x00

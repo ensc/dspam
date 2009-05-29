@@ -1,6 +1,11 @@
 Version 3.9.0
 -------------
 
+[20090530:0145] sbajic: Fixes for bug id #2796390
+
+* Speeding up and fixing function _ds_decode_quoted()
+* Adding function _ds_hex2dec()
+
 [20090529:2350] sbajic: MySQL driver updates
 
 * Updating _ds_setall_spamrecords to honor MySQLs max_allowed_packet for the insert query.

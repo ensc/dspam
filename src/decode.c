@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.31 2006/12/12 15:33:45 jonz Exp $ */
+/* $Id: decode.c,v 1.32 2009/05/30 01:42:51 sbajic Exp $ */
 
 /*
  DSPAM
@@ -780,55 +780,41 @@ _ds_decode_base64 (const char *body)
 char *
 _ds_decode_quoted (const char *body)
 {
-  char *out, *x;
-  char hex[3];
-  int val;
-  size_t len;
-
   if (!body)
     return NULL;
 
-  out = strdup (body);
-  if (!out)
-  {
+  char *n, *out;
+  const char *end, *p;
+
+  n = out = malloc(strlen(body)+1);
+  end = body + strlen(body);
+
+  if (out == NULL) {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
-  len = strlen(out) + 1;
 
-  hex[2] = 0;
-  x = strchr (out, '=');
-  while (x != NULL)
-  {
-    hex[0] = x[1];
-    hex[1] = x[2];
-    if (x[1] == '\n')
-    {
-      memmove(x, x+2, len-((x+2)-out)); //strlen(x+2)+1);
-      len -= 2;
-      x = strchr (x, '=');
-    }
+  for (p = body; p < end; p++, n++) {
+    if (*p == '=') {
+      if (p[1] == '\r' && p[2] == '\n') {
+        n -= 1;
+        p += 2;
+      } else if (p[1] == '\n') {
+        n -= 1;
+        p += 1;
+      } else if (p[1] && p[2] && isxdigit((unsigned char) p[1]) && isxdigit((unsigned char) p[2])) {
+        *n = ((_ds_hex2dec((unsigned char) p[1])) << 4) | (_ds_hex2dec((unsigned char) p[2]));
+        p += 2;
+      } else
+        *n = *p;
+    } else if (*p == '_')
+      *n = ' ';
     else
-    {
-      if (((hex[0] >= 'A' && hex[0] <= 'F')
-           || (hex[0] >= 'a' && hex[0] <= 'f')
-           || (hex[0] >= '0' && hex[0] <= '9'))
-          && ((hex[1] >= 'A' && hex[1] <= 'F')
-              || (hex[1] >= 'a' && hex[1] <= 'f')
-              || (hex[1] >= '0' && hex[1] <= '9')))
-      {
-        val = (int) strtol (hex, NULL, 16);
-        if (val) {
-          x[0] = val;
-          memmove(x+1, x+3, len-((x+3)-out)); //strlen(x+3)+1);
-          len -= 2;
-        }
-      }
-      x = strchr (x + 1, '=');
-    }
+      *n = *p;
   }
 
-  return out;
+  *n = '\0';
+  return (char *)out;
 }
 #endif /* NCORE */
 
@@ -1160,3 +1146,24 @@ _ds_find_header (ds_message_t message, const char *heading, int flags) {
   return NULL;
 }
 
+int _ds_hex2dec(unsigned char hex) {
+  switch (hex) {
+    case '0': return 0;
+    case '1': return 1;
+    case '2': return 2;
+    case '3': return 3;
+    case '4': return 4;
+    case '5': return 5;
+    case '6': return 6;
+    case '7': return 7;
+    case '8': return 8;
+    case '9': return 9;
+    case 'a': case 'A': return 10;
+    case 'b': case 'B': return 11;
+    case 'c': case 'C': return 12;
+    case 'd': case 'D': return 13;
+    case 'e': case 'E': return 14;
+    case 'f': case 'F': return 15;
+    default: return -1;
+  }
+}
