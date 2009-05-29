@@ -752,7 +752,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 
   if (! CTX->message) 
   {
-    LOG (LOG_WARNING, "_ds_actualize_message() failed: CTX->message is NULL");
+    LOG (LOG_WARNING, "_ds_degenerate_message: failed: CTX->message is NULL");
     return EUNKNOWN;
   }
 
@@ -816,129 +816,57 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 
         if (decode)
         {
-          char *decode2 = strdup(decode);
-          size_t len = strlen(decode2) + 1;
-  
+
           /* -- PREFILTERS BEGIN -- */
-  
+
           /* Hexadecimal 8-Bit Encodings */
 
           if (block->encoding == EN_8BIT) {
-            char hex[5] = "0x00";
-            int conv;
-
-            x = strchr(decode2, '%');
-            while(x) {
-              if (isxdigit((unsigned char) x[1]) && 
-                  isxdigit((unsigned char) x[2])) 
-               {
-                hex[2] = x[1];
-                hex[3] = x[2];
-
-                conv = strtol(hex, NULL, 16);
-                if (conv) {
-                  x[0] = conv;
-                  memmove(x+1, x+3, len-((x+3)-decode2));
-                  len -= 2;
+            char *decode2, hexbuf[3];
+            int i, j;
+            size_t d1_pos = 0, d2_pos = 0, decode_len;
+            hexbuf[2] = '\0';
+            decode_len = strlen(decode);
+            decode2 = malloc(decode_len+1);
+            for (d1_pos = 0; d1_pos <= decode_len; d1_pos++) {
+              hexbuf[0] = decode[d1_pos];
+              if (hexbuf[0] == '%') {
+                if (d1_pos+2 <= decode_len
+                    && (i = hex_to_bin(decode[d1_pos+1])) >= 0
+                    && (j = hex_to_bin(decode[d1_pos+2])) >= 0) {
+                  hexbuf[0] = (i << 4) | j;
+                  d1_pos += 2;
                 }
               }
-              x = strchr(x+1, '%');
+              decode2[d2_pos] = hexbuf[0];
+              d2_pos++;
             }
+            decode2[d2_pos] = '\0';
+          } else {
+            char *decode2 = strdup(decode);
           }
 
           /* HTML-Specific Filters */
-  
+
           if (block->media_subtype == MST_HTML) {
-  
-            /* Remove long HTML Comments */
-            x = strstr (decode2, "<!--");
-            while (x != NULL)
-            {
-              y = strstr (x, "-->");
-              if (y)
-              {
-                memmove(x, y + 3, len-((y+3)-decode2)); //strlen (y + 3) + 1);
-                len -= ((y+3) - x);
-                x = strstr (x, "<!--");
-              }
-              else
-              {
-                x = strstr (x + 4, "<!--");
-              }
-            }
-
-            /* Remove short HTML Comments */
-            x = strstr (decode2, "<!");
-            while (x != NULL)
-            {
-              y = strchr (x, '>');
-              if (y != NULL)
-              {
-                memmove(x, y + 1, len-((y+1)-decode2)); //strlen (y + 1) + 1);
-                len -= ((y+1) - x);
-                x = strstr (x, "<!");
-              }
-              else
-              {
-                x = strstr (x + 2, "<!");
-              }
-            }
-
-            /* Remove short HTML tags and those we want to ignore */
-            x = strchr (decode2, '<');
-            while (x != NULL)
-            {
-              int erase = 0;
-              y = strchr (x, '>');
-              if (y != NULL) {
-                if (y - x <= 15
-                      || x[1] == '/'
-                      || !strncasecmp (x + 1, "td ", 3)
-                      || !strncasecmp (x + 1, "table ", 6)
-                      || !strncasecmp (x + 1, "tr ", 3)
-                      || !strncasecmp (x + 1, "div ", 4)
-                      || !strncasecmp (x + 1, "p ", 2)
-                      || !strncasecmp (x + 1, "body ", 5)
-                      || !strncasecmp (x + 1, "!doctype", 8)
-                      || !strncasecmp (x + 1, "blockquote", 10))
-                {
-                  erase = 1;
-                }
-
-                if (!erase) {
-                  char *p = strchr (x, ' ');
-                  if (!p || p > y) 
-                    erase = 1;
-                }
-              }
-              if (erase)
-              {
-                memmove(x, y + 1, len-((y+1)-decode2)); //strlen (y + 1) + 1);
-                len -= ((y+1) - x);
-                x = strstr (x, "<");
-              }
-              else
-              {
-                if (y) 
-                  x = strstr (y + 1, "<");
-                else
-                  x = strstr (x + 1, "<");
-              }
-            }
+            char *decode3 = _ds_strip_html (decode2);
+          } else {
+            char *decode3 = strdup(decode2);
           }
+          free(decode2);
 
           /* -- PREFILTERS END -- */
   
-          buffer_cat (body, decode2);
-          free(decode2);
+          buffer_cat (body, decode3);
+          free(decode3);
 
           /* If we've decoded the body, save the original copy */
           if (decode != block->body->data)
           {
             block->original_signed_body = block->body;
             block->body = buffer_create (decode);
-            free (decode);
           }
+          free (decode);
         }
       }
     }

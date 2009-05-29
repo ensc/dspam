@@ -1,6 +1,12 @@
 Version 3.9.0
 -------------
 
+[20090529:0310] sbajic: Closing bug id #2796390
+
+* Speeding up functions _ds_decode_quoted() and _ds_degenerate_message()
+* Adding function _ds_strip_html()
+* Adding function hex_to_bin()
+
 [20090525:1240] sbajic: Closing bug id #2796340
 
 Applying patch submitted by Andreas Schneider: Don't exit() if malloc fails.
