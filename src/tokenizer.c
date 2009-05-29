@@ -830,11 +830,6 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
             hexbuf[2] = '\0';
             decode_len = strlen(decode);
             decode2 = malloc(decode_len+1);
-            if (decode2 == NULL) {
-              LOG (LOG_CRIT, ERR_MEM_ALLOC);
-              free (decode);
-              return NULL;
-            }
             for (d1_pos = 0; d1_pos <= decode_len; d1_pos++) {
               hexbuf[0] = decode[d1_pos];
               if (hexbuf[0] == '%') {

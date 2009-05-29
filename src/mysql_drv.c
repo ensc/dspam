@@ -591,11 +591,8 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       }
       mysql_free_result (result);
       result = NULL;
-      row = NULL;
     }
-    mysql_free_result (result);
     result = NULL;
-    row = NULL;
   }
   scratch[0] = 0;
 
@@ -725,19 +722,15 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   struct _ds_spam_stat control, stat;
   ds_term_t ds_term;
   ds_cursor_t ds_c;
-  char queryhead[1024];
   buffer *query;
   char scratch[1024];
   struct passwd *p;
   char *name;
   int update_any = 0;
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
-  char inserthead[1024];
   buffer *insert;
   int insert_any = 0;
 #endif
-  MYSQL_RES *result;
-  MYSQL_ROW row;
 
   if (diction->items < 1)
     return 0;
@@ -785,35 +778,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 #endif
 
-  /* Query max_allowed_packet from MySQL server for this connection. If the value
-   * can not be queried, then assume 1000000 as value.
-   */
-  unsigned long drv_max_packet = 1000000;
-  scratch[0] = 0;
-  snprintf (scratch, sizeof (scratch), "show variables where variable_name='max_allowed_packet'");
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, scratch) == 0) {
-    result = mysql_use_result (s->dbt->dbh_read);
-    if (result != NULL) {
-      row = mysql_fetch_row (result);
-      if (row != NULL) {
-        drv_max_packet = strtoul (row[1], NULL, 0);
-        if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
-          LOGDEBUG("_ds_setall_spamrecords: failed converting %s to max_allowed_packet", row[1]);
-          drv_max_packet = 1000000;
-        }
-      }
-      mysql_free_result (result);
-      result = NULL;
-      row = NULL;
-    }
-    mysql_free_result (result);
-    result = NULL;
-    row = NULL;
-  }
-  scratch[0] = 0;
-
   ds_diction_getstat(diction, s->control_token, &control);
-  snprintf (queryhead, sizeof (queryhead),
+  snprintf (scratch, sizeof (scratch),
             "update dspam_token_data set last_hit = current_date(), "
             "spam_hits = greatest(0, spam_hits %s %d), "
             "innocent_hits = greatest(0, innocent_hits %s %d) "
@@ -823,13 +789,11 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
             (control.innocent_hits > s->control_ih) ? "+" : "-",
             abs (control.innocent_hits - s->control_ih), (int) p->pw_uid);
 
-  buffer_copy (query, queryhead);
+  buffer_cat (query, scratch);
 
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
-  snprintf (inserthead, sizeof(inserthead),
-            "insert into dspam_token_data(uid, token, spam_hits, "
-            "innocent_hits, last_hit) values");
-  buffer_copy (insert, inserthead);
+  buffer_copy (insert, "insert into dspam_token_data(uid, token, spam_hits, "
+                       "innocent_hits, last_hit) values");
 #endif
 
   /*
@@ -884,28 +848,6 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
       insert_any = 1;
       buffer_cat(insert, ins);
-
-      if((insert->used + 1024) > drv_max_packet) {
-        LOGDEBUG("_ds_setall_spamrecords: Splitting insert query at %ld characters", insert->used);
-        if (insert_any) {
-          snprintf (scratch, sizeof (scratch),
-                    " ON DUPLICATE KEY UPDATE last_hit = current_date(), "
-                    "spam_hits = greatest(0, spam_hits %s %d), "
-                    "innocent_hits = greatest(0, innocent_hits %s %d) ",
-                    (control.spam_hits > s->control_sh) ? "+" : "-",
-                    abs (control.spam_hits - s->control_sh) > 0 ? 1 : 0,
-                    (control.innocent_hits > s->control_ih) ? "+" : "-",
-                    abs (control.innocent_hits - s->control_ih) > 0 ? 1 : 0);
-          buffer_cat(insert, scratch);
-          if (MYSQL_RUN_QUERY (s->dbt->dbh_write, insert->data)) {
-            _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), insert->data);
-            LOGDEBUG ("_ds_setall_spamrecords: unable to run insert query: %s", insert->data);
-            buffer_destroy(insert);
-            return EFAILURE;
-          }
-        }
-        buffer_copy (insert, inserthead);
-      }
 #else
       snprintf(ins, sizeof (ins),
                "insert into dspam_token_data(uid, token, spam_hits, "
@@ -922,10 +864,10 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     }
 
     if (stat.status & TST_DISK) {
-      if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
-        snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
-      else
-        snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
+    if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+      snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
+    else
+      snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
 
       buffer_cat (query, scratch);
       update_any = 1;
@@ -935,19 +877,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     ds_term->s.status |= TST_DISK;
 
     ds_term = ds_diction_next(ds_c);
-    if((query->used + 1024) > drv_max_packet) {
-      LOGDEBUG("_ds_setall_spamrecords: Splitting update query at %ld characters", query->used);
-      buffer_cat (query, ")");
-      if (update_any) {
-        if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data)) {
-          _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
-          LOGDEBUG ("_ds_setall_spamrecords: unable to run update query: %s", query->data);
-          buffer_destroy(query);
-          return EFAILURE;
-        }
-      }
-      buffer_copy (query, queryhead);
-    } else if (ds_term && use_comma)
+    if (ds_term && use_comma)
       buffer_cat (query, ",");
   }
   ds_diction_close(ds_c);
@@ -972,7 +902,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data))
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
-      LOGDEBUG ("_ds_setall_spamrecords: unable to run update query: %s", query->data);
+      LOGDEBUG ("_ds_setall_spamrecords: unable to run query: %s", query->data);
       buffer_destroy(query);
       return EFAILURE;
     }
@@ -995,7 +925,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     if (MYSQL_RUN_QUERY (s->dbt->dbh_write, insert->data))
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), insert->data);
-      LOGDEBUG ("_ds_setall_spamrecords: unable to run insert query: %s", insert->data);
+      LOGDEBUG ("_ds_setall_spamrecords: unable to run query: %s", insert->data);
       buffer_destroy(insert);
       return EFAILURE;
     }
@@ -1549,17 +1479,15 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
       if (row != NULL) {
         drv_max_packet = strtoul (row[1], NULL, 0);
         if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
-          LOGDEBUG("_ds_set_signature: failed converting %s to max_allowed_packet", row[1]);
+          LOGDEBUG("_ds_getall_spamrecords: failed converting %s to max_allowed_packet", row[1]);
           drv_max_packet = 1000000;
         }
       }
       mysql_free_result (result);
       result = NULL;
-      row = NULL;
     }
     mysql_free_result (result);
     result = NULL;
-    row = NULL;
   }
   scratch[0] = 0;
   if(length+1024>drv_max_packet) {
@@ -2434,17 +2362,14 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       if (row != NULL) {
         drv_max_packet = strtoul (row[1], NULL, 0);
         if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
-          LOGDEBUG("_ds_delall_spamrecords: failed converting %s to max_allowed_packet", row[1]);
+          LOGDEBUG("_ds_getall_spamrecords: failed converting %s to max_allowed_packet", row[1]);
           drv_max_packet = 1000000;
         }
       }
       mysql_free_result (result);
       result = NULL;
-      row = NULL;
     }
-    mysql_free_result (result);
     result = NULL;
-    row = NULL;
   }
   scratch[0] = 0;
 

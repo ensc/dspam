@@ -1,11 +1,6 @@
 Version 3.9.0
 -------------
 
-[20090529:1430] sbajic: MySQL driver updates
-
-* Updating _ds_setall_spamrecords to honor MySQLs max_allowed_packet for the insert query.
-* Updating _ds_setall_spamrecords to honor MySQLs max_allowed_packet for the update query.
-
 [20090529:0310] sbajic: Closing bug id #2796390
 
 * Speeding up functions _ds_decode_quoted() and _ds_degenerate_message()
