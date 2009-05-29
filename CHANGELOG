@@ -1,6 +1,12 @@
 Version 3.9.0
 -------------
 
+[20090529:2350] sbajic: MySQL driver updates
+
+* Updating _ds_setall_spamrecords to honor MySQLs max_allowed_packet for the insert query.
+* Updating _ds_setall_spamrecords to honor MySQLs max_allowed_packet for the update query.
+* Micro speed and memory consumption improvements by removing not needed whitespace from SQL queries.
+
 [20090525:1240] sbajic: Closing bug id #2796340
 
 Applying patch submitted by Andreas Schneider: Don't exit() if malloc fails.
