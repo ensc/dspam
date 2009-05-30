@@ -5,14 +5,13 @@
 #   After how many days should this fix be merged into the RELENG_* branch?
 #   I.e. large enouph to allow people to test this commit in master but
 #   remember that a typo doesn't need a month of stress testing.
-#
 #MFM:
 #
 # Bug-ID: XXXXXXXX
 #   ID from the SF tracker when this commit is related to a certain bug. 
 #Bug-ID:
 #
-# Reported-By: Name <email>
+# Bug-Reported-By: Name <email>
 #   Name and email of the reporter of the bug (see SF tracker).
 #Bug-Reported-By:
 #
