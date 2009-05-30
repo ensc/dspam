@@ -1,6 +1,12 @@
 Version 3.9.0
 -------------
 
+[20090530:1210] sbajic: Fixes for bug id #2796390
+
+* Adding function _ds_strip_html to strip html tags and decode a bunch of html encoded characters
+* Replacing stripping of html in _ds_degenerate_message with call to new function
+* Speeding up and enhancing html message processing
+
 [20090530:1020] sbajic: Fixes for bug id #2796390
 
 * Adding function _ds_decode_hex8bit

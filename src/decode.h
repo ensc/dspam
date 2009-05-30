@@ -1,4 +1,4 @@
-/* $Id: decode.h,v 1.14 2009/05/30 09:39:54 sbajic Exp $ */
+/* $Id: decode.h,v 1.15 2009/05/30 11:40:51 sbajic Exp $ */
 
 /*
  DSPAM
@@ -131,6 +131,7 @@ int	_ds_match_boundary	(struct nt *stack, const char *buff);
 int     _ds_extract_boundary    (char *buf, size_t size, char *data);
 char *	_ds_pop_boundary	(struct nt *stack);
 
+char *	_ds_strip_html		(const char *html);
 int	_ds_hex2dec		(unsigned char hex);
 
 /* Encoding values */

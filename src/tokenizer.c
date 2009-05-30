@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.24 2009/05/30 10:15:47 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.25 2009/05/30 11:40:51 sbajic Exp $ */
 
 /*
  DSPAM
@@ -750,7 +750,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
   int i = 0;
   char heading[1024];
 
-  if (! CTX->message) 
+  if (! CTX->message)
   {
     LOG (LOG_WARNING, "_ds_actualize_message() failed: CTX->message is NULL");
     return EUNKNOWN;
@@ -774,7 +774,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 #endif
     }
 
-    else 
+    else
     {
       struct _ds_header_field *current_header;
 
@@ -800,7 +800,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
         /* Accumulate the bodies, skip attachments */
 
         if (
-             (   block->encoding == EN_BASE64 
+             (   block->encoding == EN_BASE64
               || block->encoding == EN_QUOTED_PRINTABLE)
             && ! block->original_signed_body)
         {
@@ -811,12 +811,12 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
             decode = _ds_decode_block (block);
           }
         }
-  
+
         /* We found a tokenizable body component, add prefilters */
 
         if (decode)
         {
-          char *decode2;
+          char *decode2, *decode3;
           size_t len;
 
           /* -- PREFILTERS BEGIN -- */
@@ -832,90 +832,20 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
           }
 
           /* HTML-Specific Filters */
-  
+
           if (block->media_subtype == MST_HTML) {
-  
-            /* Remove long HTML Comments */
-            x = strstr (decode2, "<!--");
-            while (x != NULL)
-            {
-              y = strstr (x, "-->");
-              if (y)
-              {
-                memmove(x, y + 3, len-((y+3)-decode2)); //strlen (y + 3) + 1);
-                len -= ((y+3) - x);
-                x = strstr (x, "<!--");
-              }
-              else
-              {
-                x = strstr (x + 4, "<!--");
-              }
-            }
-
-            /* Remove short HTML Comments */
-            x = strstr (decode2, "<!");
-            while (x != NULL)
-            {
-              y = strchr (x, '>');
-              if (y != NULL)
-              {
-                memmove(x, y + 1, len-((y+1)-decode2)); //strlen (y + 1) + 1);
-                len -= ((y+1) - x);
-                x = strstr (x, "<!");
-              }
-              else
-              {
-                x = strstr (x + 2, "<!");
-              }
-            }
-
-            /* Remove short HTML tags and those we want to ignore */
-            x = strchr (decode2, '<');
-            while (x != NULL)
-            {
-              int erase = 0;
-              y = strchr (x, '>');
-              if (y != NULL) {
-                if (y - x <= 15
-                      || x[1] == '/'
-                      || !strncasecmp (x + 1, "td ", 3)
-                      || !strncasecmp (x + 1, "table ", 6)
-                      || !strncasecmp (x + 1, "tr ", 3)
-                      || !strncasecmp (x + 1, "div ", 4)
-                      || !strncasecmp (x + 1, "p ", 2)
-                      || !strncasecmp (x + 1, "body ", 5)
-                      || !strncasecmp (x + 1, "!doctype", 8)
-                      || !strncasecmp (x + 1, "blockquote", 10))
-                {
-                  erase = 1;
-                }
-
-                if (!erase) {
-                  char *p = strchr (x, ' ');
-                  if (!p || p > y) 
-                    erase = 1;
-                }
-              }
-              if (erase)
-              {
-                memmove(x, y + 1, len-((y+1)-decode2)); //strlen (y + 1) + 1);
-                len -= ((y+1) - x);
-                x = strstr (x, "<");
-              }
-              else
-              {
-                if (y) 
-                  x = strstr (y + 1, "<");
-                else
-                  x = strstr (x + 1, "<");
-              }
-            }
+            decode3 = _ds_strip_html(decode2);
+            len = strlen (decode3) + 1;
+          } else {
+            decode3 = strdup(decode2);
+            len = strlen(decode3) + 1;
           }
+          free(decode2);
 
           /* -- PREFILTERS END -- */
-  
-          buffer_cat (body, decode2);
-          free(decode2);
+
+          buffer_cat (body, decode3);
+          free(decode3);
 
           /* If we've decoded the body, save the original copy */
           if (decode != block->body->data)

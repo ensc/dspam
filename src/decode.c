@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.33 2009/05/30 09:38:19 sbajic Exp $ */
+/* $Id: decode.c,v 1.34 2009/05/30 11:40:51 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1198,4 +1198,267 @@ int _ds_hex2dec(unsigned char hex) {
     case 'f': case 'F': return 15;
     default: return -1;
   }
+}
+
+/*
+ * _ds_strip_html(const char *html)
+ *
+ * DESCRIPTION
+ *    strip html tags from the supplied message
+ *
+ * INPUT ARGUMENTS
+ *     html encoded message body
+ *
+ * RETURN VALUES
+ *   a pointer to the allocated character array containing the
+ *   stripped message
+ *
+ */
+
+char *
+_ds_strip_html (const char *html)
+{
+  int i = 0, j = 0, k = 0;
+  int visible = 1;
+  int closing_td_tag = 0;
+  char *html2;
+  const char *cdata_close_tag = NULL;
+
+  if(!html)
+    return NULL;
+
+  static struct {
+    unsigned int id;
+    char *entity;
+  }
+  charset[] = {
+    {   32, "&nbsp;"    }, {  34, "&quot;"    }, {  34, "&quot;"    }, {  38, "&amp;"     },
+    {   38, "&amp;"     }, {  39, "&apos;"    }, {  60, "&lt;"      }, {  60, "&lt;"      },
+    {   62, "&gt;"      }, {  62, "&gt;"      }, { 160, "&nbsp;"    }, { 161, "&iexcl;"   },
+    {  162, "&cent;"    }, { 163, "&pound;"   }, { 164, "&curren;"  }, { 165, "&yen;"     },
+    {  166, "&brvbar;"  }, { 167, "&sect;"    }, { 168, "&uml;"     }, { 169, "&copy;"    },
+    {  170, "&ordf;"    }, { 171, "&laquo;"   }, { 172, "&not;"     }, { 173, "&shy;"     },
+    {  174, "&reg;"     }, { 175, "&macr;"    }, { 176, "&deg;"     }, { 177, "&plusmn;"  },
+    {  178, "&sup2;"    }, { 179, "&sup3;"    }, { 180, "&acute;"   }, { 181, "&micro;"   },
+    {  182, "&para;"    }, { 183, "&middot;"  }, { 184, "&cedil;"   }, { 185, "&sup1;"    },
+    {  186, "&ordm;"    }, { 187, "&raquo;"   }, { 188, "&frac14;"  }, { 189, "&frac12;"  },
+    {  190, "&frac34;"  }, { 191, "&iquest;"  }, { 192, "&Agrave;"  }, { 193, "&Aacute;"  },
+    {  194, "&Acirc;"   }, { 195, "&Atilde;"  }, { 196, "&Auml;"    }, { 197, "&Aring;"   },
+    {  198, "&AElig;"   }, { 199, "&Ccedil;"  }, { 200, "&Egrave;"  }, { 201, "&Eacute;"  },
+    {  202, "&Ecirc;"   }, { 203, "&Euml;"    }, { 204, "&Igrave;"  }, { 205, "&Iacute;"  },
+    {  206, "&Icirc;"   }, { 207, "&Iuml;"    }, { 208, "&ETH;"     }, { 209, "&Ntilde;"  },
+    {  210, "&Ograve;"  }, { 211, "&Oacute;"  }, { 212, "&Ocirc;"   }, { 213, "&Otilde;"  },
+    {  214, "&Ouml;"    }, { 215, "&times;"   }, { 216, "&Oslash;"  }, { 217, "&Ugrave;"  },
+    {  218, "&Uacute;"  }, { 219, "&Ucirc;"   }, { 220, "&Uuml;"    }, { 221, "&Yacute;"  },
+    {  222, "&THORN;"   }, { 223, "&szlig;"   }, { 224, "&agrave;"  }, { 225, "&aacute;"  },
+    {  226, "&acirc;"   }, { 227, "&atilde;"  }, { 228, "&auml;"    }, { 229, "&aring;"   },
+    {  230, "&aelig;"   }, { 231, "&ccedil;"  }, { 232, "&egrave;"  }, { 233, "&eacute;"  },
+    {  234, "&ecirc;"   }, { 235, "&euml;"    }, { 236, "&igrave;"  }, { 237, "&iacute;"  },
+    {  238, "&icirc;"   }, { 239, "&iuml;"    }, { 240, "&eth;"     }, { 241, "&ntilde;"  },
+    {  242, "&ograve;"  }, { 243, "&oacute;"  }, { 244, "&ocirc;"   }, { 245, "&otilde;"  },
+    {  246, "&ouml;"    }, { 247, "&divide;"  }, { 248, "&oslash;"  }, { 249, "&ugrave;"  },
+    {  250, "&uacute;"  }, { 251, "&ucirc;"   }, { 252, "&uuml;"    }, { 253, "&yacute;"  },
+    {  254, "&thorn;"   }, { 255, "&yuml;"    }, { 338, "&OElig;"   }, { 339, "&oelig;"   },
+    {  352, "&Scaron;"  }, { 353, "&scaron;"  }, { 376, "&Yuml;"    }, { 402, "&fnof;"    },
+    {  710, "&circ;"    }, { 732, "&tilde;"   }, { 913, "&Alpha;"   }, { 914, "&Beta;"    },
+    {  915, "&Gamma;"   }, { 916, "&Delta;"   }, { 917, "&Epsilon;" }, { 918, "&Zeta;"    },
+    {  919, "&Eta;"     }, { 920, "&Theta;"   }, { 921, "&Iota;"    }, { 922, "&Kappa;"   },
+    {  923, "&Lambda;"  }, { 924, "&Mu;"      }, { 925, "&Nu;"      }, { 926, "&Xi;"      },
+    {  927, "&Omicron;" }, { 928, "&Pi;"      }, { 929, "&Rho;"     }, { 931, "&Sigma;"   },
+    {  932, "&Tau;"     }, { 933, "&Upsilon;" }, { 934, "&Phi;"     }, { 935, "&Chi;"     },
+    {  936, "&Psi;"     }, { 937, "&Omega;"   }, { 945, "&alpha;"   }, { 946, "&beta;"    },
+    {  947, "&gamma;"   }, { 948, "&delta;"   }, { 949, "&epsilon;" }, { 950, "&zeta;"    },
+    {  951, "&eta;"     }, { 952, "&theta;"   }, { 953, "&iota;"    }, { 954, "&kappa;"   },
+    {  955, "&lambda;"  }, { 956, "&mu;"      }, { 957, "&nu;"      }, { 958, "&xi;"      },
+    {  959, "&omicron;" }, { 960, "&pi;"      }, { 961, "&rho;"     }, { 962, "&sigmaf;"  },
+    {  963, "&sigma;"   }, { 964, "&tau;"     }, { 965, "&upsilon;" }, { 966, "&phi;"     },
+    {  967, "&chi;"     }, { 968, "&psi;"     }, { 969, "&omega;"   }, { 977, "&thetasym" },
+    {  978, "&upsih;"   }, { 982, "&piv;"     }, {8194, "&ensp;"    }, {8195, "&emsp;"    },
+    { 8201, "&thinsp;"  }, {8204, "&zwnj;"    }, {8205, "&zwj;"     }, {8206, "&lrm;"     },
+    { 8207, "&rlm;"     }, {8211, "&ndash;"   }, {8212, "&mdash;"   }, {8216, "&lsquo;"   },
+    { 8217, "&rsquo;"   }, {8218, "&sbquo;"   }, {8220, "&ldquo;"   }, {8221, "&rdquo;"   },
+    { 8222, "&bdquo;"   }, {8224, "&dagger;"  }, {8225, "&Dagger;"  }, {8226, "&bull;"    },
+    { 8230, "&hellip;"  }, {8240, "&permil;"  }, {8242, "&prime;"   }, {8243, "&Prime;"   },
+    { 8249, "&lsaquo;"  }, {8250, "&rsaquo;"  }, {8254, "&oline;"   }, {8260, "&frasl;"   },
+    { 8364, "&euro;"    }, {8465, "&image;"   }, {8472, "&weierp;"  }, {8476, "&real;"    },
+    { 8482, "&trade;"   }, {8501, "&alefsym;" }, {8592, "&larr;"    }, {8593, "&uarr;"    },
+    { 8594, "&rarr;"    }, {8595, "&darr;"    }, {8596, "&harr;"    }, {8629, "&crarr;"   },
+    { 8656, "&lArr;"    }, {8657, "&uArr;"    }, {8658, "&rArr;"    }, {8659, "&dArr;"    },
+    { 8660, "&hArr;"    }, {8704, "&forall;"  }, {8706, "&part;"    }, {8707, "&exist;"   },
+    { 8709, "&empty;"   }, {8711, "&nabla;"   }, {8712, "&isin;"    }, {8713, "&notin;"   },
+    { 8715, "&ni;"      }, {8719, "&prod;"    }, {8721, "&sum;"     }, {8722, "&minus;"   },
+    { 8727, "&lowast;"  }, {8730, "&radic;"   }, {8733, "&prop;"    }, {8734, "&infin;"   },
+    { 8736, "&ang;"     }, {8743, "&and;"     }, {8744, "&or;"      }, {8745, "&cap;"     },
+    { 8746, "&cup;"     }, {8747, "&int;"     }, {8756, "&there4;"  }, {8764, "&sim;"     },
+    { 8773, "&cong;"    }, {8776, "&asymp;"   }, {8800, "&ne;"      }, {8801, "&equiv;"   },
+    { 8804, "&le;"      }, {8805, "&ge;"      }, {8834, "&sub;"     }, {8835, "&sup;"     },
+    { 8836, "&nsub;"    }, {8838, "&sube;"    }, {8839, "&supe;"    }, {8853, "&oplus;"   },
+    { 8855, "&otimes;"  }, {8869, "&perp;"    }, {8901, "&sdot;"    }, {8968, "&lceil;"   },
+    { 8969, "&rceil;"   }, {8970, "&lfloor;"  }, {8971, "&rfloor;"  }, {9001, "&lang;"    },
+    { 9002, "&rang;"    }, {9674, "&loz;"     }, {9824, "&spades;"  }, {9827, "&clubs;"   },
+    { 9829, "&hearts;"  }, {9830, "&diams;"   }
+  };
+  int num_chars = sizeof(charset) / sizeof(charset[0]);
+
+  size_t len = strlen(html);
+  html2 = malloc(len+1);
+
+  if (html2 == NULL) {
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
+    return NULL;
+  }
+
+  for (i = 0; i < len; i++) {
+    if (html[i] == '<') {
+      if (cdata_close_tag) {
+        if (strncasecmp(html + i, cdata_close_tag, strlen(cdata_close_tag)) == 0) {
+          i += strlen(cdata_close_tag) - 1;
+          cdata_close_tag = NULL;
+        }
+        continue;
+      } else if (strncasecmp(html + i, "<td", 3) == 0 && closing_td_tag) {
+        html2[j++]=' ';
+        visible = 1;
+      } else if (strncasecmp(html + i, "</td>", 5) == 0) {
+        i += 4;
+        closing_td_tag = 1;
+        continue;
+      } else {
+        closing_td_tag = 0;
+        visible = 1;
+      }
+      k = i + 1;
+
+      if(html[k] == ' ')
+        visible = 1;
+      else if (html[k]) {
+        while (html[k] && html[k] != '<' && html[k] != '>') {k++;}
+
+        /* If we've got an <a> tag with an href, save the address
+         * to print later. */
+        if (strncasecmp(html + i, "<a", 2) == 0 && isspace(html[i+2])) {
+          int href_start;           /* start of href, inclusive [ */
+          int href_end;            /* end of href, exclusive ) */
+          char delim = ' ';
+          /* Find start of href */
+          for (href_start = i + 3; href_start < k; href_start++) {
+            if (strncasecmp(html + href_start, "href=", 5) == 0) {
+              href_start += 5;
+              if (html[href_start] == '"') {
+                delim = '"';
+                href_start++;
+              } else if (html[href_start] == '\'') {
+                delim = '\'';
+                href_start++;
+              }
+              break;
+            }
+          }
+          /* find end of address */
+          if (strncasecmp(html + href_start, "http:", 5) == 0
+              || strncasecmp(html + href_start, "https:", 6) == 0
+              || strncasecmp(html + href_start, "ftp:", 5) == 0) {
+            html2[j++]=' ';
+            href_end = href_start;
+            const char *w = &(html[href_start]);
+            while (*w != delim) {html2[j++]=*w;href_end++;w++;}
+            html2[j++]=' ';
+          }
+          // cdata_close_tag = "</a>";
+        } else if (strncasecmp(html + i, "<p>", 3) == 0
+         || strncasecmp(html + i, "<p ", 3) == 0
+         || strncasecmp(html + i, "<p\t", 3) == 0
+         || strncasecmp(html + i, "<tr", 3) == 0
+         || strncasecmp(html + i, "<br", 3) == 0
+         || strncasecmp(html + i, "<li", 3) == 0
+         || strncasecmp(html + i, "<div", 4) == 0
+         || strncasecmp(html + i, "</table>", 8) == 0) {
+          html2[j++] = '\n';
+        } else if (strncasecmp(html + i, "<applet", 7) == 0) {
+          cdata_close_tag = "</applet>";
+        } else if (strncasecmp(html + i, "<embed", 6) == 0) {
+          cdata_close_tag = "</embed>";
+        } else if (strncasecmp(html + i, "<frameset", 9) == 0) {
+          cdata_close_tag = "</frameset>";
+        } else if (strncasecmp(html + i, "<frame", 6) == 0) {
+          cdata_close_tag = "</frame>";
+        } else if (strncasecmp(html + i, "<iframe", 7) == 0) {
+          cdata_close_tag = "</iframe>";
+        } else if (strncasecmp(html + i, "<noembed", 8) == 0) {
+          cdata_close_tag = "</noembed>";
+        } else if (strncasecmp(html + i, "<noscript", 9) == 0) {
+          cdata_close_tag = "</noscript>";
+        } else if (strncasecmp(html + i, "<object", 7) == 0) {
+          cdata_close_tag = "</object>";
+        } else if (strncasecmp(html + i, "<script", 7) == 0) {
+          cdata_close_tag = "</script>";
+        } else if (strncasecmp(html + i, "<style", 6) == 0) {
+          cdata_close_tag = "</style>";
+        }
+        i = (html[k] == '<' || html[k] == '\0')? k - 1: k;
+          continue;
+      }
+    } else if (cdata_close_tag) {
+      continue;
+    } else if (!isspace(html[i])) {
+      visible = 1;
+    }
+
+    if (strncmp(html+i,"&#",2)==0) {
+      int x = 0;
+      const char *w = &(html[i+2]);
+      while (*w == '0') {i++;w++;}
+      char n[5];
+      if (html[i+4] && html[i+4] == ';'
+          && isdigit(html[i+2])
+          && isdigit(html[i+3])) {
+        n[0] = html[i+2];
+        n[1] = html[i+3];
+        n[2] = 0;
+        x = atoi(n);
+        if (x <= 255 && x >= 32)
+          html2[j++] = x;
+        i += 4;
+      } else if (html[i+6]
+                  && html[i+6] == ';'
+                  && isdigit(html[i+2])
+                  && isdigit(html[i+3])
+                  && isdigit(html[i+4])
+                  && isdigit(html[i+5])) {
+        n[0] = html[i+2];
+        n[1] = html[i+3];
+        n[2] = html[i+4];
+        n[3] = html[i+5];
+        n[4] = 0;
+        x = atoi(n);
+        if (x <= 255 && x >= 32)
+          html2[j++] = x;
+        i += 6;
+      } else {
+        const char *w = &(html[i]);
+        while (*w != ';' && *w != ' ' && *w != '\t' && *w != '\0') {i++;w++;}
+      }
+      visible = 0;
+      continue;
+    } else if (html[i] == '&') {
+      int x = 0, y = 0;
+      for (y = 0; y < num_chars; y++) {
+        x = strlen(charset[y].entity);
+        if (strncmp(html+i,charset[y].entity,x)==0) {
+          if (charset[y].id <= 255)
+            html2[j++] = charset[y].id;
+          i += x-1;
+          visible = 0;
+          continue;
+        }
+      }
+    }
+
+    if (visible)
+      html2[j++] = html[i];
+
+  }
+
+  html2[j] = '\0';
+  return (char *)html2;
 }
