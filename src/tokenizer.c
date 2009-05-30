@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.23 2006/05/27 20:17:27 jonz Exp $ */
+/* $Id: tokenizer.c,v 1.24 2009/05/30 10:15:47 sbajic Exp $ */
 
 /*
  DSPAM
@@ -816,34 +816,19 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 
         if (decode)
         {
-          char *decode2 = strdup(decode);
-          size_t len = strlen(decode2) + 1;
-  
+          char *decode2;
+          size_t len;
+
           /* -- PREFILTERS BEGIN -- */
-  
+
           /* Hexadecimal 8-Bit Encodings */
 
           if (block->encoding == EN_8BIT) {
-            char hex[5] = "0x00";
-            int conv;
-
-            x = strchr(decode2, '%');
-            while(x) {
-              if (isxdigit((unsigned char) x[1]) && 
-                  isxdigit((unsigned char) x[2])) 
-               {
-                hex[2] = x[1];
-                hex[3] = x[2];
-
-                conv = strtol(hex, NULL, 16);
-                if (conv) {
-                  x[0] = conv;
-                  memmove(x+1, x+3, len-((x+3)-decode2));
-                  len -= 2;
-                }
-              }
-              x = strchr(x+1, '%');
-            }
+            decode2 = _ds_decode_hex8bit(decode);
+            len = strlen(decode2) + 1;
+          } else {
+            decode2 = strdup(decode);
+            len = strlen(decode2) + 1;
           }
 
           /* HTML-Specific Filters */

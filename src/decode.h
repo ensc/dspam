@@ -1,4 +1,4 @@
-/* $Id: decode.h,v 1.13 2006/12/12 15:33:45 jonz Exp $ */
+/* $Id: decode.h,v 1.14 2009/05/30 09:39:54 sbajic Exp $ */
 
 /*
  DSPAM
@@ -123,6 +123,7 @@ char *	_ds_decode_block	(ds_message_part_t block);
 int	_ds_encode_block	(ds_message_part_t block, int encoding);
 char *	_ds_encode_base64	(const char *body);
 char *	_ds_encode_quoted	(const char *body);
+char *	_ds_decode_hex8bit	(const char *body);
 int     _ds_decode_headers      (ds_message_part_t block);
 
 int	_ds_push_boundary	(struct nt *stack, const char *boundary);

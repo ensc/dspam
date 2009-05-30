@@ -1,6 +1,12 @@
 Version 3.9.0
 -------------
 
+[20090530:1020] sbajic: Fixes for bug id #2796390
+
+* Adding function _ds_decode_hex8bit
+* Replacing decoding of hexadecimal 8-bit in _ds_degenerate_message with call to new function
+* Speeding up hexadecimal 8-bit decoding
+
 [20090530:0145] sbajic: Fixes for bug id #2796390
 
 * Speeding up and fixing function _ds_decode_quoted()

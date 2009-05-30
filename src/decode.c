@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.32 2009/05/30 01:42:51 sbajic Exp $ */
+/* $Id: decode.c,v 1.33 2009/05/30 09:38:19 sbajic Exp $ */
 
 /*
  DSPAM
@@ -754,7 +754,7 @@ _ds_decode_block (ds_message_part_t block)
 }
 
 /*
- * _ds_decode_{base64,quoted}
+ * _ds_decode_{base64,quoted,hex8bit}
  *
  * DESCRIPTION
  *   supporting block decoder functions
@@ -809,6 +809,38 @@ _ds_decode_quoted (const char *body)
         *n = *p;
     } else if (*p == '_')
       *n = ' ';
+    else
+      *n = *p;
+  }
+
+  *n = '\0';
+  return (char *)out;
+}
+
+char *
+_ds_decode_hex8bit (const char *body)
+{
+  if (!body)
+    return NULL;
+
+  char *n, *out;
+  const char *end, *p;
+
+  n = out = malloc(strlen(body)+1);
+  end = body + strlen(body);
+
+  if (out == NULL) {
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
+    return NULL;
+  }
+
+  for (p = body; p < end; p++, n++) {
+    if (*p == '%')
+      if (p[1] && p[2] && isxdigit((unsigned char) p[1]) && isxdigit((unsigned char) p[2])) {
+        *n = ((_ds_hex2dec((unsigned char) p[1])) << 4) | (_ds_hex2dec((unsigned char) p[2]));
+        p += 2;
+      } else
+        *n = *p;
     else
       *n = *p;
   }
