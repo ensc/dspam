@@ -1,6 +1,10 @@
 Version 3.9.0
 -------------
 
+[20090530:1925] sbajic: Enhancing _ds_strip_html
+
+* Adding more tags to be stripped/handled in _ds_strip_html
+
 [20090530:1210] sbajic: Fixes for bug id #2796390
 
 * Adding function _ds_strip_html to strip html tags and decode a bunch of html encoded characters

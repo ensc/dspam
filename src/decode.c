@@ -1316,22 +1316,26 @@ _ds_strip_html (const char *html)
           cdata_close_tag = NULL;
         }
         continue;
-      } else if (strncasecmp(html + i, "<td", 3) == 0 && closing_td_tag) {
-        html2[j++]=' ';
-        visible = 1;
       } else if (strncasecmp(html + i, "</td>", 5) == 0) {
         i += 4;
         closing_td_tag = 1;
         continue;
+      } else if (strncasecmp(html + i, "<td", 3) == 0 && closing_td_tag) {
+        html2[j++]=' ';
+        visible = 0;
       } else {
         closing_td_tag = 0;
         visible = 1;
       }
       k = i + 1;
 
-      if(html[k] == ' ')
+      if (html[k] == ' ' || html[k] == '\t') {
         visible = 1;
-      else if (html[k]) {
+        html2[j++]=html[i];
+        i += 1;
+        html2[j++]=html[i];
+        continue;
+      } else if (html[k]) {
         while (html[k] && html[k] != '<' && html[k] != '>') {k++;}
 
         /* If we've got an <a> tag with an href, save the address
@@ -1369,9 +1373,11 @@ _ds_strip_html (const char *html)
          || strncasecmp(html + i, "<p ", 3) == 0
          || strncasecmp(html + i, "<p\t", 3) == 0
          || strncasecmp(html + i, "<tr", 3) == 0
+         || strncasecmp(html + i, "<option", 7) == 0
          || strncasecmp(html + i, "<br", 3) == 0
          || strncasecmp(html + i, "<li", 3) == 0
          || strncasecmp(html + i, "<div", 4) == 0
+         || strncasecmp(html + i, "</select>", 9) == 0
          || strncasecmp(html + i, "</table>", 8) == 0) {
           html2[j++] = '\n';
         } else if (strncasecmp(html + i, "<applet", 7) == 0) {
@@ -1396,7 +1402,7 @@ _ds_strip_html (const char *html)
           cdata_close_tag = "</style>";
         }
         i = (html[k] == '<' || html[k] == '\0')? k - 1: k;
-          continue;
+        continue;
       }
     } else if (cdata_close_tag) {
       continue;
