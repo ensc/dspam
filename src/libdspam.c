@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.163 2007/12/14 00:14:32 mjohnson Exp $ */
+/* $Id: libdspam.c,v 1.164 2009/06/02 00:55:00 mjohnson Exp $ */
 
 /*
  DSPAM
@@ -569,7 +569,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     && CTX->flags & DSF_SIGNATURE)
   {
     char *y, *h, *b;
-    char *ptrptr;
+    char *ptrptr = NULL;
 
     y = strdup((const char *) CTX->signature->data);
     h = strtok_r(y, "\001", &ptrptr);
@@ -704,7 +704,7 @@ dspam_getsource (
         }
         else
         {
-          char *ptrptr;
+          char *ptrptr = NULL;
           tok = strtok_r (ptr, "[", &ptrptr);
 
           if (tok != NULL)

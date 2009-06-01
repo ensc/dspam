@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.25 2009/05/30 11:40:51 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.26 2009/06/02 00:54:08 sbajic Exp $ */
 
 /*
  DSPAM
@@ -725,7 +725,7 @@ _ds_map_body_token (
   return 0;
 }
 
-/* 
+/*
  *  _ds_degenerate_message()
  *
  * DESCRIPTION
@@ -744,7 +744,7 @@ _ds_map_body_token (
 
 int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 {
-  char *decode, *x, *y;
+  char *decode;
   struct nt_node *node_nt, *node_header;
   struct nt_c c_nt, c_nt2;
   int i = 0;

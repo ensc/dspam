@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.64 2008/05/23 19:41:41 sbajic Exp $ */
+/* $Id: client.c,v 1.65 2009/06/02 01:08:10 sbajic Exp $ */
 
 /*
  DSPAM
@@ -508,7 +508,7 @@ int client_parsecode(char *error) {
  */
 
 int client_getcode(THREAD_CTX *TTX, char *err, size_t len) {
-  char *inp, *ptr, *ptrptr;
+  char *inp, *ptr, *ptrptr = NULL;
   int i;
 
   inp = client_getline(TTX, 300);

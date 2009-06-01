@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090602:0124] sbajic: Fixing compiler warnings
+
 [20090602:0043] sbajic: PostgreSQL and MySQL driver changes
 
 Changing the PostgreSQL and MySQL driver source to be more congruent with each

@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.81 2009/06/01 22:21:54 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.82 2009/06/02 01:05:00 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1368,7 +1368,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   char query[256];
   MYSQL_RES *result;
   MYSQL_ROW row;
-  int uid=NULL;
+  int uid = -1;
   MYSQL *dbh;
   result = NULL;
 
@@ -1431,7 +1431,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     dbh = _mysql_drv_sig_write_handle(CTX, s);
   }
 
-  if (uid == NULL){
+  if (uid == -1){
     uid = (int) p->pw_uid;
   }
 

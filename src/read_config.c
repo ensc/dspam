@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.17 2006/05/16 20:11:22 jonz Exp $ */
+/* $Id: read_config.c,v 1.18 2009/06/02 01:12:44 sbajic Exp $ */
 
 /*
  DSPAM
@@ -325,7 +325,7 @@ agent_pref_t pref_config(void)
   agent_pref_t ptr;
   attribute_t attrib;
   char *p, *q;
-  char *ptrptr;
+  char *ptrptr = NULL;
   int i = 0;
 
   if (PTX == NULL) {

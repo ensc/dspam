@@ -1,4 +1,4 @@
-/* $Id: dspamc.c,v 1.13 2007/12/06 05:10:13 mjohnson Exp $ */
+/* $Id: dspamc.c,v 1.14 2009/06/02 01:11:41 sbajic Exp $ */
 
 /*
  DSPAM
@@ -99,7 +99,6 @@ main (int argc, char *argv[])
   int exitcode = EXIT_SUCCESS;
   buffer *message = NULL;       /* input Message */
   int agent_init = 0;		/* agent is initialized */
-  struct passwd *pwent;
 
   setbuf (stdout, NULL);	/* unbuffered output */
 #ifdef DEBUG
