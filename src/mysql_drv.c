@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.82 2009/06/02 01:05:00 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.83 2009/06/02 01:32:51 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1783,11 +1783,6 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
 
   strlcpy (s->u_getnextuser, p->pw_name, sizeof (s->u_getnextuser));
 #endif
-
-  if (s->iter_user != NULL) {
-    mysql_free_result (s->iter_user);
-    s->iter_user = NULL;
-  }
 
   return s->u_getnextuser;
 }

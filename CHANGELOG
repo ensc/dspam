@@ -1,6 +1,10 @@
 Version 3.9.0
 -------------
 
+[20090602:0133] sbajic: MySQL driver changes
+
+* Fixing loop in MySQL driver introduced by latest MySQL driver patch
+
 [20090602:0124] sbajic: Fixing compiler warnings
 
 [20090602:0043] sbajic: PostgreSQL and MySQL driver changes
