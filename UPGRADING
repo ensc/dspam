@@ -51,6 +51,17 @@ UPGRADING FROM 3.8
        ADD INDEX(`innocent_hits`),
        ADD INDEX(`last_hit`); 
 
+2. Ensure PosgreSQL is using the new database schema. The following clauses should
+   be executed for upgrading pre-3.9.0 DSPAM PosgreSQL schema to the 3.9.0 schema:
+     ALTER TABLE dspam_preferences ALTER COLUMN uid TYPE integer;
+     ALTER TABLE dspam_signature_data ALTER COLUMN uid TYPE integer;
+     ALTER TABLE dspam_stats ALTER COLUMN uid TYPE integer;
+     ALTER TABLE dspam_token_data ALTER COLUMN uid TYPE integer;
+
+   If you are using virtual users in DSPAM, then you should execute the following
+   clause for upgrading pre-3.9.0 DSPAM virtual uids to the 3.9.0 schema:
+     ALTER TABLE dspam_virtual_uids ALTER COLUMN uid TYPE integer;
+
 
 UPGRADING FROM 3.6
 ------------------

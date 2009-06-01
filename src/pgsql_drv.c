@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.65 2008/05/06 18:26:07 mjohnson Exp $ */
+/* $Id: pgsql_drv.c,v 1.66 2009/05/31 22:42:48 sbajic Exp $ */
 
 /*
  DSPAM
@@ -103,6 +103,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
       DTX->connections[i] = calloc(1, sizeof(struct _ds_drv_connection));
       if (DTX->connections[i]) {
 #ifdef DAEMON
+        LOGDEBUG("initializing lock %d", i);
         pthread_mutex_init(&DTX->connections[i]->lock, NULL);
 #endif
         DTX->connections[i]->dbh = (void *) _pgsql_drv_connect(DTX->CTX);
@@ -146,6 +147,7 @@ _pgsql_drv_get_spamtotals (DSPAM_CTX * CTX)
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   char query[1024];
   struct passwd *p;
+  char *name;
   PGresult *result;
   struct _ds_spam_totals user, group;
   int uid = -1, gid = -1;
@@ -166,23 +168,25 @@ _pgsql_drv_get_spamtotals (DSPAM_CTX * CTX)
   memset(&CTX->totals, 0, sizeof(struct _ds_spam_totals));
   memset(&user, 0, sizeof(struct _ds_spam_totals));
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_pgsql_drv_get_spamtotals: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     if (!(CTX->flags & DSF_MERGED))
       return EINVAL;
   } else {
-
-    uid = p->pw_uid;
+    uid = (int) p->pw_uid;
   }
 
-  if (CTX->flags & DSF_MERGED) {
+  if (CTX->group != NULL && CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
     if (p == NULL)
     {
@@ -190,28 +194,28 @@ _pgsql_drv_get_spamtotals (DSPAM_CTX * CTX)
                 CTX->group);
       return EINVAL;
     }
+    gid = (int) p->pw_uid;
 
   }
 
-  gid = p->pw_uid;
+  if (gid < 0) gid = uid;
 
-  if (gid != uid) {
+  if (gid != uid)
     snprintf (query, sizeof (query),
-	      "SELECT uid, spam_learned, innocent_learned, "
-	      "spam_misclassified, innocent_misclassified, "
-	      "spam_corpusfed, innocent_corpusfed, "
-	      "spam_classified, innocent_classified "
-	      "FROM dspam_stats WHERE uid IN ('%d', '%d')",
-	      uid, gid);
-  } else {
+	      "SELECT uid,spam_learned,innocent_learned,"
+	      "spam_misclassified, innocent_misclassified,"
+	      "spam_corpusfed,innocent_corpusfed,"
+	      "spam_classified,innocent_classified"
+	      " FROM dspam_stats WHERE uid IN ('%d','%d')",
+	      (int) uid, (int) gid);
+  else
     snprintf (query, sizeof (query),
-	      "SELECT uid, spam_learned, innocent_learned, "
-	      "spam_misclassified, innocent_misclassified, "
-	      "spam_corpusfed, innocent_corpusfed, "
-	      "spam_classified, innocent_classified "
-	      "FROM dspam_stats WHERE uid = '%d'",
-	      uid);
-  }
+	      "SELECT uid,spam_learned,innocent_learned,"
+	      "spam_misclassified,innocent_misclassified,"
+	      "spam_corpusfed,innocent_corpusfed,"
+	      "spam_classified,innocent_classified"
+	      " FROM dspam_stats WHERE uid='%d'",
+	      (int) uid);
 
   result = PQexec(s->dbh, query);
 
@@ -224,6 +228,7 @@ _pgsql_drv_get_spamtotals (DSPAM_CTX * CTX)
 
   if ( PQntuples(result) < 1 )
   {
+    LOGDEBUG("_pgsql_drv_get_spamtotals: failed PQntuples()");
     if (result) PQclear(result);
     return EFAILURE;
   }
@@ -233,38 +238,107 @@ _pgsql_drv_get_spamtotals (DSPAM_CTX * CTX)
   for (i=0; i<ntuples; i++)
   {
     int rid = atoi(PQgetvalue(result,i,0));
+    if (rid == INT_MAX && errno == ERANGE) {
+      LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to rid", PQgetvalue(result,i,0));
+      goto FAIL;
+    }
     if (rid == uid) {
-      user.spam_learned             = strtol (PQgetvalue(result,i,1), NULL, 0);
-      user.innocent_learned         = strtol (PQgetvalue(result,i,2), NULL, 0);
-      user.spam_misclassified       = strtol (PQgetvalue(result,i,3), NULL, 0);
-      user.innocent_misclassified   = strtol (PQgetvalue(result,i,4), NULL, 0);
-      user.spam_corpusfed           = strtol (PQgetvalue(result,i,5), NULL, 0);
-      user.innocent_corpusfed       = strtol (PQgetvalue(result,i,6), NULL, 0);
+      user.spam_learned             = strtoul (PQgetvalue(result,i,1), NULL, 0);
+      if (user.spam_learned == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to user.spam_learned", PQgetvalue(result,i,1));
+        goto FAIL;
+      }
+      user.innocent_learned         = strtoul (PQgetvalue(result,i,2), NULL, 0);
+      if (user.innocent_learned == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to user.innocent_learned", PQgetvalue(result,i,2));
+        goto FAIL;
+      }
+      user.spam_misclassified       = strtoul (PQgetvalue(result,i,3), NULL, 0);
+      if (user.spam_misclassified == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to user.spam_misclassified", PQgetvalue(result,i,3));
+        goto FAIL;
+      }
+      user.innocent_misclassified   = strtoul (PQgetvalue(result,i,4), NULL, 0);
+      if (user.innocent_misclassified == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to user.innocent_misclassified", PQgetvalue(result,i,4));
+        goto FAIL;
+      }
+      user.spam_corpusfed           = strtoul (PQgetvalue(result,i,5), NULL, 0);
+      if (user.spam_corpusfed == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to user.spam_corpusfed", PQgetvalue(result,i,5));
+        goto FAIL;
+      }
+      user.innocent_corpusfed       = strtoul (PQgetvalue(result,i,6), NULL, 0);
+      if (user.innocent_corpusfed == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to user.innocent_corpusfed", PQgetvalue(result,i,6));
+        goto FAIL;
+      }
       if (PQgetvalue(result,i,7) != NULL && PQgetvalue(result,i,8) != NULL) {
-        user.spam_classified        = strtol (PQgetvalue(result,i,7), NULL, 0);
-        user.innocent_classified    = strtol (PQgetvalue(result,i,8), NULL, 0);
+        user.spam_classified        = strtoul (PQgetvalue(result,i,7), NULL, 0);
+        if (user.spam_classified == ULONG_MAX && errno == ERANGE) {
+          LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to user.spam_classified", PQgetvalue(result,i,7));
+          goto FAIL;
+        }
+        user.innocent_classified    = strtoul (PQgetvalue(result,i,8), NULL, 0);
+        if (user.innocent_classified == ULONG_MAX && errno == ERANGE) {
+          LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to user.innocent_classified", PQgetvalue(result,i,8));
+          goto FAIL;
+        }
       } else {
-        user.spam_classified = 0;
-        user.innocent_classified = 0;
+        user.spam_classified        = 0;
+        user.innocent_classified    = 0;
       }
     } else {
-      group.spam_learned           = strtol (PQgetvalue(result,i,1), NULL, 0);
-      group.innocent_learned       = strtol (PQgetvalue(result,i,2), NULL, 0);
-      group.spam_misclassified     = strtol (PQgetvalue(result,i,3), NULL, 0);
-      group.innocent_misclassified = strtol (PQgetvalue(result,i,4), NULL, 0);
-      group.spam_corpusfed         = strtol (PQgetvalue(result,i,5), NULL, 0);
-      group.innocent_corpusfed     = strtol (PQgetvalue(result,i,6), NULL, 0);
+      group.spam_learned           = strtoul (PQgetvalue(result,i,1), NULL, 0);
+      if (group.spam_learned == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to group.spam_learned", PQgetvalue(result,i,1));
+        goto FAIL;
+      }
+      group.innocent_learned       = strtoul (PQgetvalue(result,i,2), NULL, 0);
+      if (group.innocent_learned == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to group.innocent_learned", PQgetvalue(result,i,2));
+        goto FAIL;
+      }
+      group.spam_misclassified     = strtoul (PQgetvalue(result,i,3), NULL, 0);
+      if (group.spam_misclassified == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to group.spam_misclassified", PQgetvalue(result,i,3));
+        goto FAIL;
+      }
+      group.innocent_misclassified = strtoul (PQgetvalue(result,i,4), NULL, 0);
+      if (group.innocent_misclassified == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to group.innocent_misclassified", PQgetvalue(result,i,4));
+        goto FAIL;
+      }
+      group.spam_corpusfed         = strtoul (PQgetvalue(result,i,5), NULL, 0);
+      if (group.spam_corpusfed == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to group.spam_corpusfed", PQgetvalue(result,i,5));
+        goto FAIL;
+      }
+      group.innocent_corpusfed     = strtoul (PQgetvalue(result,i,6), NULL, 0);
+      if (group.innocent_corpusfed == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to group.innocent_corpusfed", PQgetvalue(result,i,6));
+        goto FAIL;
+      }
       if (PQgetvalue(result,i,7) != NULL && PQgetvalue(result,i,8) != NULL) {
-        group.spam_classified      = strtol (PQgetvalue(result,i,7), NULL, 0);
-        group.innocent_classified  = strtol (PQgetvalue(result,i,8), NULL, 0);
+        group.spam_classified      = strtoul (PQgetvalue(result,i,7), NULL, 0);
+        if (group.spam_classified == ULONG_MAX && errno == ERANGE) {
+          LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to group.spam_classified", PQgetvalue(result,i,7));
+          goto FAIL;
+        }
+        group.innocent_classified  = strtoul (PQgetvalue(result,i,8), NULL, 0);
+        if (group.innocent_classified == ULONG_MAX && errno == ERANGE) {
+          LOGDEBUG("_pgsql_drv_get_spamtotals: failed converting %s to group.innocent_classified", PQgetvalue(result,i,8));
+          goto FAIL;
+        }
       } else {
-        group.spam_classified = 0;
-        group.innocent_classified = 0;
+        group.spam_classified      = 0;
+        group.innocent_classified  = 0;
       }
     }
   }
 
   if (result) PQclear(result);
+  result = NULL;
 
   if (CTX->flags & DSF_MERGED) {
     memcpy(&s->merged_totals, &group, sizeof(struct _ds_spam_totals));
@@ -291,6 +365,11 @@ _pgsql_drv_get_spamtotals (DSPAM_CTX * CTX)
   }
 
   return 0;
+
+FAIL:
+  if (result) PQclear(result);
+  result = NULL;
+  return EFAILURE;
 }
 
 int
@@ -298,10 +377,10 @@ _pgsql_drv_set_spamtotals (DSPAM_CTX * CTX)
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   struct passwd *p;
+  char *name;
   char query[1024];
   PGresult *result;
   struct _ds_spam_totals user;
-
   result = NULL;
 
   if (s->dbh == NULL)
@@ -316,15 +395,18 @@ _pgsql_drv_set_spamtotals (DSPAM_CTX * CTX)
     return 0;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_pgsql_drv_get_spamtotals: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -339,16 +421,26 @@ _pgsql_drv_set_spamtotals (DSPAM_CTX * CTX)
     CTX->totals.spam_corpusfed -= s->merged_totals.spam_corpusfed;
     CTX->totals.innocent_classified -= s->merged_totals.innocent_classified;
     CTX->totals.spam_classified -= s->merged_totals.spam_classified;
+
+    if (CTX->totals.innocent_learned < 0) CTX->totals.innocent_learned = 0;
+    if (CTX->totals.spam_learned < 0) CTX->totals.spam_learned = 0;
+    if (CTX->totals.innocent_misclassified < 0) CTX->totals.innocent_misclassified = 0;
+    if (CTX->totals.spam_misclassified < 0) CTX->totals.spam_misclassified = 0;
+    if (CTX->totals.innocent_corpusfed < 0) CTX->totals.innocent_corpusfed = 0;
+    if (CTX->totals.spam_corpusfed < 0) CTX->totals.spam_corpusfed = 0;
+    if (CTX->totals.innocent_classified < 0) CTX->totals.innocent_classified = 0;
+    if (CTX->totals.spam_classified < 0) CTX->totals.spam_classified = 0;
+
   }
 
   if (s->control_totals.innocent_learned == 0)
   {
     snprintf (query, sizeof (query),
-              "INSERT INTO dspam_stats (uid, spam_learned, innocent_learned, "
-              "spam_misclassified, innocent_misclassified, "
-              "spam_corpusfed, innocent_corpusfed, "
-              "spam_classified, innocent_classified) "
-              "VALUES (%d, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld)",
+              "INSERT INTO dspam_stats (uid,spam_learned,innocent_learned,"
+              "spam_misclassified,innocent_misclassified,"
+              "spam_corpusfed,innocent_corpusfed,"
+              "spam_classified,innocent_classified)"
+              " VALUES (%d,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu)",
               (int) p->pw_uid, CTX->totals.spam_learned,
               CTX->totals.innocent_learned, CTX->totals.spam_misclassified,
               CTX->totals.innocent_misclassified, CTX->totals.spam_corpusfed,
@@ -362,15 +454,15 @@ _pgsql_drv_set_spamtotals (DSPAM_CTX * CTX)
     if (result) PQclear(result);
 
     snprintf (query, sizeof (query),
-              "UPDATE dspam_stats SET spam_learned = spam_learned %s %d, "
-              "innocent_learned = innocent_learned %s %d, "
-              "spam_misclassified = spam_misclassified %s %d, "
-              "innocent_misclassified = innocent_misclassified %s %d, "
-              "spam_corpusfed = spam_corpusfed %s %d, "
-              "innocent_corpusfed = innocent_corpusfed %s %d, "
-              "spam_classified = spam_classified %s %d, "
-              "innocent_classified = innocent_classified %s %d "
-              "WHERE uid = '%d'",
+              "UPDATE dspam_stats SET spam_learned=spam_learned%s%d,"
+              "innocent_learned=innocent_learned%s%d,"
+              "spam_misclassified=spam_misclassified%s%d,"
+              "innocent_misclassified=innocent_misclassified%s%d,"
+              "spam_corpusfed=spam_corpusfed%s%d,"
+              "innocent_corpusfed=innocent_corpusfed%s%d,"
+              "spam_classified=spam_classified%s%d,"
+              "innocent_classified=innocent_classified%s%d"
+              " WHERE uid='%d'",
               (CTX->totals.spam_learned >
                s->control_totals.spam_learned) ? "+" : "-",
               abs (CTX->totals.spam_learned -
@@ -429,6 +521,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   struct passwd *p;
+  char *name;
   buffer *query;
   ds_term_t ds_term;
   ds_cursor_t ds_c;
@@ -437,8 +530,11 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   struct _ds_spam_stat stat;
   unsigned long long token = 0;
   int get_one = 0;
-  int uid, gid;
+  int uid = -1, gid = -1;
   int i, ntuples;
+
+  if (diction->items < 1)
+    return 0;
 
   if (s->dbh == NULL)
   {
@@ -446,21 +542,24 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_getall_spamrecords: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
-  uid = p->pw_uid;
+  uid = (int) p->pw_uid;
 
-  if (CTX->flags & DSF_MERGED) {
+  if (CTX->group != NULL && CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
     if (p == NULL)
     {
@@ -468,9 +567,10 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
                 CTX->group);
       return EINVAL;
     }
+    gid = (int) p->pw_uid;
   }
 
-  gid = p->pw_uid;
+  if (gid < 0) gid = uid;
 
   stat.spam_hits     = 0;
   stat.innocent_hits = 0;
@@ -486,26 +586,26 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   if (gid != uid) {
     if (s->pg_major_ver >= 8) {
       snprintf (scratch, sizeof (scratch),
-                "SELECT * FROM lookup_tokens(%d, %d, '{", uid, gid);
+                "SELECT * FROM lookup_tokens(%d,%d,'{", (int) uid, (int) gid);
     } else {
       snprintf (scratch, sizeof (scratch),
-                "SELECT uid, token, spam_hits, innocent_hits "
-                "FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
-                uid, gid);
+                "SELECT uid,token,spam_hits,innocent_hits"
+                " FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
+                (int) uid, (int) gid);
     }
   } else {
     if (s->pg_major_ver >= 8) {
       snprintf (scratch, sizeof (scratch),
-                "SELECT * FROM lookup_tokens(%d, '{", uid);
+                "SELECT * FROM lookup_tokens(%d,'{", (int) uid);
     } else {
       snprintf (scratch, sizeof (scratch),
-                "SELECT uid, token, spam_hits, innocent_hits "
-                "FROM dspam_token_data WHERE uid = '%d' AND token IN (",
-                uid);
+                "SELECT uid,token,spam_hits,innocent_hits"
+                " FROM dspam_token_data WHERE uid='%d' AND token IN (",
+                (int) uid);
     }
   }
   buffer_cat (query, scratch);
-  
+
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
@@ -524,7 +624,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_diction_close(ds_c);
 
   if (s->pg_major_ver >= 8) {
-    if (gid != uid) 
+    if (gid != uid)
       buffer_cat (query, ")");
     else
       buffer_cat(query, "}')");
@@ -537,7 +637,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   _pgsql_drv_query_error ("VERBOSE DEBUG (INFO ONLY - NOT AN ERROR)", query->data);
 #endif
 
-  if (!get_one) 
+  if (!get_one)
     return 0;
 
   result = PQexec(s->dbh, query->data);
@@ -554,9 +654,21 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   for (i=0; i<ntuples; i++)
   {
     int rid = atoi(PQgetvalue(result,i,0));
+    if (rid == INT_MAX && errno == ERANGE) {
+      LOGDEBUG("_ds_getall_spamrecords: failed converting %s to rid", PQgetvalue(result,i,0));
+      goto FAIL;
+    }
     token = _pgsql_drv_token_read (s->pg_token_type, PQgetvalue(result,i,1));
-    stat.spam_hits = strtol (PQgetvalue(result,i,2), NULL, 10);
-    stat.innocent_hits = strtol (PQgetvalue(result,i,3), NULL, 10);
+    stat.spam_hits = strtoul (PQgetvalue(result,i,2), NULL, 10);
+    if (stat.spam_hits == ULONG_MAX && errno == ERANGE) {
+      LOGDEBUG("_ds_getall_spamrecords: failed converting %s to stat.spam_hits", PQgetvalue(result,i,2));
+      goto FAIL;
+    }
+    stat.innocent_hits = strtoul (PQgetvalue(result,i,3), NULL, 10);
+    if (stat.innocent_hits == ULONG_MAX && errno == ERANGE) {
+      LOGDEBUG("_ds_getall_spamrecords: failed converting %s to stat.innocent_hits", PQgetvalue(result,i,3));
+      goto FAIL;
+    }
     stat.status = 0;
 
     if (rid == uid)
@@ -578,6 +690,11 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   if (result) PQclear(result);
   buffer_destroy(query);
   return 0;
+
+FAIL:
+  if (result) PQclear(result);
+  buffer_destroy(query);
+  return EFAILURE;
 }
 
 int
@@ -592,7 +709,11 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   PGresult *result;
   char scratch[1024];
   struct passwd *p;
+  char *name;
   int update_one = 0;
+
+  if (diction->items < 1)
+    return 0;
 
   if (s->dbh == NULL)
   {
@@ -605,15 +726,18 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
           (diction->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
     return 0;
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_setall_spamrecords: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -626,30 +750,30 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   update = buffer_create (NULL);
   if (update == NULL)
   {
+    buffer_destroy(prepare);
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 
   ds_diction_getstat(diction, s->control_token, &control);
   snprintf (scratch, sizeof (scratch),
-            "PREPARE dspam_update_plan (%s) AS UPDATE dspam_token_data "
-            "SET last_hit = CURRENT_DATE",
+            "PREPARE dspam_update_plan (%s) AS UPDATE dspam_token_data"
+            " SET last_hit=CURRENT_DATE",
             s->pg_token_type == 0 ? "numeric" : "bigint");
   buffer_cat (prepare, scratch);
-
 
   if ((abs (control.spam_hits - s->control_sh)) != 0)
   {
     if (control.spam_hits > s->control_sh)
     {
       snprintf (scratch, sizeof (scratch),
-                ", spam_hits = spam_hits + %d",
+                ",spam_hits=spam_hits+%d",
                 abs (control.spam_hits - s->control_sh) );
     } else {
       snprintf (scratch, sizeof (scratch),
-                ", spam_hits = "
-                             "CASE WHEN spam_hits - %d <= 0 THEN 0 "
-                             "ELSE spam_hits - %d END",
+                ",spam_hits="
+                             "CASE WHEN spam_hits-%d<=0 THEN 0"
+                             " ELSE spam_hits-%d END",
                 abs (control.spam_hits - s->control_sh),
                 abs (control.spam_hits - s->control_sh) );
     }
@@ -661,13 +785,13 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     if (control.innocent_hits > s->control_ih)
     {
       snprintf (scratch, sizeof (scratch),
-                ", innocent_hits = innocent_hits + %d",
+                ",innocent_hits=innocent_hits+%d",
                 abs (control.innocent_hits - s->control_ih) );
     } else {
       snprintf (scratch, sizeof (scratch),
-                ", innocent_hits = "
-                             "CASE WHEN innocent_hits - %d <= 0 THEN 0 "
-                             "ELSE innocent_hits - %d END",
+                ",innocent_hits="
+                             "CASE WHEN innocent_hits-%d<=0 THEN 0"
+                             " ELSE innocent_hits-%d END",
                 abs (control.innocent_hits - s->control_ih),
                 abs (control.innocent_hits - s->control_ih) );
     }
@@ -675,14 +799,14 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
   snprintf (scratch, sizeof (scratch),
-            " WHERE uid = '%d' AND token = $1;",
+            " WHERE uid='%d' AND token=$1;",
              (int) p->pw_uid);
   buffer_cat (prepare, scratch);
 
   snprintf (scratch, sizeof (scratch),
-            "PREPARE dspam_insert_plan (%s, int, int) AS INSERT INTO dspam_token_data "
-            "(uid, token, spam_hits, innocent_hits, last_hit) VALUES "
-            "(%d, $1, $2, $3, CURRENT_DATE);", 
+            "PREPARE dspam_insert_plan (%s,int,int) AS INSERT INTO dspam_token_data"
+            " (uid,token,spam_hits,innocent_hits,last_hit) VALUES"
+            " (%d,$1,$2,$3,CURRENT_DATE);",
             s->pg_token_type == 0 ? "numeric" : "bigint", (int)p->pw_uid);
 
   buffer_cat (prepare, scratch);
@@ -702,7 +826,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   buffer_cat (update, "BEGIN;");
 
   /*
-   *  Add each token in the diction to either an update or an insert queue 
+   *  Add each token in the diction to either an update or an insert queue
    */
 
   ds_c = ds_diction_cursor(diction);
@@ -716,7 +840,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
     /* Don't write lexical tokens if we're in TOE mode classifying */
 
-    if (CTX->training_mode == DST_TOE            && 
+    if (CTX->training_mode == DST_TOE            &&
         CTX->operating_mode == DSM_CLASSIFY      &&
         ds_term->key != diction->whitelist_token &&
         (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
@@ -770,8 +894,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   buffer_cat (update, "COMMIT;");
 
-  LOGDEBUG("Control: [%ld %ld] [%ld %ld] Delta: [%ld %ld]",
-    s->control_sh, s->control_ih, 
+  LOGDEBUG("Control: [%ld %ld] [%lu %lu] Delta: [%lu %lu]",
+    s->control_sh, s->control_ih,
     control.spam_hits, control.innocent_hits,
     control.spam_hits - s->control_sh, control.innocent_hits - s->control_ih);
 
@@ -788,6 +912,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     PQclear(result);
   }
 
+  buffer_destroy(update);
+
   /* deallocate prepared update and insert statements */
   snprintf (scratch, sizeof (scratch), "DEALLOCATE dspam_insert_plan;"
                                        "DEALLOCATE dspam_update_plan;");
@@ -800,7 +926,6 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EFAILURE;
   }
 
-  buffer_destroy(update);
   return 0;
 }
 
@@ -811,6 +936,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   char query[1024];
   struct passwd *p;
+  char *name;
   PGresult *result;
   char tok_buf[30];
 
@@ -820,21 +946,24 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_get_spamrecord: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
   snprintf (query, sizeof (query),
-            "SELECT spam_hits, innocent_hits FROM dspam_token_data "
-            "WHERE uid = '%d' AND token = %s ", (int)p->pw_uid, 
+            "SELECT spam_hits,innocent_hits FROM dspam_token_data"
+            " WHERE uid='%d' AND token=%s ", (int)p->pw_uid,
             _pgsql_drv_token_write(s->pg_token_type, token, tok_buf, sizeof(tok_buf)));
 
   stat->probability = 0.00000;
@@ -856,8 +985,18 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     return 0;
   }
 
-  stat->spam_hits = strtol (PQgetvalue( result, 0, 0), NULL, 10);
-  stat->innocent_hits = strtol (PQgetvalue( result, 0, 1), NULL, 10);
+  stat->spam_hits = strtoul (PQgetvalue( result, 0, 0), NULL, 10);
+  if (stat->spam_hits == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_spamrecord: failed converting %s to stat->spam_hits", PQgetvalue(result,0,0));
+    if (result) PQclear(result);
+    return EFAILURE;
+  }
+  stat->innocent_hits = strtoul (PQgetvalue( result, 0, 1), NULL, 10);
+  if (stat->innocent_hits == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_spamrecord: failed converting %s to stat->innocent_hits", PQgetvalue(result,0,1));
+    if (result) PQclear(result);
+    return EFAILURE;
+  }
   stat->status |= TST_DISK;
 
   if (result) PQclear(result);
@@ -871,11 +1010,12 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   char query[1024];
   struct passwd *p;
+  char *name;
   PGresult *result;
   char tok_buf[30];
 
   result = NULL;
-  
+
   if (s->dbh == NULL)
   {
     LOGDEBUG ("_ds_set_spamrecord: invalid database handle (NULL)");
@@ -885,15 +1025,18 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if (CTX->operating_mode == DSM_CLASSIFY)
     return 0;
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_set_spamrecord: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -901,9 +1044,9 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if (!(stat->status & TST_DISK))
   {
     snprintf (query, sizeof (query),
-              "INSERT INTO dspam_token_data (uid, token, spam_hits, innocent_hits, last_hit)"
-              " VALUES (%d, %s, %ld, %ld, CURRENT_DATE)",
-              (int) p->pw_uid, 
+              "INSERT INTO dspam_token_data (uid,token,spam_hits,innocent_hits,last_hit)"
+              " VALUES (%d,%s,%lu,%lu,CURRENT_DATE)",
+              (int) p->pw_uid,
               _pgsql_drv_token_write(s->pg_token_type, token, tok_buf, sizeof(tok_buf)),
               stat->spam_hits, stat->innocent_hits);
     result = PQexec(s->dbh, query);
@@ -912,11 +1055,11 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if ((stat->status & TST_DISK) || PQresultStatus(result) != PGRES_COMMAND_OK )
   {
     /* insert failed; try updating instead */
-    snprintf (query, sizeof (query), "UPDATE dspam_token_data "
-              "SET spam_hits = %ld, "
-              "innocent_hits = %ld "
-              "WHERE uid = '%d' "
-              "AND token = %s", stat->spam_hits,
+    snprintf (query, sizeof (query), "UPDATE dspam_token_data"
+              " SET spam_hits=%lu,"
+              "innocent_hits=%lu"
+              " WHERE uid='%d'"
+              " AND token=%s", stat->spam_hits,
               stat->innocent_hits, (int) p->pw_uid,
               _pgsql_drv_token_write(s->pg_token_type, token, tok_buf, sizeof(tok_buf)));
 
@@ -943,13 +1086,17 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   struct _pgsql_drv_storage *s;
   int ver = 0;
 
+  if (CTX == NULL) {
+    return EINVAL;
+  }
+
   /* don't init if we're already initted */
   if (CTX->storage != NULL)
   {
     LOGDEBUG ("_ds_init_storage: storage already initialized");
     return EINVAL;
   }
-  
+
   s = calloc (1,sizeof (struct _pgsql_drv_storage));
   if (s == NULL)
   {
@@ -984,7 +1131,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   CTX->storage = s;
 
   /* Start a transaction block
-     Due to long time locks we'll not use 
+     Due to long time locks we'll not use
      single transaction to avoid deadlocks
 
   result = PQexec(s->dbh, "BEGIN");
@@ -999,7 +1146,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   s->control_token = 0;
   s->control_ih = 0;
-  s->control_sh = 0;  
+  s->control_sh = 0;
 
   /* init db version and token type */
   if (ver)
@@ -1013,7 +1160,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   {
       if (_pgsql_drv_get_spamtotals (CTX))
       {
-        LOGDEBUG ("unable to load totals.  using zero values.");
+        LOGDEBUG ("_ds_init_storage: unable to load totals. Using zero values.");
       }
   }
   else
@@ -1048,13 +1195,15 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
   PQclear(result);
   */
 
-  if (!s->dbh_attached) 
+  if (!s->dbh_attached)
     PQfinish(s->dbh);
 
   s->dbh = NULL;
 
-  free(s->p_getpwnam.pw_name);
-  free(s->p_getpwuid.pw_name);
+  if (s->p_getpwnam.pw_name)
+    free(s->p_getpwnam.pw_name);
+  if (s->p_getpwuid.pw_name)
+    free(s->p_getpwuid.pw_name);
   free(s);
   CTX->storage = NULL;
 
@@ -1068,20 +1217,24 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
   char digit[6];
   int pid, j;
   struct passwd *p;
-  
+  char *name;
+
   pid = getpid ();
   if (_ds_match_attribute(CTX->config->attributes, "PgSQLUIDInSignature", "on"))
   {
-    if (!CTX->group || CTX->flags & DSF_MERGED)
+    if (!CTX->group || CTX->flags & DSF_MERGED) {
       p = _pgsql_drv_getpwnam (CTX, CTX->username);
-    else
+      name = CTX->username;
+    } else {
       p = _pgsql_drv_getpwnam (CTX, CTX->group);
+      name = CTX->group;
+    }
     if (!p) {
-      LOG(LOG_ERR, "Unable to determine UID for %s", CTX->username);
+      LOG(LOG_ERR, "Unable to determine UID for %s", name);
       return EINVAL;
     }
 
-    snprintf (session, sizeof (session), "%d,%8lx%d", (int)p->pw_uid, 
+    snprintf (session, sizeof (session), "%d,%8lx%d", (int)p->pw_uid,
               (long) time(NULL), pid);
   }
   else
@@ -1103,9 +1256,10 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   struct passwd *p;
+  char *name;
   size_t length;
   unsigned char *mem, *mem2;
-  char query[128];
+  char query[256];
   PGresult *result;
   int uid;
 
@@ -1115,18 +1269,21 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_get_signature: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
-  
+
   if (_ds_match_attribute(CTX->config->attributes, "PgSQLUIDInSignature", "on"))
   {
     char *u, *sig, *username;
@@ -1135,19 +1292,22 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     sig = strdup(signature);
     u = strchr(sig, ',');
     if (!u) {
-      LOGDEBUG("unable to locate uid in signature");
+      LOGDEBUG("_ds_get_signature: unable to locate uid in signature");
+      free(sig);
+      sig = NULL;
       return EFAILURE;
     }
     u[0] = 0;
     u = sig;
     uid = atoi(u);
     free(sig);
+    sig = NULL;
 
     /* Change the context's username and reinitialize storage */
 
     p = _pgsql_drv_getpwuid (CTX, uid);
     if (!p) {
-      LOG(LOG_CRIT, "_ds_get_signature(): _pgsql_drv_getpwuid(%d) failed: aborting", uid);
+      LOG(LOG_CRIT, "_ds_get_signature: _pgsql_drv_getpwuid(%d) failed: aborting", uid);
       return EFAILURE;
     }
     username = strdup(p->pw_name);
@@ -1157,13 +1317,12 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     _ds_init_storage(CTX, (dbh_attached) ? dbh : NULL);
     s = (struct _pgsql_drv_storage *) CTX->storage;
   } else {
-    uid = p->pw_uid;
+    uid = (int) p->pw_uid;
   }
 
-
   snprintf (query, sizeof (query),
-            "SELECT data, length FROM dspam_signature_data WHERE uid = '%d' AND signature = '%s'",
-            uid, signature);
+            "SELECT data,length FROM dspam_signature_data WHERE uid='%d' AND signature='%s'",
+            (int) uid, signature);
 
   result = PQexec(s->dbh, query);
   if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
@@ -1175,21 +1334,28 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   if ( PQntuples(result) < 1 )
   {
+    LOGDEBUG("_ds_get_signature: failed PQntuples()");
     if (result) PQclear(result);
     return EFAILURE;
   }
 
   if ( PQgetlength(result, 0, 0) == 0)
   {
+    LOGDEBUG("_ds_get_signature: PQgetlength() failed");
     if (result) PQclear(result);
     return EFAILURE;
   }
 
   mem = PQunescapeBytea((unsigned char *) PQgetvalue(result,0,0), &length);
-  SIG->length = strtol (PQgetvalue(result,0,1), NULL, 10);
+  SIG->length = strtoul (PQgetvalue(result,0,1), NULL, 10);
+  if (SIG->length == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_spamrecord: failed converting %s to signature data length", PQgetvalue(result,0,1));
+    SIG->length = length;
+  }
   mem2 = calloc(1, length+1);
   if (!mem2) {
     PQFREEMEM(mem);
+    if (result) PQclear(result);
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
@@ -1213,22 +1379,26 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   buffer *query;
   PGresult *result;
   struct passwd *p;
+  char *name;
 
   if (s->dbh == NULL)
   {
-    LOGDEBUG ("_ds_set_signature; invalid database handle (NULL)");
+    LOGDEBUG ("_ds_set_signature: invalid database handle (NULL)");
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_set_signature: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -1242,7 +1412,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   mem = PQescapeByteaConn(s->dbh, SIG->data, SIG->length, &length);
 
   snprintf (scratch, sizeof (scratch),
-            "INSERT INTO dspam_signature_data (uid, signature, length, created_on, data) VALUES (%d, '%s', %ld, CURRENT_DATE, E'",
+            "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d, '%s', %ld, CURRENT_DATE, E'",
             (int)p->pw_uid, signature, SIG->length);
   buffer_cat (query, scratch);
   buffer_cat (query, (const char *) mem);
@@ -1269,7 +1439,8 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   struct passwd *p;
-  char query[128];
+  char *name;
+  char query[256];
   PGresult *result;
 
   if (s->dbh == NULL)
@@ -1278,20 +1449,23 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_delete_signature: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
   snprintf (query, sizeof (query),
-            "DELETE FROM dspam_signature_data WHERE uid = '%d' AND signature = '%s'",
+            "DELETE FROM dspam_signature_data WHERE uid='%d' AND signature='%s'",
             (int)p->pw_uid, signature);
 
   result = PQexec(s->dbh, query);
@@ -1311,7 +1485,8 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   struct passwd *p;
-  char query[128];
+  char *name;
+  char query[256];
   PGresult *result;
 
   if (s->dbh == NULL)
@@ -1320,20 +1495,23 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
-    LOGDEBUG ("_ds_verisy_signature: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+    LOGDEBUG ("_ds_verify_signature: unable to _pgsql_drv_getpwnam(%s)",
+              name);
     return EINVAL;
   }
 
   snprintf (query, sizeof (query),
-            "SELECT signature FROM dspam_signature_data WHERE uid = '%d' AND signature = '%s'",
+            "SELECT signature FROM dspam_signature_data WHERE uid='%d' AND signature='%s'",
             (int)p->pw_uid, signature);
 
   result = PQexec(s->dbh, query);
@@ -1364,7 +1542,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
 #else
   char *virtual_table, *virtual_uid, *virtual_username;
 #endif
-  char query[128];
+  char query[256];
   PGresult *result;
 
   if (s->dbh == NULL)
@@ -1374,17 +1552,17 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   }
 
 #ifdef VIRTUAL_USERS
-  if ((virtual_table 
+  if ((virtual_table
     = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualTable"))==NULL)
   { virtual_table = "dspam_virtual_uids"; }
 
-  if ((virtual_uid 
+  if ((virtual_uid
     = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualUIDField"))==NULL)
   { virtual_uid = "uid"; }
 
-  if ((virtual_username = _ds_read_attribute(CTX->config->attributes, 
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
     "PgSQLVirtualUsernameField")) ==NULL)
-  { virtual_username = "username"; } 
+  { virtual_username = "username"; }
 #endif
 
   if (s->iter_user == NULL)
@@ -1406,7 +1584,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
         virtual_username,
         virtual_table);
 #else
-    strcpy (query, "DECLARE dscursor CURSOR FOR SELECT DISTINCT uid FROM dspam_stats");
+    strlcpy (query, "DECLARE dscursor CURSOR FOR SELECT DISTINCT uid FROM dspam_stats", sizeof(query));
 #endif
 
     result = PQexec(s->dbh, query);
@@ -1444,6 +1622,12 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   strlcpy (s->u_getnextuser, PQgetvalue(s->iter_user,0,0), sizeof (s->u_getnextuser));
 #else
   uid = (uid_t) atoi (PQgetvalue(s->iter_user,0,0));
+  if (uid == INT_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nextuser: failed converting %s to uid", PQgetvalue(s->iter_user,0,0));
+    if (s->iter_user) PQclear(s->iter_user);
+    s->iter_user = NULL;
+    return NULL;
+  }
   p = _pgsql_drv_getpwuid (CTX, uid);
   if (p == NULL)
   {
@@ -1473,6 +1657,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   struct _ds_storage_record *st;
   char query[256];
   struct passwd *p;
+  char *name;
   PGresult *result;
   int token_type = -1;
 
@@ -1482,15 +1667,18 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_get_nexttoken: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return NULL;
   }
 
@@ -1518,9 +1706,9 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
 
     /* Declare Cursor */
     snprintf (query, sizeof (query),
-              "DECLARE dscursor CURSOR FOR SELECT "
-              "token, spam_hits, innocent_hits, date_part('epoch', last_hit) "
-              "FROM dspam_token_data WHERE uid = '%d'",
+              "DECLARE dscursor CURSOR FOR SELECT"
+              " token,spam_hits,innocent_hits,date_part('epoch',last_hit)"
+              " FROM dspam_token_data WHERE uid='%d'",
               (int)p->pw_uid);
 
     result = PQexec(s->dbh, query);
@@ -1560,13 +1748,27 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   }
 
   st->token = _pgsql_drv_token_read (token_type, PQgetvalue( s->iter_token, 0, 0));
-  st->spam_hits = strtol ( PQgetvalue( s->iter_token, 0, 1), NULL, 10);
-  st->innocent_hits = strtol ( PQgetvalue( s->iter_token, 0, 2), NULL, 10);
+  st->spam_hits = strtoul ( PQgetvalue( s->iter_token, 0, 1), NULL, 10);
+  if (st->spam_hits == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->spam_hits", PQgetvalue(s->iter_token,0,1));
+    goto FAIL;
+  }
+  st->innocent_hits = strtoul ( PQgetvalue( s->iter_token, 0, 2), NULL, 10);
+  if (st->innocent_hits == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->innocent_hits", PQgetvalue(s->iter_token,0,2));
+    goto FAIL;
+  }
   st->last_hit = (time_t) strtol ( PQgetvalue( s->iter_token, 0, 3), NULL, 10);
 
   if (s->iter_token) PQclear(s->iter_token);
 
   return st;
+
+FAIL:
+  if (s->iter_token) PQclear(s->iter_token);
+  s->iter_token = NULL;
+  free(st);
+  return NULL;
 }
 
 struct _ds_storage_signature *
@@ -1578,6 +1780,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   char query[256];
   PGresult *result;
   struct passwd *p;
+  char *name;
   unsigned char *mem;
 
   if (s->dbh == NULL)
@@ -1586,15 +1789,18 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_get_nextsignature: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return NULL;
   }
 
@@ -1622,9 +1828,9 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
 
     /* Declare Cursor */
     snprintf (query, sizeof (query),
-              "DECLARE dscursor CURSOR FOR SELECT "
-              "data, signature, length, date_part('epoch', created_on) "
-              "FROM dspam_signature_data WHERE uid = '%d'",
+              "DECLARE dscursor CURSOR FOR SELECT"
+              " data,signature,length,date_part('epoch',created_on)"
+              " FROM dspam_signature_data WHERE uid='%d'",
               (int)p->pw_uid);
 
     result = PQexec(s->dbh, query);
@@ -1681,13 +1887,29 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
 
   memcpy(st->data, mem, length);
   strlcpy (st->signature, PQgetvalue(s->iter_sig, 0, 1), sizeof (st->signature));
-  st->length = strtol (PQgetvalue(s->iter_sig, 0, 2), NULL, 10);
+  st->length = strtoul (PQgetvalue(s->iter_sig, 0, 2), NULL, 10);
+  if (st->length == LONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nextsignature: failed converting %s to st->length", PQgetvalue(s->iter_sig,0,2));
+    goto FAIL;
+  }
   st->created_on = (time_t) strtol (PQgetvalue(s->iter_sig, 0, 3), NULL, 10);
+  if (st->created_on == LONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nextsignature: failed converting %s to st->created_on", PQgetvalue(s->iter_sig,0,3));
+    goto FAIL;
+  }
 
   PQFREEMEM(mem);
   if (s->iter_sig) PQclear(s->iter_sig);
 
   return st;
+
+FAIL:
+  PQFREEMEM(mem);
+  if (s->iter_sig) PQclear(s->iter_sig);
+  s->iter_sig = NULL;
+  free(st);
+  st = NULL;
+  return NULL;
 }
 
 struct passwd *
@@ -1701,6 +1923,9 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   struct passwd pwbuf;
   char buf[1024];
 #endif
+
+  if (name == NULL)
+    return NULL;
 
   if (s->p_getpwnam.pw_name != NULL)
   {
@@ -1746,22 +1971,27 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   if (s->p_getpwnam.pw_name != NULL)
   {
     /* cache the last name queried */
-    if (name != NULL && !strcmp (s->p_getpwnam.pw_name, name))
+    if (name != NULL && !strcmp (s->p_getpwnam.pw_name, name)) {
+      LOGDEBUG("_pgsql_drv_getpwnam returning cached name %s.", name);
       return &s->p_getpwnam;
+    }
 
     free (s->p_getpwnam.pw_name);
     s->p_getpwnam.pw_name = NULL;
   }
 
   snprintf (query, sizeof (query),
-            "SELECT %s FROM %s WHERE %s = '%s'", 
+            "SELECT %s FROM %s WHERE %s='%s'",
             virtual_uid, virtual_table, virtual_username, name);
 
   result = PQexec(s->dbh, query);
   if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
   {
-    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS)
+    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
+      LOGDEBUG("_pgsql_drv_getpwnam returning NULL for query on name: %s that returned a null result", name);
+      if (result) PQclear(result);
       return NULL;
+    }
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
     return NULL;
@@ -1771,8 +2001,10 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   {
     if (result) PQclear(result);
     result = NULL;
-    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS)
+    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
+      LOGDEBUG("_pgsql_drv_getpwnam returning NULL for query on name: %s that returned a null result", name);
       return NULL;
+    }
     return _pgsql_drv_setpwnam (CTX, name);
   }
 
@@ -1785,7 +2017,12 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     return _pgsql_drv_setpwnam (CTX, name);
   }
 
-  s->p_getpwnam.pw_uid = strtol (PQgetvalue(result, 0, 0), NULL, 0);
+  s->p_getpwnam.pw_uid = atoi(PQgetvalue(result, 0, 0));
+  if (s->p_getpwnam.pw_uid == INT_MAX && errno == ERANGE) {
+    LOGDEBUG("_pgsql_drv_getpwnam: failed converting %s to s->p_getpwnam.pw_uid", PQgetvalue(result,0,0));
+    if (result) PQclear(result);
+    return NULL;
+  }
   s->p_getpwnam.pw_name = strdup (name);
 
   if (result) PQclear(result);
@@ -1823,11 +2060,13 @@ _pgsql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   q = getpwuid (uid);
 #endif
 
-  if (q == NULL) 
+  if (q == NULL)
    return NULL;
 
-  if (s->p_getpwuid.pw_name)
+  if (s->p_getpwuid.pw_name) {
     free(s->p_getpwuid.pw_name);
+    s->p_getpwuid.pw_name = NULL;
+  }
 
   memcpy (&s->p_getpwuid, q, sizeof (struct passwd));
   s->p_getpwuid.pw_name = strdup(q->pw_name);
@@ -1860,7 +2099,7 @@ _pgsql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   }
 
   snprintf (query, sizeof (query),
-            "SELECT %s FROM %s WHERE %s = '%d'", 
+            "SELECT %s FROM %s WHERE %s='%d'",
             virtual_username, virtual_table, virtual_uid, (int) uid);
 
   result = PQexec(s->dbh, query);
@@ -1884,7 +2123,7 @@ _pgsql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   }
 
   s->p_getpwuid.pw_name = strdup ( PQgetvalue(result, 0, 0) );
-  s->p_getpwuid.pw_uid = uid;
+  s->p_getpwuid.pw_uid = (int) uid;
 
   if (result) PQclear(result);
   return &s->p_getpwuid;
@@ -1944,7 +2183,7 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
     return NULL;
   }
 #endif
-  
+
   snprintf (query, sizeof (query),
             "INSERT INTO %s (%s, %s) VALUES (default, '%s')",
             virtual_table, virtual_uid, virtual_username, name);
@@ -1970,7 +2209,8 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   struct passwd *p;
-  char query[128];
+  char *name;
+  char query[256];
   PGresult *result;
   char tok_buf[30];
 
@@ -1980,20 +2220,23 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_del_spamrecord: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
   snprintf (query, sizeof (query),
-            "DELETE FROM dspam_token_data WHERE uid = '%d' AND token = %s",
+            "DELETE FROM dspam_token_data WHERE uid='%d' AND token=%s",
             (int)p->pw_uid,
             _pgsql_drv_token_write (s->pg_token_type, token, tok_buf, sizeof(tok_buf)) );
 
@@ -2018,6 +2261,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   char scratch[1024];
   char queryhead[1024];
   struct passwd *p;
+  char *name;
   int writes = 0;
   PGresult *result;
 
@@ -2030,15 +2274,18 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EINVAL;
   }
 
-  if (!CTX->group || CTX->flags & DSF_MERGED)
+  if (!CTX->group || CTX->flags & DSF_MERGED) {
     p = _pgsql_drv_getpwnam (CTX, CTX->username);
-  else
+    name = CTX->username;
+  } else {
     p = _pgsql_drv_getpwnam (CTX, CTX->group);
+    name = CTX->group;
+  }
 
   if (p == NULL)
   {
     LOGDEBUG ("_ds_delall_spamrecords: unable to _pgsql_drv_getpwnam(%s)",
-              CTX->username);
+              name);
     return EINVAL;
   }
 
@@ -2063,7 +2310,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     _pgsql_drv_token_write (s->pg_token_type, ds_term->key, scratch, sizeof(scratch));
     buffer_cat (query, scratch);
     ds_term = ds_diction_next(ds_c);
-   
+
     if (writes > 2500 || ds_term == NULL) {
       buffer_cat (query, ")");
 
@@ -2139,19 +2386,20 @@ DSPAM_CTX *_pgsql_drv_init_tools(
   return CTX;
 
 BAIL:
+  LOGDEBUG ("_pgsql_drv_init_tools: Bailing and returning NULL!");
   dspam_destroy(CTX);
   return NULL;
 }
 
 agent_pref_t _ds_pref_load(
   config_t config,
-  const char *username, 
+  const char *username,
   const char *home,
-  void *dbh) 
+  void *dbh)
 {
   struct _pgsql_drv_storage *s;
   struct passwd *p;
-  char query[128];
+  char query[256];
   PGresult *result;
   DSPAM_CTX *CTX;
   agent_pref_t PTX;
@@ -2161,7 +2409,7 @@ agent_pref_t _ds_pref_load(
   CTX = _pgsql_drv_init_tools(home, config, dbh, DSM_TOOLS);
   if (CTX == NULL)
   {
-    LOG (LOG_WARNING, "unable to initialize tools context");
+    LOG (LOG_WARNING, "_ds_pref_load: unable to initialize tools context");
     return NULL;
   }
 
@@ -2177,7 +2425,7 @@ agent_pref_t _ds_pref_load(
       dspam_destroy(CTX);
       return NULL;
     } else {
-      uid = p->pw_uid;
+      uid = (int) p->pw_uid;
     }
   } else {
     uid = 0; /* Default Preferences */
@@ -2185,14 +2433,15 @@ agent_pref_t _ds_pref_load(
 
   LOGDEBUG("Loading preferences for uid %d", uid);
 
-  snprintf(query, sizeof(query), "SELECT preference, value "
-                              "FROM dspam_preferences WHERE uid = '%d'", uid);
+  snprintf(query, sizeof(query), "SELECT preference,value"
+                              " FROM dspam_preferences WHERE uid='%d'", (int) uid);
 
   result = PQexec(s->dbh, query);
   if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
+    dspam_destroy(CTX);
     return NULL;
   }
 
@@ -2205,8 +2454,9 @@ agent_pref_t _ds_pref_load(
 
   PTX = malloc(sizeof(agent_attrib_t )*(PQntuples(result)+1));
   if (PTX == NULL) {
-    LOG(LOG_CRIT, ERR_MEM_ALLOC); 
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
     dspam_destroy(CTX);
+    if (result) PQclear(result);
     return NULL;
   }
 
@@ -2216,6 +2466,8 @@ agent_pref_t _ds_pref_load(
   {
     if (result) PQclear(result);
     dspam_destroy(CTX);
+    _ds_pref_free(PTX);
+    free(PTX);
     return NULL;
   }
 
@@ -2229,6 +2481,7 @@ agent_pref_t _ds_pref_load(
     pref = malloc(sizeof(struct _ds_agent_attribute));
     if (pref == NULL) {
       LOG(LOG_CRIT, ERR_MEM_ALLOC);
+      if (result) PQclear(result);
       dspam_destroy(CTX);
       return PTX;
     }
@@ -2246,15 +2499,15 @@ agent_pref_t _ds_pref_load(
 
 int _ds_pref_set (
   config_t config,
-  const char *username, 
+  const char *username,
   const char *home,
   const char *preference,
   const char *value,
-  void *dbh) 
+  void *dbh)
 {
   struct _pgsql_drv_storage *s;
   struct passwd *p;
-  char query[128];
+  char query[256];
   DSPAM_CTX *CTX;
   int uid;
   unsigned char *m1, *m2;
@@ -2264,7 +2517,7 @@ int _ds_pref_set (
   CTX = _pgsql_drv_init_tools(home, config, dbh, DSM_PROCESS);
   if (CTX == NULL)
   {
-    LOG (LOG_WARNING, "unable to initialize tools context");
+    LOG (LOG_WARNING, "_ds_pref_set: unable to initialize tools context");
     return EFAILURE;
   }
 
@@ -2278,9 +2531,9 @@ int _ds_pref_set (
       LOGDEBUG ("_ds_pref_set: unable to _pgsql_drv_getpwnam(%s)",
               CTX->username);
       dspam_destroy(CTX);
-      return EUNKNOWN; 
+      return EUNKNOWN;
     } else {
-      uid = p->pw_uid;
+      uid = (int) p->pw_uid;
     }
   } else {
     uid = 0; /* Default Preferences */
@@ -2289,8 +2542,8 @@ int _ds_pref_set (
   m1 = PQescapeBytea((unsigned char *) preference, strlen(preference), &length);
   m2 = PQescapeBytea((unsigned char *) value, strlen(value), &length);
 
-  snprintf(query, sizeof(query), "DELETE FROM dspam_preferences "
-    "WHERE uid = '%d' and preference = '%s'", uid, m1);
+  snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
+    " WHERE uid='%d' and preference='%s'", (int) uid, m1);
 
   result = PQexec(s->dbh, query);
   if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
@@ -2300,8 +2553,8 @@ int _ds_pref_set (
     goto FAIL;
   }
 
-  snprintf(query, sizeof(query), "INSERT INTO dspam_preferences "
-    "(uid, preference, value) VALUES (%d, '%s', '%s')", uid, m1, m2);
+  snprintf(query, sizeof(query), "INSERT INTO dspam_preferences"
+    " (uid,preference,value) VALUES (%d,'%s','%s')", (int) uid, m1, m2);
 
   result = PQexec(s->dbh, query);
   if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
@@ -2318,6 +2571,7 @@ int _ds_pref_set (
   return 0;
 
 FAIL:
+  LOGDEBUG("_ds_pref_set: failed");
   if (m1)
     PQFREEMEM(m1);
   if (m2)
@@ -2335,7 +2589,7 @@ int _ds_pref_del (
 {
   struct _pgsql_drv_storage *s;
   struct passwd *p;
-  char query[128];
+  char query[256];
   DSPAM_CTX *CTX;
   int uid;
   unsigned char *m1;
@@ -2345,7 +2599,7 @@ int _ds_pref_del (
   CTX = _pgsql_drv_init_tools(home, config, dbh, DSM_TOOLS);
   if (CTX == NULL)
   {
-    LOG (LOG_WARNING, "unable to initialize tools context");
+    LOG (LOG_WARNING, "_ds_pref_del: unable to initialize tools context");
     return EFAILURE;
   }
 
@@ -2361,7 +2615,7 @@ int _ds_pref_del (
       dspam_destroy(CTX);
       return EUNKNOWN;
     } else {
-      uid = p->pw_uid;
+      uid = (int) p->pw_uid;
     }
   } else {
     uid = 0; /* Default Preferences */
@@ -2369,8 +2623,8 @@ int _ds_pref_del (
 
   m1 = PQescapeBytea((unsigned char *) preference, strlen(preference), &length);
 
-  snprintf(query, sizeof(query), "DELETE FROM dspam_preferences "
-    "WHERE uid = '%d' AND preference = '%s'", uid, m1);
+  snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
+    " WHERE uid='%d' AND preference='%s'", (int) uid, m1);
 
   result = PQexec(s->dbh, query);
   if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
@@ -2384,8 +2638,9 @@ int _ds_pref_del (
   dspam_destroy(CTX);
   PQFREEMEM(m1);
   return 0;
-                                                                                
+
 FAIL:
+  LOGDEBUG("_ds_pref_del: failed");
   PQFREEMEM(m1);
   dspam_destroy(CTX);
   return EFAILURE;
@@ -2456,7 +2711,7 @@ void *_ds_connect (DSPAM_CTX *CTX)
   return (void *) _pgsql_drv_connect(CTX);
 }
 
-PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX) 
+PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX)
 {
   PGconn *dbh;
   FILE *file;
@@ -2473,12 +2728,17 @@ PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX)
   if (_ds_read_attribute(CTX->config->attributes, "PgSQLServer")) {
     char *p;
 
-    strlcpy(hostname, 
+    strlcpy(hostname,
            _ds_read_attribute(CTX->config->attributes, "PgSQLServer"),
             sizeof(hostname));
 
-    if (_ds_read_attribute(CTX->config->attributes, "PgSQLPort"))
+    if (_ds_read_attribute(CTX->config->attributes, "PgSQLPort")) {
       port = atoi(_ds_read_attribute(CTX->config->attributes, "PgSQLPort"));
+      if (port == INT_MAX && errno == ERANGE) {
+        LOGDEBUG("_pgsql_drv_connect: failed converting %s to port", _ds_read_attribute(CTX->config->attributes, "PgSQLPort"));
+        goto FAILURE;
+      }
+    }
     else
       port = 0;
 
@@ -2487,12 +2747,12 @@ PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX)
     if ((p = _ds_read_attribute(CTX->config->attributes, "PgSQLPass")))
       strlcpy(password, p, sizeof(password));
     if ((p = _ds_read_attribute(CTX->config->attributes, "PgSQLDb")))
-      strlcpy(db, p, sizeof(db)); 
+      strlcpy(db, p, sizeof(db));
 
   } else {
     if (!CTX->home) {
       LOG(LOG_ERR, ERR_AGENT_DSPAM_HOME);
-      return NULL;
+      goto FAILURE;
     }
     snprintf (filename, MAX_FILENAME_LENGTH, "%s/pgsql.data", CTX->home);
     file = fopen (filename, "r");
@@ -2500,18 +2760,23 @@ PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX)
     {
       LOG (LOG_WARNING, "unable to open %s for reading: %s",
            filename, strerror (errno));
-      return NULL;
+      goto FAILURE;
     }
-  
+
     db[0] = 0;
-  
+
     while (fgets (buffer, sizeof (buffer), file) != NULL)
     {
       chomp (buffer);
       if (!i)
         strlcpy (hostname, buffer, sizeof (hostname));
-      else if (i == 1)
+      else if (i == 1) {
         port = atoi (buffer);
+        if (port == INT_MAX && errno == ERANGE) {
+          LOGDEBUG("_pgsql_drv_connect: failed converting %s to port", buffer);
+          goto FAILURE;
+        }
+      }
       else if (i == 2)
         strlcpy (user, buffer, sizeof (user));
       else if (i == 3)
@@ -2522,7 +2787,7 @@ PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX)
     }
     fclose (file);
   }
-  
+
   if (db[0] == 0)
   {
     LOG (LOG_WARNING, "file %s: incomplete pgsql connect data", filename);
@@ -2545,6 +2810,10 @@ PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX)
   }
 
   return dbh;
+
+FAILURE:
+  LOGDEBUG("_pgsql_drv_connect: failed");
+  return NULL;
 }
 
 
@@ -2571,9 +2840,9 @@ _pgsql_drv_token_type(struct _pgsql_drv_storage *s, PGresult *result, int column
     memset((void *)query, 0, 1025);
 
     snprintf(query, 1024,
-      "SELECT typname FROM pg_type WHERE typelem IN "
-        "( SELECT atttypid FROM pg_attribute WHERE attname = 'token' AND attrelid IN "
-          "( SELECT oid FROM pg_class WHERE relname = 'dspam_token_data'));");
+      "SELECT typname FROM pg_type WHERE typelem IN"
+        " (SELECT atttypid FROM pg_attribute WHERE attname='token' AND attrelid IN"
+          " (SELECT oid FROM pg_class WHERE relname='dspam_token_data'));");
 
     select_res = PQexec(s->dbh,query);
     if ( !select_res || PQresultStatus(select_res) != PGRES_TUPLES_OK )
@@ -2665,6 +2934,6 @@ _pgsql_drv_get_dbversion(struct _pgsql_drv_storage *s)
 
   pg_major_ver = strtol (PQgetvalue( result, 0, 0), NULL, 10);
   if (result) PQclear(result);
-  
+
   return pg_major_ver;
 }

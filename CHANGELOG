@@ -1,6 +1,27 @@
 Version 3.9.0
 -------------
 
+[20090601:1610] sbajic: PostgreSQL driver and schema updates
+
+Finally things like 'dspam_admin change preference myuser "trainingMode" "toe"'
+work without writing garbage in the PostgreSQL table if the "myuser" did not
+existed before calling dspam_admin. The changes in the PostgreSQL driver push
+the driver to be on par with the recent changes done in the DSPAM MySQL driver.
+The changes for the PostgreSQL driver include:
+* Set all statistical counters to be unsigned
+* Fix memory leaks
+* Reduce memory footprint
+* Fix issues with escaped SQL queries
+* Add more debug output (only if debug is enabled)
+* Micro speed and memory consumption improvements by removing not needed
+  whitespace from SQL queries.
+* Update PosgreSQL database schema (extending the amount of users DSPAM can
+  handle with the PostgreSQL driver from 32767 to 2147483647 users)
+* Update PosgreSQL purge scripts
+
+The documentation for upgrading to DSPAM 3.9.0 has informations how to update
+existing DSPAM PostgreSQL schema from pre-3.9.0 to the new 3.9.0 schema.
+
 [20090530:1925] sbajic: Enhancing _ds_strip_html
 
 * Adding more tags to be stripped/handled in _ds_strip_html

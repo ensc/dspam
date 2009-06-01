@@ -1,7 +1,7 @@
-/* $Id: pgsql_objects.sql,v 1.16 2008/02/02 21:30:18 mjohnson Exp $ */
+/* $Id: pgsql_objects.sql,v 1.17 2009/06/01 15:44:38 sbajic Exp $ */
 
 CREATE TABLE dspam_token_data (
-  uid smallint,
+  uid int,
   token bigint,
   spam_hits int,
   innocent_hits int,
@@ -10,7 +10,7 @@ CREATE TABLE dspam_token_data (
 ) WITHOUT OIDS;
 
 CREATE TABLE dspam_signature_data (
-  uid smallint,
+  uid int,
   signature varchar(128),
   data bytea,
   length int,
@@ -19,7 +19,7 @@ CREATE TABLE dspam_signature_data (
 ) WITHOUT OIDS;
 
 CREATE TABLE dspam_stats (
-  uid smallint PRIMARY KEY,
+  uid int PRIMARY KEY,
   spam_learned int,
   innocent_learned int,
   spam_misclassified int,
@@ -31,7 +31,7 @@ CREATE TABLE dspam_stats (
 ) WITHOUT OIDS;
 
 CREATE TABLE dspam_preferences (
-  uid smallint,
+  uid int,
   preference varchar(128),
   value varchar(128),
   UNIQUE (uid, preference)
@@ -45,18 +45,14 @@ declare
   v_rec record;
 begin
   for v_rec in select * from dspam_token_data
-                where uid=$1
-                  and token in (select $2[i]
-                                  from generate_series(array_lower($2,1),
-                                                       array_upper($2,1)) s(i))
+    where uid=$1
+      and token in (select $2[i]
+        from generate_series(array_lower($2,1),array_upper($2,1)) s(i))
   loop
     return next v_rec;
   end loop;
   return;
 end;';
-
-
-
 
 create function lookup_tokens(integer,integer,bigint[])
   returns setof dspam_token_data
@@ -66,20 +62,16 @@ declare
   v_rec record;
 begin
   for v_rec in select * from dspam_token_data
-                where uid=$1
-                  and token in (select $3[i]
-                                  from generate_series(array_lower($3,1),
-                                                       
-array_upper($3,1)) s(i))
+    where uid=$1
+      and token in (select $3[i]
+        from generate_series(array_lower($3,1),array_upper($3,1)) s(i))
   loop
     return next v_rec;
   end loop;
   for v_rec in select * from dspam_token_data
-                where uid=$2
-                  and token in (select $3[i]
-                                  from generate_series(array_lower($3,1),
-                                                       
-array_upper($3,1)) s(i))
+    where uid=$2
+      and token in (select $3[i]
+        from generate_series(array_lower($3,1),array_upper($3,1)) s(i))
   loop
     return next v_rec;
   end loop;

@@ -1,9 +1,9 @@
-/* $Id: virtual_users.sql,v 1.1 2004/10/24 20:51:55 jonz Exp $ */
+/* $Id: virtual_users.sql,v 1.11 2009/06/01 15:45:15 sbajic Exp $ */
 
 CREATE SEQUENCE dspam_virtual_uids_seq;
 
 CREATE TABLE dspam_virtual_uids (
-  uid smallint DEFAULT nextval('dspam_virtual_uids_seq') PRIMARY KEY,
+  uid int DEFAULT nextval('dspam_virtual_uids_seq') PRIMARY KEY,
   username varchar(128)
 ) WITHOUT OIDS;
 
