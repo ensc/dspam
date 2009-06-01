@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.80 2009/05/29 22:30:17 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.81 2009/06/01 22:21:54 sbajic Exp $ */
 
 /*
  DSPAM
@@ -200,7 +200,6 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
     if (!(CTX->flags & DSF_MERGED))
       return EINVAL;
   } else {
-
     uid = (int) p->pw_uid;
   }
 
@@ -215,22 +214,24 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
     gid = (int) p->pw_uid;
   }
 
+  if (gid < 0) gid = uid;
+
   if (gid != uid)
     snprintf (query, sizeof (query),
-            "select uid,spam_learned,innocent_learned,"
-            "spam_misclassified,innocent_misclassified,"
-            "spam_corpusfed,innocent_corpusfed,"
-            "spam_classified,innocent_classified"
-            " from dspam_stats where uid in(%d,%d)",
-            (int) uid, (int) gid);
+	      "SELECT uid,spam_learned,innocent_learned,"
+	      "spam_misclassified, innocent_misclassified,"
+	      "spam_corpusfed,innocent_corpusfed,"
+	      "spam_classified,innocent_classified"
+	      " FROM dspam_stats WHERE uid IN ('%d','%d')",
+	      (int) uid, (int) gid);
   else
     snprintf (query, sizeof (query),
-              "select uid,spam_learned,innocent_learned,"
-              "spam_misclassified,innocent_misclassified,"
-              "spam_corpusfed,innocent_corpusfed,"
-              "spam_classified,innocent_classified"
-              " from dspam_stats where uid=%d",
-              (int) uid);
+	      "SELECT uid,spam_learned,innocent_learned,"
+	      "spam_misclassified,innocent_misclassified,"
+	      "spam_corpusfed,innocent_corpusfed,"
+	      "spam_classified,innocent_classified"
+	      " FROM dspam_stats WHERE uid='%d'",
+	      (int) uid);
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
@@ -293,8 +294,8 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
           goto FAIL;
         }
       } else {
-        user.spam_classified = 0;
-        user.innocent_classified = 0;
+        user.spam_classified		= 0;
+        user.innocent_classified	= 0;
       }
     } else {
       group.spam_learned		= strtoul (row[1], NULL, 0);
@@ -429,21 +430,25 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
     CTX->totals.innocent_classified -= s->merged_totals.innocent_classified;
     CTX->totals.spam_classified -= s->merged_totals.spam_classified;
 
-    if (CTX->totals.innocent_learned < 0)
-      CTX->totals.innocent_learned = 0;
-    if (CTX->totals.spam_learned < 0)
-      CTX->totals.spam_learned = 0;
+    if (CTX->totals.innocent_learned < 0) CTX->totals.innocent_learned = 0;
+    if (CTX->totals.spam_learned < 0) CTX->totals.spam_learned = 0;
+    if (CTX->totals.innocent_misclassified < 0) CTX->totals.innocent_misclassified = 0;
+    if (CTX->totals.spam_misclassified < 0) CTX->totals.spam_misclassified = 0;
+    if (CTX->totals.innocent_corpusfed < 0) CTX->totals.innocent_corpusfed = 0;
+    if (CTX->totals.spam_corpusfed < 0) CTX->totals.spam_corpusfed = 0;
+    if (CTX->totals.innocent_classified < 0) CTX->totals.innocent_classified = 0;
+    if (CTX->totals.spam_classified < 0) CTX->totals.spam_classified = 0;
 
   }
 
   if (s->control_totals.innocent_learned == 0)
   {
     snprintf (query, sizeof (query),
-              "insert into dspam_stats(uid,spam_learned,innocent_learned,"
+              "INSERT INTO dspam_stats (uid,spam_learned,innocent_learned,"
               "spam_misclassified,innocent_misclassified,"
               "spam_corpusfed,innocent_corpusfed,"
               "spam_classified,innocent_classified)"
-              " values(%d,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu)",
+              " VALUES (%d,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu)",
               (int) p->pw_uid, CTX->totals.spam_learned,
               CTX->totals.innocent_learned, CTX->totals.spam_misclassified,
               CTX->totals.innocent_misclassified, CTX->totals.spam_corpusfed,
@@ -455,7 +460,7 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
   if (result)
   {
     snprintf (query, sizeof (query),
-              "update dspam_stats set spam_learned=spam_learned%s%d,"
+              "UPDATE dspam_stats SET spam_learned=spam_learned%s%d,"
               "innocent_learned=innocent_learned%s%d,"
               "spam_misclassified=spam_misclassified%s%d,"
               "innocent_misclassified=innocent_misclassified%s%d,"
@@ -463,7 +468,7 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
               "innocent_corpusfed=innocent_corpusfed%s%d,"
               "spam_classified=spam_classified%s%d,"
               "innocent_classified=innocent_classified%s%d"
-              " where uid=%d",
+              " WHERE uid=%d",
               (CTX->totals.spam_learned >
                s->control_totals.spam_learned) ? "+" : "-",
               abs (CTX->totals.spam_learned -
@@ -568,6 +573,8 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     gid = (int) p->pw_uid;
   }
 
+  if (gid < 0) gid = uid;
+
   stat.spam_hits     = 0;
   stat.innocent_hits = 0;
   stat.probability   = 0.00000;
@@ -577,7 +584,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
    */
   unsigned long drv_max_packet = 1000000;
   scratch[0] = 0;
-  snprintf (scratch, sizeof (scratch), "show variables where variable_name='max_allowed_packet'");
+  snprintf (scratch, sizeof (scratch), "SHOW VARIABLES WHERE variable_name='max_allowed_packet'");
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, scratch) == 0) {
     result = mysql_use_result (s->dbt->dbh_read);
     if (result != NULL) {
@@ -611,13 +618,13 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   if (uid != gid)
     snprintf (queryhead, sizeof(queryhead),
-            "select uid,token,spam_hits,innocent_hits"
-            " from dspam_token_data where uid in(%d,%d) and token in(",
+            "SELECT uid,token,spam_hits,innocent_hits"
+            " FROM dspam_token_data WHERE uid IN (%d,%d) AND token IN (",
             (int) uid, (int) gid);
   else
     snprintf (queryhead, sizeof(queryhead),
-            "select uid,token,spam_hits,innocent_hits"
-            " from dspam_token_data where uid=%d and token in(",
+            "SELECT uid,token,spam_hits,innocent_hits"
+            " FROM dspam_token_data WHERE uid=%d AND token IN (",
             (int) uid);
 
   ds_c = ds_diction_cursor(diction);
@@ -749,8 +756,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
   if (CTX->operating_mode == DSM_CLASSIFY &&
-      (CTX->training_mode != DST_TOE ||
-        (diction->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
+     (CTX->training_mode != DST_TOE ||
+     (diction->whitelist_token == 0 && (!(CTX->flags & DSF_NOISE)))))
     return 0;
 
   if (!CTX->group || CTX->flags & DSF_MERGED) {
@@ -790,7 +797,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
    */
   unsigned long drv_max_packet = 1000000;
   scratch[0] = 0;
-  snprintf (scratch, sizeof (scratch), "show variables where variable_name='max_allowed_packet'");
+  snprintf (scratch, sizeof (scratch), "SHOW VARIABLES WHERE variable_name='max_allowed_packet'");
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, scratch) == 0) {
     result = mysql_use_result (s->dbt->dbh_read);
     if (result != NULL) {
@@ -817,7 +824,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
             "update dspam_token_data set last_hit=current_date(),"
             "spam_hits=greatest(0,spam_hits%s%d),"
             "innocent_hits=greatest(0,innocent_hits%s%d)"
-            " where uid=%d and token in(",
+            " WHERE uid=%d AND token IN (",
             (control.spam_hits > s->control_sh) ? "+" : "-",
             abs (control.spam_hits - s->control_sh),
             (control.innocent_hits > s->control_ih) ? "+" : "-",
@@ -827,7 +834,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
   snprintf (inserthead, sizeof(inserthead),
-            "insert into dspam_token_data(uid,token,spam_hits,"
+            "INSERT INTO dspam_token_data(uid,token,spam_hits,"
             "innocent_hits,last_hit) values");
   buffer_copy (insert, inserthead);
 #endif
@@ -908,8 +915,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       }
 #else
       snprintf(ins, sizeof (ins),
-               "insert into dspam_token_data(uid,token,spam_hits,"
-               "innocent_hits,last_hit) values(%d,'%llu',%d,%d,"
+               "INSERT INTO dspam_token_data(uid,token,spam_hits,"
+               "innocent_hits,last_hit) VALUES (%d,'%llu',%d,%d,"
                "current_date())",
                p->pw_uid,
                ds_term->key,
@@ -1042,12 +1049,12 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
 
   if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
     snprintf (query, sizeof (query),
-            "select spam_hits,innocent_hits from dspam_token_data"
-            " where uid=%d and token in(%llu)", (int) p->pw_uid, token);
+            "SELECT spam_hits,innocent_hits FROM dspam_token_data"
+            " WHERE uid=%d AND token IN (%llu)", (int) p->pw_uid, token);
   else
     snprintf (query, sizeof (query),
-            "select spam_hits,innocent_hits from dspam_token_data"
-            " where uid=%d and token in('%llu')", (int) p->pw_uid, token);
+            "SELECT spam_hits,innocent_hits FROM dspam_token_data"
+            " WHERE uid=%d AND token IN ('%llu')", (int) p->pw_uid, token);
 
   stat->probability = 0.00000;
   stat->spam_hits = 0;
@@ -1134,14 +1141,15 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if (!(stat->status & TST_DISK))
   {
     snprintf (query, sizeof (query),
-              "insert into dspam_token_data"
-              "(uid,token,spam_hits,innocent_hits,last_hit)"
-              " values(%d,'%llu',%lu,%lu,current_date())"
-              " on duplicate key update"
+              "INSERT INTO dspam_token_data (uid,token,spam_hits,innocent_hits,last_hit)"
+              " VALUES (%d,'%llu',%lu,%lu,current_date())"
+              " ON DUPLICATE KEY UPDATE"
               " spam_hits=%lu,"
               "innocent_hits=%lu,"
               "last_hit=current_date()",
-              (int) p->pw_uid, token, stat->spam_hits, stat->innocent_hits,
+              (int) p->pw_uid,
+              token,
+              stat->spam_hits, stat->innocent_hits,
               stat->spam_hits, stat->innocent_hits);
     result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
   }
@@ -1150,9 +1158,8 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if (!(stat->status & TST_DISK))
   {
     snprintf (query, sizeof (query),
-              "insert into dspam_token_data(uid,token,spam_hits,"
-              "innocent_hits,last_hit)"
-              " values(%d,'%llu',%lu,%lu,current_date())",
+              "INSERT INTO dspam_token_data (uid,token,spam_hits,innocent_hits,last_hit)"
+              " VALUES (%d,'%llu',%lu,%lu,current_date())",
               (int) p->pw_uid, token, stat->spam_hits, stat->innocent_hits);
     result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
   }
@@ -1160,12 +1167,12 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if ((stat->status & TST_DISK) || result)
   {
     /* insert failed; try updating instead */
-    snprintf (query, sizeof (query), "update dspam_token_data"
-              " set spam_hits=%lu,"
+    snprintf (query, sizeof (query), "UPDATE dspam_token_data"
+              " SET spam_hits=%lu,"
               "innocent_hits=%lu,"
               "last_hit=current_date(),"
-              " where uid=%d"
-              " and token='%llu'", stat->spam_hits,
+              " WHERE uid=%d"
+              " AND token='%llu'", stat->spam_hits,
               stat->innocent_hits, (int) p->pw_uid, token);
     result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
   }
@@ -1224,10 +1231,9 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   if (s->dbt == NULL)
   {
-    LOGDEBUG
-      ("_ds_init_storage: mysql_init: unable to initialize handle to database");
+    LOG (LOG_WARNING, "Unable to initialize handle to MySQL database");
     free(s);
-    return EUNKNOWN;
+    return EFAILURE;
   }
 
   CTX->storage = s;
@@ -1287,7 +1293,7 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
   }
 
   if (s->iter_sig != NULL) {
-    mysql_free_result (s->iter_token);
+    mysql_free_result (s->iter_sig);
     s->iter_sig = NULL;
   }
 
@@ -1317,17 +1323,21 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
   char digit[6];
   int pid, j;
   struct passwd *p;
+  char *name;
 
   pid = getpid ();
   if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
   {
-    if (!CTX->group || CTX->flags & DSF_MERGED)
+    if (!CTX->group || CTX->flags & DSF_MERGED) {
       p = _mysql_drv_getpwnam (CTX, CTX->username);
-    else
+      name = CTX->username;
+    } else {
       p = _mysql_drv_getpwnam (CTX, CTX->group);
+      name = CTX->group;
+    }
 
     if (!p) {
-      LOG(LOG_ERR, "Unable to determine UID for %s", CTX->username);
+      LOG(LOG_ERR, "Unable to determine UID for %s", name);
       return EINVAL;
     }
     snprintf (session, sizeof (session), "%d,%8lx%d", (int) p->pw_uid,
@@ -1377,6 +1387,12 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     p = _mysql_drv_getpwnam (CTX, CTX->group);
     name = CTX->group;
   }
+  if (p == NULL)
+  {
+    LOGDEBUG ("_ds_get_signature: unable to _mysql_drv_getpwnam(%s)",
+              name);
+    return EINVAL;
+  }
 
   if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
   {
@@ -1415,20 +1431,13 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     dbh = _mysql_drv_sig_write_handle(CTX, s);
   }
 
-  if (p == NULL)
-  {
-    LOGDEBUG ("_ds_get_signature: unable to _mysql_drv_getpwnam(%s)",
-              name);
-    return EINVAL;
-  }
-
   if (uid == NULL){
     uid = (int) p->pw_uid;
   }
 
   snprintf (query, sizeof (query),
-          "select data,length from dspam_signature_data"
-          " where uid=%d and signature=\"%s\"", (int) uid, signature);
+            "SELECT data,length FROM dspam_signature_data WHERE uid=%d AND signature=\"%s\"",
+            (int) uid, signature);
 
   if (mysql_real_query (dbh, query, strlen (query)))
   {
@@ -1541,7 +1550,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   MYSQL_ROW row;
   result = NULL;
   scratch[0] = 0;
-  snprintf (scratch, sizeof (scratch), "show variables where variable_name='max_allowed_packet'");
+  snprintf (scratch, sizeof (scratch), "SHOW VARIABLES WHERE variable_name='max_allowed_packet'");
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, scratch) == 0) {
     result = mysql_use_result (s->dbt->dbh_write);
     if (result != NULL) {
@@ -1570,8 +1579,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   }
 
   snprintf (scratch, sizeof (scratch),
-            "insert into dspam_signature_data(uid,signature,length,created_on,data)"
-            " values(%d,\"%s\",%lu,current_date(),\"",
+            "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d,\"%s\",%lu,current_date(),\"",
             (int) p->pw_uid, signature, (unsigned long) SIG->length);
   buffer_cat (query, scratch);
   buffer_cat (query, mem);
@@ -1621,7 +1629,7 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   }
 
   snprintf (query, sizeof (query),
-            "delete from dspam_signature_data where uid=%d and signature=\"%s\"",
+            "DELETE FROM dspam_signature_data WHERE uid=%d AND signature=\"%s\"",
             (int) p->pw_uid, signature);
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
@@ -1666,8 +1674,7 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   }
 
   snprintf (query, sizeof (query),
-      "select signature from dspam_signature_data"
-      " where uid=%d and signature=\"%s\"",
+            "SELECT signature FROM dspam_signature_data WHERE uid=%d AND signature=\"%s\"",
             (int) p->pw_uid, signature);
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
@@ -1730,11 +1737,11 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   if (s->iter_user == NULL)
   {
 #ifdef VIRTUAL_USERS
-    snprintf(query, sizeof(query), "select distinct %s from %s",
+    snprintf(query, sizeof(query), "SELECT DISTINCT %s FROM %s",
       virtual_username,
       virtual_table);
 #else
-    strcpy (query, "select distinct uid from dspam_stats");
+    strcpy (query, "SELECT DISTINCT uid FROM dspam_stats");
 #endif
     if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
     {
@@ -1777,6 +1784,11 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   strlcpy (s->u_getnextuser, p->pw_name, sizeof (s->u_getnextuser));
 #endif
 
+  if (s->iter_user != NULL) {
+    mysql_free_result (s->iter_user);
+    s->iter_user = NULL;
+  }
+
   return s->u_getnextuser;
 }
 
@@ -1811,7 +1823,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  st = calloc (1, sizeof (struct _ds_storage_record));
+  st = calloc (1,sizeof(struct _ds_storage_record));
   if (st == NULL)
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
@@ -1821,7 +1833,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   if (s->iter_token == NULL)
   {
     snprintf (query, sizeof (query),
-              "select token,spam_hits,innocent_hits,unix_timestamp(last_hit) from dspam_token_data where uid=%d",
+              "SELECT token,spam_hits,innocent_hits,unix_timestamp(last_hit) FROM dspam_token_data WHERE uid=%d",
               (int) p->pw_uid);
     if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
     {
@@ -1917,7 +1929,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   if (s->iter_sig == NULL)
   {
     snprintf (query, sizeof (query),
-              "select data,signature,length,unix_timestamp(created_on) from dspam_signature_data where uid=%d",
+              "SELECT data,signature,length,unix_timestamp(created_on) FROM dspam_signature_data WHERE uid=%d",
               (int) p->pw_uid);
     if (mysql_real_query (s->dbt->dbh_read, query, strlen (query)))
     {
@@ -1965,11 +1977,17 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     goto FAIL;
   }
 
+  if (s->iter_sig != NULL) {
+    mysql_free_result (s->iter_sig);
+    s->iter_sig = NULL;
+  }
   return st;
 
 FAIL:
-  mysql_free_result (s->iter_sig);
-  s->iter_sig = NULL;
+  if (s->iter_sig != NULL) {
+    mysql_free_result (s->iter_sig);
+    s->iter_sig = NULL;
+  }
   free(st);
   st = NULL;
   return NULL;
@@ -1988,7 +2006,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 #endif
 
   if (name == NULL)
-      return NULL;
+    return NULL;
 
   if (s->p_getpwnam.pw_name != NULL)
   {
@@ -2062,7 +2080,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
                             strlen(name));
 
   snprintf (query, sizeof (query),
-            "select %s from %s where %s='%s'",
+            "SELECT %s FROM %s WHERE %s='%s'",
             virtual_uid, virtual_table, virtual_username, sql_username);
 
   free (sql_username);
@@ -2078,10 +2096,10 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   result = mysql_use_result (s->dbt->dbh_read);
   if (result == NULL) {
     if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
-      LOGDEBUG("_mysql_drv_getpwnam returning NULL for query on name:  %s that returned a null result", name);
+      LOGDEBUG("_mysql_drv_getpwnam: returning NULL for query on name: %s that returned a null result", name);
       return NULL;
     }
-    LOGDEBUG("_mysql_drv_getpwnam setting, then returning passed name:  %s after null mysql result", name);
+    LOGDEBUG("_mysql_drv_getpwnam: setting, then returning passed name: %s after null MySQL result", name);
     return _mysql_drv_setpwnam (CTX, name);
   }
 
@@ -2091,23 +2109,10 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     mysql_free_result (result);
     result = NULL;
     if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
-      LOGDEBUG("_mysql_drv_getpwnam returning NULL for query on name:  %s", name);
+      LOGDEBUG("_mysql_drv_getpwnam: returning NULL for query on name: %s", name);
       return NULL;
     }
-    LOGDEBUG("_mysql_drv_getpwnam setting, then returning passed name:  %s", name);
-    return _mysql_drv_setpwnam (CTX, name);
-  }
-
-  if (row[0] == NULL)
-  {
-    mysql_free_result (result);
-    result = NULL;
-    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
-      LOGDEBUG("_mysql_drv_getpwnam: returning NULL for query on name:  %s", name);
-      return NULL;
-    }
-
-    LOGDEBUG("_mysql_drv_getpwnam: setting, then returning passed name:  %s", name);
+    LOGDEBUG("_mysql_drv_getpwnam: setting, then returning passed name: %s", name);
     return _mysql_drv_setpwnam (CTX, name);
   }
 
@@ -2125,7 +2130,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 
   mysql_free_result (result);
   result = NULL;
-  LOGDEBUG("_mysql_drv_getpwnam: successful returning struct for name:  %s", s->p_getpwnam.pw_name);
+  LOGDEBUG("_mysql_drv_getpwnam: successful returning struct for name: %s", s->p_getpwnam.pw_name);
   return &s->p_getpwnam;
 
 #endif
@@ -2163,8 +2168,7 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   if (q == NULL)
    return NULL;
 
-  if (s->p_getpwuid.pw_name)
-  {
+  if (s->p_getpwuid.pw_name) {
     free(s->p_getpwuid.pw_name);
     s->p_getpwuid.pw_name = NULL;
   }
@@ -2202,7 +2206,7 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   }
 
   snprintf (query, sizeof (query),
-            "select %s from %s where %s='%d'",
+            "SELECT %s FROM %s WHERE %s='%d'",
             virtual_username, virtual_table, virtual_uid, (int) uid);
 
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
@@ -2260,8 +2264,8 @@ _mysql_drv_query_error (const char *error, const char *query)
     return;
   }
 
-  fprintf (file, "[%s] %d: %s: %s\n", format_date_r(buf), (int) getpid (),
-    error, query); fclose (file);
+  fprintf (file, "[%s] %d: %s: %s\n", format_date_r(buf), (int) getpid (), error, query);
+  fclose (file);
   return;
 }
 
@@ -2304,7 +2308,7 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
                             strlen(name));
 
   snprintf (query, sizeof (query),
-            "insert into %s(%s,%s) values(NULL,'%s')",
+            "INSERT INTO %s (%s,%s) VALUES (NULL,'%s')",
             virtual_table, virtual_uid, virtual_username, sql_username);
 
   free (sql_username);
@@ -2354,11 +2358,11 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
   }
   if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
     snprintf (query, sizeof (query),
-            "delete from dspam_token_data where uid=%d and token=%llu",
+            "DELETE FROM dspam_token_data WHERE uid=%d AND token=%llu",
             (int) p->pw_uid, token);
   else
     snprintf (query, sizeof (query),
-            "delete from dspam_token_data where uid=%d and token=\"%llu\"",
+            "DELETE FROM dspam_token_data WHERE uid=%d AND token=\"%llu\"",
             (int) p->pw_uid, token);
 
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
@@ -2414,8 +2418,8 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
   snprintf (queryhead, sizeof(queryhead),
-            "delete from dspam_token_data"
-            " where uid=%d and token in(",
+            "DELETE FROM dspam_token_data"
+            " WHERE uid=%d AND token IN (",
             (int) p->pw_uid);
 
   /* Query max_allowed_packet from MySQL server for this connection. If the value
@@ -2426,7 +2430,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   MYSQL_ROW row;
   result = NULL;
   scratch[0] = 0;
-  snprintf (scratch, sizeof (scratch), "show variables where variable_name='max_allowed_packet'");
+  snprintf (scratch, sizeof (scratch), "SHOW VARIABLES WHERE variable_name='max_allowed_packet'");
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, scratch) == 0) {
     result = mysql_use_result (s->dbt->dbh_write);
     if (result != NULL) {
@@ -2515,8 +2519,9 @@ DSPAM_CTX *_mysql_drv_init_tools(
   if (dspam_attach(CTX, dbt))
     goto BAIL;
 
-  s = CTX->storage;
+  s = (struct _mysql_drv_storage *) CTX->storage;
   s->dbh_attached = dbh_attached;
+
   return CTX;
 
 BAIL:
@@ -2569,8 +2574,8 @@ agent_pref_t _ds_pref_load(
 
   LOGDEBUG("Loading preferences for uid %d", uid);
 
-  snprintf(query, sizeof(query), "select preference,value"
-    " from dspam_preferences where uid=%d", uid);
+  snprintf(query, sizeof(query), "SELECT preference,value"
+                              " FROM dspam_preferences WHERE uid=%d", (int) uid);
 
   if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
   {
@@ -2690,8 +2695,8 @@ int _ds_pref_set (
   mysql_real_escape_string (s->dbt->dbh_write, m1, preference, strlen(preference));
   mysql_real_escape_string (s->dbt->dbh_write, m2, value, strlen(value));
 
-  snprintf(query, sizeof(query), "delete from dspam_preferences"
-    " where uid=%d and preference='%s'", uid, m1);
+  snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
+    " WHERE uid=%d AND preference='%s'", (int) uid, m1);
 
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
@@ -2700,8 +2705,8 @@ int _ds_pref_set (
     goto FAIL;
   }
 
-  snprintf(query, sizeof(query), "insert into dspam_preferences"
-    "(uid,preference,value) values(%d,'%s','%s')", uid, m1, m2);
+  snprintf(query, sizeof(query), "INSERT INTO dspam_preferences"
+    " (uid,preference,value) VALUES (%d,'%s','%s')", (int) uid, m1, m2);
 
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
@@ -2718,12 +2723,12 @@ int _ds_pref_set (
   return 0;
 
 FAIL:
+  LOGDEBUG("_ds_pref_set: failed");
   free(m1);
   m1 = NULL;
   free(m2);
   m2 = NULL;
   dspam_destroy(CTX);
-  LOGDEBUG("_ds_pref_set: failed");
   return EFAILURE;
 }
 
@@ -2744,7 +2749,7 @@ int _ds_pref_del (
   CTX = _mysql_drv_init_tools(home, config, dbt, DSM_TOOLS);
   if (CTX == NULL) {
     LOG (LOG_WARNING, "_ds_pref_del: unable to initialize tools context");
-    return EUNKNOWN;
+    return EFAILURE;
   }
 
   s = (struct _mysql_drv_storage *) CTX->storage;
@@ -2755,7 +2760,7 @@ int _ds_pref_del (
     if (p == NULL)
     {
       LOGDEBUG ("_ds_pref_del: unable to _mysql_drv_getpwnam(%s)",
-              CTX->username);
+              username);
       dspam_destroy(CTX);
       return EUNKNOWN;
     } else {
@@ -2777,8 +2782,8 @@ int _ds_pref_del (
 
   mysql_real_escape_string (s->dbt->dbh_write, m1, preference, strlen(preference));
 
-  snprintf(query, sizeof(query), "delete from dspam_preferences"
-    " where uid=%d and preference='%s'", uid, m1);
+  snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
+    " WHERE uid=%d AND preference='%s'", (int) uid, m1);
 
   if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
   {
@@ -2793,12 +2798,11 @@ int _ds_pref_del (
   return 0;
 
 FAIL:
+  LOGDEBUG("_ds_pref_del: failed");
   free(m1);
   m1 = NULL;
   dspam_destroy(CTX);
-  LOGDEBUG("_ds_pref_del: failed");
   return EFAILURE;
-
 }
 
 int _mysql_drv_set_attributes(DSPAM_CTX *CTX, config_t config) {

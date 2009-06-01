@@ -1,6 +1,11 @@
 Version 3.9.0
 -------------
 
+[20090602:0043] sbajic: PostgreSQL and MySQL driver changes
+
+Changing the PostgreSQL and MySQL driver source to be more congruent with each
+other. 
+
 [20090601:1610] sbajic: PostgreSQL driver and schema updates
 
 Finally things like 'dspam_admin change preference myuser "trainingMode" "toe"'
