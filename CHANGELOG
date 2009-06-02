@@ -1,6 +1,11 @@
 Version 3.9.0
 -------------
 
+[20090602:0244] sbajic: Fixing primary dspam processing agent
+
+* Properly terminating primary dspam processing agent
+* Reducing still reachable memory to be on par with the lightweight client-only call
+
 [20090602:0133] sbajic: MySQL driver changes
 
 * Fixing loop in MySQL driver introduced by latest MySQL driver patch

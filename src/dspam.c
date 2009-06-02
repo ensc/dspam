@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.240 2008/05/06 18:26:07 mjohnson Exp $ */
+/* $Id: dspam.c,v 1.241 2009/06/02 02:37:02 sbajic Exp $ */
 
 /*
  DSPAM
@@ -289,11 +289,9 @@ BAIL:
     nt_destroy(ATX.recipients);
   }
 
-  if (!_ds_read_attribute(agent_config, "ClientHost")) {
-    if (driver_init)
-      dspam_shutdown_driver(NULL);
-    libdspam_shutdown();
-  }
+  if (driver_init)
+    dspam_shutdown_driver(NULL);
+  libdspam_shutdown();
 
   if (agent_config)
     _ds_destroy_config(agent_config);
