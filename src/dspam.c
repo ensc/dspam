@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.241 2009/06/02 02:37:02 sbajic Exp $ */
+/* $Id: dspam.c,v 1.242 2009/06/02 13:28:19 sbajic Exp $ */
 
 /*
  DSPAM
@@ -289,9 +289,15 @@ BAIL:
     nt_destroy(ATX.recipients);
   }
 
+#ifdef DAEMON
+  if (!ATX.client_mode) {
+#endif
   if (driver_init)
     dspam_shutdown_driver(NULL);
   libdspam_shutdown();
+#ifdef DAEMON
+  }
+#endif
 
   if (agent_config)
     _ds_destroy_config(agent_config);

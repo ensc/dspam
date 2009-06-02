@@ -1,6 +1,10 @@
 Version 3.9.0
 -------------
 
+[20090602:1329] sbajic: Fixing primary dspam processing agent
+
+* Properly terminating primary dspam processing agent when called in client mode
+
 [20090602:0244] sbajic: Fixing primary dspam processing agent
 
 * Properly terminating primary dspam processing agent
