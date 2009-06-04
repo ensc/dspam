@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.29 2006/05/17 11:53:23 jonz Exp $ */
+/* $Id: sqlite_drv.c,v 1.30 2009/06/04 15:07:50 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1091,7 +1091,6 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
         s->dir_handles->first = NULL;
       free (node_nt);
       s->dir_handles->items--;
-      prev = node_nt;
       break;
     }
     prev = node_nt;
@@ -1223,6 +1222,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   length = strtol(row[3], NULL, 0);
   if (length == 0)
   {
+    free(st);
     return _ds_get_nextsignature(CTX);
   }
 

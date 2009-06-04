@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.16 2007/12/07 00:11:52 mjohnson Exp $ */
+/* $Id: sqlite3_drv.c,v 1.17 2009/06/04 14:36:27 sbajic Exp $ */
 
 /*
  DSPAM
@@ -855,7 +855,6 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
                    const char *signature)
 {
   struct _sqlite_drv_storage *s = (struct _sqlite_drv_storage *) CTX->storage;
-  char *mem;
   char scratch[1024];
   char *err=NULL;
   const char *query_tail=NULL;
@@ -866,13 +865,6 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   {
     LOGDEBUG ("_ds_set_signature; invalid database handle (NULL)");
     return EINVAL;
-  }
-
-  mem = calloc (1, 2 + (257*SIG->length)/254);
-  if (mem == NULL)
-  {
-    LOG (LOG_CRIT, ERR_MEM_ALLOC);
-    return EUNKNOWN;
   }
 
   snprintf (scratch, sizeof (scratch),
@@ -895,7 +887,6 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   sqlite3_finalize(stmt);
 
-  free (mem);
   return 0;
 }
 
@@ -1059,7 +1050,6 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
         s->dir_handles->first = NULL;
       free (node_nt);
       s->dir_handles->items--;
-      prev = node_nt;
       break;
     }
     prev = node_nt;
