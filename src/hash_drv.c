@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.23 2007/12/14 00:14:32 mjohnson Exp $ */
+/* $Id: hash_drv.c,v 1.24 2009/06/05 09:22:33 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1076,7 +1076,6 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
         s->dir_handles->first = NULL;
       free (node_nt);
       s->dir_handles->items--;
-      prev = node_nt;
       break;
     }
     prev = node_nt;

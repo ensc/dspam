@@ -1,6 +1,10 @@
 Version 3.9.0
 -------------
 
+[20090605:0925] sbajic: Fixing access of deallocated variables in hash driver
+
+* Fixed using of deallocated variable in _ds_get_nextuser
+
 [20090604:1515] sbajic: Fixing memory leaks and using of deallocated variables in SQLite/SQLite3 driver
 
 * Fixed memory leak in _ds_set_signature (SQLite3 driver)
