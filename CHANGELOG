@@ -1,6 +1,10 @@
 Version 3.9.0
 -------------
 
+[20090606:1043] sbajic: Fixing build problems when building against SQLite3 3.6 series
+
+* Fixed issues with m4 macro when building against SQLite 3.6.x [Bug ID #2774657]
+
 [20090605:0925] sbajic: Fixing access of deallocated variables in hash driver
 
 * Fixed using of deallocated variable in _ds_get_nextuser

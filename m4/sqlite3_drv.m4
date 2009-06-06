@@ -210,7 +210,7 @@ do
             continue
         fi
 
-        DS_LIBTOOL_RUN_IFELSE([AC_LANG_PROGRAM([[
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([[
             #include <stdio.h>
             #include <sqlite3.h>
             #include <stdlib.h>
