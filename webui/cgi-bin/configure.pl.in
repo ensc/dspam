@@ -30,8 +30,8 @@ $CONFIG{'DSPAM_STATS'}	= $CONFIG{'DSPAM_BIN'} . "/dspam_stats";
 $CONFIG{'DSPAM_ARGS'}	= "--deliver=innocent --class=innocent " .
                           "--source=error --user %CURRENT_USER% -d %u";
 $CONFIG{'TEMPLATES'}	= "./templates";	# Location of HTML templates
-$CONFIG{'ALL_PROCS'}	= "ps auxw";		# use ps -deaf for Solaris
-$CONFIG{'MAIL_QUEUE'}   = "mailq | grep '^[0-9,A-F]' | wc -l";
+$CONFIG{'DSPAM_PROCESSES'} = "ps auxw | grep dspam | grep -v 'grep\|cgi\|sock' | wc -l"; # use ps -deaf for Solaris
+$CONFIG{'MAIL_QUEUE'}   = "mailq | grep '^[0-9,A-F]\{10,12\}[\t ][\t ]*[1-9]'' | wc -l";
 
 $CONFIG{'WEB_ROOT'}     = ""; # URL location of included htdocs/ files
 
@@ -61,6 +61,17 @@ $CONFIG{'AUTODETECT'} = 1;
 #$CONFIG{'LARGE_SCALE'} = 0;
 #$CONFIG{'DOMAIN_SCALE'} = 0;
 #$CONFIG{'PREFERENCES_EXTENSION'} = 0;
+
+# Get DSPAM version
+$CONFIG{'DSPAM_VERSION'} = "Unknown Version";
+while(<PIPE>) {
+        chomp;
+        if (/^(DSPAM Anti\-Spam Suite .*)$/) {
+                $CONFIG{'DSPAM_VERSION'} = "Version " . $1;
+                last;
+        }
+}
+close(PIPE);
 
 $CONFIG{'DSPAM_CGI'} = "dspam.cgi";
 

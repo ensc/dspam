@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.15 2008/05/02 23:59:57 mjohnson Exp $
+# $Id: admin.cgi,v 1.16 2009/06/11 00:57:19 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -95,9 +95,9 @@ if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
 $DATA{'REMOTE_USER'} = $ENV{'REMOTE_USER'};
 
 #
-# Display Dspam Version
+# Display DSPAM Version
 #
-$DATA{'DSPAMVERSION'} = "Version " . `$CONFIG{'DSPAM'} --version | grep Suite | cut -d " " -f4`;
+$DATA{'DSPAMVERSION'} = $CONFIG{'DSPAM_VERSION'};
 
 #
 # Process Commands
@@ -535,7 +535,7 @@ sub DisplayStatus {
   $DATA{'AVG_PROCESSING_TIME'} = sprintf("%01.6f", $DATA{'AVG_PROCESSING_TIME'});
 
   # Calculate Number of processes, Uptime and Mail Queue length
-  $DATA{'DSPAM_PROCESSES'} = `$CONFIG{'ALL_PROCS'} | grep dspam | grep -v grep | grep -v cgi | grep -v sock | wc -l`;
+  $DATA{'DSPAM_PROCESSES'} = `$CONFIG{'DSPAM_PROCESSES'}`;
   $DATA{'UPTIME'} = `uptime`;
   $DATA{'MAIL_QUEUE'} = `$CONFIG{'MAIL_QUEUE'}`;
   

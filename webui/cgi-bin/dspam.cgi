@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.32 2008/05/06 18:11:17 mjohnson Exp $
+# $Id: dspam.cgi,v 1.33 2009/06/11 00:57:48 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -122,9 +122,9 @@ $MYURL = "$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}";
 $DATA{'REMOTE_USER'} = $CURRENT_USER;
 
 #
-# Display Dspam Version
+# Display DSPAM Version
 #
-$DATA{'DSPAMVERSION'} = "Version " . `$CONFIG{'DSPAM'} --version | grep Suite | cut -d " " -f4`;
+$DATA{'DSPAMVERSION'} = $CONFIG{'DSPAM_VERSION'};
 
 #
 # Process Commands

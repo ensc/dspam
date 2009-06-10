@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090611:0140] sbajic: Reduce calls to dspam binary in the WebUI
+
 [20090610:2255] sbajic: Fixing build problems when building on uClibc [Bug ID #2803122]
 
 * Fixed use of inet_ntoa_r on uClibc
