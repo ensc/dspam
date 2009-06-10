@@ -1,4 +1,4 @@
-/* $Id: dspamc.c,v 1.14 2009/06/02 01:11:41 sbajic Exp $ */
+/* $Id: dspamc.c,v 1.15 2009/06/06 16:28:18 sbajic Exp $ */
 
 /*
  DSPAM
@@ -99,6 +99,7 @@ main (int argc, char *argv[])
   int exitcode = EXIT_SUCCESS;
   buffer *message = NULL;       /* input Message */
   int agent_init = 0;		/* agent is initialized */
+  int pwent_cache_init = 0;	/* cache for username and uid is initialized */
 
   setbuf (stdout, NULL);	/* unbuffered output */
 #ifdef DEBUG
@@ -119,7 +120,8 @@ main (int argc, char *argv[])
     LOG(LOG_ERR, ERR_AGENT_RUNTIME_USER);
     exitcode = EXIT_FAILURE;
     goto BAIL;
-  }
+  } else
+    pwent_cache_init = 1;
 
   /* Read dspam.conf into global config structure (ds_config_t) */
 
@@ -204,6 +206,9 @@ BAIL:
 
   if (agent_config)
     _ds_destroy_config(agent_config);
+
+  if (pwent_cache_init)
+    free(__pw_name);
 
   exit (exitcode);
 }

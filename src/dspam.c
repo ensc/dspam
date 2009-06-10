@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.242 2009/06/02 13:28:19 sbajic Exp $ */
+/* $Id: dspam.c,v 1.243 2009/06/06 16:22:23 sbajic Exp $ */
 
 /*
  DSPAM
@@ -112,6 +112,7 @@ main (int argc, char *argv[])
   buffer *message = NULL;       /* input message */
   int agent_init = 0;		/* agent is initialized */
   int driver_init = 0;		/* storage driver is initialized */
+  int pwent_cache_init = 0;	/* cache for username and uid is initialized */
   int exitcode = EXIT_SUCCESS;
   struct nt_node *node_nt;
   struct nt_c c_nt;
@@ -133,9 +134,9 @@ main (int argc, char *argv[])
     LOG(LOG_ERR, ERR_AGENT_RUNTIME_USER);
     exitcode = EXIT_FAILURE;
     goto BAIL;
-  }
+  } else
+    pwent_cache_init = 1;
 
-  
   /* Read dspam.conf into global config structure (ds_config_t) */
 
   agent_config = read_config(NULL);
@@ -188,7 +189,8 @@ main (int argc, char *argv[])
       _ds_destroy_config(agent_config);
 
     pthread_mutex_destroy(&__syslog_lock);
-    free(__pw_name);
+    if (pwent_cache_init)
+      free(__pw_name);
     exit(EXIT_SUCCESS);
   }
 #endif
@@ -305,7 +307,8 @@ BAIL:
 #ifdef DAEMON
   pthread_mutex_destroy(&__syslog_lock);
 #endif
-  free(__pw_name);
+  if (pwent_cache_init)
+    free(__pw_name);
   exit(exitcode);
 }
 

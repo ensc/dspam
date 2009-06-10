@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090606:1700] sbajic: Fixing potential free of null pointer in pwent cache
+
 [20090606:1043] sbajic: Fixing build problems when building against SQLite3 3.6 series
 
 * Fixed issues with m4 macro when building against SQLite 3.6.x [Bug ID #2774657]
