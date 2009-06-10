@@ -63,7 +63,7 @@ AC_CHECK_FUNCS(getpwnam_r)
 AC_CHECK_FUNCS(getpwuid_r)
 AC_CHECK_FUNCS([memcpy memset])
 AC_CHECK_FUNCS(localtime_r)
-AC_CHECK_FUNCS(inet_ntoa_r)
+DS_CHECK_FUNC_INET_NTOA_R
 AC_CHECK_FUNCS(strcasestr)
 
 LIBS="-lm"

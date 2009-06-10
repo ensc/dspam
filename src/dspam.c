@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.243 2009/06/06 16:22:23 sbajic Exp $ */
+/* $Id: dspam.c,v 1.244 2009/06/10 22:49:34 sbajic Exp $ */
 
 /*
  DSPAM
@@ -3831,7 +3831,11 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         char buff[128];
         if (!bad) {
           memcpy(&saddr, res->ai_addr, sizeof(struct sockaddr));
+#ifdef HAVE_INET_NTOA_R_2
+          inet_ntoa_r(remote_addr.sin_addr, buff));
+#else
           inet_ntoa_r(saddr.sin_addr, buff, sizeof(buff));
+#endif
           if (strncmp(buff, "127.0.0.", 8) == 0) {
             STATUS("Blacklisted (%s)", attrib->value);
             bad = 1;

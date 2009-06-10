@@ -13,4 +13,5 @@ EXTRA_DIST = 					\
 	external_lookup.m4			\
 	pthread.m4				\
 	ncore.m4				\
-	split_configuration.m4
+	split_configuration.m4			\
+	dspam_functions.m4
