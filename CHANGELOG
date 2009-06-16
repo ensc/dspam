@@ -1,6 +1,23 @@
 Version 3.9.0
 -------------
 
+[20090615:2355] sbajic: SQLite3 driver, purge script and documentation update
+
+Change the SQLite3 driver to be closer to the changes recently done in the
+MySQL and PostgreSQL driver. The changes for the SQLite3 driver include:
+* Set all statistical counters to be unsigned
+* Fix memory leaks
+* Reduce memory footprint
+* Fix issues with escaped SQL queries
+* Add more debug output (only if debug is enabled)
+* Micro speed and memory consumption improvements by removing not needed
+  whitespace from SQL queries.
+* Update SQLite3 purge script
+* Update documentation for SQLite driver
+
+Database schema has not changed. Users from pre 3.9.0 can just use the new
+driver without the need to run migration commands on the database.
+
 [20090611:0140] sbajic: Reduce calls to dspam binary in the WebUI
 
 [20090610:2255] sbajic: Fixing build problems when building on uClibc [Bug ID #2803122]

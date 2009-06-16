@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.17 2009/06/04 14:36:27 sbajic Exp $ */
+/* $Id: sqlite3_drv.c,v 1.18 2009/06/15 11:24:32 sbajic Exp $ */
 
 /*
  DSPAM
@@ -96,11 +96,11 @@ _sqlite_drv_get_spamtotals (DSPAM_CTX * CTX)
   memset(&CTX->totals, 0, sizeof(struct _ds_spam_totals));
 
   snprintf (query, sizeof (query),
-            "select spam_learned, innocent_learned, "
-            "spam_misclassified, innocent_misclassified, "
-            "spam_corpusfed, innocent_corpusfed, "
-            "spam_classified, innocent_classified "
-            " from dspam_stats");
+            "SELECT spam_learned,innocent_learned,"
+            "spam_misclassified,innocent_misclassified,"
+            "spam_corpusfed,innocent_corpusfed,"
+            "spam_classified,innocent_classified"
+            " FROM dspam_stats");
 
   if ((sqlite3_get_table(s->dbh, query, &row, &nrow, &ncolumn, &err))!=SQLITE_OK)
   {
@@ -109,19 +109,65 @@ _sqlite_drv_get_spamtotals (DSPAM_CTX * CTX)
   }
 
   if (nrow>0 && row != NULL) {
-    CTX->totals.spam_learned		= strtol (row[ncolumn], NULL, 0);
-    CTX->totals.innocent_learned	= strtol (row[ncolumn+1], NULL, 0);
-    CTX->totals.spam_misclassified	= strtol (row[ncolumn+2], NULL, 0);
-    CTX->totals.innocent_misclassified 	= strtol (row[ncolumn+3], NULL, 0);
-    CTX->totals.spam_corpusfed		= strtol (row[ncolumn+4], NULL, 0);
-    CTX->totals.innocent_corpusfed	= strtol (row[ncolumn+5], NULL, 0);
-    CTX->totals.spam_classified		= strtol (row[ncolumn+6], NULL, 0);
-    CTX->totals.innocent_classified	= strtol (row[ncolumn+7], NULL, 0);
+    CTX->totals.spam_learned		= strtoul (row[ncolumn], NULL, 0);
+    if (CTX->totals.spam_learned == ULONG_MAX && errno == ERANGE) {
+      LOGDEBUG("_sqlite_drv_get_spamtotals: failed converting %s to CTX->totals.spam_learned", row[ncolumn]);
+      rc = EFAILURE;
+      goto FAIL;
+    }
+    CTX->totals.innocent_learned	= strtoul (row[ncolumn+1], NULL, 0);
+    if (CTX->totals.innocent_learned == ULONG_MAX && errno == ERANGE) {
+      LOGDEBUG("_sqlite_drv_get_spamtotals: failed converting %s to CTX->totals.innocent_learned", row[ncolumn+1]);
+      rc = EFAILURE;
+      goto FAIL;
+    }
+    CTX->totals.spam_misclassified	= strtoul (row[ncolumn+2], NULL, 0);
+    if (CTX->totals.spam_misclassified == ULONG_MAX && errno == ERANGE) {
+      LOGDEBUG("_sqlite_drv_get_spamtotals: failed converting %s to CTX->totals.spam_misclassified", row[ncolumn+2]);
+      rc = EFAILURE;
+      goto FAIL;
+    }
+    CTX->totals.innocent_misclassified 	= strtoul (row[ncolumn+3], NULL, 0);
+    if (CTX->totals.innocent_misclassified == ULONG_MAX && errno == ERANGE) {
+      LOGDEBUG("_sqlite_drv_get_spamtotals: failed converting %s to CTX->totals.innocent_misclassified", row[ncolumn+3]);
+      rc = EFAILURE;
+      goto FAIL;
+    }
+    CTX->totals.spam_corpusfed		= strtoul (row[ncolumn+4], NULL, 0);
+    if (CTX->totals.spam_corpusfed == ULONG_MAX && errno == ERANGE) {
+      LOGDEBUG("_sqlite_drv_get_spamtotals: failed converting %s to CTX->totals.spam_corpusfed", row[ncolumn+4]);
+      rc = EFAILURE;
+      goto FAIL;
+    }
+    CTX->totals.innocent_corpusfed	= strtoul (row[ncolumn+5], NULL, 0);
+    if (CTX->totals.innocent_corpusfed == ULONG_MAX && errno == ERANGE) {
+      LOGDEBUG("_sqlite_drv_get_spamtotals: failed converting %s to CTX->totals.innocent_corpusfed", row[ncolumn+5]);
+      rc = EFAILURE;
+      goto FAIL;
+    }
+    if (row[ncolumn+6] != NULL && row[ncolumn+7] != NULL) {
+      CTX->totals.spam_classified	= strtoul (row[ncolumn+6], NULL, 0);
+      if (CTX->totals.spam_classified == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_sqlite_drv_get_spamtotals: failed converting %s to CTX->totals.spam_classified", row[ncolumn+6]);
+        rc = EFAILURE;
+        goto FAIL;
+      }
+      CTX->totals.innocent_classified	= strtoul (row[ncolumn+7], NULL, 0);
+      if (CTX->totals.innocent_classified == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_sqlite_drv_get_spamtotals: failed converting %s to CTX->totals.innocent_classified", row[ncolumn+7]);
+        rc = EFAILURE;
+        goto FAIL;
+      }
+    } else {
+      CTX->totals.spam_classified	= 0;
+      CTX->totals.innocent_classified	= 0;
+    }
     rc = 0;
   } else {
     rc = EFAILURE;
   }
 
+FAIL:
   sqlite3_free_table(row);
   if ( !rc )
     memcpy(&s->control_totals, &CTX->totals, sizeof(struct _ds_spam_totals));
@@ -154,34 +200,31 @@ _sqlite_drv_set_spamtotals (DSPAM_CTX * CTX)
   if (s->control_totals.innocent_learned == 0)
   {
     snprintf (query, sizeof (query),
-              "insert into dspam_stats(dspam_stat_id, spam_learned, " 
-              "innocent_learned, spam_misclassified, innocent_misclassified, "
-              "spam_corpusfed, innocent_corpusfed, "
-              "spam_classified, innocent_classified) "
-              "values(%d, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld)",
+              "INSERT INTO dspam_stats (dspam_stat_id,spam_learned,"
+              "innocent_learned,spam_misclassified,innocent_misclassified,"
+              "spam_corpusfed,innocent_corpusfed,"
+              "spam_classified,innocent_classified)"
+              " VALUES (%d,%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu)",
               0,
               CTX->totals.spam_learned,
-              CTX->totals.innocent_learned, 
-              CTX->totals.spam_misclassified,
-              CTX->totals.innocent_misclassified, 
-              CTX->totals.spam_corpusfed,
-              CTX->totals.innocent_corpusfed, 
-              CTX->totals.spam_classified,
+              CTX->totals.innocent_learned, CTX->totals.spam_misclassified,
+              CTX->totals.innocent_misclassified, CTX->totals.spam_corpusfed,
+              CTX->totals.innocent_corpusfed, CTX->totals.spam_classified,
               CTX->totals.innocent_classified);
-    result = sqlite3_exec(s->dbh, query, NULL, NULL, &err);
+    result = sqlite3_exec(s->dbh, query, NULL, NULL, NULL);
   }
 
   if (s->control_totals.innocent_learned != 0 || result != SQLITE_OK)
   {
     snprintf (query, sizeof (query),
-              "update dspam_stats set spam_learned = spam_learned %s %d, "
-              "innocent_learned = innocent_learned %s %d, "
-              "spam_misclassified = spam_misclassified %s %d, "
-              "innocent_misclassified = innocent_misclassified %s %d, "
-              "spam_corpusfed = spam_corpusfed %s %d, "
-              "innocent_corpusfed = innocent_corpusfed %s %d, "
-              "spam_classified = spam_classified %s %d, "
-              "innocent_classified = innocent_classified %s %d ",
+              "UPDATE dspam_stats SET spam_learned=spam_learned%s%d,"
+              "innocent_learned=innocent_learned%s%d,"
+              "spam_misclassified=spam_misclassified%s%d,"
+              "innocent_misclassified=innocent_misclassified%s%d,"
+              "spam_corpusfed=spam_corpusfed%s%d,"
+              "innocent_corpusfed=innocent_corpusfed%s%d,"
+              "spam_classified=spam_classified%s%d,"
+              "innocent_classified=innocent_classified%s%d",
               (CTX->totals.spam_learned >
                s->control_totals.spam_learned) ? "+" : "-",
               abs (CTX->totals.spam_learned -
@@ -233,10 +276,14 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_term_t ds_term;
   ds_cursor_t ds_c;
   char scratch[1024];
+  char queryhead[1024];
   struct _ds_spam_stat stat;
   unsigned long long token = 0;
   char *err=NULL, **row;
-  int nrow, ncolumn, get_one = 0, i;
+  int nrow, ncolumn, i;
+
+  if (diction->items < 1)
+    return 0;
 
   if (s->dbh == NULL)
   {
@@ -246,6 +293,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   stat.spam_hits = 0;
   stat.innocent_hits = 0;
+  stat.probability   = 0.00000;
 
   query = buffer_create (NULL);
   if (query == NULL)
@@ -254,94 +302,103 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EUNKNOWN;
   }
 
-  snprintf (scratch, sizeof (scratch),
-            "select token, spam_hits, innocent_hits "
-            "from dspam_token_data where token in(");
+  snprintf (queryhead, sizeof (queryhead),
+            "SELECT token,spam_hits,innocent_hits"
+            " FROM dspam_token_data WHERE token IN (");
 
-  buffer_cat (query, scratch);
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
-  while (ds_term)
-  {
-    snprintf (scratch, sizeof (scratch), "'%" LLU_FMT_SPEC "'", ds_term->key);
-    buffer_cat (query, scratch);
-    ds_term->s.innocent_hits = 0;
-    ds_term->s.spam_hits = 0;
-    ds_term->s.probability = 0;
-    ds_term->s.status &= ~TST_DISK;
-    ds_term = ds_diction_next(ds_c);
-    if (ds_term)
-      buffer_cat (query, ",");
-    get_one = 1;
-  }
-  ds_diction_close(ds_c);
-  buffer_cat (query, ")");
+  while (ds_term) {
+    scratch[0] = 0;
+    buffer_copy(query, queryhead);
+    while (ds_term) {
+      snprintf (scratch, sizeof (scratch), "'%" LLU_FMT_SPEC "'", ds_term->key);
+      buffer_cat (query, scratch);
+      ds_term->s.innocent_hits = 0;
+      ds_term->s.spam_hits = 0;
+      ds_term->s.probability = 0.00000;
+      ds_term->s.status = 0;
+      if((query->used + 1024) > 1000000) {
+        LOGDEBUG("_ds_getall_spamrecords: Splitting query at %ld characters", query->used);
+        break;
+      }
+      ds_term = ds_diction_next(ds_c);
+      if (ds_term)
+        buffer_cat (query, ",");
+    }
+    buffer_cat (query, ")");
 
 #ifdef VERBOSE
-  LOGDEBUG ("sqlite query length: %ld\n", query->used);
-  _sqlite_drv_query_error (strdup("VERBOSE DEBUG (INFO ONLY - NOT AN ERROR)"), query->data);
+    LOGDEBUG ("SQLite query length: %ld\n", query->used);
+    _sqlite_drv_query_error (strdup("VERBOSE DEBUG (INFO ONLY - NOT AN ERROR)"), query->data);
 #endif
 
-  if (!get_one) 
-    return 0;
-
-  if ((sqlite3_get_table(s->dbh, query->data, &row, &nrow, &ncolumn, &err))
-      !=SQLITE_OK)
-  {
-    _sqlite_drv_query_error (err, query->data);
-    buffer_destroy(query);
-    return EFAILURE;
-  }
-
-  if (nrow < 1) {
-    sqlite3_free_table(row);
-    buffer_destroy(query);
-    return 0;
-  }
-
-  if (row == NULL)
-    return 0;
-
-  stat.probability = 0;
-  stat.status |= TST_DISK;
-  for(i=1;i<=nrow;i++) {
-    token = strtoull (row[(i*ncolumn)], NULL, 0);
-    stat.spam_hits = strtol (row[1+(i*ncolumn)], NULL, 0);
-    stat.innocent_hits = strtol (row[2+(i*ncolumn)], NULL, 0);
-
-    if (stat.spam_hits < 0)
-      stat.spam_hits = 0;
-    if (stat.innocent_hits < 0)
-      stat.innocent_hits = 0;
-
-    ds_diction_addstat(diction, token, &stat);
-  }
-
-  sqlite3_free_table(row);
-
-  ds_c = ds_diction_cursor(diction);
-  ds_term = ds_diction_next(ds_c);
-  while(ds_term && !s->control_token) {
-    if (ds_term->s.spam_hits && ds_term->s.innocent_hits) {
-      s->control_token = ds_term->key;
-      s->control_sh = ds_term->s.spam_hits;
-      s->control_ih = ds_term->s.innocent_hits;
+    if ((sqlite3_get_table(s->dbh, query->data, &row, &nrow, &ncolumn, &err))
+        !=SQLITE_OK)
+    {
+      _sqlite_drv_query_error (err, query->data);
+      LOGDEBUG ("_ds_getall_spamrecords: unable to run query: %s", query->data);
+      buffer_destroy(query);
+      ds_diction_close(ds_c);
+      return EFAILURE;
     }
+
+    if (nrow < 1) {
+      sqlite3_free_table(row);
+      buffer_destroy(query);
+      ds_diction_close(ds_c);
+      return 0;
+    }
+
+    if (row == NULL) {
+      buffer_destroy(query);
+      ds_diction_close(ds_c);
+      return 0;
+    }
+
+    for(i=1;i<=nrow;i++) {
+      token = strtoull (row[(i*ncolumn)], NULL, 0);
+      stat.spam_hits = strtoul (row[1+(i*ncolumn)], NULL, 0);
+      if (stat.spam_hits == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_ds_getall_spamrecords: failed converting %s to stat.spam_hits", row[1+(i*ncolumn)]);
+        sqlite3_free_table(row);
+        return EFAILURE;
+      }
+      stat.innocent_hits = strtoul (row[2+(i*ncolumn)], NULL, 0);
+      if (stat.innocent_hits == ULONG_MAX && errno == ERANGE) {
+        LOGDEBUG("_ds_getall_spamrecords: failed converting %s to stat.innocent_hits", row[2+(i*ncolumn)]);
+        sqlite3_free_table(row);
+        return EFAILURE;
+      }
+      stat.status = 0;
+      stat.status |= TST_DISK;
+      if (stat.spam_hits < 0)
+        stat.spam_hits = 0;
+      if (stat.innocent_hits < 0)
+        stat.innocent_hits = 0;
+      ds_diction_addstat(diction, token, &stat);
+    }
+    if (row != NULL)
+      sqlite3_free_table(row);
+    row = NULL;
     ds_term = ds_diction_next(ds_c);
   }
   ds_diction_close(ds_c);
-
-  if (!s->control_token)
-  {
-    ds_c = ds_diction_cursor(diction);
-    ds_term = ds_diction_next(ds_c);
-    s->control_token = ds_term->key;
-    s->control_sh = ds_term->s.spam_hits;
-    s->control_ih = ds_term->s.innocent_hits;
-    ds_diction_close(ds_c);
-  }
-
   buffer_destroy (query);
+  if (row != NULL)
+    sqlite3_free_table(row);
+  row = NULL;
+
+  /* Control token */
+  stat.spam_hits = 10;
+  stat.innocent_hits = 10;
+  stat.status = 0;
+  ds_diction_touch(diction, CONTROL_TOKEN, "$$CONTROL$$", 0);
+  ds_diction_addstat(diction, CONTROL_TOKEN, &stat);
+  s->control_token = CONTROL_TOKEN;
+  s->control_ih = 10;
+  s->control_sh = 10;
+
   return 0;
 }
 
@@ -349,13 +406,17 @@ int
 _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
   struct _sqlite_drv_storage *s = (struct _sqlite_drv_storage *) CTX->storage;
-  struct _ds_spam_stat stat, stat2;
+  struct _ds_spam_stat control, stat;
   ds_term_t ds_term;
   ds_cursor_t ds_c;
+  char queryhead[1024];
   buffer *query;
   char scratch[1024];
   char *err=NULL;
-  int update_one = 0;
+  int update_any = 0;
+
+  if (diction->items < 1)
+    return 0;
 
   if (s->dbh == NULL)
   {
@@ -375,110 +436,122 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EUNKNOWN;
   }
 
-  if (s->control_token == 0)
-  {
-    ds_c = ds_diction_cursor(diction);
-    ds_term = ds_diction_next(ds_c);
-    if (ds_term == NULL)
-    {
-      stat.spam_hits = 0;
-      stat.innocent_hits = 0;
-    }
-    else
-    {
-      stat.spam_hits = ds_term->s.spam_hits;
-      stat.innocent_hits = ds_term->s.innocent_hits;
-    }
-    ds_diction_close(ds_c);
-  }
-  else
-  {
-    ds_diction_getstat(diction, s->control_token, &stat);
-  }
+  ds_diction_getstat(diction, s->control_token, &control);
 
-  snprintf (scratch, sizeof (scratch),
-            "update dspam_token_data set last_hit = date('now'), "
-            "spam_hits = max(0, spam_hits %s %d), "
-            "innocent_hits = max(0, innocent_hits %s %d) "
-            "where token in(",
-            (stat.spam_hits > s->control_sh) ? "+" : "-",
-            abs (stat.spam_hits - s->control_sh),
-            (stat.innocent_hits > s->control_ih) ? "+" : "-",
-            abs (stat.innocent_hits - s->control_ih));
+  snprintf (queryhead, sizeof (queryhead),
+            "UPDATE dspam_token_data SET last_hit=date('now'),"
+            "spam_hits=max(0,spam_hits%s%d),"
+            "innocent_hits=max(0,innocent_hits%s%d)"
+            " WHERE token IN (",
+            (control.spam_hits > s->control_sh) ? "+" : "-",
+            abs (control.spam_hits - s->control_sh),
+            (control.innocent_hits > s->control_ih) ? "+" : "-",
+            abs (control.innocent_hits - s->control_ih));
 
-  buffer_cat (query, scratch);
+  buffer_copy (query, queryhead);
+
+
+  /*
+   *  Add each token in the diction to either an update or an insert queue
+   */
 
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
-    int wrote_this = 0;
-    if (CTX->training_mode == DST_TOE           && 
-        CTX->classification == DSR_NONE         &&
-	CTX->operating_mode == DSM_CLASSIFY	&&
-        diction->whitelist_token != ds_term->key  &&
-        (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))  
+    int use_comma = 0;
+    if (ds_term->key == s->control_token) {
+      ds_term = ds_diction_next(ds_c);
+      continue;
+    }
+
+    /* Don't write lexical tokens if we're in TOE mode classifying */
+
+    if (CTX->training_mode == DST_TOE            &&
+        CTX->operating_mode == DSM_CLASSIFY      &&
+        ds_term->key != diction->whitelist_token &&
+        (!ds_term->name || strncmp(ds_term->name, "bnr.", 4)))
     {
       ds_term = ds_diction_next(ds_c);
       continue;
     }
 
-    if (!(ds_term->s.status & TST_DIRTY)) {
+    ds_diction_getstat(diction, ds_term->key, &stat);
+
+    /* Changed tokens are marked as "dirty" by libdspam */
+
+    if (!(stat.status & TST_DIRTY)) {
       ds_term = ds_diction_next(ds_c);
       continue;
+    } else {
+      stat.status &= ~TST_DIRTY;
     }
 
-    ds_diction_getstat(diction, ds_term->key, &stat2);
+    /* This token wasn't originally loaded from disk, so try an insert */
 
-    if (!(stat2.status & TST_DISK))
+    if (!(stat.status & TST_DISK))
     {
-      char insert[1024];
-
-        snprintf(insert, sizeof (insert),
-                 "insert into dspam_token_data(token, spam_hits, "
-                 "innocent_hits, last_hit) values('%" LLU_FMT_SPEC "', %ld, %ld, "
-                 "date('now'))",
-                 ds_term->key,
-                 stat2.spam_hits > 0 ? (long) 1 : (long) 0, 
-                 stat2.innocent_hits > 0 ? (long) 1 : (long) 0);
-
-      if ((sqlite3_exec(s->dbh, insert, NULL, NULL, &err)) != SQLITE_OK)
-      {
-        stat2.status |= TST_DISK;
-        free(err);
-      }
+      char ins[1024];
+      snprintf(ins, sizeof (ins),
+               "INSERT INTO dspam_token_data (token,spam_hits,"
+               "innocent_hits,last_hit) VALUES ('%" LLU_FMT_SPEC "',%d,%d,"
+               "date('now'))",
+               ds_term->key,
+               stat.spam_hits > 0 ? 1 : 0,
+               stat.innocent_hits > 0 ? 1 : 0);
+      if ((sqlite3_exec(s->dbh, ins, NULL, NULL, NULL)) != SQLITE_OK)
+        stat.status |= TST_DISK;
     }
 
-    if ((stat2.status & TST_DISK))
-    {
+    if (stat.status & TST_DISK) {
       snprintf (scratch, sizeof (scratch), "'%" LLU_FMT_SPEC "'", ds_term->key);
       buffer_cat (query, scratch);
-      update_one = 1;
-      wrote_this = 1;
-      ds_term->s.status |= TST_DISK;
+      update_any = 1;
+      use_comma = 1;
     }
+
+    ds_term->s.status |= TST_DISK;
+
     ds_term = ds_diction_next(ds_c);
-    if (ds_term && wrote_this)
+    if((query->used + 1024) > 1000000) {
+      LOGDEBUG("_ds_setall_spamrecords: Splitting update query at %ld characters", query->used);
+      buffer_cat (query, ")");
+      if (update_any) {
+        if ((sqlite3_exec(s->dbh, query->data, NULL, NULL, &err)) != SQLITE_OK) {
+          _sqlite_drv_query_error (err, query->data);
+          LOGDEBUG ("_ds_setall_spamrecords: unable to run query: %s", query->data);
+          ds_diction_close(ds_c);
+          buffer_destroy(query);
+          return EFAILURE;
+        }
+      }
+      buffer_copy (query, queryhead);
+    } else if (ds_term && use_comma)
       buffer_cat (query, ",");
   }
   ds_diction_close(ds_c);
+
+  /* Just incase */
 
   if (query->used && query->data[strlen (query->data) - 1] == ',')
   {
     query->used--;
     query->data[strlen (query->data) - 1] = 0;
-
   }
 
   buffer_cat (query, ")");
 
-  LOGDEBUG("Control: [%ld %ld] [%ld %ld]", s->control_sh, s->control_ih, stat.spam_hits, stat.innocent_hits);
+  LOGDEBUG("Control: [%ld %ld] [%lu %lu] Delta: [%lu %lu]",
+    s->control_sh, s->control_ih,
+    control.spam_hits, control.innocent_hits,
+    control.spam_hits - s->control_sh, control.innocent_hits - s->control_ih);
 
-  if (update_one)
+  if (update_any)
   {
     if ((sqlite3_exec(s->dbh, query->data, NULL, NULL, &err))!=SQLITE_OK)
     {
       _sqlite_drv_query_error (err, query->data);
+      LOGDEBUG ("_ds_setall_spamrecords: unable to run query: %s", query->data);
       buffer_destroy(query);
       return EFAILURE;
     }
@@ -505,10 +578,10 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   }
 
   snprintf (query, sizeof (query),
-            "select spam_hits, innocent_hits from dspam_token_data "
-            "where token = '%" LLU_FMT_SPEC "' ", token);
+            "SELECT spam_hits,innocent_hits FROM dspam_token_data"
+            " WHERE token='%" LLU_FMT_SPEC "'", token);
 
-  stat->probability = 0.0;
+  stat->probability = 0.00000;
   stat->spam_hits = 0;
   stat->innocent_hits = 0;
   stat->status &= ~TST_DISK;
@@ -516,6 +589,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if ((sqlite3_get_table(s->dbh, query, &row, &nrow, &ncolumn, &err))!=SQLITE_OK)
   {
     _sqlite_drv_query_error (err, query);
+    LOGDEBUG ("_ds_get_spamrecord: unable to run query: %s", query);
     return EFAILURE;
   }
 
@@ -525,8 +599,18 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if (nrow < 1 || row == NULL)
     return 0;
 
-  stat->spam_hits = strtol (row[0], NULL, 0);
-  stat->innocent_hits = strtol (row[1], NULL, 0);
+  stat->spam_hits = strtoul (row[0], NULL, 0);
+  if (stat->spam_hits == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_spamrecord: failed converting %s to stat->spam_hits", row[0]);
+    sqlite3_free_table(row);
+    return EFAILURE;
+  }
+  stat->innocent_hits = strtoul (row[1], NULL, 0);
+  if (stat->innocent_hits == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_spamrecord: failed converting %s to stat->innocent_hits", row[1]);
+    sqlite3_free_table(row);
+    return EFAILURE;
+  }
   stat->status |= TST_DISK;
   sqlite3_free_table(row);
   return 0;
@@ -554,29 +638,28 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   if (!(stat->status & TST_DISK))
   {
     snprintf (query, sizeof (query),
-              "insert into dspam_token_data(token, spam_hits, "
-              "innocent_hits, last_hit)"
-              " values('%" LLU_FMT_SPEC "', %ld, %ld, date('now'))",
-              token, 
+              "INSERT INTO dspam_token_data (token,spam_hits,innocent_hits,last_hit)"
+              " VALUES ('%" LLU_FMT_SPEC "',%lu,%lu,date('now'))",
+              token,
               stat->spam_hits > 0 ? stat->spam_hits : 0,
               stat->innocent_hits > 0 ? stat->innocent_hits : 0);
-    result = sqlite3_exec(s->dbh, query, NULL, NULL, &err);
+    result = sqlite3_exec(s->dbh, query, NULL, NULL, NULL);
   }
 
   if ((stat->status & TST_DISK) || result)
   {
     /* insert failed; try updating instead */
-    snprintf (query, sizeof (query), "update dspam_token_data "
-              "set spam_hits = %ld, "
-              "innocent_hits = %ld "
-              "where token = %" LLD_FMT_SPEC,
+    snprintf (query, sizeof (query), "UPDATE dspam_token_data"
+              " SET spam_hits=%lu,"
+              "innocent_hits=%lu"
+              " WHERE token='%" LLU_FMT_SPEC "'",
               stat->spam_hits > 0 ? stat->spam_hits : 0,
               stat->innocent_hits > 0 ? stat->innocent_hits : 0,
               token);
 
-    if ((sqlite3_exec(s->dbh, query, NULL, NULL, &err))!=SQLITE_OK)
-    {
+    if ((sqlite3_exec(s->dbh, query, NULL, NULL, &err))!=SQLITE_OK) {
       _sqlite_drv_query_error (err, query);
+      LOGDEBUG ("_ds_set_spamrecord: unable to run query: %s", query);
       return EFAILURE;
     }
   }
@@ -612,7 +695,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     return EINVAL;
   }
 
-  s = malloc (sizeof (struct _sqlite_drv_storage));
+  s = calloc (1, sizeof (struct _sqlite_drv_storage));
   if (s == NULL)
   {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
@@ -639,14 +722,15 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   if (dbh)
     s->dbh = dbh;
-  else
-    if ((sqlite3_open(filename, &s->dbh))!=SQLITE_OK)
-      s->dbh = NULL;
-                                                                                
+  else if ((sqlite3_open(filename, &s->dbh))!=SQLITE_OK)
+    s->dbh = NULL;
+
   if (s->dbh == NULL)
   {
+    free(s);
     LOGDEBUG
-      ("_ds_init_storage: sqlite3_open: unable to initialize database: %s", err);    return EUNKNOWN;
+      ("_ds_init_storage: unable to initialize database: %s", filename);
+    return EFAILURE;
   }
 
   /* Commit timeout of 20 minutes */
@@ -656,36 +740,48 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   if (noexist) {
 
-    sqlite3_exec(s->dbh, 
-                "create table dspam_token_data (token char(20) primary key, "
-                "spam_hits int, innocent_hits int, last_hit date)",
-                NULL,
-                NULL,
-                &err);
+    LOGDEBUG ("_ds_init_storage: Creating object structure in database: %s", filename);
 
-    sqlite3_exec(s->dbh,
-                "create index id_token_data_02 on dspam_token_data"
-                "(innocent_hits)",
-                NULL,
-                NULL,
-                &err);
+    buff[0] = 0;
+    snprintf (buff, sizeof (buff),
+                "CREATE TABLE dspam_token_data (token CHAR(20) PRIMARY KEY,"
+                "spam_hits INT,innocent_hits INT,last_hit DATE)");
+    if ((sqlite3_exec(s->dbh, buff, NULL, NULL, &err))!=SQLITE_OK) {
+      _sqlite_drv_query_error (err, buff);
+      return EFAILURE;
+    }
 
-    sqlite3_exec(s->dbh,
-                "create table dspam_signature_data ("
-                "signature char(128) primary key, data blob, created_on date)",
-                NULL,
-                NULL,
-                &err);
-                                                                                
-    sqlite3_exec(s->dbh,
-                "create table dspam_stats (dspam_stat_id int primary key, "
-                "spam_learned int, innocent_learned int, "
-                "spam_misclassified int, innocent_misclassified int, "
-                "spam_corpusfed int, innocent_corpusfed int, "
-                "spam_classified int, innocent_classified int)",
-                NULL,
-                NULL,
-                &err);
+    buff[0] = 0;
+    snprintf (buff, sizeof (buff),
+                "CREATE INDEX id_token_data_02 ON dspam_token_data"
+                "(innocent_hits)");
+    if ((sqlite3_exec(s->dbh, buff, NULL, NULL, &err))!=SQLITE_OK) {
+      _sqlite_drv_query_error (err, buff);
+      return EFAILURE;
+    }
+
+    buff[0] = 0;
+    snprintf (buff, sizeof (buff),
+                "CREATE TABLE dspam_signature_data ("
+                "signature CHAR(128) PRIMARY KEY,data BLOB,created_on DATE)");
+    if ((sqlite3_exec(s->dbh, buff, NULL, NULL, &err))!=SQLITE_OK) {
+      _sqlite_drv_query_error (err, buff);
+      return EFAILURE;
+    }
+
+    buff[0] = 0;
+    snprintf (buff, sizeof (buff),
+                "CREATE TABLE dspam_stats (dspam_stat_id INT PRIMARY KEY,"
+                "spam_learned INT,innocent_learned INT,"
+                "spam_misclassified INT,innocent_misclassified INT,"
+                "spam_corpusfed INT,innocent_corpusfed INT,"
+                "spam_classified INT,innocent_classified INT)");
+    if ((sqlite3_exec(s->dbh, buff, NULL, NULL, &err))!=SQLITE_OK) {
+      _sqlite_drv_query_error (err, buff);
+      return EFAILURE;
+    }
+
+    buff[0] = 0;
   }
 
   if (_ds_read_attribute(CTX->config->attributes, "SQLitePragma")) {
@@ -699,7 +795,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
         _sqlite_drv_query_error (err, pragma);
       }
       t = t->next;
-    } 
+    }
   } else {
     snprintf(filename, MAX_FILENAME_LENGTH, "%s/sqlite.pragma", CTX->home);
     file = fopen(filename, "r");
@@ -717,18 +813,18 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   }
 
   CTX->storage = s;
-  s->dir_handles = nt_create (NT_INDEX);
 
+  s->dir_handles = nt_create (NT_INDEX);
   s->control_token = 0;
+  s->control_sh = 0;
   s->control_ih = 0;
-  s->control_sh = 0; 
 
   /* get spam totals on successful init */
   if (CTX->username != NULL)
   {
       if (_sqlite_drv_get_spamtotals (CTX))
       {
-        LOGDEBUG ("unable to load totals.  using zero values.");
+        LOGDEBUG ("_ds_init_storage: unable to load totals. Using zero values.");
       }
   }
   else
@@ -761,7 +857,7 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
     closedir (dir);
     node_nt = c_nt_next (s->dir_handles, &c_nt);
   }
-                                                                                
+
   nt_destroy (s->dir_handles);
 
 
@@ -819,7 +915,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   }
 
   snprintf (query, sizeof (query),
-            "select data from dspam_signature_data where signature = \"%s\"",
+            "SELECT data FROM dspam_signature_data WHERE signature=\"%s\"",
             signature);
 
   if ((sqlite3_prepare(s->dbh, query, -1, &stmt, &query_tail))
@@ -830,7 +926,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   }
 
   if ((sqlite3_step(stmt))!=SQLITE_ROW) {
-    sqlite3_finalize(stmt); 
+    sqlite3_finalize(stmt);
     return EFAILURE;
   }
 
@@ -845,7 +941,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   memcpy(SIG->data, sqlite3_column_blob(stmt, 0), SIG->length);
 
   if ((sqlite3_finalize(stmt)!=SQLITE_OK))
-    LOGDEBUG("sqlite3_finalize() failed: %s", strerror(errno));
+    LOGDEBUG("_ds_get_signature: sqlite3_finalize() failed: %s", strerror(errno));
 
   return 0;
 }
@@ -863,18 +959,18 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   if (s->dbh == NULL)
   {
-    LOGDEBUG ("_ds_set_signature; invalid database handle (NULL)");
+    LOGDEBUG ("_ds_set_signature: invalid database handle (NULL)");
     return EINVAL;
   }
 
   snprintf (scratch, sizeof (scratch),
-            "insert into dspam_signature_data(signature, created_on, data) "
-            "values(\"%s\", date('now'), ?)", signature);
+            "INSERT INTO dspam_signature_data (signature,created_on,data)"
+            " VALUES (\"%s\",date('now'),?)", signature);
 
   if ((r = sqlite3_prepare(s->dbh, scratch, -1, &stmt, &query_tail))
         !=SQLITE_OK)
   {
-    _sqlite_drv_query_error ("sqlite3_prepare() failed", scratch);
+    _sqlite_drv_query_error ("_ds_set_signature: sqlite3_prepare() failed", scratch);
     return EFAILURE;
   }
 
@@ -904,7 +1000,7 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   }
 
   snprintf (query, sizeof (query),
-            "delete from dspam_signature_data where signature = \"%s\"",
+            "DELETE FROM dspam_signature_data WHERE signature=\"%s\"",
              signature);
 
   if ((sqlite3_exec(s->dbh, query, NULL, NULL, &err))!=SQLITE_OK)
@@ -931,7 +1027,7 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   }
 
   snprintf (query, sizeof (query),
-        "select signature from dspam_signature_data where signature = \"%s\"",
+        "SELECT signature FROM dspam_signature_data WHERE signature=\"%s\"",
         signature);
 
   if ((sqlite3_get_table(s->dbh, query, &row, &nrow, &ncolumn, &err))!=SQLITE_OK)  {
@@ -969,7 +1065,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     if (dir == NULL)
     {
       LOG (LOG_WARNING,
-           "unable to open directory '%s' for reading: %s",
+           "_ds_get_nextuser: unable to open directory '%s' for reading: %s",
            CTX->home, strerror (errno));
       return NULL;
     }
@@ -1090,14 +1186,14 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   if (s->iter_token == NULL)
   {
     snprintf (query, sizeof (query),
-              "select token, spam_hits, innocent_hits, strftime('%%s', "
-              "last_hit) from dspam_token_data");
+              "SELECT token,spam_hits,innocent_hits,strftime('%%s',"
+              "last_hit) FROM dspam_token_data");
 
     if ((sqlite3_prepare(s->dbh, query, -1, &s->iter_token, &query_tail))
-        !=SQLITE_OK) 
+        !=SQLITE_OK)
     {
       _sqlite_drv_query_error (err, query);
-      free(st); 
+      free(st);
       return NULL;
     }
   }
@@ -1116,8 +1212,20 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   }
 
   st->token = strtoull ((const char *) sqlite3_column_text(s->iter_token, 0), NULL, 0);
-  st->spam_hits = strtol ((const char *) sqlite3_column_text(s->iter_token, 1), NULL, 0);
-  st->innocent_hits = strtol ((const char *) sqlite3_column_text(s->iter_token, 2), NULL, 0);
+  st->spam_hits = strtoul ((const char *) sqlite3_column_text(s->iter_token, 1), NULL, 0);
+  if (st->spam_hits == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->spam_hits", (const char *) sqlite3_column_text(s->iter_token, 1));
+    s->iter_token = NULL;
+    free(st);
+    return NULL;
+  }
+  st->innocent_hits = strtoul ((const char *) sqlite3_column_text(s->iter_token, 2), NULL, 0);
+  if (st->innocent_hits == ULONG_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->innocent_hits", (const char *) sqlite3_column_text(s->iter_token, 2));
+    s->iter_token = NULL;
+    free(st);
+    return NULL;
+  }
   st->last_hit = (time_t) strtol ((const char *) sqlite3_column_text(s->iter_token, 3), NULL, 0);
 
   return st;
@@ -1151,8 +1259,8 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   if (s->iter_sig == NULL)
   {
     snprintf (query, sizeof (query),
-              "select data, signature, strftime('%%s', created_on) "
-              "from dspam_signature_data");
+              "SELECT data,signature,strftime('%%s',created_on)"
+              " FROM dspam_signature_data");
 
    if ((sqlite3_prepare(s->dbh, query, -1, &s->iter_sig, &query_tail))
         !=SQLITE_OK)
@@ -1162,7 +1270,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
       return NULL;
     }
   }
-                                                                                
+
   if ((x = sqlite3_step(s->iter_sig)) !=SQLITE_ROW) {
     if (x != SQLITE_DONE) {
       _sqlite_drv_query_error (err, query);
@@ -1238,14 +1346,14 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
 
   if (s->dbh == NULL)
   {
-    LOGDEBUG ("_ds_delete_signature: invalid database handle (NULL)");
+    LOGDEBUG ("_ds_del_spamrecord: invalid database handle (NULL)");
     return EINVAL;
   }
-                                                                                
+
   snprintf (query, sizeof (query),
-            "delete from dspam_token_data where token = \"%" LLU_FMT_SPEC "\"",
+            "DELETE FROM dspam_token_data WHERE token='%" LLU_FMT_SPEC "'",
             token);
-                                                                                
+
   if ((sqlite3_exec(s->dbh, query, NULL, NULL, &err))!=SQLITE_OK)
   {
     _sqlite_drv_query_error (err, query);
@@ -1283,8 +1391,8 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
   snprintf (queryhead, sizeof(queryhead),
-            "delete from dspam_token_data "
-            "where token in(");
+            "DELETE FROM dspam_token_data"
+            " WHERE token IN (");
 
   buffer_cat (query, queryhead);
 
@@ -1295,7 +1403,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     snprintf (scratch, sizeof (scratch), "'%" LLU_FMT_SPEC "'", ds_term->key);
     buffer_cat (query, scratch);
     ds_term = ds_diction_next(ds_c);
-   
+
     if (writes > 2500 || ds_term == NULL) {
       buffer_cat (query, ")");
 
@@ -1308,8 +1416,8 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
       buffer_copy(query, queryhead);
       writes = 0;
-   
-    } else { 
+
+    } else {
       writes++;
       if (ds_term)
         buffer_cat (query, ",");
