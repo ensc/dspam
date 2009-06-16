@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.83 2009/06/02 01:32:51 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.84 2009/06/15 02:16:08 sbajic Exp $ */
 
 /*
  DSPAM
@@ -676,21 +676,25 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       int rid = atoi(row[0]);
       if (rid == INT_MAX && errno == ERANGE) {
         LOGDEBUG("_ds_getall_spamrecords: failed converting %s to rid", row[0]);
+        ds_diction_close(ds_c);
         goto FAIL;
       }
       token = strtoull (row[1], NULL, 0);
       if (token == ULLONG_MAX && errno == ERANGE) {
         LOGDEBUG("_ds_getall_spamrecords: failed converting %s to token", row[1]);
+        ds_diction_close(ds_c);
         goto FAIL;
       }
       stat.spam_hits = strtoul (row[2], NULL, 0);
       if (stat.spam_hits == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_ds_getall_spamrecords: failed converting %s to stat.spam_hits", row[2]);
+        ds_diction_close(ds_c);
         goto FAIL;
       }
       stat.innocent_hits = strtoul (row[3], NULL, 0);
       if (stat.innocent_hits == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_ds_getall_spamrecords: failed converting %s to stat.innocent_hits", row[3]);
+        ds_diction_close(ds_c);
         goto FAIL;
       }
       stat.status = 0;
@@ -950,6 +954,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
           _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
           LOGDEBUG ("_ds_setall_spamrecords: unable to run update query: %s", query->data);
           buffer_destroy(query);
+          ds_diction_close(ds_c);
           return EFAILURE;
         }
       }

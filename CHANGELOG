@@ -1,6 +1,11 @@
 Version 3.9.0
 -------------
 
+[20090615:0215] sbajic: MySQL driver changes
+
+* Close properly the diction when exiting
+* Update documentation for MySQL driver
+
 [20090615:2355] sbajic: SQLite3 driver, purge script and documentation update
 
 Change the SQLite3 driver to be closer to the changes recently done in the

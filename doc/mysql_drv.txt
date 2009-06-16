@@ -1,6 +1,3 @@
-$Id: mysql_drv.txt,v 1.9 2007/12/07 00:15:31 mjohnson Exp $
-
-mysql_drv: MySQL storage driver for DSPAM <jonathan@nuclearelephant.com>
 Copyright (c) 2002-2009 DSPAM Project
 http://dspam.sourceforge.net
 
@@ -22,9 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 ABOUT
 
-mysql_drv is a MySQL storage driver for DSPAM v3.0 and above.  This driver
+mysql_drv is a MySQL storage driver for DSPAM v3.0 and above. This driver
 enables DSPAM to read and write all token, signature, and statistics data
-from a MySQL database.  The advantages of using a SQL backend are obvious:
+from a MySQL database. The advantages of using a SQL backend are obvious:
 
 - Centralized data storage
 - Structured queries for information
@@ -34,10 +31,10 @@ from a MySQL database.  The advantages of using a SQL backend are obvious:
 It is STRONGLY RECOMMENDED that you run DSPAM with MySQL v4.1 or greater, as
 some critical issues were addressed including:
 
-  - Support for full unsigned 2^^64 integer support
+  - Support for full unsigned 2^64 integer support
     This will allow DSPAM to store its token keys as numeric (8 bytes) instead
-    of character (20 bytes). On older versions of MySQL, DSPAM is forced to 
-    use character fields. Using the mysql_objects-4.1.sql script will 
+    of character (20 bytes). On older versions of MySQL, DSPAM is forced to
+    use character fields. Using the mysql_objects-4.1.sql script will
     result in a database about 30-35% smaller and more optimized.
 
   - Support for subqueries
@@ -51,8 +48,8 @@ some critical issues were addressed including:
 
 0. CHECK FOR 4.1 BUG
 
-Some versions of 4.1 apparently have a bug with the way bigint's are handled. 
-If you have this bug, you'll need to either upgrade to a better version of 
+Some versions of 4.1 apparently have a bug with the way bigint's are handled.
+If you have this bug, you'll need to either upgrade to a better version of
 MySQL or use the 4.0 (speed, space) object scripts for DSPAM instead of the 4.1
 scripts.
 
@@ -72,19 +69,19 @@ version will return all five rows.
 To configure DSPAM to use mysql_drv, use the following arguments while running
 DSPAM's configure:
 
---with-storage-driver=mysql_drv 
+--with-storage-driver=mysql_drv
 Tells DSPAM to use the mysql_drv driver
 
 --with-mysql-libraries=/path/to/libs
-Tells DSPAM where to find the MySQL client libraries.  They are usually
+Tells DSPAM where to find the MySQL client libraries. They are usually
 located in /usr/local/mysql/lib
 
 --with-mysql-includes=/path/to/libs
-Tells DSPAM where to find the MySQL headers.  They are usually located in
+Tells DSPAM where to find the MySQL headers. They are usually located in
 /usr/local/mysql/include
 
 --enable-virtual-users
-Tells DSPAM to create virtual user ids for each dspam user.  Use this if your 
+Tells DSPAM to create virtual user ids for each dspam user. Use this if your
 users don't really exist on the system (e.g. via getpwuid) or if you're doing
 something weird like sharing uids.
 
@@ -94,9 +91,9 @@ instructions from DSPAM's readme.
 2. CREATING MYSQL OBJECTS
 
 Before mysql_drv will function, you must run one of the mysql_objects.sql files
-(located in src/tools.mysql_drv) to create the table objects required by the 
-driver.  Depending on whether you are looking to optimize for speed or disk 
-space, you should run the appropriately named script.  See your mysql 
+(located in src/tools.mysql_drv) to create the table objects required by the
+driver. Depending on whether you are looking to optimize for speed or disk
+space, you should run the appropriately named script. See your MySQL
 documentation for further information.
 
 This script assumes that you have already created a database for DSPAM objects
@@ -105,10 +102,7 @@ and a user with full access to SELECT, INSERT, UPDATE, and DELETE.
 If you plan on enabling virtual users (something you'll need to do if the users
 don't actually exist on your system), also run virtual_users.sql.
 
-NOTE: If you plan on having more than 32,768 users on the system, you'll want
-to change 'smallint' to 'int' for all uid fields.
-
-You may also wish to add this line to the mysqld portion of /etc/my.cnf:
+You may also wish to add this line to the mysql portion of /etc/my.cnf:
 
 set-variable = max_allowed_packet=8192000
 
@@ -117,9 +111,9 @@ cause MySQL to drop connection without this set.
 
 3. UPDATING DSPAM.CONF
 
-mysql_drv needs to know how to connect to your MySQL database.  You will
-need to specify this information in dspam.conf. This file already contains some
-example data:
+mysql_drv needs to know how to connect to your MySQL database. You will need to
+specify this information in dspam.conf. This file already contains some example
+data:
 
 MySQLServer    /var/lib/mysql/mysql.sock
 MySQLPort
@@ -129,29 +123,29 @@ MySQLDb        dspam
 MySQLCompress  true
 MySQLReconnect true
 
-If you are using MySQL >= 5.0.13 and have problems with DSPAM dropping the 
-connection to your MySQL instance, then set MySQLReconnect to true to allow 
+If you are using MySQL >= 5.0.13 and have problems with DSPAM dropping the
+connection to your MySQL instance, then set MySQLReconnect to true to allow
 the mysql_drv to try to re-establish stale and/or dead connections.
 
-Or if you'd like to connect via TCP, use the IP address and port of the 
-MySQL server. DSPAM checks to see if the first character of the HOSTNAME field 
+Or if you'd like to connect via TCP, use the IP address and port of the
+MySQL server. DSPAM checks to see if the first character of the HOSTNAME field
 is a slash, and if so will treat it like a socket file.
 
 4. NIGHTLY PURGE
 
-If you would like to purge the many stale tokens DSPAM will have lying around 
+If you would like to purge the many stale tokens DSPAM will have lying around
 the database, you should run one of the provided purge scripts nightly.
-The dspam_clean tool can be configured to perform more granular cleansing, 
-such as that of uninteresting data. See DSPAM's README for more information 
+The dspam_clean tool can be configured to perform more granular cleansing,
+such as that of uninteresting data. See DSPAM's README for more information
 about the dspam_clean tool.
 
-If you are supporting TOE or TUM-mode users on your system, you will want to 
+If you are supporting TOE or TUM-mode users on your system, you will want to
 do one of the following:
 
   1. Preferences Extensions + MySQL 4.1 or Greater
 
      If you are running MySQL 4.1 or greater, it is recommended you activate
-     preferences extension support and recompile. You may then use 
+     preferences extension support and recompile. You may then use
      purge-4.1.sql instead of purge.sql, which will skip certain types of
      purges for users with TOE/TUM specified in their preferences.
 
@@ -168,11 +162,11 @@ do one of the following:
      use purge.sql, but remove the following lines:
 
      delete from dspam_token_data
-        where @a-to_days(last_hit) > 90;
+        where from_days(@a-90) > last_hit;
 
      This will prevent the purging of stale tokens, which could cause serious
      data loss in TOE databases (because tokens are never touched unless
-     an error has occured).  All other purges should be safe even for TOE-mode 
+     an error has occured). All other purges should be safe even for TOE-mode
      users.
 
 If you will NOT be supporting TOE users on your system, you may simply run
@@ -182,13 +176,13 @@ the purge.sql script nightly, as-is.
 
 If you have a busy server, and find a lot of table locks, you may consider
 making a few tweaks to the MySQL configuration. Alternatively, you may
-consider innodb which performs row-level locking, but this is rarely necessary.
+consider InnoDB which performs row-level locking, but this is rarely necessary.
 
   Increase key_buffer_size. If you have the memory, try at least 256M or 512M.
 
   Increase table_cache. Try a higher value (some systems go as high as 1024).
   This is related to the max_connections option and allows many file descriptors
-  to be shared among threads
+  to be shared among threads.
 
   Increase myisam_sort_buffer_size to a higher value, depending on your memory.
   Ideally, a few hundred MB would be great, but at least 64M would be an
@@ -211,6 +205,3 @@ QUESTIONS
 
 Please contact the dspam-dev mailing list with any questions or constructive
 feedback.
-
-Jonathan A. Zdziarski
-<jonathan@nuclearelephant.com>
