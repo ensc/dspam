@@ -102,7 +102,7 @@ and a user with full access to SELECT, INSERT, UPDATE, and DELETE.
 If you plan on enabling virtual users (something you'll need to do if the users
 don't actually exist on your system), also run virtual_users.sql.
 
-You may also wish to add this line to the mysql portion of /etc/my.cnf:
+You may also wish to add this line to the mysqld portion of /etc/my.cnf:
 
 set-variable = max_allowed_packet=8192000
 

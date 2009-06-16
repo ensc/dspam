@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090615:0300] sbajic: Fixing typo in MySQL documentation
+
 [20090615:0215] sbajic: MySQL driver changes
 
 * Close properly the diction when exiting
