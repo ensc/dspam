@@ -373,7 +373,9 @@ program_lookup(config_t agent_config, const char *username, char *external_uid)
 	command_line = strdup(transcode_query(_ds_read_attribute(agent_config, "ExtLookupServer"), username, command_line));
 
 	if (command_line == NULL) {
-		LOG(LOG_ERR, ERR_EXT_LOOKUP_MISCONFIGURED); 
+		LOG(LOG_ERR, ERR_EXT_LOOKUP_MISCONFIGURED);
+		free(output);
+		free(args);
 		return NULL;
 	}
 
@@ -396,6 +398,8 @@ program_lookup(config_t agent_config, const char *username, char *external_uid)
 		dup2(fd[1], fileno(stdout));
 		if (execve(args[0], args, 0) == -1) {
 			LOG(LOG_ERR, "%s: errno=%i (%s)", ERR_EXT_LOOKUP_INIT_FAIL, errno, strerror(errno));
+			free(output);
+			free(args);
 			return NULL;
 		}
 	} else { /* read from fd the first output line */
@@ -405,8 +409,11 @@ program_lookup(config_t agent_config, const char *username, char *external_uid)
 		read(fd[0], output, 1024);
 	}
 
-	if (strlen(output) == 0)
+	if (strlen(output) == 0) {
+		free(output);
+		free(args);
 		return NULL;
+	}
 	
 	/* terminate the output string at the first \n */
 	token = strchr(output, '\n');
