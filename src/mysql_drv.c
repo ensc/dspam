@@ -36,6 +36,13 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <mysql.h>
+#include <limits.h>
+
+/* Work around broken limits.h on debian etch (and possibly others?) */
+#if defined __GNUC__ && defined _GCC_LIMITS_H_ && ! defined ULLONG_MAX
+#  define ULLONG_MAX ULONG_LONG_MAX
+#endif
+
 #ifdef DAEMON
 #include <pthread.h>
 #endif
