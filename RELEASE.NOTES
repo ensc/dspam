@@ -38,7 +38,7 @@ We enhanced the way DSPAM processes your HTML mail. The older HTML processing
 engine in DSPAM was replaced with a much better and under certain conditions
 faster processing engine. If you receive a lot of mails in HTML then DSPAM 3.9.0
 is the best DSPAM you can get today for correctly processing your HTML mail. If
-most of your mails are non English then you will love DSPAM 3.9.0. We do now
+most of your mails are non English then you will love DSPAM 3.9.0. We now
 correctly convert most of the special encoded characters found in typical non
 English HTML mails to their proper decoded characters. As a side effect you will
 get higher accuracy from DSPAM 3.9.0 compared to older releases.
