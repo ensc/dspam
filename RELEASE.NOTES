@@ -1,3 +1,120 @@
 RELEASE 3.9.0
 
-The 3.9.0 release contains a huge number of bugfixes and some new features since 3.8.0. Please see UPGRADING and CHANGELOG for a detailed explanation of the differences from previous versions.
+Why should you upgrade to DSPAM 3.9.0?
+======================================
+
+The question of whatever to upgrade and when are always hard ones. You got your
+DSPAM up and running since ages and it's doing a fine job and now there is this
+brand new DSPAM 3.9.0 and you don't know if you should upgrade and when and why?
+We as the DSPAM community can not take that decision for you and you should read
+careful the README and UPGRADING document and look if an upgrade is something
+for you or not. But allow us to help you making that decision by pointing out
+some benefits of DSPAM 3.9.0 compared to older releases of DSPAM.
+
+Enhanced stability
+------------------
+We took the time to hunt down and fix most cases of stability issues found in
+the older releases of DSPAM. The new DSPAM 3.9.0 has more robust
+ - character decoding
+ - HTML mail processing
+ - memory handling
+ - storage engines
+ - SBPH/OSB tokenizing
+ - and much, much more
+
+Memory handling
+---------------
+We reduced the memory footprint on many parts in DSPAM. No more restarting of
+DSPAM after days of running because of memory leaks. We fixed most of them.
+Allocated memory is freed after it's not used any more. But that's not all.
+Should you for example use MySQL and you have set 'max_allowed_packet' to a low
+value, then DSPAM will honor your decision and use no more then you have told it
+to use. Not only MySQL storage driver will honor your database settings but the
+other SQL-based storage engines in DSPAM will do the same.
+
+HTML mail handling
+------------------
+We enhanced the way DSPAM processes your HTML mail. The older HTML processing
+engine in DSPAM was replaced with a much better and under certain conditions
+faster processing engine. If you receive a lot of mails in HTML then DSPAM 3.9.0
+is the best DSPAM you can get today for correctly processing your HTML mail. If
+most of your mails are non English then you will love DSPAM 3.9.0. We do now
+correctly convert most of the special encoded characters found in typical non
+English HTML mails to their proper decoded characters. As a side effect you will
+get higher accuracy from DSPAM 3.9.0 compared to older releases.
+
+Character decoding
+------------------
+Not only have we enhanced the character decoding in DSPAM 3.9.0, but we've also
+took the decoding engine to the next level and improved processing speed
+significantly.
+
+Storage engines
+---------------
+Ever executed something like 'dspam_admin change preference myuser
+"trainingMode" "toe"' while using the PostgreSQL driver and then realized that
+DSPAM wrote a bunch of non-readable characters in your preference table if the
+user "myuser" did not exist before in that table? Done the same with the MySQL
+storage driver and realized that there it worked? Well... we fixed those
+problems. MySQL? PostgreSQL? SQLite? It's not important which one you use. We
+adjusted the SQL-based storage driver to be equal in their core.
+
+Scalability
+-----------
+You always wanted to handle more users on your DSPAM installation but you where
+limited by the amount of user ID's DSPAM could handle? Not any more! DSPAM 3.9.0
+can now handle up to 2,147,483,647 users before it reaches a technical limit on
+certain storage engines. But not only has the number of possible users
+increased, but also the statistical counters where changed to allow you to store
+not less then the double amount compared to older DSPAM releases.
+
+Speed improvement
+-----------------
+You have read all the above points and are still not convinced in upgrading?
+Okay. How about the vast speed improvement we have introduced in DSPAM 3.9.0.
+That should convince you. We speed up DSPAM every where we could without
+scarifying stability. We speed up character decoding, HTML mail processing,
+storage engines, SBPH/OSB tokenizing, buffer management, SQL queries, the
+purging scripts and much much more.
+
+Documentation
+-------------
+We listen carefully to the needs of our user base and have updated the
+documentation to have more examples and being more accurate then ever. And we
+have documented even more options available in DSPAM which where never published
+before.
+
+Additional/enhanced functionality
+---------------------------------
+Wait! That's not all! We even added new functionality to DSPAM. A brand new
+module is introduced in DSPAM 3.9.0 to help you do more versatile and flexible
+lookups against LDAP and/or use external programs to do lookups. Have we
+mentioned the enhancements and new functions in the training script? Yes! We
+added finally MBOX training. Let's not forget RBLLookups! We enhanced that as
+well. And we enhanced SBPH/OSB tokenizing. And we pushed more configuration
+options into the preference extension. And we enhanced the output of statistical
+data. And, and, and... still not convinced?
+
+Final notes
+-----------
+Should you upgrade? Why not? DSPAM is free software and there is no price
+attached to a new release. You can upgrade to new releases when ever you are
+ready to do so. We took extra care to not change DSPAM 3.9.0 to render your old
+trained data and tokens to be useless. So you can upgrade without loosing your
+old data (please read the UPGRADING document found in the root directory of the
+DSPAM source). We (the core team behind DSPAM) and the DSPAM community will off
+course be there to help and assist you in your upgrade to 3.9.0. BUT should you
+decide to stay on a older version, then this is fine with us. It's your
+decision. For us it does not change anything. You can still ask your questions
+on the DSPAM user list [1] and/or report your problems in our issue tracking
+system [2]. No matter what release of DSPAM you use.
+As a matter of course we think that DSPAM 3.9.0 is worth to be installed. It's
+the best DSPAM you can get today. We are very proud of what we as a community
+have reached so far in the short time since we took over DSPAM. And we want to
+share that positive experience with you. Go and grab yourself a copy of the
+source or binary and give DSPAM 3.9.0 a try. You will not be disappointed.
+
+
+External links:
+[1] dspam-user@lists.sourceforge.net
+[2] https://sourceforge.net/tracker/?atid=1126467&group_id=250683&func=browse
