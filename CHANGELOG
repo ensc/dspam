@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090623:2255] sbajic: Code cleanup in MySQL and PostgreSQL driver
+
 [20090623:2157] sbajic: Removing not needed index from PostgreSQL schema
 
 [20090620:2130] sbajic: Updating documentation for Postfix integration

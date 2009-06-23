@@ -108,7 +108,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
         LOGDEBUG("dspam_init_driver: initializing lock %d", i);
         pthread_mutex_init(&DTX->connections[i]->lock, NULL);
 #endif
-        DTX->connections[i]->dbh = (void *) _pgsql_drv_connect(DTX->CTX);
+        DTX->connections[i]->dbh = (void *) _ds_connect(DTX->CTX);
       }
     }
   }
@@ -125,8 +125,9 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
 
       for(i=0;i<DTX->connection_cache;i++) {
         if (DTX->connections[i]) {
-          if (DTX->connections[i]->dbh)
+          if (DTX->connections[i]->dbh) {
             PQfinish((PGconn *)DTX->connections[i]->dbh);
+          }
 #ifdef DAEMON
           LOGDEBUG("dspam_shutdown_driver: destroying lock %d", i);
           pthread_mutex_destroy(&DTX->connections[i]->lock);
@@ -584,7 +585,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EUNKNOWN;
   }
 
-  if (gid != uid) {
+  if (uid != gid) {
     if (s->pg_major_ver >= 8) {
       snprintf (scratch, sizeof (scratch),
                 "SELECT * FROM lookup_tokens(%d,%d,'{", (int) uid, (int) gid);
@@ -609,8 +610,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
-  while(ds_term)
-  {
+  while(ds_term) {
     _pgsql_drv_token_write (s->pg_token_type, ds_term->key, scratch, sizeof(scratch));
     buffer_cat (query, scratch);
     ds_term->s.innocent_hits = 0;
@@ -625,7 +625,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_diction_close(ds_c);
 
   if (s->pg_major_ver >= 8) {
-    if (gid != uid)
+    if (uid != gid)
       buffer_cat (query, ")");
     else
       buffer_cat(query, "}')");
@@ -650,6 +650,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EFAILURE;
   }
 
+  buffer_destroy(query);
   ntuples = PQntuples(result);
 
   for (i=0; i<ntuples; i++)
@@ -678,6 +679,8 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     ds_diction_addstat(diction, token, &stat);
   }
 
+  if (result) PQclear(result);
+
   /* Control token */
   stat.spam_hits = 10;
   stat.innocent_hits = 10;
@@ -688,13 +691,10 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   s->control_ih = 10;
   s->control_sh = 10;
 
-  if (result) PQclear(result);
-  buffer_destroy(query);
   return 0;
 
 FAIL:
   if (result) PQclear(result);
-  buffer_destroy(query);
   return EFAILURE;
 }
 

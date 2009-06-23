@@ -140,7 +140,6 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
             if (dbt->dbh_write != dbt->dbh_read)
               mysql_close(dbt->dbh_write);
           }
-
 #ifdef DAEMON
           LOGDEBUG("dspam_shutdown_driver: destroying lock %d", i);
           pthread_mutex_destroy(&DTX->connections[i]->lock);
@@ -335,7 +334,7 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.innocent_corpusfed", row[6]);
         goto FAIL;
       }
-    if (row[7] != NULL && row[8] != NULL) {
+      if (row[7] != NULL && row[8] != NULL) {
         group.spam_classified		= strtoul (row[7], NULL, 0);
         if (group.spam_classified == ULONG_MAX && errno == ERANGE) {
           LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.spam_classified", row[7]);
@@ -623,16 +622,17 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EUNKNOWN;
   }
 
-  if (uid != gid)
+  if (uid != gid) {
     snprintf (queryhead, sizeof(queryhead),
             "SELECT uid,token,spam_hits,innocent_hits"
             " FROM dspam_token_data WHERE uid IN (%d,%d) AND token IN (",
             (int) uid, (int) gid);
-  else
+  } else {
     snprintf (queryhead, sizeof(queryhead),
             "SELECT uid,token,spam_hits,innocent_hits"
             " FROM dspam_token_data WHERE uid=%d AND token IN (",
             (int) uid);
+  }
 
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
