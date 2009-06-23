@@ -57,6 +57,7 @@ UPGRADING FROM 3.8
      ALTER TABLE dspam_signature_data ALTER COLUMN uid TYPE integer;
      ALTER TABLE dspam_stats ALTER COLUMN uid TYPE integer;
      ALTER TABLE dspam_token_data ALTER COLUMN uid TYPE integer;
+     DROP INDEX IF EXISTS id_token_data_sumhits;
 
    If you are using virtual users in DSPAM, then you should execute the following
    clause for upgrading pre-3.9.0 DSPAM virtual uids to the 3.9.0 schema:
