@@ -9,7 +9,7 @@ dnl    automake (GNU automake) 1.9.2
 dnl
 AC_PREREQ(2.59)
 AC_COPYRIGHT([Copyright (C) 2002-2009 DSPAM Project])
-AC_INIT([dspam],[GIT],[dspam-devel@lists.sourceforge.net])
+AC_INIT([dspam],[3.9.0-ALPHA2],[dspam-devel@lists.sourceforge.net])
 AC_CONFIG_SRCDIR(./src)
 
 AM_INIT_AUTOMAKE([1.7 foreign])
