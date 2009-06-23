@@ -1,39 +1,39 @@
-/* $Id: pgsql_objects.sql,v 1.17 2009/06/01 15:44:38 sbajic Exp $ */
+/* $Id: pgsql_objects.sql,v 1.18 2009/06/23 21:51:22 sbajic Exp $ */
 
 CREATE TABLE dspam_token_data (
-  uid int,
-  token bigint,
-  spam_hits int,
-  innocent_hits int,
-  last_hit date,
+  uid INT,
+  token BIGINT,
+  spam_hits INT,
+  innocent_hits INT,
+  last_hit DATE,
   UNIQUE (uid, token)
 ) WITHOUT OIDS;
 
 CREATE TABLE dspam_signature_data (
-  uid int,
+  uid INT,
   signature varchar(128),
-  data bytea,
-  length int,
-  created_on date,
+  data BYTEA,
+  length INT,
+  created_on DATE,
   UNIQUE (uid, signature)
 ) WITHOUT OIDS;
 
 CREATE TABLE dspam_stats (
-  uid int PRIMARY KEY,
-  spam_learned int,
-  innocent_learned int,
-  spam_misclassified int,
-  innocent_misclassified int,
-  spam_corpusfed int,
-  innocent_corpusfed int,
-  spam_classified int,
+  uid INT PRIMARY KEY,
+  spam_learned INT,
+  innocent_learned INT,
+  spam_misclassified INT,
+  innocent_misclassified INT,
+  spam_corpusfed INT,
+  innocent_corpusfed INT,
+  spam_classified INT,
   innocent_classified int
 ) WITHOUT OIDS;
 
 CREATE TABLE dspam_preferences (
-  uid int,
-  preference varchar(128),
-  value varchar(128),
+  uid INT,
+  preference VARCHAR(128),
+  value VARCHAR(128),
   UNIQUE (uid, preference)
 ) WITHOUT OIDS;
 
@@ -83,9 +83,8 @@ end;';
  * and http://archives.postgresql.org/pgsql-performance/2004-11/msg00417.php
  * for details
  */
-alter table "dspam_token_data" alter "token" set statistics 200;
-alter table dspam_signature_data alter signature set statistics 200;
-alter table dspam_token_data alter innocent_hits set statistics 200;
-alter table dspam_token_data alter spam_hits set statistics 200;
-CREATE INDEX id_token_data_sumhits ON dspam_token_data ((spam_hits + innocent_hits));
-analyze;
+ALTER TABLE dspam_token_data ALTER token SET STATISTICS 200;
+ALTER TABLE dspam_signature_data ALTER signature SET STATISTICS 200;
+ALTER TABLE dspam_token_data ALTER innocent_hits SET STATISTICS 200;
+ALTER TABLE dspam_token_data ALTER spam_hits SET STATISTICS 200;
+ANALYZE;
