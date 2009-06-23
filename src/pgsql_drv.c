@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.68 2009/06/17 00:56:40 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.69 2009/06/23 22:59:38 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1684,7 +1684,6 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   struct passwd *p;
   char *name;
   PGresult *result;
-  int token_type = -1;
 
   if (s->dbh == NULL)
   {
@@ -1760,8 +1759,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  if ( PQntuples(s->iter_token) < 1 ||
-       (token_type = _pgsql_drv_token_type(s,s->iter_token,0)) < 0 )
+  if ( PQntuples(s->iter_token) < 1 )
   {
     result = PQexec(s->dbh, "CLOSE dscursor");
     PQclear(result);
@@ -1776,7 +1774,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  st->token = _pgsql_drv_token_read (token_type, PQgetvalue( s->iter_token, 0, 0));
+  st->token = _pgsql_drv_token_read (s->pg_token_type, PQgetvalue( s->iter_token, 0, 0));
   st->spam_hits = strtoul (PQgetvalue( s->iter_token, 0, 1), NULL, 0);
   if (st->spam_hits == ULONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->spam_hits", PQgetvalue(s->iter_token,0,1));

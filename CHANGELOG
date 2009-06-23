@@ -1,6 +1,13 @@
 Version 3.9.0
 -------------
 
+[20090623:2300] sbajic: Speed up of PostgreSQL driver
+
+* Avoid calling _pgsql_drv_token_type() in _ds_get_nexttoken(). The token
+  field is either NUMERIC(20) or BIGINT for the dspam_token_data table per
+  made connection to the PostgreSQL database. No need to check that for
+  each and every token in _ds_get_nexttoken().
+
 [20090623:2255] sbajic: Code cleanup in MySQL and PostgreSQL driver
 
 [20090623:2157] sbajic: Removing not needed index from PostgreSQL schema
