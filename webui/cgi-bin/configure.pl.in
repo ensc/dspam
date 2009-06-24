@@ -31,7 +31,7 @@ $CONFIG{'DSPAM_ARGS'}	= "--deliver=innocent --class=innocent " .
                           "--source=error --user %CURRENT_USER% -d %u";
 $CONFIG{'TEMPLATES'}	= "./templates";	# Location of HTML templates
 $CONFIG{'DSPAM_PROCESSES'} = "ps auxw | grep dspam | grep -v 'grep\|cgi\|sock' | wc -l"; # use ps -deaf for Solaris
-$CONFIG{'MAIL_QUEUE'}   = "mailq | grep '^[0-9,A-F]\{10,12\}[\t ][\t ]*[1-9]'' | wc -l";
+$CONFIG{'MAIL_QUEUE'}   = "mailq | grep '^[0-9,A-F]\{10,12\}[\t ][\t ]*[1-9]' | wc -l";
 
 $CONFIG{'WEB_ROOT'}     = ""; # URL location of included htdocs/ files
 
