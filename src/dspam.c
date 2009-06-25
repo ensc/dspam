@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.244 2009/06/10 22:49:34 sbajic Exp $ */
+/* $Id: dspam.c,v 1.245 2009/06/25 02:40:47 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1529,6 +1529,7 @@ int send_notice(
   b = buffer_create(NULL);
   if (!b) {
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    fclose(f);
     return EUNKNOWN;
   }
 
