@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.h,v 1.14 2008/05/06 18:26:07 mjohnson Exp $ */
+/* $Id: mysql_drv.h,v 1.15 2009/06/25 00:11:01 sbajic Exp $ */
 
 /*
  DSPAM
@@ -37,6 +37,10 @@ typedef struct _mysql_drv_dbh {
 struct _mysql_drv_storage
 {
   _mysql_drv_dbh_t dbt;				/* db connections */
+
+  unsigned long max_packet_read;                /* maximum size of db communication buffer */
+  unsigned long max_packet_write;               /* maximum size of db communication buffer */
+
   struct _ds_spam_totals control_totals;        /* totals at storage init */
   struct _ds_spam_totals merged_totals;         /* totals for merged group */ 
 

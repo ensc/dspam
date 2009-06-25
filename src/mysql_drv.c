@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.84 2009/06/15 02:16:08 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.85 2009/06/25 00:51:54 sbajic Exp $ */
 
 /*
  DSPAM
@@ -585,35 +585,8 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   stat.innocent_hits = 0;
   stat.probability   = 0.00000;
 
-  /* Query max_allowed_packet from MySQL server for this connection. If the value
-   * can not be queried, then assume 1000000 as value.
-   */
-  unsigned long drv_max_packet = 1000000;
-  scratch[0] = 0;
-  snprintf (scratch, sizeof (scratch), "SHOW VARIABLES WHERE variable_name='max_allowed_packet'");
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, scratch) == 0) {
-    result = mysql_use_result (s->dbt->dbh_read);
-    if (result != NULL) {
-      row = mysql_fetch_row (result);
-      if (row != NULL) {
-        drv_max_packet = strtoul (row[1], NULL, 0);
-        if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
-          LOGDEBUG("_ds_getall_spamrecords: failed converting %s to max_allowed_packet", row[1]);
-          drv_max_packet = 1000000;
-        }
-      }
-      mysql_free_result (result);
-      result = NULL;
-      row = NULL;
-    }
-    mysql_free_result (result);
-    result = NULL;
-    row = NULL;
-  }
-  scratch[0] = 0;
-
   /* Get the all spam records but split the query when the query size + 1024
-   * reaches drv_max_packet
+   * reaches s->max_packet_read
    */
   query = buffer_create (NULL);
   if (query == NULL)
@@ -649,7 +622,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       ds_term->s.spam_hits = 0;
       ds_term->s.probability = 0.00000;
       ds_term->s.status = 0;
-      if((query->used + 1024) > drv_max_packet) {
+      if((query->used + 1024) > s->max_packet_read) {
         LOGDEBUG("_ds_getall_spamrecords: Splitting query at %ld characters", query->used);
         break;
       }
@@ -754,8 +727,6 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   buffer *insert;
   int insert_any = 0;
 #endif
-  MYSQL_RES *result;
-  MYSQL_ROW row;
 
   if (diction->items < 1)
     return 0;
@@ -803,38 +774,11 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 #endif
 
-  /* Query max_allowed_packet from MySQL server for this connection. If the value
-   * can not be queried, then assume 1000000 as value.
-   */
-  unsigned long drv_max_packet = 1000000;
-  scratch[0] = 0;
-  snprintf (scratch, sizeof (scratch), "SHOW VARIABLES WHERE variable_name='max_allowed_packet'");
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, scratch) == 0) {
-    result = mysql_use_result (s->dbt->dbh_read);
-    if (result != NULL) {
-      row = mysql_fetch_row (result);
-      if (row != NULL) {
-        drv_max_packet = strtoul (row[1], NULL, 0);
-        if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
-          LOGDEBUG("_ds_setall_spamrecords: failed converting %s to max_allowed_packet", row[1]);
-          drv_max_packet = 1000000;
-        }
-      }
-      mysql_free_result (result);
-      result = NULL;
-      row = NULL;
-    }
-    mysql_free_result (result);
-    result = NULL;
-    row = NULL;
-  }
-  scratch[0] = 0;
-
   ds_diction_getstat(diction, s->control_token, &control);
   snprintf (queryhead, sizeof (queryhead),
-            "update dspam_token_data set last_hit=current_date(),"
-            "spam_hits=greatest(0,spam_hits%s%d),"
-            "innocent_hits=greatest(0,innocent_hits%s%d)"
+            "UPDATE dspam_token_data SET last_hit=CURRENT_DATE(),"
+            "spam_hits=GREATEST(0,spam_hits%s%d),"
+            "innocent_hits=GREATEST(0,innocent_hits%s%d)"
             " WHERE uid=%d AND token IN (",
             (control.spam_hits > s->control_sh) ? "+" : "-",
             abs (control.spam_hits - s->control_sh),
@@ -893,7 +837,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       char ins[1024];
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
       snprintf (ins, sizeof (ins),
-                "%s(%d,'%llu',%d,%d,current_date())",
+                "%s(%d,'%llu',%d,%d,CURRENT_DATE())",
                  (insert_any) ? "," : "",
                  (int) p->pw_uid,
                  ds_term->key,
@@ -903,11 +847,11 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       insert_any = 1;
       buffer_cat(insert, ins);
 
-      if((insert->used + 1024) > drv_max_packet) {
+      if((insert->used + 1024) > s->max_packet_write) {
         LOGDEBUG("_ds_setall_spamrecords: Splitting insert query at %ld characters", insert->used);
         if (insert_any) {
           snprintf (scratch, sizeof (scratch),
-                    " ON DUPLICATE KEY UPDATE last_hit=current_date(),"
+                    " ON DUPLICATE KEY UPDATE last_hit=CURRENT_DATE(),"
                     "spam_hits=greatest(0,spam_hits%s%d),"
                     "innocent_hits=greatest(0,innocent_hits%s%d)",
                     (control.spam_hits > s->control_sh) ? "+" : "-",
@@ -928,7 +872,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       snprintf(ins, sizeof (ins),
                "INSERT INTO dspam_token_data(uid,token,spam_hits,"
                "innocent_hits,last_hit) VALUES (%d,'%llu',%d,%d,"
-               "current_date())",
+               "CURRENT_DATE())",
                p->pw_uid,
                ds_term->key,
                stat.spam_hits > 0 ? 1 : 0,
@@ -953,7 +897,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     ds_term->s.status |= TST_DISK;
 
     ds_term = ds_diction_next(ds_c);
-    if((query->used + 1024) > drv_max_packet) {
+    if((query->used + 1024) > s->max_packet_write) {
       LOGDEBUG("_ds_setall_spamrecords: Splitting update query at %ld characters", query->used);
       buffer_cat (query, ")");
       if (update_any) {
@@ -1002,7 +946,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   if (insert_any)
   {
      snprintf (scratch, sizeof (scratch),
-            " ON DUPLICATE KEY UPDATE last_hit=current_date(),"
+            " ON DUPLICATE KEY UPDATE last_hit=CURRENT_DATE(),"
             "spam_hits=greatest(0,spam_hits%s%d),"
             "innocent_hits=greatest(0,innocent_hits%s%d)",
             (control.spam_hits > s->control_sh) ? "+" : "-",
@@ -1154,11 +1098,11 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   {
     snprintf (query, sizeof (query),
               "INSERT INTO dspam_token_data (uid,token,spam_hits,innocent_hits,last_hit)"
-              " VALUES (%d,'%llu',%lu,%lu,current_date())"
+              " VALUES (%d,'%llu',%lu,%lu,CURRENT_DATE())"
               " ON DUPLICATE KEY UPDATE"
               " spam_hits=%lu,"
               "innocent_hits=%lu,"
-              "last_hit=current_date()",
+              "last_hit=CURRENT_DATE()",
               (int) p->pw_uid,
               token,
               stat->spam_hits, stat->innocent_hits,
@@ -1171,7 +1115,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   {
     snprintf (query, sizeof (query),
               "INSERT INTO dspam_token_data (uid,token,spam_hits,innocent_hits,last_hit)"
-              " VALUES (%d,'%llu',%lu,%lu,current_date())",
+              " VALUES (%d,'%llu',%lu,%lu,CURRENT_DATE())",
               (int) p->pw_uid, token, stat->spam_hits, stat->innocent_hits);
     result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
   }
@@ -1182,7 +1126,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     snprintf (query, sizeof (query), "UPDATE dspam_token_data"
               " SET spam_hits=%lu,"
               "innocent_hits=%lu,"
-              "last_hit=current_date(),"
+              "last_hit=CURRENT_DATE(),"
               " WHERE uid=%d"
               " AND token='%llu'", stat->spam_hits,
               stat->innocent_hits, (int) p->pw_uid, token);
@@ -1266,6 +1210,54 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   {
     memset (&CTX->totals, 0, sizeof (struct _ds_spam_totals));
     memset (&s->control_totals, 0, sizeof (struct _ds_spam_totals));
+  }
+
+  /* Query max_allowed_packet from MySQL server for this connection. If the value
+   * can not be queried, then assume 1000000 as value.
+   */
+  unsigned long drv_max_packet = 1000000;
+  char scratch[128];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  snprintf (scratch, sizeof (scratch), "SHOW VARIABLES WHERE variable_name='max_allowed_packet'");
+  s->max_packet_read = 1000000;
+  s->max_packet_write = 1000000;
+  if (s->dbt) {
+    if (s->dbt->dbh_read) {
+      if (MYSQL_RUN_QUERY (s->dbt->dbh_read, scratch) == 0) {
+        result = mysql_use_result (s->dbt->dbh_read);
+        if (result != NULL) {
+          row = mysql_fetch_row (result);
+          if (row != NULL) {
+            drv_max_packet = strtoul (row[1], NULL, 0);
+            if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
+              LOGDEBUG("_ds_init_storage: failed converting %s to max_allowed_packet for read", row[1]);
+              drv_max_packet = 1000000;
+            }
+          }
+        }
+        mysql_free_result (result);
+      }
+      s->max_packet_read = drv_max_packet;
+    }
+    drv_max_packet = 1000000;
+    if (s->dbt->dbh_write) {
+      if (MYSQL_RUN_QUERY (s->dbt->dbh_write, scratch) == 0) {
+        result = mysql_use_result (s->dbt->dbh_write);
+        if (result != NULL) {
+          row = mysql_fetch_row (result);
+          if (row != NULL) {
+            drv_max_packet = strtoul (row[1], NULL, 0);
+            if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
+              LOGDEBUG("_ds_init_storage: failed converting %s to max_allowed_packet for write", row[1]);
+              drv_max_packet = 1000000;
+            }
+          }
+        }
+        mysql_free_result (result);
+      }
+      s->max_packet_write = drv_max_packet;
+    }
   }
 
   return 0;
@@ -1554,36 +1546,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   length = mysql_real_escape_string (s->dbt->dbh_write, mem, SIG->data, SIG->length);
 
-  /* Query max_allowed_packet from MySQL server for this connection. If the value
-   * can not be queried, then assume 1000000 as value.
-   */
-  unsigned long drv_max_packet = 1000000;
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-  result = NULL;
-  scratch[0] = 0;
-  snprintf (scratch, sizeof (scratch), "SHOW VARIABLES WHERE variable_name='max_allowed_packet'");
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, scratch) == 0) {
-    result = mysql_use_result (s->dbt->dbh_write);
-    if (result != NULL) {
-      row = mysql_fetch_row (result);
-      if (row != NULL) {
-        drv_max_packet = strtoul (row[1], NULL, 0);
-        if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
-          LOGDEBUG("_ds_set_signature: failed converting %s to max_allowed_packet", row[1]);
-          drv_max_packet = 1000000;
-        }
-      }
-      mysql_free_result (result);
-      result = NULL;
-      row = NULL;
-    }
-    mysql_free_result (result);
-    result = NULL;
-    row = NULL;
-  }
-  scratch[0] = 0;
-  if(length+1024>drv_max_packet) {
+  if(length+1024 > s->max_packet_write) {
     LOG (LOG_WARNING, "_ds_set_signature: signature data to big to be inserted");
     LOG (LOG_WARNING, "_ds_set_signature: consider increasing max_allowed_packet to at least %llu",
               length+1025);
@@ -1591,7 +1554,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   }
 
   snprintf (scratch, sizeof (scratch),
-            "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d,\"%s\",%lu,current_date(),\"",
+            "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d,\"%s\",%lu,CURRENT_DATE(),\"",
             (int) p->pw_uid, signature, (unsigned long) SIG->length);
   buffer_cat (query, scratch);
   buffer_cat (query, mem);
@@ -2429,38 +2392,8 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
             " WHERE uid=%d AND token IN (",
             (int) p->pw_uid);
 
-  /* Query max_allowed_packet from MySQL server for this connection. If the value
-   * can not be queried, then assume 1000000 as value.
-   */
-  unsigned long drv_max_packet = 1000000;
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-  result = NULL;
-  scratch[0] = 0;
-  snprintf (scratch, sizeof (scratch), "SHOW VARIABLES WHERE variable_name='max_allowed_packet'");
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, scratch) == 0) {
-    result = mysql_use_result (s->dbt->dbh_write);
-    if (result != NULL) {
-      row = mysql_fetch_row (result);
-      if (row != NULL) {
-        drv_max_packet = strtoul (row[1], NULL, 0);
-        if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
-          LOGDEBUG("_ds_delall_spamrecords: failed converting %s to max_allowed_packet", row[1]);
-          drv_max_packet = 1000000;
-        }
-      }
-      mysql_free_result (result);
-      result = NULL;
-      row = NULL;
-    }
-    mysql_free_result (result);
-    result = NULL;
-    row = NULL;
-  }
-  scratch[0] = 0;
-
   /* Delete the spam records but split the query when the query size + 1024
-   * reaches drv_max_packet
+   * reaches s->max_packet_write
    */
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
@@ -2474,7 +2407,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
         snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
       buffer_cat (query, scratch);
       ds_term = ds_diction_next(ds_c);
-      if((query->used + 1024) > drv_max_packet || !ds_term) {
+      if((query->used + 1024) > s->max_packet_write || !ds_term) {
         LOGDEBUG("_ds_delall_spamrecords: Splitting query at %lu characters", query->used);
         break;
       }

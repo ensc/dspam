@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090625:0115] sbajic: Code cleanup in MySQL driver
+
 [20090624:1622] sbajic: Fixing typo in configure.pl.in (SF Bug ID #2811562)
 
 [20090623:2300] sbajic: Speed up of PostgreSQL driver
