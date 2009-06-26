@@ -1,6 +1,9 @@
 Version 3.9.0
 -------------
 
+[20090627:0143] sbajic: Fixing PostgreSQL driver
+* Fixing SQL query in _ds_getall_spamrecords when using lookup_tokens
+
 [20090625:0242] sbajic: Fixing resource leak in dspam.c
 
 [20090625:0115] sbajic: Code cleanup in MySQL driver

@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.69 2009/06/23 22:59:38 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.70 2009/06/27 01:37:02 sbajic Exp $ */
 
 /*
  DSPAM
@@ -625,10 +625,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_diction_close(ds_c);
 
   if (s->pg_major_ver >= 8) {
-    if (uid != gid)
-      buffer_cat (query, ")");
-    else
-      buffer_cat(query, "}')");
+    buffer_cat(query, "}')");
   } else {
     buffer_cat (query, ")");
   }
