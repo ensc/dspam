@@ -1,4 +1,4 @@
-/* $Id: read_config.h,v 1.91 2009/06/27 02:03:37 sbajic Exp $ */
+/* $Id: read_config.h,v 1.92 2009/06/27 04:03:13 sbajic Exp $ */
 
 /*
  DSPAM
@@ -35,6 +35,6 @@ config_t read_config (const char *path);
 int configure_algorithms (DSPAM_CTX * CTX);
 
 agent_pref_t pref_config(void);
-static config_t agent_config;
+config_t agent_config;
 
 #endif /* _READ_CONFIG_H */

@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090627:0404] sbajic: Removing Mac OS X patch for the duplicate symbol issue
+
 [20090627:0228] sbajic: Fixing compiler warnings in cssclean.c and util.c
 
 [20090627:0222] sbajic: Fixing broken return value in bnr_list_node_create()
