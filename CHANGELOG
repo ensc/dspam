@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090627:0157] sbajic: Added csscompress to be build for the hash driver
+
 [20090627:0143] sbajic: Fixing PostgreSQL driver
 * Fixing SQL query in _ds_getall_spamrecords when using lookup_tokens
 

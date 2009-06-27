@@ -1,8 +1,8 @@
-# $Id#
+# $Id: Makefile.am,v 1.0 2009/06/25 22:23:38 sbajic Exp $ #
 # tools.hash_drv/Makefile.am
 #
 
-EXTRA_DIST = 
+EXTRA_DIST =
 
 AM_CPPFLAGS = \
   -DLOGDIR=\"$(logdir)\" -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\" \
@@ -10,7 +10,7 @@ AM_CPPFLAGS = \
 
 CFLAGS = @CFLAGS@ -I$(top_srcdir)/src
 
-bin_PROGRAMS = cssstat cssclean cssconvert
+bin_PROGRAMS = cssstat cssclean cssconvert csscompress
 
 DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
        -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\"\
@@ -19,7 +19,7 @@ DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
 cssstat_SOURCES =  cssstat.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
                    ../pref.c
-cssstat_LDFLAGS = 
+cssstat_LDFLAGS =
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssstat_CPPFLAGS = $(libhash_drv_cppflags)
@@ -30,7 +30,7 @@ endif
 cssclean_SOURCES = cssclean.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
                    ../pref.c
-cssclean_LDFLAGS = 
+cssclean_LDFLAGS =
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssclean_CPPFLAGS = $(libhash_drv_cppflags)
@@ -41,10 +41,22 @@ endif
 cssconvert_SOURCES = cssconvert.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
                    ../pref.c
-cssconvert_LDFLAGS = 
+cssconvert_LDFLAGS =
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssconvert_CPPFLAGS = $(libhash_drv_cppflags)
 cssconvert_LDFLAGS += $(libhash_drv_libs) $(libhash_drv_ldflags)
+endif
+endif
+
+csscompress_SOURCES =  csscompress.c ../read_config.c ../util.c ../diction.c \
+                   ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
+                   ../pref.c
+
+csscompress_LDFLAGS =
+if DYNAMIC_DRIVER
+if BUILD_HASH_DRV
+csscompress_CPPFLAGS = $(libhash_drv_cppflags)
+csscompress_LDFLAGS += $(libhash_drv_libs) $(libhash_drv_ldflags)
 endif
 endif
