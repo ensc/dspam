@@ -1,4 +1,4 @@
-/* $Id: cssclean.c,v 1.12 2007/12/14 00:14:32 mjohnson Exp $ */
+/* $Id: cssclean.c,v 1.13 2009/06/27 02:24:53 sbajic Exp $ */
 
 /*
  DSPAM
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
 int cssclean(const char *filename, int heavy) {
   int i;
   hash_drv_header_t header;
-  FILE* lockfile;
+  FILE* lockfile = NULL;
   void *offset;
   struct _hash_drv_map old, new;
   hash_drv_spam_record_t rec;
