@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090627:0204] sbajic: Fixing compiling issue (duplicate symbol _agent_config in .libs/read_config.o and .libs/pref.o) on Mac OS X
+
 [20090627:0157] sbajic: Added csscompress to be build for the hash driver
 
 [20090627:0143] sbajic: Fixing PostgreSQL driver
