@@ -29,6 +29,7 @@
 
 #define ERR_MEM_ALLOC		"Memory allocation failed"
 #define ERR_IO_FILE_OPEN	"Unable to open file for reading: %s: %s"
+#define ERR_IO_FILE_READ	"Unable to read from file: %s: %s"
 #define ERR_IO_FILE_WRITE	"Unable to open file for writing: %s: %s"
 #define ERR_IO_FILE_WRITING	"Unable to write file: %s: %s"
 #define ERR_IO_FILE_CLOSE	"Unable to close file: %s: %s"

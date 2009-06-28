@@ -113,7 +113,7 @@ int	_ds_extract_address(
 
 double	_ds_gettime(void);
 
-void timeout();
+void timeout(void);
 
 int _ds_get_fcntl_lock  (int fd);
 int _ds_free_fcntl_lock (int fd);
