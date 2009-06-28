@@ -921,7 +921,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
 }
 
 int
-init_pwent_cache()
+init_pwent_cache(void)
 {
   struct passwd *pwent;
   pwent = getpwuid(getuid());

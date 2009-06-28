@@ -1,6 +1,13 @@
 Version 3.9.0
 -------------
 
+[20090628:1350] sbajic: Closing SF Bug ID #2813474
+
+* Applying patches submitted by Andreas Schneider <mail@cynapses.org>:
+  * Fix a build warning in util.h/util.c
+  * Check return values of system functions for the hash driver
+  * Fix a compile warning that init_pwent_cache() has no prototype
+
 [20090627:0404] sbajic: Removing Mac OS X patch for the duplicate symbol issue
 
 [20090627:0228] sbajic: Fixing compiler warnings in cssclean.c and util.c
