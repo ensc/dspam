@@ -1,0 +1,44 @@
+<!ENTITY dspam.options.selectspamfolder "Move to Folder:">
+<!ENTITY dspam.options.selectspamfolder.label "Select this folder">
+<!ENTITY dspam.options.selectspamfolder.accesskey  "f">
+<!ENTITY dspam.options.selecthamfolder "Move to Folder:">
+<!ENTITY dspam.options.selecthamfolder.label "Select this folder">
+<!ENTITY dspam.options.selecthamfolder.accesskey  "f">
+<!ENTITY dspam.spamreportbutton.label "Spam">
+<!ENTITY dspam.spamreportbutton.tooltiptext "Report the selected messages as SPAM">
+<!ENTITY dspam.hamreportbutton.label "Not Spam">
+<!ENTITY dspam.hamreportbutton.tooltiptext "Report the selected messages as SPAM">
+<!ENTITY dspam.options.spamaddresstooltip "Your SPAM report address">
+<!ENTITY dspam.options.hamaddresstooltip "Your HAM report address">
+<!ENTITY dspam.options.quickspamcop "Enable Quick SpamCop">
+<!ENTITY dspam.options.quickspamcoptooltip "Check to enable quick reporting to Spamcop">
+<!ENTITY dspam.options.spamaddressLabel "Your SPAM report address:">
+<!ENTITY dspam.options.hamaddressLabel "Your HAM report address:">
+<!ENTITY dspam.options.webuiurlLabel "WebUI URL:">
+<!ENTITY dspam.options.webuiurltooltip "Enter the WebUI link for message retraining">
+<!ENTITY dspam.options.webuiuserLabel "WebUI Username:">
+<!ENTITY dspam.options.webuiusertooltip "Enter your WebUI access username">
+<!ENTITY dspam.options.webuipassLabel "WebUI Password:">
+<!ENTITY dspam.options.webuipasstooltip "Enter your WebUI access password">
+<!ENTITY dspam.options.rememberwebuipass "Remember WebUI Password">
+<!ENTITY dspam.options.rememberwebuipasstooltip "Check to retain WebUI access password">
+<!ENTITY dspam.options.spamactionLabel "After reporting SPAM:">
+<!ENTITY dspam.options.spamactionLeave "Leave Message">
+<!ENTITY dspam.options.spamactionDelete "Delete Message">
+<!ENTITY dspam.options.spamfoldertooltip "After reporting, move messages to folder">
+<!ENTITY dspam.options.hamactionLabel "After reporting HAM:">
+<!ENTITY dspam.options.hamactionLeave "Leave Message">
+<!ENTITY dspam.options.hamfoldertooltip "After reporting, move messages to folder">
+<!ENTITY dspam.options.browsebutton "Browse...">
+<!ENTITY dspam.options.methodLabel "Report messages using:">
+<!ENTITY dspam.options.methodForward "Message forwarding">
+<!ENTITY dspam.options.methodWebUI "DSPAM WebUI">
+<!ENTITY dspam.options.gentab.label "General">
+<!ENTITY dspam.options.gentab.tooltip "General configuration options">
+<!ENTITY dspam.options.forwardtab.label "Forwarding">
+<!ENTITY dspam.options.forwardtab.tooltip "Forward reporting configuration options">
+<!ENTITY dspam.options.webuitab.label "WebUI">
+<!ENTITY dspam.options.webuitab.tooltip "WebUI reporting configuration options">
+<!ENTITY dspam.options.actiontab.label "Actions">
+<!ENTITY dspam.options.actiontab.tooltip "Actions to perform after reporting">
+<!ENTITY dspam. "">
