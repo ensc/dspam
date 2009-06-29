@@ -1,0 +1,240 @@
+<?xml version="1.0"?> 
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://dspam/skin/dspam.css" type="text/css"?>
+<?xul-overlay href="chrome://messenger/content/msgFolderPickerOverlay.xul"?>
+<!-- <!DOCTYPE dialog SYSTEM "chrome://dspam/locale/dspam.dtd"> -->
+
+<!DOCTYPE dialog [
+<!ENTITY % dspamDTD SYSTEM "chrome://dspam/locale/dspam.dtd" >
+%dspamDTD;
+<!ENTITY % folderpickerDTD SYSTEM "chrome://messenger/locale/msgFolderPickerOverlay.dtd" >
+%folderpickerDTD;
+]>
+
+<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:nc="http://home.netscape.com/NC-rdf#"
+		xmlns:ncll="http://home.netscape.com/NC-rdf#"
+        onload="init();"
+        buttons="accept,cancel"
+        ondialogaccept="savePrefs();"
+        persist="screenX screenY"
+        title="DSPAM Extension for Thunderbird">
+
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
+    <stringbundle id="fptAlerts" src="chrome://dspam/locale/dspam.properties"/>
+  </stringbundleset>
+
+  <script type="application/x-javascript" src="chrome://dspam/content/options.js"/>
+  <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
+  <script type="application/x-javascript" src="chrome://global/content/nsUserSettings.js"/>
+		  
+
+  <tabbox flex="1" style="margin:5px">
+    <tabs id="prefTabBox">
+<!--      <tab id="generalTab"  label="&dspam.options.gentab.label;"/> -->
+      <tab id="forwardTab"  label="&dspam.options.forwardtab.label;"/>
+<!--      <tab id="webui"  label="&dspam.options.webuitab.label;" disabled="true"/> -->
+      <tab id="actionTab"  label="&dspam.options.actiontab.label;"/>
+    </tabs>
+<tabpanels flex="1">
+
+<!-- General Options -->
+<!-- <vbox id="generalTab" flex="1">
+  <groupbox id="general-box" >
+	<caption label="General Options" />
+    <label control="method" value="&dspam.options.methodLabel;"/>
+      <radiogroup id="method" prefstring="dspam.method">
+        <radio id="forward" selected="true" label="&dspam.options.methodForward;"/>
+        <radio id="web" label="&dspam.options.methodWebUI;" disabled="true"/>
+      </radiogroup>
+  </groupbox>
+</vbox>
+-->
+<!-- Forwarding Report Options -->
+<vbox id="forwardTab" flex="1">
+  <groupbox id="forward-box" >
+    <caption label="Forward Report Options" />
+    <label control="spamaddress" value="&dspam.options.spamaddressLabel;"/>
+      <textbox id="spamaddress" value="" prefstring="dspam.spamaddress" tooltiptext="&dspam.options.spamaddresstooltip;" />
+    <label control="hamaddress" value="&dspam.options.hamaddressLabel;"/>
+      <textbox id="hamaddress" value="" prefstring="dspam.hamaddress" tooltiptext="&dspam.options.hamaddresstooltip;" />
+  </groupbox>
+</vbox>
+
+<!-- WebUI Report Options -->
+<!-- <vbox id="webuiTab" flex="1">
+  <groupbox id="webui-box" >
+    <caption label="WebUI Report Options" />
+    <label control="webuiurl" value="&dspam.options.webuiurlLabel;"/>
+      <textbox id="webuiurl" value="" prefstring="dspam.webuiurl" tooltiptext="&dspam.options.webuiurltooltip;" />
+    <label control="webuiuser" value="&dspam.options.webuiuserLabel;"/>
+      <textbox id="webuiuser" value="" prefstring="dspam.webuiuser" tooltiptext="&dspam.options.webuiusertooltip;" />
+    <label control="webuipass" value="&dspam.options.webuipassLabel;"/>
+      <textbox id="webuiupass" type="password" value="" prefstring="dspam.webuipass" tooltiptext="&dspam.options.webuipasstooltip;" />
+	<checkbox id="rememberwebuipass"
+	  preftype="bool"
+	  prefstring="dspam.rememberwebuipass"
+	  label="&dspam.options.rememberwebuipass;"
+	  tooltiptext="&dspam.options.rememberwebuipass;" />
+  </groupbox>
+</vbox> -->
+
+<!-- Post Report Action -->
+<vbox id="actionTab" flex="1">
+  <groupbox id="spamreport-box" >
+	<caption label="&dspam.options.spamactionLabel;" />
+      <radiogroup id="spamaction" prefstring="dspam.spamaction">
+        <radio id="spamleave" label="&dspam.options.spamactionLeave;" oncommand="updateCheckSpam();"/>
+        <radio id="spamdelete" label="&dspam.options.spamactionDelete;" oncommand="updateCheckSpam();"/>
+	  <row>
+		<radio id="spammove" label="&dspam.options.selectspamfolder;" oncommand="updateCheckSpam();"/>
+                        <menulist id="PickFolder0" flex="1" prefstring="dspam.spamfolder"
+                            oncommand="setFolderPicker('1','PickFolder','',event.target);"
+                            sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
+                            sortDirection="ascending"
+                            context="folderPaneContext"
+                            datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
+                            class="folderMenuItem menu-iconic"
+                            ref="msgaccounts:/">
+                            <template>
+                                    <rule ncll:CanFileMessagesOnServer="false">
+                                        <!-- don't show servers (nntp & any others) which does not allow message filing -->
+                                    </rule>
+                                    <rule ncll:CanFileMessages="false" iscontainer="true" isempty="false" >
+                                        <!-- don't allow folders which does not allow message filing to be picked, show them tho-->
+                                        <menupopup>
+                                            <menu uri="..." 
+                                                class="folderMenuItem menu-iconic"
+                                                SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                                                BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                                                IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                                                IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                                                ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                                                label="rdf:http://home.netscape.com/NC-rdf#FolderTreeName">
+                                                <menupopup class="folderMenuItem menu-iconic"/>
+                                            </menu>
+                                        </menupopup>
+                                    </rule>
+                                    <rule ncll:CanFileMessages="true" iscontainer="true" isempty="false" >
+                                        <!-- show folders that allow message filing and allow them to be picked-->
+                                        <menupopup>
+                                            <menu uri="..." 
+                                                class="folderMenuItem menu-iconic"
+                                                oncommand="setFolderPicker('2','PickFolder','',event.target);"
+                                                SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                                                BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                                                IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                                                IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                                                ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                                                label="rdf:http://home.netscape.com/NC-rdf#FolderTreeName">
+                                                <menupopup class="folderMenuItem menu-iconic">
+                                                    <menuitem label="&dspam.options.selectspamfolder.label;" 
+                                                        oncommand="setFolderPicker('3','PickFolder','',event.target.parentNode.parentNode);"/>
+                                                    <menuseparator/>
+                                                </menupopup>
+                                                <menupopup class="folderMenuItem menu-iconic"/>
+                                            </menu>
+                                        </menupopup>
+                                    </rule>
+                                    <rule ncll:CanFileMessages="true">
+                                        <!-- show all folders that can do message filing that did not fit the rules above-->
+                                        <menupopup>
+                                            <menuitem uri="..." value="..."  
+                                                class="folderMenuItem menuitem-iconic"
+                                                SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                                                BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                                                IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                                                IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                                                ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                                                label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+                                        </menupopup>
+                                    </rule>
+                            </template>
+                        </menulist>
+	  </row>
+      </radiogroup>
+  </groupbox>
+
+  <groupbox id="hamreport-box" >
+	<caption label="&dspam.options.hamactionLabel;" />
+      <radiogroup id="hamaction" prefstring="dspam.hamaction">
+        <radio id="hamleave" label="&dspam.options.hamactionLeave;" oncommand="updateCheckHam();"/>
+	  <row>
+		<radio id="hammove" label="&dspam.options.selecthamfolder;" oncommand="updateCheckHam();"/>
+                        <menulist id="PickFolder1" flex="1" prefstring="dspam.hamfolder"
+                            oncommand="setFolderPicker('1','PickFolder','',event.target);"
+                            sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
+                            sortDirection="ascending"
+                            context="folderPaneContext"
+                            datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
+                            class="folderMenuItem menu-iconic"
+                            ref="msgaccounts:/">
+                            <template>
+                                    <rule ncll:CanFileMessagesOnServer="false">
+                                        <!-- don't show servers (nntp & any others) which does not allow message filing -->
+                                    </rule>
+                                    <rule ncll:CanFileMessages="false" iscontainer="true" isempty="false" >
+                                        <!-- don't allow folders which does not allow message filing to be picked, show them tho-->
+                                        <menupopup>
+                                            <menu uri="..." 
+                                                class="folderMenuItem menu-iconic"
+                                                SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                                                BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                                                IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                                                IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                                                ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                                                label="rdf:http://home.netscape.com/NC-rdf#FolderTreeName">
+                                                <menupopup class="folderMenuItem menu-iconic"/>
+                                            </menu>
+                                        </menupopup>
+                                    </rule>
+                                    <rule ncll:CanFileMessages="true" iscontainer="true" isempty="false" >
+                                        <!-- show folders that allow message filing and allow them to be picked-->
+                                        <menupopup>
+                                            <menu uri="..." 
+                                                class="folderMenuItem menu-iconic"
+                                                oncommand="setFolderPicker('2','PickFolder','',event.target);"
+                                                SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                                                BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                                                IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                                                IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                                                ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                                                label="rdf:http://home.netscape.com/NC-rdf#FolderTreeName">
+                                                <menupopup class="folderMenuItem menu-iconic">
+                                                    <menuitem label="&dspam.options.selectspamfolder.label;" 
+                                                        oncommand="setFolderPicker('3','PickFolder','',event.target.parentNode.parentNode);"/>
+                                                    <menuseparator/>
+                                                </menupopup>
+                                                <menupopup class="folderMenuItem menu-iconic"/>
+                                            </menu>
+                                        </menupopup>
+                                    </rule>
+                                    <rule ncll:CanFileMessages="true">
+                                        <!-- show all folders that can do message filing that did not fit the rules above-->
+                                        <menupopup>
+                                            <menuitem uri="..." value="..."  
+                                                class="folderMenuItem menuitem-iconic"
+                                                SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                                                BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                                                IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                                                IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                                                ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                                                label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+                                        </menupopup>
+                                    </rule>
+                            </template>
+                        </menulist>
+	  </row>
+      </radiogroup>
+  </groupbox>
+ </vbox>
+
+    </tabpanels>
+<hbox>
+  <image id="options_img"/>
+</hbox>
+
+  </tabbox>
+</dialog>
+

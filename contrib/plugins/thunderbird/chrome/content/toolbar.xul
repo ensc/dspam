@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://dspam/skin/dspam.css" type="text/css"?>
+
+<overlay id="buttonsToolbarTbOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+</overlay>

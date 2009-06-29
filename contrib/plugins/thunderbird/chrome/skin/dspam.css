@@ -1,0 +1,36 @@
+.dspamButtons {
+  -moz-image-region: rect(0px 24px 24px 0px);
+}
+.dspamButtons:hover {
+  -moz-image-region: rect(24px 24px 48px 0px);
+}
+.dspamButtons[disabled] {
+  -moz-image-region: rect(48px 24px 72px 0px);
+}
+
+toolbar[iconsize="small"] .dspamButtons {
+  -moz-image-region: rect(0px 16px 16px 0px);
+}
+toolbar[iconsize="small"] .dspamButtons:hover {
+  -moz-image-region: rect(16px 16px 32px 0px);
+}
+toolbar[iconsize="small"] .dspamButtons[disabled] {
+  -moz-image-region: rect(32px 16px 48px 0px);
+}
+
+/* Report Spam */
+#bReportSpam{ list-style-image: url("chrome://dspam/skin/reportspam-large.png"); }
+toolbar[iconsize="small"] #bReportSpam{ list-style-image: url("chrome://dspam/skin/reportspam-small.png"); }
+
+/* Report Ham */
+#bReportHam{ list-style-image: url("chrome://dspam/skin/reportham-large.png"); }
+toolbar[iconsize="small"] #bReportHam{ list-style-image: url("chrome://dspam/skin/reportham-small.png"); }
+
+#options_img {
+   list-style-image: url("chrome://dspam/skin/dspam-logo.gif");
+	width: 150px;
+	height: 44px;
+	background-position: bottom right;
+	background-repeat: no-repeat;
+}
+
