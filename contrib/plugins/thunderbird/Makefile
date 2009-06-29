@@ -1,5 +1,5 @@
 ../dspam-thunderbird-extension.xpi: chrome/dspam.jar
-	zip ../dspam-thunderbird-extension.xpi * chrome/dspam.jar -x Makefile
+	zip ../dspam-thunderbird-extension.xpi * chrome/dspam.jar -x Makefile -x README -x TODO
 
 chrome/dspam.jar:
 	cd chrome && zip -r dspam.jar content locale skin && cd ..
