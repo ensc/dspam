@@ -1,6 +1,12 @@
 Version 3.9.0
 -------------
 
+[20090629:2145] sbajic: Adding script for Lotus Notes into contrib directory
+ * Added Lotus Notes/Domino LotusScript Library (libDSPAMReporting.lss) into
+   the contrib directory. The LotusScript Library can be used together with
+   IBM Lotus Notes/Domino for retraining messages with the Lotus Notes
+   Client.
+
 [20090628:1350] sbajic: Closing SF Bug ID #2813474
 
 * Applying patches submitted by Andreas Schneider <mail@cynapses.org>:
