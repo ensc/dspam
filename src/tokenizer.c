@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.27 2009/07/05 17:58:49 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.28 2009/07/05 18:50:14 sbajic Exp $ */
 
 /*
  DSPAM
@@ -857,6 +857,9 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
         }
       }
     }
+#ifdef VERBOSE
+    LOGDEBUG ("Getting next message component");
+#endif
     node_nt = c_nt_next (CTX->message->components, &c_nt);
     i++;
   } /* while (node_nt != NULL) */

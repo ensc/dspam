@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.36 2009/07/05 14:24:09 sbajic Exp $ */
+/* $Id: decode.c,v 1.37 2009/07/05 18:47:17 sbajic Exp $ */
 
 /*
  DSPAM
@@ -403,6 +403,9 @@ MEMFAIL:
 
 int
 _ds_decode_headers (ds_message_part_t block) {
+#ifdef VERBOSE
+  LOGDEBUG("decoding headers in message block");
+#endif
   char *ptr, *dptr, *rest, *enc;
   ds_header_t header;
   struct nt_node *node_nt;
@@ -777,6 +780,9 @@ _ds_decode_base64 (const char *body)
 char *
 _ds_decode_quoted (const char *body)
 {
+#ifdef VERBOSE
+  LOGDEBUG("decoding Quoted Printable encoded buffer");
+#endif
   if (!body)
     return NULL;
 
@@ -817,6 +823,9 @@ _ds_decode_quoted (const char *body)
 char *
 _ds_decode_hex8bit (const char *body)
 {
+#ifdef VERBOSE
+  LOGDEBUG("decoding hexadecimal 8-bit encodings in message block");
+#endif
   if (!body)
     return NULL;
 
@@ -1208,6 +1217,9 @@ int _ds_hex2dec(unsigned char hex) {
 char *
 _ds_strip_html (const char *html)
 {
+#ifdef VERBOSE
+  LOGDEBUG("stripping HTML tags from message block");
+#endif
   int i = 0, j = 0, k = 0;
   int visible = 1;
   int closing_td_tag = 0;
