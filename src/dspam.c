@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.247 2009/07/05 19:05:13 sbajic Exp $ */
+/* $Id: dspam.c,v 1.248 2009/07/05 19:12:54 sbajic Exp $ */
 
 /*
  DSPAM
@@ -3876,7 +3876,7 @@ int is_blocklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
                                      : CTX->username), "blocklist");
   file = fopen(filename, "r");
   if (file != NULL) {
-    char *heading = _ds_find_header(CTX->message, "From", 0);
+    char *heading = _ds_find_header(CTX->message, "From");
     char buf[256];
     if (heading) {
       char *dup = strdup(heading);
