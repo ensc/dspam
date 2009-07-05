@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090705:1850] sbajic: Adding more debug output if verbose is turned on
+
 [20090705:1800] sbajic: Fixing typo in src/tokenizer.c
 
 [20090705:1435] sbajic: Fixing comparing for header field names to be case insensitive (see RFC822 section B.2)

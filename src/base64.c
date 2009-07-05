@@ -1,4 +1,4 @@
-/* $Id: base64.c,v 1.9 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: base64.c,v 1.91 2009/07/05 18:46:52 sbajic Exp $ */
 
 /*
  DSPAM
@@ -40,6 +40,9 @@
 char *
 base64decode (const char *buf)
 {
+#ifdef VERBOSE
+  LOGDEBUG ("decoding Base64 encoded buffer");
+#endif
   unsigned char alphabet[64] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   static char first_time = 1,inalphabet[256], decoder[256];
@@ -130,6 +133,9 @@ base64decode (const char *buf)
 char *
 base64encode (const char *buf)
 {
+#ifdef VERBOSE
+  LOGDEBUG ("encoding buffer to Base64");
+#endif
   unsigned char alphabet[64] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   int cols, bits, c, char_count;
