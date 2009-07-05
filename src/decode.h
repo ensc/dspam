@@ -1,4 +1,4 @@
-/* $Id: decode.h,v 1.16 2009/07/05 14:21:44 sbajic Exp $ */
+/* $Id: decode.h,v 1.17 2009/07/05 19:02:48 sbajic Exp $ */
 
 /*
  DSPAM
@@ -108,7 +108,7 @@ char *  _ds_decode_quoted       (const char *body);
 ds_message_t _ds_actualize_message (const char *message);
 
 char *  _ds_assemble_message (ds_message_t message, const char *newline);
-char *  _ds_find_header (ds_message_t message, const char *heading, int flags);
+char *  _ds_find_header (ds_message_t message, const char *heading);
 
 ds_message_part_t _ds_create_message_part (void);
 ds_header_t        _ds_create_header_field  (const char *heading);
