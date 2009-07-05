@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.26 2009/06/02 00:54:08 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.27 2009/07/05 17:58:49 sbajic Exp $ */
 
 /*
  DSPAM
@@ -752,7 +752,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 
   if (! CTX->message)
   {
-    LOG (LOG_WARNING, "_ds_actualize_message() failed: CTX->message is NULL");
+    LOG (LOG_WARNING, "_ds_degenerate_message() failed: CTX->message is NULL");
     return EUNKNOWN;
   }
 
