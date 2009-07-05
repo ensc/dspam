@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.37 2009/07/05 18:47:17 sbajic Exp $ */
+/* $Id: decode.c,v 1.38 2009/07/05 19:02:39 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1135,7 +1135,7 @@ _ds_extract_boundary (char *buf, size_t size, char *mem)
 }
 
 /*
- * _ds_find_header (ds_message_t message, consr char *heading, int flags) {
+ * _ds_find_header (ds_message_t message, consr char *heading) {
  *
  * DESCRIPTION
  *   finds a header and returns its value
@@ -1151,7 +1151,7 @@ _ds_extract_boundary (char *buf, size_t size, char *mem)
  */
 
 char *
-_ds_find_header (ds_message_t message, const char *heading, int flags) {
+_ds_find_header (ds_message_t message, const char *heading) {
   ds_message_part_t block;
   ds_header_t head;
   struct nt_node *node_nt;

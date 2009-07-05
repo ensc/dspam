@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.246 2009/07/05 14:26:41 sbajic Exp $ */
+/* $Id: dspam.c,v 1.247 2009/07/05 19:05:13 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2860,7 +2860,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   char *messageid = NULL;
 
   if (CTX->message)
-    messageid = _ds_find_header(CTX->message, "Message-Id", DDF_ICASE);
+    messageid = _ds_find_header(CTX->message, "Message-Id");
 
   if (ATX->status[0] == 0 && CTX->source == DSS_ERROR &&
      (!(ATX->flags & DAF_UNLEARN)))
