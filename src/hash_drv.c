@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.24 2009/06/05 09:22:33 sbajic Exp $ */
+/* $Id: hash_drv.c,v 1.25 2009/07/07 09:26:44 sbajic Exp $ */
 
 /*
  DSPAM
@@ -454,7 +454,7 @@ _hash_drv_close(hash_drv_map_t map) {
 
   lseek (map->fd, 0, SEEK_SET);
   r = write (map->fd, &header, sizeof(struct _hash_drv_header));
-  if (r) {
+  if (r < 0) {
     LOG(LOG_WARNING, "write failed on error %d: %s", r, strerror(errno));
   }
   close(map->fd);
