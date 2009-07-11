@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090711:0910] sbajic: Casting call in _ds_degenerate_message() to _ds_strip_html() function
+
 [20090707:0930] sbajic: Fixing bug in src/hash_drv.c (closing SF Bug ID # 2817736)
 
 [20090705:1910] sbajic: Removing 3th parameter in calls to _ds_find_header()
