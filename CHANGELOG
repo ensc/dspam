@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090711:1655] sbajic: Fixing bug in cssconvert and csscompress (closing SF Bug ID #2819960)
+
 [20090711:0910] sbajic: Casting call in _ds_degenerate_message() to _ds_strip_html() function
 
 [20090707:0930] sbajic: Fixing bug in src/hash_drv.c (closing SF Bug ID # 2817736)
