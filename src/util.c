@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.24 2009/05/25 02:40:10 sbajic Exp $ */
+/* $Id: util.c,v 1.25 2009/07/12 23:09:05 sbajic Exp $ */
 
 /*
  DSPAM
@@ -731,13 +731,14 @@ char *
 strcasestr(s, find)
 	const char *s, *find;
 {
-	char c, sc;
-	size_t len;
+	char c;
 
 	if ((c = *find++) != 0) {
+		size_t len;
 		c = tolower((unsigned char)c);
 		len = strlen(find);
 		do {
+			char sc;
 			do {
 				if ((sc = *s++) == 0)
 					return (NULL);

@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.248 2009/07/05 19:12:54 sbajic Exp $ */
+/* $Id: dspam.c,v 1.25 2009/07/12 22:57:01 sbajic Exp $ */
 
 /*
  DSPAM
@@ -964,7 +964,6 @@ deliver_message (
   while (arg != NULL)
   {
     char a[256], b[256];
-    size_t i;
 
     /* Destination user */
 
@@ -995,6 +994,7 @@ deliver_message (
     /* Escape special characters */
 
     if (strcmp(a, "\"\"")) {
+      size_t i;
       for(i=0;i<strlen(a);i++) {
         if (!(isalnum((unsigned char) a[i]) || a[i] == '+' || a[i] == '_' ||
             a[i] == '-' || a[i] == '.' || a[i] == '/' || a[i] == '@')) {
@@ -1601,7 +1601,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
   {
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
-    int result, optin, optout;
+    int optin, optout;
     char *username;
 
     /* If ServerParameters specifies a --user, there will only be one
@@ -1850,6 +1850,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     else
     {
       char *result_string = NULL;
+      int result;
       result = process_message (ATX, parse_message, username, &result_string);
       presult->classification = result;
 
