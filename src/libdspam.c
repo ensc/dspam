@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.164 2009/06/02 00:55:00 mjohnson Exp $ */
+/* $Id: libdspam.c,v 1.165 2009/07/12 23:05:36 sbajic Exp $ */
 
 /*
  DSPAM
@@ -764,7 +764,6 @@ int
 _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 {
   int errcode = 0;
-  int i;
 
   /* Create our diction (lexical data in message) and patterns */
 
@@ -854,6 +853,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       CTX->signature->length / sizeof (struct _ds_signature_token);
     struct _ds_signature_token t;
 
+    int i;
     for (i = 0; i < num_tokens; i++)
     {
       char x[128];

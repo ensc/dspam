@@ -1,4 +1,4 @@
-/* $Id: heap.c,v 1.9 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: heap.c,v 1.91 2009/07/12 23:04:31 sbajic Exp $ */
 
 /*
  DSPAM
@@ -46,9 +46,8 @@ ds_heap_create(int size, int type)
 void
 ds_heap_destroy(ds_heap_t h)
 {
-  ds_heap_element_t node, next;
-
   if (h) {
+    ds_heap_element_t node, next;
     node = h->root;
     while(node) {
       next = node->next;

@@ -1,4 +1,4 @@
-/* $Id: dspam_pg2int8.c,v 1.11 2006/05/13 01:13:01 jonz Exp $ */
+/* $Id: dspam_pg2int8.c,v 1.12 2009/07/12 23:23:39 sbajic Exp $ */
 
 /*
  DSPAM
@@ -231,6 +231,7 @@ GenSQL (PGconn *dbh,const char *file)
     fprintf(stderr, "Failed to run result: %s\n", PQresultErrorMessage(result));
     if (result) PQclear(result);
     PQfinish(dbh);
+    fclose (out);
     exit(EXIT_FAILURE);
   }
 
@@ -253,6 +254,7 @@ GenSQL (PGconn *dbh,const char *file)
            "I have got no clue of how to deal with this and I am going to sulk now.\n");
         if (result) PQclear(result);
         PQfinish(dbh);
+        fclose (out);
         exit(EXIT_FAILURE);
       }
     }
@@ -302,6 +304,7 @@ GenSQL (PGconn *dbh,const char *file)
                "CREATE INDEX id_token_data_04 ON dspam_token_data(uid);\n"
                "COMMIT;\n"
                "ANALYSE;\n");
+  fclose (out);
 }
 
 /*

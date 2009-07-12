@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090712:2325] sbajic: Code cleanup (limiting scope of variables) and fixing resource leak in dspam_pg2int8
+
 [20090711:1655] sbajic: Fixing bug in cssconvert and csscompress (closing SF Bug ID #2819960)
 
 [20090711:0910] sbajic: Casting call in _ds_degenerate_message() to _ds_strip_html() function
