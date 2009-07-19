@@ -64,10 +64,11 @@ $CONFIG{'AUTODETECT'} = 1;
 
 # Get DSPAM version
 $CONFIG{'DSPAM_VERSION'} = "Unknown Version";
+open(PIPE, $CONFIG{'DSPAM'} . " --version|");
 while(<PIPE>) {
         chomp;
         if (/^(DSPAM Anti\-Spam Suite .*)$/) {
-                $CONFIG{'DSPAM_VERSION'} = "Version " . $1;
+                $CONFIG{'DSPAM_VERSION'} = $1;
                 last;
         }
 }
