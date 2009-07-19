@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090719:2130] sbajic: Adding multi-language support to Web UI
+
 [20090719:1750] sbajic: Fixing version display in Web UI
 
 [20090712:2325] sbajic: Code cleanup (limiting scope of variables) and fixing resource leak in dspam_pg2int8
