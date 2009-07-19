@@ -66,13 +66,45 @@ $CONFIG{'AUTODETECT'} = 1;
 $CONFIG{'DSPAM_VERSION'} = "Unknown Version";
 open(PIPE, $CONFIG{'DSPAM'} . " --version|");
 while(<PIPE>) {
-        chomp;
-        if (/^(DSPAM Anti\-Spam Suite .*)$/) {
-                $CONFIG{'DSPAM_VERSION'} = $1;
-                last;
-        }
+  chomp;
+  if (/^(DSPAM Anti\-Spam Suite .*)$/) {
+    $CONFIG{'DSPAM_VERSION'} = $1;
+    last;
+  }
 }
 close(PIPE);
+
+# Determine if templates are available for the current
+# HTTP_ACCEPT_LANGUAGE (see RFC 4646 for more info).
+my $langlist = lc($ENV{'HTTP_ACCEPT_LANGUAGE'})||'';
+my $langpat = qr'[a-zA-Z]{1,8}(\-[a-zA-Z]{1,8})?';
+my $qvalpat = qr'(0(\.\d{0,3})?)|(1(\.0{0,3})?)';
+my $q = -1.0;
+my $templates = '';
+for my $langpref (split /,\s*/, $langlist) {
+  $langpref =~ /^([^;]+)(;q=)?(.*)?/;
+  my $lang = $1 || '';
+  my $qval = $3 || 1.0;
+  my $langcode = '';
+  if ($lang =~ /^($langpat)|(x\-$langpat)|\*$/ && $qval =~ /^($qvalpat)$/) {
+    if ($q lt $qval) {
+      $lang =~ s/^x\-//;
+      if ($lang =~ /^(.*)\-.+$/) {
+        $langcode = $1;
+      }
+      if ($lang ne '' && $lang ne '*' && -e $CONFIG{'TEMPLATES'} . '/' . $lang . '/nav_performance.html') {
+        $q = $qval;
+        $templates = $CONFIG{'TEMPLATES'} . '/' . $lang;
+      } elsif ($langcode ne '' && -e $CONFIG{'TEMPLATES'} . '/' . $langcode . '/nav_performance.html') {
+        $q = $qval;
+        $templates = $CONFIG{'TEMPLATES'} . '/' . $langcode;
+      }
+    }
+  }
+}
+if ($templates ne '') {
+  $CONFIG{'TEMPLATES'} = $templates;
+}
 
 $CONFIG{'DSPAM_CGI'} = "dspam.cgi";
 
