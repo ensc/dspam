@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admingraph.cgi,v 1.4 2006/05/13 01:13:01 jonz Exp $
+# $Id: admingraph.cgi,v 1.41 2009/07/20 02:11:39 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -21,7 +21,7 @@
 use CGI ':standard';
 use GD::Graph::bars;
 use strict;
-use vars qw { %CONFIG %FORM @spam @nonspam @period @data @inoc @sm @fp @wh };
+use vars qw { %CONFIG %FORM @spam @nonspam @period @data @inoc @sm @fp @wh @corpus @virus @black @block };
 
 # Read configuration parameters common to all CGI scripts
 require "configure.pl";
@@ -31,17 +31,21 @@ require "configure.pl";
 GD::Graph::colour::read_rgb("rgb.txt"); 
 
 do {
-  my($spam, $nonspam, $sm, $fp, $inoc, $wh, $period) = split(/\_/, $FORM{'data'});
+  my($spam, $nonspam, $sm, $fp, $inoc, $wh, $corpus, $virus, $black, $block, $period) = split(/\_/, $FORM{'data'});
   @spam = split(/\,/, $spam);
   @nonspam = split(/\,/, $nonspam);
   @sm = split(/\,/, $sm);
   @fp = split(/\,/, $fp);
   @inoc = split(/\,/, $inoc);
   @wh = split(/\,/, $wh);
+  @corpus = split(/\,/, $corpus);
+  @virus = split(/\,/, $virus);
+  @black = split(/\,/, $black);
+  @block = split(/\,/, $block);
   @period = split(/\,/, $period);
 };
 
-@data = ([@period], [@inoc], [@wh], [@spam], [@nonspam], [@sm], [@fp]);
+@data = ([@period], [@inoc], [@corpus], [@virus], [@black], [@block], [@wh], [@spam], [@nonspam], [@sm], [@fp]);
 my $mygraph = GD::Graph::bars->new(500, 250);
 $mygraph->set(
     x_label     => "$FORM{'x_label'}",
@@ -65,7 +69,7 @@ $mygraph->set(
     labelclr => 'gray60',
     axislabelclr => 'gray40',
     borderclrs => [ undef ],
-    dclrs => [ qw ( mediumblue purple red green yellow orange ) ]
+    dclrs => [ qw ( mediumblue orangered2 deeppink1 black darkturquoise purple red green yellow orange ) ]
 ) or warn $mygraph->error;
 
 if ($CONFIG{'3D_GRAPHS'} == 1) {
@@ -79,7 +83,7 @@ if ($CONFIG{'3D_GRAPHS'} == 1) {
 }
 
 $mygraph->set_legend_font(GD::gdMediumBoldFont);
-$mygraph->set_legend(' Inoculations',' Auto-Whitelisted',' Spam', ' Nonspam',' Spam Misses',' False Positives');
+$mygraph->set_legend(' Inoculations',' Corpusfeds',' Virus',' Blacklisted (RBL)',' Blocklisted',' Auto-Whitelisted',' Spam', ' Nonspam',' Spam Misses',' False Positives');
 my $myimage = $mygraph->plot(\@data) or die $mygraph->error;
                                                                                 
 print "Content-type: image/png\n\n";

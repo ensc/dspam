@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.25 2009/07/12 22:57:01 sbajic Exp $ */
+/* $Id: dspam.c,v 1.26 2009/07/20 00:24:24 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2919,21 +2919,27 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     }
   }
 
-  if (CTX->result == DSR_ISSPAM)
-    class = 'S';
-  else if (!strcmp(CTX->class, LANG_CLASS_WHITELISTED))
+  if (!strcmp(CTX->class, LANG_CLASS_WHITELISTED))
     class = 'W';
-  else
+  else if (!strcmp(CTX->class, LANG_CLASS_VIRUS))
+    class = 'V';
+  else if (!strcmp(CTX->class, LANG_CLASS_BLACKLISTED))
+    class = 'A';
+  else if (!strcmp(CTX->class, LANG_CLASS_BLOCKLISTED))
+    class = 'O';
+  else if (CTX->result == DSR_ISSPAM)
+    class = 'S';
+  else if (CTX->result == DSR_ISINNOCENT)
     class = 'I';
+  else
+    class = 'U';
 
   if (CTX->source == DSS_ERROR) {
     if (CTX->classification == DSR_ISSPAM)
       class = 'M';
     else if (CTX->classification == DSR_ISINNOCENT)
       class = 'F';
-  }
-
-  if (CTX->source == DSS_INOCULATION)
+  } else if (CTX->source == DSS_INOCULATION)
     class = 'N';
   else if (CTX->source == DSS_CORPUS)
     class = 'C';

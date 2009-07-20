@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.16 2009/06/11 00:57:19 sbajic Exp $
+# $Id: admin.cgi,v 1.17 2009/07/20 01:23:19 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -367,9 +367,11 @@ sub DisplayUserStatistics {
 sub DisplayStatus {
   my($LOG) = "$CONFIG{'DSPAM_HOME'}/system.log";
   my(@spam_daily, @nonspam_daily, @period_daily, @fp_daily, @sm_daily, 
-     @inoc_daily, @whitelist_daily);
+     @inoc_daily, @whitelist_daily, @corpus_daily, @virus_daily,
+     @black_daily, @block_daily);
   my(@spam_weekly, @nonspam_weekly, @period_weekly, @fp_weekly, @sm_weekly,
-     @inoc_weekly, @whitelist_weekly);
+     @inoc_weekly, @whitelist_weekly, @corpus_weekly, @virus_weekly,
+     @black_weekly, @block_weekly);
   my(%msgpersecond);
   my($keycount_exectime);
   my($last_message);
@@ -397,6 +399,10 @@ sub DisplayStatus {
     $sm_daily[$_]	= 0;
     $fp_daily[$_]	= 0;
     $inoc_daily[$_]	= 0;
+    $corpus_daily[$_]	= 0;
+    $virus_daily[$_]	= 0;
+    $black_daily[$_]	= 0;
+    $block_daily[$_]	= 0;
   }
 
   for(0..24) {
@@ -410,6 +416,10 @@ sub DisplayStatus {
     $sm_weekly[$_]	= 0;
     $fp_weekly[$_]	= 0;
     $inoc_weekly[$_]	= 0;
+    $corpus_weekly[$_]	= 0;
+    $virus_weekly[$_]	= 0;
+    $black_weekly[$_]	= 0;
+    $block_weekly[$_]	= 0;
   }
 
   open(LOG, "<$LOG") || &error("Unable to open logfile: $!");
@@ -450,6 +460,18 @@ sub DisplayStatus {
         } elsif ($classes{$signature} eq "N") {
           $inoc_weekly[$c_weekly]--;
           $inoc_weekly[$c_weekly] = 0 if ($inoc_weekly[$c_weekly]<0);
+        } elsif ($classes{$signature} eq "C") {
+          $corpus_weekly[$c_weekly]--;
+          $corpus_weekly[$c_weekly] = 0 if ($corpus_weekly[$c_weekly]<0);
+        } elsif ($classes{$signature} eq "V") {
+          $virus_weekly[$c_weekly]--;
+          $virus_weekly[$c_weekly] = 0 if ($virus_weekly[$c_weekly]<0);
+        } elsif ($classes{$signature} eq "A") {
+          $black_weekly[$c_weekly]--;
+          $black_weekly[$c_weekly] = 0 if ($black_weekly[$c_weekly]<0);
+        } elsif ($classes{$signature} eq "O") {
+          $block_weekly[$c_weekly]--;
+          $block_weekly[$c_weekly] = 0 if ($block_weekly[$c_weekly]<0);
         }
       } else {
        $classes{$signature} = $c_log;
@@ -465,6 +487,10 @@ sub DisplayStatus {
         { $sm_weekly[$c_weekly]++; $nonspam_weekly[$c_weekly]--;
           $nonspam_weekly[$c_weekly] = 0 if ($nonspam_weekly[$c_weekly]<0); }
       if ($c_log eq "N") { $inoc_weekly[$c_weekly]++; }
+      if ($c_log eq "C") { $corpus_weekly[$c_weekly]++; }
+      if ($c_log eq "V") { $virus_weekly[$c_weekly]++; }
+      if ($c_log eq "A") { $black_weekly[$c_weekly]++; }
+      if ($c_log eq "O") { $block_weekly[$c_weekly]++; }
 
 
       # Daily Graph
@@ -493,6 +519,18 @@ sub DisplayStatus {
           } elsif ($classes{$signature} eq "N") {
             $inoc_daily[$c_daily]--;
             $inoc_daily[$c_daily] = 0 if ($inoc_daily[$c_daily]<0);
+          } elsif ($classes{$signature} eq "C") {
+            $corpus_daily[$c_daily]--;
+            $corpus_daily[$c_daily] = 0 if ($corpus_daily[$c_daily]<0);
+          } elsif ($classes{$signature} eq "V") {
+            $virus_daily[$c_daily]--;
+            $virus_daily[$c_daily] = 0 if ($virus_daily[$c_daily]<0);
+          } elsif ($classes{$signature} eq "A") {
+            $black_daily[$c_daily]--;
+            $black_daily[$c_daily] = 0 if ($black_daily[$c_daily]<0);
+          } elsif ($classes{$signature} eq "O") {
+            $block_daily[$c_daily]--;
+            $block_daily[$c_daily] = 0 if ($block_daily[$c_daily]<0);
           }
         }
 
@@ -506,6 +544,10 @@ sub DisplayStatus {
           { $sm_daily[$c_daily]++; $nonspam_daily[$c_daily]--;
             $nonspam_daily[$c_daily] = 0 if ($nonspam_daily[$c_daily]<0); }
         if ($c_log eq "N") { $inoc_daily[$c_daily]++; }
+        if ($c_log eq "C") { $corpus_daily[$c_daily]++; }
+        if ($c_log eq "V") { $virus_daily[$c_daily]++; }
+        if ($c_log eq "A") { $black_daily[$c_daily]++; }
+        if ($c_log eq "O") { $block_daily[$c_daily]++; }
       }
 
       # Last Half-Minute
@@ -545,19 +587,42 @@ sub DisplayStatus {
   $DATA{'SM_TODAY'}                 = $sm_weekly[24];
   $DATA{'FP_TODAY'}                 = $fp_weekly[24];
   $DATA{'INOC_TODAY'}               = $inoc_weekly[24];
-  $DATA{'TOTAL_TODAY'}              = $DATA{'SPAM_TODAY'} + $DATA{'NONSPAM_TODAY'} + $DATA{'SM_TODAY'}
-                                      + $DATA{'FP_TODAY'} + $DATA{'INOC_TODAY'};
+  $DATA{'WHITE_TODAY'}              = $whitelist_weekly[24];
+  $DATA{'CORPUS_TODAY'}             = $corpus_weekly[24];
+  $DATA{'VIRUS_TODAY'}              = $virus_weekly[24];
+  $DATA{'BLACK_TODAY'}              = $black_weekly[24];
+  $DATA{'BLOCK_TODAY'}              = $block_weekly[24];
+  $DATA{'TOTAL_TODAY'}              = $DATA{'SPAM_TODAY'}
+                                      + $DATA{'NONSPAM_TODAY'}
+                                      + $DATA{'SM_TODAY'}
+                                      + $DATA{'FP_TODAY'}
+                                      + $DATA{'INOC_TODAY'}
+                                      + $DATA{'WHITE_TODAY'}
+                                      + $DATA{'CORPUS_TODAY'}
+                                      + $DATA{'VIRUS_TODAY'}
+                                      + $DATA{'BLACK_TODAY'}
+                                      + $DATA{'BLOCK_TODAY'};
 
   $DATA{'SPAM_THIS_HOUR'}           = $spam_daily[23];
   $DATA{'NONSPAM_THIS_HOUR'}        = $nonspam_daily[23];
   $DATA{'SM_THIS_HOUR'}             = $sm_daily[23];
   $DATA{'FP_THIS_HOUR'}             = $fp_daily[23];
   $DATA{'INOC_THIS_HOUR'}           = $inoc_daily[23];
+  $DATA{'WHITE_THIS_HOUR'}          = $whitelist_daily[23];
+  $DATA{'CORPUS_THIS_HOUR'}         = $corpus_daily[23];
+  $DATA{'VIRUS_THIS_HOUR'}          = $virus_daily[23];
+  $DATA{'BLACK_THIS_HOUR'}          = $black_daily[23];
+  $DATA{'BLOCK_THIS_HOUR'}          = $block_daily[23];
   $DATA{'TOTAL_THIS_HOUR'}          = $DATA{'SPAM_THIS_HOUR'} +
                                       + $DATA{'NONSPAM_THIS_HOUR'} 
                                       + $DATA{'SM_THIS_HOUR'}
                                       + $DATA{'FP_THIS_HOUR'} 
-                                      + $DATA{'INOC_THIS_HOUR'};
+                                      + $DATA{'INOC_THIS_HOUR'}
+                                      + $DATA{'WHITE_THIS_HOUR'}
+                                      + $DATA{'CORPUS_THIS_HOUR'}
+                                      + $DATA{'VIRUS_THIS_HOUR'}
+                                      + $DATA{'BLACK_THIS_HOUR'}
+                                      + $DATA{'BLOCK_THIS_HOUR'};
 
   $DATA{'DATA_DAILY'} = join(",", @spam_daily)
                       . "_"
@@ -570,6 +635,14 @@ sub DisplayStatus {
                       . join(",", @inoc_daily)
                       . "_"
                       . join(",", @whitelist_daily)
+                      . "_"
+                      . join(",", @corpus_daily)
+                      . "_"
+                      . join(",", @virus_daily)
+                      . "_"
+                      . join(",", @black_daily)
+                      . "_"
+                      . join(",", @block_daily)
                       . "_"
                       . join(",", @period_daily); 
 
@@ -585,6 +658,14 @@ sub DisplayStatus {
                       . "_"
                       . join(",", @whitelist_weekly)
                       . "_"
+                      . join(",", @corpus_weekly)
+                      . "_"
+                      . join(",", @virus_weekly)
+                      . "_"
+                      . join(",", @black_weekly)
+                      . "_"
+                      . join(",", @block_weekly)
+                      . "_"
                       . join(",", @period_weekly);
 
   foreach(@spam_daily)		{ $DATA{'TS_DAILY'} += $_; };
@@ -593,6 +674,10 @@ sub DisplayStatus {
   foreach(@fp_daily)		{ $DATA{'FP_DAILY'} += $_; }
   foreach(@inoc_daily)		{ $DATA{'INOC_DAILY'} += $_; }
   foreach(@whitelist_daily)	{ $DATA{'TI_DAILY'} += $_; }
+  foreach(@corpus_daily)	{ $DATA{'COPUS_DAILY'} += $_; }
+  foreach(@virus_daily)		{ $DATA{'TS_DAILY'} += $_; }
+  foreach(@black_daily)		{ $DATA{'TS_DAILY'} += $_; }
+  foreach(@block_daily)		{ $DATA{'TS_DAILY'} += $_; }
 
   foreach(@spam_weekly)		{ $DATA{'TS_WEEKLY'} += $_; }
   foreach(@nonspam_weekly)	{ $DATA{'TI_WEEKLY'} += $_; }
@@ -600,6 +685,10 @@ sub DisplayStatus {
   foreach(@fp_weekly)		{ $DATA{'FP_WEEKLY'} += $_; }
   foreach(@inoc_weekly)		{ $DATA{'INOC_WEEKLY'} += $_; }
   foreach(@whitelist_weekly)	{ $DATA{'TI_WEEKLY'} += $_; }
+  foreach(@corpus_weekly)	{ $DATA{'CORPUS_WEEKLY'} += $_; }
+  foreach(@virus_weekly)	{ $DATA{'TS_WEEKLY'} += $_; }
+  foreach(@black_weekly)	{ $DATA{'TS_WEEKLY'} += $_; }
+  foreach(@block_weekly)	{ $DATA{'TS_WEEKLY'} += $_; }
 
   &output(%DATA);
 }
