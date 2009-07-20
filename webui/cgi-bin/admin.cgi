@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.17 2009/07/20 01:23:19 sbajic Exp $
+# $Id: admin.cgi,v 1.18 2009/07/20 22:18:22 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -393,16 +393,17 @@ sub DisplayStatus {
 
   for(0..23) {
     my($h) = To12Hour($hour-(23-$_));
-    $period_daily[$_]	= $h;
-    $spam_daily[$_]	= 0;
-    $nonspam_daily[$_]	= 0;
-    $sm_daily[$_]	= 0;
-    $fp_daily[$_]	= 0;
-    $inoc_daily[$_]	= 0;
-    $corpus_daily[$_]	= 0;
-    $virus_daily[$_]	= 0;
-    $black_daily[$_]	= 0;
-    $block_daily[$_]	= 0;
+    $period_daily[$_]		= $h;
+    $spam_daily[$_]		= 0;
+    $nonspam_daily[$_]		= 0;
+    $sm_daily[$_]		= 0;
+    $fp_daily[$_]		= 0;
+    $inoc_daily[$_]		= 0;
+    $whitelist_daily[$_]	= 0;
+    $corpus_daily[$_]		= 0;
+    $virus_daily[$_]		= 0;
+    $black_daily[$_]		= 0;
+    $block_daily[$_]		= 0;
   }
 
   for(0..24) {
@@ -410,16 +411,17 @@ sub DisplayStatus {
     my ($lday, $lmon, $lyear) = (localtime($d))[3,4,5];
     $lmon++;
     $lyear += 1900;
-    $period_weekly[$_]	= "$lmon/$lday/$lyear";
-    $spam_weekly[$_]	= 0;
-    $nonspam_weekly[$_]	= 0;
-    $sm_weekly[$_]	= 0;
-    $fp_weekly[$_]	= 0;
-    $inoc_weekly[$_]	= 0;
-    $corpus_weekly[$_]	= 0;
-    $virus_weekly[$_]	= 0;
-    $black_weekly[$_]	= 0;
-    $block_weekly[$_]	= 0;
+    $period_weekly[$_]		= "$lmon/$lday/$lyear";
+    $spam_weekly[$_]		= 0;
+    $nonspam_weekly[$_]		= 0;
+    $sm_weekly[$_]		= 0;
+    $fp_weekly[$_]		= 0;
+    $inoc_weekly[$_]		= 0;
+    $whitelist_weekly[$_]	= 0;
+    $corpus_weekly[$_]		= 0;
+    $virus_weekly[$_]		= 0;
+    $black_weekly[$_]		= 0;
+    $block_weekly[$_]		= 0;
   }
 
   open(LOG, "<$LOG") || &error("Unable to open logfile: $!");
@@ -673,22 +675,22 @@ sub DisplayStatus {
   foreach(@sm_daily)		{ $DATA{'SM_DAILY'} += $_; }
   foreach(@fp_daily)		{ $DATA{'FP_DAILY'} += $_; }
   foreach(@inoc_daily)		{ $DATA{'INOC_DAILY'} += $_; }
-  foreach(@whitelist_daily)	{ $DATA{'TI_DAILY'} += $_; }
-  foreach(@corpus_daily)	{ $DATA{'COPUS_DAILY'} += $_; }
-  foreach(@virus_daily)		{ $DATA{'TS_DAILY'} += $_; }
-  foreach(@black_daily)		{ $DATA{'TS_DAILY'} += $_; }
-  foreach(@block_daily)		{ $DATA{'TS_DAILY'} += $_; }
+  foreach(@whitelist_daily)	{ $DATA{'TI_DAILY'} += $_; $DATA{'WHITE_DAILY'} += $_; }
+  foreach(@corpus_daily)	{ $DATA{'CORPUS_DAILY'} += $_; }
+  foreach(@virus_daily)		{ $DATA{'TS_DAILY'} += $_; $DATA{'VIRUS_DAILY'} += $_; }
+  foreach(@black_daily)		{ $DATA{'TS_DAILY'} += $_; $DATA{'BLACK_DAILY'} += $_; }
+  foreach(@block_daily)		{ $DATA{'TS_DAILY'} += $_; $DATA{'BLOCK_DAILY'} += $_; }
 
   foreach(@spam_weekly)		{ $DATA{'TS_WEEKLY'} += $_; }
   foreach(@nonspam_weekly)	{ $DATA{'TI_WEEKLY'} += $_; }
   foreach(@sm_weekly)		{ $DATA{'SM_WEEKLY'} += $_; }
   foreach(@fp_weekly)		{ $DATA{'FP_WEEKLY'} += $_; }
   foreach(@inoc_weekly)		{ $DATA{'INOC_WEEKLY'} += $_; }
-  foreach(@whitelist_weekly)	{ $DATA{'TI_WEEKLY'} += $_; }
+  foreach(@whitelist_weekly)	{ $DATA{'TI_WEEKLY'} += $_; $DATA{'WHITE_WEEKLY'} += $_; }
   foreach(@corpus_weekly)	{ $DATA{'CORPUS_WEEKLY'} += $_; }
-  foreach(@virus_weekly)	{ $DATA{'TS_WEEKLY'} += $_; }
-  foreach(@black_weekly)	{ $DATA{'TS_WEEKLY'} += $_; }
-  foreach(@block_weekly)	{ $DATA{'TS_WEEKLY'} += $_; }
+  foreach(@virus_weekly)	{ $DATA{'TS_WEEKLY'} += $_; $DATA{'VIRUS_WEEKLY'} += $_; }
+  foreach(@black_weekly)	{ $DATA{'TS_WEEKLY'} += $_; $DATA{'BLACK_WEEKLY'} += $_; }
+  foreach(@block_weekly)	{ $DATA{'TS_WEEKLY'} += $_; $DATA{'BLOCK_WEEKLY'} += $_; }
 
   &output(%DATA);
 }

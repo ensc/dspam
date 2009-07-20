@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090720:2330] sbajic: Fixing typos and errors from last commit (more logging and updates to Web UI)
+
 [20090720:0100] sbajic: Added more logging tags and updated Web UI to support them
 
 [20090719:2130] sbajic: Adding multi-language support to Web UI
