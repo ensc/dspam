@@ -1,4 +1,4 @@
-/* $Id: libdspam.h,v 1.23 2009/05/23 15:46:06 sbajic Exp $ */
+/* $Id: libdspam.h,v 1.24 2009/07/20 23:45:00 sbajic Exp $ */
 
 /*
  DSPAM
@@ -41,7 +41,7 @@ extern "C" {
 #include "tokenizer.h"
 
 #define LIBDSPAM_VERSION_MAJOR	3
-#define LIBDSPAM_VERSION_MINOR	9
+#define LIBDSPAM_VERSION_MINOR	6
 #define LIBDSPAM_VERSION_PATCH	0
 
 #define BNR_SIZE 3
