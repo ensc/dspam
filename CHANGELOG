@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090724:0120] sbajic: Fixing bug in hash driver that prevented retraining with signature
+
 [20090720:2345] sbajic: Setting/reverting libdspm version back to 3.6.0 since no ABI/API changes have been done on libdspam for 3.9.0
 
 [20090720:2330] sbajic: Fixing typos and errors from last commit (more logging and updates to Web UI)

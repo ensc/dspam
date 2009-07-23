@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.25 2009/07/07 09:26:44 sbajic Exp $ */
+/* $Id: hash_drv.c,v 1.26 2009/07/24 01:03:27 sbajic Exp $ */
 
 /*
  DSPAM
@@ -853,7 +853,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EFAILURE;
   }
 
-  if (fread(SIG->data, statbuf.st_size, 1, file) != statbuf.st_size) {
+  if (fread(SIG->data, statbuf.st_size, 1, file) != 1) {
     LOG(LOG_ERR, ERR_IO_FILE_READ, filename, strerror(errno));
     return EFAILURE;
   }
