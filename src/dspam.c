@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.26 2009/07/20 00:24:24 sbajic Exp $ */
+/* $Id: dspam.c,v 1.27 2009/07/24 22:57:12 sbajic Exp $ */
 
 /*
  DSPAM
@@ -512,7 +512,11 @@ process_message (
      * Reclassify (or retrain) message by signature
      */
 
-    retrain_message(CTX, ATX);
+    if (retrain_message(CTX, ATX) != 0) {
+      have_signature = 0;
+      result = EFAILURE;
+      goto RETURN;
+    }
   } else {
     CTX->signature = NULL;
     if (! ATX->train_pristine) {
@@ -527,8 +531,13 @@ process_message (
      * Call libdspam to process the environment we've configured
      */
 
-    if (!internally_canned)
+    if (!internally_canned) {
       result = dspam_process (CTX, message->data);
+      if (result != 0) {
+        result = EFAILURE;
+        goto RETURN;
+      }
+    }
   }
 
   result = CTX->result;
@@ -762,7 +771,7 @@ process_message (
   {
      i = embed_msgtag(CTX, ATX);
      if (i<0) {
-         return i;
+         result = i;
          goto RETURN;
      }
   }
@@ -835,8 +844,10 @@ process_message (
 
 RETURN:
   if (have_signature) {
-    free(ATX->SIG.data);
-    ATX->SIG.data = NULL;
+    if (ATX->SIG.data != NULL) {
+      free(ATX->SIG.data);
+      ATX->SIG.data = NULL;
+    }
   }
   ATX->signature[0] = 0;
   nt_destroy (ATX->inoc_users);
@@ -845,7 +856,9 @@ RETURN:
     if (CTX->signature == &ATX->SIG) {
       CTX->signature = NULL;
     } else if (CTX->signature != NULL) {
-      free (CTX->signature->data);
+      if (CTX->signature->data != NULL) {
+        free (CTX->signature->data);
+      }
       free (CTX->signature);
       CTX->signature = NULL;
     }
@@ -2610,7 +2623,9 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   /* Train until test conditions are met, 5 iterations max */
 
   if (!_ds_match_attribute(agent_config, "TestConditionalTraining", "on")) {
-    result = dspam_process (CTX, NULL);
+    ck_result = dspam_process (CTX, NULL);
+    if (ck_result != 0)
+      return EFAILURE;
   } else {
     while (do_train && iter < 5)
     {
@@ -2621,7 +2636,9 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         DSR_ISSPAM : DSR_ISINNOCENT;
       iter++;
 
-      result = dspam_process (CTX, NULL);
+      ck_result = dspam_process (CTX, NULL);
+      if (ck_result != 0)
+        return EFAILURE;
 
       /* Only subtract innocent values once */
       CTX->source = DSS_CORPUS;
@@ -2678,6 +2695,8 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
         CLX->signature = &ATX->SIG;
         ck_result = dspam_process (CLX, NULL);
+        if (ck_result != 0)
+          return EFAILURE;
         if (ck_result || CLX->result == match)
           do_train = 0;
         CLX->signature = NULL;

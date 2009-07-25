@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090724:2300] sbajic: Fixing bug when retraining (with signature) a virus tagged message (closing SF Bug ID #2826644)
+
 [20090724:0120] sbajic: Fixing bug in hash driver that prevented retraining with signature
 
 [20090720:2345] sbajic: Setting/reverting libdspm version back to 3.6.0 since no ABI/API changes have been done on libdspam for 3.9.0

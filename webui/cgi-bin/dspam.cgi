@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.34 2009/07/20 00:52:10 sbajic Exp $
+# $Id: dspam.cgi,v 1.35 2009/07/24 22:59:30 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -437,12 +437,18 @@ sub DisplayHistory {
       $from = qq!<a href="javascript:openwin(580,400,1,'$CONFIG{'ME'}?$url')">$from</a>!;
     }
 
+    my $retrain_action = "";
+    if ( $class eq "V" || $class eq "A" || $class eq "O" || $class eq "U" || $class eq "") {
+      $retrain_action = qq!&nbsp;</td>!;
+    } else {
+      $retrain_action = qq! <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signa$
+    }
+
     my($entry) = <<_END;
 <tr>
 	<td class="$cl $rowclass" nowrap="true"><small>$cllabel</td>
         <td class="$rowclass" nowrap="true"><small>
-	 <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)">
-	 $retrain</td>
+	$retrain_action
 	<td class="$rowclass" nowrap="true"><small>$ctime</td>
 	<td class="$rowclass" nowrap="true"><small>$from</td>
 	<td class="$rowclass" nowrap="true"><small>$subject</td>
