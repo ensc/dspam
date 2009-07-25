@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.165 2009/07/12 23:05:36 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.166 2009/07/24 22:53:18 sbajic Exp $ */
 
 /*
  DSPAM
@@ -582,6 +582,11 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     spam_result = _ds_operate (CTX, header->data, body->data);
   }
 
+  /* Fail if _ds_operate() was unable to process message */
+  if (spam_result != DSR_ISSPAM && spam_result != DSR_ISINNOCENT) {
+    return EFAILURE;
+  }
+
   /* Force decision if a classification was specified */
 
   if (CTX->classification != DSR_NONE && spam_result >= 0) 
@@ -781,6 +786,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   unsigned long long whitelist_token = 0;
   int do_whitelist = 0;
   int result;
+  unsigned int heap_sort_items = 0;
 
   if (CTX->algorithms & DSA_BURTON)
     heap_sort = ds_heap_create(BURTON_WINDOW_SIZE, HP_DELTA);
@@ -945,6 +951,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     ds_term = ds_diction_next(ds_c);
   }
   ds_diction_close(ds_c);
+
+  /* Keep track of items in heap_sort. We need that info later on when freeing the signature */
+  heap_sort_items = heap_sort->items;
 
   /* Take the 15 most interesting tokens and generate a score */
 
@@ -1126,7 +1135,8 @@ bail:
   if (CTX->signature != NULL) {
     if (CTX->signature->data != NULL)
       free(CTX->signature->data);
-    free (CTX->signature);
+    if (CTX->signature != NULL && heap_sort_items > 0)
+      free (CTX->signature);
     CTX->signature = NULL;
   }
   return errcode;
