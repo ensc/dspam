@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.36 2009/07/26 12:13:03 sbajic Exp $
+# $Id: dspam.cgi,v 1.37 2009/07/26 12:23:47 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -441,7 +441,7 @@ sub DisplayHistory {
     if ( $class eq "V" || $class eq "A" || $class eq "O" || $class eq "U" || $class eq "") {
       $retrain_action = qq!&nbsp;</td>!;
     } else {
-      $retrain_action = qq!<input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)">$retrain</td>!;
+      $retrain_action = qq! <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)">$retrain</td>!;
     }
 
     my($entry) = <<_END;
