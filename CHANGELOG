@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090726:1215] sbajic: Fixing dspam.cgi error from last commit
+
 [20090724:2300] sbajic: Fixing bug when retraining (with signature) a virus tagged message (closing SF Bug ID #2826644)
 
 [20090724:0120] sbajic: Fixing bug in hash driver that prevented retraining with signature
