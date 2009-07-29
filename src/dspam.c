@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.27 2009/07/24 22:57:12 sbajic Exp $ */
+/* $Id: dspam.c,v 1.28 2009/07/28 16:01:32 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2429,8 +2429,8 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
 
           while (user != NULL)
           {
-            if (!strcmp (user, username) || !strcmp(user, "*") ||
-               (!strncmp(user, "*@", 2) && !strcmp(user+1, strchr(username,'@'))))
+            if (strcasecmp(user,username) == 0 || strcmp(user,"*") == 0 ||
+               (strncmp(user,"*@",2) == 0 && strchr(username,"@") != NULL && strcasecmp(user+1,strchr(username,"@")) == 0))
             {
 
               /* If we're reporting a spam, report it as a spam to all other
@@ -2443,30 +2443,27 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
                 u = strsep (&l, ",");
                 while (u != NULL)
                 {
-                  if (strcmp (u, username))
+                  if (strcasecmp(u,username) == 0)
                   {
-                    LOGDEBUG ("adding user %s to inoculation group %s", u,
-                              group);
-                   if (u[0] == '*') {
+                    LOGDEBUG ("adding user %s to inoculation group %s", u, group);
+                    if (u[0] == '*') {
                       nt_add (ATX->inoc_users, u+1);
-                    } else
+                    } else {
                       nt_add (ATX->inoc_users, u);
+                    }
                   }
                   u = strsep (&l, ",");
                 }
               }
-              else if (!strncasecmp (type, "SHARED", 6))
+              else if (strncasecmp (type, "SHARED", 6) == 0)
               {
                 strlcpy (ctx_group, group, sizeof (ctx_group));
                 LOGDEBUG ("assigning user %s to group %s", username, group);
-
-                if (!strncasecmp (type + 6, ",MANAGED", 8))
-                  strlcpy (ATX->managed_group,
-                           ctx_group,
-                           sizeof(ATX->managed_group));
-
+                if (strncasecmp (type + 6, ",MANAGED", 8) == 0) {
+                  strlcpy (ATX->managed_group, ctx_group, sizeof(ATX->managed_group));
+                }
               }
-              else if (!strcasecmp (type, "CLASSIFICATION"))
+              else if (strcasecmp (type, "CLASSIFICATION") == 0)
               {
                 char *l = list, *u;
                 u = strsep (&l, ":");
@@ -2474,21 +2471,20 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
                 u = strsep (&l, ",");
                 while (u != NULL)
                 {
-                  if (strcmp (u, username))
+                  if (strcasecmp (u, username) == 0)
                   {
-                    LOGDEBUG ("adding user %s to classification group %s", u,
-                              group);
-
+                    LOGDEBUG ("adding user %s to classification group %s", u, group);
                     if (u[0] == '*') {
                       ATX->flags |= DAF_GLOBAL;
                       nt_add (ATX->classify_users, u+1);
-                    } else
+                    } else {
                       nt_add (ATX->classify_users, u);
+                    }
                   }
                   u = strsep (&l, ",");
                 }
               }
-              else if (!strcasecmp (type, "MERGED") && strcmp(group, username))
+              else if (strcasecmp (type, "MERGED") == 0 && strcasecmp(group, username) != 0)
               {
                 char *l = list, *u;
                 u = strsep (&l, ":");
@@ -2496,18 +2492,14 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
                 u = strsep (&l, ",");
                 while (u != NULL)
                 {
-                  if (!strcmp (u, username) || u[0] == '*')
-                  {
-                      LOGDEBUG ("adding user to merged group %s", group);
-
-                      ATX->flags |= DAF_MERGED;
-
-                      strlcpy(ctx_group, group, sizeof(ctx_group));
+                  if (strcasecmp (u, username) == 0 || u[0] == '*') {
+                    LOGDEBUG ("adding user to merged group %s", group);
+                    ATX->flags |= DAF_MERGED;
+                    strlcpy(ctx_group, group, sizeof(ctx_group));
                   } else if (u[0] == '-' && !strcmp(u+1, username)) {
-                      LOGDEBUG ("removing user from merged group %s", group);
-
-                      ATX->flags ^= DAF_MERGED;
-                      ctx_group[0] = 0;
+                    LOGDEBUG ("removing user from merged group %s", group);
+                    ATX->flags ^= DAF_MERGED;
+                    ctx_group[0] = 0;
                   }
                   u = strsep (&l, ",");
                 }

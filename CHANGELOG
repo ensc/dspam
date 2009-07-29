@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090728:1600] sbajic: Fixing segmentation fault when using groups and the calling username does not have a '@' character
+
 [20090726:1215] sbajic: Fixing dspam.cgi error from last commit
 
 [20090724:2300] sbajic: Fixing bug when retraining (with signature) a virus tagged message (closing SF Bug ID #2826644)
