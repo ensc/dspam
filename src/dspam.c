@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.28 2009/07/28 16:01:32 sbajic Exp $ */
+/* $Id: dspam.c,v 1.29 2009/07/30 15:57:23 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2430,7 +2430,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
           while (user != NULL)
           {
             if (strcasecmp(user,username) == 0 || strcmp(user,"*") == 0 ||
-               (strncmp(user,"*@",2) == 0 && strchr(username,"@") != NULL && strcasecmp(user+1,strchr(username,"@")) == 0))
+               (strncmp(user,"*@",2) == 0 && strchr(username,'@') != NULL && strcasecmp(user+1,strchr(username,'@')) == 0))
             {
 
               /* If we're reporting a spam, report it as a spam to all other
@@ -2443,7 +2443,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
                 u = strsep (&l, ",");
                 while (u != NULL)
                 {
-                  if (strcasecmp(u,username) == 0)
+                  if (strcasecmp(u,username) != 0)
                   {
                     LOGDEBUG ("adding user %s to inoculation group %s", u, group);
                     if (u[0] == '*') {
@@ -2471,7 +2471,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
                 u = strsep (&l, ",");
                 while (u != NULL)
                 {
-                  if (strcasecmp (u, username) == 0)
+                  if (strcasecmp (u, username) != 0)
                   {
                     LOGDEBUG ("adding user %s to classification group %s", u, group);
                     if (u[0] == '*') {
