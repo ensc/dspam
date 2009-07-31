@@ -1,0 +1,2 @@
+* Fix exception handling when message submission fails
+  so that messages aren't moved around.
