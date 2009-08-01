@@ -1,0 +1,44 @@
+<!ENTITY dspam.options.selectspamfolder "Verschieben in Ordner:">
+<!ENTITY dspam.options.selectspamfolder.label "W&auml;hle diesen Ordner">
+<!ENTITY dspam.options.selectspamfolder.accesskey  "f">
+<!ENTITY dspam.options.selecthamfolder "Verschieben in Ordner:">
+<!ENTITY dspam.options.selecthamfolder.label "W&auml;hle diesen Ordner">
+<!ENTITY dspam.options.selecthamfolder.accesskey  "f">
+<!ENTITY dspam.spamreportbutton.label "Spam">
+<!ENTITY dspam.spamreportbutton.tooltiptext "Selektierte Nachricht als SPAM behandeln">
+<!ENTITY dspam.hamreportbutton.label "Kein SPAM">
+<!ENTITY dspam.hamreportbutton.tooltiptext "Selektierte Nachrichten als SPAM behandeln">
+<!ENTITY dspam.options.spamaddresstooltip "Ihre SPAM Berichtadresse">
+<!ENTITY dspam.options.hamaddresstooltip "Ihre HAM Berichtadresse">
+<!ENTITY dspam.options.quickspamcop "Aktiviere kurzen Bericht an SpamCop">
+<!ENTITY dspam.options.quickspamcoptooltip "Ausw&auml;hlen, um den kurzen Bericht an Spamcop zu aktivieren">
+<!ENTITY dspam.options.spamaddressLabel "Ihre SPAM Berichtadresse:">
+<!ENTITY dspam.options.hamaddressLabel "Ihre HAM Berichtadresse:">
+<!ENTITY dspam.options.webuiurlLabel "WebUI URL:">
+<!ENTITY dspam.options.webuiurltooltip "Geben sie den WebUI Link f&uuml;r das Umtrainieren von Nachrichten">
+<!ENTITY dspam.options.webuiuserLabel "WebUI Benutzername:">
+<!ENTITY dspam.options.webuiusertooltip "Geben sie ihren WebUI Benutzernamen ein">
+<!ENTITY dspam.options.webuipassLabel "WebUI Passwort:">
+<!ENTITY dspam.options.webuipasstooltip "Geben sie ihr WebUI Passwort ein">
+<!ENTITY dspam.options.rememberwebuipass "WebUI Passwort merken">
+<!ENTITY dspam.options.rememberwebuipasstooltip "Ausw&auml;hlen, um ihr WebUI Passwort zu merken">
+<!ENTITY dspam.options.spamactionLabel "Nach dem Bericht als SPAM:">
+<!ENTITY dspam.options.spamactionLeave "Nachricht stehen lassen">
+<!ENTITY dspam.options.spamactionDelete "Nachricht l&ouml;schen">
+<!ENTITY dspam.options.spamfoldertooltip "Nach dem Bericht, Nachricht in Ordner verschieben">
+<!ENTITY dspam.options.hamactionLabel "Nach dem Bericht als HAM:">
+<!ENTITY dspam.options.hamactionLeave "Nachricht stehen lassen">
+<!ENTITY dspam.options.hamfoldertooltip "Nach dem Bericht, Nachricht in Ordner verschieben">
+<!ENTITY dspam.options.browsebutton "Durchsuchen...">
+<!ENTITY dspam.options.methodLabel "Berichte Nachricht unter Verwendung:">
+<!ENTITY dspam.options.methodForward "Nachricht weiterleiten">
+<!ENTITY dspam.options.methodWebUI "DSPAM WebUI">
+<!ENTITY dspam.options.gentab.label "Allgemein">
+<!ENTITY dspam.options.gentab.tooltip "Allgemeine Konfigurationsoptionen">
+<!ENTITY dspam.options.forwardtab.label "Weiterleiten">
+<!ENTITY dspam.options.forwardtab.tooltip "Weiterleitung Berichtskonfigurationsoptionen">
+<!ENTITY dspam.options.webuitab.label "WebUI">
+<!ENTITY dspam.options.webuitab.tooltip "WebUI Berichtskonfigurationsoptionen">
+<!ENTITY dspam.options.actiontab.label "Aktionen">
+<!ENTITY dspam.options.actiontab.tooltip "Auszuf&uuml;hrende Aktionen nach dem Bericht">
+<!ENTITY dspam. "">
