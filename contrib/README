@@ -8,9 +8,13 @@ See the list bellow and the README in each dir for details.
 Keep the list bellow sorted alphabetically by the directory name. Directories
 shold be lowercase and contain no spaces.
 Format:
-dirname	<TAB> maintainer <TAB> short description
+dirname	<TAB> maintainer <CR>
+<TAB> short description
 
-lotus_notes/	?	?
-plugins/	?	?
+lotus_notes/	Stevan Bajic <stevan@bajic.ch>	
+	Allows IBM Lotus Notes/Domino users to implement a "SPAM" / "NOT SPAM"
+	button inside IBM Lotus Notes client.
 
+plugins/	Hugo Monteiro <hugo.monteiro@fct.unl.pt>
+	Thunderbird XPI extension that provides Spam/Ham reporting buttons.
 
