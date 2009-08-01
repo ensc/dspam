@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090801:1455] sbajic: Adding German language files for Thunderbird plugin
+
 [20090729:1600] sbajic: Fixing typos and logical errors from last commit (closing SF Bug ID #2829650)
 
 [20090728:1600] sbajic: Fixing segmentation fault when using groups and the calling username does not have a '@' character

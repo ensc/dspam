@@ -32,7 +32,8 @@
         <em:package>content/</em:package>
         <em:skin>skin/</em:skin>
         <em:locale>locale/en-US/</em:locale>
-		<em:locale>locale/pt-PT/</em:locale>
+	<em:locale>locale/pt-PT/</em:locale>
+	<em:locale>locale/de-DE/</em:locale>
       </Description>
     </em:file>
   </Description>      
