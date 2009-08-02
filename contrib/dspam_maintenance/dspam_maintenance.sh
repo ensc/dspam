@@ -332,7 +332,7 @@ clean_sqlite_drv() {
 		do
 			${SQLITE_BIN_DIR}/sqlite "${name}" < "${DSPAM_SQLite_PURGE_SQL}" >/dev/null
 			# Enable the next line if you don't vacuum in the purge script
-			# echo "vacuum;" | ${SQLITE_BIN_DIR}/sqlite3 "${name}" >/dev/null
+			# echo "vacuum;" | ${SQLITE_BIN_DIR}/sqlite "${name}" >/dev/null
 		done 1>/dev/null 2>&1
 		return 0
 	fi
