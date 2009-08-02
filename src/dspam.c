@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.29 2009/07/30 15:57:23 sbajic Exp $ */
+/* $Id: dspam.c,v 1.30 2009/08/02 16:30:57 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1532,7 +1532,7 @@ int send_notice(
 
   time(&now);
 
-  snprintf(msgfile, sizeof(msgfile), CONFDIR "/txt/%s", filename);
+  snprintf(msgfile, sizeof(msgfile), "%s/txt/%s", _ds_read_attribute(agent_config, "Home"), filename);
   f = fopen(msgfile, "r");
   if (!f) {
     LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
