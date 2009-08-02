@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090802:2010] sbajic: Fixing resource leak in hash driver
+
 [20090802:1915] sbajic: Added script to contrib for purging old tokens and log entries
 
 [20090802:1745] sbajic: Fixing dynamic build of storage drivers (closing SF Bug ID #2811139)
