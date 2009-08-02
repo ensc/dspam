@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090802:1745] sbajic: Fixing dynamic build of storage drivers (closing SF Bug ID #2811139)
+
 [20090802:1630] sbajic: Fixing location for notification files (closing SF Bug ID #2825171)
 
 [20090801:2057] itetcu: contrib/Lotus Notes --> contrib/lotus_notes

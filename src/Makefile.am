@@ -1,8 +1,4 @@
-# $Id: Makefile.am,v 1.40 2008/05/06 18:26:07 mjohnson Exp $
-#
-# Makefile.am
-# Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
-# Andrew W. Nosenko <awn@bcs.zp.ua>
+# $Id: Makefile.am,v 1.41 2009/08/02 17:47:55 sbajic Exp $
 #
 # autoconf (GNU Autoconf) 2.59
 # ltmain.sh (GNU libtool) 1.5.6
@@ -132,7 +128,7 @@ if DYNAMIC_DRIVER
 
 libmysql_drv_la_SOURCES = \
 	mysql_drv.c mysql_drv.h 
-libmysql_drv_la_LIBADD = $(libmysql_drv_libs) $(srcdir)/libdspam.la
+libmysql_drv_la_LIBADD = $(libmysql_drv_libs) -L -ldspam
 libmysql_drv_la_CPPFLAGS = $(libmysql_drv_cppflags)
 libmysql_drv_la_LDFLAGS = $(libmysql_drv_ldflags)
 libmysql_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion) 
@@ -140,7 +136,7 @@ libmysql_drv_la_DEPENDENCIES =
 
 libpgsql_drv_la_SOURCES = \
 	pgsql_drv.c pgsql_drv.h 
-libpgsql_drv_la_LIBADD = $(libpgsql_drv_libs) $(srcdir)/libdspam.la
+libpgsql_drv_la_LIBADD = $(libpgsql_drv_libs) -L -ldspam
 libpgsql_drv_la_CPPFLAGS = $(libpgsql_drv_cppflags)
 libpgsql_drv_la_LDFLAGS = $(libpgsql_drv_ldflags)
 libpgsql_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
@@ -148,7 +144,7 @@ libpgsql_drv_la_DEPENDENCIES =
 
 libsqlite_drv_la_SOURCES = \
 	sqlite_drv.c sqlite_drv.h 
-libsqlite_drv_la_LIBADD = $(libsqlite_drv_libs) $(srcdir)/libdspam.la
+libsqlite_drv_la_LIBADD = $(libsqlite_drv_libs) -L -ldspam
 libsqlite_drv_la_CPPFLAGS = $(libsqlite_drv_cppflags)
 libsqlite_drv_la_LDFLAGS = $(libsqlite_drv_ldflags)
 libsqlite_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
@@ -156,7 +152,7 @@ libsqlite_drv_la_DEPENDENCIES =
 
 libsqlite3_drv_la_SOURCES = \
 	sqlite3_drv.c sqlite3_drv.h 
-libsqlite3_drv_la_LIBADD = $(libsqlite3_drv_libs) $(srcdir)/libdspam.la
+libsqlite3_drv_la_LIBADD = $(libsqlite3_drv_libs) -L -ldspam
 libsqlite3_drv_la_CPPFLAGS = $(libsqlite3_drv_cppflags)
 libsqlite3_drv_la_LDFLAGS = $(libsqlite3_drv_ldflags)
 libsqlite3_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
@@ -164,7 +160,7 @@ libsqlite3_drv_la_DEPENDENCIES =
 
 libhash_drv_la_SOURCES = \
 	hash_drv.c hash_drv.h
-libhash_drv_la_LIBADD = $(srcdir)/libdspam.la
+libhash_drv_la_LIBADD = -L -ldspam
 libhash_drv_la_LDFLAGS = -rpath '$(pkglibdir)' -version-info $(libversion)
 
 endif
