@@ -11,7 +11,11 @@ Format:
 dirname	<TAB> maintainer <CR>
 <TAB> short description
 
-lotus_notes/	Stevan Bajic <stevan@bajic.ch>	
+dspam_maintenance/	Stevan Bajic <stevan@bajic.ch>
+	Remove old signatures and unimportant tokens from the DSPAM
+	database. Purge old log entries in user and system logs.
+
+lotus_notes/	Stevan Bajic <stevan@bajic.ch>
 	Allows IBM Lotus Notes/Domino users to implement a "SPAM" / "NOT SPAM"
 	button inside IBM Lotus Notes client.
 
