@@ -1,4 +1,4 @@
-/* $Id: csscompress.c,v 1.81 2009/07/11 16:52:42 sbajic Exp $ */
+/* $Id: csscompress.c,v 1.82 2009/08/03 07:09:38 sbajic Exp $ */
 
 /*
  DSPAM
@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <libgen.h>
 #include <errno.h>
 
 #ifdef TIME_WITH_SYS_TIME

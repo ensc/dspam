@@ -1,4 +1,4 @@
-/* $Id: cssconvert.c,v 1.61 2009/07/11 16:52:59 sbajic Exp $ */
+/* $Id: cssconvert.c,v 1.62 2009/08/03 07:28:23 sbajic Exp $ */
 
 /*
  DSPAM
@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <libgen.h>
 
 #ifdef TIME_WITH_SYS_TIME
 #   include <sys/time.h>

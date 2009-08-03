@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.30 2009/08/02 16:30:57 sbajic Exp $ */
+/* $Id: dspam.c,v 1.31 2009/08/03 07:00:11 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2609,7 +2609,6 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
  */
 
 int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
-  int result;
   int do_train = 1, iter = 0, ck_result = 0, t_mode = CTX->source;
 
   /* Train until test conditions are met, 5 iterations max */
@@ -2635,7 +2634,7 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       /* Only subtract innocent values once */
       CTX->source = DSS_CORPUS;
 
-      LOGDEBUG ("reclassifying iteration %d result: %d", iter, result);
+      LOGDEBUG ("reclassifying iteration %d result: %d", iter, ck_result);
 
       if (t_mode == DSS_CORPUS)
         do_train = 0;
