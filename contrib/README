@@ -1,0 +1,24 @@
+This directory holds third-party contributed scripts, extensions and plugins.
+While they are not part of the "official" releases, we do our best to test them
+and mark them working/broken for each release accordingly.
+
+See the list bellow and the README in each dir for details.
+
+
+Keep the list bellow sorted alphabetically by the directory name. Directories
+shold be lowercase and contain no spaces.
+Format:
+dirname	<TAB> maintainer <CR>
+<TAB> short description
+
+dspam_maintenance/	Stevan Bajic <stevan@bajic.ch>
+	Remove old signatures and unimportant tokens from the DSPAM
+	database. Purge old log entries in user and system logs.
+
+lotus_notes/	Stevan Bajic <stevan@bajic.ch>
+	Allows IBM Lotus Notes/Domino users to implement a "SPAM" / "NOT SPAM"
+	button inside IBM Lotus Notes client.
+
+plugins/	Hugo Monteiro <hugo.monteiro@fct.unl.pt>
+	Thunderbird XPI extension that provides Spam/Ham reporting buttons.
+

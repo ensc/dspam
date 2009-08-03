@@ -1,0 +1,28 @@
+How do i build this?
+--------------------
+Just run "make" in the extension source base directory.
+
+
+How do i install?
+-----------------
+1 - Open Thunderbird and go to "Tools -> Add-ons"
+2 - Choose "Install" in the bottom of the window
+    and provide the dspam-thunderbird-extension.xpi
+	file that the build process created in the parent
+	directory
+3 - Restart Thunderbird
+4 - Right click on the main panel and choose "Costumize"
+5 - Drag the DSPAM Extension buttons onto the main panel
+
+
+How i configure the extension?
+------------------------------
+1 - Open Thunderbird and go to "Tools -> Add-ons"
+2 - Choose the DSPAM Extension from the list
+3 - Click on "Preferences"
+4 - Set up your Spam/Ham reporting addresses from the
+    "Forwarding Tab"
+5 - Choose what actions do take when reporting in the
+    "Actions" Tab and press "Ok" in the bottom of the
+	preferences window.
+

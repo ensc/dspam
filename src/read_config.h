@@ -1,4 +1,4 @@
-/* $Id: read_config.h,v 1.9 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: read_config.h,v 1.92 2009/06/27 04:03:13 sbajic Exp $ */
 
 /*
  DSPAM

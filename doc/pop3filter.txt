@@ -23,9 +23,9 @@ do this, follow these steps:
 1. Compile and install pop3filter
 2. Compile and install DSPAM on the same machine
 
-   You may optionally wish to the spamSubject and spamAction=tag preferences
-   so that a tag will be prepended to the subject header of messages
-   suspected to be spam.
+   You may optionally wish to use the spamSubject and spamAction=tag
+   preferences so that a tag will be prepended to the subject header of
+   messages suspected to be spam.
 
 3. Configure pop3filter to run as follows:
 

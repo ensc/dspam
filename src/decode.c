@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.34 2009/05/30 11:40:51 sbajic Exp $ */
+/* $Id: decode.c,v 1.38 2009/07/05 19:02:39 sbajic Exp $ */
 
 /*
  DSPAM
@@ -86,16 +86,16 @@ _ds_actualize_message (const char *message)
     goto MEMFAIL;
 
   current_block = _ds_create_message_part ();
-  if (!current_block) 
+  if (!current_block)
     goto MEMFAIL;
 
   if (nt_add (out->components, (void *) current_block) == NULL)
-    LOG (LOG_CRIT, ERR_MEM_ALLOC);
+    goto MEMFAIL;
 
   /* Read the message from memory */
 
   line = strsep (&in, "\n");
-  while (line) 
+  while (line)
   {
 
     /* Header processing */
@@ -116,11 +116,8 @@ _ds_actualize_message (const char *message)
         _ds_decode_headers(current_block);
         current_block = _ds_create_message_part ();
 
-        if (!current_block) 
-        {
-          LOG (LOG_CRIT, ERR_MEM_ALLOC);
+        if (!current_block)
           goto MEMFAIL;
-        }
 
         if (nt_add (out->components, (void *) current_block) == NULL)
           goto MEMFAIL;
@@ -138,7 +135,7 @@ _ds_actualize_message (const char *message)
 
           ptr = realloc (current_heading->data,
                          strlen (current_heading->data) + strlen (line) + 2);
-          if (ptr) 
+          if (ptr)
           {
             current_heading->data = ptr;
             strcat (current_heading->data, "\n");
@@ -153,7 +150,7 @@ _ds_actualize_message (const char *message)
           ptr =
             realloc (current_heading->concatenated_data,
               strlen (current_heading->concatenated_data) + strlen (eow) + 1);
-          if (ptr) 
+          if (ptr)
           {
             current_heading->concatenated_data = ptr;
             strcat (current_heading->concatenated_data, eow);
@@ -289,14 +286,14 @@ MEMFAIL:
 ds_message_part_t
 _ds_create_message_part (void)
 {
-  ds_message_part_t block = 
+  ds_message_part_t block =
     (ds_message_part_t) calloc (1, sizeof (struct _ds_message_part));
 
-  if (!block) 
+  if (!block)
     goto MEMFAIL;
 
   block->headers = nt_create (NT_PTR);
-  if (!block->headers) 
+  if (!block->headers)
     goto MEMFAIL;
 
   block->body = buffer_create (NULL);
@@ -349,7 +346,7 @@ _ds_create_header_field (const char *heading)
   ds_header_t header =
     (ds_header_t) calloc (1, sizeof (struct _ds_header_field));
 
-  if (!header || !in) 
+  if (!header || !in)
     goto MEMFAIL;
 
   ptr = strsep (&in, ":");
@@ -371,8 +368,8 @@ _ds_create_header_field (const char *heading)
       else
       {
         /* Skip white space */
-        while (*in == 32 || *in == 9) 
-          ++in; 
+        while (*in == 32 || *in == 9)
+          ++in;
       }
 
       data = strdup (in);
@@ -406,6 +403,9 @@ MEMFAIL:
 
 int
 _ds_decode_headers (ds_message_part_t block) {
+#ifdef VERBOSE
+  LOGDEBUG("decoding headers in message block");
+#endif
   char *ptr, *dptr, *rest, *enc;
   ds_header_t header;
   struct nt_node *node_nt;
@@ -436,7 +436,7 @@ _ds_decode_headers (ds_message_part_t block) {
         ptr = strtok_r (NULL, "?", &ptrptr);
         dptr = strtok_r (NULL, "?", &ptrptr);
         if (!dptr) {
-          if (was_null) 
+          if (was_null)
             header->original_data = NULL;
           continue;
         }
@@ -447,7 +447,7 @@ _ds_decode_headers (ds_message_part_t block) {
 
         if (ptr != NULL && (ptr[0] == 'b' || ptr[0] == 'B'))
           decoded = _ds_decode_base64 (dptr);
-        else if (ptr != NULL && (ptr[0] == 'q' || ptr[0] == 'Q')) 
+        else if (ptr != NULL && (ptr[0] == 'q' || ptr[0] == 'Q'))
           decoded = _ds_decode_quoted (dptr);
 
         decoded_len = 0;
@@ -470,12 +470,12 @@ _ds_decode_headers (ds_message_part_t block) {
 
             strcat(new_alloc, decoded);
             strcat(new_alloc, rest);
-            free(decoded); 
+            free(decoded);
             decoded = new_alloc;
           }
         }
 
-        if (decoded) { 
+        if (decoded) {
           enc_offset += (decoded_len-1);
           free(header->concatenated_data);
           header->concatenated_data = decoded;
@@ -513,12 +513,12 @@ _ds_decode_headers (ds_message_part_t block) {
  * INPUT ARGUMENTS
  *      block		the message block to which the header belongs
  *      header		the header to analyze
- *      boundaries	a list of known boundaries found within the block 
+ *      boundaries	a list of known boundaries found within the block
  */
 
 void
 _ds_analyze_header (
-  ds_message_part_t block, 
+  ds_message_part_t block,
   ds_header_t header,
   struct nt *boundaries)
 {
@@ -613,7 +613,7 @@ _ds_analyze_header (
 
   if (!strcasecmp (header->heading, "Content-Disposition"))
   {
-    if (!strncasecmp (header->data, "inline", 6)) 
+    if (!strncasecmp (header->data, "inline", 6))
       block->content_disposition = PCD_INLINE;
     else if (!strncasecmp (header->data, "attachment", 10))
       block->content_disposition = PCD_ATTACHMENT;
@@ -713,7 +713,7 @@ _ds_destroy_block (ds_message_part_t block)
   if (!block)
     return;
 
-  if (block->headers) 
+  if (block->headers)
   {
     _ds_destroy_headers (block);
     nt_destroy (block->headers);
@@ -728,15 +728,15 @@ _ds_destroy_block (ds_message_part_t block)
 
 /*
  * _ds_decode_block (ds_message_part_t block)
- *   
+ *
  * DESCRIPTION
  *   decodes a message block
- * 
+ *
  * INPUT ARGUMENTS
  *   block   the message block to decode
  *
  * RETURN VALUES
- *   a pointer to the allocated character array containing the decoded message 
+ *   a pointer to the allocated character array containing the decoded message
  *   NULL on failure
  */
 
@@ -759,7 +759,7 @@ _ds_decode_block (ds_message_part_t block)
  * DESCRIPTION
  *   supporting block decoder functions
  *   these function call (or perform) specific decoding functions
- * 
+ *
  * INPUT ARGUMENTS
  *   body	encoded message body
  *
@@ -780,6 +780,9 @@ _ds_decode_base64 (const char *body)
 char *
 _ds_decode_quoted (const char *body)
 {
+#ifdef VERBOSE
+  LOGDEBUG("decoding Quoted Printable encoded buffer");
+#endif
   if (!body)
     return NULL;
 
@@ -820,6 +823,9 @@ _ds_decode_quoted (const char *body)
 char *
 _ds_decode_hex8bit (const char *body)
 {
+#ifdef VERBOSE
+  LOGDEBUG("decoding hexadecimal 8-bit encodings in message block");
+#endif
   if (!body)
     return NULL;
 
@@ -852,11 +858,11 @@ _ds_decode_hex8bit (const char *body)
 
 /*
  * _ds_encode_block (ds_message_part_t block, int encoding)
- *   
+ *
  * DESCRIPTION
  *   encodes a message block using the encoding specified and replaces the
  *   block's message body with the encoded data
- * 
+ *
  * INPUT ARGUMENTS
  *      block       the message block to encode
  *      encoding    encoding to use (EN_)
@@ -968,14 +974,14 @@ _ds_assemble_message (ds_message_t message, const char *newline)
                current_header->original_data;
 
         heading = malloc(
-            ((current_header->heading) ? strlen(current_header->heading) : 0) 
+            ((current_header->heading) ? strlen(current_header->heading) : 0)
           + ((data) ? strlen(data) : 0)
           + 3 + strlen(newline));
 
         if (current_header->heading != NULL &&
-            (!strncmp (current_header->heading, "From ", 5) || 
+            (!strncmp (current_header->heading, "From ", 5) ||
              !strncmp (current_header->heading, "--", 2)))
-          sprintf (heading, "%s:%s%s", 
+          sprintf (heading, "%s:%s%s",
             (current_header->heading) ? current_header->heading : "",
             (data) ? data : "", newline);
         else
@@ -1003,7 +1009,7 @@ _ds_assemble_message (ds_message_t message, const char *newline)
       buffer_cat (out, "--");
       buffer_cat (out, block->terminating_boundary);
     }
-   
+
     node_nt = c_nt_next (message->components, &c_nt);
     i++;
 
@@ -1018,7 +1024,7 @@ _ds_assemble_message (ds_message_t message, const char *newline)
 }
 
 /*
- * _ds_{push,pop,match,extract}_boundary 
+ * _ds_{push,pop,match,extract}_boundary
  *
  * DESCRIPTION
  *   these functions maintain and service a boundary "stack" on the message
@@ -1049,7 +1055,7 @@ _ds_pop_boundary (struct nt *stack)
   struct nt_node *node, *last_node = NULL, *parent_node = NULL;
   struct nt_c c;
   char *boundary = NULL;
-                                                                                
+
   node = c_nt_first (stack, &c);
   while (node != NULL)
   {
@@ -1061,24 +1067,24 @@ _ds_pop_boundary (struct nt *stack)
     parent_node->next = NULL;
   else
     stack->first = NULL;
-                                                                                
+
   if (last_node == NULL)
     return NULL;
-                                                                                
+
   boundary = strdup (last_node->ptr);
-                                                                                
+
   free (last_node->ptr);
   free (last_node);
-                                                                                
+
   return boundary;
 }
-                                                                                
+
 int
 _ds_match_boundary (struct nt *stack, const char *buff)
 {
   struct nt_node *node;
   struct nt_c c;
-                                                                                
+
   node = c_nt_first (stack, &c);
   while (node != NULL)
   {
@@ -1129,18 +1135,15 @@ _ds_extract_boundary (char *buf, size_t size, char *mem)
 }
 
 /*
- * _ds_find_header (ds_message_t message, consr char *heading, int flags) {
+ * _ds_find_header (ds_message_t message, consr char *heading) {
  *
  * DESCRIPTION
  *   finds a header and returns its value
  *
  * INPUT ARGUMENTS
  *   message     the message structure to search
- *   heading	the heading to search for 	
+ *   heading	the heading to search for
  *   flags	optional search flags
- *
- * FLAGS
- *   DDF_ICASE	case insensitive search
  *
  * RETURN VALUES
  *   a pointer to the header structure's value
@@ -1148,7 +1151,7 @@ _ds_extract_boundary (char *buf, size_t size, char *mem)
  */
 
 char *
-_ds_find_header (ds_message_t message, const char *heading, int flags) {
+_ds_find_header (ds_message_t message, const char *heading) {
   ds_message_part_t block;
   ds_header_t head;
   struct nt_node *node_nt;
@@ -1165,12 +1168,8 @@ _ds_find_header (ds_message_t message, const char *heading, int flags) {
   node_nt = block->headers->first;
   while(node_nt != NULL) {
     head = (ds_header_t) node_nt->ptr;
-    if (flags & DDF_ICASE) {
-      if (head && !strcasecmp(head->heading, heading))
-        return head->data;
-    } else {
-      if (head && !strcmp(head->heading, heading))
-        return head->data;
+    if (head && !strcasecmp(head->heading, heading)) {
+      return head->data;
     }
     node_nt = node_nt->next;
   }
@@ -1218,6 +1217,9 @@ int _ds_hex2dec(unsigned char hex) {
 char *
 _ds_strip_html (const char *html)
 {
+#ifdef VERBOSE
+  LOGDEBUG("stripping HTML tags from message block");
+#endif
   int i = 0, j = 0, k = 0;
   int visible = 1;
   int closing_td_tag = 0;

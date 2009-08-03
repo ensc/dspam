@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.32 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: pref.c,v 1.33 2009/07/12 23:07:33 sbajic Exp $ */
 
 /*
  DSPAM
@@ -55,7 +55,7 @@
 
 agent_pref_t _ds_pref_aggregate(agent_pref_t STX, agent_pref_t UTX) {
   agent_pref_t PTX = calloc(1, PREF_MAX*sizeof(agent_attrib_t ));
-  int i, j, size = 0;
+  int i, size = 0;
 
   if (STX) {
     for(i=0;STX[i];i++) {
@@ -71,6 +71,8 @@ agent_pref_t _ds_pref_aggregate(agent_pref_t STX, agent_pref_t UTX) {
       if (_ds_match_attribute(agent_config, "AllowOverride", UTX[i]->attribute))
       {
         int found = 0;
+        int j;
+
         for(j=0;PTX[j];j++) {
           if (!strcasecmp(PTX[j]->attribute, UTX[i]->attribute)) {
             found = 1;

@@ -83,6 +83,51 @@ smtp      inet  n       -       n       -       -        smtpd
 
   This tells Postfix to send all mail to DSPAM for content filtering.
 
+  If your Postfix installation is chrooted (as eg. the default Postfix 
+  configuration in Debian GNU/Linux), make sure the socket is located 
+  within the chroot (eg. /var/spool/postfix/var/run/dspam/dspam.sock).
+
+  Make sure the user under which dspam runs has write access to the
+  socket directory.
+
+  You can also change Postfix configuration so that it does not run
+  chrooted (both smtp and lmtp services should be modified as follows:
+
+smtp      inet  n       -       n       -       -        smtpd
+  -o content_filter=lmtp:unix:/var/run/dspam/dspam.sock
+lmtp      inet  n       -       n       -       -        smtpd
+
+  The 3rd dash specifies if the process will run chrooted or not.
+
+
+ If your SMTP server is also used as a relay, and you want DSPAM to
+ only inspect incoming mail, you can use the following as an alternative
+ to the pure content filtering method:
+
+ You will need Postfix support for PCRE maps (perl compatible regular
+ expression).
+ 
+ In Postfix main.cf, add the following to your smtpd_recipient_restrictions:
+
+smtpd_recipient_restrictions = 
+  [...]
+  check_recipient_access pcre:/etc/postfix/dspam_filter_access
+
+ where dspam_filter_access contains:
+
+/./ FILTER dspam:dspam
+
+  Run postmap /etc/postfix/dspam_filter_access
+
+ Add he following service at the end of master.cf:
+
+dspam                 unix    -       n       n       -       -    pipe
+  flags=Ru user=dspam argv=/usr/bin/dspam --client --deliver=innocent,spam --user ${recipient} --mail-from=${sender}
+
+ You will also have to add the following line in main.cf:
+dspam_destination_recipient_limit = 1
+
+
 Step 3: Configure a reinjection port
 
   You'll also need to configure Postfix to listen on a local port for

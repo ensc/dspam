@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.14 2008/05/06 18:26:07 mjohnson Exp $ */
+/* $Id: util.h,v 1.15 2009/06/27 02:26:59 sbajic Exp $ */
 
 /*
  DSPAM
@@ -112,6 +112,8 @@ int	_ds_extract_address(
   size_t len);
 
 double	_ds_gettime(void);
+
+void timeout(void);
 
 int _ds_get_fcntl_lock  (int fd);
 int _ds_free_fcntl_lock (int fd);

@@ -1,0 +1,347 @@
+%REM
+
+ ******************************************************************************
+ * libDSPAMReporting - LoutsScript Library for retraining DSPAM mails in      *
+ * Lotus Notes/Domino                                                         *
+ *                                                                            *
+ * Copyright 2004, Stevan Bajic <stevan@bajic.ch>, all rights reserved.       *
+ *                                                                            *
+ * You are free to use this code within your own applications, but you are    *
+ * expressly forbidden from selling or otherwise distributing this source     *
+ * code without prior written consent. This includes both posting free demo   *
+ * projects made from this code as well as reproducing the code in text or    *
+ * html format.                                                               *
+ *                                                                            *
+ * The DSPAM community project (http://www.sourceforge.net/projects/dspam/)   *
+ * is excluded from any licensing limitations.                                *
+ ******************************************************************************
+
+This LotusScript library uses the spam/nonspam alias functionality of DSPAM to
+retrain messages as SPAM or as NONSPAM.
+
+How to make this work?
+----------------------
+Open your mail database (or the mail template) with the Domino Designer and go
+to "Shared Code", "Script Libraries". Press the action "New LotusScript Library"
+and in the new created Script Library press in the right pane (there where you
+would normally type your LotusScript code) the right mouse button and then
+select "Import...". Browse the file system and select this file here. You will
+get a dialog box with the title "LotusScript Import Options" asking you if it
+should replace existing code. Please answer with "Yes to All".
+Now the code is imported and you should go into the "(Declarations)" and change
+there your SPAM and HAM alias. The line you should change are:
+Const SPAM_ALIAS				= {spam@mydomain.local}
+Const NOTSPAM_ALIAS				= {notspam@mydomain.local}
+
+Just enter the SPAM/NOTSPAM alias you are using in your DSPAM instalaltion.
+
+Should you have set the SPAM tag to be anything else then "[SPAM]" the you need
+to change the SPAM_TAG as well. The line you should change is:
+Const SPAM_TAG					= {[SPAM]}
+
+After you have changed those lines you can close the Script Library and save it.
+The Domino Designer will ask you how to name that new created Script Library.
+Use something like "libDSPAMReporting" or anything you like. Now you need to go
+into "Shared Code", "Actions" and press the button "New Shared Action". Domino
+Designer will create a new Shared Action and show you a property box. In that
+property box set the Name entry to "SPAM" and the Label to "SPAM" as well. For
+the Type select "Button" and select "Include action in Action bar" and "Include
+action in Action menu". For the Icon select the type to be "Notes" and Location
+to be "Left" and for the icon image anything you like (I use the X wich is the
+last icon in the first row). Close now the property box and select the type of
+the Shared Action to be LotusScript. Then select (Options) and type:
+Use "libDSPAMReporting"
+
+Then select the event "Click" and type:
+Sub Click(Source As Button)
+	Call fnDSPAMReport ( {SPAM} )
+End Sub
+
+Save the Shared Action and press again on "New Shared Action". Domino Designer
+will create a new Shared Action and show you a property box. In that property
+box set the Name entry to "NOT SPAM" and the Label to "NOT SPAM" as well. For
+the Type select "Button" and select "Include action in Action bar" and "Include
+action in Action menu". For the Icon select the type to be "Notes" and Location
+to be "Left" and for the icon image anything you like (I use the check mark wich
+is the second last icon in the first row). Close now the property box and select
+the type of the Shared Action to be LotusScript. Then select (Options) and type:
+Use "libDSPAMReporting"
+
+Then select the event "Click" and type:
+Sub Click(Source As Button)
+	Call fnDSPAMReport ( {NOTSPAM} )
+End Sub
+
+Save the Shared Action. Now go to "Folders" and open your INBOX (the folder is
+probably named "($Inbox)" on your installation). At the right part of the screen
+you should see a list of actions. Select the first action and then select in the
+menu "Create" and then "Insert Shared Action...". Domino Designer will show you
+a list of Shared Actions. Select the Action "SPAM" and press "Insert" and then
+press "Done". Now close the Folder and save it.
+
+Now go to "Folders" and open your Junk Mail folder (the folder is probably named
+"($JunkMail)" on your installation). At the right part of the screen you should
+see a list of actions. Select the first action and then select in the menu
+"Create" and then "Insert Shared Action...". Domino Designer will show you a
+list of Shared Actions. Select the Action "NOT SPAM" and press "Insert" and then
+press "Done". Now close the Folder and save it.
+
+That's it. Now you should have a new action in your Inbox and one in your Junk
+Mail folder for reporting SPAM or NON-SPAM.
+
+The code here has been tested with sucess on Lotus Notes 6.0.x, 6.5.x, 7.0.x,
+8.0.x and 8.5.x. Should you need a more advanced edition of the script where the
+Lotus Notes client is using TCP/IP to connect to DSPAM and do the SPAM/NONSPAM
+retraining then let me know. I have a more advanced edition of the script but it
+uses Java code to connect to DSPAM and that code will only work on Lotus Notes
+where LS2J is available (Lotus Notes Release 6 and up).
+
+Kind Regards from Switzerland,
+
+Stevan Bajic <stevan@bajic.ch>
+%END REM
+
+Option Public
+Option Declare
+%INCLUDE {lsconst.lss}
+
+'// ============================================================================
+'// Constants
+'// ============================================================================
+Const SPAM_ALIAS				= {spam@mydomain.local}
+Const NOTSPAM_ALIAS				= {notspam@mydomain.local}
+Const SPAM_TAG					= {[SPAM]}
+Const HEADER_DSPAM_SIGNATURE		= {X_DSPAM_Signature}
+Const HEADER_DSPAM_RESULT		= {X_DSPAM_Result}
+Const NOTES_SUBJECT_FIELDNAME		= {Subject}
+Const NOTES_INBOX_FOLDERNAME		= {($Inbox)}
+Const NOTES_JUNK_FOLDERNAME		= {($JunkMail)}
+'// ============================================================================
+
+Public Function fnDSPAMReport ( ByVal szType As String ) As Integer
+'// Module:			fnDSPAMReport
+'// Author:			Stevan Bajic (stevan@bajic.ch)
+'// Version:			v1.0.0
+'// Last Change Date:
+'// Description:
+'// Revision History:
+
+	'// =======================================================================
+	'// Declare ModuleName for Global ErrorTrapping, etc.
+	'// =======================================================================
+	Dim szModuleName				As String
+	szModuleName					= {fnDSPAMReport}
+	'// =======================================================================
+	
+	'// =======================================================================
+	'// Use ErrorHandler for Error-Trapping
+	'// =======================================================================
+	On Error Goto ErrorHandler
+	'// =======================================================================
+	
+	'// =======================================================================
+	'// Initialize default returnvalue
+	'// =======================================================================
+	fnDSPAMReport					= False
+	'// =======================================================================
+	
+	'// =======================================================================
+	'// Parameter checking
+	'// =======================================================================
+	If Not ( UCase$ ( szType ) = {SPAM} Or UCase$ ( szType ) = {HAM} Or UCase$ ( szType ) = {NONSPAM} Or UCase$ ( szType ) = {JUNK} Or UCase$ ( szType ) = {NONJUNK} ) Then
+		Messagebox {The type "} + szType + {" is not a recognized report type.} , MB_OK + MB_ICONEXCLAMATION , {DSPAM spam/ham report }
+		Exit Function
+	End If
+	'// =======================================================================
+
+	'// =======================================================================
+	'// Declare variables for this module
+	'// =======================================================================
+	Dim objSession					As NotesSession
+	Dim objCurrentDatabase			As NotesDatabase
+	Dim objDocumentCollection		As NotesDocumentCollection
+	Dim objDocument				As NotesDocument
+	Dim objSendDocumentToDSPAM		As NotesDocument
+	Dim objUIWorkSpace				As NotesUIWorkspace
+	Dim szDSPAMFullSignature			As String
+	Dim szDSPAMResult				As String
+	Dim szSubject					As String
+	Dim intSendStatus				As Integer
+	'// =======================================================================
+
+	'// =======================================================================
+	'// Initialize variables for this module
+	'// =======================================================================
+	Set objUIWorkSpace				= New NotesUIWorkspace
+	Set objSession					= New NotesSession
+	Set objCurrentDatabase			= objSession.CurrentDatabase
+	Set objDocumentCollection		= objCurrentDatabase.UnprocessedDocuments
+	'// =======================================================================
+
+	'// =======================================================================
+	'// Start processing
+	'// =======================================================================
+	If ( objDocumentCollection.Count > 0 ) Then
+		Set objDocument			= objDocumentCollection.GetFirstDocument
+		While Not ( objDocument Is Nothing )
+			'// -------------------------------------------------------------
+			'// Get DSPAM Signature
+			If ( objDocument.HasItem ( HEADER_DSPAM_SIGNATURE ) ) Then
+				szDSPAMFullSignature	= objDocument.GetFirstItem ( HEADER_DSPAM_SIGNATURE ).Text
+				If Not ( szDSPAMFullSignature Like {[0-9]*[,]*[0-9A-Fa-f]*} ) Then
+					Messagebox {The DSPAM signature "} + szDSPAMFullSignature + {" seems to be not valid.} , MB_OK + MB_ICONEXCLAMATION , {DSPAM spam/ham report }
+					szDSPAMFullSignature= {}
+				End If
+			Else
+				szDSPAMFullSignature	= {}
+			End If
+			'// -------------------------------------------------------------
+			'// Get DSPAM Result
+			If ( objDocument.HasItem ( HEADER_DSPAM_RESULT ) ) Then
+				szDSPAMResult			= objDocument.GetFirstItem ( HEADER_DSPAM_RESULT ).Text
+			Else
+				szDSPAMResult			= {}
+			End If
+			'// -------------------------------------------------------------
+			'// Get Subject
+			If ( objDocument.HasItem ( NOTES_SUBJECT_FIELDNAME ) ) Then
+				szSubject				= objDocument.GetFirstItem ( NOTES_SUBJECT_FIELDNAME ).Text
+				While InStr ( 1 , szSubject , SPAM_TAG , 5 ) > 0
+					szSubject			= Left$ ( szSubject , InStr ( 1 , szSubject , SPAM_TAG , 5 ) - 1 ) + Mid$ ( szSubject , InStr ( 1 , szSubject , SPAM_TAG , 5 ) + Len ( SPAM_TAG ) + 1 )
+				Wend
+			Else
+				szSubject				= {}
+			End If
+			'// -------------------------------------------------------------
+			If Not ( szDSPAMFullSignature = {} ) Then
+				Set objSendDocumentToDSPAM	= objCurrentDatabase.CreateDocument
+				If ( UCase$ ( szType ) = {SPAM} Or UCase$ ( szType ) = {JUNK} ) Then
+					'// ===================================================
+					'// Retrain as SPAM
+					'// ===================================================
+					With objSendDocumentToDSPAM
+						Call .ReplaceItemValue ( {Form} , {Memo} )
+						Call .ReplaceItemValue ( {SaveMessageOnSend} , False )
+						Call .ReplaceItemValue ( {Body} , {!DSPAM:} + szDSPAMFullSignature + {!} )
+						intSendStatus		= .Send ( False , SPAM_ALIAS )
+					End With
+					If ( intSendStatus = True ) Then
+						With objDocument
+							Call .ReplaceItemValue ( NOTES_SUBJECT_FIELDNAME , SPAM_TAG + { } + szSubject )
+							Call .ReplaceItemValue ( HEADER_DSPAM_RESULT , {Spam} )
+							If ( .Save ( True , False , False ) = True ) Then
+								Call .PutInFolder ( NOTES_JUNK_FOLDERNAME , True )
+								Call .RemoveFromFolder ( NOTES_INBOX_FOLDERNAME )
+							End If
+						End With
+					End If
+					'// ===================================================
+				Else
+					'// ===================================================
+					'// Retrain as NONSPAM
+					'// ===================================================
+					With objSendDocumentToDSPAM
+						Call .ReplaceItemValue ( {Form} , {Memo} )
+						Call .ReplaceItemValue ( {SaveMessageOnSend} , False )
+						Call .ReplaceItemValue ( {Body} , {!DSPAM:} + szDSPAMFullSignature + {!} )
+						intSendStatus		= .Send ( False , NOTSPAM_ALIAS )
+					End With
+					If ( intSendStatus = True ) Then
+						With objDocument
+							Call .ReplaceItemValue ( NOTES_SUBJECT_FIELDNAME , szSubject )
+							Call .ReplaceItemValue ( HEADER_DSPAM_RESULT , {Innocent} )
+							If ( .Save ( True , False , False ) = True ) Then
+								Call .PutInFolder ( NOTES_INBOX_FOLDERNAME , True )
+								Call .RemoveFromFolder ( NOTES_JUNK_FOLDERNAME )
+							End If
+						End With
+					End If
+					'// ===================================================
+				End If
+			Else
+				Print {Skipping message with UNID "} + objDocument.UniversalID + {" because of missing DSPAM headers}
+			End If
+			'// -------------------------------------------------------------
+			Set objDocument		= objDocumentCollection.GetNextDocument ( objDocument )
+			'// -------------------------------------------------------------
+		Wend
+		Call objUIWorkSpace.ReloadWindow
+	End If
+	'// =======================================================================
+
+	'// =======================================================================
+	'// Set return value for this module
+	'// =======================================================================
+	fnDSPAMReport					= True
+	'// =======================================================================
+	
+	'// =======================================================================
+	'// Exit the module
+	'// =======================================================================
+	Exit Function
+	'// =======================================================================
+	
+ErrorHandler:
+	Select Case fnErrorHandler ( Error$ , Err , Erl , szModuleName )
+	Case 0
+		Exit Function
+	Case 1
+		Resume Next
+	Case Else
+		Resume Next
+	End Select
+End Function
+Private Function fnErrorHandler ( Byval szErrorText As String , Byval lngErrorNumber As Long , Byval lngErrorLine As Long , Byval szModuleName As String ) As Integer
+'// Module:			fnErrorHandler
+'// Author:			Stevan Bajic (stevan@bajic.ch)
+'// Version:			v1.0.0
+'// Last Change Date:	
+'// Description:		A sort of Global ErrorHandler
+'// Revision History:	
+'// Return Values:
+'//  0 = Exit calling Function/Sub
+'//  1 = Resume Next
+
+	'// =======================================================================
+	'// We don't trap erros in this module
+	'// =======================================================================
+	On Error Resume Next
+	'// =======================================================================
+
+	'// =======================================================================
+	'// Initialize default returnvalue
+	'// =======================================================================
+	fnErrorHandler					= 1
+	'// =======================================================================
+
+	'// =======================================================================
+	'// Declare variables for this module
+	'// =======================================================================
+	Dim objSession					As New NotesSession
+	Dim szLogPrefix				As String
+	'// =======================================================================
+
+	'// =======================================================================
+	'// Initialize variables for this module
+	'// =======================================================================
+	szLogPrefix					= {}
+	If ( objSession.CurrentAgent Isa {NotesAgent} ) Then
+		szLogPrefix				= szLogPrefix + {[Agent Name: } + objSession.CurrentAgent.Name + {]}
+		szLogPrefix				= szLogPrefix + {[Agent Server Name: } + objSession.CurrentAgent.ServerName + {]}
+	End If
+	szLogPrefix					= szLogPrefix + {[} + CStr ( GetThreadInfo ( LSI_THREAD_PROC ) ) + { <- } + CStr ( LSI_Info ( 12 ) ) + {]}
+	'// =======================================================================
+	
+	'// =======================================================================
+	'// Start processing
+	'// =======================================================================
+	Print szLogPrefix + { --> "} + szModuleName + {" (N=} + CStr ( lngErrorNumber ) + { L=} + CStr ( lngErrorLine ) + {) E=} + szErrorText
+	'// =======================================================================
+
+	'// =======================================================================
+	'// Exit the module
+	'// =======================================================================
+	Exit Function
+	'// =======================================================================
+
+End Function

@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://dspam/skin/dspam.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://dspam/locale/dspam.dtd">
+
+<overlay id="dspamTbOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+	<script type="application/x-javascript" src="chrome://dspam/content/dspam.js"/>
+
+	<commandset id="mailCommands">
+		<command id="cmd_dspam_reportspam"
+            label="&dspam.spamreportbutton.label;"
+            tooltiptext="&dspam.spamreportbutton.tooltiptext;"
+            oncommand="dspamReportSpam();"/>
+		<command id="cmd_dspam_reportham"
+            label="&dspam.hamreportbutton.label;"
+            tooltiptext="&dspam.hamreportbutton.tooltiptext;"
+            oncommand="dspamReportHam();"/>
+	</commandset>
+	
+	<keyset id="mailKeys">
+		<key id="key_dspam_reportspam" modifiers="shift,alt,control,accel" keycode="VK_SCROLL_LOCK" command="cmd_dspam_reportspam"/>
+		<key id="key_dspam_reportham" modifiers="shift,alt,control,accel" keycode="VK_SCROLL_LOCK" command="cmd_dspam_reportham"/>
+	</keyset>
+	
+	<toolbarpalette id="MailToolbarPalette">
+	<toolbaritem id="toolbarbuttongroup">
+		<toolbarbutton class="toolbarbutton-1 dspamButtons" id="bReportSpam"
+										command="cmd_dspam_reportspam"/>
+		<toolbarbutton class="toolbarbutton-1 dspamButtons" id="bReportHam"
+										command="cmd_dspam_reportham"/>
+	</toolbaritem>
+	</toolbarpalette>
+	
+</overlay>
+

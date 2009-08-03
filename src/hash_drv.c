@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.24 2009/06/05 09:22:33 sbajic Exp $ */
+/* $Id: hash_drv.c,v 1.27 2009/08/02 20:09:28 sbajic Exp $ */
 
 /*
  DSPAM
@@ -405,8 +405,13 @@ int _hash_drv_open(
     return EFAILURE;
   }
 
-  read(map->fd, map->header, sizeof(struct _hash_drv_header));
-  map->file_len = lseek(map->fd, 0, SEEK_END); 
+  if (read(map->fd, map->header, sizeof(struct _hash_drv_header))
+        != sizeof(struct _hash_drv_header)) {
+    free(map->header);
+    close(map->fd);
+    return EFAILURE;
+  }
+  map->file_len = lseek(map->fd, 0, SEEK_END);
 
   map->addr = mmap(NULL, map->file_len, mmap_flags, MAP_SHARED, map->fd, 0);
   if (map->addr == MAP_FAILED) {
@@ -446,9 +451,12 @@ _hash_drv_close(hash_drv_map_t map) {
   if (r) {
     LOG(LOG_WARNING, "munmap failed on error %d: %s", r, strerror(errno));
   }
- 
+
   lseek (map->fd, 0, SEEK_SET);
-  write (map->fd, &header, sizeof(struct _hash_drv_header));
+  r = write (map->fd, &header, sizeof(struct _hash_drv_header));
+  if (r < 0) {
+    LOG(LOG_WARNING, "write failed on error %d: %s", r, strerror(errno));
+  }
   close(map->fd);
 
   map->addr = 0;
@@ -844,7 +852,13 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
     return EFAILURE;
   }
-  fread(SIG->data, statbuf.st_size, 1, file);
+
+  if (fread(SIG->data, statbuf.st_size, 1, file) != 1) {
+    LOG(LOG_ERR, ERR_IO_FILE_READ, filename, strerror(errno));
+    fclose(file);
+    return EFAILURE;
+  }
+
   SIG->length = statbuf.st_size;
   fclose(file);
   return 0;
@@ -1130,14 +1144,20 @@ int _hash_drv_autoextend(
 
   lastsize=lseek (map->fd, 0, SEEK_END);
   if(write (map->fd, &header, sizeof(struct _hash_drv_header))!=sizeof(struct _hash_drv_header)) {
-    ftruncate(map->fd,lastsize);
+    if (ftruncate(map->fd, lastsize) < 0) {
+      LOG(LOG_WARNING, "unable to truncate hash file %s: %s",
+          map->filename, strerror(errno));
+    }
     close(map->fd);
     LOG(LOG_WARNING, "unable to resize hash. open failed: %s", strerror(errno));
     return EFAILURE;
   }
   for(i=0;i<header.hash_rec_max;i++) 
     if(write (map->fd, &rec, sizeof(struct _hash_drv_spam_record))!=sizeof(struct _hash_drv_spam_record)) {
-      ftruncate(map->fd,lastsize);
+      if (ftruncate(map->fd, lastsize) < 0) {
+        LOG(LOG_WARNING, "unable to truncate hash file %s: %s",
+            map->filename, strerror(errno));
+      }
       close(map->fd);
       LOG(LOG_WARNING, "unable to resize hash. open failed: %s", strerror(errno));
       return EFAILURE;

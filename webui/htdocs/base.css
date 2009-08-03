@@ -46,6 +46,11 @@ em {
 .inoculation {color: dodgerblue; background-color: darkblue;}
 .corpus {color: black; background-color: white;}
 .relay {color: white; background-color: #994400;}
+.virus {color: yellow; background-color: darkred;}
+.blocklisted {color: darkblue; background-color: darkred;}
+.blacklisted {color: black; background-color: darkred;}
+.unknown {color: darkred; background-color: white;}
+.error {color: red; background-color: white;}
 .low {color: darkblue; font-weight: bold;}
 .medium {color: steelblue; font-weight: bold;}
 .high {color: darkorange; font-weight: bold;}

@@ -1,4 +1,4 @@
-/* $Id: config_shared.c,v 1.9 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: config_shared.c,v 1.91 2009/07/12 22:56:15 sbajic Exp $ */
 
 /*
  DSPAM
@@ -62,7 +62,6 @@ attribute_t _ds_find_attribute(config_t config, const char *key) {
 
 int _ds_add_attribute(config_t config, const char *key, const char *val) {
   attribute_t attr;
-  int i;
 
 #ifdef VERBOSE
   LOGDEBUG("attribute %s = %s", key, val);
@@ -70,6 +69,7 @@ int _ds_add_attribute(config_t config, const char *key, const char *val) {
 
   attr = _ds_find_attribute(config, key);
   if (!attr) {
+    int i;
     for(i=0;config[i];i++) { }
     config[i+1] = 0;
     config[i] = malloc(sizeof(struct attribute));

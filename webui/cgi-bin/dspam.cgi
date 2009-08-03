@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.33 2009/06/11 00:57:48 sbajic Exp $
+# $Id: dspam.cgi,v 1.37 2009/07/26 12:23:47 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -263,8 +263,8 @@ sub DisplayHistory {
     # not good to check for messages to show here, we're skipping
     # the retraining data so retrained messages won't show
 
-    if ($class eq "M" || $class eq "F" || $class eq "E") { 
-      if ($class eq "E") {
+    if ($class eq "M" || $class eq "F" || $class eq "E" || $class eq "U") {
+      if ($class eq "E" || $class eq "U") {
         $rec{$signature}->{'info'} = $info;
       } elsif ($class eq "F" || $class eq "M") {
         $rec{$signature}->{'class'} = $class;
@@ -282,6 +282,9 @@ sub DisplayHistory {
       next if ($class ne "S" && $show eq "spam");
       next if ($class ne "I" && $show eq "innocent");
       next if ($class ne "W" && $show eq "whitelisted");
+      next if ($class ne "V" && $show eq "virus");
+      next if ($class ne "A" && $show eq "blacklisted");
+      next if ($class ne "O" && $show eq "blocklisted");
 
       $rec{$signature}->{'time'} = $time;
       $rec{$signature}->{'class'} = $class;
@@ -376,9 +379,14 @@ sub DisplayHistory {
           $cl = "spam"; $cllabel="SPAM";
       }
     }
-    elsif ($class eq "N") { $cl = "inoculation"; $cllabel="Spam"; }
-    elsif ($class eq "C") { $cl = "blacklisted"; $cllabel="RBL"; }
     elsif ($class eq "W") { $cl = "whitelisted"; $cllabel="Whitelist"; }
+    elsif ($class eq "V") { $cl = "virus"; $cllabel="Virus"; }
+    elsif ($class eq "A") { $cl = "blacklisted"; $cllabel="RBL"; }
+    elsif ($class eq "O") { $cl = "blocklisted"; $cllabel="BLOCK"; }
+    elsif ($class eq "N") { $cl = "inoculation"; $cllabel="SPAM"; }
+    elsif ($class eq "C") { $cl = "corpus"; $cllabel="Corpus"; }
+    elsif ($class eq "U") { $cl = "unknown"; $cllabel="UNKN"; }
+    elsif ($class eq "E") { $cl = "error"; $cllabel="Error"; }
     if ($messageid ne "") {
       if ($rec{$messageid}->{'resend'} ne "") {
         $cl = "relay";
@@ -399,7 +407,7 @@ sub DisplayHistory {
 
     my($rclass);
     $rclass = "spam" if ($class eq "I" || $class eq "W" || $class eq "F");
-    $rclass = "innocent" if ($class eq "S" || $class eq "M");
+    $rclass = "innocent" if ($class eq "S" || $class eq "M" || $class eq "V" || $class eq "A" || $class eq "O");
 
     my($retrain);
     if ($rec{$signature}->{'class'} =~ /^(M|F)$/ && $rec{$signature}->{'count'} % 2 != 0) {
@@ -429,18 +437,25 @@ sub DisplayHistory {
       $from = qq!<a href="javascript:openwin(580,400,1,'$CONFIG{'ME'}?$url')">$from</a>!;
     }
 
+    my $retrain_action = "";
+    if ( $class eq "V" || $class eq "A" || $class eq "O" || $class eq "U" || $class eq "") {
+      $retrain_action = qq!&nbsp;</td>!;
+    } else {
+      $retrain_action = qq! <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)">$retrain</td>!;
+    }
+
     my($entry) = <<_END;
 <tr>
 	<td class="$cl $rowclass" nowrap="true"><small>$cllabel</td>
         <td class="$rowclass" nowrap="true"><small>
-	 <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)">
-	 $retrain</td>
+	$retrain_action
 	<td class="$rowclass" nowrap="true"><small>$ctime</td>
 	<td class="$rowclass" nowrap="true"><small>$from</td>
 	<td class="$rowclass" nowrap="true"><small>$subject</td>
 	<td class="$rowclass" nowrap="true"><small>$info</td>
 </tr>
 _END
+
     $retrain_checked_msg_no++;
     push(@history, $entry);
 
@@ -557,7 +572,7 @@ sub DisplayAnalysis {
           };
         }
         my $hr=$Stats{$period}->{$idx};
-        if ($c_log eq "S") {
+        if ($c_log eq "S" || $c_log eq "V" || $c_log eq "A" || $c_log eq "O") {
           $hr->{spam}++;
         }
         if ($c_log eq "I" || $c_log eq "W") {

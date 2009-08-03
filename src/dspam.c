@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.244 2009/06/10 22:49:34 sbajic Exp $ */
+/* $Id: dspam.c,v 1.31 2009/08/03 07:00:11 sbajic Exp $ */
 
 /*
  DSPAM
@@ -28,7 +28,7 @@
  *   and also provides advanced functions such as a daemonized LMTP server,
  *   extended groups, and other agent features outlined in the documentation.
  *
- *   This codebase is the full client/processing engine. See dspamc.c for 
+ *   This codebase is the full client/processing engine. See dspamc.c for
  *     the lightweight client-only codebase.
  */
 
@@ -104,7 +104,7 @@ int verified_user = 0;
 #define USE_SMTP        (_ds_read_attribute(agent_config, "DeliveryProto") && !strcmp(_ds_read_attribute(agent_config, "DeliveryProto"), "SMTP"))
 #define LOOKUP(A, B)	((_ds_pref_val(A, "localStore")[0]) ? _ds_pref_val(A, "localStore") : B)
 
-																							  
+
 int
 main (int argc, char *argv[])
 {
@@ -172,9 +172,9 @@ main (int argc, char *argv[])
 
 #ifdef DAEMON
 #ifdef TRUSTED_USER_SECURITY
-  if (ATX.operating_mode == DSM_DAEMON && ATX.trusted) 
+  if (ATX.operating_mode == DSM_DAEMON && ATX.trusted)
 #else
-  if (ATX.operating_mode == DSM_DAEMON) 
+  if (ATX.operating_mode == DSM_DAEMON)
 #endif
   {
     daemon_start(&ATX);
@@ -245,7 +245,7 @@ main (int argc, char *argv[])
     exitcode = EXIT_FAILURE;
     goto BAIL;
   }
- 
+
   if (dspam_init_driver (NULL))
   {
     LOG (LOG_WARNING, ERR_DRV_INIT);
@@ -254,7 +254,7 @@ main (int argc, char *argv[])
   } else {
     driver_init = 1;
   }
-  
+
   ATX.results = nt_create(NT_PTR);
   if (ATX.results == NULL) {
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
@@ -334,8 +334,8 @@ BAIL:
 
 int
 process_message (
-  AGENT_CTX *ATX, 
-  buffer * message, 
+  AGENT_CTX *ATX,
+  buffer * message,
   const char *username,
   char **result_string)
 {
@@ -361,7 +361,7 @@ process_message (
   /* Configure libdspam's storage properties, then attach storage */
 
   set_libdspam_attributes(CTX);
-  if (ATX->sockfd && ATX->dbh == NULL) 
+  if (ATX->sockfd && ATX->dbh == NULL)
     ATX->dbh = _ds_connect(CTX);
 
   /* Re-Establish database connection (if failed) */
@@ -401,7 +401,7 @@ process_message (
 
 #ifdef CLAMAV
   /* Check for viruses */
- 
+
   if (_ds_read_attribute(agent_config, "ClamAVPort") &&
       _ds_read_attribute(agent_config, "ClamAVHost") &&
       CTX->source != DSS_ERROR                       &&
@@ -499,7 +499,7 @@ process_message (
         }
       }
     }
-  } else if (CTX->operating_mode == DSM_CLASSIFY || 
+  } else if (CTX->operating_mode == DSM_CLASSIFY ||
              CTX->classification != DSR_NONE)
   {
     CTX->flags = CTX->flags ^ DSF_SIGNATURE;
@@ -509,10 +509,14 @@ process_message (
   if (have_signature && CTX->classification != DSR_NONE) {
 
     /*
-     * Reclassify (or retrain) message by signature 
+     * Reclassify (or retrain) message by signature
      */
 
-    retrain_message(CTX, ATX);
+    if (retrain_message(CTX, ATX) != 0) {
+      have_signature = 0;
+      result = EFAILURE;
+      goto RETURN;
+    }
   } else {
     CTX->signature = NULL;
     if (! ATX->train_pristine) {
@@ -527,8 +531,13 @@ process_message (
      * Call libdspam to process the environment we've configured
      */
 
-    if (!internally_canned)
+    if (!internally_canned) {
       result = dspam_process (CTX, message->data);
+      if (result != 0) {
+        result = EFAILURE;
+        goto RETURN;
+      }
+    }
   }
 
   result = CTX->result;
@@ -542,21 +551,21 @@ process_message (
    * Only if the process was successful
    */
 
-  if (result == DSR_ISINNOCENT || result == DSR_ISSPAM) 
+  if (result == DSR_ISINNOCENT || result == DSR_ISSPAM)
   {
     do_notifications(CTX, ATX);
   }
 
   if (strcmp(CTX->class, LANG_CLASS_WHITELISTED))
     result = ensure_confident_result(CTX, ATX, result);
-  if (result<0) 
+  if (result<0)
    goto RETURN;
 
   /* Inoculate other users (signature) */
 
-  if (have_signature                   && 
-     CTX->classification == DSR_ISSPAM && 
-     CTX->source != DSS_CORPUS         && 
+  if (have_signature                   &&
+     CTX->classification == DSR_ISSPAM &&
+     CTX->source != DSS_CORPUS         &&
      ATX->inoc_users->items > 0)
   {
     struct nt_node *node_int;
@@ -572,7 +581,7 @@ process_message (
 
   /* Inoculate other users (message) */
 
-  if (!have_signature                   && 
+  if (!have_signature                   &&
       CTX->classification == DSR_ISSPAM &&
       CTX->source != DSS_CORPUS         &&
       ATX->inoc_users->items > 0)
@@ -588,7 +597,7 @@ process_message (
     inoculate_user (ATX, CTX->username, NULL, message->data);
     result = DSR_ISSPAM;
     CTX->result = DSR_ISSPAM;
-    
+
     goto RETURN;
   }
 
@@ -613,7 +622,7 @@ process_message (
   {
     int valid = 0;
 
-    while (!valid) 
+    while (!valid)
     {
       _ds_create_signature_id (CTX, ATX->signature, sizeof (ATX->signature));
       if (_ds_verify_signature (CTX, ATX->signature))
@@ -638,8 +647,8 @@ process_message (
     write_web_stats (
       ATX,
       (CTX->group == NULL || CTX->flags & DSF_MERGED) ?
-        CTX->username : CTX->group, 
-      (CTX->group != NULL && CTX->flags & DSF_MERGED) ? 
+        CTX->username : CTX->group,
+      (CTX->group != NULL && CTX->flags & DSF_MERGED) ?
         CTX->group: NULL,
       &CTX->totals);
   }
@@ -658,12 +667,12 @@ process_message (
 
   /*  Fragment Store - Store 1k fragments of each message for web users who
    *  want to be able to see them from history. This requires some type of
-   *  find recipe for purging 
+   *  find recipe for purging
    */
 
-  if (ATX->PTX != NULL 
+  if (ATX->PTX != NULL
       && !strcmp(_ds_pref_val(ATX->PTX, "storeFragments"), "on")
-      && CTX->source != DSS_ERROR) 
+      && CTX->source != DSS_ERROR)
   {
     char dirname[MAX_FILENAME_LENGTH];
     char corpusfile[MAX_FILENAME_LENGTH];
@@ -745,7 +754,7 @@ process_message (
     add_xdspam_headers(CTX, ATX);
   }
 
-  if (!strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "tag") && 
+  if (!strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "tag") &&
       result == DSR_ISSPAM)
   {
     tag_message(ATX, CTX->message);
@@ -762,7 +771,7 @@ process_message (
   {
      i = embed_msgtag(CTX, ATX);
      if (i<0) {
-         return i;
+         result = i;
          goto RETURN;
      }
   }
@@ -773,7 +782,7 @@ process_message (
   {
     i = embed_signature(CTX, ATX);
     if (i<0) {
-      result = i; 
+      result = i;
       goto RETURN;
     }
   }
@@ -811,7 +820,7 @@ process_message (
         break;
     }
 
-    if (ATX->sockfd) { 
+    if (ATX->sockfd) {
       fout = ATX->sockfd;
       ATX->sockfd_output = 1;
     }
@@ -835,8 +844,10 @@ process_message (
 
 RETURN:
   if (have_signature) {
-    free(ATX->SIG.data);
-    ATX->SIG.data = NULL;
+    if (ATX->SIG.data != NULL) {
+      free(ATX->SIG.data);
+      ATX->SIG.data = NULL;
+    }
   }
   ATX->signature[0] = 0;
   nt_destroy (ATX->inoc_users);
@@ -845,7 +856,9 @@ RETURN:
     if (CTX->signature == &ATX->SIG) {
       CTX->signature = NULL;
     } else if (CTX->signature != NULL) {
-      free (CTX->signature->data);
+      if (CTX->signature->data != NULL) {
+        free (CTX->signature->data);
+      }
       free (CTX->signature);
       CTX->signature = NULL;
     }
@@ -883,11 +896,11 @@ RETURN:
 
 int
 deliver_message (
-  AGENT_CTX *ATX, 
-  const char *message, 
-  const char *mailer_args, 
-  const char *username, 
-  FILE *stream, 
+  AGENT_CTX *ATX,
+  const char *message,
+  const char *mailer_args,
+  const char *username,
+  FILE *stream,
   int result)
 {
   char args[1024];
@@ -897,10 +910,10 @@ deliver_message (
 
 #ifdef DAEMON
 
-  /* If QuarantineMailbox defined and delivering a spam, get 
-   * name of recipient, truncate possible "+detail", and 
+  /* If QuarantineMailbox defined and delivering a spam, get
+   * name of recipient, truncate possible "+detail", and
    * add the QuarantineMailbox name (that must include the "+")
-   */ 
+   */
 
   if ((_ds_read_attribute(agent_config, "QuarantineMailbox")) &&
       (result == DSR_ISSPAM)) {
@@ -922,11 +935,11 @@ deliver_message (
     ATX->recipient=args;
   }
 
-  /* If (using LMTP or SMTP) and (not delivering to stdout) and 
-   * (we shouldn't be delivering this to a quarantine agent) 
+  /* If (using LMTP or SMTP) and (not delivering to stdout) and
+   * (we shouldn't be delivering this to a quarantine agent)
    * then call deliver_socket to deliver to DeliveryHost
    */
- 
+
   if (
     (USE_LMTP || USE_SMTP) && ! (ATX->flags & DAF_STDOUT) &&
     (!(result == DSR_ISSPAM &&
@@ -937,7 +950,7 @@ deliver_message (
     return deliver_socket(ATX, message, (USE_LMTP) ? DDP_LMTP : DDP_SMTP);
   }
 #endif
- 
+
   if (message == NULL)
     return EINVAL;
 
@@ -946,10 +959,10 @@ deliver_message (
    * in order to support broken returnCodes.s
    */
 
-  if (ATX->sockfd && ATX->flags & DAF_STDOUT) 
-    fprintf(stream, "X-Daemon-Classification: %s\n", 
+  if (ATX->sockfd && ATX->flags & DAF_STDOUT)
+    fprintf(stream, "X-Daemon-Classification: %s\n",
                      (result == DSR_ISSPAM) ? "SPAM" : "INNOCENT");
-  
+
   if (mailer_args == NULL) {
     fputs (message, stream);
     return 0;
@@ -964,8 +977,7 @@ deliver_message (
   while (arg != NULL)
   {
     char a[256], b[256];
-    size_t i;
- 
+
     /* Destination user */
 
     if (!strcmp (arg, "$u") || !strcmp (arg, "\\$u") ||
@@ -976,9 +988,9 @@ deliver_message (
 
     /* Recipient (from RCPT TO)*/
 
-    else if (!strcmp (arg, "%r") || !strcmp (arg, "\\%r")) 
+    else if (!strcmp (arg, "%r") || !strcmp (arg, "\\%r"))
     {
-      if (ATX->recipient) 
+      if (ATX->recipient)
         strlcpy(a, ATX->recipient, sizeof(a));
       else
         strlcpy(a, username, sizeof(a));
@@ -995,8 +1007,9 @@ deliver_message (
     /* Escape special characters */
 
     if (strcmp(a, "\"\"")) {
+      size_t i;
       for(i=0;i<strlen(a);i++) {
-        if (!(isalnum((unsigned char) a[i]) || a[i] == '+' || a[i] == '_' || 
+        if (!(isalnum((unsigned char) a[i]) || a[i] == '+' || a[i] == '_' ||
             a[i] == '-' || a[i] == '.' || a[i] == '/' || a[i] == '@')) {
           strlcpy(b, a+i, sizeof(b));
           a[i] = '\\';
@@ -1007,7 +1020,7 @@ deliver_message (
       }
     }
 
-    if (arg != NULL) 
+    if (arg != NULL)
       strlcat (args, a, sizeof(args));
 
     arg = strsep(&margs, " ");
@@ -1040,7 +1053,7 @@ deliver_message (
       LOGDEBUG ("LDA returned success");
     } else {
       LOG(LOG_ERR, ERR_LDA_EXIT, lda_exit_code, args);
-      if (_ds_match_attribute(agent_config, "LMTPLDAErrorsPermanent", "on")) 
+      if (_ds_match_attribute(agent_config, "LMTPLDAErrorsPermanent", "on"))
         return EINVAL;
       else
         return lda_exit_code;
@@ -1092,31 +1105,31 @@ int tag_message(AGENT_CTX *ATX, ds_message_t message)
   if (_ds_pref_val(ATX->PTX, "spamSubject")[0] != '\n' &&
       _ds_pref_val(ATX->PTX, "spamSubject")[0] != 0)
   {
-    strlcpy(spam_subject, _ds_pref_val(ATX->PTX, "spamSubject"), 
+    strlcpy(spam_subject, _ds_pref_val(ATX->PTX, "spamSubject"),
             sizeof(spam_subject));
   }
 
   /* Only scan the first (primary) header of the message. */
 
-  while (node_header != NULL) 
+  while (node_header != NULL)
   {
     ds_header_t head;
 
     head = (ds_header_t) node_header->ptr;
-    if (head->heading && !strcasecmp(head->heading, "Subject")) 
+    if (head->heading && !strcasecmp(head->heading, "Subject"))
     {
 
       /* CURRENT HEADER: Is this header already tagged? */
 
-      if (strncmp(head->data, spam_subject, strlen(spam_subject))) 
+      if (strncmp(head->data, spam_subject, strlen(spam_subject)))
       {
         /* Not tagged, so tag it */
         long subject_length = strlen(head->data)+strlen(spam_subject)+2;
         char *subject = malloc(subject_length);
         if (subject != NULL) {
-          snprintf(subject, 
-                   subject_length, "%s %s", 
-                   spam_subject, 
+          snprintf(subject,
+                   subject_length, "%s %s",
+                   spam_subject,
                    head->data);
           free(head->data);
           head->data = subject;
@@ -1126,7 +1139,7 @@ int tag_message(AGENT_CTX *ATX, ds_message_t message)
       /* ORIGINAL HEADER: Is this header already tagged? */
 
       if (head->original_data != NULL &&
-          strncmp(head->original_data, spam_subject, strlen(spam_subject))) 
+          strncmp(head->original_data, spam_subject, strlen(spam_subject)))
       {
         /* Not tagged => tag it. */
         long subject_length = strlen(head->original_data)+strlen(spam_subject)+2;
@@ -1148,14 +1161,14 @@ int tag_message(AGENT_CTX *ATX, ds_message_t message)
 
   /* There doesn't seem to be a subject field, so make one */
 
-  if (!tagged) 
+  if (!tagged)
   {
     char text[80];
     ds_header_t header;
     snprintf(text, sizeof(text), "Subject: %s", spam_subject);
     header = _ds_create_header_field(text);
     if (header != NULL)
-    { 
+    {
 #ifdef VERBOSE
       LOGDEBUG("appending header %s: %s", header->heading, header->data);
 #endif
@@ -1167,7 +1180,7 @@ int tag_message(AGENT_CTX *ATX, ds_message_t message)
 }
 
 /*
- * quarantine_message(AGENT_CTX *ATX, const char *message, 
+ * quarantine_message(AGENT_CTX *ATX, const char *message,
  *                    const char *username)
  *
  * DESCRIPTION
@@ -1190,7 +1203,7 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
   int line = 1, i;
   FILE *file;
 
-  _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), 
+  _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"),
                    LOOKUP(ATX->PTX, username), "mbox");
   _ds_prepare_path_for(filename);
   file = fopen (filename, "a");
@@ -1271,17 +1284,17 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
 int
 write_web_stats (
   AGENT_CTX *ATX,
-  const char *username, 
-  const char *group, 
+  const char *username,
+  const char *group,
   struct _ds_spam_totals *totals)
 {
   char filename[MAX_FILENAME_LENGTH];
   FILE *file;
 
-  if (!totals) 
+  if (!totals)
     return EINVAL;
 
-  _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), 
+  _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"),
                    LOOKUP(ATX->PTX, username), "stats");
   _ds_prepare_path_for (filename);
   file = fopen (filename, "w");
@@ -1291,7 +1304,7 @@ write_web_stats (
   }
 
   fprintf (file, "%ld,%ld,%ld,%ld,%ld,%ld\n",
-           MAX(0, (totals->spam_learned + totals->spam_classified) - 
+           MAX(0, (totals->spam_learned + totals->spam_classified) -
              (totals->spam_misclassified + totals->spam_corpusfed)),
            MAX(0, (totals->innocent_learned + totals->innocent_classified) -
              (totals->innocent_misclassified + totals->innocent_corpusfed)),
@@ -1300,13 +1313,13 @@ write_web_stats (
 
   if (group)
     fprintf(file, "%s\n", group);
-  
+
   fclose (file);
   return 0;
 }
 
 /*
- * inoculate_user(AGENT_CTX *ATX, const char *username, 
+ * inoculate_user(AGENT_CTX *ATX, const char *username,
  *                struct _ds_spam_signature *SIG, const char *message)
  *
  * DESCRIPTION
@@ -1325,7 +1338,7 @@ write_web_stats (
 int
 inoculate_user (
   AGENT_CTX *ATX,
-  const char *username, 
+  const char *username,
   struct _ds_spam_signature *SIG,
   const char *message)
 {
@@ -1349,21 +1362,21 @@ inoculate_user (
 
     if (ATX->flags & DAF_NOISE)
       f_all |= DSF_NOISE;
-                                                                                
-    if (ATX->PTX != NULL && 
-        strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "")) 
+
+    if (ATX->PTX != NULL &&
+        strcmp(_ds_pref_val(ATX->PTX, "processorBias"), ""))
     {
       if (!strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "on"))
         f_all |= DSF_BIAS;
     } else {
-      if (_ds_match_attribute(agent_config, "ProcessorBias", "on")) 
+      if (_ds_match_attribute(agent_config, "ProcessorBias", "on"))
         f_all |= DSF_BIAS;
     }
 
-    INOC = dspam_create (username, 
-                       NULL, 
-                       _ds_read_attribute(agent_config, "Home"), 
-                       DSM_PROCESS, 
+    INOC = dspam_create (username,
+                       NULL,
+                       _ds_read_attribute(agent_config, "Home"),
+                       DSM_PROCESS,
                        f_all);
     if (INOC)
     {
@@ -1431,20 +1444,20 @@ user_classify (
 
   if (ATX->flags & DAF_NOISE)
     f_all |= DSF_NOISE;
-                                                                                
+
   if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "")) {
     if (!strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "on"))
       f_all |= DSF_BIAS;
   } else {
-    if (_ds_match_attribute(agent_config, "ProcessorBias", "on")) 
+    if (_ds_match_attribute(agent_config, "ProcessorBias", "on"))
       f_all |= DSF_BIAS;
   }
 
   /* First see if the user needs to be inoculated */
   CLX = dspam_create (username,
-                    NULL,  
-                    _ds_read_attribute(agent_config, "Home"),  
-                    DSM_CLASSIFY, 
+                    NULL,
+                    _ds_read_attribute(agent_config, "Home"),
+                    DSM_CLASSIFY,
                     f_all);
   if (CLX)
   {
@@ -1466,7 +1479,7 @@ user_classify (
       if (message == NULL) {
         LOG(LOG_WARNING, "user_classify: SIG = %ld, message = NULL\n", (unsigned long) SIG);
         return EFAILURE;
-      } 
+      }
       result = dspam_process (CLX, message);
     }
 
@@ -1505,10 +1518,10 @@ user_classify (
  */
 
 int send_notice(
-  AGENT_CTX *ATX, 
-  const char *filename, 
-  const char *mailer_args, 
-  const char *username) 
+  AGENT_CTX *ATX,
+  const char *filename,
+  const char *mailer_args,
+  const char *username)
 {
   FILE *f;
   char msgfile[MAX_FILENAME_LENGTH];
@@ -1518,8 +1531,8 @@ int send_notice(
   int ret;
 
   time(&now);
-                                                                                
-  snprintf(msgfile, sizeof(msgfile), CONFDIR "/txt/%s", filename);
+
+  snprintf(msgfile, sizeof(msgfile), "%s/txt/%s", _ds_read_attribute(agent_config, "Home"), filename);
   f = fopen(msgfile, "r");
   if (!f) {
     LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
@@ -1529,6 +1542,7 @@ int send_notice(
   b = buffer_create(NULL);
   if (!b) {
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    fclose(f);
     return EUNKNOWN;
   }
 
@@ -1549,7 +1563,7 @@ int send_notice(
     buffer_cat(b, s);
   }
   fclose(f);
-  ret = deliver_message(ATX, b->data, mailer_args, username, 
+  ret = deliver_message(ATX, b->data, mailer_args, username,
                         stdout, DSR_ISINNOCENT);
 
   buffer_destroy(b);
@@ -1600,19 +1614,19 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
   {
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
-    int result, optin, optout;
+    int optin, optout;
     char *username;
 
-    /* If ServerParameters specifies a --user, there will only be one 
+    /* If ServerParameters specifies a --user, there will only be one
      * instance on the stack, but possible multiple recipients. So we
      * need to recycle.
      */
 
-    if (node_nt == NULL) 
+    if (node_nt == NULL)
       node_nt = ATX->users->first;
 
-    /* Set the "current recipient" to either the next item on the rcpt stack 
-     * or the current user if not present. 
+    /* Set the "current recipient" to either the next item on the rcpt stack
+     * or the current user if not present.
      */
 
 
@@ -1638,9 +1652,9 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 	}
 #endif
 	username = node_nt->ptr;
-	
+
     presult = calloc(1, sizeof(struct agent_result));
-    if (node_rcpt) { 
+    if (node_rcpt) {
       ATX->recipient = node_rcpt->ptr;
       node_rcpt = c_nt_next (ATX->recipients, &c_rcpt);
     } else {
@@ -1699,7 +1713,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
          _ds_match_attribute(agent_config, "Debug", node_nt->ptr)))
     {
       // No DebugOpt specified; turn it on for everything
-      if (!_ds_read_attribute(agent_config, "DebugOpt")) 
+      if (!_ds_read_attribute(agent_config, "DebugOpt"))
       {
         DO_DEBUG = 1;
       }
@@ -1771,7 +1785,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 #endif
 
     /*
-     * Determine if the user is opted in or out 
+     * Determine if the user is opted in or out
      */
 
     ATX->PTX = load_aggregated_prefs(ATX, username);
@@ -1781,14 +1795,14 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     }
 
     ATX->train_pristine = 0;
-    if ((_ds_match_attribute(agent_config, "TrainPristine", "on") || 
+    if ((_ds_match_attribute(agent_config, "TrainPristine", "on") ||
         !strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "on")) &&
         strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "off")) {
             ATX->train_pristine = 1;
     }
 
-    _ds_userdir_path(filename, 
-                     _ds_read_attribute(agent_config, "Home"), 
+    _ds_userdir_path(filename,
+                     _ds_read_attribute(agent_config, "Home"),
                      LOOKUP(ATX->PTX, username), "dspam");
     optin = stat(filename, &s);
 
@@ -1799,15 +1813,15 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     }
 #endif
 
-    _ds_userdir_path(filename, 
-                     _ds_read_attribute(agent_config, "Home"), 
+    _ds_userdir_path(filename,
+                     _ds_read_attribute(agent_config, "Home"),
                      LOOKUP(ATX->PTX, username), "nodspam");
     optout = stat(filename, &s);
 
     /* If the message is too big to process, just deliver it */
 
     if (_ds_read_attribute(agent_config, "MaxMessageSize")) {
-      if (parse_message->used > 
+      if (parse_message->used >
           atoi(_ds_read_attribute(agent_config, "MaxMessageSize")))
       {
         LOG (LOG_INFO, "message too big, delivering");
@@ -1833,7 +1847,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
           deliver_message (ATX, parse_message->data,
                            (ATX->flags & DAF_STDOUT) ? NULL : ATX->mailer_args,
                             node_nt->ptr, fout, DSR_ISINNOCENT);
-        if (retcode) 
+        if (retcode)
           presult->exitcode = ERC_DELIVERY;
 	if (retcode == EINVAL)
           presult->exitcode = ERC_PERMANENT_DELIVERY;
@@ -1847,8 +1861,9 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     /* Call process_message(), then handle result appropriately */
 
     else
-    { 
+    {
       char *result_string = NULL;
+      int result;
       result = process_message (ATX, parse_message, username, &result_string);
       presult->classification = result;
 
@@ -1884,10 +1899,10 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       }
 
       /*
-       * Classify Only 
+       * Classify Only
        */
 
-      if (ATX->operating_mode == DSM_CLASSIFY) 
+      if (ATX->operating_mode == DSM_CLASSIFY)
       {
         node_nt = c_nt_next (ATX->users, &c_nt);
         _ds_pref_free(ATX->PTX);
@@ -1901,7 +1916,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       }
 
       /*
-       * Classify and Process 
+       * Classify and Process
        */
 
       /* Innocent */
@@ -1912,8 +1927,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
         /* Processing Error */
 
-        if (result != DSR_ISINNOCENT        && 
-            ATX->classification != DSR_NONE && 
+        if (result != DSR_ISINNOCENT        &&
+            ATX->classification != DSR_NONE &&
             ATX->classification != DSR_NONE)
         {
           deliver = 0;
@@ -1945,7 +1960,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
             presult->exitcode = ERC_PERMANENT_DELIVERY;
           strlcpy(presult->text, ATX->status, sizeof(presult->text));
 
-            if (result == DSR_ISINNOCENT && 
+            if (result == DSR_ISINNOCENT &&
                 _ds_match_attribute(agent_config, "OnFail", "unlearn") &&
                 ATX->learned)
             {
@@ -1972,8 +1987,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
           /* If a specific quarantine has been configured, use it */
 
           if (ATX->source != DSS_CORPUS) {
-            if (ATX->spam_args[0] != 0 || 
-                 (ATX->PTX != NULL && 
+            if (ATX->spam_args[0] != 0 ||
+                 (ATX->PTX != NULL &&
                    ( !strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "tag") ||
                      !strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "deliver") )
                  )
@@ -1983,7 +1998,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                 if (ATX->spam_args[0] != 0) {
                   retcode = deliver_message
                     (ATX, parse_message->data,
-                     (ATX->flags & DAF_STDOUT) ? NULL : ATX->spam_args, 
+                     (ATX->flags & DAF_STDOUT) ? NULL : ATX->spam_args,
                      node_nt->ptr, fout, DSR_ISSPAM);
                   if (ATX->sockfd && ATX->flags & DAF_STDOUT)
                     ATX->sockfd_output = 1;
@@ -1996,7 +2011,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                     ATX->sockfd_output = 1;
                 }
 
-                if (retcode) 
+                if (retcode)
                   presult->exitcode = ERC_DELIVERY;
                 if (retcode == EINVAL)
                   presult->exitcode = ERC_PERMANENT_DELIVERY;
@@ -2013,11 +2028,11 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
                   retcode = 0;
                 } else {
                   if (ATX->managed_group[0] == 0)
-                    retcode = 
+                    retcode =
                       quarantine_message (ATX, parse_message->data, username);
                   else
-                    retcode = 
-                      quarantine_message (ATX, parse_message->data, 
+                    retcode =
+                      quarantine_message (ATX, parse_message->data,
                                           ATX->managed_group);
                 }
               }
@@ -2125,11 +2140,11 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   first_boundary[0] = 0;
 
-  if (ATX->signature[0] != 0) 
+  if (ATX->signature[0] != 0)
     return 1;
 
   /* Iterate through each message component in search of a signature
-   * and decode components as necessary 
+   * and decode components as necessary
    */
 
   node_nt = c_nt_first (CTX->message->components, &c);
@@ -2148,8 +2163,8 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 #endif
 
     if (block->media_type == MT_TEXT
-        || block->media_type == MT_MESSAGE 
-        || block->media_type == MT_UNKNOWN 
+        || block->media_type == MT_MESSAGE
+        || block->media_type == MT_UNKNOWN
         || (!i && block->media_type == MT_MULTIPART))
     {
       char *body;
@@ -2192,7 +2207,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
           body = _ds_decode_block (block);
 
-          if (is_signed) 
+          if (is_signed)
           {
             LOGDEBUG
               ("message is signed.  retaining original text for reassembly");
@@ -2234,10 +2249,10 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           node_header = block->headers->first;
           while(node_header != NULL) {
             head = (ds_header_t) node_header->ptr;
-            if (head->heading && 
-                !strcmp(head->heading, "X-DSPAM-Signature")) {
-              if (!strncmp(head->data, SIGNATURE_BEGIN, 
-                           strlen(SIGNATURE_BEGIN))) 
+            if (head->heading &&
+                !strcasecmp(head->heading, "X-DSPAM-Signature")) {
+              if (!strncmp(head->data, SIGNATURE_BEGIN,
+                           strlen(SIGNATURE_BEGIN)))
               {
                 body = head->data;
               }
@@ -2247,7 +2262,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
                 have_signature = 1;
               }
               break;
-            } 
+            }
             node_header = node_header->next;
           }
         }
@@ -2256,9 +2271,9 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       if (!ATX->train_pristine &&
 
         /* Don't keep searching if we've already found the signature in the
-         * headers, and we're using signatureLocation=headers 
+         * headers, and we're using signatureLocation=headers
          */
-        (!have_signature || 
+        (!have_signature ||
          strcmp(_ds_pref_val(ATX->PTX, "signatureLocation"), "headers")))
       {
         /* Look for signature */
@@ -2270,7 +2285,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
             signature_begin = strstr (body, LOOSE_SIGNATURE_BEGIN);
             tight = 0;
           }
- 
+
           if (signature_begin)
           {
             erase_begin = signature_begin;
@@ -2286,7 +2301,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
             }
 
             signature_end = signature_begin;
-  
+
             /* Find the signature's end character */
             while (signature_end != NULL
               && signature_end[0] != 0
@@ -2295,7 +2310,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
             {
               signature_end++;
             }
-  
+
             if (signature_end != NULL)
             {
               signature_length = signature_end - signature_begin;
@@ -2310,7 +2325,7 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
                   memmove(ATX->signature, ATX->signature+1, strlen(ATX->signature));
                 }
 
-                if (strcmp(_ds_pref_val(ATX->PTX, "signatureLocation"), 
+                if (strcmp(_ds_pref_val(ATX->PTX, "signatureLocation"),
                     "headers")) {
 
                   if (!is_signed && ATX->classification == DSR_NONE) {
@@ -2376,7 +2391,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
   /* Set Group Membership */
 
   if (strcmp(_ds_pref_val(ATX->PTX, "ignoreGroups"), "on")) {
-    snprintf (filename, sizeof (filename), "%s/group", 
+    snprintf (filename, sizeof (filename), "%s/group",
               _ds_read_attribute(agent_config, "Home"));
     file = fopen (filename, "r");
     if (file != NULL)
@@ -2384,7 +2399,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
       char *group;
       char *user;
       char buffer[10240];
-  
+
       while (fgets (buffer, sizeof (buffer), file) != NULL)
       {
         int do_inocgroups = 0;
@@ -2393,7 +2408,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
 
         if (buffer[0] == 0 || buffer[0] == '#' || buffer[0] == ';')
           continue;
-       
+
         list = strdup (buffer);
         group = strtok (buffer, ":");
 
@@ -2401,23 +2416,23 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
         {
           type = strtok (NULL, ":");
           user = strtok (NULL, ",");
-  
+
           if (!type)
             continue;
-  
+
           if (!strcasecmp (type, "INOCULATION") &&
               ATX->classification == DSR_ISSPAM &&
               ATX->source != DSS_CORPUS)
           {
             do_inocgroups = 1;
           }
-  
+
           while (user != NULL)
           {
-            if (!strcmp (user, username) || !strcmp(user, "*") ||
-               (!strncmp(user, "*@", 2) && !strcmp(user+1, strchr(username,'@'))))
+            if (strcasecmp(user,username) == 0 || strcmp(user,"*") == 0 ||
+               (strncmp(user,"*@",2) == 0 && strchr(username,'@') != NULL && strcasecmp(user+1,strchr(username,'@')) == 0))
             {
-  
+
               /* If we're reporting a spam, report it as a spam to all other
                * users in the inoculation group */
               if (do_inocgroups)
@@ -2428,30 +2443,27 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
                 u = strsep (&l, ",");
                 while (u != NULL)
                 {
-                  if (strcmp (u, username))
+                  if (strcasecmp(u,username) != 0)
                   {
-                    LOGDEBUG ("adding user %s to inoculation group %s", u,
-                              group);
-                   if (u[0] == '*') {
+                    LOGDEBUG ("adding user %s to inoculation group %s", u, group);
+                    if (u[0] == '*') {
                       nt_add (ATX->inoc_users, u+1);
-                    } else
+                    } else {
                       nt_add (ATX->inoc_users, u);
+                    }
                   }
                   u = strsep (&l, ",");
                 }
               }
-              else if (!strncasecmp (type, "SHARED", 6)) 
+              else if (strncasecmp (type, "SHARED", 6) == 0)
               {
                 strlcpy (ctx_group, group, sizeof (ctx_group));
                 LOGDEBUG ("assigning user %s to group %s", username, group);
-  
-                if (!strncasecmp (type + 6, ",MANAGED", 8))
-                  strlcpy (ATX->managed_group, 
-                           ctx_group, 
-                           sizeof(ATX->managed_group));
-  
+                if (strncasecmp (type + 6, ",MANAGED", 8) == 0) {
+                  strlcpy (ATX->managed_group, ctx_group, sizeof(ATX->managed_group));
+                }
               }
-              else if (!strcasecmp (type, "CLASSIFICATION"))
+              else if (strcasecmp (type, "CLASSIFICATION") == 0)
               {
                 char *l = list, *u;
                 u = strsep (&l, ":");
@@ -2459,21 +2471,20 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
                 u = strsep (&l, ",");
                 while (u != NULL)
                 {
-                  if (strcmp (u, username))
+                  if (strcasecmp (u, username) != 0)
                   {
-                    LOGDEBUG ("adding user %s to classification group %s", u,
-                              group);
-               
+                    LOGDEBUG ("adding user %s to classification group %s", u, group);
                     if (u[0] == '*') {
                       ATX->flags |= DAF_GLOBAL;
                       nt_add (ATX->classify_users, u+1);
-                    } else
+                    } else {
                       nt_add (ATX->classify_users, u);
+                    }
                   }
                   u = strsep (&l, ",");
                 }
               }
-              else if (!strcasecmp (type, "MERGED") && strcmp(group, username))
+              else if (strcasecmp (type, "MERGED") == 0 && strcasecmp(group, username) != 0)
               {
                 char *l = list, *u;
                 u = strsep (&l, ":");
@@ -2481,18 +2492,14 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
                 u = strsep (&l, ",");
                 while (u != NULL)
                 {
-                  if (!strcmp (u, username) || u[0] == '*')
-                  {
-                      LOGDEBUG ("adding user to merged group %s", group);
-  
-                      ATX->flags |= DAF_MERGED;
-                                                                                  
-                      strlcpy(ctx_group, group, sizeof(ctx_group));
+                  if (strcasecmp (u, username) == 0 || u[0] == '*') {
+                    LOGDEBUG ("adding user to merged group %s", group);
+                    ATX->flags |= DAF_MERGED;
+                    strlcpy(ctx_group, group, sizeof(ctx_group));
                   } else if (u[0] == '-' && !strcmp(u+1, username)) {
-                      LOGDEBUG ("removing user from merged group %s", group);
-  
-                      ATX->flags ^= DAF_MERGED;
-                      ctx_group[0] = 0;
+                    LOGDEBUG ("removing user from merged group %s", group);
+                    ATX->flags ^= DAF_MERGED;
+                    ctx_group[0] = 0;
                   }
                   u = strsep (&l, ",");
                 }
@@ -2502,7 +2509,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
             user = strtok (NULL, ",");
           }
         }
-  
+
         free (list);
       }
       fclose (file);
@@ -2530,7 +2537,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
     if (!strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "on"))
       f_all |= DSF_BIAS;
   } else {
-    if (_ds_match_attribute(agent_config, "ProcessorBias", "on")) 
+    if (_ds_match_attribute(agent_config, "ProcessorBias", "on"))
       f_all |= DSF_BIAS;
   }
 
@@ -2546,10 +2553,10 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
   if (ATX->flags & DAF_MERGED)
     f_all |= DSF_MERGED;
 
-  CTX = dspam_create (username, 
-                    ctx_group, 
+  CTX = dspam_create (username,
+                    ctx_group,
                     _ds_read_attribute(agent_config, "Home"),
-                    f_mode, 
+                    f_mode,
                     f_all);
 
   if (CTX == NULL)
@@ -2559,7 +2566,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
     CTX->training_buffer = atoi(_ds_pref_val(ATX->PTX, "statisticalSedation"));
   else if (ATX->training_buffer>=0)
     CTX->training_buffer = ATX->training_buffer;
-    LOGDEBUG("sedation level set to: %d", CTX->training_buffer); 
+    LOGDEBUG("sedation level set to: %d", CTX->training_buffer);
 
   if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "whitelistThreshold"), ""))
     CTX->wh_threshold = atoi(_ds_pref_val(ATX->PTX, "whitelistThreshold"));
@@ -2602,36 +2609,39 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
  */
 
 int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
-  int result;
   int do_train = 1, iter = 0, ck_result = 0, t_mode = CTX->source;
 
   /* Train until test conditions are met, 5 iterations max */
 
   if (!_ds_match_attribute(agent_config, "TestConditionalTraining", "on")) {
-    result = dspam_process (CTX, NULL);
+    ck_result = dspam_process (CTX, NULL);
+    if (ck_result != 0)
+      return EFAILURE;
   } else {
     while (do_train && iter < 5)
     {
       DSPAM_CTX *CLX;
       int match;
 
-      match = (CTX->classification == DSR_ISSPAM) ? 
+      match = (CTX->classification == DSR_ISSPAM) ?
         DSR_ISSPAM : DSR_ISINNOCENT;
       iter++;
 
-      result = dspam_process (CTX, NULL);
+      ck_result = dspam_process (CTX, NULL);
+      if (ck_result != 0)
+        return EFAILURE;
 
       /* Only subtract innocent values once */
       CTX->source = DSS_CORPUS;
 
-      LOGDEBUG ("reclassifying iteration %d result: %d", iter, result);
+      LOGDEBUG ("reclassifying iteration %d result: %d", iter, ck_result);
 
       if (t_mode == DSS_CORPUS)
         do_train = 0;
 
       /* Only attempt test-conditional training on a mature corpus */
 
-      if (CTX->totals.innocent_learned+CTX->totals.innocent_classified<1000 && 
+      if (CTX->totals.innocent_learned+CTX->totals.innocent_classified<1000 &&
           CTX->classification == DSR_ISSPAM)
       {
         do_train = 0;
@@ -2644,20 +2654,20 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         if (ATX->flags & DAF_NOISE)
           f_all |= DSF_NOISE;
 
-        if (ATX->PTX != NULL && 
-            strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "")) 
+        if (ATX->PTX != NULL &&
+            strcmp(_ds_pref_val(ATX->PTX, "processorBias"), ""))
         {
           if (!strcmp(_ds_pref_val(ATX->PTX, "processorBias"), "on"))
             f_all |= DSF_BIAS;
         } else {
-          if (_ds_match_attribute(agent_config, "ProcessorBias", "on")) 
+          if (_ds_match_attribute(agent_config, "ProcessorBias", "on"))
             f_all |= DSF_BIAS;
         }
 
-        CLX = dspam_create (CTX->username, 
-                          CTX->group, 
-                          _ds_read_attribute(agent_config, "Home"), 
-                          DSM_CLASSIFY, 
+        CLX = dspam_create (CTX->username,
+                          CTX->group,
+                          _ds_read_attribute(agent_config, "Home"),
+                          DSM_CLASSIFY,
                           f_all);
         if (!CLX)
         {
@@ -2676,6 +2686,8 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
         CLX->signature = &ATX->SIG;
         ck_result = dspam_process (CLX, NULL);
+        if (ck_result != 0)
+          return EFAILURE;
         if (ck_result || CLX->result == match)
           do_train = 0;
         CLX->signature = NULL;
@@ -2712,13 +2724,13 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
   int was_spam = 0;
 
   /* Defer to global group */
-  if (ATX->flags & DAF_GLOBAL && 
+  if (ATX->flags & DAF_GLOBAL &&
       ((CTX->totals.innocent_learned + CTX->totals.innocent_corpusfed < 1000 ||
         CTX->totals.spam_learned + CTX->totals.spam_corpusfed < 250)         ||
       (CTX->training_mode == DST_NOTRAIN))
      )
   {
-    if (result == DSR_ISSPAM) { 
+    if (result == DSR_ISSPAM) {
       was_spam = 1;
       CTX->result = DSR_ISINNOCENT;
       result = DSR_ISINNOCENT;
@@ -2726,10 +2738,10 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
     CTX->confidence = 0.60f;
   }
 
-  if (result != DSR_ISSPAM               && 
+  if (result != DSR_ISSPAM               &&
       CTX->operating_mode == DSM_PROCESS &&
-      CTX->classification == DSR_NONE    && 
-      CTX->confidence < 0.65) 
+      CTX->classification == DSR_NONE    &&
+      CTX->confidence < 0.65)
   {
       struct nt_node *node_int;
       struct nt_c c_i;
@@ -2745,7 +2757,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
           LOGDEBUG ("CLASSIFY CATCH: %s", (const char *) node_int->ptr);
           CTX->result = result;
         }
-  
+
         node_int = c_nt_next (ATX->classify_users, &c_i);
       }
 
@@ -2777,7 +2789,7 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
     }
 
     /* If the global user thinks it's innocent, and the user thought it was
-     * spam, retrain the user as a false positive 
+     * spam, retrain the user as a false positive
      */
 
     if (result == DSR_ISINNOCENT && was_spam) {
@@ -2786,9 +2798,9 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
         LOG(LOG_CRIT, ERR_MEM_ALLOC);
         return EUNKNOWN;
       }
-                                                                                
+
       memcpy(CTC, CTX, sizeof(DSPAM_CTX));
-                                                                                
+
       CTC->operating_mode = DSM_PROCESS;
       CTC->classification = DSR_ISINNOCENT;
       CTC->source         = DSS_ERROR;
@@ -2858,21 +2870,21 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   char x[1024], subject_buf[256], from_buf[256];
   char *messageid = NULL;
 
-  if (CTX->message) 
-    messageid = _ds_find_header(CTX->message, "Message-Id", DDF_ICASE);
+  if (CTX->message)
+    messageid = _ds_find_header(CTX->message, "Message-Id");
 
-  if (ATX->status[0] == 0 && CTX->source == DSS_ERROR && 
+  if (ATX->status[0] == 0 && CTX->source == DSS_ERROR &&
      (!(ATX->flags & DAF_UNLEARN)))
   {
     STATUS("Retrained");
   }
 
-  if (ATX->status[0] == 0 && CTX->classification == DSR_NONE 
+  if (ATX->status[0] == 0 && CTX->classification == DSR_NONE
                           && CTX->result == DSR_ISSPAM
                           && ATX->status[0] == 0)
   {
     if (_ds_pref_val(ATX->PTX, "spamAction")[0] == 0 ||
-        !strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "quarantine")) 
+        !strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "quarantine"))
     {
       STATUS("Quarantined");
     } else if (!strcmp(_ds_pref_val(ATX->PTX, "spamAction"), "tag")) {
@@ -2882,9 +2894,9 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     }
   }
 
-  if (ATX->status[0] == 0             && 
+  if (ATX->status[0] == 0             &&
       CTX->classification == DSR_NONE &&
-      CTX->result == DSR_ISINNOCENT) 
+      CTX->result == DSR_ISINNOCENT)
   {
     STATUS("Delivered");
   }
@@ -2895,7 +2907,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   if (node_nt != NULL)
   {
     ds_message_part_t block;
-                                                                              
+
     block = node_nt->ptr;
     if (block->headers != NULL)
     {
@@ -2906,7 +2918,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       while(node_header != NULL) {
         head = (ds_header_t) node_header->ptr;
 	if (head) {
-          if (!strcasecmp(head->heading, "Subject")) 
+          if (!strcasecmp(head->heading, "Subject"))
             subject = head->data;
           else if (!strcasecmp(head->heading, "From"))
             from = head->data;
@@ -2917,28 +2929,34 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     }
   }
 
-  if (CTX->result == DSR_ISSPAM)
-    class = 'S';
-  else if (!strcmp(CTX->class, LANG_CLASS_WHITELISTED))
+  if (!strcmp(CTX->class, LANG_CLASS_WHITELISTED))
     class = 'W';
-  else 
+  else if (!strcmp(CTX->class, LANG_CLASS_VIRUS))
+    class = 'V';
+  else if (!strcmp(CTX->class, LANG_CLASS_BLACKLISTED))
+    class = 'A';
+  else if (!strcmp(CTX->class, LANG_CLASS_BLOCKLISTED))
+    class = 'O';
+  else if (CTX->result == DSR_ISSPAM)
+    class = 'S';
+  else if (CTX->result == DSR_ISINNOCENT)
     class = 'I';
+  else
+    class = 'U';
 
-  if (CTX->source == DSS_ERROR) { 
+  if (CTX->source == DSS_ERROR) {
     if (CTX->classification == DSR_ISSPAM)
       class = 'M';
     else if (CTX->classification == DSR_ISINNOCENT)
       class = 'F';
-  }
-
-  if (CTX->source == DSS_INOCULATION)
+  } else if (CTX->source == DSS_INOCULATION)
     class = 'N';
   else if (CTX->source == DSS_CORPUS)
     class = 'C';
-     
+
   if (ATX->flags & DAF_UNLEARN) {
     char stat[256];
-    snprintf(stat, sizeof(stat), "Delivery Failed (%s)", 
+    snprintf(stat, sizeof(stat), "Delivery Failed (%s)",
              (ATX->status[0]) ? ATX->status : "No error provided");
     STATUS(stat);
     class = 'E';
@@ -2979,7 +2997,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   /* Write system.log */
 
   if (_ds_match_attribute(agent_config, "SystemLog", "on")) {
-    snprintf(filename, sizeof(filename), "%s/system.log", 
+    snprintf(filename, sizeof(filename), "%s/system.log",
              _ds_read_attribute(agent_config, "Home"));
     file = fopen(filename, "a");
     if (file != NULL) {
@@ -3008,7 +3026,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 }
 
 /*
- * add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) 
+ * add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX)
  *
  * DESCRIPTION
  *   Add X-DSPAM headers to the message being processed
@@ -3034,14 +3052,14 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     struct nt_c c_ft;
     if (block != NULL && block->headers != NULL)
     {
-      ds_header_t head; 
+      ds_header_t head;
       char data[10240];
       char scratch[128];
 
       snprintf(data, sizeof(data), "%s: %s",
         (CTX->source == DSS_ERROR) ? "X-DSPAM-Reclassified" : "X-DSPAM-Result",
         CTX->class);
-  
+
       head = _ds_create_header_field(data);
       if (head != NULL)
       {
@@ -3073,7 +3091,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       }
 
       if (CTX->source != DSS_ERROR) {
-        snprintf(data, sizeof(data), "X-DSPAM-Confidence: %01.4f", 
+        snprintf(data, sizeof(data), "X-DSPAM-Confidence: %01.4f",
                  CTX->confidence);
         head = _ds_create_header_field(data);
         if (head != NULL)
@@ -3090,7 +3108,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         {
           float probability = CTX->confidence;
           char *as;
-          if (probability > 0.999999) 
+          if (probability > 0.999999)
             probability = 0.999999;
           if (CTX->result == DSR_ISINNOCENT) {
             as = "spam";
@@ -3113,7 +3131,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         }
 
 
-        snprintf(data, sizeof(data), "X-DSPAM-Probability: %01.4f", 
+        snprintf(data, sizeof(data), "X-DSPAM-Probability: %01.4f",
                  CTX->probability);
 
         head = _ds_create_header_field(data);
@@ -3133,7 +3151,7 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           head = _ds_create_header_field(data);
           if (head != NULL)
           {
-            if (strlen(ATX->signature)<5) 
+            if (strlen(ATX->signature)<5)
             {
               LOGDEBUG("WARNING: Signature not generated, or invalid");
             }
@@ -3218,14 +3236,14 @@ int add_xdspam_headers(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 int embed_msgtag(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   struct nt_node *node_nt;
   struct nt_c c_nt;
-  char toplevel_boundary[128] = { 0 }; 
+  char toplevel_boundary[128] = { 0 };
   ds_message_part_t block;
   int i = 0;
   FILE *f;
   char buff[1024], msgfile[MAX_FILENAME_LENGTH];
   buffer *b;
 
-  if (CTX->result != DSR_ISSPAM && CTX->result != DSR_ISINNOCENT) 
+  if (CTX->result != DSR_ISSPAM && CTX->result != DSR_ISINNOCENT)
       return EINVAL;
 
   node_nt = c_nt_first (CTX->message->components, &c_nt);
@@ -3236,7 +3254,7 @@ int embed_msgtag(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   /* Signed messages cannot be tagged */
 
-  if (block->media_subtype == MST_SIGNED) 
+  if (block->media_subtype == MST_SIGNED)
     return EINVAL;
 
   /* Load the message tag */
@@ -3289,7 +3307,7 @@ int embed_msgtag(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       }
 
       /* Some email clients reformat HTML parts, and require that we include
-       * the signature before the HTML close tags (because they're stupid) 
+       * the signature before the HTML close tags (because they're stupid)
        */
 
       if (body_close		== NULL &&
@@ -3345,7 +3363,7 @@ int embed_msgtag(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   struct nt_node *node_nt;
   struct nt_c c_nt;
-  char toplevel_boundary[128] = { 0 }; 
+  char toplevel_boundary[128] = { 0 };
   ds_message_part_t block;
   int i = 0;
 
@@ -3394,7 +3412,7 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       }
 
       /* Some email clients reformat HTML parts, and require that we include
-       * the signature before the HTML close tags (because they're stupid) 
+       * the signature before the HTML close tags (because they're stupid)
        */
 
       if (body_close		== NULL &&
@@ -3440,7 +3458,7 @@ int embed_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
  * embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX)
  *
  * DESCRIPTION
- *   Embed the DSPAM signature within a signed message 
+ *   Embed the DSPAM signature within a signed message
  *
  * INPUT ARGUMENTS
  *   CTX          DSPAM context containing message
@@ -3494,7 +3512,7 @@ int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       {
         struct nt_node *old = node_nt;
         node_nt = c_nt_next(block->headers, &c_nt);
-        if (parent) 
+        if (parent)
           parent->next = node_nt;
         else
           block->headers->first = node_nt;
@@ -3510,7 +3528,7 @@ int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   }
 
   /* Create a new top-level boundary */
-  snprintf(scratch, sizeof(scratch), "DSPAM_MULTIPART_EX-%ld", (long)getpid()); 
+  snprintf(scratch, sizeof(scratch), "DSPAM_MULTIPART_EX-%ld", (long)getpid());
   block->terminating_boundary = strdup(scratch);
 
   /* Create a new content-type field */
@@ -3527,7 +3545,7 @@ int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     goto MEM_ALLOC;
   node_nt->next = node_block->next;
   node_block->next = node_nt;
-  CTX->message->components->items++; 
+  CTX->message->components->items++;
 
   /* Strip the old terminating boundary */
 
@@ -3539,7 +3557,7 @@ int embed_signed(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       parent->next = NULL;
       CTX->message->components->items--;
       CTX->message->components->insert = NULL;
-      _ds_destroy_block(node_nt->ptr);    
+      _ds_destroy_block(node_nt->ptr);
       free(node_nt);
       node_nt = NULL;
     } else {
@@ -3630,17 +3648,17 @@ int tracksource(DSPAM_CTX *CTX) {
   if (!dspam_getsource (CTX, ip, sizeof (ip)))
   {
     if (CTX->totals.innocent_learned + CTX->totals.innocent_classified > 2500) {
-      if (CTX->result == DSR_ISSPAM && 
+      if (CTX->result == DSR_ISSPAM &&
           strcmp(CTX->class, LANG_CLASS_VIRUS) != 0 &&
           _ds_match_attribute(agent_config, "TrackSources", "spam")) {
         FILE *file;
         char dropfile[MAX_FILENAME_LENGTH];
         LOG (LOG_INFO, "spam detected from %s", ip);
         if (_ds_read_attribute(agent_config, "RABLQueue")) {
-          snprintf(dropfile, sizeof(dropfile), "%s/%s", 
+          snprintf(dropfile, sizeof(dropfile), "%s/%s",
             _ds_read_attribute(agent_config, "RABLQueue"), ip);
           file = fopen(dropfile, "w");
-          if (file != NULL) 
+          if (file != NULL)
             fclose(file);
         }
       }
@@ -3716,7 +3734,7 @@ int has_virus(buffer *message) {
     int s_port = atoi(buf+5);
     if (feed_clam(s_port, message)==0) {
       if ((fgets(buf, sizeof(buf), sock))!=NULL) {
-        if (!strstr(buf, ": OK")) 
+        if (!strstr(buf, ": OK"))
           virus = 1;
       }
     }
@@ -3724,7 +3742,7 @@ int has_virus(buffer *message) {
   fclose(sock);
   fclose(sockout);
   close(sockfd);
-  
+
   return virus;
 }
 
@@ -3749,7 +3767,7 @@ int feed_clam(int port, buffer *message) {
   long sent = 0;
   long size = strlen(message->data);
   char *host = _ds_read_attribute(agent_config, "ClamAVHost");
- 
+
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   memset(&addr, 0, sizeof(struct sockaddr_in));
   addr.sin_family = AF_INET;
@@ -3771,7 +3789,7 @@ int feed_clam(int port, buffer *message) {
     }
     sent += r;
   }
- 
+
   close(sockfd);
   return 0;
 }
@@ -3819,7 +3837,7 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       i--;
     }
 
-      snprintf(host, sizeof(host), "%s.%s.%s.%s.", 
+      snprintf(host, sizeof(host), "%s.%s.%s.%s.",
              octet[0], octet[1], octet[2], octet[3]);
 
     attrib = _ds_find_attribute(agent_config, "Lookup");
@@ -3855,7 +3873,7 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
  * is_blocklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX)
  *
  * DESCRIPTION
- *   Determine if the source address of the message is blocklisted on 
+ *   Determine if the source address of the message is blocklisted on
  *   the destination user's blocklist
  *
  * INPUT ARGUMENTS
@@ -3875,7 +3893,7 @@ int is_blocklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
                                      : CTX->username), "blocklist");
   file = fopen(filename, "r");
   if (file != NULL) {
-    char *heading = _ds_find_header(CTX->message, "From", 0);
+    char *heading = _ds_find_header(CTX->message, "From");
     char buf[256];
     if (heading) {
       char *dup = strdup(heading);
@@ -3976,7 +3994,7 @@ int daemon_start(AGENT_CTX *ATX) {
     } else {
 
       LOG(LOG_WARNING, "received signal. waiting for processing threads to exit.");
-      while(__num_threads) { 
+      while(__num_threads) {
         struct timeval tv;
         tv.tv_sec = 1;
         tv.tv_usec = 0;
@@ -4087,7 +4105,7 @@ agent_pref_t load_aggregated_prefs(AGENT_CTX *ATX, const char *username) {
   if (PTX) {
     int j;
     for(j=0;PTX[j];j++) {
-      LOGDEBUG("aggregated preference '%s' => '%s'", 
+      LOGDEBUG("aggregated preference '%s' => '%s'",
                PTX[j]->attribute, PTX[j]->value);
     }
   }
@@ -4185,7 +4203,7 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           send_notice(ATX, "quarantinefull.txt", ATX->mailer_args, CTX->username);
         }
       }
-    } 
+    }
   }
 
   return 0;

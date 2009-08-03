@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.26 2009/06/02 00:54:08 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.29 2009/07/11 09:10:32 sbajic Exp $ */
 
 /*
  DSPAM
@@ -752,7 +752,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 
   if (! CTX->message)
   {
-    LOG (LOG_WARNING, "_ds_actualize_message() failed: CTX->message is NULL");
+    LOG (LOG_WARNING, "_ds_degenerate_message() failed: CTX->message is NULL");
     return EUNKNOWN;
   }
 
@@ -834,7 +834,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
           /* HTML-Specific Filters */
 
           if (block->media_subtype == MST_HTML) {
-            decode3 = _ds_strip_html(decode2);
+            decode3 = _ds_strip_html((char *)&decode2);
             len = strlen (decode3) + 1;
           } else {
             decode3 = strdup(decode2);
@@ -857,6 +857,9 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
         }
       }
     }
+#ifdef VERBOSE
+    LOGDEBUG ("Getting next message component");
+#endif
     node_nt = c_nt_next (CTX->message->components, &c_nt);
     i++;
   } /* while (node_nt != NULL) */

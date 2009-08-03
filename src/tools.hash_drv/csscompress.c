@@ -1,4 +1,4 @@
-/* $Id: csscompress.c,v 1.8 2006/05/27 21:00:36 jonz Exp $ */
+/* $Id: csscompress.c,v 1.82 2009/08/03 07:09:38 sbajic Exp $ */
 
 /*
  DSPAM
@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <libgen.h>
 #include <errno.h>
 
 #ifdef TIME_WITH_SYS_TIME
@@ -134,7 +135,7 @@ int csscompress(const char *filename) {
     }
   }
 
-  snprintf(newfile, sizeof(newfile), "/tmp/%u.css", (unsigned int) getpid());
+  snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname(filename), (unsigned int) getpid());
 
   if (_hash_drv_open(filename, &old, 0, max_seek,
                      max_extents, extent_size, pctincrease, flags))

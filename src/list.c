@@ -1,4 +1,4 @@
-/* $Id: list.c,v 1.71 2009/05/25 12:29:00 sbajic Exp $ */
+/* $Id: list.c,v 1.72 2009/05/27 02:21:41 sbajic Exp $ */
 
 /*
  DSPAM
@@ -36,7 +36,7 @@ bnr_list_node_create (void *data)
   if ((node = (struct bnr_list_node *) malloc (sizeof (struct bnr_list_node))) == NULL)
   {
     perror("list_node_create: memory allocation error");
-    exit NULL;
+    return NULL;
   }
   node->ptr = data;
   node->next = (struct bnr_list_node *) NULL;

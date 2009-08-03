@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.68 2009/06/17 00:56:40 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.70 2009/06/27 01:37:02 sbajic Exp $ */
 
 /*
  DSPAM
@@ -625,10 +625,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_diction_close(ds_c);
 
   if (s->pg_major_ver >= 8) {
-    if (uid != gid)
-      buffer_cat (query, ")");
-    else
-      buffer_cat(query, "}')");
+    buffer_cat(query, "}')");
   } else {
     buffer_cat (query, ")");
   }
@@ -1684,7 +1681,6 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   struct passwd *p;
   char *name;
   PGresult *result;
-  int token_type = -1;
 
   if (s->dbh == NULL)
   {
@@ -1760,8 +1756,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  if ( PQntuples(s->iter_token) < 1 ||
-       (token_type = _pgsql_drv_token_type(s,s->iter_token,0)) < 0 )
+  if ( PQntuples(s->iter_token) < 1 )
   {
     result = PQexec(s->dbh, "CLOSE dscursor");
     PQclear(result);
@@ -1776,7 +1771,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  st->token = _pgsql_drv_token_read (token_type, PQgetvalue( s->iter_token, 0, 0));
+  st->token = _pgsql_drv_token_read (s->pg_token_type, PQgetvalue( s->iter_token, 0, 0));
   st->spam_hits = strtoul (PQgetvalue( s->iter_token, 0, 1), NULL, 0);
   if (st->spam_hits == ULONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->spam_hits", PQgetvalue(s->iter_token,0,1));

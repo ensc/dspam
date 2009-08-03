@@ -107,7 +107,7 @@ int initialize_atx      (AGENT_CTX *ATX);
 int process_parseto	(AGENT_CTX *ATX, const char *buf);
 buffer *read_stdin	(AGENT_CTX *ATX);
 
-int init_pwent_cache();
+int init_pwent_cache(void);
 
 #ifndef MIN
 #   define MAX(a,b)  ((a)>(b)?(a):(b))

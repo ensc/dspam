@@ -1,6 +1,101 @@
 Version 3.9.0
 -------------
 
+[20090803:0730] sbajic: Fixing compiler warnings
+
+[20090803:0655] sbajic: Fixing dynamic build of storage drivers
+
+[20090802:2010] sbajic: Fixing resource leak in hash driver
+
+[20090802:1915] sbajic: Added script to contrib for purging old tokens and log entries
+
+[20090802:1745] sbajic: Fixing dynamic build of storage drivers (closing SF Bug ID #2811139)
+
+[20090802:1630] sbajic: Fixing location for notification files (closing SF Bug ID #2825171)
+
+[20090801:2057] itetcu: contrib/Lotus Notes --> contrib/lotus_notes
+
+[20090801:1455] sbajic: Adding German language files for Thunderbird plugin
+
+[20090729:1600] sbajic: Fixing typos and logical errors from last commit (closing SF Bug ID #2829650)
+
+[20090728:1600] sbajic: Fixing segmentation fault when using groups and the calling username does not have a '@' character
+
+[20090726:1215] sbajic: Fixing dspam.cgi error from last commit
+
+[20090724:2300] sbajic: Fixing bug when retraining (with signature) a virus tagged message (closing SF Bug ID #2826644)
+
+[20090724:0120] sbajic: Fixing bug in hash driver that prevented retraining with signature
+
+[20090720:2345] sbajic: Setting/reverting libdspm version back to 3.6.0 since no ABI/API changes have been done on libdspam for 3.9.0
+
+[20090720:2330] sbajic: Fixing typos and errors from last commit (more logging and updates to Web UI)
+
+[20090720:0100] sbajic: Added more logging tags and updated Web UI to support them
+
+[20090719:2130] sbajic: Adding multi-language support to Web UI
+
+[20090719:1750] sbajic: Fixing version display in Web UI
+
+[20090712:2325] sbajic: Code cleanup (limiting scope of variables) and fixing resource leak in dspam_pg2int8
+
+[20090711:1655] sbajic: Fixing bug in cssconvert and csscompress (closing SF Bug ID #2819960)
+
+[20090711:0910] sbajic: Casting call in _ds_degenerate_message() to _ds_strip_html() function
+
+[20090707:0930] sbajic: Fixing bug in src/hash_drv.c (closing SF Bug ID # 2817736)
+
+[20090705:1910] sbajic: Removing 3th parameter in calls to _ds_find_header()
+
+[20090705:1905] sbajic: Removing parameter from _ds_find_header() for case insensitivity
+
+[20090705:1850] sbajic: Adding more debug output if verbose is turned on
+
+[20090705:1800] sbajic: Fixing typo in src/tokenizer.c
+
+[20090705:1435] sbajic: Fixing comparing for header field names to be case insensitive (see RFC822 section B.2)
+
+[20090701:1430] sbajic: Fixing a case where a memory allocation error in decode.c was not handled correctly
+
+[20090629:2145] sbajic: Adding script for Lotus Notes into contrib directory
+ * Added Lotus Notes/Domino LotusScript Library (libDSPAMReporting.lss) into
+   the contrib directory. The LotusScript Library can be used together with
+   IBM Lotus Notes/Domino for retraining messages with the Lotus Notes
+   Client.
+
+[20090628:1350] sbajic: Closing SF Bug ID #2813474
+
+* Applying patches submitted by Andreas Schneider <mail@cynapses.org>:
+  * Fix a build warning in util.h/util.c
+  * Check return values of system functions for the hash driver
+  * Fix a compile warning that init_pwent_cache() has no prototype
+
+[20090627:0404] sbajic: Removing Mac OS X patch for the duplicate symbol issue
+
+[20090627:0228] sbajic: Fixing compiler warnings in cssclean.c and util.c
+
+[20090627:0222] sbajic: Fixing broken return value in bnr_list_node_create()
+
+[20090627:0204] sbajic: Fixing compiling issue (duplicate symbol _agent_config in .libs/read_config.o and .libs/pref.o) on Mac OS X
+
+[20090627:0157] sbajic: Added csscompress to be build for the hash driver
+
+[20090627:0143] sbajic: Fixing PostgreSQL driver
+* Fixing SQL query in _ds_getall_spamrecords when using lookup_tokens
+
+[20090625:0242] sbajic: Fixing resource leak in dspam.c
+
+[20090625:0115] sbajic: Code cleanup in MySQL driver
+
+[20090624:1622] sbajic: Fixing typo in configure.pl.in (SF Bug ID #2811562)
+
+[20090623:2300] sbajic: Speed up of PostgreSQL driver
+
+* Avoid calling _pgsql_drv_token_type() in _ds_get_nexttoken(). The token
+  field is either NUMERIC(20) or BIGINT for the dspam_token_data table per
+  made connection to the PostgreSQL database. No need to check that for
+  each and every token in _ds_get_nexttoken().
+
 [20090623:2255] sbajic: Code cleanup in MySQL and PostgreSQL driver
 
 [20090623:2157] sbajic: Removing not needed index from PostgreSQL schema

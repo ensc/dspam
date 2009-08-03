@@ -1,0 +1,8 @@
+content	dspam	jar:chrome/dspam.jar!/content/
+locale	dspam	en-US	jar:chrome/dspam.jar!/locale/en-US/
+locale	dspam	pt-PT	jar:chrome/dspam.jar!/locale/pt-PT/
+locale	dspam	de-DE	jar:chrome/dspam.jar!/locale/de-DE/
+skin	dspam	classic/1.0	jar:chrome/dspam.jar!/skin/
+
+overlay	chrome://messenger/content/messenger.xul	chrome://dspam/content/messenger.xul
+style	chrome://global/content/customizeToolbar.xul	chrome://dspam/skin/dspam.css

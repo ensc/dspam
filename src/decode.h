@@ -1,4 +1,4 @@
-/* $Id: decode.h,v 1.15 2009/05/30 11:40:51 sbajic Exp $ */
+/* $Id: decode.h,v 1.17 2009/07/05 19:02:48 sbajic Exp $ */
 
 /*
  DSPAM
@@ -49,10 +49,10 @@ typedef struct _ds_header_field
 
 /*
  * _ds_message_part
- * 
+ *
  * DESCRIPTION
- *   a message block (or part) within a message. in a single-part message, 
- *   there will be only one block (block 0). in a multipart message, each part 
+ *   a message block (or part) within a message. in a single-part message,
+ *   there will be only one block (block 0). in a multipart message, each part
  *   will be separated into a separte block. the message block consists of:
  *    - a dynamic array of headers (nodetree of ds_header_t's) for the block
  *    - body data (NULL if there is no body)
@@ -81,9 +81,9 @@ typedef struct _ds_message_part
  * DESCRIPTION
  *   the actual message structure, comprised of an array of message blocks.
  *   in a non-multipart email, there will only be one message block (block 0).
- *   in multipart emails, however, the first message block will represent the 
- *   header (with a NULL body_data or something like "This is a multi-part 
- *   message"), and each additional block within the email will be given its 
+ *   in multipart emails, however, the first message block will represent the
+ *   header (with a NULL body_data or something like "This is a multi-part
+ *   message"), and each additional block within the email will be given its
  *   own message_part structure with its own headers, boundary, etc.
  *
  *   embedded multipart messages are not realized by the structure, but can
@@ -92,7 +92,7 @@ typedef struct _ds_message_part
 
 typedef struct _ds_message
 {
-  struct nt *	components; 
+  struct nt *	components;
   int protect;
 } *ds_message_t;
 
@@ -108,7 +108,7 @@ char *  _ds_decode_quoted       (const char *body);
 ds_message_t _ds_actualize_message (const char *message);
 
 char *  _ds_assemble_message (ds_message_t message, const char *newline);
-char *  _ds_find_header (ds_message_t message, const char *heading, int flags);
+char *  _ds_find_header (ds_message_t message, const char *heading);
 
 ds_message_part_t _ds_create_message_part (void);
 ds_header_t        _ds_create_header_field  (const char *heading);
@@ -178,10 +178,6 @@ int	_ds_hex2dec		(unsigned char hex);
 
 #define BP_HEADER		0x00
 #define BP_BODY			0x01
-
-/* Decoding function flags */
-
-#define DDF_ICASE		0x01
 
 #endif /* _DECODE_H */
 
