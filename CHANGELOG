@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090803:0730] sbajic: Fixing compiler warnings
+
 [20090803:0655] sbajic: Fixing dynamic build of storage drivers
 
 [20090802:2010] sbajic: Fixing resource leak in hash driver
