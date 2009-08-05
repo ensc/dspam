@@ -1,5 +1,5 @@
 <HTML>
-<HEAD><TITLE>DSPAM v3 Control Center</TITLE>
+<HEAD><TITLE>DSPAM v3 Centru de Control</TITLE>
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 <script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
 </HEAD>
@@ -18,12 +18,12 @@
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li><a href="$CGI$?$USER$template=performance">Performance</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">Preferences</a></li>
-		<li><a href="$CGI$?$USER$template=alerts">Alerts</a></li>
-		<li><a href="$CGI$?$USER$template=quarantine">Quarantine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
-		<li><a href="$CGI$?$USER$template=analysis">Analysis</a></li>
-		<li id="active"><a id="current" href="$CGI$?$USER$template=history&history_page=1">History</a></li>
+		<li><a href="$CGI$?$USER$template=performance">Performanță</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Preferințe</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alerte</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">Carantină ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">Analize</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=history&history_page=1">Istoric</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -31,8 +31,10 @@
 <div id="panel">
 
 <p>
-The messages that have been processed by the filter are shown below. The most recent messages are shown first. Use the retrain options to correct errors and
-deliver any false positives that are still in your quarantine.
+Mesajele care au fost procesate de filtru sunt afișate mai jos.
+Cele mai recente mesaje sunt afișate primele. folosește optiunea de reînvăț 
+pentru a coresta erorile și a livra mesajel e buna identificate ca spam care
+sunt incă in carantină
 </p>
 
 <form name="history" action="dspam.cgi" method="POST">
@@ -46,12 +48,12 @@ deliver any false positives that are still in your quarantine.
 
 <table border="0" cellspacing="0" cellpadding="2" width="100%">
 <tr>
-	<th>Type</th>
-        <th>Retrain</th>
-	<th>Day/Time</th>
-	<th>From</th>
-	<th>Subject</th>
-	<th>Additional Info</th>
+	<th>Tip</th>
+        <th>Reînvățare</th>
+	<th>Dată/Oră</th>
+	<th>De la</th>
+	<th>Subiect</th>
+	<th>Informații adiționale</th>
 </tr>
 $HISTORY$
 </table>

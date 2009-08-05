@@ -1,5 +1,5 @@
 <HTML>
-<HEAD><TITLE>DSPAM v3 Control Center</TITLE>
+<HEAD><TITLE>DSPAM v3 Centru de Control</TITLE>
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 </HEAD>
 <BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
@@ -9,7 +9,7 @@
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
-		Statistical SPAM Protection for <strong>$REMOTE_USER$</strong>
+		Protecție Statistică Anti-SPAM pentru<strong>$REMOTE_USER$</strong>
 	</div>
 </div>
 
@@ -17,12 +17,12 @@
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li><a href="$CGI$?$USER$template=performance">Performance</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">Preferences</a></li>
-		<li><a href="$CGI$?$USER$template=alerts">Alerts</a></li>
-		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Quarantine (View)</a></li>
-		<li><a href="$CGI$?$USER$template=analysis">Analysis</a></li>
-		<li><a href="$CGI$?$USER$template=history&history_page=1">History</a></li>
+		<li><a href="$CGI$?$USER$template=performance">Performanță</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Preferințe</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alerte</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Carantină (Vezi)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">Analiză</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">Istoric</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -30,7 +30,7 @@
 <div id="panel">
 
 <p>
-The contents of the message in the quarantine is shown below.
+Conținutul mesajelor din carantină este afișat mai jos.
 </p>
 
 <FORM ACTION="$CGI$">
@@ -38,7 +38,7 @@ The contents of the message in the quarantine is shown below.
 <INPUT TYPE=HIDDEN NAME=command VALUE="processFalsePositive">
 <INPUT TYPE=HIDDEN NAME=template VALUE="quarantine">
 <INPUT TYPE=HIDDEN NAME=user VALUE="$REMOTE_USER$">
-<INPUT TYPE=SUBMIT VALUE="Deliver Message"> because it is <strong>not</strong> SPAM
+<INPUT TYPE=SUBMIT VALUE="Deliver Message"> pentru că <strong>nu</strong> este SPAM
 </FORM>
 <BR>
 <TEXTAREA ROWS=36 COLS=80 READONLY>
