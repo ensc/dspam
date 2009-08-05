@@ -1,3 +1,9 @@
+- DSPAM itself is distributes under GPL v.2 licence (listed bellow).
+- inet_ntoa_r() in src/util.c is under BSD licence (listed in src/util.c).
+- for the licence of third party scripts, plugins, etc. please check their
+directories under contrib/
+
+
 GNU GENERAL PUBLIC LICENSE
 Version 2, June 1991 
 
