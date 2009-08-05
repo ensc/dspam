@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD><TITLE>DSPAM v3 מרכז הבקרה</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1255">
+</HEAD>
+<BODY DIR="rtl" BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		סטטיסטיקת הגנה עבור <strong>מנהל המערכת ($REMOTE_USER$)</strong>
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li id="active"><a id="current" href="$CGI$?$USER$template=status">מצב המערכת</a></li>
+		<li><a href="$CGI$?$USER$template=user">מידע משמתשים</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">ניהול</a></li>
+		<li><a href="dspam.cgi">מרכז הבקרה</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+הגרפים והטבלאות מציגים ריכוז של פעילות הפילטר
+</p>
+
+<div class="content">
+	<h3><strong>כללי</strong></h3>
+			
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>הודעות</th>
+			<th>היום</th>
+			<th>בשעה זו</th>
+		</tr>
+		<tr class="rowEven">
+			<td>דואר זבל</td>
+			<td>$SPAM_TODAY$</td>
+			<td>$SPAM_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>דואר טוב</td>
+			<td>$NONSPAM_TODAY$</td>
+			<td>$NONSPAM_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>החטאות דואר זבל</td>
+			<td>$SM_TODAY$</td>
+			<td>$SM_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>החטאות דואר טוב</td>
+			<td>$FP_TODAY$</td>
+			<td>$FP_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>חיסונים</td>
+			<td>$INOC_TODAY$</td>
+			<td>$INOC_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowHighlight">
+			<td>סה"כ</td>
+			<td>$TOTAL_TODAY$</td>
+			<td>$TOTAL_THIS_HOUR$</td>
+		</tr>
+	</table>
+
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>מצב</th>
+			<th>ערך נוכחי</th>
+		</tr>
+		<tr class="rowEven">
+			<td>זמן עיבוד ממוצע להודעה</td>
+			<td>$AVG_PROCESSING_TIME$ שניה</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>הספק ממוצע</td>
+			<td>$AVG_MSG_PER_SECOND$ הודעות/ש'</td>
+		</tr>
+		<tr class="rowEven">
+			<td>תהליכי DSPAM</td>
+			<td>$DSPAM_PROCESSES$ תהליכים</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>זמן פעילות</td>
+			<td>$UPTIME$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>תור הדואר</td>
+			<td>$MAIL_QUEUE$ הודעות</td>
+		</tr>
+	</table>
+</div>
+
+<div class="content">
+	<h3><strong>פעילות 24 שעות</strong> - $TS_DAILY$ זבל, $TI_DAILY$ טוב, $SM_DAILY$ החטאות זבל, $FP_DAILY$ החטאות דואר טוב, $INOC_DAILY$ חיסונים</h3>
+	<img src="./admingraph.cgi?data=$DATA_DAILY$&amp;x_label=Hour+of+the+day" alt="פעילות 24 שעות">
+</div>
+
+<div class="content">
+	<h3><strong>פעילות יומית</strong> - $TS_WEEKLY$ זבל, $TI_WEEKLY$ טוב, $SM_WEEKLY$ החטאות זבל, $FP_WEEKLY$ החטאות דואר טוב, $INOC_WEEKLY$ חיסונים</h3>
+	<img src="./admingraph.cgi?data=$DATA_WEEKLY$&amp;graph=period&amp;x_label=Date" alt="פעילות יומית">
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD><TITLE>DSPAM v3 מרכז הבקרה</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1255">
+</HEAD>
+<BODY DIR="rtl" BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		$FORM_USER$
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li id="active"><a id="current" href="$CGI$?$USER$template=performance">ביצועים</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">העדפות</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">התראות</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">הסגר ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">אנליזה</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;history_page=1">היסטוריה</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+אם קיבלת הודעה שלא זוהתה נכון על ידי המערכת
+נא העבר את ההודעה אל 
+<strong>spam-$REMOTE_USER$$LOCAL_DOMAIN$</strong>
+על מנת שהמערכת תוכל ללמוד מהשגיאה. הדבר ישפר את דיוק המערכת בעתיד.
+</p>
+
+<div class="content">
+	<h3><strong>סטטיסטיקת ביצועים</strong> - $TIME$</h3>
+
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>הנדון</th>
+			<th>&nbsp;</th>
+			<th>שיטת חישוב</th>
+		</tr>
+		<tr class="rowEven">
+			<td>דיוק כולל (מהאיפוס האחרון)</td>
+			<td><strong>$OVERALL_ACCURACY$%</strong></td>
+			<td class="rowDivider"><span class="small">(הודעות זבל שנעצרו + הודעות תקינות) / מספר כולל של ההודעות</span></td>
+		</tr>
+                <tr class="rowOdd">
+                        <td>זהוי דואר זבל (מהאיפוס האחרון)</td>
+                        <td><strong>$SPAM_ACCURACY$%</strong></td>
+                        <td class="rowDivider"><span class="small">(זיהוי דואר זבל בלבד)</span></td>
+               </tr>
+		<tr class="rowEven">
+			<td>יחס דואר זבל (מתוך סה"כ שעובדו)</td>
+			<td><strong>$SPAM_RATIO$%</strong></td>
+			<td class="rowDivider"><span class="small">סה"כ ההודעות דואר זבל / סה"כ ההודעות</span></td>
+		</tr>
+	</table>
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>&nbsp;</th>
+			<th>הודעות דואר זבל</th>
+			<th>הודעות תקינות</th>
+		</tr>
+		<tr class="rowEven">
+			<td rowspan="3" valign="top" nowrap>מהאיפוס האחרון</td>
+			<td>$TOTAL_SPAM_MISSED$ החטאות</td>
+			<td>$TOTAL_NONSPAM_MISSED$ החטאות</td>
+		</tr>
+		<tr class="rowEven">
+			<td>$TOTAL_SPAM_CAUGHT$ נעצרו</td>
+			<td>$TOTAL_NONSPAM_CAUGHT$ הועברו</td>
+		</tr>
+		<tr class="rowEven">
+			<td>$SPAM_ACCURACY$% נעצרו</td>
+			<td>$NONSPAM_ERROR_RATE$% החטאות</td>
+		</tr>
+		<tr class="rowOdd">
+			<td rowspan="2" valign="top" nowrap>סה"כ עובדו ע"י המערכת</td>
+			<td>$TOTAL_SPAM_LEARNED$ החטאות</td>
+			<td>$TOTAL_NONSPAM_LEARNED$ החטאות</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>$TOTAL_SPAM_SCANNED$ נעצרו</td>
+			<td>$TOTAL_NONSPAM_SCANNED$ הועברו</td>
+		</tr>
+		<tr class="rowEven">
+			<td valign="top" nowrap>ממאגר</td>
+			<td>$TOTAL_SPAM_CORPUSFED$ הוזנו</td>
+			<td>$TOTAL_NONSPAM_CORPUSFED$ הוזנו</td>
+		</tr>
+	</table>
+
+	<p>
+		<a href="$CGI$?$USER$command=resetStats" title="Reset the statistics">איפוס</a> | <a href="$CGI$?$USER$command=tweak" title="Adjustment for messages that are forwarded to the filter">תקן -1</a>
+	</p>
+</div>
+
+</div>
+
+</body>
+</html>
