@@ -24,6 +24,7 @@
 #endif
 
 #ifdef EXT_LOOKUP
+#define LDAP_DEPRECATED 1
 
 #include <stdio.h>
 #include <stdlib.h>
