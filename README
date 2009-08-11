@@ -60,6 +60,7 @@ Advanced DSPAM functionality
   2.4 LMTP 
   2.5 DSPAM User Preferences
   2.6 Fallback Domains
+  2.7 External User Lookup
 
 Miscellaneous
 
@@ -1970,6 +1971,51 @@ DATA
   or even opt out the entire user. Alternatively, you can create a domain-based
   database for filtering mail specific to that domain, just as you would a 
   normal user.
+
+2.7 EXTERNAL USER LOOKUP
+  External User Lookup has two major applications. It allows DSPAM to validate
+  the supplied username in setups where users are Opt'ed-In by default, and there
+  is no prior recipient checking from the MTA. In those cases, it can be configured
+  not to automatically create the user entries in the DSPAM system and thus spare
+  you from polute the DSPAM database with inexistent users.
+  The other application is when you need username rewritting/mapping. That will
+  happen when you need to map several email addresses (aliases) into a single
+  user account or when you wish to integrate DSPAM into systems where the users
+  email addresses or usernames can change. This will allow you to define alternate
+  static identifiers while still keeping the users DSPAM dictionaries, across
+  username/email address change, without dictionary maintenance.
+
+  Currently, there are three different modes of operation and two backend lookup
+  drivers. The mode can be set using the ExtLookupMode directive and the available
+  possibilities are:
+
+    verify - It will verify that the supplied username exists in lookup backend. In
+	the event that it cannot be verified, DSPAM will not create the user entry in it's
+	backend facilities.
+
+    map - It will NOT verify that the supplied username exists in the lookup backend.
+	It will, thought, try to use the lookup backend to map (rewrite) the username. If
+	There is a map/rewrite available, it will use the retrieved username, instead of
+	the supplied one. On the other hand, if there is no map/rewrite available, DSPAM
+	will use the supplied username and create the respective entries in it's backend.
+
+	strict - It will enforce both verify AND map modes. Meaning that it will rewrite
+	the username, if a rewrite is available, and will also only create that user entry
+	in it's backend system if there was a successful map/rewrite.
+
+  The backend lookup drivers available are only two at the moment, LDAP and Program.
+  The LDAP drivers allows DSPAM to query an LDAP server for a custom attribute, defined
+  by the ExtLookupLDAPAttribute directive. The query can be fine grained using the
+  ExtLookupQuery directive to provide a standard LDAP filter, where %u will be replaced
+  by the username provided to DSPAM. Literal percentage can used if escaped with
+  another % sign, i.e., %% will match % in the query filter.
+  The Program driver exists because this seemed a neat feature and not every one
+  uses LDAP. In this case, the ExtLookupServer directive will be used to define
+  the custom program/script call, with the respective arguments. Also here %u can
+  be used to define the provided username and literal % can be achieved by escaping
+  the percentage sign with another '%'. Using the program driver, DSPAM will use
+  whatever was the first line output of the program/script execution.
+
 
 3.0 BUGS, PORTS, AND THE LIKE
 
