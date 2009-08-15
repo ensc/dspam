@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.31 2009/08/03 07:00:11 sbajic Exp $ */
+/* $Id: dspam.c,v 1.32 2009/08/15 13:34:29 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2686,9 +2686,12 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
         CLX->signature = &ATX->SIG;
         ck_result = dspam_process (CLX, NULL);
-        if (ck_result != 0)
+        if (ck_result < 0) {
+          CLX->signature = NULL;
+          dspam_destroy(CLX);
           return EFAILURE;
-        if (ck_result || CLX->result == match)
+        }
+        if (ck_result == 0 || CLX->result == match)
           do_train = 0;
         CLX->signature = NULL;
         dspam_destroy (CLX);
