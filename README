@@ -1757,7 +1757,7 @@ SERVER> 250 2.0.0 <jane> Message accepted for delivery: SPAM
 
   2. Configure your DeliveryHost and DeliveryIdent in dspam.conf. Set 
      DeliveryProto based on whether you would like to delivery via LMTP or SMTP.
-f
+
      NOTE: If you would like to delivery to different hosts based on domain,
      specify DeliveryHost.domain.com as the configuration directive
 
