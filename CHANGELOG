@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090818:0100] sbajic: Swap out text/labels from the CGIs into external file (patch from Julien Valroff <julien@kirya.net> slightly modified)
+
 [20090815:1400] sbajic: Fixing memory leak in dspam.c
 
 [20090804:1150] sbajic: Adding Hebrew templates for Web UI (translated by Dudi Goldenberg)

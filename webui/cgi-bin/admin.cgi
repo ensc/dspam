@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.18 2009/07/20 22:18:22 sbajic Exp $
+# $Id: admin.cgi,v 1.19 2009/08/17 23:56:21 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -20,11 +20,22 @@
 
 use strict;
 use Time::Local;
-use vars qw { %CONFIG %DATA %FORM };
+use vars qw { %CONFIG %DATA %FORM %LANG };
 require "ctime.pl";
 
 # Read configuration parameters common to all CGI scripts
 require "configure.pl";
+
+#
+# Read language file
+#
+if (-s "$CONFIG{'TEMPLATES'}/strings.pl") {
+  require "$CONFIG{'TEMPLATES'}/strings.pl";
+} elsif (-s "$CONFIG{'TEMPLATES'}/../strings.pl") {
+  require "$CONFIG{'TEMPLATES'}/../strings.pl";
+} else {
+  &error("Missing language file strings.pl.");
+}
 
 #
 # The current CGI script
@@ -47,7 +58,7 @@ do {
   close(FILE);
 
   if (!$admin) {
-    &error("Access Denied");
+    &error("$LANG{'error_access_denied'}");
   }
 };
 
@@ -82,7 +93,7 @@ if ($CONFIG{'AUTODETECT'} == 1 || $CONFIG{'AUTODETECT'} eq "") {
 %FORM = &ReadParse;
 
 if ($ENV{'REMOTE_USER'} eq "") { 
-  &error("System Error. I was unable to determine your identity.");
+  &error("$LANG{'error_no_identity'}");
 }
 
 if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
@@ -117,7 +128,7 @@ if ($FORM{'template'} eq "status") {
   &DisplayPreferences;
 }
 
-&error("Invalid Command $FORM{'COMMAND'}");
+&error("$LANG{'error_invalid_command'} $FORM{'COMMAND'}");
 
 #
 # Preferences Functions
@@ -213,7 +224,7 @@ sub DisplayPreferences {
         . quotemeta($FORM{'dailyQuarantineSummary'}) . "> /dev/null");
 
     } else {
-      open(FILE, ">$FILE") || do { &error("Unable to write preferences: $!"); };
+      open(FILE, ">$FILE") || do { &error("$LANG{'error_cannot_write_prefs'}: $!"); };
       print FILE <<_END;
 trainingMode=$FORM{'trainingMode'}
 spamAction=$FORM{'spamAction'}
@@ -386,7 +397,7 @@ sub DisplayStatus {
   my ($c_daily) = 0; 
 
   if (! -e $LOG) {
-    &error("No historical data is available.");
+    &error("$LANG{'error_no_historic'}");
   }
 
   # Initialize each individual time period
@@ -424,7 +435,7 @@ sub DisplayStatus {
     $block_weekly[$_]		= 0;
   }
 
-  open(LOG, "<$LOG") || &error("Unable to open logfile: $!");
+  open(LOG, "<$LOG") || &error("$LANG{'error_cannot_open_log'}: $!");
   while(<LOG>) {
     my($t_log, $c_log, $signature, $e_log) = (split(/\t/))[0,1,3,5];
     next if ($t_log > time);
@@ -736,10 +747,11 @@ sub error {
   my($error) = @_;
   $FORM{'template'} = "error";
   $DATA{'MESSAGE'} = <<_end;
-The following error occured while trying to process your request: <BR>
+$LANG{'error_message_part1'}
+<BR>
 <B>$error</B><BR>
 <BR>
-If this problem persists, please contact your administrator.
+$LANG{'error_message_part2'}
 _end
   &output(%DATA);
 }
@@ -825,7 +837,7 @@ sub GetPrefs {
     }
                                                                                 
     if (! -e $FILE) {
-      &error("Unable to load default preferences");
+      &error("$LANG{'error_load_default_prefs'}");
     }
                                                                                 
     open(FILE, "<$FILE");

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.37 2009/07/26 12:23:47 sbajic Exp $
+# $Id: dspam.cgi,v 1.38 2009/08/18 00:13:04 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -20,12 +20,23 @@
 
 use strict;
 use Time::Local;
-use vars qw { %CONFIG %DATA %FORM $MAILBOX $CURRENT_USER $USER $TMPFILE};
+use vars qw { %CONFIG %DATA %FORM %LANG $MAILBOX $CURRENT_USER $USER $TMPFILE};
 use vars qw { $CURRENT_STORE };
 require "ctime.pl";
 
 # Read configuration parameters common to all CGI scripts
 require "configure.pl";
+
+#
+# Read language file
+#
+if (-s "$CONFIG{'TEMPLATES'}/strings.pl") {
+  require "$CONFIG{'TEMPLATES'}/strings.pl";
+} elsif (-s "$CONFIG{'TEMPLATES'}/../strings.pl") {
+  require "$CONFIG{'TEMPLATES'}/../strings.pl";
+} else {
+  &error("Missing language file strings.pl.");
+}
 
 if($CONFIG{"DATE_FORMAT"}) {
   use POSIX qw(strftime);
@@ -105,7 +116,7 @@ $MAILBOX = $USER . ".mbox";
 $TMPFILE = $USER . ".tmp";
 
 if ($CURRENT_USER eq "") {
-  &error("System Error. I was unable to determine your identity.");
+  &error("$LANG{'error_no_identity'}");
 }
 
 if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
@@ -185,7 +196,7 @@ if ($FORM{'template'} eq "performance") {
 } elsif ($FORM{'template'} eq "fragment") {
   &DisplayFragment;
 } else {
-  &error("Invalid Command $FORM{'COMMAND'}");
+  &error("$LANG{'error_invalid_command'} $FORM{'COMMAND'}");
 }
 
 #
@@ -249,7 +260,7 @@ sub DisplayHistory {
 
   my($LOG) = "$USER.log";
   if (! -e $LOG) {
-    &error("No historical data is available");
+    &error("$LANG{'error_no_historic'}");
   }
 
   # Preseed retraining information and delivery errors
@@ -363,34 +374,34 @@ sub DisplayHistory {
 
     my($cl, $cllabel);
     $class = $rec{$signature}->{'class'} if ($rec{$signature}->{'class'} ne "");
-    if ($class eq "S") { $cl = "spam"; $cllabel="SPAM"; }
-    elsif ($class eq "I") { $cl = "innocent"; $cllabel="Good"; }
+    if ($class eq "S") { $cl = "spam"; $cllabel="$LANG{'history_label_spam'}"; }
+    elsif ($class eq "I") { $cl = "innocent"; $cllabel="$LANG{'history_label_innocent'}"; }
     elsif ($class eq "F") {
       if ($rec{$signature}->{'count'} % 2 != 0) {
-        $cl = "false"; $cllabel="Miss"; 
+        $cl = "false"; $cllabel="$LANG{'history_label_miss'}";
       } else {
-        $cl = "innocent"; $cllabel="Good"; 
+        $cl = "innocent"; $cllabel="$LANG{'history_label_innocent'}";
       }
     }
     elsif ($class eq "M") { 
       if ($rec{$signature}->{'count'} % 2 != 0) {
-          $cl = "missed"; $cllabel="Miss"; 
+          $cl = "missed"; $cllabel="$LANG{'history_label_miss'}";
       } else {
-          $cl = "spam"; $cllabel="SPAM";
+          $cl = "spam"; $cllabel="$LANG{'history_label_spam'}";
       }
     }
-    elsif ($class eq "W") { $cl = "whitelisted"; $cllabel="Whitelist"; }
-    elsif ($class eq "V") { $cl = "virus"; $cllabel="Virus"; }
-    elsif ($class eq "A") { $cl = "blacklisted"; $cllabel="RBL"; }
-    elsif ($class eq "O") { $cl = "blocklisted"; $cllabel="BLOCK"; }
-    elsif ($class eq "N") { $cl = "inoculation"; $cllabel="SPAM"; }
-    elsif ($class eq "C") { $cl = "corpus"; $cllabel="Corpus"; }
-    elsif ($class eq "U") { $cl = "unknown"; $cllabel="UNKN"; }
-    elsif ($class eq "E") { $cl = "error"; $cllabel="Error"; }
+    elsif ($class eq "W") { $cl = "whitelisted"; $cllabel="$LANG{'history_label_whitelist'}"; }
+    elsif ($class eq "V") { $cl = "virus"; $cllabel="$LANG{'history_label_virus'}"; }
+    elsif ($class eq "A") { $cl = "blacklisted"; $cllabel="$LANG{'history_label_rbl'}"; }
+    elsif ($class eq "O") { $cl = "blocklisted"; $cllabel="$LANG{'history_label_block'}"; }
+    elsif ($class eq "N") { $cl = "inoculation"; $cllabel="$LANG{'history_label_spam'}"; }
+    elsif ($class eq "C") { $cl = "corpus"; $cllabel="$LANG{'history_label_corpus'}"; }
+    elsif ($class eq "U") { $cl = "unknown"; $cllabel="$LANG{'history_label_unknown'}"; }
+    elsif ($class eq "E") { $cl = "error"; $cllabel="$LANG{'history_label_error'}"; }
     if ($messageid ne "") {
       if ($rec{$messageid}->{'resend'} ne "") {
         $cl = "relay";
-        $cllabel = "Resend";
+        $cllabel = "$LANG{'history_label_resend'}";
       }
       $rec{$messageid}->{'resend'} = $signature;
     }
@@ -411,13 +422,13 @@ sub DisplayHistory {
 
     my($retrain);
     if ($rec{$signature}->{'class'} =~ /^(M|F)$/ && $rec{$signature}->{'count'} % 2 != 0) {
-      $retrain = "<b>Retrained</b>";
+      $retrain = "<b>$LANG{'history_retrained'}</b>";
     } 
 
     if ($retrain eq "") {
-      $retrain = qq!<A HREF="$MYURL&show=$show&history_page=$history_page&retrain=$rclass&signatureID=$signature">As ! . ucfirst($rclass) . "</A>";
+      $retrain = qq!<A HREF="$MYURL&amp;show=$show&amp;history_page=$history_page&amp;retrain=$rclass&amp;signatureID=$signature">$LANG{'history_retrain_as'}&nbsp;! . ucfirst($rclass) . "</A>";
     } else {
-      $retrain .= qq! (<A HREF="$MYURL&show=$show&history_page=$history_page&retrain=$rclass&signatureID=$signature">Undo</A>)!;
+      $retrain .= qq! (<A HREF="$MYURL&amp;show=$show&amp;history_page=$history_page&amp;retrain=$rclass&amp;signatureID=$signature">$LANG{'history_retrain_undo'}</A>)!;
     }
 
     my($path) = "$USER.frag/$signature.frag";
@@ -478,47 +489,47 @@ _END
     $DATA{'HISTORYPAGES'} = "<div class=\"historypages\">[";
     if (($history_pages > 1) && ($history_page > 1)) {
       my $i = $history_page-1;
-      $DATA{'HISTORYPAGES'} = "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;&lt;&nbsp;</a>";
+      $DATA{'HISTORYPAGES'} = "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\">&nbsp;&lt;&nbsp;</a>";
     }
     for(my $i = 1; $i <= $history_pages; $i++) {
   
       if ($i == $history_page) {
-        $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&show=$show&history_page=$i\"><big><strong>&nbsp;$i&nbsp;</strong></big></a>";
+        $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\"><big><strong>&nbsp;$i&nbsp;</strong></big></a>";
       } else {
-        $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;$i&nbsp;</a>";
+        $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\">&nbsp;$i&nbsp;</a>";
       }
     }
     if (($history_pages > 1) && ($history_page < $history_pages)) {
       my $i = $history_page+1;
-      $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&show=$show&history_page=$i\">&nbsp;&gt;&nbsp;</a>";
+      $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\">&nbsp;&gt;&nbsp;</a>";
     }
     $DATA{'HISTORYPAGES'} .= "]</div>";
   }
 
   $DATA{'SHOW'} = $show;
-  $DATA{'SHOW_SELECTOR'} .=  "Show: <a href=\"$MYURL&show=all\">";
+  $DATA{'SHOW_SELECTOR'} .=  "$LANG{'history_show'}: <a href=\"$MYURL&amp;show=all\">";
   if ($show eq "all") {
-    $DATA{'SHOW_SELECTOR'} .= "<strong>all</strong>";
+    $DATA{'SHOW_SELECTOR'} .= "<strong>$LANG{'history_show_all'}</strong>";
   } else {
-    $DATA{'SHOW_SELECTOR'} .= "all";
+    $DATA{'SHOW_SELECTOR'} .= "$LANG{'history_show_all'}";
   }
-  $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&show=spam\">";
+  $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&amp;show=spam\">";
   if ($show eq "spam") {
-    $DATA{'SHOW_SELECTOR'} .= "<strong>spam</strong>";
+    $DATA{'SHOW_SELECTOR'} .= "<strong>$LANG{'history_show_spam'}</strong>";
   } else {
-    $DATA{'SHOW_SELECTOR'} .= "spam";
+    $DATA{'SHOW_SELECTOR'} .= "$LANG{'history_show_spam'}";
   }
-  $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&show=innocent\">";
+  $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&amp;show=innocent\">";
   if ($show eq "innocent") {
-    $DATA{'SHOW_SELECTOR'} .= "<strong>innocent</strong>";
+    $DATA{'SHOW_SELECTOR'} .= "<strong>$LANG{'history_show_innocent'}</strong>";
   } else {
-    $DATA{'SHOW_SELECTOR'} .= "innocent";
+    $DATA{'SHOW_SELECTOR'} .= "$LANG{'history_show_innocent'}";
   }
-  $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&show=whitelisted\">";
+  $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&amp;show=whitelisted\">";
   if ($show eq "whitelisted") {
-    $DATA{'SHOW_SELECTOR'} .= "<strong>whitelisted</strong>";
+    $DATA{'SHOW_SELECTOR'} .= "<strong>$LANG{'history_show_whitelisted'}</strong>";
   } else {
-    $DATA{'SHOW_SELECTOR'} .= "whitelisted";
+    $DATA{'SHOW_SELECTOR'} .= "$LANG{'history_show_whitelisted'}";
   }
   $DATA{'SORT_SELECTOR'} .=  "</a>";
 
@@ -543,10 +554,10 @@ sub DisplayAnalysis {
   my ($dailystart) = time - (3600*23);
 
   if (! -e $LOG) {
-    &error("No historical data is available.");
+    &error("$LANG{'error_no_historic'}");
   }
 
-  open(LOG, "<$LOG") || &error("Unable to open logfile: $!");
+  open(LOG, "<$LOG") || &error("$LANG{'error_cannot_open_log'}: $!");
   while(<LOG>) {
     my($t_log, $c_log) = split(/\t/);
 
@@ -696,7 +707,7 @@ sub DisplayPreferences {
 
 
     } else {
-      open(FILE, ">$FILE") || do { &error("Unable to write preferences: $!"); };
+      open(FILE, ">$FILE") || do { &error("$LANG{'error_cannot_write_prefs'}: $!"); };
       print FILE <<_END;
 trainingMode=$FORM{'trainingMode'}
 spamAction=$FORM{'spamAction'}
@@ -742,9 +753,9 @@ _END
   }
 
   if ($CONFIG{'OPTMODE'} eq "OUT") {
-    $DATA{"OPTION"} = "<INPUT TYPE=CHECKBOX NAME=optOut " . $DATA{'C_OPTOUT'} . ">Disable DSPAM filtering<br>";
+    $DATA{"OPTION"} = "<INPUT TYPE=CHECKBOX NAME=optOut " . $DATA{'C_OPTOUT'} . ">$LANG{'option_disable_filtering'}<br>";
   } elsif ($CONFIG{'OPTMODE'} eq "IN") {
-    $DATA{"OPTION"} = "<INPUT TYPE=CHECKBOX NAME=optIn " . $DATA{'C_OPTIN'} . ">Enable DSPAM filtering<br>";
+    $DATA{"OPTION"} = "<INPUT TYPE=CHECKBOX NAME=optIn " . $DATA{'C_OPTIN'} . ">$LANG{'option_enable_filtering'}<br>";
   } else {
     $DATA{"OPTION"} = "";
   }
@@ -769,7 +780,7 @@ sub ProcessQuarantine {
 sub ProcessFalsePositive {
   my(@buffer, %head, $found);
   if ($FORM{'signatureID'} eq "") {
-    &error("No Message ID Specified");
+    &error("$LANG{'error_no_sigid'}");
   }
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
@@ -907,7 +918,7 @@ sub Quarantine_ViewMessage {
   my(@buffer);
 
   if ($FORM{'signatureID'} eq "") {
-    &error("No Message ID Specified");
+    &error("$LANG{'error_no_sigid'}");
   }
 
   $DATA{'MESSAGE_ID'} = $FORM{'signatureID'};
@@ -1151,29 +1162,29 @@ sub DisplayQuarantine {
   }
 
   $DATA{'SORTBY'} = $sortBy;
-  $DATA{'SORT_QUARANTINE'} .=  "<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Rating&user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=quarantine&amp;sortby=Rating&amp;user=$FORM{'user'}\">";
   if ($sortBy eq "Rating") {
-    $DATA{'SORT_QUARANTINE'} .= "<strong>Rating</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>$LANG{'quarantine_rating'}</strong>";
   } else {
-    $DATA{'SORT_QUARANTINE'} .= "Rating";
+    $DATA{'SORT_QUARANTINE'} .= "$LANG{'quarantine_rating'}";
   }
-  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Date&user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=quarantine&amp;sortby=Date&amp;user=$FORM{'user'}\">";
   if ($sortBy eq "Date") {
-    $DATA{'SORT_QUARANTINE'} .= "<strong>Date</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>$LANG{'quarantine_date'}</strong>";
   } else {
-    $DATA{'SORT_QUARANTINE'} .= "Date";
+    $DATA{'SORT_QUARANTINE'} .= "$LANG{'quarantine_date'}";
   }
-  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=From&user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=quarantine&amp;sortby=From&amp;user=$FORM{'user'}\">";
   if ($sortBy eq "From") {
-    $DATA{'SORT_QUARANTINE'} .= "<strong>From</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>$LANG{'quarantine_from'}</strong>";
   } else {
-    $DATA{'SORT_QUARANTINE'} .= "From";
+    $DATA{'SORT_QUARANTINE'} .= "$LANG{'quarantine_from'}";
   }
-  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&template=quarantine&sortby=Subject&user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=quarantine&amp;sortby=Subject&amp;user=$FORM{'user'}\">";
   if ($sortBy eq "Subject") {
-    $DATA{'SORT_QUARANTINE'} .= "<strong>Subject</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>$LANG{'quarantine_subject'}</strong>";
   } else {
-    $DATA{'SORT_QUARANTINE'} .= "Subject";
+    $DATA{'SORT_QUARANTINE'} .= "$LANG{'quarantine_subject'}";
   }
   $DATA{'SORT_QUARANTINE'} .=  "</a></th>";
 
@@ -1410,7 +1421,7 @@ sub DisplayIndex {
 
 sub AddAlert {
   if ($FORM{'ALERT'} eq "") {
-    &error("No Alert Specified");
+    &error("$LANG{'error_no_alert_specified'}");
   }
   open(FILE, ">>$USER.alerts");
   print FILE "$FORM{'ALERT'}\n";
@@ -1422,7 +1433,7 @@ sub DeleteAlert {
   my($line, @alerts);
   $line = 0;
   if ($FORM{'line'} eq "") {
-    &Error("No Alert Specified");
+    &Error("$LANG{'error_no_alert_specified'}");
   }
   open(FILE, "<$USER.alerts");
   while(<FILE>) {
@@ -1445,7 +1456,7 @@ sub DisplayAlerts {
   $DATA{'ALERTS'} = <<_end;
 <table border="0" cellspacing="0" cellpadding="2">
 	<tr>
-		<th>Alert Name</th>
+		<th>$LANG{'alert_name'}</th>
 		<th>&nbsp;</th>
 	</tr>
 _end
@@ -1459,7 +1470,7 @@ _end
     while(<FILE>) {
       s/</&lt;/g;
       s/>/&gt;/g;
-      $DATA{'ALERTS'} .= qq!<tr><td class="$rowclass">$_</td><td class="$rowclass">[<a href="$CONFIG{'ME'}?command=deleteAlert&user=$FORM{'user'}&template=alerts&line=$line">Remove</a>]</td></tr>\n!;
+      $DATA{'ALERTS'} .= qq!<tr><td class="$rowclass">$_</td><td class="$rowclass">[<a href="$CONFIG{'ME'}?command=deleteAlert&amp;user=$FORM{'user'}&amp;template=alerts&amp;line=$line">$LANG{'remove_alert'}</a>]</td></tr>\n!;
       $line++;
 
       if ($rowclass eq "rowEven") {
@@ -1505,11 +1516,11 @@ sub output {
   # Check admin permissions
   do {
     if ($CONFIG{'ADMIN'} == 1) {
-      $DATA{'NAV_ADMIN'} = qq!<li><a href="admin.cgi">Administrative Suite</a></li>!;
-      $DATA{'FORM_USER'} = qq!<form action="$CONFIG{'ME'}"><input type=hidden name="template" value="$FORM{'template'}">Statistical SPAM Protection for <INPUT TYPE=TEXT NAME=user SIZE=16 value="$CURRENT_USER"> <input type=submit value="Change"></form>!;
+      $DATA{'NAV_ADMIN'} = qq!<li><a href="admin.cgi">$LANG{'admin_suite'}</a></li>!;
+      $DATA{'FORM_USER'} = qq!<form action="$CONFIG{'ME'}"><input type=hidden name="template" value="$FORM{'template'}">$LANG{'user_form'} <INPUT TYPE=TEXT NAME=user SIZE=16 value="$CURRENT_USER"> <input type=submit value="$LANG{'user_form_submit'}"></form>!;
     } else {
       $DATA{'NAV_ADMIN'} = '';
-      $DATA{'FORM_USER'} = "Statistical SPAM Protection for <strong>$CURRENT_USER</strong>";
+      $DATA{'FORM_USER'} = "$LANG{'user_form'} <strong>$CURRENT_USER</strong>";
     }
   };
 
@@ -1544,10 +1555,11 @@ sub error {
   my($error) = @_;
   $FORM{'template'} = "error";
   $DATA{'MESSAGE'} = <<_end;
-The following error occured while trying to process your request: <BR>
+$LANG{'error_message_part1'}
+<BR>
 <B>$error</B><BR>
 <BR>
-If this problem persists, please contact your administrator.
+$LANG{'error_message_part2'}
 _end
   &output(%DATA);
   exit;
@@ -1589,7 +1601,7 @@ sub CheckQuarantine {
   }
   close(FILE);   
   if ($f == 0) {
-    $f = "Empty";
+    $f = "$LANG{'empty'}";
   }
 
   $DATA{'TOTAL_QUARANTINED_MESSAGES'} = $f;
@@ -1657,7 +1669,7 @@ sub GetPrefs {
   if (keys(%PREFS) eq "0" || $CONFIG{'PREFERENCES_EXTENSION'} != 1) {
 
     if (! -e "./default.prefs") {
-      &error("Unable to load default preferences");
+      &error("$LANG{'error_load_default_prefs'}");
     }
     open(FILE, "<./default.prefs");
     while(<FILE>) {
