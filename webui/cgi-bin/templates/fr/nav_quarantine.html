@@ -1,0 +1,85 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Control Center</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+                $FORM_USER$
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+                <li><a href="$CGI$?$USER$template=performance">Performances</a></li>
+                <li><a href="$CGI$?$USER$template=preferences">Pr&eacute;f&eacute;rences</a></li>
+                <li><a href="$CGI$?$USER$template=alerts">Alertes</a></li>
+                <li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Quarantaine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+                <li><a href="$CGI$?$USER$template=analysis">Analyses</a></li>
+                <li><a href="$CGI$?$USER$template=history&history_page=1">Historique</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Les messages ci-dessous n'ont pas &eacute;t&eacute; distribu&eacute;s version votre application de messagerie car ils ont
+&eacute;t&eacute;s consid&eacute;r&eacute;s comme pourriels probables.
+Cliquez sur l'object pour voir un message, ou choisissez une option de tri pour modifier la fa&ccedil;on sont sont tri&eacute;s les messages.
+Utilisez les case &agrave; cocher <strong>Distribuer les messages s&eacute;lectionn&eacute;s</strong> pour distribuer les messages que vous souhaitez lire,
+ou utilisez <strong>Supprimer tous les messages</strong> pour vider la zone de quarantaine.
+</p>
+
+<form action="$CGI$" method="post">
+<p>
+<input type="hidden" name="command" value="processQuarantine" >
+<input type="hidden" name="template" value="quarantine" >
+<input type="hidden" name="user" value="$REMOTE_USER$" >
+<input type="hidden" name="sortby" value="$SORTBY$" >
+<input type="submit" value="Distribuer les messages s&eacute;lectionn&eacute;s" NAME="manyNotSpam" >
+&nbsp;
+<input type="submit" value="Supprimer les messages s&eacute;lectionn&eacute;s" onClick="if (confirm('&Ecirc;tes-vous s&ucirc;r de vouloir supprimer les messages s&eacute;lectionn&eacute;s de la zone de quarantaine ?')==false) { return false; }" />
+<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
+	document.forms[1].elements[j].checked = true; } } return false'>S&eacute;lectionner 200 messages.</a>
+&nbsp;
+<input type="submit" value="Supprimer tous les messages" name="deleteAll" onClick="if (confirm('&Ecirc;tes-vous s&ucirc;r de vouloir supprimer TOUS les messages de la zone de quarantaine ?')==false) { return false; }" >
+
+</p>
+<table border="0" cellspacing="0" cellpadding="2" width="100%">
+	<tr>
+		<th>&nbsp;</th>
+		$SORT_QUARANTINE$
+	</tr>
+$QUARANTINE$
+</table>
+
+<p>
+<input type="submit" value="Distribuer les messages s&eacute;lectionn&eacute;s" NAME="manyNotSpam" >
+&nbsp;
+<input type="submit" value="Supprimer les messages s&eacute;lectionn&eacute;s" onClick="if (confirm('&Ecirc;tes-vous s&ucirc;r de vouloir supprimer les messages s&eacute;lectionn&eacute;s de la zone de quarantaine ?')==false) { return false; }" />
+<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
+	document.forms[1].elements[j].checked = true; } } return false'>S&eacute;lectionner 200 messages.</a>
+&nbsp;
+<input type="submit" value="Supprimer tous les messages" name="deleteAll" onClick="if (confirm('&Ecirc;tes-vous s&ucirc;r de vouloir supprimer TOUS les messages de la zone de quarantaine ?')==false) { return false; }" />
+</p>
+
+</form>
+
+<p>
+Code couleurs&nbsp;: <span class="low">Score faible</span>, <span class="medium">Score moyen, <span class="high">Score &eacute;lev&eacute;</span>
+</p>
+
+</div>
+
+
+
+</BODY>
+</HTML>

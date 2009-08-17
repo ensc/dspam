@@ -1,0 +1,140 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Administrative Suite</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+                Centre de contr&ocirc;le DSPAM pour <strong>Administrateur ($REMOTE_USER$)</strong>
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li id="active"><a id="current" href="$CGI$?$USER$template=status">&Eacute;tat du syst&egrave;me</a></li>
+		<li><a href="$CGI$?$USER$template=user">Statistiques utilisateurs</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Administration</a></li>
+		<li><a href="dspam.cgi">Centre de contr&ocirc;le</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Les graphiques et les tableaux ci-dessous r&eacute;sument les analyses effectu&eacute;es par le filtre.
+</p>
+
+<div class="content">
+	<h3><strong>Vue d'ensemble</strong></h3>
+			
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>Messages</th>
+			<th>Aujourd'hui</th>
+			<th>Cette heure</th>
+		</tr>
+		<tr class="rowEven">
+			<td>Pourriels</td>
+			<td>$SPAM_TODAY$</td>
+			<td>$SPAM_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Lessages l&eacute;gitimes</td>
+			<td>$NONSPAM_TODAY$</td>
+			<td>$NONSPAM_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Pourriels manqu&eacute;s</td>
+			<td>$SM_TODAY$</td>
+			<td>$SM_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Faux positifs</td>
+			<td>$FP_TODAY$</td>
+			<td>$FP_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Inoculations</td>
+			<td>$INOC_TODAY$</td>
+			<td>$INOC_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Depuis le corpus</td>
+			<td>$CORPUS_TODAY$</td>
+			<td>$CORPUS_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Mis en liste blanche</td>
+			<td>$WHITE_TODAY$</td>
+			<td>$WHITE_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Messages infect&eacute;s</td>
+			<td>$VIRUS_TODAY$</td>
+			<td>$VIRUS_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Mis en liste noire</td>
+			<td>$BLACK_TODAY$</td>
+			<td>$BLACK_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>RBL</td>
+			<td>$BLOCK_TODAY$</td>
+			<td>$BLOCK_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowHighlight">
+			<td>Total</td>
+			<td>$TOTAL_TODAY$</td>
+			<td>$TOTAL_THIS_HOUR$</td>
+		</tr>
+	</table>
+
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>&Eacute;tat</th>
+			<th>Valeur actuelle</th>
+		</tr>
+		<tr class="rowEven">
+			<td>Temps moyen d'analyse par message</td>
+			<td>$AVG_PROCESSING_TIME$ sec.</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>D&eacute;bit moyen</td>
+			<td>$AVG_MSG_PER_SECOND$ messages/sec.</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Nombre d'instances DSPAM</td>
+			<td>$DSPAM_PROCESSES$ processus</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Uptime syst&egrave;me</td>
+			<td>$UPTIME$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Taille de la file d'attente</td>
+			<td>$MAIL_QUEUE$ message(s)</td>
+		</tr>
+	</table>
+</div>
+
+<div class="content">
+	<h3><strong>Activit&eacute; sur 24 heures</strong> - $TS_DAILY$ pourriel(s), $TI_DAILY$ message(s) l&eacute;gitime(s), $SM_DAILY$ pourriel(s) manqu&eacute;(s), $FP_DAILY$ faux positif(s), $INOC_DAILY$ inoculation(s), $CORPUS_DAILY$ depuis le corpus, $WHITE_DAILY$ mis en liste de blanche, $VIRUS_DAILY$ infect&eacute;(s), $BLACK_DAILY$ mis en liste noire, $BLOCK_DAILY$ RBL</h3>
+	<img src="./admingraph.cgi?data=$DATA_DAILY$&x_label=Heure+du+jour" />
+</div>
+
+<div class="content">
+	<h3><strong>Activit&eacute; journali&egrave;re</strong> - $TS_DAILY$ pourriel(s), $TI_DAILY$ message(s) l&eacute;gitime(s), $SM_DAILY$ pourriel(s) manqu&eacute;(s), $FP_DAILY$ faux positif(s), $INOC_DAILY$ inoculation(s), $CORPUS_DAILY$ depuis le corpus, $WHITE_DAILY$ mis en liste de blanche, $VIRUS_DAILY$ infect&eacute;(s), $BLACK_DAILY$ mis en liste noire, $BLOCK_DAILY$ RBL</h3>
+        <img src="./admingraph.cgi?data=$DATA_WEEKLY$&x_label=Date" />
+</div>
+
+
+
+</body>
+</html>
