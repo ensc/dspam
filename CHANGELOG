@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090818:0120] sbajic: Adding Romainian and French templates to be build by regular make file
+
 [20090818:0115] sbajic: Adding French templates for Web UI (provided and translated by Julien Valroff <julien@kirya.net>)
 
 [20090818:0100] sbajic: Swap out text/labels from the CGIs into external file (patch from Julien Valroff <julien@kirya.net> slightly modified)
