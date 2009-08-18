@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.38 2009/08/18 00:13:04 sbajic Exp $
+# $Id: dspam.cgi,v 1.39 2009/08/18 16:49:19 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -426,7 +426,7 @@ sub DisplayHistory {
     } 
 
     if ($retrain eq "") {
-      $retrain = qq!<A HREF="$MYURL&amp;show=$show&amp;history_page=$history_page&amp;retrain=$rclass&amp;signatureID=$signature">$LANG{'history_retrain_as'}&nbsp;! . ucfirst($rclass) . "</A>";
+      $retrain = qq!<A HREF="$MYURL&amp;show=$show&amp;history_page=$history_page&amp;retrain=$rclass&amp;signatureID=$signature">$LANG{'history_retrain_as'}&nbsp;! . ucfirst($LANG{'history_retrain_as_'.$rclass}) . "</A>";
     } else {
       $retrain .= qq! (<A HREF="$MYURL&amp;show=$show&amp;history_page=$history_page&amp;retrain=$rclass&amp;signatureID=$signature">$LANG{'history_retrain_undo'}</A>)!;
     }

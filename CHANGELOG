@@ -1,9 +1,11 @@
 Version 3.9.0
 -------------
 
+[20090818:1650] sbajic: Fixing one missed label to be swapped out in the CGIs
+
 [20090818:1055] sbajic: Fixing typo in dspam.conf
 
-[20090818:0120] sbajic: Adding Romainian and French templates to be build by regular make file
+[20090818:0120] sbajic: Adding Romanian and French templates to be build by regular make file
 
 [20090818:0115] sbajic: Adding French templates for Web UI (provided and translated by Julien Valroff <julien@kirya.net>)
 
