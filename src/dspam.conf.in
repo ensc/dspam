@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.86 2009/05/23 19:04:54 sbajic Exp $
+## $Id: dspam.conf.in,v 1.87 2009/08/18 10:52:22 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -693,7 +693,7 @@ Opt out
 # compensate. 'returnCodes' causes DSPAM to return an exit code of 99 if
 # the message is spam, 0 if not, or a negative code if an error has occured.
 # Specifying 'case' causes DSPAM to force the input usernames to lowercase.
-# Spceifying 'lineStripping' causes DSPAM to strip ^M's from messages passed
+# Specifying 'lineStripping' causes DSPAM to strip ^M's from messages passed
 # in.
 #
 #Broken returnCodes
