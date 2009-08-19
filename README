@@ -2062,7 +2062,7 @@ DATA
     relinquishment of copyright interest in perpetuity of all present and 
     future rights to said submission under copyright law. 
 
-3.1 GIT ACCESS
+3.2 GIT ACCESS
 
   The DSPAM source tree can be downloaded via read-only git access using the
   following commands:
