@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090819:1520] sbajic: Fixing one more compiling issue under uClibc
+
 [20090819:1520] sbajic: Fixing compiling issue under uClibc
 
 [20090818:1650] sbajic: Fixing one missed label to be swapped out in the CGIs

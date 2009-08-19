@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.33 2009/08/19 05:17:27 sbajic Exp $ */
+/* $Id: dspam.c,v 1.34 2009/08/19 05:20:18 sbajic Exp $ */
 
 /*
  DSPAM
@@ -3853,7 +3853,7 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         if (!bad) {
           memcpy(&saddr, res->ai_addr, sizeof(struct sockaddr));
 #ifdef HAVE_INET_NTOA_R_2
-          inet_ntoa_r(remote_addr.sin_addr, buff);
+          inet_ntoa_r(saddr.sin_addr, buff);
 #else
           inet_ntoa_r(saddr.sin_addr, buff, sizeof(buff));
 #endif
