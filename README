@@ -35,9 +35,9 @@ COPYRIGHT
 As of 12 January 2009 the copyright is owned by the DSPAM Project, represented
 by a team of people, including:
   Alexander Prinsier
+  Dov Zamir
   Ion-Mihai Tetcu
   Paul Cockings
-  Dov Zamir
   Stevan Bajic
 
 TABLE OF CONTENTS
@@ -64,8 +64,9 @@ Advanced DSPAM functionality
 
 Miscellaneous
 
-  3.0 Bugs, Ports, and the like 
-  3.1 CVS Access
+  3.0 Bugs, Feature Requests
+  3.1 Ports / Packages
+  3.2 GIT Access
 
 1.0 ABOUT DSPAM
 
@@ -993,7 +994,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
              calls to dspam_clean -p to purge neutral data, which comprises a
              majority of most databases.
 
-  For more help, please see the DSPAM FAQ at http://dspam.sourceforge.net.
+  For more help, please see the DSPAM FAQ at http://dspam.sf.net.
 
 1.4 DSPAM TOOLS
 
@@ -1250,7 +1251,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
     no:  Bayesian Noise Reduction (BNR). Bayesian Noise Reduction kicks in
          at 2500 innocent messages and provides an advanced progressive
          noise logic to reduce Bayesian Noise (wordlist attacks) in
-         spams.  See http://bnr.nuclearelephant.com for more information.
+         spams. See http://www.zdziarski.com/papers/bnr.html for more information.
          BNR is not for everyone, and so users should try it out after 
          they've trained to see if it helps improve accuracy.
 
@@ -1407,7 +1408,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
   A new Internet-Draft has been released to the public:
 
-    http://www.ietf.org/internet-drafts/draft-spamfilt-inoculation-00.txt
+    http://tools.ietf.org/draft/draft-spamfilt-inoculation/draft-spamfilt-inoculation-01.txt
 
   To create a message format standard for sending inoculation data via email.
   This will allow users on different servers, and even using different 
@@ -2017,15 +2018,32 @@ DATA
   whatever was the first line output of the program/script execution.
 
 
-3.0 BUGS, PORTS, AND THE LIKE
+3.0 BUGS, FEATURE REQUESTS
 
-  Please use our bug tracker on the sourceforge project page at
+  Please use our Bug Tracker on the sourceforge project page at
   http://sf.net/projects/dspam for the current known bugs list and proper
   reporting procedure.
 
-  If you port DSPAM to another platform, or would like to submit changes to
-  the distribution, please email a diff along with any other pertinent 
-  information to the dspam-devel mailing list. 
+  In the same place you can ask for new feature via the Feature Request Tracker.
+
+  Please note that everything under contrib/ is not officially supported by the
+  DSPAM Project but by the respective authors; however, in order to help the
+  authors, facilitate integration with DSPAM and release procedures, we provide
+  a bug tracker for each script/plugin at the same URL.
+ 
+3.1 PORTS / PACKAGES
+
+  The DSPAM Project does not provide binary packages of DSPAM. Each 
+  OS/distribution has its own contributors (they know perfectly their
+  distribution's policy, their special guidelines, testing procedures, etc.).
+
+  Please check doc/RE_QA/ports [WIP] for a list of known ports/packages of
+  various OSes and distros and their maintainers, or check your OS/distro docs.
+
+  If you wish to port DSPAM to an other OS/distro/platform and need help or have
+  patches you would like to be merged in the repo please email
+  dspam-devel@lists.sourceforge.net mailing list.
+  
 
   Note:
 
@@ -2049,4 +2067,4 @@ DATA
   The DSPAM source tree can be downloaded via read-only git access using the
   following commands:
 
-  git clone git://dspam.git.sourceforge.net/gitroot/dspam
+  git clone git://dspam.git.sourceforge.net/gitroot/dspam/dspam
