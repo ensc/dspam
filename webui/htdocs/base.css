@@ -94,7 +94,6 @@ em {
 #navcontainer li a{
 	display:block;
 	float:left;
-	width:100%;
 }
 #navcontainer a:link, #navcontainer a:visited {
 	background-color: lightgray;
