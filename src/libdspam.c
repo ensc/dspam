@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.167 2009/09/10 20:31:38 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.168 2009/09/10 20:40:19 sbajic Exp $ */
 
 /*
  DSPAM
@@ -575,6 +575,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     h = strtok_r(y, "\001", &ptrptr);
     b = strtok_r(NULL, "\001", &ptrptr);
     spam_result = _ds_operate (CTX, h, b);
+    free(y);
 
   /* Otherwise, operate on the input message */
  
