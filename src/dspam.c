@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.34 2009/08/19 05:20:18 sbajic Exp $ */
+/* $Id: dspam.c,v 1.35 2009/09/10 20:58:08 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2562,11 +2562,13 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
   if (CTX == NULL)
     return NULL;
 
-  if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "statisticalSedation"), ""))
+  if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "statisticalSedation"), "")) {
     CTX->training_buffer = atoi(_ds_pref_val(ATX->PTX, "statisticalSedation"));
-  else if (ATX->training_buffer>=0)
+    LOGDEBUG("sedation level set to: %d", CTX->training_buffer);
+  } else if (ATX->training_buffer>=0) {
     CTX->training_buffer = ATX->training_buffer;
     LOGDEBUG("sedation level set to: %d", CTX->training_buffer);
+  }
 
   if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "whitelistThreshold"), ""))
     CTX->wh_threshold = atoi(_ds_pref_val(ATX->PTX, "whitelistThreshold"));

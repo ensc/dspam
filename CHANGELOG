@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090910:2100] sbajic: Fixing missing {} block in dspam.c (closing SF Bug ID #2853138)
+
 [20090910:2045] sbajic: Fixing null pointer deallocation in libdspam (closing SF Bug ID #2853177)
 
 [20090910:2040] sbajic: Fixing memory leak in libdspam (closing SF Bug ID #2853181)
