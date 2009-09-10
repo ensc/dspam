@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090910:2035] sbajic: Fixing memory leak in libdspam (closing SF Bug ID #2853188)
+
 [20090821:0115] sbajic: Fixing CSS and JavaScript issues in IE7/IE8 (The absolute worst browser when it comes to supporting the standards is Internet Explorer!) (closing SF Bug ID #2841370)
 
 [20090819:1520] sbajic: Fixing one more compiling issue under uClibc

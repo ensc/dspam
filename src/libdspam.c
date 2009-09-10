@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.166 2009/07/24 22:53:18 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.167 2009/09/10 20:31:38 sbajic Exp $ */
 
 /*
  DSPAM
@@ -582,6 +582,10 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     spam_result = _ds_operate (CTX, header->data, body->data);
   }
 
+  /* Clean up */
+  buffer_destroy (header);
+  buffer_destroy (body);
+
   /* Fail if _ds_operate() was unable to process message */
   if (spam_result != DSR_ISSPAM && spam_result != DSR_ISINNOCENT) {
     return EFAILURE;
@@ -597,7 +601,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
       spam_result = DSR_ISSPAM;
   }
 
-  /* Apply results to context and clean up */
+  /* Apply results to context */
   CTX->result = spam_result;
   if (CTX->class[0] == 0) {
     if (CTX->result == DSR_ISSPAM)
@@ -605,8 +609,6 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     else if (CTX->result == DSR_ISINNOCENT)
       strcpy(CTX->class, LANG_CLASS_INNOCENT);
   }
-  buffer_destroy (header);
-  buffer_destroy (body);
 
   if (is_toe)
     CTX->operating_mode = DSM_PROCESS;
