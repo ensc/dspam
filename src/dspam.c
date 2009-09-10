@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.35 2009/09/10 20:58:08 sbajic Exp $ */
+/* $Id: dspam.c,v 1.36 2009/09/10 21:04:49 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1478,6 +1478,8 @@ user_classify (
     {
       if (message == NULL) {
         LOG(LOG_WARNING, "user_classify: SIG = %ld, message = NULL\n", (unsigned long) SIG);
+        if (SIG) CLX->signature = NULL;
+        dspam_destroy (CLX);
         return EFAILURE;
       }
       result = dspam_process (CLX, message);
