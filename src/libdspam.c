@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.168 2009/09/10 20:40:19 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.169 2009/09/10 20:45:51 sbajic Exp $ */
 
 /*
  DSPAM
@@ -277,8 +277,10 @@ int dspam_clearattributes (DSPAM_CTX * CTX) {
   return 0;
 
 bail:
-  free(CTX->config);
-  CTX->config = NULL;
+  if (CTX->config != NULL) {
+    free(CTX->config);
+    CTX->config = NULL;
+  }
   LOG(LOG_CRIT, ERR_MEM_ALLOC);
   return EUNKNOWN;
 }
