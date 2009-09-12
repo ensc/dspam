@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090912:0925] sbajic: Fixing LOG/LOGFILE writing (closing SF Bug ID #2837832)
+
 [20090910:2105] sbajic: Fixing memory leak in dspam.c (closing SF Bug ID #2853133)
 
 [20090910:2100] sbajic: Fixing missing {} block in dspam.c (closing SF Bug ID #2853138)
