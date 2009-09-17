@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.37 2009/09/17 10:20:12 sbajic Exp $ */
+/* $Id: dspam.c,v 1.371 2009/09/17 10:38:12 sbajic Exp $ */
 
 /*
  DSPAM
@@ -349,6 +349,11 @@ process_message (
 
   ATX->timestart = _ds_gettime();	/* set tick count to get run time */
 
+  if (message->data == NULL) {
+    LOGDEBUG("empty message provided");
+    return EINVAL;
+  }
+
   /* Create a dspam context based on the agent context */
 
   CTX = ctx_init(ATX, username);
@@ -381,11 +386,6 @@ process_message (
       result = EUNKNOWN;
       goto RETURN;
     }
-  }
-
-  if (message->data == NULL) {
-    LOGDEBUG("empty message provided");
-    return EINVAL;
   }
 
   /* Parse and decode the message into our message structure (ds_message_t) */

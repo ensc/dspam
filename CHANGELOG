@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090917:1040] sbajic: Fixing memory leak in dspam.c (closing SF Bug ID #2853124)
+
 [20090917:1025] sbajic: Fixing missing close of sockets in has_virus() and feed_clam() (closing SF Bug ID #2853156)
 
 [20090917:1010] sbajic: Fixing freeing of unallocated pointers (closing SF Bug ID #2853164)
