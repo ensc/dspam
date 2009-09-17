@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090917:1010] sbajic: Fixing freeing of unallocated pointers (closing SF Bug ID #2853164)
+
 [20090912:0925] sbajic: Fixing LOG/LOGFILE writing (closing SF Bug ID #2837832)
 
 [20090910:2105] sbajic: Fixing memory leak in dspam.c (closing SF Bug ID #2853133)

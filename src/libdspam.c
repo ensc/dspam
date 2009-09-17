@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.169 2009/09/10 20:45:51 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.17 2009/09/17 10:09:29 sbajic Exp $ */
 
 /*
  DSPAM
@@ -234,12 +234,20 @@ DSPAM_CTX * dspam_create (
   return CTX;
 
 bail:
-  if (CTX->config)
-    _ds_destroy_config(CTX->config->attributes);
-  free(CTX->config);
-  free(CTX->username);
-  free(CTX->group);
-  free(CTX);
+  if (CTX != NULL) {
+    if (CTX->config != NULL) {
+      if (CTX->config->attributes != NULL)
+        _ds_destroy_config(CTX->config->attributes);
+      free(CTX->config);
+    }
+    if (CTX->username != NULL)
+      free(CTX->username);
+    if (CTX->group != NULL)
+      free(CTX->group);
+    if (CTX->home != NULL)
+      free(CTX->home);
+    free(CTX);
+  }
   return NULL;
 }
 
