@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.36 2009/09/10 21:04:49 sbajic Exp $ */
+/* $Id: dspam.c,v 1.37 2009/09/17 10:20:12 sbajic Exp $ */
 
 /*
  DSPAM
@@ -3719,6 +3719,7 @@ int has_virus(buffer *message) {
   LOGDEBUG("Connecting to %s:%d for virus check", host, port);
   if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
     LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+    close(sockfd);
     return 0;
   }
 
@@ -3727,11 +3728,14 @@ int has_virus(buffer *message) {
   sock = fdopen(sockfd, "r");
   if (sock == NULL) {
     LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+    close(sockfd);
     return 0;
   }
   sockout = fdopen(sockfd, "w");
   if (sockout == NULL) {
     LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+    fclose(sock);
+    close(sockfd);
     return 0;
   }
   fprintf(sockout, "STREAM\r\n");
@@ -3776,6 +3780,10 @@ int feed_clam(int port, buffer *message) {
   char *host = _ds_read_attribute(agent_config, "ClamAVHost");
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (sockfd < 0) {
+    LOG(LOG_ERR, "socket(AF_INET, SOCK_STREAM, 0): %s", strerror(errno));
+    return EFAILURE;
+  }
   memset(&addr, 0, sizeof(struct sockaddr_in));
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = inet_addr(host);
@@ -3784,6 +3792,7 @@ int feed_clam(int port, buffer *message) {
   LOGDEBUG("Connecting to %s:%d for virus stream transmission", host, port);
   if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
     LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+    close(sockfd);
     return EFAILURE;
   }
 
@@ -3792,6 +3801,7 @@ int feed_clam(int port, buffer *message) {
   while(sent<size) {
     r = send(sockfd, message->data+sent, size-sent, 0);
     if (r <= 0) {
+      close(sockfd);
       return r;
     }
     sent += r;
