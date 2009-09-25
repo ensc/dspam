@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090925:2005] sbajic: Take care of internal tokens (control, whitelist, frequency and BNR) when computing probability for Markovian weightening and OSB/OSBF/WINNOW weightening
+
 [20090924:2356] sbajic: Adding OSB/OSBF/WINNOW weightening
 
 [20090917:1040] sbajic: Fixing memory leak in dspam.c (closing SF Bug ID #2853124)

@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.18 2009/09/25 00:04:16 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.181 2009/09/25 19:50:45 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1468,6 +1468,30 @@ _ds_calc_stat (
      *  a probability. just return something neutral.
      */
     if (term == NULL) {
+      s->probability = .5;
+      return 0;
+    }
+
+    /* return neutral probability for BNR patterns */
+    if (token_type == DTT_BNR || term->type == 'B' || !strncmp(term->name, "bnr.", 4)) {
+      s->probability = .5;
+      return 0;
+    }
+
+    /* return neutral probability for frequency tokens */
+    if (!strncmp(term->name, "E: ", 3)) {
+      s->probability = .5;
+      return 0;
+    }
+
+    /* return neutral probability for "From" tokens (used for when whitelisting) */
+    if (!strncmp(term->name, "From*", 5)) {
+      s->probability = .5;
+      return 0;
+    }
+
+    /* return neutral probability for control tokens */
+    if (term->name == '$$CONTROL$$') {
       s->probability = .5;
       return 0;
     }
