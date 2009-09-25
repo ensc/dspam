@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.87 2009/08/18 10:52:22 sbajic Exp $
+## $Id: dspam.conf.in,v 1.88 2009/09/24 23:54:21 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -245,6 +245,7 @@ Tokenizer chain
 #    bcr         Bayesian Chain Rule (Graham's Technique - "A Plan for Spam")
 #    robinson    Robinson's Technique (used in Chi-Square) 
 #    markov      Markovian Weighted Technique (for Markovian discrimination)
+#    osb         OSB/OSBF/WINNOW Weighted Technique (for OSB)
 #
 # Unlike the "Algorithms" property, you may only have one of these defined. 
 # Use of the chi-square algorithm automatically changes this to robinson.
@@ -253,6 +254,7 @@ Tokenizer chain
 #
 #PValue robinson
 #PValue markov
+#PValue osb
 PValue bcr
 
 #

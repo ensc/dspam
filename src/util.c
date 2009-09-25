@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.25 2009/07/12 23:09:05 sbajic Exp $ */
+/* $Id: util.c,v 1.26 2009/09/24 23:04:00 sbajic Exp $ */
 
 /*
  DSPAM
@@ -574,7 +574,7 @@ int _ds_compute_weight(const char *token) {
   }
 
   if (complexity == 3) {
-    if (sparse == 1)  /*  bron * jumped  */
+    if (sparse == 1)  /*  brown * jumped  */
       return 4;
     if (sparse == 0)  /*  brown fox jumped  */
       return 16;
@@ -591,6 +591,61 @@ int _ds_compute_weight(const char *token) {
   }
 
   LOG(LOG_WARNING, "_ds_compute_weight: no rule to compute markovian weight for '%s'; complexity: %d; sparse: %d", token, complexity, sparse);
+  return 1;
+}
+int _ds_compute_weight_osb(const char *token) {
+/* We have two possibilities here to compute the weight.
+ *
+ * One would be to use the original code found in older
+ * CRM114 and compute (have larger weights for 'shorter'
+ * (narrower) matches):
+ *   (SPARSE_WINDOW_SIZE-sparse)**(SPARSE_WINDOW_SIZE-sparse)
+ *
+ * Or use newer algorithm found in CRM114 (have larger
+ * weights for 'longer' (wider) matches):
+ *   complexity**complexity
+ *
+ * We are going to use here the later one.
+ */
+
+  int complexity = _ds_compute_complexity(token);
+
+/*
+ * Mathematically correct algorithm (but slower):
+ *
+ * int weight = 1;
+ *
+ * if (complexity >= 1 && complexity <= SPARSE_WINDOW_SIZE) {
+ *   weight = (int)pow(complexity,complexity);
+ *   if (weight < 1)
+ *     weight = 1;
+ * }
+ * return weight;
+ */
+
+/*
+ * The same (+/-) as above but without using an algorithm (and
+ * therefore faster then calling each time the pow() function).
+ *
+ */
+
+  if (complexity == 5) {  /*  the * * * jumped  */
+    return 3125;
+  }
+
+  if (complexity == 4) {  /*  quick * * jumped  */
+    return 256;
+  }
+
+  if (complexity == 3) {  /*  brown * jumped  */
+    return 27;
+  }
+
+  if (complexity == 2) {  /*  fox jumped  */
+    return 4;
+  }
+
+  LOG(LOG_WARNING, "_ds_compute_weight_osb: no rule to compute OSB/OSBF/WINNOW weight for '%s'; complexity: %d", token, complexity);
   return 1;
 }
 
