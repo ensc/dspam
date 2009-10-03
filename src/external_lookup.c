@@ -434,6 +434,7 @@ program_lookup(config_t agent_config, const char *username, char *external_uid)
 			/* just in case there's no line break at the end of the return... */
 			memset(output, 0, 1024);
 			read(fd[0], output, 1024);
+			close(fd[0]);
 	}
 
 	if (strlen(output) == 0) {
