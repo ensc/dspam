@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.181 2009/09/25 19:50:45 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.182 2009/10/05 21:34:43 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1491,7 +1491,7 @@ _ds_calc_stat (
     }
 
     /* return neutral probability for control tokens */
-    if (term->name == '$$CONTROL$$') {
+    if (!strncmp(term->name, "$$CONTROL$$", 11)) {
       s->probability = .5;
       return 0;
     }

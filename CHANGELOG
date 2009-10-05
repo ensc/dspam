@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091005:2135] sbajic: Changing how control tokens are matched when computing probability for Markovian weightening and OSB/OSBF/WINNOW weightening
+
 [20091005:1600] sbajic: Adding Hugo Monteiro to the README
 
 [20090925:2005] sbajic: Take care of internal tokens (control, whitelist, frequency and BNR) when computing probability for Markovian weightening and OSB/OSBF/WINNOW weightening
