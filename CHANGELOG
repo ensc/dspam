@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091005:2138] sbajic: The README has twice a list of members. Updated the second list to be in sync with the first one.
+
 [20091005:2135] sbajic: Changing how control tokens are matched when computing probability for Markovian weightening and OSB/OSBF/WINNOW weightening
 
 [20091005:1600] sbajic: Adding Hugo Monteiro to the README
