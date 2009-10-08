@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.85 2009/06/25 00:51:54 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.86 2009/10/08 20:08:20 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1684,7 +1684,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   struct passwd *p;
   uid_t uid;
 #else
-  char *virtual_table, *virtual_uid, *virtual_username;
+  char *virtual_table, *virtual_username;
 #endif
   char query[256];
   MYSQL_ROW row;
@@ -1699,10 +1699,6 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   if ((virtual_table
     = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
   { virtual_table = "dspam_virtual_uids"; }
-
-  if ((virtual_uid
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
-  { virtual_uid = "uid"; }
 
   if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
     "MySQLVirtualUsernameField")) ==NULL)

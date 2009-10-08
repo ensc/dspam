@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091008:2010] sbajic: Removing unused variables from MySQL driver in _ds_get_nextuser()
+
 [20091008:1915] sbajic: Removing unused variables in bnr_hash_value()
 
 [20091008:1908] sbajic: Removing unused variables in find_signature()
