@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091008:2321] sbajic: Fixing variable declaration in MySQL driver introduced in last commit
+
 [20091008:2311] sbajic: Code cleanup (limiting scope of variables)
 
 [20091008:2122] sbajic: Fixing return code in send_socket()

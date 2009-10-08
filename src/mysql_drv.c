@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.861 2009/10/08 22:41:15 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.862 2009/10/08 23:13:46 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1222,11 +1222,12 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   s->max_packet_read = 1000000;
   s->max_packet_write = 1000000;
   if (s->dbt) {
+    MYSQL_ROW row;
     if (s->dbt->dbh_read) {
       if (MYSQL_RUN_QUERY (s->dbt->dbh_read, scratch) == 0) {
         result = mysql_use_result (s->dbt->dbh_read);
         if (result != NULL) {
-          MYSQL_ROW row = mysql_fetch_row (result);
+          row = mysql_fetch_row (result);
           if (row != NULL) {
             drv_max_packet = strtoul (row[1], NULL, 0);
             if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
