@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091008:1900] sbajic: Fixing broken return code in process_users()
+
 [20091008:1850] sbajic: Removing unused variables in _ds_ff_pref_load()
 
 [20091008:1840] sbajic: Removing unused variables in _ds_degenerate_message()

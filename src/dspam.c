@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.371 2009/09/17 10:38:12 sbajic Exp $ */
+/* $Id: dspam.c,v 1.372 2009/10/08 19:03:29 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1588,7 +1588,7 @@ int send_notice(
  */
 
 int process_users(AGENT_CTX *ATX, buffer *message) {
-  int i = 0, have_rcpts = 0, return_code = 0, retcode = 0;
+  int i = 0, have_rcpts = 0, retcode = 0;
   struct nt_node *node_nt;
   struct nt_node *node_rcpt = NULL;
   struct nt_c c_nt, c_rcpt;
@@ -1897,7 +1897,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
       if (_ds_match_attribute(agent_config, "Broken", "returnCodes")) {
         if (result == DSR_ISSPAM)
-          return_code = 99;
+          retcode = 99;
       }
 
       /*
