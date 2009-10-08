@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.183 2009/10/08 20:18:50 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.184 2009/10/08 20:44:09 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1879,9 +1879,8 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
         }
 
         if (fabs(0.5-fw)>CHI_EXCR) {
-          int iter = _ds_compute_complexity(ds_term->name);
+          int iter = 1;
 
-          iter = 1;
           while(iter>0) {
             iter --;
 
