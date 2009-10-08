@@ -1,4 +1,4 @@
-/* $Id: csscompress.c,v 1.82 2009/08/03 07:09:38 sbajic Exp $ */
+/* $Id: csscompress.c,v 1.83 2009/10/08 20:36:48 sbajic Exp $ */
 
 /*
  DSPAM
@@ -105,15 +105,11 @@ int csscompress(const char *filename) {
   unsigned long filepos;
   char newfile[128];
 
-  unsigned long hash_rec_max = HASH_REC_MAX;
   unsigned long max_seek     = HASH_SEEK_MAX;
   unsigned long max_extents  = 0;
   unsigned long extent_size  = HASH_EXTENT_MAX;
   int pctincrease = 0;
   int flags = 0;
-
-  if (READ_ATTRIB("HashRecMax"))
-    hash_rec_max = strtol(READ_ATTRIB("HashRecMax"), NULL, 0);
 
   if (READ_ATTRIB("HashExtentSize"))
     extent_size = strtol(READ_ATTRIB("HashExtentSize"), NULL, 0);

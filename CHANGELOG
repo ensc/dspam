@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091008:2038] sbajic: Removing unused variables in csscompress()
+
 [20091008:2031] sbajic: Removing unused variables in cssstat()
 
 [20091008:2025] sbajic: Removing unused variables in bnr_hash_set()
