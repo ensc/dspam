@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091008:1850] sbajic: Removing unused variables in _ds_ff_pref_load()
+
 [20091008:1840] sbajic: Removing unused variables in _ds_degenerate_message()
 
 [20091005:2138] sbajic: The README has twice a list of members. Updated the second list to be in sync with the first one.

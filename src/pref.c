@@ -1,4 +1,4 @@
-/* $Id: pref.c,v 1.33 2009/07/12 23:07:33 sbajic Exp $ */
+/* $Id: pref.c,v 1.34 2009/10/08 18:51:19 sbajic Exp $ */
 
 /*
  DSPAM
@@ -161,7 +161,7 @@ agent_attrib_t _ds_pref_new(const char *attribute, const char *value) {
 
 agent_pref_t _ds_ff_pref_load(
   config_t config,
-  const char *user, 
+  const char *user,
   const char *home,
   void *ignore)
 {
@@ -169,7 +169,7 @@ agent_pref_t _ds_ff_pref_load(
   agent_pref_t PTX = malloc(sizeof(agent_attrib_t )*PREF_MAX);
   char buff[258];
   FILE *file;
-  char *p, *q, *bufptr;
+  char *p, *q;
   int i = 0;
 
   if (PTX == NULL) {
@@ -184,17 +184,15 @@ agent_pref_t _ds_ff_pref_load(
     _ds_userdir_path (filename, home, user, "prefs");
   }
   file = fopen(filename, "r");
- 
+
   /* Apply default preferences from dspam.conf */
-                                                                                
+
   if (file != NULL) {
     char *ptrptr;
     while(i<(PREF_MAX-1) && fgets(buff, sizeof(buff), file)!=NULL) {
       if (buff[0] == '#' || buff[0] == 0)
         continue;
       chomp(buff);
-
-      bufptr = buff;
 
       p = strtok_r(buff, "=", &ptrptr);
 
