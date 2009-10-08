@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091008:2031] sbajic: Removing unused variables in cssstat()
+
 [20091008:2025] sbajic: Removing unused variables in bnr_hash_set()
 
 [20091008:2020] sbajic: Removing unused code from _ds_calc_result()
