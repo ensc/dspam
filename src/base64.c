@@ -1,4 +1,4 @@
-/* $Id: base64.c,v 1.91 2009/07/05 18:46:52 sbajic Exp $ */
+/* $Id: base64.c,v 1.92 2009/10/08 20:51:43 sbajic Exp $ */
 
 /*
  DSPAM
@@ -46,7 +46,7 @@ base64decode (const char *buf)
   unsigned char alphabet[64] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   static char first_time = 1,inalphabet[256], decoder[256];
-  int i, bits, c, char_count, errors = 0;
+  int i, bits, c, char_count;
   int pos = 0, dpos = 0;
   char *decoded;
 
@@ -100,7 +100,6 @@ base64decode (const char *buf)
     {
       LOGDEBUG ("base64 encoding incomplete: at least %d bits truncated",
                 ((4 - char_count) * 6));
-      errors++;
     }
   }
   else
@@ -109,7 +108,6 @@ base64decode (const char *buf)
     {
     case 1:
       LOGDEBUG ("base64 encoding incomplete: at least 2 bits missing");
-      errors++;
       break;
     case 2:
       decoded[dpos] = (bits >> 10);
