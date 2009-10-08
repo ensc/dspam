@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.184 2009/10/08 20:44:09 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.185 2009/10/08 22:36:01 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2288,9 +2288,6 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
   struct _ds_spam_stat bnr_tot;
   unsigned long long crc;
   BNR_CTX *BTX_S, *BTX_C;
-#ifdef LIBBNR_DEBUG
-  float snr;
-#endif
   struct nt_node *node_nt;
   struct nt_c c_nt;
   ds_term_t ds_term, ds_touch;
@@ -2400,6 +2397,7 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
     }
 
 #ifdef LIBBNR_DEBUG
+    float snr;
     if (BTX_S->stream->items + BTX_C->stream->items +
         BTX_S->eliminations  + BTX_C->eliminations > 0)
     {

@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.19 2009/09/25 00:09:44 sbajic Exp $ */
+/* $Id: read_config.c,v 1.191 2009/10/08 23:05:24 sbajic Exp $ */
 
 /*
  DSPAM
@@ -108,7 +108,6 @@ long dirread(const char *path, config_t *attrib, long num_root) {
   DIR *dir_p;
   char *fulldir;
   struct dirent *dir_entry_p;
-  int n, m;
 
   // Strip "\n"
   char *ptr = strrchr(path, '\n');
@@ -129,8 +128,8 @@ long dirread(const char *path, config_t *attrib, long num_root) {
        continue;
       }
 
-      n = strlen(dir_entry_p->d_name);
-      m = strlen(path);
+      int n = strlen(dir_entry_p->d_name);
+      int m = strlen(path);
       fulldir = (char *)malloc(n+m+2);
       strcpy(fulldir, (char *)path);
       strcat(fulldir, "/");

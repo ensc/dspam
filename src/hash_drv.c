@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.27 2009/08/02 20:09:28 sbajic Exp $ */
+/* $Id: hash_drv.c,v 1.28 2009/10/08 22:33:34 sbajic Exp $ */
 
 /*
  DSPAM
@@ -216,14 +216,14 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
     HashConcurrentUser = READ_ATTRIB("HashConcurrentUser");
 
     if (DTX->flags & DRF_STATEFUL) {
-      hash_drv_map_t map;
-      int connection_cache = 1, i;
+      int connection_cache = 1;
 
-     if (READ_ATTRIB("HashConnectionCache") && !HashConcurrentUser)
+      if (READ_ATTRIB("HashConnectionCache") && !HashConcurrentUser)
         connection_cache = strtol(READ_ATTRIB("HashConnectionCache"), NULL, 0);
 
       LOGDEBUG("unloading hash database from memory");
       if (DTX->connections) {
+        int i;
         for(i=0;i<connection_cache;i++) {
           LOGDEBUG("unloading connection object %d", i);
           if (DTX->connections[i]) {
@@ -232,7 +232,7 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
             }
             else {
               pthread_rwlock_destroy(&DTX->connections[i]->rwlock);
-              map = (hash_drv_map_t) DTX->connections[i]->dbh;
+              hash_drv_map_t map = (hash_drv_map_t) DTX->connections[i]->dbh;
               if (map)
                 _hash_drv_close(map);
             }
@@ -471,7 +471,6 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 {
   struct _hash_drv_storage *s = NULL;
   hash_drv_map_t map = NULL;
-  int ret;
 
   if (CTX == NULL)
     return EINVAL;
@@ -551,6 +550,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   {
     char db[MAX_FILENAME_LENGTH];
     int lock_result;
+    int ret;
 
     if (CTX->group == NULL)
       _ds_userdir_path(db, CTX->home, CTX->username, "css");
@@ -594,7 +594,6 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
   struct _hash_drv_storage *s;
   struct nt_node *node_nt;
   struct nt_c c_nt;
-  int lock_result;
 
   if (!CTX || !CTX->storage)
     return EINVAL;
@@ -621,7 +620,7 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
   if (!s->dbh_attached) {
     _hash_drv_close(s->map);
     free(s->map);
-    lock_result =
+    int lock_result =
       _hash_drv_lock_free (s, (CTX->group) ? CTX->group : CTX->username);
     if (lock_result < 0)
       return EUNKNOWN;

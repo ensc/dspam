@@ -1,4 +1,4 @@
-/* $Id: base64.c,v 1.93 2009/10/08 21:05:49 sbajic Exp $ */
+/* $Id: base64.c,v 1.94 2009/10/08 22:25:46 sbajic Exp $ */
 
 /*
  DSPAM
@@ -46,7 +46,7 @@ base64decode (const char *buf)
   unsigned char alphabet[64] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   static char first_time = 1,inalphabet[256], decoder[256];
-  int i, bits, c, char_count;
+  int bits, c, char_count;
   int pos = 0, dpos = 0;
   char *decoded;
 
@@ -56,6 +56,7 @@ base64decode (const char *buf)
   decoded[0] = 0;
 
   if(first_time) {
+    int i;
     for (i = (sizeof alphabet) - 1; i >= 0; i--)
     {
       inalphabet[alphabet[i]] = 1;
