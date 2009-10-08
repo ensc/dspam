@@ -1,4 +1,4 @@
-/* $Id: base64.c,v 1.92 2009/10/08 20:51:43 sbajic Exp $ */
+/* $Id: base64.c,v 1.93 2009/10/08 21:05:49 sbajic Exp $ */
 
 /*
  DSPAM
@@ -112,13 +112,11 @@ base64decode (const char *buf)
     case 2:
       decoded[dpos] = (bits >> 10);
       decoded[dpos + 1] = 0;
-      dpos++;
       break;
     case 3:
       decoded[dpos] = (bits >> 16);
       decoded[dpos + 1] = ((bits >> 8) & 0xff);
       decoded[dpos + 2] = 0;
-      dpos += 2;
       break;
     }
   }

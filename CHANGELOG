@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091008:2045] sbajic: Removing unused code in base64decode() when using NCORE
+
 [20091008:2045] sbajic: Removing unused variables in base64decode() when using NCORE
 
 [20091008:2045] sbajic: Removing code in _ds_calc_result() (speeding up Robinson algorithm)
