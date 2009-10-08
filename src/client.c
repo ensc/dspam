@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.65 2009/06/02 01:08:10 sbajic Exp $ */
+/* $Id: client.c,v 1.66 2009/10/08 21:08:25 sbajic Exp $ */
 
 /*
  DSPAM
@@ -204,7 +204,6 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
       int code = 500;
 
       if (!input) {
-        exitcode = EFAILURE;
         goto BAIL;
       }
       x = strtok(input, " ");
