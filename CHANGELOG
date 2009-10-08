@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091008:1915] sbajic: Removing unused variables in bnr_hash_value()
+
 [20091008:1908] sbajic: Removing unused variables in find_signature()
 
 [20091008:1900] sbajic: Fixing broken return code in process_users()

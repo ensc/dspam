@@ -1,4 +1,4 @@
-/* $Id: hash.c,v 1.7 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: hash.c,v 1.71 2009/10/08 19:15:11 sbajic Exp $ */
 
 /*
  DSPAM
@@ -214,11 +214,9 @@ float
 bnr_hash_value (struct bnr_hash *hash, const char *name)
 {
   unsigned long hash_code;
-  struct bnr_hash_node *parent;
   struct bnr_hash_node *node;
 
   hash_code = bnr_hash_hashcode(hash, name);
-  parent = NULL;
   node = hash->tbl[hash_code];
 
   while (node != NULL)
@@ -226,7 +224,6 @@ bnr_hash_value (struct bnr_hash *hash, const char *name)
     if (!strcmp(node->name, name))
       return node->value;
 
-    parent = node;
     node = node->next;
   }
 
