@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.182 2009/10/05 21:34:43 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.183 2009/10/08 20:18:50 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1653,8 +1653,6 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
     heap_list[(heap_sort->items-i)-1] = node_heap;
     node_heap = node_heap->next;
   }
-
-  node_heap = heap_sort->root;
 
   /* BEGIN Combine Token Values */
   for(i=0;i<heap_sort->items;i++)

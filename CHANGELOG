@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091008:2020] sbajic: Removing unused code from _ds_calc_result()
+
 [20091008:2010] sbajic: Removing unused variables from MySQL driver in _ds_get_nextuser()
 
 [20091008:1915] sbajic: Removing unused variables in bnr_hash_value()
