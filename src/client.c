@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.66 2009/10/08 21:08:25 sbajic Exp $ */
+/* $Id: client.c,v 1.67 2009/10/08 21:21:12 sbajic Exp $ */
 
 /*
  DSPAM
@@ -641,7 +641,10 @@ int send_socket(THREAD_CTX *TTX, const char *text) {
   }
 
   r = send(TTX->sockfd, "\r\n", 2, 0);
-  return i+2;
+  if (r > 0) {
+    i += r;
+  }
+  return i;
 }
 
 /*

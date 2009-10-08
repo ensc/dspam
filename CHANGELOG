@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091008:2122] sbajic: Fixing return code in send_socket()
+
 [20091008:2110] sbajic: Removing unused code in client_process()
 
 [20091008:2045] sbajic: Removing unused code in base64decode() when using NCORE
