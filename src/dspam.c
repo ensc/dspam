@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.372 2009/10/08 19:03:29 sbajic Exp $ */
+/* $Id: dspam.c,v 1.373 2009/10/08 19:07:32 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2131,7 +2131,7 @@ RSET:
  */
 
 int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
-  struct nt_node *node_nt, *prev_node = NULL;
+  struct nt_node *node_nt;
   struct nt_c c, c2;
   ds_message_part_t block = NULL;
   char first_boundary[512];
@@ -2344,7 +2344,6 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       } /* TrainPristine */
     }
 NEXT:
-    prev_node = node_nt;
     node_nt = c_nt_next (CTX->message->components, &c);
     i++;
   }
