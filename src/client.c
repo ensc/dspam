@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.67 2009/10/08 21:21:12 sbajic Exp $ */
+/* $Id: client.c,v 1.68 2009/10/09 21:50:04 sbajic Exp $ */
 
 /*
  DSPAM
@@ -120,7 +120,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     }
 
     if (client_getcode(&TTX, err, sizeof(err))!=LMTP_OK) {
-      STATUS(err);
+      STATUS("%s", err);
       goto QUIT;
     }
 
@@ -133,7 +133,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     goto BAIL;
 
   if (client_getcode(&TTX, err, sizeof(err))!=LMTP_DATA) {
-    STATUS(err);
+    STATUS("%s", err);
     goto QUIT;
   }
 
@@ -317,7 +317,7 @@ int client_connect(AGENT_CTX *ATX, int flags) {
     LOGDEBUG(INFO_CLIENT_CONNECTING, host, 0);
     if(connect(sockfd, (struct sockaddr *)&saun, addr_len)<0) {
       LOG(LOG_ERR, ERR_CLIENT_CONNECT_SOCKET, host, strerror(errno));
-      STATUS(strerror(errno));
+      STATUS("%s", strerror(errno));
       close(sockfd);
       return EFAILURE;
     }
@@ -334,7 +334,7 @@ int client_connect(AGENT_CTX *ATX, int flags) {
     LOGDEBUG(INFO_CLIENT_CONNECTING, host, port);
     if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
       LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
-      STATUS(strerror(errno));
+      STATUS("%s", strerror(errno));
       close(sockfd);
       return EFAILURE;
     }
@@ -702,7 +702,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   inp = client_expect(&TTX, LMTP_GREETING, err, sizeof(err));
   if (inp == NULL) {
     LOG(LOG_ERR, ERR_CLIENT_ON_GREETING, err);
-    STATUS(err);
+    STATUS("%s", err);
     goto BAIL;
   }
   free(inp);
