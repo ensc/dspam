@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.374 2009/10/09 21:16:55 sbajic Exp $ */
+/* $Id: dspam.c,v 1.375 2009/10/09 21:20:10 sbajic Exp $ */
 
 /*
  DSPAM
@@ -343,7 +343,6 @@ process_message (
   ds_message_t components;
   char *copyback;
   int have_signature = 0;
-  int have_decision = 0;
   int result, i;
   int internally_canned = 0;
 
@@ -468,7 +467,6 @@ process_message (
   if (have_signature)
   {
     char *original_username = CTX->username;
-    have_decision = 1;
 
     if (_ds_get_signature (CTX, &ATX->SIG, ATX->signature))
     {
