@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.376 2009/10/09 21:23:46 sbajic Exp $ */
+/* $Id: dspam.c,v 1.377 2009/10/09 22:00:58 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2956,7 +2956,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     char stat[256];
     snprintf(stat, sizeof(stat), "Delivery Failed (%s)",
              (ATX->status[0]) ? ATX->status : "No error provided");
-    STATUS(stat);
+    STATUS("%s", stat);
     class = 'E';
   }
 
