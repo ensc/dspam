@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091009:2125] sbajic: Removing unused variables in retrain_message()
+
 [20091009:2120] sbajic: Removing unused variables in process_message()
 
 [20091009:2115] sbajic: Removing unused variables in process_message()

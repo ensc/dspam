@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.375 2009/10/09 21:20:10 sbajic Exp $ */
+/* $Id: dspam.c,v 1.376 2009/10/09 21:23:46 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2669,16 +2669,12 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
                           DSM_CLASSIFY,
                           f_all);
         if (!CLX)
-        {
-          do_train = 0;
           break;
-        }
 
         CLX->training_mode = CTX->training_mode;
 
         set_libdspam_attributes(CLX);
         if (attach_context(CLX, ATX->dbh)) {
-          do_train = 0;
           dspam_destroy(CLX);
           break;
         }
