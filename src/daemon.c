@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.118 2009/06/10 22:49:16 sbajic Exp $ */
+/* $Id: daemon.c,v 1.119 2009/10/09 20:47:03 sbajic Exp $ */
 
 /*
  DSPAM
@@ -672,15 +672,17 @@ GETCMD:
     }
 
     /* DATA */
-  
-    if (strncasecmp(cmdline, "DATA", 4)) {
-      if (daemon_reply(TTX, LMTP_BAD_CMD, "5.0.0", "Need DATA Here")<0) 
-        goto CLOSE;
-      input = daemon_expect(TTX, "DATA");
-      if (input == NULL)
-        goto CLOSE;
-      if (RSET(input)) 
-        goto RSET;
+
+    if (cmdline != NULL) {
+      if (strncasecmp(cmdline, "DATA", 4)) {
+        if (daemon_reply(TTX, LMTP_BAD_CMD, "5.0.0", "Need DATA Here")<0)
+          goto CLOSE;
+        input = daemon_expect(TTX, "DATA");
+        if (input == NULL)
+          goto CLOSE;
+        if (RSET(input))
+          goto RSET;
+      }
     }
 
     if (daemon_reply(TTX, LMTP_DATA, "", INFO_LMTP_DATA)<=0)
