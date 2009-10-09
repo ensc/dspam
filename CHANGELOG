@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091009:2055] sbajic: Fixing (potential) dereference of null pointer in dspam_clean.c
+
 [20091009:2048] sbajic: Fixing (potential) call to strncasecmp with NULL argument in daemon.c
 
 [20091009:2035] sbajic: Fixing (potential) call to readdir with NULL argument in hash driver
