@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.373 2009/10/08 19:07:32 sbajic Exp $ */
+/* $Id: dspam.c,v 1.374 2009/10/09 21:16:55 sbajic Exp $ */
 
 /*
  DSPAM
@@ -428,7 +428,6 @@ process_message (
 
   if (is_blocklisted(CTX, ATX)) {
     CTX->result = DSR_ISSPAM;
-    result = DSR_ISSPAM;
     CTX->probability = 1.0;
     CTX->confidence = 1.0;
     strcpy(CTX->class, LANG_CLASS_BLOCKLISTED);
@@ -451,7 +450,6 @@ process_message (
           CTX->source = DSS_INOCULATION;
         } else {
           CTX->result = DSR_ISSPAM;
-          result = DSR_ISSPAM;
           CTX->probability = 1.0;
           CTX->confidence = 1.0;
           strcpy(CTX->class, LANG_CLASS_BLACKLISTED);

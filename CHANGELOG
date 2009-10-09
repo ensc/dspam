@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091009:2115] sbajic: Removing unused variables in process_message()
+
 [20091009:2115] sbajic: Fixing (potential) dereference of null pointer in daemon.c
 
 [20091009:2110] sbajic: Fixing (potential) dereference of null pointer in dspam_clean.c
