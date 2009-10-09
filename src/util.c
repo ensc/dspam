@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.261 2009/10/09 22:10:19 sbajic Exp $ */
+/* $Id: util.c,v 1.262 2009/10/09 22:15:00 sbajic Exp $ */
 
 /*
  DSPAM
@@ -734,7 +734,7 @@ int _ds_get_fcntl_lock(int fd) {
   f.l_start = 0;
   f.l_len = 0;
 
-  signal(SIGALRM,void (*)(int)timeout);
+  signal(SIGALRM, (void *)(int)timeout);
   alarm(300);
   r=fcntl(fd, F_SETLKW, &f);
   alarm(0);
