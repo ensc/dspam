@@ -1,4 +1,4 @@
-/* $Id: csscompress.c,v 1.83 2009/10/08 20:36:48 sbajic Exp $ */
+/* $Id: csscompress.c,v 1.831 2009/10/09 22:21:38 sbajic Exp $ */
 
 /*
  DSPAM
@@ -131,7 +131,7 @@ int csscompress(const char *filename) {
     }
   }
 
-  snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname(filename), (unsigned int) getpid());
+  snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname((char *)filename), (unsigned int) getpid());
 
   if (_hash_drv_open(filename, &old, 0, max_seek,
                      max_extents, extent_size, pctincrease, flags))
