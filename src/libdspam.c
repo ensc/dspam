@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.185 2009/10/08 22:36:01 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.186 2009/10/12 08:20:02 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1645,7 +1645,7 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
   long chi_used  = 0, chi_sx = 0, chi_hx = 0;
   double chi_s = 1.0, chi_h = 1.0;
   struct nt *factor_chi = nt_create(NT_PTR);
-  int i;
+  unsigned int i;
 
   /* Invert the heap */
   node_heap = heap_sort->root;
