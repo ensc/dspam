@@ -1,4 +1,4 @@
-/* $Id: csscompress.c,v 1.831 2009/10/09 22:21:38 sbajic Exp $ */
+/* $Id: csscompress.c,v 1.832 2009/10/12 10:10:47 sbajic Exp $ */
 
 /*
  DSPAM
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 }
 
 int csscompress(const char *filename) {
-  int i;
+  unsigned long i;
   hash_drv_header_t header;
   void *offset;
   unsigned long reclen, extent = 0;
