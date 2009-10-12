@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.262 2009/10/09 22:15:00 sbajic Exp $ */
+/* $Id: util.c,v 1.263 2009/10/12 08:32:09 sbajic Exp $ */
 
 /*
  DSPAM
@@ -850,7 +850,7 @@ inet_ntoa_r(struct in_addr in, char *buf, int len)
   snprintf(b, sizeof(b),
   "%d.%d.%d.%d", UC(p[0]), UC(p[1]), UC(p[2]), UC(p[3]));
 
-  if (len <= strlen(b)) {
+  if ((size_t)len <= strlen(b)) {
     errno = ERANGE;
     return(NULL);
   }
