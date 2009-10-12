@@ -1,4 +1,4 @@
-/* $Id: cssconvert.c,v 1.621 2009/10/09 22:22:06 sbajic Exp $ */
+/* $Id: cssconvert.c,v 1.622 2009/10/12 10:09:03 sbajic Exp $ */
 
 /*
  DSPAM
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 }
 
 int cssconvert(const char *filename) {
-  int i;
+  unsigned long i;
   hash_drv_header_t header;
   void *offset;
   struct _hash_drv_map old, new;
