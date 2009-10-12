@@ -1,4 +1,4 @@
-/* $Id: cssclean.c,v 1.132 2009/10/12 07:42:23 sbajic Exp $ */
+/* $Id: cssclean.c,v 1.133 2009/10/12 10:05:11 sbajic Exp $ */
 
 /*
  DSPAM
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 }
 
 int cssclean(const char *filename, int heavy) {
-  int i;
+  unsigned long i;
   hash_drv_header_t header;
   FILE* lockfile = NULL;
   void *offset;
@@ -243,7 +243,6 @@ int cssclean(const char *filename, int heavy) {
 
 end:
   free(dir);
-  free(newfile);
   _hash_tools_lock_free(filename, lockfile);
   return rc;
 }
