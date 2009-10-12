@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.29 2009/10/09 20:32:15 sbajic Exp $ */
+/* $Id: hash_drv.c,v 1.291 2009/10/12 09:04:46 sbajic Exp $ */
 
 /*
  DSPAM
@@ -104,7 +104,8 @@ dspam_init_driver (DRIVER_CTX *DTX)
     unsigned long extent_size  = HASH_EXTENT_MAX;
     int pctincrease = 0;
     int flags = HMAP_AUTOEXTEND;
-    int ret, i;
+    int ret;
+    unsigned long i;
 
     if (READ_ATTRIB("HashConnectionCache") && !HashConcurrentUser)
       connection_cache = strtol(READ_ATTRIB("HashConnectionCache"), NULL, 0);
@@ -132,7 +133,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
     }
 
     if (READ_ATTRIB("HashMaxSeek"))
-       max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
+      max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
 
     /* Connection array (just one single connection for hash_drv) */
     DTX->connections = calloc(1, sizeof(struct _ds_drv_connection *) * connection_cache);
@@ -189,9 +190,9 @@ dspam_init_driver (DRIVER_CTX *DTX)
 memerr:
   if (DTX) {
     if (DTX->connections) {
-      int i;
+      unsigned long i;
       for(i=0;i<connection_cache;i++) {
-        if (DTX->connections[i]) 
+        if (DTX->connections[i])
           free(DTX->connections[i]->dbh);
         free(DTX->connections[i]);
       }
@@ -305,7 +306,7 @@ _hash_tools_lock_get (const char *cssfilename)
   if (cssfilename == NULL)
     return NULL;
   pPeriod = strrchr(cssfilename, '.');
-  if (pPeriod == NULL || strcmp(pPeriod + 1, "css") || pPeriod - cssfilename + 5 >= sizeof(filename))
+  if (pPeriod == NULL || strcmp(pPeriod + 1, "css") || (size_t)(pPeriod - cssfilename + 5) >= sizeof(filename))
     return NULL;
   strncpy(filename, cssfilename, pPeriod - cssfilename + 1);
   strcpy(filename + (pPeriod - cssfilename + 1), "lock");
@@ -370,7 +371,7 @@ int _hash_drv_open(
 
   if (map->fd < 0 && recmaxifnew) {
     struct _hash_drv_spam_record rec;
-    int i;
+    unsigned long i;
 
     memset(&header, 0, sizeof(struct _hash_drv_header));
     memset(&rec, 0, sizeof(struct _hash_drv_spam_record));
@@ -1122,7 +1123,8 @@ int _hash_drv_autoextend(
 {
   struct _hash_drv_header header;
   struct _hash_drv_spam_record rec;
-  int i, lastsize;
+  int lastsize;
+  unsigned long i;
 
   _hash_drv_close(map);
 
