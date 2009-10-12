@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.68 2009/10/09 21:50:04 sbajic Exp $ */
+/* $Id: client.c,v 1.681 2009/10/12 09:56:39 sbajic Exp $ */
 
 /*
  DSPAM
@@ -372,7 +372,7 @@ int client_authenticate(THREAD_CTX *TTX, const char *mode) {
   pmode[0] = 0;
   if (mode) {
     int pos = 0, cpos = 0;
-    for(;mode[cpos]&&pos<(sizeof(pmode)-1);cpos++) {
+    for(;mode[cpos]&&(size_t)pos<(sizeof(pmode)-1);cpos++) {
       if (mode[cpos] == '"') {
         pmode[pos] = '\\';
         pos++;
@@ -798,7 +798,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
 
     /* fill buf with partial msg, replacing \n with \r\n */
     buflen = 0;
-    while (buflen < (sizeof(buf) - 1) && i < msglen) {
+    while ((size_t)buflen < (sizeof(buf) - 1) && i < msglen) {
       /* only replace \n and not \r\n */
       if (i > 0 && msg[i] == '\n' && msg[i - 1] != '\r') {
         buf[buflen] = '\r';
