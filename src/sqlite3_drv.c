@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.18 2009/06/15 11:24:32 sbajic Exp $ */
+/* $Id: sqlite3_drv.c,v 1.181 2009/10/16 01:11:11 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1084,38 +1084,40 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     }
   }
 
-  while ((entry = readdir (dir)) != NULL)
-  {
-    struct stat st;
-    char filename[MAX_FILENAME_LENGTH];
-    snprintf (filename, sizeof (filename), "%s/%s", path, entry->d_name);
-
-    if (!strcmp (entry->d_name, ".") || !strcmp (entry->d_name, ".."))
-      continue;
-
-    if (stat (filename, &st)) {
-      continue;
-    }
-
-    /* push a new directory */
-    if (st.st_mode & S_IFDIR)
+  if (dir != NULL) {
+    while ((entry = readdir (dir)) != NULL)
     {
-      DIR *ndir;
+      struct stat st;
+      char filename[MAX_FILENAME_LENGTH];
+      snprintf (filename, sizeof (filename), "%s/%s", path, entry->d_name);
 
-      ndir = opendir (filename);
-      if (ndir == NULL)
+      if (!strcmp (entry->d_name, ".") || !strcmp (entry->d_name, ".."))
         continue;
-      strlcat (path, "/", sizeof (path));
-      strlcat (path, entry->d_name, sizeof (path));
-      nt_add (s->dir_handles, (void *) ndir);
-      return _ds_get_nextuser (CTX);
-    }
-    else if (!strncmp
-             (entry->d_name + strlen (entry->d_name) - 4, ".sdb", 4))
-    {
-      strlcpy (user, entry->d_name, sizeof (user));
-      user[strlen (user) - 4] = 0;
-      return user;
+
+      if (stat (filename, &st)) {
+        continue;
+      }
+
+      /* push a new directory */
+      if (st.st_mode & S_IFDIR)
+      {
+        DIR *ndir;
+
+        ndir = opendir (filename);
+        if (ndir == NULL)
+          continue;
+        strlcat (path, "/", sizeof (path));
+        strlcat (path, entry->d_name, sizeof (path));
+        nt_add (s->dir_handles, (void *) ndir);
+        return _ds_get_nextuser (CTX);
+      }
+      else if (!strncmp
+               (entry->d_name + strlen (entry->d_name) - 4, ".sdb", 4))
+      {
+        strlcpy (user, entry->d_name, sizeof (user));
+        user[strlen (user) - 4] = 0;
+        return user;
+      }
     }
   }
 
