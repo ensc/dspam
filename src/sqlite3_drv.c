@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.181 2009/10/16 01:11:11 sbajic Exp $ */
+/* $Id: sqlite3_drv.c,v 1.182 2009/10/16 01:14:55 sbajic Exp $ */
 
 /*
  DSPAM
@@ -955,7 +955,6 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   char *err=NULL;
   const char *query_tail=NULL;
   sqlite3_stmt *stmt;
-  int r;
 
   if (s->dbh == NULL)
   {
@@ -967,8 +966,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
             "INSERT INTO dspam_signature_data (signature,created_on,data)"
             " VALUES (\"%s\",date('now'),?)", signature);
 
-  if ((r = sqlite3_prepare(s->dbh, scratch, -1, &stmt, &query_tail))
-        !=SQLITE_OK)
+  if ((sqlite3_prepare(s->dbh, scratch, -1, &stmt, &query_tail))!=SQLITE_OK)
   {
     _sqlite_drv_query_error ("_ds_set_signature: sqlite3_prepare() failed", scratch);
     return EFAILURE;

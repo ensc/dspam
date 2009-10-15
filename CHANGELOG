@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091016:0116] sbajic: Removing unused variables in SQLite3 driver
+
 [20091016:0112] sbajic: Fixing (potential) call to readdir with NULL argument in SQLite3 driver
 
 [20091012:1012] sbajic: Fixing compiler warnings
