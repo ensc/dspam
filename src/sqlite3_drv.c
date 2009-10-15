@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.182 2009/10/16 01:14:55 sbajic Exp $ */
+/* $Id: sqlite3_drv.c,v 1.183 2009/10/16 01:20:50 sbajic Exp $ */
 
 /*
  DSPAM
@@ -279,7 +279,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   char queryhead[1024];
   struct _ds_spam_stat stat;
   unsigned long long token = 0;
-  char *err=NULL, **row;
+  char *err=NULL, **row=NULL;
   int nrow, ncolumn, i;
 
   if (diction->items < 1)
