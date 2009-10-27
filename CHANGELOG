@@ -1,6 +1,12 @@
 Version 3.9.0
 -------------
 
+[20091028:0028] sbajic: Changes in External Lookup
+* Removing not needed header files (agent_shared.h)
+* Decoupling dependency to OpenLDAP (if the libraries are there
+  then LDAP lookups are enabled in External Lookup else LDAP
+  lookups are disabled in the External Lookup module)
+
 [20091027:1300] sbajic: Fixing various issues (memory leaks and logical errors) in PostgreSQL driver
 
 [20091016:1022] sbajic: Fixing (potential) branching on uninitialized variable in SQLite3 driver
