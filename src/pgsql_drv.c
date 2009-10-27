@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.71 2009/10/08 22:55:45 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.73 2009/10/22 20:04:04 sbajic Exp $ */
 
 /*
  DSPAM
@@ -820,6 +820,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EFAILURE;
   }
 
+  if (result) PQclear(result);
+  result = NULL;
   buffer_destroy(prepare);
   buffer_cat (update, "BEGIN;");
 
@@ -873,7 +875,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK) {
         stat.status |= TST_DISK;
       }
-      PQclear(result);
+      if (result) PQclear(result);
+      result = NULL;
     }
 
     if ((stat.status & TST_DISK)) {
@@ -907,7 +910,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       buffer_destroy(update);
       return EFAILURE;
     }
-    PQclear(result);
+    if (result) PQclear(result);
+    result = NULL;
   }
 
   buffer_destroy(update);
@@ -924,6 +928,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EFAILURE;
   }
 
+  if (result) PQclear(result);
+  result = NULL;
   return 0;
 }
 
@@ -1137,10 +1143,10 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), "BEGIN");
-    PQclear(result);
+    if (result) PQclear(result);
     return EFAILURE;
   }
-  PQclear(result);
+  if (result) PQclear(result);
   */
 
   s->control_token = 0;
@@ -1212,7 +1218,7 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
 
   /* End a transaction block
   result = PQexec(s->dbh, "COMMIT");
-  PQclear(result);
+  if (result) PQclear(result);
   */
 
   if (!s->dbh_attached)
@@ -1600,7 +1606,8 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
       if (result) PQclear(result);
       return NULL;
     }
-    PQclear(result);
+    if (result) PQclear(result);
+    result = NULL;
 
     /* Declare Cursor */
 #ifdef VIRTUAL_USERS
@@ -1617,8 +1624,13 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
       if (result) PQclear(result);
       return NULL;
     }
-    PQclear(result);
+    if (result) PQclear(result);
+    result = NULL;
 
+  }
+  else
+  {
+    PQclear(s->iter_user);
   }
 
   s->iter_user = PQexec(s->dbh, "FETCH NEXT FROM dscursor");
@@ -1626,16 +1638,17 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   {
     _pgsql_drv_query_error (PQresultErrorMessage(s->iter_user), "FETCH NEXT command failed");
     if (s->iter_user) PQclear(s->iter_user);
+    s->iter_user = NULL;
     return NULL;
   }
 
   if ( PQntuples(s->iter_user) < 1 )
   {
     result = PQexec(s->dbh, "CLOSE dscursor");
-    PQclear(result);
+    if (result) PQclear(result);
 
     result = PQexec(s->dbh, "END");
-    PQclear(result);
+    if (result) PQclear(result);
 
     if (s->iter_user) PQclear(s->iter_user);
     s->iter_user = NULL;
@@ -1656,10 +1669,10 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   if (p == NULL)
   {
     result = PQexec(s->dbh, "CLOSE dscursor");
-    PQclear(result);
+    if (result) PQclear(result);
 
     result = PQexec(s->dbh, "END");
-    PQclear(result);
+    if (result) PQclear(result);
 
     if (s->iter_user) PQclear(s->iter_user);
     s->iter_user = NULL;
@@ -1724,7 +1737,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
       st = NULL;
       return NULL;
     }
-    PQclear(result);
+    if (result) PQclear(result);
 
     /* Declare Cursor */
     snprintf (query, sizeof (query),
@@ -1742,8 +1755,12 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
       st = NULL;
       return NULL;
     }
-    PQclear(result);
+    if (result) PQclear(result);
 
+  }
+  else
+  {
+   PQclear(s->iter_token);
   }
 
   s->iter_token = PQexec(s->dbh, "FETCH NEXT FROM dscursor");
@@ -1751,6 +1768,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   {
     _pgsql_drv_query_error (PQresultErrorMessage(s->iter_token), "FETCH NEXT command failed");
     if (s->iter_token) PQclear(s->iter_token);
+    s->iter_token = NULL;
     free(st);
     st = NULL;
     return NULL;
@@ -1759,10 +1777,10 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   if ( PQntuples(s->iter_token) < 1 )
   {
     result = PQexec(s->dbh, "CLOSE dscursor");
-    PQclear(result);
+    if (result) PQclear(result);
 
     result = PQexec(s->dbh, "END");
-    PQclear(result);
+    if (result) PQclear(result);
 
     if (s->iter_token) PQclear(s->iter_token);
     s->iter_token = NULL;
@@ -1785,6 +1803,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   st->last_hit = (time_t) strtol ( PQgetvalue( s->iter_token, 0, 3), NULL, 0);
 
   if (s->iter_token) PQclear(s->iter_token);
+  s->iter_token = NULL;
 
   return st;
 
@@ -1850,7 +1869,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
       st = NULL;
       return NULL;
     }
-    PQclear(result);
+    if (result) PQclear(result);
 
     /* Declare Cursor */
     snprintf (query, sizeof (query),
@@ -1868,7 +1887,12 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
       st = NULL;
       return NULL;
     }
-    PQclear(result);
+    if (result) PQclear(result);
+
+  }
+  else
+  {
+    PQclear(s->iter_sig);
   }
 
   s->iter_sig = PQexec(s->dbh, "FETCH NEXT FROM dscursor");
@@ -1876,6 +1900,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   {
     _pgsql_drv_query_error (PQresultErrorMessage(s->iter_sig), "FETCH NEXT command failed");
     if (s->iter_sig) PQclear(s->iter_sig);
+    s->iter_sig = NULL;
     free(st);
     st = NULL;
     return NULL;
@@ -1884,10 +1909,10 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   if ( PQntuples(s->iter_sig) < 1 )
   {
     result = PQexec(s->dbh, "CLOSE dscursor");
-    PQclear(result);
+    if (result) PQclear(result);
 
     result = PQexec(s->dbh, "END");
-    PQclear(result);
+    if (result) PQclear(result);
 
     if (s->iter_sig) PQclear(s->iter_sig);
     s->iter_sig = NULL;
@@ -1912,6 +1937,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     PQFREEMEM(mem);
     if (s->iter_sig) PQclear(s->iter_sig);
+    s->iter_sig = NULL;
     return NULL;
   }
 
@@ -1930,6 +1956,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
 
   PQFREEMEM(mem);
   if (s->iter_sig) PQclear(s->iter_sig);
+  s->iter_sig = NULL;
 
   return st;
 
@@ -2030,7 +2057,6 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   if ( PQntuples(result) < 1 )
   {
     if (result) PQclear(result);
-    result = NULL;
     if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
       LOGDEBUG("_pgsql_drv_getpwnam returning NULL for query on name: %s that returned a null result", name);
       return NULL;
@@ -2041,7 +2067,6 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   if ( PQgetvalue(result, 0, 0) == NULL )
   {
     if (result) PQclear(result);
-    result = NULL;
     if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS)
       return NULL;
     return _pgsql_drv_setpwnam (CTX, name);
@@ -2233,7 +2258,7 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
     return NULL;
   }
 
-  PQclear(result);
+  if (result) PQclear(result);
   return _pgsql_drv_getpwnam (CTX, name);
 }
 #endif
@@ -2281,7 +2306,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
     if (result) PQclear(result);
     return EFAILURE;
   }
-  PQclear(result);
+  if (result) PQclear(result);
 
   return 0;
 }
@@ -2357,7 +2382,8 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
         ds_diction_close(ds_c);
         return EFAILURE;
       }
-      PQclear(result);
+      if (result) PQclear(result);
+      result = NULL;
 
       buffer_copy(query, queryhead);
       writes = 0;
@@ -2381,7 +2407,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       buffer_destroy(query);
       return EFAILURE;
     }
-    PQclear(result);
+    if (result) PQclear(result);
   }
 
   buffer_destroy (query);
@@ -2527,7 +2553,7 @@ agent_pref_t _ds_pref_load(
     PTX[i+1] = NULL;
   }
 
-  PQclear(result);
+  if (result) PQclear(result);
   dspam_destroy(CTX);
   return PTX;
 }
@@ -2585,8 +2611,10 @@ int _ds_pref_set (
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
+    result = NULL;
     goto FAIL;
   }
+  if (result) PQclear(result);
 
   snprintf(query, sizeof(query), "INSERT INTO dspam_preferences"
     " (uid,preference,value) VALUES (%d,'%s','%s')", (int) uid, m1, m2);
@@ -2596,10 +2624,11 @@ int _ds_pref_set (
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
+    result = NULL;
     goto FAIL;
   }
 
-  PQclear(result);
+  if (result) PQclear(result);
   dspam_destroy(CTX);
   PQFREEMEM(m1);
   PQFREEMEM(m2);
@@ -2663,10 +2692,11 @@ int _ds_pref_del (
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
+    result = NULL;
     goto FAIL;
   }
 
-  PQclear(result);
+  if (result) PQclear(result);
   dspam_destroy(CTX);
   PQFREEMEM(m1);
   return 0;
@@ -2885,7 +2915,7 @@ _pgsql_drv_token_type(struct _pgsql_drv_storage *s, PGresult *result, int column
 
     if ( PQntuples(select_res) != 1 )
     {
-      if (result) PQclear(select_res);
+      if (select_res) PQclear(select_res);
       return -1;
     }
 
@@ -2896,6 +2926,7 @@ _pgsql_drv_token_type(struct _pgsql_drv_storage *s, PGresult *result, int column
       found_type = 1;
     } else {
       LOGDEBUG ("_pgsql_drv_token_type: Failed to get type of dspam_token_data.token from system tables");
+      if (select_res) PQclear(select_res);
       return -1;
     }
     if (select_res) PQclear(select_res);
@@ -2909,7 +2940,6 @@ _pgsql_drv_token_type(struct _pgsql_drv_storage *s, PGresult *result, int column
     } else if (col_type == BIGINTOID) {
       found_type = 1;
     } else {
-      if (result) PQclear(result);
       LOGDEBUG ("_pgsql_drv_token_type: Failed to get type of dspam_token_data.token from result set");
       return -1;
     }
