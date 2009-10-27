@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.18 2009/06/15 11:24:32 sbajic Exp $ */
+/* $Id: sqlite3_drv.c,v 1.183 2009/10/16 01:20:50 sbajic Exp $ */
 
 /*
  DSPAM
@@ -279,7 +279,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   char queryhead[1024];
   struct _ds_spam_stat stat;
   unsigned long long token = 0;
-  char *err=NULL, **row;
+  char *err=NULL, **row=NULL;
   int nrow, ncolumn, i;
 
   if (diction->items < 1)
@@ -955,7 +955,6 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   char *err=NULL;
   const char *query_tail=NULL;
   sqlite3_stmt *stmt;
-  int r;
 
   if (s->dbh == NULL)
   {
@@ -967,8 +966,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
             "INSERT INTO dspam_signature_data (signature,created_on,data)"
             " VALUES (\"%s\",date('now'),?)", signature);
 
-  if ((r = sqlite3_prepare(s->dbh, scratch, -1, &stmt, &query_tail))
-        !=SQLITE_OK)
+  if ((sqlite3_prepare(s->dbh, scratch, -1, &stmt, &query_tail))!=SQLITE_OK)
   {
     _sqlite_drv_query_error ("_ds_set_signature: sqlite3_prepare() failed", scratch);
     return EFAILURE;
@@ -1084,38 +1082,40 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     }
   }
 
-  while ((entry = readdir (dir)) != NULL)
-  {
-    struct stat st;
-    char filename[MAX_FILENAME_LENGTH];
-    snprintf (filename, sizeof (filename), "%s/%s", path, entry->d_name);
-
-    if (!strcmp (entry->d_name, ".") || !strcmp (entry->d_name, ".."))
-      continue;
-
-    if (stat (filename, &st)) {
-      continue;
-    }
-
-    /* push a new directory */
-    if (st.st_mode & S_IFDIR)
+  if (dir != NULL) {
+    while ((entry = readdir (dir)) != NULL)
     {
-      DIR *ndir;
+      struct stat st;
+      char filename[MAX_FILENAME_LENGTH];
+      snprintf (filename, sizeof (filename), "%s/%s", path, entry->d_name);
 
-      ndir = opendir (filename);
-      if (ndir == NULL)
+      if (!strcmp (entry->d_name, ".") || !strcmp (entry->d_name, ".."))
         continue;
-      strlcat (path, "/", sizeof (path));
-      strlcat (path, entry->d_name, sizeof (path));
-      nt_add (s->dir_handles, (void *) ndir);
-      return _ds_get_nextuser (CTX);
-    }
-    else if (!strncmp
-             (entry->d_name + strlen (entry->d_name) - 4, ".sdb", 4))
-    {
-      strlcpy (user, entry->d_name, sizeof (user));
-      user[strlen (user) - 4] = 0;
-      return user;
+
+      if (stat (filename, &st)) {
+        continue;
+      }
+
+      /* push a new directory */
+      if (st.st_mode & S_IFDIR)
+      {
+        DIR *ndir;
+
+        ndir = opendir (filename);
+        if (ndir == NULL)
+          continue;
+        strlcat (path, "/", sizeof (path));
+        strlcat (path, entry->d_name, sizeof (path));
+        nt_add (s->dir_handles, (void *) ndir);
+        return _ds_get_nextuser (CTX);
+      }
+      else if (!strncmp
+               (entry->d_name + strlen (entry->d_name) - 4, ".sdb", 4))
+      {
+        strlcpy (user, entry->d_name, sizeof (user));
+        user[strlen (user) - 4] = 0;
+        return user;
+      }
     }
   }
 

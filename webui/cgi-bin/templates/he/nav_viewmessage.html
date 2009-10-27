@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD><TITLE>DSPAM v3 מרכז הבקרה</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1255">
+</HEAD>
+<BODY DIR="rtl" BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		נתוני הגנה סטטיסטית עבור <strong>$REMOTE_USER$</strong>
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance">ביצועים</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">העדפות</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">התראות</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">הסגר (צפה)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">אנליזה</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;history_page=1">היסטוריה</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+דף זה מציג את תוכן ההסגר.
+</p>
+
+<FORM ACTION="$CGI$">
+<INPUT TYPE="HIDDEN" NAME="signatureID" VALUE="$MESSAGE_ID$">
+<INPUT TYPE="HIDDEN" NAME="command" VALUE="processFalsePositive">
+<INPUT TYPE="HIDDEN" NAME="template" VALUE="quarantine">
+<INPUT TYPE="HIDDEN" NAME="user" VALUE="$REMOTE_USER$">
+<INPUT TYPE="SUBMIT" VALUE="שחרר הודעה"> מכיוון <strong>שאינה</strong> דאר זבל
+</FORM>
+<BR>
+<TEXTAREA ROWS="36" COLS="80" READONLY>
+$MESSAGE$
+</TEXTAREA>
+
+</div>
+
+</BODY>
+</HTML>

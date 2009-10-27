@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.38 2009/07/05 19:02:39 sbajic Exp $ */
+/* $Id: decode.c,v 1.381 2009/10/12 08:40:42 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1220,7 +1220,8 @@ _ds_strip_html (const char *html)
 #ifdef VERBOSE
   LOGDEBUG("stripping HTML tags from message block");
 #endif
-  int i = 0, j = 0, k = 0;
+  int j = 0, k = 0;
+  size_t i = 0;
   int visible = 1;
   int closing_td_tag = 0;
   char *html2;

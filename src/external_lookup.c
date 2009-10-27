@@ -24,6 +24,7 @@
 #endif
 
 #ifdef EXT_LOOKUP
+#define LDAP_DEPRECATED 1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -360,7 +361,8 @@ ldap_lookup(config_t agent_config, const char *username, char *external_uid)
 char*
 program_lookup(config_t agent_config, const char *username, char *external_uid)
 {
-	int pid, i;
+	pid_t wstatus, pid;
+	int i, status;
 	int fd[2];
 	char *output = malloc (1024);
 	char **args = malloc (1024);
@@ -387,26 +389,52 @@ program_lookup(config_t agent_config, const char *username, char *external_uid)
 		if (token == NULL)
 			break;
 		args[i] = token;
+		LOGDEBUG("args[%d] = %s",i,token);
 	}
 	args[i] = (char *) 0;
 
 	pipe(fd);
-	pid = fork();
 
-	if (pid == 0) { /* execute the command and write to fd */
-		close(fd[0]);
-		dup2(fd[1], fileno(stdout));
-		if (execve(args[0], args, 0) == -1) {
+	switch(pid=fork()) {
+
+		case -1: /* couldn't fork - something went wrong */
 			LOG(LOG_ERR, "%s: errno=%i (%s)", ERR_EXT_LOOKUP_INIT_FAIL, errno, strerror(errno));
 			free(output);
 			free(args);
 			return NULL;
-		}
-	} else { /* read from fd the first output line */
-		close(fd[1]);
-		/* just in case there's no line break at the end of the return... */
-		memset(output, 0, 1024);
-		read(fd[0], output, 1024);
+
+		case 0: /* execute the command and write to fd */
+			close(fd[0]);
+			dup2(fd[1], fileno(stdout));
+			execve(args[0], args, 0);
+			exit(EXIT_FAILURE);
+			
+		default: /* read from fd the first output line */
+			do {
+				wstatus = waitpid( pid, &status, WUNTRACED | WCONTINUED);
+				if (wstatus == -1) {
+					LOGDEBUG("waitpid() exited with an error: %s: errno=%i", strerror(errno), errno);
+					free(output);
+					free(args);
+					return NULL;
+				}
+				if (WIFEXITED(status)) {
+					LOGDEBUG("exited, status=%d\n", WEXITSTATUS(status));
+					if (WEXITSTATUS(status))
+						LOGDEBUG("Error running %s. Check path and permissions.\n", args[0]);
+				} else if (WIFSIGNALED(status)) {
+					LOGDEBUG("killed by signal %d\n", WTERMSIG(status));
+				} else if (WIFSTOPPED(status)) {
+					LOGDEBUG("stopped by signal %d\n", WSTOPSIG(status));
+				} else if (WIFCONTINUED(status)) {
+					LOGDEBUG("continued\n");
+				}
+			} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+			close(fd[1]);
+			/* just in case there's no line break at the end of the return... */
+			memset(output, 0, 1024);
+			read(fd[0], output, 1024);
+			close(fd[0]);
 	}
 
 	if (strlen(output) == 0) {

@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.65 2009/06/02 01:08:10 sbajic Exp $ */
+/* $Id: client.c,v 1.681 2009/10/12 09:56:39 sbajic Exp $ */
 
 /*
  DSPAM
@@ -120,7 +120,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     }
 
     if (client_getcode(&TTX, err, sizeof(err))!=LMTP_OK) {
-      STATUS(err);
+      STATUS("%s", err);
       goto QUIT;
     }
 
@@ -133,7 +133,7 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     goto BAIL;
 
   if (client_getcode(&TTX, err, sizeof(err))!=LMTP_DATA) {
-    STATUS(err);
+    STATUS("%s", err);
     goto QUIT;
   }
 
@@ -204,7 +204,6 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
       int code = 500;
 
       if (!input) {
-        exitcode = EFAILURE;
         goto BAIL;
       }
       x = strtok(input, " ");
@@ -318,7 +317,7 @@ int client_connect(AGENT_CTX *ATX, int flags) {
     LOGDEBUG(INFO_CLIENT_CONNECTING, host, 0);
     if(connect(sockfd, (struct sockaddr *)&saun, addr_len)<0) {
       LOG(LOG_ERR, ERR_CLIENT_CONNECT_SOCKET, host, strerror(errno));
-      STATUS(strerror(errno));
+      STATUS("%s", strerror(errno));
       close(sockfd);
       return EFAILURE;
     }
@@ -335,7 +334,7 @@ int client_connect(AGENT_CTX *ATX, int flags) {
     LOGDEBUG(INFO_CLIENT_CONNECTING, host, port);
     if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
       LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
-      STATUS(strerror(errno));
+      STATUS("%s", strerror(errno));
       close(sockfd);
       return EFAILURE;
     }
@@ -373,7 +372,7 @@ int client_authenticate(THREAD_CTX *TTX, const char *mode) {
   pmode[0] = 0;
   if (mode) {
     int pos = 0, cpos = 0;
-    for(;mode[cpos]&&pos<(sizeof(pmode)-1);cpos++) {
+    for(;mode[cpos]&&(size_t)pos<(sizeof(pmode)-1);cpos++) {
       if (mode[cpos] == '"') {
         pmode[pos] = '\\';
         pos++;
@@ -642,7 +641,10 @@ int send_socket(THREAD_CTX *TTX, const char *text) {
   }
 
   r = send(TTX->sockfd, "\r\n", 2, 0);
-  return i+2;
+  if (r > 0) {
+    i += r;
+  }
+  return i;
 }
 
 /*
@@ -700,7 +702,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   inp = client_expect(&TTX, LMTP_GREETING, err, sizeof(err));
   if (inp == NULL) {
     LOG(LOG_ERR, ERR_CLIENT_ON_GREETING, err);
-    STATUS(err);
+    STATUS("%s", err);
     goto BAIL;
   }
   free(inp);
@@ -796,7 +798,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
 
     /* fill buf with partial msg, replacing \n with \r\n */
     buflen = 0;
-    while (buflen < (sizeof(buf) - 1) && i < msglen) {
+    while ((size_t)buflen < (sizeof(buf) - 1) && i < msglen) {
       /* only replace \n and not \r\n */
       if (i > 0 && msg[i] == '\n' && msg[i - 1] != '\r') {
         buf[buflen] = '\r';

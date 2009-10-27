@@ -1,0 +1,120 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Control Center</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		$FORM_USER$
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+                <li><a href="$CGI$?$USER$template=performance">Performances</a></li>
+                <li id="active"><a id="current" href="$CGI$?$USER$template=preferences">Pr&eacute;f&eacute;rences</a></li>
+                <li><a href="$CGI$?$USER$template=alerts">Alertes</a></li>
+                <li><a href="$CGI$?$USER$template=quarantine">Quarantaine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+                <li><a href="$CGI$?$USER$template=analysis">Analyses</a></li>
+                <li><a href="$CGI$?$USER$template=history&history_page=1">Historique</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Cette page vous permet de configurer la fa&ccedil;on dont le filtre g&egrave;re vos messages.
+</p>
+
+<FORM ACTION="$CGI$">
+<INPUT TYPE=HIDDEN NAME="template" VALUE="preferences">
+<INPUT TYPE=HIDDEN NAME="user" VALUE="$REMOTE_USER$">
+
+<div class="content">
+	<h3><strong>Apprentissage</strong> - Configure la fa&ccedil;don dont le filtre apprend lors de l'analyse des messages</h3>
+<p>
+<table class="hollow">
+<tr><td>
+DSPAM doit apprendre&nbsp;:<br><br>
+<INPUT TYPE=RADIO NAME=trainingMode VALUE="TEFT" $S_TEFT$>
+&Agrave; chaque message analys&eacute; par le filtre<BR>
+<INPUT TYPE=RADIO NAME=trainingMode VALUE="TOE" $S_TOE$> 
+Seulement lorsque le filtre commet une erreur<BR>
+<INPUT TYPE=RADIO NAME=trainingMode VALUE="TUM" $S_TUM$> 
+Seulement lors de nouvelles donn&eacute;es ou lorsque le filtre commet une erreur
+</td><td width=20>
+ &nbsp;</td><td>
+Lorsque j'entraine DSPAM, je pr&eacute;f&egrave;re&nbsp;:<br><br>
+<INPUT TYPE=RADIO NAME=signatureLocation VALUE="message" $S_LOC_MESSAGE$>
+<u>transf&eacute;rer</u> les pourriels re&ccedil;us (la signature appera&icirc;t dans le corps du message)<BR>
+<INPUT TYPE=RADIO NAME=signatureLocation VALUE="headers" $S_LOC_HEADERS$>
+transf&eacute;rer les pourriels re&ccedil;us en tant que <u>pi&egrave;ce jointe</u> (la signature appara&icirc;t dans les en-t&ecirc;tes du messages)<BR>
+</td></tr>
+</table>
+</p>
+
+<p>
+Sensibilit&eacute; du filtre <stron>pendant</strong> la p&eacute;riode d'apprentissage&nbsp;:<br>
+<span class="small">Haute sensibilit&eacute (plus de pourriels seront plac&eacute; en quarantaine)</span>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=0 $SEDATION_0$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=1 $SEDATION_1$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=2 $SEDATION_2$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=3 $SEDATION_3$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=4 $SEDATION_4$>
+    | <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=5 $SEDATION_5$> |
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=6 $SEDATION_6$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=7 $SEDATION_7$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=8 $SEDATION_8$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=9 $SEDATION_9$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=10 $SEDATION_10$> 
+<span class="small">Faible sensibilit&eacute; (plus de messages seront consid&eacute;r&eacute;s comme l&eacute;gitimes et moins seront plac&eacute;s en quarantaine)</span>
+</p>
+
+</div>
+
+<div class="content">
+	<h3><strong>Gestion des messages</strong> - Configure la fa&ccedil;on dont sont g&eacute;r&eacute;s les pourriels</h3>
+<p>
+Lorsqu'un pourriel est identifi&eacute;&nbsp;:<br><br>
+<INPUT TYPE=RADIO NAME=spamAction VALUE="quarantine" $S_ACTION_QUARANTINE$>Mettre le message en quarantaine<BR>
+<INPUT TYPE=RADIO NAME=spamAction VALUE="tag" $S_ACTION_TAG$>Ajouter l'&eacute;tiquette <INPUT NAME=spamSubject VALUE="$SPAM_SUBJECT$" SIZE=8> &agrave; l'objet du message<BR>
+<INPUT TYPE=RADIO NAME=spamAction VALUE="deliver" $S_ACTION_DELIVER$>Distribuer le message normalement en ajoutant une en-t&ecirc;te X-DSPAM-Result<BR>
+</p>
+
+</div>
+
+<div class="content">
+	<h3><strong>Fonctionnalit&eacute;s</strong> - Ajustement du filtrage</h3>
+<p>
+$OPTION$
+<INPUT TYPE=CHECKBOX NAME=enableBNR $C_BNR$>
+Activer la r&eacute;duction du bruit, qui am&eacute;liore g&eacute;n&eacute;ralement les performances de filtrage<br>
+<INPUT TYPE=CHECKBOX NAME=enableWhitelist $C_WHITELIST$>
+Activer la mise en liste blanche automatique des correspondants r&eacute;guliers<BR>
+<INPUT TYPE=CHECKBOX NAME=showFactors $C_FACTORS$>
+Ajouter les jetons de factorisation dans les en-t&ecirc;tes des messages<br>
+<input type="checkbox" name="dailyQuarantineSummary" id="dailyQuarantineSummary" $C_SUMMARY$>
+<label for="dailyQuarantineSummary">Activer l'envoi automatique de r&eacute;sum&eacute; journalier de la zone de quarantaine</label>
+</p>
+
+</div>
+
+<p>
+<INPUT TYPE=SUBMIT NAME=submit VALUE="Valider les modifications">
+</p>
+
+</FORM>
+
+</div>
+
+
+
+</BODY>
+</HTML>

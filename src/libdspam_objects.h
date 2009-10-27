@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.21 2006/05/26 06:44:39 jonz Exp $ */
+/* $Id: libdspam_objects.h,v 1.22 2009/09/24 23:51:59 sbajic Exp $ */
 
 /*
  DSPAM
@@ -54,7 +54,7 @@ extern void *_drv_handle; /* Handle to storage driver library */
  *  a message.  An array of these are returned to the calling  application to
  *  explain libdspam's final classification decision.
  */
-                                                                                
+
 struct dspam_factor {
   char *token_name;
   float value;
@@ -271,25 +271,26 @@ struct _ds_config
  *    Specifies which tokenizer to use
  *
  *      DSZ_WORD		Use WORD (uniGram) tokenizer
- *      DSZ_CHAIN               Use CHAIN (biGram) tokenizer
- *      DSZ_SBPH                Use SBPH (Sparse BP Hashing) tokenizer
- *      DSZ_OSB                 Use OSB (Orthogonal Sparse biGram)
+ *      DSZ_CHAIN		Use CHAIN (biGram) tokenizer
+ *      DSZ_SBPH		Use SBPH (Sparse BP Hashing) tokenizer
+ *      DSZ_OSB			Use OSB (Orthogonal Sparse biGram)
  *
  *  algorithms (input)
  *    Optional API to override the default algorithms. This value is set
  *    with the default compiled values whenever dspam_create() is called.
  *
  *	DSA_GRAHAM		Graham-Bayesian
- *	DSA_BURTON		Burton-Bayesian    
+ *	DSA_BURTON		Burton-Bayesian
  *	DSA_ROBINSON		Robinson's Geometric Mean Test
  *	DSA_CHI_SQUARE		Fisher-Robinson's Chi-Square
  *      DSA_NAIVE		Naive-Bayesian
- * 
+ *
  *    P-Value Computations:
  *
  *      DSP_ROBINSON		Robinson's Technique
  *      DSP_GRAHAM		Graham's Technique
  *      DSP_MARKOV		Markov Weighted Technique
+ *      DSP_OSB			OSB/OSBF/WINNOW Weighted Technique
  *
  *  locked (output)
  *    Identifies that the user's storage is presently locked
@@ -356,6 +357,7 @@ typedef struct
 #define DSP_GRAHAM		0x20
 #define DSP_MARKOV		0x40
 #define DSA_NAIVE		0x80
+#define DSP_OSB			0x0100
 
 /* Operating Modes */
 

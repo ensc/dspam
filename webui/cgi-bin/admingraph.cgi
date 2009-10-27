@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admingraph.cgi,v 1.41 2009/07/20 02:11:39 sbajic Exp $
+# $Id: admingraph.cgi,v 1.42 2009/08/18 00:08:28 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -21,10 +21,21 @@
 use CGI ':standard';
 use GD::Graph::bars;
 use strict;
-use vars qw { %CONFIG %FORM @spam @nonspam @period @data @inoc @sm @fp @wh @corpus @virus @black @block };
+use vars qw { %CONFIG %FORM %LANG @spam @nonspam @period @data @inoc @sm @fp @wh @corpus @virus @black @block };
 
 # Read configuration parameters common to all CGI scripts
 require "configure.pl";
+
+#
+# Read language file
+#
+if (-s "$CONFIG{'TEMPLATES'}/strings.pl") {
+  require "$CONFIG{'TEMPLATES'}/strings.pl";
+} elsif (-s "$CONFIG{'TEMPLATES'}/../strings.pl") {
+  require "$CONFIG{'TEMPLATES'}/../strings.pl";
+} else {
+  &error("Missing language file strings.pl.");
+}
 
 %FORM = &ReadParse();
 
@@ -49,7 +60,7 @@ do {
 my $mygraph = GD::Graph::bars->new(500, 250);
 $mygraph->set(
     x_label     => "$FORM{'x_label'}",
-    y_label     => 'Number of Messages',
+    y_label     => "$LANG{'graph_legend_nb_messages'}",
     title       => "$FORM{'title'}",
     legend_placement => 'RT',
     legend_spacing => 2,
@@ -83,7 +94,7 @@ if ($CONFIG{'3D_GRAPHS'} == 1) {
 }
 
 $mygraph->set_legend_font(GD::gdMediumBoldFont);
-$mygraph->set_legend(' Inoculations',' Corpusfeds',' Virus',' Blacklisted (RBL)',' Blocklisted',' Auto-Whitelisted',' Spam', ' Nonspam',' Spam Misses',' False Positives');
+$mygraph->set_legend(" $LANG{'graph_legend_inoculations'}"," $LANG{'graph_legend_corpusfeds'}"," $LANG{'graph_legend_virus'}"," $LANG{'graph_legend_RBL'}"," $LANG{'graph_legend_blocklisted'}"," $LANG{'graph_legend_whitelisted'}"," $LANG{'graph_legend_spam'}"," $LANG{'graph_legend_nonspam'}"," $LANG{'graph_legend_spam_misses'}"," $LANG{'graph_legend_falsepositives'}");
 my $myimage = $mygraph->plot(\@data) or die $mygraph->error;
                                                                                 
 print "Content-type: image/png\n\n";

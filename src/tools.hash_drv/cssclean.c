@@ -1,4 +1,4 @@
-/* $Id: cssclean.c,v 1.13 2009/06/27 02:24:53 sbajic Exp $ */
+/* $Id: cssclean.c,v 1.133 2009/10/12 10:05:11 sbajic Exp $ */
 
 /*
  DSPAM
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 }
 
 int cssclean(const char *filename, int heavy) {
-  int i;
+  unsigned long i;
   hash_drv_header_t header;
   FILE* lockfile = NULL;
   void *offset;
@@ -106,7 +106,7 @@ int cssclean(const char *filename, int heavy) {
   hash_drv_spam_record_t rec;
   unsigned long filepos;
   char *dir = NULL;
-  char *newfile = NULL;
+  char newfile[512];
   struct stat st;
   unsigned long spam, nonspam, cntr;
   int drop, prb;
@@ -149,9 +149,8 @@ int cssclean(const char *filename, int heavy) {
   dir = strdup(filename);
   if (dir == NULL)
     goto end;
-  newfile = tempnam(dirname(dir), "css");
-  if (newfile == NULL)
-    goto end;
+
+  snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname((char *) filename), (unsigned int) getpid());
 
   lockfile = _hash_tools_lock_get (filename);
   if (lockfile == NULL)
@@ -166,7 +165,7 @@ int cssclean(const char *filename, int heavy) {
     _hash_drv_close(&old);
     goto end;
   }
-  
+
   /* preserve counters */
   memcpy(new.header, old.header, sizeof(*new.header));
 
@@ -243,11 +242,7 @@ int cssclean(const char *filename, int heavy) {
   rc = 0;
 
 end:
-  if (dir)
-    free(dir);
-  if (newfile)
-    free(newfile);
+  free(dir);
   _hash_tools_lock_free(filename, lockfile);
   return rc;
 }
-

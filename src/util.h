@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.15 2009/06/27 02:26:59 sbajic Exp $ */
+/* $Id: util.h,v 1.16 2009/09/24 22:51:18 sbajic Exp $ */
 
 /*
  DSPAM
@@ -77,6 +77,9 @@ size_t strlcat (char *, const char *, size_t);
  *
  *  _ds_compute_weight()
  *    Calculates the markovian weight of a token
+ *
+ *  _ds_compute_weight_osb()
+ *    Calculates the OSB/OSBF/WINNOW weight of a token
  */
 
 #ifndef HAVE_STRTOK_R
@@ -104,6 +107,7 @@ int _ds_prepare_path_for   (const char *filename);
 int _ds_compute_complexity (const char *token);
 int _ds_compute_sparse     (const char *token);
 int _ds_compute_weight     (const char *token);
+int _ds_compute_weight_osb (const char *token);
 char *_ds_truncate_token   (const char *token);
 
 int	_ds_extract_address(

@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.85 2009/06/25 00:51:54 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.863 2009/10/12 09:19:17 sbajic Exp $ */
 
 /*
  DSPAM
@@ -259,43 +259,43 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
     }
     if (rid == uid) {
       user.spam_learned			= strtoul (row[1], NULL, 0);
-      if (user.spam_learned == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)user.spam_learned == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.spam_learned", row[1]);
         goto FAIL;
       }
       user.innocent_learned		= strtoul (row[2], NULL, 0);
-      if (user.innocent_learned == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)user.innocent_learned == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.innocent_learned", row[2]);
         goto FAIL;
       }
       user.spam_misclassified		= strtoul (row[3], NULL, 0);
-      if (user.spam_misclassified == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)user.spam_misclassified == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.spam_misclassified", row[3]);
         goto FAIL;
       }
       user.innocent_misclassified	= strtoul (row[4], NULL, 0);
-      if (user.innocent_misclassified == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)user.innocent_misclassified == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.innocent_misclassified", row[4]);
         goto FAIL;
       }
       user.spam_corpusfed		= strtoul (row[5], NULL, 0);
-      if (user.spam_corpusfed == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)user.spam_corpusfed == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.spam_corpusfed", row[5]);
         goto FAIL;
       }
       user.innocent_corpusfed		= strtoul (row[6], NULL, 0);
-      if (user.innocent_corpusfed == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)user.innocent_corpusfed == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.innocent_corpusfed", row[6]);
         goto FAIL;
       }
       if (row[7] != NULL && row[8] != NULL) {
         user.spam_classified		= strtoul (row[7], NULL, 0);
-        if (user.spam_classified == ULONG_MAX && errno == ERANGE) {
+        if ((unsigned long int)user.spam_classified == ULONG_MAX && errno == ERANGE) {
           LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.spam_classified", row[7]);
           goto FAIL;
         }
         user.innocent_classified	= strtoul (row[8], NULL, 0);
-        if (user.innocent_classified == ULONG_MAX && errno == ERANGE) {
+        if ((unsigned long int)user.innocent_classified == ULONG_MAX && errno == ERANGE) {
           LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to user.innocent_classified", row[8]);
           goto FAIL;
         }
@@ -305,43 +305,43 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
       }
     } else {
       group.spam_learned		= strtoul (row[1], NULL, 0);
-      if (group.spam_learned == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)group.spam_learned == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.spam_learned", row[1]);
         goto FAIL;
       }
       group.innocent_learned		= strtoul (row[2], NULL, 0);
-      if (group.innocent_learned == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)group.innocent_learned == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.innocent_learned", row[2]);
         goto FAIL;
       }
       group.spam_misclassified		= strtoul (row[3], NULL, 0);
-      if (group.spam_misclassified == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)group.spam_misclassified == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.spam_misclassified", row[3]);
         goto FAIL;
       }
       group.innocent_misclassified	= strtoul (row[4], NULL, 0);
-      if (group.innocent_misclassified == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)group.innocent_misclassified == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.innocent_misclassified", row[4]);
         goto FAIL;
       }
       group.spam_corpusfed		= strtoul (row[5], NULL, 0);
-      if (group.spam_corpusfed == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)group.spam_corpusfed == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.spam_corpusfed", row[5]);
         goto FAIL;
       }
       group.innocent_corpusfed		= strtoul (row[6], NULL, 0);
-      if (group.innocent_corpusfed == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)group.innocent_corpusfed == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.innocent_corpusfed", row[6]);
         goto FAIL;
       }
       if (row[7] != NULL && row[8] != NULL) {
         group.spam_classified		= strtoul (row[7], NULL, 0);
-        if (group.spam_classified == ULONG_MAX && errno == ERANGE) {
+        if ((unsigned long int)group.spam_classified == ULONG_MAX && errno == ERANGE) {
           LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.spam_classified", row[7]);
           goto FAIL;
         }
         group.innocent_classified	= strtoul (row[8], NULL, 0);
-        if (group.innocent_classified == ULONG_MAX && errno == ERANGE) {
+        if ((unsigned long int)group.innocent_classified == ULONG_MAX && errno == ERANGE) {
           LOGDEBUG("_mysql_drv_get_spamtotals: failed converting %s to group.innocent_classified", row[8]);
           goto FAIL;
         }
@@ -622,7 +622,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       ds_term->s.spam_hits = 0;
       ds_term->s.probability = 0.00000;
       ds_term->s.status = 0;
-      if((query->used + 1024) > s->max_packet_read) {
+      if((unsigned long)(query->used + 1024) > s->max_packet_read) {
         LOGDEBUG("_ds_getall_spamrecords: Splitting query at %ld characters", query->used);
         break;
       }
@@ -666,13 +666,13 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
         goto FAIL;
       }
       stat.spam_hits = strtoul (row[2], NULL, 0);
-      if (stat.spam_hits == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)stat.spam_hits == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_ds_getall_spamrecords: failed converting %s to stat.spam_hits", row[2]);
         ds_diction_close(ds_c);
         goto FAIL;
       }
       stat.innocent_hits = strtoul (row[3], NULL, 0);
-      if (stat.innocent_hits == ULONG_MAX && errno == ERANGE) {
+      if ((unsigned long int)stat.innocent_hits == ULONG_MAX && errno == ERANGE) {
         LOGDEBUG("_ds_getall_spamrecords: failed converting %s to stat.innocent_hits", row[3]);
         ds_diction_close(ds_c);
         goto FAIL;
@@ -847,7 +847,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       insert_any = 1;
       buffer_cat(insert, ins);
 
-      if((insert->used + 1024) > s->max_packet_write) {
+      if((unsigned long)(insert->used + 1024) > s->max_packet_write) {
         LOGDEBUG("_ds_setall_spamrecords: Splitting insert query at %ld characters", insert->used);
         if (insert_any) {
           snprintf (scratch, sizeof (scratch),
@@ -897,7 +897,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     ds_term->s.status |= TST_DISK;
 
     ds_term = ds_diction_next(ds_c);
-    if((query->used + 1024) > s->max_packet_write) {
+    if((unsigned long)(query->used + 1024) > s->max_packet_write) {
       LOGDEBUG("_ds_setall_spamrecords: Splitting update query at %ld characters", query->used);
       buffer_cat (query, ")");
       if (update_any) {
@@ -1039,14 +1039,14 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   }
 
   stat->spam_hits = strtoul (row[0], NULL, 0);
-  if (stat->spam_hits == ULONG_MAX && errno == ERANGE) {
+  if ((unsigned long int)stat->spam_hits == ULONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_spamrecord: failed converting %s to stat->spam_hits", row[0]);
     mysql_free_result (result);
     result = NULL;
     return EFAILURE;
   }
   stat->innocent_hits = strtoul (row[1], NULL, 0);
-  if (stat->innocent_hits == ULONG_MAX && errno == ERANGE) {
+  if ((unsigned long int)stat->innocent_hits == ULONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_spamrecord: failed converting %s to stat->innocent_hits", row[1]);
     mysql_free_result (result);
     result = NULL;
@@ -1218,11 +1218,11 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   unsigned long drv_max_packet = 1000000;
   char scratch[128];
   MYSQL_RES *result;
-  MYSQL_ROW row;
   snprintf (scratch, sizeof (scratch), "SHOW VARIABLES WHERE variable_name='max_allowed_packet'");
   s->max_packet_read = 1000000;
   s->max_packet_write = 1000000;
   if (s->dbt) {
+    MYSQL_ROW row;
     if (s->dbt->dbh_read) {
       if (MYSQL_RUN_QUERY (s->dbt->dbh_read, scratch) == 0) {
         result = mysql_use_result (s->dbt->dbh_read);
@@ -1684,7 +1684,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   struct passwd *p;
   uid_t uid;
 #else
-  char *virtual_table, *virtual_uid, *virtual_username;
+  char *virtual_table, *virtual_username;
 #endif
   char query[256];
   MYSQL_ROW row;
@@ -1699,10 +1699,6 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   if ((virtual_table
     = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
   { virtual_table = "dspam_virtual_uids"; }
-
-  if ((virtual_uid
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
-  { virtual_uid = "uid"; }
 
   if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
     "MySQLVirtualUsernameField")) ==NULL)
@@ -1832,12 +1828,12 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     goto FAIL;
   }
   st->spam_hits = strtoul (row[1], NULL, 0);
-  if (st->spam_hits == ULONG_MAX && errno == ERANGE) {
+  if ((unsigned long int)st->spam_hits == ULONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->spam_hits", row[1]);
     goto FAIL;
   }
   st->innocent_hits = strtoul (row[2], NULL, 0);
-  if (st->innocent_hits == ULONG_MAX && errno == ERANGE) {
+  if ((unsigned long int)st->innocent_hits == ULONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->innocent_hits", row[2]);
     goto FAIL;
   }
@@ -1937,7 +1933,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   st->data = mem;
   strlcpy (st->signature, row[1], sizeof (st->signature));
   st->length = strtoul (row[2], NULL, 0);
-  if (st->length == ULONG_MAX && errno == ERANGE) {
+  if ((unsigned long int)st->length == ULONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nextsignature: failed converting %s to st->length", row[2]);
     goto FAIL;
   }
@@ -2407,7 +2403,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
         snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
       buffer_cat (query, scratch);
       ds_term = ds_diction_next(ds_c);
-      if((query->used + 1024) > s->max_packet_write || !ds_term) {
+      if((unsigned long)(query->used + 1024) > s->max_packet_write || !ds_term) {
         LOGDEBUG("_ds_delall_spamrecords: Splitting query at %lu characters", query->used);
         break;
       }

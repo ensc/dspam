@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.27 2009/08/02 20:09:28 sbajic Exp $ */
+/* $Id: hash_drv.c,v 1.291 2009/10/12 09:04:46 sbajic Exp $ */
 
 /*
  DSPAM
@@ -104,7 +104,8 @@ dspam_init_driver (DRIVER_CTX *DTX)
     unsigned long extent_size  = HASH_EXTENT_MAX;
     int pctincrease = 0;
     int flags = HMAP_AUTOEXTEND;
-    int ret, i;
+    int ret;
+    unsigned long i;
 
     if (READ_ATTRIB("HashConnectionCache") && !HashConcurrentUser)
       connection_cache = strtol(READ_ATTRIB("HashConnectionCache"), NULL, 0);
@@ -132,7 +133,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
     }
 
     if (READ_ATTRIB("HashMaxSeek"))
-       max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
+      max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
 
     /* Connection array (just one single connection for hash_drv) */
     DTX->connections = calloc(1, sizeof(struct _ds_drv_connection *) * connection_cache);
@@ -189,9 +190,9 @@ dspam_init_driver (DRIVER_CTX *DTX)
 memerr:
   if (DTX) {
     if (DTX->connections) {
-      int i;
+      unsigned long i;
       for(i=0;i<connection_cache;i++) {
-        if (DTX->connections[i]) 
+        if (DTX->connections[i])
           free(DTX->connections[i]->dbh);
         free(DTX->connections[i]);
       }
@@ -216,14 +217,14 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
     HashConcurrentUser = READ_ATTRIB("HashConcurrentUser");
 
     if (DTX->flags & DRF_STATEFUL) {
-      hash_drv_map_t map;
-      int connection_cache = 1, i;
+      int connection_cache = 1;
 
-     if (READ_ATTRIB("HashConnectionCache") && !HashConcurrentUser)
+      if (READ_ATTRIB("HashConnectionCache") && !HashConcurrentUser)
         connection_cache = strtol(READ_ATTRIB("HashConnectionCache"), NULL, 0);
 
       LOGDEBUG("unloading hash database from memory");
       if (DTX->connections) {
+        int i;
         for(i=0;i<connection_cache;i++) {
           LOGDEBUG("unloading connection object %d", i);
           if (DTX->connections[i]) {
@@ -232,7 +233,7 @@ dspam_shutdown_driver (DRIVER_CTX *DTX)
             }
             else {
               pthread_rwlock_destroy(&DTX->connections[i]->rwlock);
-              map = (hash_drv_map_t) DTX->connections[i]->dbh;
+              hash_drv_map_t map = (hash_drv_map_t) DTX->connections[i]->dbh;
               if (map)
                 _hash_drv_close(map);
             }
@@ -305,7 +306,7 @@ _hash_tools_lock_get (const char *cssfilename)
   if (cssfilename == NULL)
     return NULL;
   pPeriod = strrchr(cssfilename, '.');
-  if (pPeriod == NULL || strcmp(pPeriod + 1, "css") || pPeriod - cssfilename + 5 >= sizeof(filename))
+  if (pPeriod == NULL || strcmp(pPeriod + 1, "css") || (size_t)(pPeriod - cssfilename + 5) >= sizeof(filename))
     return NULL;
   strncpy(filename, cssfilename, pPeriod - cssfilename + 1);
   strcpy(filename + (pPeriod - cssfilename + 1), "lock");
@@ -370,7 +371,7 @@ int _hash_drv_open(
 
   if (map->fd < 0 && recmaxifnew) {
     struct _hash_drv_spam_record rec;
-    int i;
+    unsigned long i;
 
     memset(&header, 0, sizeof(struct _hash_drv_header));
     memset(&rec, 0, sizeof(struct _hash_drv_spam_record));
@@ -471,7 +472,6 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 {
   struct _hash_drv_storage *s = NULL;
   hash_drv_map_t map = NULL;
-  int ret;
 
   if (CTX == NULL)
     return EINVAL;
@@ -551,6 +551,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   {
     char db[MAX_FILENAME_LENGTH];
     int lock_result;
+    int ret;
 
     if (CTX->group == NULL)
       _ds_userdir_path(db, CTX->home, CTX->username, "css");
@@ -594,7 +595,6 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
   struct _hash_drv_storage *s;
   struct nt_node *node_nt;
   struct nt_c c_nt;
-  int lock_result;
 
   if (!CTX || !CTX->storage)
     return EINVAL;
@@ -621,7 +621,7 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
   if (!s->dbh_attached) {
     _hash_drv_close(s->map);
     free(s->map);
-    lock_result =
+    int lock_result =
       _hash_drv_lock_free (s, (CTX->group) ? CTX->group : CTX->username);
     if (lock_result < 0)
       return EUNKNOWN;
@@ -1028,38 +1028,40 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     }
   }
 
-  while ((entry = readdir (dir)) != NULL)
-  {
-    struct stat st;
-    char filename[MAX_FILENAME_LENGTH];
-    snprintf (filename, sizeof (filename), "%s/%s", path, entry->d_name);
-
-    if (!strcmp (entry->d_name, ".") || !strcmp (entry->d_name, ".."))
-      continue;
-
-    if (stat (filename, &st)) {
-      continue;
-    }
-
-    /* push a new directory */
-    if (st.st_mode & S_IFDIR)
+  if (dir != NULL) {
+    while ((entry = readdir (dir)) != NULL)
     {
-      DIR *ndir;
+      struct stat st;
+      char filename[MAX_FILENAME_LENGTH];
+      snprintf (filename, sizeof (filename), "%s/%s", path, entry->d_name);
 
-      ndir = opendir (filename);
-      if (ndir == NULL)
+      if (!strcmp (entry->d_name, ".") || !strcmp (entry->d_name, ".."))
         continue;
-      strlcat (path, "/", sizeof (path));
-      strlcat (path, entry->d_name, sizeof (path));
-      nt_add (s->dir_handles, (void *) ndir);
-      return _ds_get_nextuser (CTX);
-    }
-    else if (strlen(entry->d_name)>4 &&
-      !strncmp ((entry->d_name + strlen (entry->d_name)) - 4, ".css", 4))
-    {
-      strlcpy (user, entry->d_name, sizeof (user));
-      user[strlen (user) - 4] = 0;
-      return user;
+
+      if (stat (filename, &st)) {
+        continue;
+      }
+
+      /* push a new directory */
+      if (st.st_mode & S_IFDIR)
+      {
+        DIR *ndir;
+
+        ndir = opendir (filename);
+        if (ndir == NULL)
+          continue;
+        strlcat (path, "/", sizeof (path));
+        strlcat (path, entry->d_name, sizeof (path));
+        nt_add (s->dir_handles, (void *) ndir);
+        return _ds_get_nextuser (CTX);
+      }
+      else if (strlen(entry->d_name)>4 &&
+        !strncmp ((entry->d_name + strlen (entry->d_name)) - 4, ".css", 4))
+      {
+        strlcpy (user, entry->d_name, sizeof (user));
+        user[strlen (user) - 4] = 0;
+        return user;
+      }
     }
   }
 
@@ -1121,7 +1123,8 @@ int _hash_drv_autoextend(
 {
   struct _hash_drv_header header;
   struct _hash_drv_spam_record rec;
-  int i, lastsize;
+  int lastsize;
+  unsigned long i;
 
   _hash_drv_close(map);
 

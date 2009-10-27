@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.166 2009/07/24 22:53:18 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.186 2009/10/12 08:20:02 sbajic Exp $ */
 
 /*
  DSPAM
@@ -234,12 +234,20 @@ DSPAM_CTX * dspam_create (
   return CTX;
 
 bail:
-  if (CTX->config)
-    _ds_destroy_config(CTX->config->attributes);
-  free(CTX->config);
-  free(CTX->username);
-  free(CTX->group);
-  free(CTX);
+  if (CTX != NULL) {
+    if (CTX->config != NULL) {
+      if (CTX->config->attributes != NULL)
+        _ds_destroy_config(CTX->config->attributes);
+      free(CTX->config);
+    }
+    if (CTX->username != NULL)
+      free(CTX->username);
+    if (CTX->group != NULL)
+      free(CTX->group);
+    if (CTX->home != NULL)
+      free(CTX->home);
+    free(CTX);
+  }
   return NULL;
 }
 
@@ -277,8 +285,10 @@ int dspam_clearattributes (DSPAM_CTX * CTX) {
   return 0;
 
 bail:
-  free(CTX->config);
-  CTX->config = NULL;
+  if (CTX->config != NULL) {
+    free(CTX->config);
+    CTX->config = NULL;
+  }
   LOG(LOG_CRIT, ERR_MEM_ALLOC);
   return EUNKNOWN;
 }
@@ -500,7 +510,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   /* Set TOE mode pretrain option if we haven't seen many messages yet */
   if (CTX->training_mode == DST_TOE
   && (CTX->totals.innocent_learned <= 100 || CTX->totals.spam_learned <= 100)
-  && (!(CTX->algorithms & DSP_MARKOV)))
+  && (!(CTX->algorithms & DSP_MARKOV))
+  && (!(CTX->algorithms & DSP_OSB)))
   {
     is_undertrain = 1;
     CTX->training_mode = DST_TEFT;
@@ -575,12 +586,17 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     h = strtok_r(y, "\001", &ptrptr);
     b = strtok_r(NULL, "\001", &ptrptr);
     spam_result = _ds_operate (CTX, h, b);
+    free(y);
 
   /* Otherwise, operate on the input message */
  
   } else {
     spam_result = _ds_operate (CTX, header->data, body->data);
   }
+
+  /* Clean up */
+  buffer_destroy (header);
+  buffer_destroy (body);
 
   /* Fail if _ds_operate() was unable to process message */
   if (spam_result != DSR_ISSPAM && spam_result != DSR_ISINNOCENT) {
@@ -597,7 +613,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
       spam_result = DSR_ISSPAM;
   }
 
-  /* Apply results to context and clean up */
+  /* Apply results to context */
   CTX->result = spam_result;
   if (CTX->class[0] == 0) {
     if (CTX->result == DSR_ISSPAM)
@@ -605,8 +621,6 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     else if (CTX->result == DSR_ISINNOCENT)
       strcpy(CTX->class, LANG_CLASS_INNOCENT);
   }
-  buffer_destroy (header);
-  buffer_destroy (body);
 
   if (is_toe)
     CTX->operating_mode = DSM_PROCESS;
@@ -1442,14 +1456,14 @@ _ds_calc_stat (
   if (CTX->classification == DSR_ISSPAM)
     s->probability = .7;
   else
-    s->probability = (CTX->algorithms & DSP_MARKOV) ? .5 : .4;
+    s->probability = (CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) ? .5 : .4;
 
-  /* Markovian Weighting */
+  /* Markovian/OSB/OSBF/WINNOW Weighting */
 
-  if (CTX->algorithms & DSP_MARKOV) {
+  if (CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) {
     unsigned int weight;
     long num, den;
- 
+
     /*  some utilities don't provide the token name, and so we can't compute
      *  a probability. just return something neutral.
      */
@@ -1458,7 +1472,35 @@ _ds_calc_stat (
       return 0;
     }
 
-    weight = _ds_compute_weight(term->name);
+    /* return neutral probability for BNR patterns */
+    if (token_type == DTT_BNR || term->type == 'B' || !strncmp(term->name, "bnr.", 4)) {
+      s->probability = .5;
+      return 0;
+    }
+
+    /* return neutral probability for frequency tokens */
+    if (!strncmp(term->name, "E: ", 3)) {
+      s->probability = .5;
+      return 0;
+    }
+
+    /* return neutral probability for "From" tokens (used for when whitelisting) */
+    if (!strncmp(term->name, "From*", 5)) {
+      s->probability = .5;
+      return 0;
+    }
+
+    /* return neutral probability for control tokens */
+    if (!strncmp(term->name, "$$CONTROL$$", 11)) {
+      s->probability = .5;
+      return 0;
+    }
+
+    if (CTX->algorithms & DSP_MARKOV) {
+      weight = _ds_compute_weight(term->name);
+    } else {
+      weight = _ds_compute_weight_osb(term->name);
+    }
 
     if (CTX->flags & DSF_BIAS) {
       num = weight * (s->spam_hits - (s->innocent_hits*2));
@@ -1528,7 +1570,7 @@ _ds_calc_stat (
        || (!(CTX->flags & DSF_BIAS) && 
           (s->spam_hits + s->innocent_hits < min_hits)))
     {
-      s->probability = (CTX->algorithms & DSP_MARKOV) ? .5000 : .4;
+      s->probability = (CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) ? .5000 : .4;
     }
   }
 
@@ -1603,7 +1645,7 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
   long chi_used  = 0, chi_sx = 0, chi_hx = 0;
   double chi_s = 1.0, chi_h = 1.0;
   struct nt *factor_chi = nt_create(NT_PTR);
-  int i;
+  unsigned int i;
 
   /* Invert the heap */
   node_heap = heap_sort->root;
@@ -1611,8 +1653,6 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
     heap_list[(heap_sort->items-i)-1] = node_heap;
     node_heap = node_heap->next;
   }
-
-  node_heap = heap_sort->root;
 
   /* BEGIN Combine Token Values */
   for(i=0;i<heap_sort->items;i++)
@@ -1839,9 +1879,8 @@ _ds_calc_result(DSPAM_CTX *CTX, ds_heap_t heap_sort, ds_diction_t diction)
         }
 
         if (fabs(0.5-fw)>CHI_EXCR) {
-          int iter = _ds_compute_complexity(ds_term->name);
+          int iter = 1;
 
-          iter = 1;
           while(iter>0) {
             iter --;
 
@@ -1950,8 +1989,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_NAIVE) {
       factor = factor_nbayes;
-      if ((CTX->algorithms & DSP_MARKOV && nbay_result > 0.5000) ||
-          (!(CTX->algorithms & DSP_MARKOV) && nbay_result >= 0.9))
+      if (((CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) && nbay_result > 0.5000) ||
+          (!(CTX->algorithms & DSP_MARKOV) && !(CTX->algorithms & DSP_OSB) && nbay_result >= 0.9))
       {
         CTX->result = DSR_ISSPAM;
         CTX->probability = nbay_result;
@@ -1962,8 +2001,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_GRAHAM) {
       factor = factor_bayes;
-      if ((CTX->algorithms & DSP_MARKOV && bay_result > 0.5000) ||
-          (!(CTX->algorithms & DSP_MARKOV) && bay_result >= 0.9))
+      if (((CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) && bay_result > 0.5000) ||
+          (!(CTX->algorithms & DSP_MARKOV) && !(CTX->algorithms & DSP_OSB) && bay_result >= 0.9))
       {
         CTX->result = DSR_ISSPAM;
         CTX->probability = bay_result;
@@ -1974,8 +2013,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_BURTON) {
       factor = factor_altbayes;
-      if ((CTX->algorithms & DSP_MARKOV && abay_result > 0.5000) ||
-          (!(CTX->algorithms & DSP_MARKOV) && abay_result >= 0.9))
+      if (((CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) && abay_result > 0.5000) ||
+          (!(CTX->algorithms & DSP_MARKOV) && !(CTX->algorithms & DSP_OSB) && abay_result >= 0.9))
       {
         CTX->result = DSR_ISSPAM;
         CTX->probability = abay_result;
@@ -1988,8 +2027,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_ROBINSON) {
       factor = factor_rob;
-      if ((CTX->algorithms & DSP_MARKOV && rob_result > 0.5000) ||
-          (!(CTX->algorithms & DSP_MARKOV) && rob_result >= ROB_CUTOFF))
+      if (((CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) && rob_result > 0.5000) ||
+          (!(CTX->algorithms & DSP_MARKOV) && !(CTX->algorithms & DSP_OSB) && rob_result >= ROB_CUTOFF))
       {
         CTX->result = DSR_ISSPAM;
         if (CTX->probability < 0)
@@ -2003,8 +2042,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_CHI_SQUARE) {
      factor = factor_chi;
-     if ((CTX->algorithms & DSP_MARKOV && chi_result > 0.5000) ||
-         (!(CTX->algorithms & DSP_MARKOV) && chi_result >= CHI_CUTOFF))
+     if (((CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) && chi_result > 0.5000) ||
+         (!(CTX->algorithms & DSP_MARKOV) && !(CTX->algorithms & DSP_OSB) && chi_result >= CHI_CUTOFF))
      {
        CTX->result = DSR_ISSPAM;
        if (CTX->probability < 0)
@@ -2053,7 +2092,7 @@ CHI_NEXT:
   }
 
 #ifdef VERBOSE
-  if (DO_DEBUG && (!(CTX->algorithms & DSP_MARKOV))) {
+  if (DO_DEBUG && (!(CTX->algorithms & DSP_MARKOV) && !(CTX->algorithms & DSP_OSB))) {
     if (abay_result >= 0.9 && bay_result < 0.9)
     {
       LOGDEBUG ("CATCH: Burton Bayesian");
@@ -2085,7 +2124,7 @@ CHI_NEXT:
 
   /* Calculate Confidence */
 
-  if (CTX->algorithms & DSP_MARKOV) {
+  if (CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) {
     if (CTX->result == DSR_ISSPAM)
     {
       CTX->confidence = CTX->probability;
@@ -2249,9 +2288,6 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
   struct _ds_spam_stat bnr_tot;
   unsigned long long crc;
   BNR_CTX *BTX_S, *BTX_C;
-#ifdef LIBBNR_DEBUG
-  float snr;
-#endif
   struct nt_node *node_nt;
   struct nt_c c_nt;
   ds_term_t ds_term, ds_touch;
@@ -2361,6 +2397,7 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
     }
 
 #ifdef LIBBNR_DEBUG
+    float snr;
     if (BTX_S->stream->items + BTX_C->stream->items +
         BTX_S->eliminations  + BTX_C->eliminations > 0)
     {

@@ -1,0 +1,87 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Centru de Control</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+                $FORM_USER$
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance">Performanță</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Preferințe</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alerte</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">Carantină ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">Analize</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=history&history_page=1">Istoric</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Mesajele care au fost procesate de filtru sunt afișate mai jos.
+Cele mai recente mesaje sunt afișate primele. folosește optiunea de reînvăț 
+pentru a coresta erorile și a livra mesajel e buna identificate ca spam care
+sunt incă in carantină
+</p>
+
+<form name="history" action="dspam.cgi" method="POST">
+<input type="submit" value="Retrain Checked">
+<input type="hidden" name="template" value="history">
+<input type="hidden" name="command" value="retrainChecked">
+<input type="hidden" name="user" value="$REMOTE_USER$">
+<input type="hidden" name="show" value="$SHOW$" >
+
+&nbsp;&nbsp;$SHOW_SELECTOR$
+
+<table border="0" cellspacing="0" cellpadding="2" width="100%">
+<tr>
+	<th>Tip</th>
+        <th>Reînvățare</th>
+	<th>Dată/Oră</th>
+	<th>De la</th>
+	<th>Subiect</th>
+	<th>Informații adiționale</th>
+</tr>
+$HISTORY$
+</table>
+
+$HISTORYPAGES$
+
+<input type="submit" value="Retrain Checked">
+</form>
+
+</div>
+
+
+
+<script language="javascript">
+<!--
+var remote = null;
+
+function openwin(width, height, scroll, url) {
+  remote = window.open('', 'SpecialIntro', 'width=' + width + ',height='
+                  + height + ',resizable=1,dependent,scrollbars=' + scroll +
+                  ',status=0');
+  if (remote != null) {
+    if (remote.opener == null) { remote.opener = self; }
+    remote.location.href = url;
+  }
+}
+//-->
+</script>
+
+</BODY>
+</HTML>
