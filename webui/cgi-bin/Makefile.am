@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.21 2009/08/04 11:46:47 sbajic Exp $
+# $Id: Makefile.am,v 1.22 2009/08/18 01:22:39 sbajic Exp $
 #
 
 bin_SCRIPTS = configure_pl
@@ -14,7 +14,7 @@ EXTRA_DIST =            \
 	admins          \
 	configure.pl.in
 
-SUBDIRS = templates templates/he
+SUBDIRS = templates templates/he templates/ro templates/fr
 
 sed_substitute_variables = \
 	dspam_transformed=`echo dspam | sed '$(transform)'`; \

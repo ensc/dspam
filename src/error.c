@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.16 2007/12/14 00:14:32 mjohnson Exp $ */
+/* $Id: error.c,v 1.17 2009/09/12 09:22:44 sbajic Exp $ */
 
 /*
  DSPAM
@@ -73,7 +73,7 @@ LOG(int priority, const char *err, ... )
   va_list ap;
 #endif
 #ifdef LOGFILE
-  char buf[1024], date[128];
+  char date[128];
   FILE *file;
 #endif
 
@@ -94,11 +94,11 @@ LOG(int priority, const char *err, ... )
 #ifdef LOGFILE
   file = fopen(LOGFILE, "a");
   if (file) {
-    fprintf(file, "%ld: [%s] %s\n", (long) getpid(), format_date_r(date), buf); 
+    fprintf(file, "%ld: [%s] %s\n", (long) getpid(), format_date_r(date), err);
     fclose(file);
   } else {
     fprintf(stderr, "%s: %s", LOGFILE, strerror(errno));
-    fprintf(stderr, "%ld: [%s] %s\n", (long)getpid(), format_date_r(date), buf);
+    fprintf(stderr, "%ld: [%s] %s\n", (long)getpid(), format_date_r(date), err);
   }
 #endif
 
@@ -152,20 +152,20 @@ debug_out (const char *err)
 #endif
 
 char *
-format_date_r(char *buf) 
+format_date_r(char *buf)
 {
   struct tm *l;
 #ifdef HAVE_LOCALTIME_R
   struct tm lt;
 #endif
   time_t t = time(NULL);
-                                                                                
+
 #ifdef HAVE_LOCALTIME_R
   l = localtime_r(&t, &lt);
 #else
   l = localtime(&t);
 #endif
-                                                                                
+
   sprintf(buf, "%02d/%02d/%04d %02d:%02d:%02d",
           l->tm_mon+1, l->tm_mday, l->tm_year+1900, l->tm_hour, l->tm_min,
           l->tm_sec);

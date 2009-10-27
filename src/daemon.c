@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.118 2009/06/10 22:49:16 sbajic Exp $ */
+/* $Id: daemon.c,v 1.12 2009/10/09 21:15:02 sbajic Exp $ */
 
 /*
  DSPAM
@@ -672,15 +672,17 @@ GETCMD:
     }
 
     /* DATA */
-  
-    if (strncasecmp(cmdline, "DATA", 4)) {
-      if (daemon_reply(TTX, LMTP_BAD_CMD, "5.0.0", "Need DATA Here")<0) 
-        goto CLOSE;
-      input = daemon_expect(TTX, "DATA");
-      if (input == NULL)
-        goto CLOSE;
-      if (RSET(input)) 
-        goto RSET;
+
+    if (cmdline != NULL) {
+      if (strncasecmp(cmdline, "DATA", 4)) {
+        if (daemon_reply(TTX, LMTP_BAD_CMD, "5.0.0", "Need DATA Here")<0)
+          goto CLOSE;
+        input = daemon_expect(TTX, "DATA");
+        if (input == NULL)
+          goto CLOSE;
+        if (RSET(input))
+          goto RSET;
+      }
     }
 
     if (daemon_reply(TTX, LMTP_DATA, "", INFO_LMTP_DATA)<=0)
@@ -788,12 +790,12 @@ GETCMD:
         } 
         else
         {
-          if (result->exitcode == ERC_PERMANENT_DELIVERY) {
+          if (result != NULL && result->exitcode == ERC_PERMANENT_DELIVERY) {
             snprintf(buf, sizeof(buf), "%d 5.3.0 <%s> %s",
                  LMTP_FAILURE, (char *) node_nt->ptr,
                  (result->text[0]) ? result->text : "Permanent error occured");
           } else {
-            if (result->text[0]) {
+            if (result != NULL && result->text[0]) {
               snprintf(buf, sizeof(buf),
                        "%d 4.3.0 <%s> %s",
                        LMTP_TEMP_FAIL, (char *) node_nt->ptr, result->text);
@@ -801,7 +803,7 @@ GETCMD:
               snprintf(buf, sizeof(buf),
                        "%d 4.3.0 <%s> Error occured during %s", 
                        LMTP_TEMP_FAIL, (char *) node_nt->ptr,
-                (result->exitcode == ERC_DELIVERY) ? "delivery" : "processing");
+                (result != NULL && result->exitcode == ERC_DELIVERY) ? "delivery" : "processing");
             }
           }
         }

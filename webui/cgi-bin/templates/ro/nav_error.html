@@ -1,0 +1,40 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Centru de Control</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Protecție Anti-spam pentru <strong>$REMOTE_USER$</strong>
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance">Performanță</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Preferințe</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alerte</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">Carantină ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">Analize</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">Istoric</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<H2>A avut loc o eroare</H2>
+$MESSAGE$
+
+</div>
+
+
+
+</BODY>
+</HTML>

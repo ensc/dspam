@@ -1,0 +1,58 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Centru de Control</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Protecție statistică Anti-spam pentru <strong>Administrator ($REMOTE_USER$)</strong>
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=status">Starea sistemului</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=user">Statisticile utilizatorilor</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Administrare</a></li>
+		<li><a href="dspam.cgi">Centru de Control</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Următorul table arată numarul de mesaje procesate pentru fiecare utilizator si preferințele utilizatorilor
+</p>
+
+<table border="0" cellspacing="0" cellpadding="4">
+	<tr>
+		<th>Nume</th>
+		<th>Dimens.Carant.</th>
+		<th>TP</th>
+                <th>TN</th>
+		<th>FP</th>
+		<th>FN</th>
+		<th>SC</th>
+		<th>IC</th>
+		<th>Mod</th>
+		<th>On Spam</th>
+		<th>BNR</th>
+		<th>Whitelist</th>
+                <th>Sed</th>
+                <th>Sig Loc</th>
+	</tr>
+$TABLE$
+</table>
+
+</div>
+
+
+
+</body>
+</html>

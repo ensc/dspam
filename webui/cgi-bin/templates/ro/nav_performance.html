@@ -1,0 +1,109 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Centru de Control</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		$FORM_USER$
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li id="active"><a id="current" href="$CGI$?$USER$template=performance">Performanță</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Preferințe</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alerte</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">Carantină ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">Analize</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">Istoric</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Dacă primești un mesaj în aplicația de email care nu a fost prins de filtru
+înaintează-l (forward) la:
+<strong>spam-$REMOTE_USER$$LOCAL_DOMAIN$</strong>
+so that it can be analyzed and learned as SPAM. This will improve the filter's accuracy in the future.
+</p>
+
+<div class="content">
+	<h3><strong>Statistici de performanță</strong> - $TIME$</h3>
+
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>Măsurătoare</th>
+			<th>&nbsp;</th>
+			<th>Calculată ca</th>
+		</tr>
+		<tr class="rowEven">
+			<td>Acuratețea globală (de la ultima resetare)</td>
+			<td><strong>$OVERALL_ACCURACY$%</strong></td>
+			<td class="rowDivider"><span class="small">(mesaje SPAM prinse + mesaje non-spam livrate) / Numărul totat de mesaje</span></td>
+		</tr>
+                <tr class="rowOdd">
+                        <td>Identificarea spam-ului (de la ultima resetare)</td>
+                        <td><strong>$SPAM_ACCURACY$%</strong></td>
+                        <td class="rowDivider"><span class="small">(Numai rata de prindere a spam-ului)</td>
+               </tr>
+		<tr class="rowEven">
+			<td>Spam ratio (of total processed)</td>
+			<td><strong>$SPAM_RATIO$%</strong></td>
+			<td class="rowDivider"><span class="small">Numărul total de mesaje spam (prinse și scăpate) / Numărul total de mesaje</span></td>
+		</tr>
+	</table>
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>&nbsp;</th>
+			<th>Mesaje SPAM</th>
+			<th>Mesaje bune</th>
+		</tr>
+		<tr class="rowEven">
+			<td rowspan="3" valign="top" nowrap>De la ultima resetare</td>
+			<td>$TOTAL_SPAM_MISSED$ scăpate</td>
+			<td>$TOTAL_NONSPAM_MISSED$ scăpate</td>
+		</tr>
+		<tr class="rowEven">
+			<td>$TOTAL_SPAM_CAUGHT$ prinse</td>
+			<td>$TOTAL_NONSPAM_CAUGHT$ livrate</td>
+		</tr>
+		<tr class="rowEven">
+			<td>$SPAM_ACCURACY$% prinse</td>
+			<td>$NONSPAM_ERROR_RATE$% scăpate</td>
+		</tr>
+		<tr class="rowOdd">
+			<td rowspan="2" valign="top" nowrap>Total procesate de filtru</td>
+			<td>$TOTAL_SPAM_LEARNED$ scăpate</td>
+			<td>$TOTAL_NONSPAM_LEARNED$ scăpate</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>$TOTAL_SPAM_SCANNED$ prinse</td>
+			<td>$TOTAL_NONSPAM_SCANNED$ livrate</td>
+		</tr>
+		<tr class="rowEven">
+			<td valign="top" nowrap>Din corpus</td>
+			<td>$TOTAL_SPAM_CORPUSFED$ fed</td>
+			<td>$TOTAL_NONSPAM_CORPUSFED$ fed</td>
+		</tr>
+	</table>
+
+	<p>
+		<a href="$CGI$?$USER$command=resetStats" title="Resetează statisticile">Reset</a> | <a href="$CGI$?$USER$command=tweak" title="Ajustări pentru mesajele care sunt înaintate filtrului">Tweak -1</a>
+	</p>
+</div>
+
+</div>
+
+
+
+</body>
+</html>

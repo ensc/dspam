@@ -35,9 +35,10 @@ COPYRIGHT
 As of 12 January 2009 the copyright is owned by the DSPAM Project, represented
 by a team of people, including:
   Alexander Prinsier
+  Dov Zamir
+  Hugo Monteiro
   Ion-Mihai Tetcu
   Paul Cockings
-  Dov Zamir
   Stevan Bajic
 
 TABLE OF CONTENTS
@@ -60,11 +61,13 @@ Advanced DSPAM functionality
   2.4 LMTP 
   2.5 DSPAM User Preferences
   2.6 Fallback Domains
+  2.7 External User Lookup
 
 Miscellaneous
 
-  3.0 Bugs, Ports, and the like 
-  3.1 CVS Access
+  3.0 Bugs, Feature Requests
+  3.1 Ports / Packages
+  3.2 GIT Access
 
 1.0 ABOUT DSPAM
 
@@ -139,9 +142,10 @@ In 2006 the copyright was handed over to Sensory Networks.
 In 2009 Sensory Networks handed over the full copyright to the DSPAM Project,
 represented by a team of people, including:
   Alexander Prinsier
+  Dov Zamir
+  Hugo Monteiro
   Ion-Mihai Tetcu
   Paul Cockings
-  Dov Zamir
   Stevan Bajic
 
 1.1 INSTALLATION
@@ -992,7 +996,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
              calls to dspam_clean -p to purge neutral data, which comprises a
              majority of most databases.
 
-  For more help, please see the DSPAM FAQ at http://dspam.sourceforge.net.
+  For more help, please see the DSPAM FAQ at http://dspam.sf.net.
 
 1.4 DSPAM TOOLS
 
@@ -1249,7 +1253,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
     no:  Bayesian Noise Reduction (BNR). Bayesian Noise Reduction kicks in
          at 2500 innocent messages and provides an advanced progressive
          noise logic to reduce Bayesian Noise (wordlist attacks) in
-         spams.  See http://bnr.nuclearelephant.com for more information.
+         spams. See http://www.zdziarski.com/papers/bnr.html for more information.
          BNR is not for everyone, and so users should try it out after 
          they've trained to see if it helps improve accuracy.
 
@@ -1406,7 +1410,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
   A new Internet-Draft has been released to the public:
 
-    http://www.ietf.org/internet-drafts/draft-spamfilt-inoculation-00.txt
+    http://tools.ietf.org/draft/draft-spamfilt-inoculation/draft-spamfilt-inoculation-01.txt
 
   To create a message format standard for sending inoculation data via email.
   This will allow users on different servers, and even using different 
@@ -1756,7 +1760,7 @@ SERVER> 250 2.0.0 <jane> Message accepted for delivery: SPAM
 
   2. Configure your DeliveryHost and DeliveryIdent in dspam.conf. Set 
      DeliveryProto based on whether you would like to delivery via LMTP or SMTP.
-f
+
      NOTE: If you would like to delivery to different hosts based on domain,
      specify DeliveryHost.domain.com as the configuration directive
 
@@ -1971,15 +1975,77 @@ DATA
   database for filtering mail specific to that domain, just as you would a 
   normal user.
 
-3.0 BUGS, PORTS, AND THE LIKE
+2.7 EXTERNAL USER LOOKUP
+  External User Lookup has two major applications. It allows DSPAM to validate
+  the supplied username in setups where users are Opt'ed-In by default, and there
+  is no prior recipient checking from the MTA. In those cases, it can be configured
+  not to automatically create the user entries in the DSPAM system and thus spare
+  you from polute the DSPAM database with inexistent users.
+  The other application is when you need username rewritting/mapping. That will
+  happen when you need to map several email addresses (aliases) into a single
+  user account or when you wish to integrate DSPAM into systems where the users
+  email addresses or usernames can change. This will allow you to define alternate
+  static identifiers while still keeping the users DSPAM dictionaries, across
+  username/email address change, without dictionary maintenance.
 
-  Please use our bug tracker on the sourceforge project page at
+  Currently, there are three different modes of operation and two backend lookup
+  drivers. The mode can be set using the ExtLookupMode directive and the available
+  possibilities are:
+
+    verify - It will verify that the supplied username exists in lookup backend. In
+	the event that it cannot be verified, DSPAM will not create the user entry in it's
+	backend facilities.
+
+    map - It will NOT verify that the supplied username exists in the lookup backend.
+	It will, thought, try to use the lookup backend to map (rewrite) the username. If
+	There is a map/rewrite available, it will use the retrieved username, instead of
+	the supplied one. On the other hand, if there is no map/rewrite available, DSPAM
+	will use the supplied username and create the respective entries in it's backend.
+
+	strict - It will enforce both verify AND map modes. Meaning that it will rewrite
+	the username, if a rewrite is available, and will also only create that user entry
+	in it's backend system if there was a successful map/rewrite.
+
+  The backend lookup drivers available are only two at the moment, LDAP and Program.
+  The LDAP drivers allows DSPAM to query an LDAP server for a custom attribute, defined
+  by the ExtLookupLDAPAttribute directive. The query can be fine grained using the
+  ExtLookupQuery directive to provide a standard LDAP filter, where %u will be replaced
+  by the username provided to DSPAM. Literal percentage can used if escaped with
+  another % sign, i.e., %% will match % in the query filter.
+  The Program driver exists because this seemed a neat feature and not every one
+  uses LDAP. In this case, the ExtLookupServer directive will be used to define
+  the custom program/script call, with the respective arguments. Also here %u can
+  be used to define the provided username and literal % can be achieved by escaping
+  the percentage sign with another '%'. Using the program driver, DSPAM will use
+  whatever was the first line output of the program/script execution.
+
+
+3.0 BUGS, FEATURE REQUESTS
+
+  Please use our Bug Tracker on the sourceforge project page at
   http://sf.net/projects/dspam for the current known bugs list and proper
   reporting procedure.
 
-  If you port DSPAM to another platform, or would like to submit changes to
-  the distribution, please email a diff along with any other pertinent 
-  information to the dspam-devel mailing list. 
+  In the same place you can ask for new feature via the Feature Request Tracker.
+
+  Please note that everything under contrib/ is not officially supported by the
+  DSPAM Project but by the respective authors; however, in order to help the
+  authors, facilitate integration with DSPAM and release procedures, we provide
+  a bug tracker for each script/plugin at the same URL.
+ 
+3.1 PORTS / PACKAGES
+
+  The DSPAM Project does not provide binary packages of DSPAM. Each 
+  OS/distribution has its own contributors (they know perfectly their
+  distribution's policy, their special guidelines, testing procedures, etc.).
+
+  Please check doc/RE_QA/ports [WIP] for a list of known ports/packages of
+  various OSes and distros and their maintainers, or check your OS/distro docs.
+
+  If you wish to port DSPAM to an other OS/distro/platform and need help or have
+  patches you would like to be merged in the repo please email
+  dspam-devel@lists.sourceforge.net mailing list.
+  
 
   Note:
 
@@ -1998,9 +2064,9 @@ DATA
     relinquishment of copyright interest in perpetuity of all present and 
     future rights to said submission under copyright law. 
 
-3.1 GIT ACCESS
+3.2 GIT ACCESS
 
   The DSPAM source tree can be downloaded via read-only git access using the
   following commands:
 
-  git clone git://dspam.git.sourceforge.net/gitroot/dspam
+  git clone git://dspam.git.sourceforge.net/gitroot/dspam/dspam

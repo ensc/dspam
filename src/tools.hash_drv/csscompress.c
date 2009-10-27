@@ -1,4 +1,4 @@
-/* $Id: csscompress.c,v 1.82 2009/08/03 07:09:38 sbajic Exp $ */
+/* $Id: csscompress.c,v 1.832 2009/10/12 10:10:47 sbajic Exp $ */
 
 /*
  DSPAM
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 }
 
 int csscompress(const char *filename) {
-  int i;
+  unsigned long i;
   hash_drv_header_t header;
   void *offset;
   unsigned long reclen, extent = 0;
@@ -105,15 +105,11 @@ int csscompress(const char *filename) {
   unsigned long filepos;
   char newfile[128];
 
-  unsigned long hash_rec_max = HASH_REC_MAX;
   unsigned long max_seek     = HASH_SEEK_MAX;
   unsigned long max_extents  = 0;
   unsigned long extent_size  = HASH_EXTENT_MAX;
   int pctincrease = 0;
   int flags = 0;
-
-  if (READ_ATTRIB("HashRecMax"))
-    hash_rec_max = strtol(READ_ATTRIB("HashRecMax"), NULL, 0);
 
   if (READ_ATTRIB("HashExtentSize"))
     extent_size = strtol(READ_ATTRIB("HashExtentSize"), NULL, 0);
@@ -135,7 +131,7 @@ int csscompress(const char *filename) {
     }
   }
 
-  snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname(filename), (unsigned int) getpid());
+  snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname((char *)filename), (unsigned int) getpid());
 
   if (_hash_drv_open(filename, &old, 0, max_seek,
                      max_extents, extent_size, pctincrease, flags))

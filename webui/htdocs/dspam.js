@@ -20,8 +20,8 @@ function recordshiftiness(e)
 {
 	e = e || window.event || window.Event;
 	shifty = e && ((typeof (e.shiftKey) != 'undefined' && e.shiftKey) ||
-		       e.modifiers & Event.SHIFT_MASK);
+		       e.modifiers & event.SHIFT_MASK);
 }
 
-if (window.Event) document.captureEvents (Event.MOUSEDOWN);
+if (window.event) document.captureEvents (event.MOUSEDOWN);
 document.onmousedown = recordshiftiness;

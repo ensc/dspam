@@ -1,6 +1,138 @@
 Version 3.9.0
 -------------
 
+[20091016:1022] sbajic: Fixing (potential) branching on uninitialized variable in SQLite3 driver
+
+[20091016:0116] sbajic: Removing unused variables in SQLite3 driver
+
+[20091016:0112] sbajic: Fixing (potential) call to readdir with NULL argument in SQLite3 driver
+
+[20091012:1012] sbajic: Fixing compiler warnings
+
+[20091012:1010] sbajic: Fixing compiler warnings
+
+[20091012:1005] sbajic: Fixing compiler warnings
+
+[20091012:1000] sbajic: Fixing compiler warnings
+
+[20091012:0905] sbajic: Fixing compiler warnings
+
+[20091012:0903] sbajic: Fixing compiler warnings
+
+[20091012:0847] sbajic: Fixing compiler warnings
+
+[20091012:0832] sbajic: Fixing compiler warnings
+
+[20091012:0824] sbajic: Fixing compiler warnings
+
+[20091012:0743] sbajic: Fixing compiler warnings
+
+[20091009:2228] sbajic: Fixing compiler warnings
+
+[20091009:2218] sbajic: Fixing compile error introduced by last commit
+
+[20091009:2211] sbajic: Fixing compiler warnings
+
+[20091009:2203] sbajic: Fixing compiler warnings
+
+[20091009:2155] sbajic: Fixing compiler warnings
+
+[20091009:2125] sbajic: Removing unused variables in retrain_message()
+
+[20091009:2120] sbajic: Removing unused variables in process_message()
+
+[20091009:2115] sbajic: Removing unused variables in process_message()
+
+[20091009:2115] sbajic: Fixing (potential) dereference of null pointer in daemon.c
+
+[20091009:2110] sbajic: Fixing (potential) dereference of null pointer in dspam_clean.c
+
+[20091009:2055] sbajic: Fixing (potential) dereference of null pointer in dspam_clean.c
+
+[20091009:2048] sbajic: Fixing (potential) call to strncasecmp with NULL argument in daemon.c
+
+[20091009:2035] sbajic: Fixing (potential) call to readdir with NULL argument in hash driver
+
+[20091008:2321] sbajic: Fixing variable declaration in MySQL driver introduced in last commit
+
+[20091008:2311] sbajic: Code cleanup (limiting scope of variables)
+
+[20091008:2122] sbajic: Fixing return code in send_socket()
+
+[20091008:2110] sbajic: Removing unused code in client_process()
+
+[20091008:2045] sbajic: Removing unused code in base64decode() when using NCORE
+
+[20091008:2045] sbajic: Removing unused variables in base64decode() when using NCORE
+
+[20091008:2045] sbajic: Removing code in _ds_calc_result() (speeding up Robinson algorithm)
+
+[20091008:2038] sbajic: Removing unused variables in csscompress()
+
+[20091008:2031] sbajic: Removing unused variables in cssstat()
+
+[20091008:2025] sbajic: Removing unused variables in bnr_hash_set()
+
+[20091008:2020] sbajic: Removing unused code from _ds_calc_result()
+
+[20091008:2010] sbajic: Removing unused variables from MySQL driver in _ds_get_nextuser()
+
+[20091008:1915] sbajic: Removing unused variables in bnr_hash_value()
+
+[20091008:1908] sbajic: Removing unused variables in find_signature()
+
+[20091008:1900] sbajic: Fixing broken return code in process_users()
+
+[20091008:1850] sbajic: Removing unused variables in _ds_ff_pref_load()
+
+[20091008:1840] sbajic: Removing unused variables in _ds_degenerate_message()
+
+[20091005:2138] sbajic: The README has twice a list of members. Updated the second list to be in sync with the first one.
+
+[20091005:2135] sbajic: Changing how control tokens are matched when computing probability for Markovian weightening and OSB/OSBF/WINNOW weightening
+
+[20091005:1600] sbajic: Adding Hugo Monteiro to the README
+
+[20090925:2005] sbajic: Take care of internal tokens (control, whitelist, frequency and BNR) when computing probability for Markovian weightening and OSB/OSBF/WINNOW weightening
+
+[20090924:2356] sbajic: Adding OSB/OSBF/WINNOW weightening
+
+[20090917:1040] sbajic: Fixing memory leak in dspam.c (closing SF Bug ID #2853124)
+
+[20090917:1025] sbajic: Fixing missing close of sockets in has_virus() and feed_clam() (closing SF Bug ID #2853156)
+
+[20090917:1010] sbajic: Fixing freeing of unallocated pointers (closing SF Bug ID #2853164)
+
+[20090912:0925] sbajic: Fixing LOG/LOGFILE writing (closing SF Bug ID #2837832)
+
+[20090910:2105] sbajic: Fixing memory leak in dspam.c (closing SF Bug ID #2853133)
+
+[20090910:2100] sbajic: Fixing missing {} block in dspam.c (closing SF Bug ID #2853138)
+
+[20090910:2045] sbajic: Fixing null pointer deallocation in libdspam (closing SF Bug ID #2853177)
+
+[20090910:2040] sbajic: Fixing memory leak in libdspam (closing SF Bug ID #2853181)
+
+[20090910:2035] sbajic: Fixing memory leak in libdspam (closing SF Bug ID #2853188)
+
+[20090821:0115] sbajic: Fixing CSS and JavaScript issues in IE7/IE8 (The absolute worst browser when it comes to supporting the standards is Internet Explorer!) (closing SF Bug ID #2841370)
+
+[20090819:1520] sbajic: Fixing one more compiling issue under uClibc
+
+[20090819:1520] sbajic: Fixing compiling issue under uClibc
+
+[20090818:1650] sbajic: Fixing one missed label to be swapped out in the CGIs
+
+[20090818:1055] sbajic: Fixing typo in dspam.conf
+
+[20090818:0120] sbajic: Adding Romanian and French templates to be build by regular make file
+
+[20090818:0115] sbajic: Adding French templates for Web UI (provided and translated by Julien Valroff <julien@kirya.net>)
+
+[20090818:0100] sbajic: Swap out text/labels from the CGIs into external file (patch from Julien Valroff <julien@kirya.net> slightly modified)
+
+[20090815:1400] sbajic: Fixing memory leak in dspam.c
+
 [20090804:1150] sbajic: Adding Hebrew templates for Web UI (translated by Dudi Goldenberg)
 
 [20090803:0730] sbajic: Fixing compiler warnings
