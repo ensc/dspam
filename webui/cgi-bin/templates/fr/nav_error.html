@@ -1,0 +1,40 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Control Center</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Centre de contr&ocirc;le DSPAM pour <strong>$REMOTE_USER$</strong>
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+                <li><a href="$CGI$?$USER$template=performance">Performances</a></li>
+                <li><a href="$CGI$?$USER$template=preferences">Pr&eacute;f&eacute;rences</a></li>
+                <li><a href="$CGI$?$USER$template=alerts">Alertes</a></li>
+                <li><a href="$CGI$?$USER$template=quarantine">Quarantaine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+                <li><a href="$CGI$?$USER$template=analysis">Analyses</a></li>
+                <li><a href="$CGI$?$USER$template=history&history_page=1">Historique</a></li>
+                $NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<H2>Une erreur s'est produite</H2>
+$MESSAGE$
+
+</div>
+
+
+
+</BODY>
+</HTML>

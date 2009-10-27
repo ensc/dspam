@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.31 2009/08/03 07:00:11 sbajic Exp $ */
+/* $Id: dspam.c,v 1.377 2009/10/09 22:00:58 sbajic Exp $ */
 
 /*
  DSPAM
@@ -343,11 +343,15 @@ process_message (
   ds_message_t components;
   char *copyback;
   int have_signature = 0;
-  int have_decision = 0;
   int result, i;
   int internally_canned = 0;
 
   ATX->timestart = _ds_gettime();	/* set tick count to get run time */
+
+  if (message->data == NULL) {
+    LOGDEBUG("empty message provided");
+    return EINVAL;
+  }
 
   /* Create a dspam context based on the agent context */
 
@@ -381,11 +385,6 @@ process_message (
       result = EUNKNOWN;
       goto RETURN;
     }
-  }
-
-  if (message->data == NULL) {
-    LOGDEBUG("empty message provided");
-    return EINVAL;
   }
 
   /* Parse and decode the message into our message structure (ds_message_t) */
@@ -428,7 +427,6 @@ process_message (
 
   if (is_blocklisted(CTX, ATX)) {
     CTX->result = DSR_ISSPAM;
-    result = DSR_ISSPAM;
     CTX->probability = 1.0;
     CTX->confidence = 1.0;
     strcpy(CTX->class, LANG_CLASS_BLOCKLISTED);
@@ -451,7 +449,6 @@ process_message (
           CTX->source = DSS_INOCULATION;
         } else {
           CTX->result = DSR_ISSPAM;
-          result = DSR_ISSPAM;
           CTX->probability = 1.0;
           CTX->confidence = 1.0;
           strcpy(CTX->class, LANG_CLASS_BLACKLISTED);
@@ -470,7 +467,6 @@ process_message (
   if (have_signature)
   {
     char *original_username = CTX->username;
-    have_decision = 1;
 
     if (_ds_get_signature (CTX, &ATX->SIG, ATX->signature))
     {
@@ -1478,6 +1474,8 @@ user_classify (
     {
       if (message == NULL) {
         LOG(LOG_WARNING, "user_classify: SIG = %ld, message = NULL\n", (unsigned long) SIG);
+        if (SIG) CLX->signature = NULL;
+        dspam_destroy (CLX);
         return EFAILURE;
       }
       result = dspam_process (CLX, message);
@@ -1586,7 +1584,7 @@ int send_notice(
  */
 
 int process_users(AGENT_CTX *ATX, buffer *message) {
-  int i = 0, have_rcpts = 0, return_code = 0, retcode = 0;
+  int i = 0, have_rcpts = 0, retcode = 0;
   struct nt_node *node_nt;
   struct nt_node *node_rcpt = NULL;
   struct nt_c c_nt, c_rcpt;
@@ -1895,7 +1893,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
       if (_ds_match_attribute(agent_config, "Broken", "returnCodes")) {
         if (result == DSR_ISSPAM)
-          return_code = 99;
+          retcode = 99;
       }
 
       /*
@@ -2129,7 +2127,7 @@ RSET:
  */
 
 int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
-  struct nt_node *node_nt, *prev_node = NULL;
+  struct nt_node *node_nt;
   struct nt_c c, c2;
   ds_message_part_t block = NULL;
   char first_boundary[512];
@@ -2342,7 +2340,6 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       } /* TrainPristine */
     }
 NEXT:
-    prev_node = node_nt;
     node_nt = c_nt_next (CTX->message->components, &c);
     i++;
   }
@@ -2562,11 +2559,13 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
   if (CTX == NULL)
     return NULL;
 
-  if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "statisticalSedation"), ""))
+  if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "statisticalSedation"), "")) {
     CTX->training_buffer = atoi(_ds_pref_val(ATX->PTX, "statisticalSedation"));
-  else if (ATX->training_buffer>=0)
+    LOGDEBUG("sedation level set to: %d", CTX->training_buffer);
+  } else if (ATX->training_buffer>=0) {
     CTX->training_buffer = ATX->training_buffer;
     LOGDEBUG("sedation level set to: %d", CTX->training_buffer);
+  }
 
   if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "whitelistThreshold"), ""))
     CTX->wh_threshold = atoi(_ds_pref_val(ATX->PTX, "whitelistThreshold"));
@@ -2670,25 +2669,24 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
                           DSM_CLASSIFY,
                           f_all);
         if (!CLX)
-        {
-          do_train = 0;
           break;
-        }
 
         CLX->training_mode = CTX->training_mode;
 
         set_libdspam_attributes(CLX);
         if (attach_context(CLX, ATX->dbh)) {
-          do_train = 0;
           dspam_destroy(CLX);
           break;
         }
 
         CLX->signature = &ATX->SIG;
         ck_result = dspam_process (CLX, NULL);
-        if (ck_result != 0)
+        if (ck_result < 0) {
+          CLX->signature = NULL;
+          dspam_destroy(CLX);
           return EFAILURE;
-        if (ck_result || CLX->result == match)
+        }
+        if (ck_result == 0 || CLX->result == match)
           do_train = 0;
         CLX->signature = NULL;
         dspam_destroy (CLX);
@@ -2958,7 +2956,7 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     char stat[256];
     snprintf(stat, sizeof(stat), "Delivery Failed (%s)",
              (ATX->status[0]) ? ATX->status : "No error provided");
-    STATUS(stat);
+    STATUS("%s", stat);
     class = 'E';
   }
 
@@ -3712,6 +3710,7 @@ int has_virus(buffer *message) {
   LOGDEBUG("Connecting to %s:%d for virus check", host, port);
   if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
     LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+    close(sockfd);
     return 0;
   }
 
@@ -3720,11 +3719,14 @@ int has_virus(buffer *message) {
   sock = fdopen(sockfd, "r");
   if (sock == NULL) {
     LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+    close(sockfd);
     return 0;
   }
   sockout = fdopen(sockfd, "w");
   if (sockout == NULL) {
     LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+    fclose(sock);
+    close(sockfd);
     return 0;
   }
   fprintf(sockout, "STREAM\r\n");
@@ -3769,6 +3771,10 @@ int feed_clam(int port, buffer *message) {
   char *host = _ds_read_attribute(agent_config, "ClamAVHost");
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (sockfd < 0) {
+    LOG(LOG_ERR, "socket(AF_INET, SOCK_STREAM, 0): %s", strerror(errno));
+    return EFAILURE;
+  }
   memset(&addr, 0, sizeof(struct sockaddr_in));
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = inet_addr(host);
@@ -3777,6 +3783,7 @@ int feed_clam(int port, buffer *message) {
   LOGDEBUG("Connecting to %s:%d for virus stream transmission", host, port);
   if(connect(sockfd, (struct sockaddr *)&addr, addr_len)<0) {
     LOG(LOG_ERR, ERR_CLIENT_CONNECT_HOST, host, port, strerror(errno));
+    close(sockfd);
     return EFAILURE;
   }
 
@@ -3785,6 +3792,7 @@ int feed_clam(int port, buffer *message) {
   while(sent<size) {
     r = send(sockfd, message->data+sent, size-sent, 0);
     if (r <= 0) {
+      close(sockfd);
       return r;
     }
     sent += r;
@@ -3850,7 +3858,7 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
         if (!bad) {
           memcpy(&saddr, res->ai_addr, sizeof(struct sockaddr));
 #ifdef HAVE_INET_NTOA_R_2
-          inet_ntoa_r(remote_addr.sin_addr, buff));
+          inet_ntoa_r(saddr.sin_addr, buff);
 #else
           inet_ntoa_r(saddr.sin_addr, buff, sizeof(buff));
 #endif

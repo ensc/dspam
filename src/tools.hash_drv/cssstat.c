@@ -1,4 +1,4 @@
-/* $Id: cssstat.c,v 1.8 2006/05/27 21:00:36 jonz Exp $ */
+/* $Id: cssstat.c,v 1.81 2009/10/08 20:31:02 sbajic Exp $ */
 
 /*
  DSPAM
@@ -106,14 +106,10 @@ int cssstat(const char *filename) {
   unsigned long extents = 0;
   unsigned long i;
 
-  unsigned long hash_rec_max = HASH_REC_MAX;
   unsigned long max_seek     = HASH_SEEK_MAX;
   unsigned long max_extents  = 0;
   unsigned long extent_size  = HASH_EXTENT_MAX;
   int flags = 0;
-
-  if (READ_ATTRIB("HashRecMax"))
-    hash_rec_max = strtol(READ_ATTRIB("HashRecMax"), NULL, 0);
 
   if (READ_ATTRIB("HashExtentSize"))
     extent_size = strtol(READ_ATTRIB("HashExtentSize"), NULL, 0);

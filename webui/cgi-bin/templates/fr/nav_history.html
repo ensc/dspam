@@ -1,0 +1,85 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Control Center</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+                $FORM_USER$
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+                <li><a href="$CGI$?$USER$template=performance">Performances</a></li>
+                <li><a href="$CGI$?$USER$template=preferences">Pr&eacute;f&eacute;rences</a></li>
+                <li><a href="$CGI$?$USER$template=alerts">Alertes</a></li>
+                <li><a href="$CGI$?$USER$template=quarantine">Quarantaine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+                <li><a href="$CGI$?$USER$template=analysis">Analyses</a></li>
+                <li id="active"><a id="current" href="$CGI$?$USER$template=history&history_page=1">Historique</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Les messages analys&eacute;s par le filtre sont affich&eacute;s ci-dessous. Les messages les plus r&eacute;cents sont affich&eacute;s en premier. Utilisez
+les options d'apprentissage pour corriger les erreurs et distribuer les faux positifs qui sont plac&eacute;s en zone de quarantaine.
+</p>
+
+<form name="history" action="dspam.cgi" method="POST">
+<input type="submit" value="R&eacute;-analyser les messages s&eacute;lectionn&eacute;s">
+<input type="hidden" name="template" value="history">
+<input type="hidden" name="command" value="retrainChecked">
+<input type="hidden" name="user" value="$REMOTE_USER$">
+<input type="hidden" name="show" value="$SHOW$" >
+
+&nbsp;&nbsp;$SHOW_SELECTOR$
+
+<table border="0" cellspacing="0" cellpadding="2" width="100%">
+<tr>
+	<th>Type</th>
+        <th>Apprentissage</th>
+	<th>Date/Heure</th>
+	<th<Exp&eacute;diteur</th>
+	<th>Objet</th>
+	<th>Informations compl&eacute;mentaires</th>
+</tr>
+$HISTORY$
+</table>
+
+$HISTORYPAGES$
+
+<input type="submit" value="R&eacute;-analyser les messages s&eacute;lectionn&eacute;s">
+</form>
+
+</div>
+
+
+
+<script language="javascript">
+<!--
+var remote = null;
+
+function openwin(width, height, scroll, url) {
+  remote = window.open('', 'SpecialIntro', 'width=' + width + ',height='
+                  + height + ',resizable=1,dependent,scrollbars=' + scroll +
+                  ',status=0');
+  if (remote != null) {
+    if (remote.opener == null) { remote.opener = self; }
+    remote.location.href = url;
+  }
+}
+//-->
+</script>
+
+</BODY>
+</HTML>

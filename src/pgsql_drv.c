@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.70 2009/06/27 01:37:02 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.71 2009/10/08 22:55:45 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2607,10 +2607,8 @@ int _ds_pref_set (
 
 FAIL:
   LOGDEBUG("_ds_pref_set: failed");
-  if (m1)
-    PQFREEMEM(m1);
-  if (m2)
-    PQFREEMEM(m2);
+  PQFREEMEM(m1);
+  PQFREEMEM(m2);
   dspam_destroy(CTX);
   return EFAILURE;
 }
@@ -2863,7 +2861,6 @@ FAILURE:
 int
 _pgsql_drv_token_type(struct _pgsql_drv_storage *s, PGresult *result, int column)
 {
-  int col_type;
   int found_type = -1;
   char *type_str;
   char query[1025];
@@ -2905,7 +2902,7 @@ _pgsql_drv_token_type(struct _pgsql_drv_storage *s, PGresult *result, int column
   }
   else
   {
-    col_type = PQftype(result, column);
+    int col_type = PQftype(result, column);
 
     if (col_type == NUMERICOID) {
       found_type = 0;

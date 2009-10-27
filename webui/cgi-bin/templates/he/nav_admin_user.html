@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD><TITLE>DSPAM v3 מרכז הבקרה</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1255">
+</HEAD>
+<BODY DIR="rtl" BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		מידע הגנה סטטיסטית עבור <strong>מנהל המערכת ($REMOTE_USER$)</strong>
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=status">מצב המערכת</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=user">מידע משתמשים</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">ניהול</a></li>
+		<li><a href="dspam.cgi">מרכז הבקרה</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+הטבלה הבאה מציגה את מספר ההודעות שעובדו עבור כל משתמש יחד עם העדפות המשתמש.
+</p>
+
+<table border="0" cellspacing="0" cellpadding="4">
+	<tr>
+		<th>שם</th>
+		<th>בהסגר</th>
+		<th>TP</th>
+                <th>TN</th>
+		<th>FP</th>
+		<th>FN</th>
+		<th>SC</th>
+		<th>IC</th>
+		<th>שיטה</th>
+		<th>דואר זבל</th>
+		<th>BNR</th>
+		<th>חיסון</th>
+                <th>רגישות</th>
+                <th>מיקום</th>
+	</tr>
+$TABLE$
+</table>
+
+</div>
+
+</body>
+</html>

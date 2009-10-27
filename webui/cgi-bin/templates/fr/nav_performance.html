@@ -1,0 +1,108 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Control Center</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		$FORM_USER$
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li id="active"><a id="current" href="$CGI$?$USER$template=performance">Performances</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Pr&eacute;f&eacute;rences</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alertes</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">Quarantaine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">Analyses</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">Historique</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Si vous recevez un message dans votre application de messagerie qui n'a pas &eacute;t&eacute;
+intercept&eacute; par le filtre, transf&eacute;rez le &agrave; <strong>spam-$REMOTE_USER$$LOCAL_DOMAIN$</strong>
+de fa&ccedil;on &agrave; ce que le filtre l'analyse. Cela am&eacute;liorera les performances du filtre dans le futur.
+</p>
+
+<div class="content">
+	<h3><strong>Statistiques des performances</strong> - $TIME$</h3>
+
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>Donn&eacute;es</th>
+			<th>&nbsp;</th>
+			<th>M&eacute;thode de calcul</th>
+		</tr>
+		<tr class="rowEven">
+			<td>Performance g&eacute;n&eacute;rale (depuis la derni&egrave;re r&eacute;initialisation)</td>
+			<td><strong>$OVERALL_ACCURACY$%</strong></td>
+			<td class="rowDivider"><span class="small">(Nombre de pourriels filtr&eacute;s + Nombre de messages l&eacute;gitime distribu&eacute;s) / Nombre total de messages</span></td>
+		</tr>
+                <tr class="rowOdd">
+                        <td>Identification des pourriels (depuis la derni&egrave;re r&eacute;initialisation)</td>
+                        <td><strong>$SPAM_ACCURACY$%</strong></td>
+                        <td class="rowDivider"><span class="small">(Taux de filtrage des pourriels uniquement)</td>
+               </tr>
+		<tr class="rowEven">
+			<td>Ratio de pourriels (sur le total analys&eacute;)</td>
+			<td><strong>$SPAM_RATIO$%</strong></td>
+			<td class="rowDivider"><span class="small">Total de pourriels (attrap&eacute;s et manqu&eacute;s) / Nombre total de messages</span></td>
+		</tr>
+	</table>
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>&nbsp;</th>
+			<th>Pourriels</th>
+			<th>Messages l&eacute;gitimes</th>
+		</tr>
+		<tr class="rowEven">
+			<td rowspan="3" valign="top" nowrap>Depuis la derni&egrave;re r&eacute;initialisation</td>
+			<td>$TOTAL_SPAM_MISSED$ manqu&eacute;s</td>
+			<td>$TOTAL_NONSPAM_MISSED$ manqu&eacute;s</td>
+		</tr>
+		<tr class="rowEven">
+			<td>$TOTAL_SPAM_CAUGHT$ attrap&eacute;s</td>
+			<td>$TOTAL_NONSPAM_CAUGHT$ distribu&eacute;s</td>
+		</tr>
+		<tr class="rowEven">
+			<td>$SPAM_ACCURACY$% attrap&eacute;s</td>
+			<td>$NONSPAM_ERROR_RATE$% manqu&eacute;s</td>
+		</tr>
+		<tr class="rowOdd">
+			<td rowspan="2" valign="top" nowrap>Total analys&eacute; par le filtre</td>
+			<td>$TOTAL_SPAM_LEARNED$ manqu&eacute;s</td>
+			<td>$TOTAL_NONSPAM_LEARNED$ manqu&eacute;s</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>$TOTAL_SPAM_SCANNED$ attrap&eacute;s</td>
+			<td>$TOTAL_NONSPAM_SCANNED$ distribu&eacute;s</td>
+		</tr>
+		<tr class="rowEven">
+			<td valign="top" nowrap>Depuis le corpus</td>
+			<td>$TOTAL_SPAM_CORPUSFED$ envoy&eacute;s</td>
+			<td>$TOTAL_NONSPAM_CORPUSFED$ envoy&eacute;s</td>
+		</tr>
+	</table>
+
+	<p>
+		<a href="$CGI$?$USER$command=resetStats" title="Remettre les statistiques &agrave; z&eacute;ro">R&eacute;initalisation</a> | <a href="$CGI$?$USER$command=tweak" title="Ajustement des messages transf&eacute;r&eacute;s au filtre">Ajustement -1</a>
+	</p>
+</div>
+
+</div>
+
+
+
+</body>
+</html>

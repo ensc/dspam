@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.29 2009/07/11 09:10:32 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.292 2009/10/12 08:55:07 sbajic Exp $ */
 
 /*
  DSPAM
@@ -559,7 +559,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
   breadth = _ds_pow2(active);
   
   /* Iterate and generate all keys necessary */
-  for (mask=0; mask < breadth; mask++) {
+  for (mask=0; mask < (u_int32_t)breadth; mask++) {
     int terms = 0;
 
     key[0] = 0;
@@ -571,7 +571,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
     for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
 
       if (t) {
-        if (keylen < (sizeof(key)-1)) {
+        if ((size_t)keylen < (sizeof(key)-1)) {
           key[keylen] = '+';
           key[++keylen] = 0;
         }
@@ -579,7 +579,7 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
 
       if (bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] == 1) {
         if (previous_tokens[i] == NULL || previous_tokens[i][0] == 0) {
-          if (keylen < (sizeof(key)-1)) {
+          if ((size_t)keylen < (sizeof(key)-1)) {
             key[keylen] = '#';
             key[++keylen] = 0;
           }
@@ -587,14 +587,14 @@ _ds_map_header_token (DSPAM_CTX * CTX, char *token,
         else
         {
           int tl = strlen(previous_tokens[i]);
-          if (keylen + tl < (sizeof(key)-1)) {
+          if ((size_t)(keylen + tl) < (sizeof(key)-1)) {
             strcpy(key+keylen, previous_tokens[i]);
             keylen += tl;
           }
           terms++;
         }
       } else {
-        if (keylen < (sizeof(key)-1)) {
+        if ((size_t)keylen < (sizeof(key)-1)) {
           key[keylen] = '#';
           key[++keylen] = 0;
         }
@@ -659,7 +659,7 @@ _ds_map_body_token (
 
   /* Iterate and generate all keys necessary */
 
-  for(mask=0;mask < breadth;mask++) {
+  for(mask=0;mask < (u_int32_t)breadth;mask++) {
     int terms = 0;
     t = 0;
 
@@ -670,14 +670,14 @@ _ds_map_body_token (
     /* Each Bit */
     for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
       if (t) {
-        if (keylen < (sizeof(key)-1)) {
+        if ((size_t)keylen < (sizeof(key)-1)) {
            key[keylen] = '+';
            key[++keylen] = 0;
         }
       }
       if (bitpattern[(mask*SPARSE_WINDOW_SIZE) + i] == 1) {
         if (previous_tokens[i] == NULL || previous_tokens[i][0] == 0) {
-          if (keylen < (sizeof(key)-1)) {
+          if ((size_t)keylen < (sizeof(key)-1)) {
             key[keylen] = '#';
             key[++keylen] = 0;
           }
@@ -685,14 +685,14 @@ _ds_map_body_token (
         else
         {
           int tl = strlen(previous_tokens[i]);
-          if (keylen + tl < (sizeof(key)-1)) {
+          if ((size_t)(keylen + tl) < (sizeof(key)-1)) {
             strcpy(key+keylen, previous_tokens[i]);
             keylen += tl;
           }
           terms++;
         }
       } else {
-        if (keylen < (sizeof(key)-1)) {
+        if ((size_t)keylen < (sizeof(key)-1)) {
           key[keylen] = '#';
           key[++keylen] = 0;
         }
@@ -817,7 +817,6 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
         if (decode)
         {
           char *decode2, *decode3;
-          size_t len;
 
           /* -- PREFILTERS BEGIN -- */
 
@@ -825,20 +824,16 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 
           if (block->encoding == EN_8BIT) {
             decode2 = _ds_decode_hex8bit(decode);
-            len = strlen(decode2) + 1;
           } else {
             decode2 = strdup(decode);
-            len = strlen(decode2) + 1;
           }
 
           /* HTML-Specific Filters */
 
           if (block->media_subtype == MST_HTML) {
             decode3 = _ds_strip_html((char *)&decode2);
-            len = strlen (decode3) + 1;
           } else {
             decode3 = strdup(decode2);
-            len = strlen(decode3) + 1;
           }
           free(decode2);
 
@@ -969,12 +964,13 @@ void _ds_sparse_clear(char **previous_tokens) {
 
 char *_ds_generate_bitpattern(int breadth) {
   char *bitpattern;
-  unsigned long mask, exp;
+  u_int32_t mask;
+  unsigned long exp;
   int i;
 
   bitpattern = malloc(SPARSE_WINDOW_SIZE * breadth);
 
-  for(mask=0;mask<breadth;mask++) {
+  for(mask=0;mask<(u_int32_t)breadth;mask++) {
       for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
           exp = (i) ? _ds_pow2(i) : 1;
           /* Reverse pos = SPARSE_WINDOW_SIZE - (i+1); */

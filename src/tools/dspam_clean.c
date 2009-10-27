@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.23 2007/12/07 00:15:36 mjohnson Exp $ */
+/* $Id: dspam_clean.c,v 1.241 2009/10/09 21:08:33 sbajic Exp $ */
 
 /*
  DSPAM
@@ -268,11 +268,13 @@ main (int argc, char *argv[])
     if (users->items == 0) {
       user = _ds_get_nextuser (CTX);
     } else {
-      node = node->next;
-      if (node == NULL)
+      if (node == NULL || node->next == NULL) {
+        node = NULL;
         user = NULL;
-      else
+      } else {
+        node = node->next;
         user = node->ptr;
+      }
     }
   }
 

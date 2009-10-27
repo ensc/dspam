@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: graph.cgi,v 1.4 2006/05/13 01:13:01 jonz Exp $
+# $Id: graph.cgi,v 1.41 2009/08/18 00:37:43 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -22,10 +22,21 @@ use CGI ':standard';
 use GD::Graph::lines3d;
 use GD::Graph::lines;
 use strict;
-use vars qw { %CONFIG %FORM @spam_day @nonspam_day @period @data };
+use vars qw { %CONFIG %FORM %LANG @spam_day @nonspam_day @period @data };
 
 # Read configuration parameters common to all CGI scripts
 require "configure.pl";
+
+#
+# Read language file
+#
+if (-s "$CONFIG{'TEMPLATES'}/strings.pl") {
+  require "$CONFIG{'TEMPLATES'}/strings.pl";
+} elsif (-s "$CONFIG{'TEMPLATES'}/../strings.pl") {
+  require "$CONFIG{'TEMPLATES'}/../strings.pl";
+} else {
+  &error("Missing language file strings.pl.");
+}
 
 %FORM = &ReadParse();
 
@@ -47,7 +58,7 @@ if ($CONFIG{'3D_GRAPHS'} == 1) {
 }
 $mygraph->set(
     x_label     => "$FORM{'x_label'}",
-    y_label     => 'Number of Messages',
+    y_label     => "$LANG{'graph_legend_nb_messages'}",
 #   title       => "$FORM{'title'}",
     line_width   => 2,
     dclrs => [ qw(lred dgreen) ],
@@ -64,7 +75,7 @@ $mygraph->set(
 #         dclrs => [ qw( darkorchid2 mediumvioletred deeppink darkturquoise ) ],
 
 $mygraph->set_legend_font(GD::gdMediumBoldFont);
-$mygraph->set_legend('SPAM', 'Good');
+$mygraph->set_legend("$LANG{'graph_legend_spam'}","$LANG{'graph_legend_good'}");
 my $myimage = $mygraph->plot(\@data) or die $mygraph->error;
                                                                                 
 print "Content-type: image/png\n\n";

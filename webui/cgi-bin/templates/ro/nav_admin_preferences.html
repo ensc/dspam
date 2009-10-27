@@ -1,0 +1,127 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Suita Administrativă </TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Protecție statistică Anti-spam pentru <strong>Administrator ($REMOTE_USER$)</strong>
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=status">Stare Sistem</a></li>
+		<li><a href="$CGI$?$USER$template=user">Statistici Utilizatori</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=preferences">Administrare</a></li>
+		<li><a href="dspam.cgi">Centru de Control</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<FORM ACTION="$CGI$">
+
+<p>
+Această pagine permite editarea preferințelor oricărui utilizator.
+Pentru editarea preferințelor implicite lasă câmpurile goale.
+</p>
+
+<p>
+introduce numele de utilizator:
+<INPUT NAME=username VALUE=$USERNAME$> <INPUT TYPE=SUBMIT VALUE=Edit>
+</p>
+
+<p>
+$ERROR$
+</p>
+
+<INPUT TYPE=HIDDEN NAME="template" VALUE="preferences">
+
+<div class="content">
+	<h3><strong>Învățare</strong> - Configurează cum învață filtrul din procesarea mesajelor</h3>
+<table class="hollow">
+<tr><td>
+DSPAM învață:<br><br>
+<INPUT TYPE=RADIO NAME=trainingMode VALUE="TEFT" $S_TEFT$>
+Din fiecare mesaj scanat de filtru<BR>
+<INPUT TYPE=RADIO NAME=trainingMode VALUE="TOE" $S_TOE$>
+Numai când filtrul a făcut o greșeală<BR>
+<INPUT TYPE=RADIO NAME=trainingMode VALUE="TUM" $S_TUM$>
+Numai cu date noi și când filtrul a făcut o greșeală
+</td><td width=20>
+ &nbsp;</td><td>
+Cănd îl învaț prefer:<br><br>
+<INPUT TYPE=RADIO NAME=signatureLocation VALUE="message" $S_LOC_MESSAGE$>
+șă <u>înaintez (forward)</u> spam-ul (semnătura apare in corpul mesajului)<BR>
+<INPUT TYPE=RADIO NAME=signatureLocation VALUE="headers" $S_LOC_HEADERS$>
+Să <u>bounce</u> spam-ul (semnătura apare in antetele mesajului)<BR>
+<INPUT TYPE=RADIO NAME=signatureLocation VALUE="attachment" $S_LOC_ATTACHMENT$>
+DSPAM să își adauge semnătura ca <u>atașament</u><BR>
+</td></tr>
+</table>
+
+<p>
+Senzitivitatea filtrului <strong>în timpul</strong> perioadei de învătare:<br>
+<span class="small">Oprește SPAM-ul (Mai mult în Carantină)</span>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=0 $SEDATION_0$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=1 $SEDATION_1$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=2 $SEDATION_2$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=3 $SEDATION_3$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=4 $SEDATION_4$>
+    | <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=5 $SEDATION_5$> |
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=6 $SEDATION_6$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=7 $SEDATION_7$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=8 $SEDATION_8$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=9 $SEDATION_9$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=10 $SEDATION_10$> 
+<span class="small">Presupune bun (mai puțin in Carantină)</span>
+</p>
+
+</div>
+
+<div class="content">
+	<h3><strong>Gestionarea Mesajelor</strong> - Configurare gestionarii SPAM-ului</h3>
+<p>
+Cand un mesaj e clasificat ca SPAM :<br><br>
+<INPUT TYPE=RADIO NAME=spamAction VALUE="quarantine" $S_ACTION_QUARANTINE$>Pune-l in Carantină<BR>
+<INPUT TYPE=RADIO NAME=spamAction VALUE="tag" $S_ACTION_TAG$>Adaugă la Subiect <INPUT NAME=spamSubject VALUE="$SPAM_SUBJECT$" SIZE=8><BR>
+<INPUT TYPE=RADIO NAME=spamAction VALUE="deliver" $S_ACTION_DELIVER$>Livrează mesajul normal cu un antet (header) X-DSPAM-Result<BR>
+</p>
+
+</div>
+
+<div class="content">
+	<h3><strong>Funcționalitate</strong> - Reglarea filtrării SPAM-ului</h3>
+<p>
+<INPUT TYPE=CHECKBOX NAME=enableBNR $C_BNR$>
+Activează reducerea zgomotului (de obicei îmbunătățește acuratețea)<br>
+<INPUT TYPE=CHECKBOX NAME=enableWhitelist $C_WHITELIST$>
+Activează adăugarea automată la lista albă a corespondenții frecvenți<br>
+<INPUT TYPE=CHECKBOX NAME=showFactors $C_FACTORS$>
+Adaugă factoring tokens in antetul (header) fiecărui mesaj<br>
+<input type="checkbox" name="dailyQuarantineSummary" id="dailyQuarantineSummary" $C_SUMMARY$>
+<label for="dailyQuarantineSummary">Activează trimiterea zilnică a unui sumar al mesajelor aflate in Carantină</label>
+</p>
+
+</div>
+
+<p>
+<INPUT TYPE=SUBMIT NAME=submit VALUE="Submit Changes">
+</p>
+
+</FORM>
+
+</div>
+
+
+
+</BODY>
+</HTML>
