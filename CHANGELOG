@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091028:1018] sbajic: Fixing build issues of dynamically linked libraries
+
 [20091028:0028] sbajic: Changes in External Lookup
 * Removing not needed header files (agent_shared.h)
 * Decoupling dependency to OpenLDAP (if the libraries are there
