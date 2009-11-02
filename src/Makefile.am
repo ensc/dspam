@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.43 2009/10/28 10:01:36 sbajic Exp $
+# $Id: Makefile.am,v 1.44 2009/10/29 07:48:14 sbajic Exp $
 #
 # autoconf (GNU Autoconf) 2.59
 # ltmain.sh (GNU libtool) 1.5.6
@@ -57,11 +57,11 @@ bin_PROGRAMS = dspam dspamc
 # installed for libdspam
 include_HEADERS = buffer.h config_shared.h decode.h error.h diction.h \
 	libdspam.h libdspam_objects.h nodetree.h tokenizer.h external_lookup.h \
-	storage_driver.h heap.h config.h
+	storage_driver.h heap.h config.h pref.h read_config.h
 
 # libdspam.a contans objects common for dspam and tools/* binaries
 libdspam_la_SOURCES = \
-	config.h libdspam_objects.h \
+	config.h \
 	libdspam.c libdspam.h \
 	heap.c heap.h \
 	diction.c diction.h \
@@ -90,10 +90,10 @@ libdspam_la_SOURCES += storage_driver.c
 endif
 
 EXTRA_libdspam_la_SOURCES = \
-        mysql_drv.c mysql_drv.h \
-        pgsql_drv.c pgsql_drv.h \
-        sqlite_drv.c sqlite_drv.h \
-        sqlite3_drv.c sqlite3_drv.h
+	mysql_drv.c mysql_drv.h \
+	pgsql_drv.c pgsql_drv.h \
+	sqlite_drv.c sqlite_drv.h \
+	sqlite3_drv.c sqlite3_drv.h
 
 #if STATIC_DRIVER
 #if BUILD_HASH_DRV
@@ -169,23 +169,18 @@ libhash_drv_la_DEPENDENCIES =
 endif
 
 dspam_SOURCES = \
-        config.h libdspam.h language.h \
-        dspam.c dspam.h \
-        buffer.h \
-	storage_driver.h \
-	read_config.h \
+	config.h language.h \
+	dspam.c dspam.h \
 	config_api.c config_api.h \
 	daemon.c daemon.h \
 	client.c client.h \
 	agent_shared.c agent_shared.h
 
-dspam_LDADD = libdspam.la
+dspam_LDADD = -lm pref.o libdspam.la
 
 dspamc_SOURCES = \
 	config.h language.h \
 	dspamc.c dspamc.h \
-	buffer.h error.h \
-	read_config.h \
 	client.c client.h \
 	agent_shared.c agent_shared.h 
 
