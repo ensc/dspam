@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091103:1843] sbajic: Typo fixes in the french WebUI (patch provided by Julien Valroff <julien@kirya.net>)
+
 [20091103:0945] sbajic: Fixing build issues in Mac OS X
 
 [20091029:0810] sbajic: Fixing build issues in Mac OS X
