@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.44 2009/10/29 07:48:14 sbajic Exp $
+# $Id: Makefile.am,v 1.45 2009/11/03 09:37:17 sbajic Exp $
 #
 # autoconf (GNU Autoconf) 2.59
 # ltmain.sh (GNU libtool) 1.5.6
@@ -61,7 +61,7 @@ include_HEADERS = buffer.h config_shared.h decode.h error.h diction.h \
 
 # libdspam.a contans objects common for dspam and tools/* binaries
 libdspam_la_SOURCES = \
-	config.h \
+	config.h libdspam_objects.h \
 	libdspam.c libdspam.h \
 	heap.c heap.h \
 	diction.c diction.h \
@@ -71,7 +71,6 @@ libdspam_la_SOURCES = \
 	nodetree.c nodetree.h \
 	error.c error.h \
 	decode.c decode.h \
-	pref.c pref.h \
 	read_config.c read_config.h \
 	config_shared.c config_shared.h \
 	bnr.c bnr.h \
@@ -169,8 +168,10 @@ libhash_drv_la_DEPENDENCIES =
 endif
 
 dspam_SOURCES = \
-	config.h language.h \
+	config.h libdspam.h language.h \
 	dspam.c dspam.h \
+	buffer.h storage_driver.h \
+	pref.h read_config.h \
 	config_api.c config_api.h \
 	daemon.c daemon.h \
 	client.c client.h \
@@ -181,6 +182,8 @@ dspam_LDADD = -lm pref.o libdspam.la
 dspamc_SOURCES = \
 	config.h language.h \
 	dspamc.c dspamc.h \
+	buffer.h error.h \
+	pref.h read_config.h \
 	client.c client.h \
 	agent_shared.c agent_shared.h 
 

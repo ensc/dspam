@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.81 2009/10/29 07:49:39 sbajic Exp $
+# $Id: Makefile.am,v 1.82 2009/11/03 09:39:14 sbajic Exp $
 # tools/Makefile.am
 
 EXTRA_DIST = dspam_train.in dspam_logrotate
@@ -19,7 +19,7 @@ dspam_dump_SOURCES = dspam_dump.c ../pref.c ../read_config.c ../config_api.c
 dspam_dump_LDFLAGS = 
 dspam_clean_SOURCES = dspam_clean.c ../pref.c ../read_config.c ../config_api.c
 dspam_clean_LDFLAGS = 
-dspam_crc_SOURCES = dspam_crc.c
+dspam_crc_SOURCES = dspam_crc.c ../pref.c
 dspam_crc_LDFLAGS = 
 dspam_stats_SOURCES = dspam_stats.c ../pref.c ../read_config.c ../config_api.c
 dspam_stats_LDFLAGS = 
