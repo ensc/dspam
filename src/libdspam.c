@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.187 2009/11/04 02:53:59 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.188 2009/11/05 00:25:40 sbajic Exp $ */
 
 /*
  DSPAM
@@ -510,8 +510,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   /* Set TOE mode pretrain option if we haven't seen many messages yet */
   if (CTX->training_mode == DST_TOE
   && (CTX->totals.innocent_learned <= 100 || CTX->totals.spam_learned <= 100)
-  && (!(CTX->algorithms & DSP_MARKOV))
-  && (!(CTX->algorithms & DSP_OSB)))
+  && (!(CTX->algorithms & DSP_MARKOV)))
   {
     is_undertrain = 1;
     CTX->training_mode = DST_TEFT;
@@ -1456,11 +1455,11 @@ _ds_calc_stat (
   if (CTX->classification == DSR_ISSPAM)
     s->probability = .7;
   else
-    s->probability = (CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) ? .5 : .4;
+    s->probability = (CTX->algorithms & DSP_MARKOV) ? .5 : .4;
 
-  /* Markovian/OSB/OSBF/WINNOW Weighting */
+  /* Markovian Weighting */
 
-  if (CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) {
+  if (CTX->algorithms & DSP_MARKOV) {
     unsigned int weight;
     long num, den;
 
@@ -1496,11 +1495,7 @@ _ds_calc_stat (
       return 0;
     }
 
-    if (CTX->algorithms & DSP_MARKOV) {
-      weight = _ds_compute_weight(term->name);
-    } else {
-      weight = _ds_compute_weight_osb(term->name);
-    }
+    weight = _ds_compute_weight(term->name);
 
     if (CTX->flags & DSF_BIAS) {
       num = weight * (s->spam_hits - (s->innocent_hits*2));
@@ -1570,7 +1565,7 @@ _ds_calc_stat (
        || (!(CTX->flags & DSF_BIAS) && 
           (s->spam_hits + s->innocent_hits < min_hits)))
     {
-      s->probability = (CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) ? .5000 : .4;
+      s->probability = (CTX->algorithms & DSP_MARKOV) ? .5000 : .4;
     }
   }
 
@@ -1989,8 +1984,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_NAIVE) {
       factor = factor_nbayes;
-      if (((CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) && nbay_result > 0.5000) ||
-          (!(CTX->algorithms & DSP_MARKOV) && !(CTX->algorithms & DSP_OSB) && nbay_result >= 0.9))
+      if (((CTX->algorithms & DSP_MARKOV) && nbay_result > 0.5000) ||
+          (!(CTX->algorithms & DSP_MARKOV) && nbay_result >= 0.9))
       {
         CTX->result = DSR_ISSPAM;
         CTX->probability = nbay_result;
@@ -2001,8 +1996,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_GRAHAM) {
       factor = factor_bayes;
-      if (((CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) && bay_result > 0.5000) ||
-          (!(CTX->algorithms & DSP_MARKOV) && !(CTX->algorithms & DSP_OSB) && bay_result >= 0.9))
+      if (((CTX->algorithms & DSP_MARKOV) && bay_result > 0.5000) ||
+          (!(CTX->algorithms & DSP_MARKOV) && bay_result >= 0.9))
       {
         CTX->result = DSR_ISSPAM;
         CTX->probability = bay_result;
@@ -2013,8 +2008,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_BURTON) {
       factor = factor_altbayes;
-      if (((CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) && abay_result > 0.5000) ||
-          (!(CTX->algorithms & DSP_MARKOV) && !(CTX->algorithms & DSP_OSB) && abay_result >= 0.9))
+      if (((CTX->algorithms & DSP_MARKOV) && abay_result > 0.5000) ||
+          (!(CTX->algorithms & DSP_MARKOV) && abay_result >= 0.9))
       {
         CTX->result = DSR_ISSPAM;
         CTX->probability = abay_result;
@@ -2027,8 +2022,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_ROBINSON) {
       factor = factor_rob;
-      if (((CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) && rob_result > 0.5000) ||
-          (!(CTX->algorithms & DSP_MARKOV) && !(CTX->algorithms & DSP_OSB) && rob_result >= ROB_CUTOFF))
+      if (((CTX->algorithms & DSP_MARKOV) && rob_result > 0.5000) ||
+          (!(CTX->algorithms & DSP_MARKOV) && rob_result >= ROB_CUTOFF))
       {
         CTX->result = DSR_ISSPAM;
         if (CTX->probability < 0)
@@ -2042,8 +2037,8 @@ CHI_NEXT:
 
     if (CTX->algorithms & DSA_CHI_SQUARE) {
      factor = factor_chi;
-     if (((CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) && chi_result > 0.5000) ||
-         (!(CTX->algorithms & DSP_MARKOV) && !(CTX->algorithms & DSP_OSB) && chi_result >= CHI_CUTOFF))
+     if (((CTX->algorithms & DSP_MARKOV) && chi_result > 0.5000) ||
+         (!(CTX->algorithms & DSP_MARKOV) && chi_result >= CHI_CUTOFF))
      {
        CTX->result = DSR_ISSPAM;
        if (CTX->probability < 0)
@@ -2092,7 +2087,7 @@ CHI_NEXT:
   }
 
 #ifdef VERBOSE
-  if (DO_DEBUG && (!(CTX->algorithms & DSP_MARKOV) && !(CTX->algorithms & DSP_OSB))) {
+  if (DO_DEBUG && (!(CTX->algorithms & DSP_MARKOV))) {
     if (abay_result >= 0.9 && bay_result < 0.9)
     {
       LOGDEBUG ("CATCH: Burton Bayesian");
@@ -2124,7 +2119,7 @@ CHI_NEXT:
 
   /* Calculate Confidence */
 
-  if (CTX->algorithms & DSP_MARKOV || CTX->algorithms & DSP_OSB) {
+  if (CTX->algorithms & DSP_MARKOV) {
     if (CTX->result == DSR_ISSPAM)
     {
       CTX->confidence = CTX->probability;

@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.88 2009/09/24 23:54:21 sbajic Exp $
+## $Id: dspam.conf.in,v 1.89 2009/11/05 00:27:53 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -233,7 +233,7 @@ Algorithm graham burton
 #   sbph    Sparse Binary Polynomial Hashing tokenizer
 #           Creates sparse token patterns across sliding window of 5-tokens
 #           example: "the quick * fox jumped" and "the * * fox jumped"
-#   osb     Orthogonal Sparse biGram
+#   osb     Orthogonal Sparse biGram tokenizer
 #           Similar to SBPH, but only uses the biGrams
 #           example: "the * * fox" and "the * * * jumped"
 #
@@ -245,7 +245,6 @@ Tokenizer chain
 #    bcr         Bayesian Chain Rule (Graham's Technique - "A Plan for Spam")
 #    robinson    Robinson's Technique (used in Chi-Square) 
 #    markov      Markovian Weighted Technique (for Markovian discrimination)
-#    osb         OSB/OSBF/WINNOW Weighted Technique (for OSB)
 #
 # Unlike the "Algorithms" property, you may only have one of these defined. 
 # Use of the chi-square algorithm automatically changes this to robinson.
@@ -254,7 +253,6 @@ Tokenizer chain
 #
 #PValue robinson
 #PValue markov
-#PValue osb
 PValue bcr
 
 #
