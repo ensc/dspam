@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091104:0145] sbajic: Updating make files to include changes mentioned in log entry [20090818:0100]
+
 [20091103:1843] sbajic: Typo fixes in the french WebUI (patch provided by Julien Valroff <julien@kirya.net>)
 
 [20091103:0945] sbajic: Fixing build issues in Mac OS X
