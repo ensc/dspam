@@ -1,0 +1,83 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Verwaltungsberiech</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Statistischer SPAM Schutz f&uuml;r <strong>$REMOTE_USER$</strong>
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance">Leistungsmerkmale</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Einstellungen</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alarme</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">Quarant&auml;ne ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">Analyse</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=history&history_page=1">Historie</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Die Nachrichten die vom Filter verarbeitet wurden sind unten aufgelistet. Die neuesten Nachrichten werden zuerst aufgef&uuml;hrt.<br />Ben&uuml;tzen sie die Retrain Option, um Fehler zu korrigieren und Falsch positive Ergebnise aus ihrer Quarant&auml;ne auszuliefern.
+</p>
+
+<form name="history" action="dspam.cgi" method="POST">
+<input type="submit" value="Retrain markierte Nachrichten">
+<input type="hidden" name="template" value="history">
+<input type="hidden" name="command" value="retrainChecked">
+<input type="hidden" name="user" value="$REMOTE_USER$">
+<input type="hidden" name="show" value="$SHOW$" >
+
+&nbsp;&nbsp;$SHOW_SELECTOR$
+
+<table border="0" cellspacing="0" cellpadding="2" width="100%">
+<tr>
+	<th>Typ</th>
+	<th>Retrain</th>
+	<th>Tag/Zeit</th>
+	<th>Absender</th>
+	<th>Betreff</th>
+	<th>Zus&auml;tzliche Info</th>
+</tr>
+$HISTORY$
+</table>
+
+$HISTORYPAGES$
+
+<input type="submit" value="Retrain markierte Nachrichten">
+</form>
+
+</div>
+
+
+
+<script language="javascript">
+<!--
+var remote = null;
+
+function openwin(width, height, scroll, url) {
+  remote = window.open('', 'SpecialIntro', 'width=' + width + ',height='
+                  + height + ',resizable=1,dependent,scrollbars=' + scroll +
+                  ',status=0');
+  if (remote != null) {
+    if (remote.opener == null) { remote.opener = self; }
+    remote.location.href = url;
+  }
+}
+//-->
+</script>
+
+</BODY>
+</HTML>

@@ -1,0 +1,57 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Verwaltungsbereich</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Statistischer SPAM Schutz f&uuml;r <strong>Administrator ($REMOTE_USER$)</strong>
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=status">System Status</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=user">Benutzer Statistik</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Administration</a></li>
+		<li><a href="dspam.cgi">Kontroll Zenter</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Die folgenden Grafiken und Tabellen zeigen die Anzahl der verarbeiteten Nachrichten f&uuml;r jeden Benutzer nebst seinen aktuellen Einstellungen.
+</p>
+
+<table border="0" cellspacing="0" cellpadding="4">
+	<tr>
+		<th>Name</th>
+		<th>Q.Size</th>
+		<th>TP</th>
+		<th>TN</th>
+		<th>FP</th>
+		<th>FN</th>
+		<th>SC</th>
+		<th>IC</th>
+		<th>Mode</th>
+		<th>On Spam</th>
+		<th>BNR</th>
+		<th>Whitelist</th>
+		<th>Sed</th>
+		<th>Sig Loc</th>
+	</tr>
+$TABLE$
+</table>
+
+</div>
+
+
+</body>
+</html>
