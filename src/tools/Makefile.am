@@ -1,7 +1,7 @@
-# $Id: Makefile.am,v 1.82 2009/11/03 09:39:14 sbajic Exp $
+# $Id: Makefile.am,v 1.83 2009/11/05 16:54:52 sbajic Exp $
 # tools/Makefile.am
 
-EXTRA_DIST = dspam_train.in dspam_logrotate
+EXTRA_DIST = dspam_train.in dspam_logrotate dspam_notify.pl
 CLEANFILES = dspam_train 
 
 AM_CPPFLAGS = \

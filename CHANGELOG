@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091105:1655] sbajic: Added missing files into various make files
+
 [20091104:0255] sbajic: Removed non properly working OSB for PValue
 
 [20091104:0255] sbajic: Speeding up _ds_calc_result()
