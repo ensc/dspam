@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.381 2009/10/12 08:40:42 sbajic Exp $ */
+/* $Id: decode.c,v 1.382 2009/11/12 22:55:55 sbajic Exp $ */
 
 /*
  DSPAM
@@ -810,9 +810,7 @@ _ds_decode_quoted (const char *body)
         p += 2;
       } else
         *n = *p;
-    } else if (*p == '_')
-      *n = ' ';
-    else
+    } else
       *n = *p;
   }
 
