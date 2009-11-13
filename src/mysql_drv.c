@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.865 2009/11/13 20:36:33 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.866 2009/11/13 21:56:09 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1682,10 +1682,10 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
 #ifndef VIRTUAL_USERS
   struct passwd *p;
-  uid_t uid;
 #else
   char *virtual_table, *virtual_username;
 #endif
+  uid_t uid;
   char query[256];
   MYSQL_ROW row;
 
@@ -1734,23 +1734,17 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     return NULL;
   }
 
-#ifdef VIRTUAL_USERS
-  strlcpy (s->u_getnextuser, row[0], sizeof (s->u_getnextuser));
-#else
   uid = (uid_t) atoi (row[0]);
   if (uid == INT_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nextuser: failed converting %s to uid", row[0]);
-    mysql_free_result (s->iter_user);
-    s->iter_user = NULL;
     return NULL;
   }
+#ifdef VIRTUAL_USERS
+  strlcpy (s->u_getnextuser, row[0], sizeof (s->u_getnextuser));
+#else
   p = _mysql_drv_getpwuid (CTX, uid);
   if (p == NULL)
-  {
-    mysql_free_result (s->iter_user);
-    s->iter_user = NULL;
     return NULL;
-  }
 
   strlcpy (s->u_getnextuser, p->pw_name, sizeof (s->u_getnextuser));
 #endif
@@ -1805,22 +1799,20 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
       LOGDEBUG ("_ds_get_nexttoken: unable to run query: %s", query);
-      free(st);
-      st = NULL;
-      return NULL;
+      goto FAIL;
     }
 
     s->iter_token = mysql_use_result (s->dbt->dbh_read);
-    if (s->iter_token == NULL) {
-      free(st);
-      st = NULL;
-      return NULL;
-    }
+    if (s->iter_token == NULL)
+      goto FAIL;
   }
 
   row = mysql_fetch_row (s->iter_token);
-  if (row == NULL)
+  if (row == NULL) {
+    mysql_free_result (s->iter_token);
+    s->iter_token = NULL;
     goto FAIL;
+  }
 
   st->token = strtoull (row[0], NULL, 0);
   if (st->token == ULLONG_MAX && errno == ERANGE) {
@@ -1842,13 +1834,11 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->last_hit", row[3]);
     goto FAIL;
   }
+
   return st;
 
 FAIL:
-  mysql_free_result (s->iter_token);
-  s->iter_token = NULL;
   free(st);
-  st = NULL;
   return NULL;
 }
 

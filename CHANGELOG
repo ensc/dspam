@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091113:2155] sbajic: Fixing bug in _ds_get_nextuser() and _ds_get_nexttoken() in MySQL driver
+
 [20091113:2050] sbajic: Fixing bug in _ds_get_nextsignature() in MySQL driver
 
 [20091113:1410] sbajic: Reverting one block from submit ec9a6de09f178eaf838aad5b66b07b15951d6ef3 that breaks decoding base64/quoted-printable
