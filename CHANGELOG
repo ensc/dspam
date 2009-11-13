@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091113:0400] sbajic: Fixing memory leak in dspam_merge.c
+
 [20091113:0345] sbajic: Fixing file descriptor leak in PostgreSQL driver
 
 [20091113:0340] sbajic: Fixing file descriptor leak in MySQL driver
