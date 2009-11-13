@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091113:0310] sbajic: Speeding up various functions in dspam.c
+
 [20091112:2325] sbajic: Fixing bug in quoted printable decoding
 
 [20091105:2025] sbajic: Adding German templates for Web UI

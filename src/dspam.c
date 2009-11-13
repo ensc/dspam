@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.377 2009/10/09 22:00:58 sbajic Exp $ */
+/* $Id: dspam.c,v 1.378 2009/11/13 02:26:19 sbajic Exp $ */
 
 /*
  DSPAM
@@ -460,9 +460,11 @@ process_message (
 
   /* Process a signature if one was provided */
 
-  have_signature = find_signature(CTX, ATX);
-  if (ATX->source == DSS_CORPUS || ATX->source == DSS_NONE)
-     have_signature = 0; /* ignore sigs from corpusfed and inbound email */
+  if (ATX->source == DSS_CORPUS || ATX->source == DSS_NONE) {
+    have_signature = 0; /* ignore sigs from corpusfed and inbound email */
+  } else {
+    have_signature = find_signature(CTX, ATX);
+  }
 
   if (have_signature)
   {
@@ -2916,10 +2918,13 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       while(node_header != NULL) {
         head = (ds_header_t) node_header->ptr;
 	if (head) {
-          if (!strcasecmp(head->heading, "Subject"))
+          if (!strcasecmp(head->heading, "Subject")) {
             subject = head->data;
-          else if (!strcasecmp(head->heading, "From"))
+            if (from != NULL) break;
+          } else if (!strcasecmp(head->heading, "From")) {
             from = head->data;
+            if (subject != NULL) break;
+          }
         }
 
         node_header = node_header->next;
@@ -3865,7 +3870,9 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           if (strncmp(buff, "127.0.0.", 8) == 0) {
             STATUS("Blacklisted (%s)", attrib->value);
             bad = 1;
-  	}
+            freeaddrinfo(res);
+            break;
+          }
         }
         freeaddrinfo(res);
       }
@@ -3915,6 +3922,7 @@ int is_blocklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           chomp(buf);
           if (!strcasecmp(buf, domain+1)) {
             blocklisted = 1;
+            break;
           }
         }
       }
