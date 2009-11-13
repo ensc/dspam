@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.863 2009/10/12 09:19:17 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.864 2009/11/13 03:40:59 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2913,6 +2913,7 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
       else if (i == 1) {
         port = atoi (buffer);
         if (port == INT_MAX && errno == ERANGE) {
+          fclose (file);
           LOGDEBUG("_mysql_drv_connect: failed converting %s to port", buffer);
           goto FAILURE;
         }
