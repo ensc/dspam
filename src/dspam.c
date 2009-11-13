@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.378 2009/11/13 02:26:19 sbajic Exp $ */
+/* $Id: dspam.c,v 1.379 2009/11/13 14:07:42 sbajic Exp $ */
 
 /*
  DSPAM
@@ -460,11 +460,9 @@ process_message (
 
   /* Process a signature if one was provided */
 
-  if (ATX->source == DSS_CORPUS || ATX->source == DSS_NONE) {
+  have_signature = find_signature(CTX, ATX);
+  if (ATX->source == DSS_CORPUS || ATX->source == DSS_NONE)
     have_signature = 0; /* ignore sigs from corpusfed and inbound email */
-  } else {
-    have_signature = find_signature(CTX, ATX);
-  }
 
   if (have_signature)
   {

@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091113:1410] sbajic: Reverting one block from submit ec9a6de09f178eaf838aad5b66b07b15951d6ef3 that breaks decoding base64/quoted-printable
+
 [20091113:0400] sbajic: Fixing memory leak in dspam_merge.c
 
 [20091113:0345] sbajic: Fixing file descriptor leak in PostgreSQL driver
