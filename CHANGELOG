@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091113:0345] sbajic: Fixing file descriptor leak in PostgreSQL driver
+
 [20091113:0340] sbajic: Fixing file descriptor leak in MySQL driver
 
 [20091113:0310] sbajic: Speeding up various functions in dspam.c

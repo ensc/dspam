@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.73 2009/10/22 20:04:04 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.731 2009/11/13 03:44:02 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2835,6 +2835,7 @@ PGconn *_pgsql_drv_connect(DSPAM_CTX *CTX)
       else if (i == 1) {
         port = atoi (buffer);
         if (port == INT_MAX && errno == ERANGE) {
+          fclose (file);
           LOGDEBUG("_pgsql_drv_connect: failed converting %s to port", buffer);
           goto FAILURE;
         }
