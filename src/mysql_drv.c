@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.864 2009/11/13 03:40:59 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.865 2009/11/13 20:36:33 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1901,22 +1901,20 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
       LOGDEBUG ("_ds_get_nextsignature: unable to run query: %s", query);
-      free(st);
-      st = NULL;
-      return NULL;
+      goto FAIL;
     }
 
     s->iter_sig = mysql_use_result (s->dbt->dbh_read);
-    if (s->iter_sig == NULL) {
-      free(st);
-      st = NULL;
-      return NULL;
-    }
+    if (s->iter_sig == NULL)
+      goto FAIL;
   }
 
   row = mysql_fetch_row (s->iter_sig);
-  if (row == NULL)
+  if (row == NULL) {
+    mysql_free_result (s->iter_sig);
+    s->iter_sig = NULL;
     goto FAIL;
+  }
 
   lengths = mysql_fetch_lengths (s->iter_sig);
   if (lengths == NULL || lengths[0] == 0)
@@ -1943,19 +1941,10 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     goto FAIL;
   }
 
-  if (s->iter_sig != NULL) {
-    mysql_free_result (s->iter_sig);
-    s->iter_sig = NULL;
-  }
   return st;
 
 FAIL:
-  if (s->iter_sig != NULL) {
-    mysql_free_result (s->iter_sig);
-    s->iter_sig = NULL;
-  }
   free(st);
-  st = NULL;
   return NULL;
 }
 
