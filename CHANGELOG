@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091113:2225] sbajic: Adding documentation into MySQL driver source code for _ds_get_nextuser(), _ds_get_nexttoken() and _ds_get_nextsignature()
+
 [20091113:2155] sbajic: Fixing bug in _ds_get_nextuser() and _ds_get_nexttoken() in MySQL driver
 
 [20091113:2050] sbajic: Fixing bug in _ds_get_nextsignature() in MySQL driver

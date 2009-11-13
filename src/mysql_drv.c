@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.866 2009/11/13 21:56:09 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.867 2009/11/13 22:25:20 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1676,6 +1676,20 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   return 0;
 }
 
+/*
+ * _ds_get_nextuser()
+ *
+ * DESCRIPTION
+ *   The _ds_get_nextuser() function is called to get the next user from the
+ *   classification context. Calling this function repeatedly will return all
+ *   users one by one.
+ *
+ * RETURN VALUES
+ *   returns username on success, NULL on failure or when all usernames have
+ *   already been returned for the classification context. When there are no
+ *   more users to return then iter_user of the storage driver is set to NULL.
+ */
+
 char *
 _ds_get_nextuser (DSPAM_CTX * CTX)
 {
@@ -1751,6 +1765,20 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
 
   return s->u_getnextuser;
 }
+
+/*
+ * _ds_get_nexttoken()
+ *
+ * DESCRIPTION
+ *   The _ds_get_nexttoken() function is called to get the next token from the
+ *   classification context. Calling this function repeatedly will return all
+ *   tokens for a user or group one by one.
+ *
+ * RETURN VALUES
+ *   returns token on success, NULL on failure or when all tokens have already
+ *   been returned for the user or group. When there are no more tokens to return
+ *   then iter_token of the storage driver is set to NULL.
+ */
 
 struct _ds_storage_record *
 _ds_get_nexttoken (DSPAM_CTX * CTX)
@@ -1841,6 +1869,20 @@ FAIL:
   free(st);
   return NULL;
 }
+
+/*
+ * _ds_get_nextsignature()
+ *
+ * DESCRIPTION
+ *   The _ds_get_nextsignature() function is called to get the next signature
+ *   from the classification context. Calling this function repeatedly will return
+ *   all signatures for a user or group one by one.
+ *
+ * RETURN VALUES
+ *   returns signature on success, NULL on failure or when all signatures have
+ *   already been returned for the user or group. When there are no more signatures
+ *   to return then iter_sig of the storage driver is set to NULL.
+ */
 
 struct _ds_storage_signature *
 _ds_get_nextsignature (DSPAM_CTX * CTX)
