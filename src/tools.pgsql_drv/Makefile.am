@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.6.1 2009/11/05 16:53:33 sbajic Exp $
+# $Id: Makefile.am,v 1.6.2 2009/11/14 01:19:13 sbajic Exp $
 # tools.pgsql_drv/Makefile.am
 #
 
@@ -16,7 +16,7 @@ DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
        -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\"\
        -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D_GNU_SOURCE
 
-dspam_pg2int8_SOURCES = dspam_pg2int8.c ../read_config.c ../config_api.c
+dspam_pg2int8_SOURCES = dspam_pg2int8.c ../read_config.c ../config_api.c ../pref.c
 dspam_pg2int8_LDFLAGS = 
 if DYNAMIC_DRIVER
 if BUILD_PGSQL_DRV 
