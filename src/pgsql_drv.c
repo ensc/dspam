@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.731 2009/11/13 03:44:02 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.732 2009/11/14 11:33:12 sbajic Exp $ */
 
 /*
  DSPAM
@@ -78,6 +78,22 @@
 #endif
 #define BIGINTOID INT8OID
 
+
+/* Notice pocessor function for PostgreSQL */
+static void
+_pgsql_drv_notice_processor(void *arg, const PGresult *res)
+{
+  /* nothing */
+}
+
+
+/* Notice receiver function for PostgreSQL */
+static void
+_pgsql_drv_notice_receiver(void *arg, const char *message)
+{
+  arg = arg;   /* Keep compiler happy */
+  LOGDEBUG ("pgsql_drv: %s", message);
+}
 
 int
 dspam_init_driver (DRIVER_CTX *DTX)
@@ -1562,21 +1578,34 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   return 0;
 }
 
+/*
+ * _ds_get_nextuser()
+ *
+ * DESCRIPTION
+ *   The _ds_get_nextuser() function is called to get the next user from the
+ *   classification context. Calling this function repeatedly will return all
+ *   users one by one.
+ *
+ * RETURN VALUES
+ *   returns username on success, NULL on failure or when all usernames have
+ *   already been returned for the classification context. When there are no
+ *   more users to return then iter_user of the storage driver is set to NULL.
+ */
+
 char *
 _ds_get_nextuser (DSPAM_CTX * CTX)
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
 #ifndef VIRTUAL_USERS
   struct passwd *p;
-  uid_t uid;
 #else
   char *virtual_table, *virtual_uid, *virtual_username;
 #endif
+  uid_t uid;
   char query[256];
   PGresult *result;
 
-  if (s->dbh == NULL)
-  {
+  if (s->dbh == NULL) {
     LOGDEBUG ("_ds_get_nextuser: invalid database handle (NULL)");
     return NULL;
   }
@@ -1595,8 +1624,11 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   { virtual_username = "username"; }
 #endif
 
-  if (s->iter_user == NULL)
-  {
+  /* Set the notice processor to prevent notices from being written to stderr */
+  PQsetNoticeReceiver(s->dbh, (PQnoticeReceiver) _pgsql_drv_notice_receiver, NULL);
+  PQsetNoticeProcessor(s->dbh, (PQnoticeProcessor) _pgsql_drv_notice_processor, NULL);
+
+  if (s->iter_user == NULL) {
     /* libpq do not have fetch_row() so we have to use cursor */
 
     /* Start transaction block */
@@ -1604,86 +1636,90 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     if ( PQresultStatus(result) != PGRES_COMMAND_OK ) {
       _pgsql_drv_query_error (PQresultErrorMessage(result), "_ds_get_nextuser: BEGIN command failed");
       if (result) PQclear(result);
+      result = PQexec(s->dbh, "END");
+      if (result) PQclear(result);
       return NULL;
     }
-    if (result) PQclear(result);
-    result = NULL;
+    if (result) PQclear(result);    result = NULL;
 
     /* Declare Cursor */
 #ifdef VIRTUAL_USERS
-    snprintf(query, sizeof(query), "DECLARE dscursor CURSOR FOR SELECT DISTINCT %s FROM %s",
+    snprintf(query, sizeof(query), "DECLARE dsnucursor CURSOR FOR SELECT DISTINCT %s FROM %s",
         virtual_username,
         virtual_table);
 #else
-    strlcpy (query, "DECLARE dscursor CURSOR FOR SELECT DISTINCT uid FROM dspam_stats", sizeof(query));
+    strlcpy (query, "DECLARE dsnucursor CURSOR FOR SELECT DISTINCT uid FROM dspam_stats", sizeof(query));
 #endif
 
     result = PQexec(s->dbh, query);
     if ( PQresultStatus(result) != PGRES_COMMAND_OK ) {
       _pgsql_drv_query_error (PQresultErrorMessage(result), query);
       if (result) PQclear(result);
+      result = PQexec(s->dbh, "CLOSE dsnucursor");
+      if (result) PQclear(result);
+      result = PQexec(s->dbh, "END");
+      if (result) PQclear(result);
       return NULL;
     }
     if (result) PQclear(result);
-    result = NULL;
 
-  }
-  else
-  {
+  } else
     PQclear(s->iter_user);
-  }
 
-  s->iter_user = PQexec(s->dbh, "FETCH NEXT FROM dscursor");
-  if ( PQresultStatus(s->iter_user) != PGRES_TUPLES_OK )
-  {
+  s->iter_user = PQexec(s->dbh, "FETCH NEXT FROM dsnucursor");
+  if ( PQresultStatus(s->iter_user) != PGRES_TUPLES_OK ) {
     _pgsql_drv_query_error (PQresultErrorMessage(s->iter_user), "FETCH NEXT command failed");
+    result = PQexec(s->dbh, "CLOSE dsnucursor");
+    if (result) PQclear(result);
+    result = PQexec(s->dbh, "END");
+    if (result) PQclear(result);
     if (s->iter_user) PQclear(s->iter_user);
     s->iter_user = NULL;
     return NULL;
   }
 
-  if ( PQntuples(s->iter_user) < 1 )
-  {
-    result = PQexec(s->dbh, "CLOSE dscursor");
+  if ( PQntuples(s->iter_user) < 1 ) {
+    result = PQexec(s->dbh, "CLOSE dsnucursor");
     if (result) PQclear(result);
-
     result = PQexec(s->dbh, "END");
     if (result) PQclear(result);
-
     if (s->iter_user) PQclear(s->iter_user);
     s->iter_user = NULL;
+    return NULL;
+  }
+
+  uid = (uid_t) atoi (PQgetvalue(s->iter_user,0,0));
+  if (uid == INT_MAX && errno == ERANGE) {
+    LOGDEBUG("_ds_get_nextuser: failed converting %s to uid", PQgetvalue(s->iter_user,0,0));
     return NULL;
   }
 
 #ifdef VIRTUAL_USERS
   strlcpy (s->u_getnextuser, PQgetvalue(s->iter_user,0,0), sizeof (s->u_getnextuser));
 #else
-  uid = (uid_t) atoi (PQgetvalue(s->iter_user,0,0));
-  if (uid == INT_MAX && errno == ERANGE) {
-    LOGDEBUG("_ds_get_nextuser: failed converting %s to uid", PQgetvalue(s->iter_user,0,0));
-    if (s->iter_user) PQclear(s->iter_user);
-    s->iter_user = NULL;
-    return NULL;
-  }
   p = _pgsql_drv_getpwuid (CTX, uid);
   if (p == NULL)
-  {
-    result = PQexec(s->dbh, "CLOSE dscursor");
-    if (result) PQclear(result);
-
-    result = PQexec(s->dbh, "END");
-    if (result) PQclear(result);
-
-    if (s->iter_user) PQclear(s->iter_user);
-    s->iter_user = NULL;
     return NULL;
-  }
 
   strlcpy (s->u_getnextuser, p->pw_name, sizeof (s->u_getnextuser));
 #endif
 
   return s->u_getnextuser;
 }
+
+/*
+ * _ds_get_nexttoken()
+ *
+ * DESCRIPTION
+ *   The _ds_get_nexttoken() function is called to get the next token from the
+ *   classification context. Calling this function repeatedly will return all
+ *   tokens for a user or group one by one.
+ *
+ * RETURN VALUES
+ *   returns token on success, NULL on failure or when all tokens have already
+ *   been returned for the user or group. When there are no more tokens to return
+ *   then iter_token of the storage driver is set to NULL.
+ */
 
 struct _ds_storage_record *
 _ds_get_nexttoken (DSPAM_CTX * CTX)
@@ -1695,8 +1731,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   char *name;
   PGresult *result;
 
-  if (s->dbh == NULL)
-  {
+  if (s->dbh == NULL) {
     LOGDEBUG ("_ds_get_nexttoken: invalid database handle (NULL)");
     return NULL;
   }
@@ -1709,83 +1744,81 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     name = CTX->group;
   }
 
-  if (p == NULL)
-  {
+  if (p == NULL) {
     LOGDEBUG ("_ds_get_nexttoken: unable to _pgsql_drv_getpwnam(%s)",
               name);
     return NULL;
   }
 
   st = calloc (1, sizeof (struct _ds_storage_record));
-  if (st == NULL)
-  {
+  if (st == NULL) {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
-  if (s->iter_token == NULL)
-  {
+  /* Set the notice processor to prevent notices from being written to stderr */
+  PQsetNoticeReceiver(s->dbh, (PQnoticeReceiver) _pgsql_drv_notice_receiver, NULL);
+  PQsetNoticeProcessor(s->dbh, (PQnoticeProcessor) _pgsql_drv_notice_processor, NULL);
+
+  if (s->iter_token == NULL) {
     /* libpq do not have fetch_row() so we have to use cursor */
 
     /* Start transaction block */
     result = PQexec(s->dbh, "BEGIN");
-    if ( PQresultStatus(result) != PGRES_COMMAND_OK )
-    {
-      _pgsql_drv_query_error (PQresultErrorMessage(result), "_ds_get_nexttoken: BEGIN command failed");
+    if ( PQresultStatus(result) != PGRES_COMMAND_OK ) {
+      _pgsql_drv_query_error (PQresultErrorMessage(result), "_ds_get_nextsignature: BEGIN command failed");
+      if (result) PQclear(result);
+      result = PQexec(s->dbh, "END");
       if (result) PQclear(result);
       free(st);
-      st = NULL;
       return NULL;
     }
     if (result) PQclear(result);
 
     /* Declare Cursor */
     snprintf (query, sizeof (query),
-              "DECLARE dscursor CURSOR FOR SELECT"
+              "DECLARE dsntcursor CURSOR FOR SELECT"
               " token,spam_hits,innocent_hits,date_part('epoch',last_hit)"
               " FROM dspam_token_data WHERE uid=%d",
               (int) p->pw_uid);
 
     result = PQexec(s->dbh, query);
-    if ( PQresultStatus(result) != PGRES_COMMAND_OK )
-    {
+    if ( PQresultStatus(result) != PGRES_COMMAND_OK ) {
       _pgsql_drv_query_error (PQresultErrorMessage(result), query);
       if (result) PQclear(result);
+      result = PQexec(s->dbh, "CLOSE dsntcursor");
+      if (result) PQclear(result);
+      result = PQexec(s->dbh, "END");
+      if (result) PQclear(result);
       free(st);
-      st = NULL;
       return NULL;
     }
     if (result) PQclear(result);
 
-  }
-  else
-  {
-   PQclear(s->iter_token);
-  }
+  } else
+    PQclear(s->iter_token);
 
-  s->iter_token = PQexec(s->dbh, "FETCH NEXT FROM dscursor");
-  if ( PQresultStatus(s->iter_token) != PGRES_TUPLES_OK )
-  {
+  s->iter_token = PQexec(s->dbh, "FETCH NEXT FROM dsntcursor");
+  if ( PQresultStatus(s->iter_token) != PGRES_TUPLES_OK ) {
     _pgsql_drv_query_error (PQresultErrorMessage(s->iter_token), "FETCH NEXT command failed");
+    result = PQexec(s->dbh, "CLOSE dsntcursor");
+    if (result) PQclear(result);
+    result = PQexec(s->dbh, "END");
+    if (result) PQclear(result);
     if (s->iter_token) PQclear(s->iter_token);
     s->iter_token = NULL;
     free(st);
-    st = NULL;
     return NULL;
   }
 
-  if ( PQntuples(s->iter_token) < 1 )
-  {
-    result = PQexec(s->dbh, "CLOSE dscursor");
+  if ( PQntuples(s->iter_token) < 1 ) {
+    result = PQexec(s->dbh, "CLOSE dsntcursor");
     if (result) PQclear(result);
-
     result = PQexec(s->dbh, "END");
     if (result) PQclear(result);
-
     if (s->iter_token) PQclear(s->iter_token);
     s->iter_token = NULL;
     free(st);
-    st = NULL;
     return NULL;
   }
 
@@ -1793,27 +1826,33 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   st->spam_hits = strtoul (PQgetvalue( s->iter_token, 0, 1), NULL, 0);
   if (st->spam_hits == ULONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->spam_hits", PQgetvalue(s->iter_token,0,1));
-    goto FAIL;
+    free(st);
+    return NULL;
   }
   st->innocent_hits = strtoul (PQgetvalue( s->iter_token, 0, 2), NULL, 0);
   if (st->innocent_hits == ULONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->innocent_hits", PQgetvalue(s->iter_token,0,2));
-    goto FAIL;
+    free(st);
+    return NULL;
   }
   st->last_hit = (time_t) strtol ( PQgetvalue( s->iter_token, 0, 3), NULL, 0);
 
-  if (s->iter_token) PQclear(s->iter_token);
-  s->iter_token = NULL;
-
   return st;
-
-FAIL:
-  if (s->iter_token) PQclear(s->iter_token);
-  s->iter_token = NULL;
-  free(st);
-  st = NULL;
-  return NULL;
 }
+
+/*
+ * _ds_get_nextsignature()
+ *
+ * DESCRIPTION
+ *   The _ds_get_nextsignature() function is called to get the next signature
+ *   from the classification context. Calling this function repeatedly will return
+ *   all signatures for a user or group one by one.
+ *
+ * RETURN VALUES
+ *   returns signature on success, NULL on failure or when all signatures have
+ *   already been returned for the user or group. When there are no more signatures
+ *   to return then iter_sig of the storage driver is set to NULL.
+ */
 
 struct _ds_storage_signature *
 _ds_get_nextsignature (DSPAM_CTX * CTX)
@@ -1827,8 +1866,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   char *name;
   unsigned char *mem;
 
-  if (s->dbh == NULL)
-  {
+  if (s->dbh == NULL) {
     LOGDEBUG ("_ds_get_nextsignature: invalid database handle (NULL)");
     return NULL;
   }
@@ -1841,92 +1879,86 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     name = CTX->group;
   }
 
-  if (p == NULL)
-  {
+  if (p == NULL) {
     LOGDEBUG ("_ds_get_nextsignature: unable to _pgsql_drv_getpwnam(%s)",
               name);
     return NULL;
   }
 
   st = calloc (1, sizeof (struct _ds_storage_signature));
-  if (st == NULL)
-  {
+  if (st == NULL) {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
 
-  if (s->iter_sig == NULL)
-  {
+  /* Set the notice processor to prevent notices from being written to stderr */
+  PQsetNoticeReceiver(s->dbh, (PQnoticeReceiver) _pgsql_drv_notice_receiver, NULL);
+  PQsetNoticeProcessor(s->dbh, (PQnoticeProcessor) _pgsql_drv_notice_processor, NULL);
+
+  if (s->iter_sig == NULL) {
     /* libpq do not have fetch_row() so we have to use cursor */
 
     /* Start transaction block */
     result = PQexec(s->dbh, "BEGIN");
-    if ( PQresultStatus(result) != PGRES_COMMAND_OK )
-    {
+    if ( PQresultStatus(result) != PGRES_COMMAND_OK ) {
       _pgsql_drv_query_error (PQresultErrorMessage(result), "_ds_get_nextsignature: BEGIN command failed");
       if (result) PQclear(result);
+      result = PQexec(s->dbh, "END");
+      if (result) PQclear(result);
       free(st);
-      st = NULL;
       return NULL;
     }
     if (result) PQclear(result);
 
     /* Declare Cursor */
     snprintf (query, sizeof (query),
-              "DECLARE dscursor CURSOR FOR SELECT"
+              "DECLARE dsnscursor CURSOR FOR SELECT"
               " data,signature,length,date_part('epoch',created_on)"
               " FROM dspam_signature_data WHERE uid=%d",
               (int) p->pw_uid);
 
     result = PQexec(s->dbh, query);
-    if ( PQresultStatus(result) != PGRES_COMMAND_OK )
-    {
+    if ( PQresultStatus(result) != PGRES_COMMAND_OK ) {
       _pgsql_drv_query_error (PQresultErrorMessage(result), query);
       if (result) PQclear(result);
+      result = PQexec(s->dbh, "CLOSE dsnscursor");
+      if (result) PQclear(result);
+      result = PQexec(s->dbh, "END");
+      if (result) PQclear(result);
       free(st);
-      st = NULL;
       return NULL;
     }
     if (result) PQclear(result);
 
-  }
-  else
-  {
+  } else
     PQclear(s->iter_sig);
-  }
 
-  s->iter_sig = PQexec(s->dbh, "FETCH NEXT FROM dscursor");
-  if ( PQresultStatus(s->iter_sig) != PGRES_TUPLES_OK )
-  {
+  s->iter_sig = PQexec(s->dbh, "FETCH NEXT FROM dsnscursor");
+  if ( PQresultStatus(s->iter_sig) != PGRES_TUPLES_OK ) {
     _pgsql_drv_query_error (PQresultErrorMessage(s->iter_sig), "FETCH NEXT command failed");
-    if (s->iter_sig) PQclear(s->iter_sig);
-    s->iter_sig = NULL;
-    free(st);
-    st = NULL;
-    return NULL;
-  }
-
-  if ( PQntuples(s->iter_sig) < 1 )
-  {
-    result = PQexec(s->dbh, "CLOSE dscursor");
+    result = PQexec(s->dbh, "CLOSE dsnscursor");
     if (result) PQclear(result);
-
     result = PQexec(s->dbh, "END");
     if (result) PQclear(result);
-
     if (s->iter_sig) PQclear(s->iter_sig);
     s->iter_sig = NULL;
     free(st);
-    st = NULL;
     return NULL;
   }
 
-  if ( PQgetlength(s->iter_sig, 0, 0) == 0 )
-  {
+  if ( PQntuples(s->iter_sig) < 1 ) {
+    result = PQexec(s->dbh, "CLOSE dsnscursor");
+    if (result) PQclear(result);
+    result = PQexec(s->dbh, "END");
+    if (result) PQclear(result);
     if (s->iter_sig) PQclear(s->iter_sig);
     s->iter_sig = NULL;
     free(st);
-    st = NULL;
+    return NULL;
+  }
+
+  if ( PQgetlength(s->iter_sig, 0, 0) == 0 ) {
+    free(st);
     return NULL;
   }
 
@@ -1936,37 +1968,29 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   if (st->data == NULL) {
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     PQFREEMEM(mem);
-    if (s->iter_sig) PQclear(s->iter_sig);
-    s->iter_sig = NULL;
+    free(st);
     return NULL;
   }
 
   memcpy(st->data, mem, length);
+  PQFREEMEM(mem);
   strlcpy (st->signature, PQgetvalue(s->iter_sig, 0, 1), sizeof (st->signature));
   st->length = strtoul (PQgetvalue(s->iter_sig, 0, 2), NULL, 0);
   if (st->length == LONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nextsignature: failed converting %s to st->length", PQgetvalue(s->iter_sig,0,2));
-    goto FAIL;
+    free(st->data);
+    free(st);
+    return NULL;
   }
   st->created_on = (time_t) strtol (PQgetvalue(s->iter_sig, 0, 3), NULL, 0);
   if (st->created_on == LONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nextsignature: failed converting %s to st->created_on", PQgetvalue(s->iter_sig,0,3));
-    goto FAIL;
+    free(st->data);
+    free(st);
+    return NULL;
   }
 
-  PQFREEMEM(mem);
-  if (s->iter_sig) PQclear(s->iter_sig);
-  s->iter_sig = NULL;
-
   return st;
-
-FAIL:
-  PQFREEMEM(mem);
-  if (s->iter_sig) PQclear(s->iter_sig);
-  s->iter_sig = NULL;
-  free(st);
-  st = NULL;
-  return NULL;
 }
 
 struct passwd *
