@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091115:2050] sbajic: Updating documentation
+
 [20091115:1250] sbajic: Fixing missing <HTML> start tag in nav_fragment.html for EN, FR and RO
 
 [20091114:1140] sbajic: Fixing bugs in _ds_get_nextuser(), _ds_get_nexttoken() and _ds_get_nextsignature() in the PostgreSQL driver

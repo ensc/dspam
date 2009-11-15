@@ -1,3 +1,5 @@
+$Id: postfix.txt,v 1.0 2009/11/15 20:29:15 sbajic Exp $
+
 POSTFIX INTEGRATION
 
 Please follow the instructions in the README for building DSPAM. Once DSPAM
@@ -117,12 +119,14 @@ smtpd_recipient_restrictions =
 
 /./ FILTER dspam:dspam
 
-  Run postmap /etc/postfix/dspam_filter_access
-
  Add he following service at the end of master.cf:
 
 dspam                 unix    -       n       n       -       -    pipe
-  flags=Ru user=dspam argv=/usr/bin/dspam --client --deliver=innocent,spam --user ${recipient} --mail-from=${sender}
+  flags=Ru user=dspam argv=/usr/bin/dspam
+  --client
+  --deliver=innocent,spam
+  --user ${recipient}
+  --mail-from=${sender}
 
  You will also have to add the following line in main.cf:
 dspam_destination_recipient_limit = 1
@@ -210,7 +214,7 @@ to point to DSPAM. This can be done by editing /etc/postfix/main.cf:
 
 mailbox_command = /usr/local/bin/dspam --deliver=innocent --user $USER -- -d %u
 
-If you're running a delivery agent (such as cyrdeliver) that has a problem
+If you're running a delivery agent (such as Cyrus deliver) that has a problem
 with the top 'From' header, you may need to perform some sed magic:
 
 mailbox_command = sed '1{/^From /d;}' | /usr/local/bin/dspam --deliver=innocent --user $USER -- -d %u
@@ -223,7 +227,7 @@ CYRUS INTEGRATION
 If you're using Cyrus to deliver mail locally, you'll want to specify the
 following in dspam.conf:
 
-TrustedDeliveryAgent "/usr/sbin/cyrdeliver $u"
+TrustedDeliveryAgent "/usr/cyrus/bin/deliver $u"
 
 Then use the following in Postfix:
 

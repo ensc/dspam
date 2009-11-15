@@ -1,3 +1,5 @@
+$Id: mysql_drv.txt,v 1.0 2009/11/15 20:22:24 sbajic Exp $
+
 Copyright (c) 2002-2009 DSPAM Project
 http://dspam.sourceforge.net
 
@@ -205,3 +207,6 @@ QUESTIONS
 
 Please contact the dspam-dev mailing list with any questions or constructive
 feedback.
+
+Initial storage driver written by Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+and later enhanced by Stevan Bajic <stevan@bajic.ch> for DSPAM 3.9.0.
