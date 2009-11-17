@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.382 2009/11/12 22:55:55 sbajic Exp $ */
+/* $Id: decode.c,v 1.383 2009/11/17 08:43:18 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1301,6 +1301,20 @@ _ds_strip_html (const char *html)
   };
   int num_chars = sizeof(charset) / sizeof(charset[0]);
 
+  static struct {
+    char *open_tag;
+    char *uri_tag;
+  }
+  uritag[] = {
+    {          "<a", "href"       }, {        "<img", "src"        }, {      "<input", "src"        },
+    {     "<iframe", "src"        }, {      "<frame", "src"        }, {     "<script", "src"        },
+    {       "<form", "action"     }, {      "<embed", "src"        }, {       "<area", "href"       },
+    {       "<base", "href"       }, {       "<link", "href"       }, {     "<source", "src"        },
+    {       "<body", "background" }, { "<blockquote", "cite"       }, {          "<q", "cite"       },
+    {        "<ins", "cite"       }, {        "<del", "cite"       }
+  };
+  int num_uri = sizeof(uritag) / sizeof(uritag[0]);
+
   size_t len = strlen(html);
   html2 = malloc(len+1);
 
@@ -1322,7 +1336,9 @@ _ds_strip_html (const char *html)
         closing_td_tag = 1;
         continue;
       } else if (strncasecmp(html + i, "<td", 3) == 0 && closing_td_tag) {
-        html2[j++]=' ';
+        if (!isspace(*(html2-1))) {
+          html2[j++]=' ';
+        }
         visible = 0;
       } else {
         closing_td_tag = 0;
@@ -1339,48 +1355,70 @@ _ds_strip_html (const char *html)
       } else if (html[k]) {
         while (html[k] && html[k] != '<' && html[k] != '>') {k++;}
 
-        /* If we've got an <a> tag with an href, save the address
-         * to print later. */
-        if (strncasecmp(html + i, "<a", 2) == 0 && isspace(html[i+2])) {
-          int href_start;           /* start of href, inclusive [ */
-          int href_end;            /* end of href, exclusive ) */
+        /* if we've got a tag with a uri, save the address to print later. */
+        char *url_tag = " ";
+        int tag_offset = 0, x = 0, y = 0;
+        for (y = 0; y < num_uri; y++) {
+          x = strlen(uritag[y].open_tag);
+          if (strncmp(html+i,uritag[y].open_tag,x)==0) {
+            url_tag = uritag[y].uri_tag;
+            tag_offset = x+1;
+            break;
+          }
+        }
+        /* tag with uri found */
+        if (tag_offset > 0) {
+          int url_start = tag_offset;         /* start of url tag inclusive [ */
+          int url_end = 0;                    /* end of url tag, exclusive ) */
+          int url_tag_len = strlen(url_tag);
           char delim = ' ';
-          /* Find start of href */
-          for (href_start = i + 3; href_start < k; href_start++) {
-            if (strncasecmp(html + href_start, "href=", 5) == 0) {
-              href_start += 5;
-              if (html[href_start] == '"') {
-                delim = '"';
-                href_start++;
-              } else if (html[href_start] == '\'') {
-                delim = '\'';
-                href_start++;
+          /* find start of uri */
+          for (url_start = tag_offset; url_start < k; url_start++) {
+            if (strncasecmp(html + url_start, url_tag, url_tag_len) == 0) {
+              url_start += url_tag_len;
+              while (html[url_start] && isspace(html[url_start])) {url_start++;}   /* remove spaces before = */
+              if (html[url_start] == '=') {
+                url_start++;
+                while (html[url_start] && isspace(html[url_start])) {url_start++;} /* remove spaces after = */
+                if (html[url_start] == '"') {
+                  delim = '"';
+                  url_start++;
+                } else if (html[url_start] == '\'') {
+                  delim = '\'';
+                  url_start++;
+                }
+                break;
+              } else {
+                break;
               }
+            } else if (url_start >= 50) {
               break;
             }
           }
-          /* find end of address */
-          if (strncasecmp(html + href_start, "http:", 5) == 0
-              || strncasecmp(html + href_start, "https:", 6) == 0
-              || strncasecmp(html + href_start, "ftp:", 5) == 0) {
+          /* find end of uri */
+          if (strncasecmp(html + url_start, "http:", 5) == 0
+           || strncasecmp(html + url_start, "https:", 6) == 0
+           || strncasecmp(html + url_start, "ftp:", 4) == 0) {
             html2[j++]=' ';
-            href_end = href_start;
-            const char *w = &(html[href_start]);
-            while (*w != delim) {html2[j++]=*w;href_end++;w++;}
+            url_end = url_start;
+            const char *w = &(html[url_start]);
+            while (*w != delim) {html2[j++]=*w;url_end++;w++;}
             html2[j++]=' ';
           }
-          // cdata_close_tag = "</a>";
+
         } else if (strncasecmp(html + i, "<p>", 3) == 0
-         || strncasecmp(html + i, "<p ", 3) == 0
-         || strncasecmp(html + i, "<p\t", 3) == 0
-         || strncasecmp(html + i, "<tr", 3) == 0
-         || strncasecmp(html + i, "<option", 7) == 0
-         || strncasecmp(html + i, "<br", 3) == 0
-         || strncasecmp(html + i, "<li", 3) == 0
-         || strncasecmp(html + i, "<div", 4) == 0
-         || strncasecmp(html + i, "</select>", 9) == 0
-         || strncasecmp(html + i, "</table>", 8) == 0) {
-          html2[j++] = '\n';
+                || strncasecmp(html + i, "<p ", 3) == 0
+                || strncasecmp(html + i, "<p\t", 3) == 0
+                || strncasecmp(html + i, "<tr", 3) == 0
+                || strncasecmp(html + i, "<option", 7) == 0
+                || strncasecmp(html + i, "<br", 3) == 0
+                || strncasecmp(html + i, "<li", 3) == 0
+                || strncasecmp(html + i, "<div", 4) == 0
+                || strncasecmp(html + i, "</select>", 9) == 0
+                || strncasecmp(html + i, "</table>", 8) == 0) {
+          if (*(html2-1) != '\n' && *(html2-1) != '\r') {
+            html2[j++] = '\n';
+          }
         } else if (strncasecmp(html + i, "<applet", 7) == 0) {
           cdata_close_tag = "</applet>";
         } else if (strncasecmp(html + i, "<embed", 6) == 0) {
