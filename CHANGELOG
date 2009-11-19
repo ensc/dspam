@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091118:1700] sbajic: Require @ in username for fallbackDomains to work and don't allow calling ctx_init() without or with empty username
+
 [20091117:1705] sbajic: Enhancing HTML message processing
 
 [20091115:2050] sbajic: Updating documentation
