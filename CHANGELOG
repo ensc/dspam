@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091125:0940] sbajic: Fix Web UI access in admin area to userdir in case of domainscale and a username beginning with @ or in case of empty domain
+
 [20091125:0930] sbajic: Fix Web UI access to userdir in case of domainscale and a username beginning with @
 
 [20091118:1700] sbajic: Require @ in username for fallbackDomains to work and don't allow calling ctx_init() without or with empty username

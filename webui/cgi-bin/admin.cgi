@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.19 2009/08/17 23:56:21 sbajic Exp $
+# $Id: admin.cgi,v 1.20 2009/11/25 09:42:38 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -795,6 +795,9 @@ sub GetPath {
   if ($CONFIG{'DOMAIN_SCALE'} == 1) {
     $VPOPUSERNAME = (split(/@/, $UN))[0];
     $VPOPDOMAIN = (split(/@/, $UN))[1];
+    $VPOPDOMAIN = "local" if ($VPOPDOMAIN eq "");
+    ($VPOPUSERNAME = $VPOPDOMAIN, $VPOPDOMAIN = "local") if ($VPOPUSERNAME eq "" && $VPOPDOMAIN ne "");
+
     $USER = "$CONFIG{'DSPAM_HOME'}/data/$VPOPDOMAIN/$VPOPUSERNAME/$VPOPUSERNAME";
 
   # Normal scale
