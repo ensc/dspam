@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.39 2009/08/18 16:49:19 sbajic Exp $
+# $Id: dspam.cgi,v 1.40 2009/11/25 00:38:37 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -1626,6 +1626,7 @@ sub GetPath {
     $VPOPUSERNAME = (split(/@/, $USER))[0];
     $VPOPDOMAIN = (split(/@/, $USER))[1];
     $VPOPDOMAIN = "local" if ($VPOPDOMAIN eq "");
+    ($VPOPUSERNAME = $VPOPDOMAIN, $VPOPDOMAIN = "local") if ($VPOPUSERNAME eq "" && $VPOPDOMAIN ne "");
 
     $PATH = "$CONFIG{'DSPAM_HOME'}/data/$VPOPDOMAIN/$VPOPUSERNAME/" .
             "$VPOPUSERNAME";
