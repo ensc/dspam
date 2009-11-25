@@ -1,0 +1,54 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Control Center</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Prote&ccedil;&atilde;o Estat&iacute;stica de SPAM para <strong>Administrador ($REMOTE_USER$)</strong>
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance">Performance</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Prefer&ecirc;ncias</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alertas</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Quarentena (View)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">An&aacute;lise</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">Hist&oacute;rico</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+O conte&uacute;do da mensagem em quarentena &eacute; mostrado abaixo.
+</p>
+
+<FORM ACTION="$CGI$">
+<INPUT TYPE=HIDDEN NAME=signatureID VALUE="$MESSAGE_ID$">
+<INPUT TYPE=HIDDEN NAME=command VALUE="processFalsePositive">
+<INPUT TYPE=HIDDEN NAME=template VALUE="quarantine">
+<INPUT TYPE=HIDDEN NAME=user VALUE="$REMOTE_USER$">
+<INPUT TYPE=SUBMIT VALUE="Deliver Message"> Clique no bot&atilde;o ao lado para entregar a mensagem se ela <strong>n&atilde;o for</strong> SPAM.
+</FORM>
+<BR>
+<TEXTAREA ROWS=36 COLS=80 READONLY>
+$MESSAGE$
+</TEXTAREA>
+</FORM>
+
+</div>
+
+
+
+</BODY>
+</HTML>
