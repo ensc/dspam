@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.40 2009/11/25 00:38:37 sbajic Exp $
+# $Id: dspam.cgi,v 1.41 2009/11/28 00:26:12 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -531,7 +531,7 @@ _END
   } else {
     $DATA{'SHOW_SELECTOR'} .= "$LANG{'history_show_whitelisted'}";
   }
-  $DATA{'SORT_SELECTOR'} .=  "</a>";
+  $DATA{'SHOW_SELECTOR'} .=  "</a>";
 
   &output(%DATA);
 }
