@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091128:1000] sbajic: Fixed HTML markup error in pt-br/nav_fragment.html
+
 [20091128:0030] sbajic: Fixed HTML markup error in dspam.cgi
 
 [20091126:0050] sbajic: Adding Brazilian Portuguese templates for Web UI (translated by Felipe Szczesny Rout <felipe.rout@al.rs.gov.br>)
