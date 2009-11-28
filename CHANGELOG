@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091128:1000] sbajic: Replaced umlauts in German template to use HTML character encodings
+
 [20091128:1000] sbajic: Fixed HTML markup error in pt-br/nav_fragment.html
 
 [20091128:0030] sbajic: Fixed HTML markup error in dspam.cgi
