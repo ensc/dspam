@@ -1,6 +1,5 @@
-# $Id*
-# Autuconf macros for checking for SQLite
-# Jonathan Zdziarski <jonathan@nuclearelephant.com>
+# $Id: sqlite3_drv.m4,v 1.0 2009/12/01 23:04:08 sbajic Exp $
+# Autoconf macros for checking for SQLite3
 #
 #   Public available macro:
 #       DS_SQLITE3([sqlite_cppflags_out],
@@ -210,7 +209,7 @@ do
             continue
         fi
 
-        AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+        AC_RUN_IFELSE([AC_LANG_PROGRAM([[
             #include <stdio.h>
             #include <sqlite3.h>
             #include <stdlib.h>
