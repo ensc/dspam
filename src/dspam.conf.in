@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.89 2009/11/05 00:27:53 sbajic Exp $
+## $Id: dspam.conf.in,v 1.90 2009/12/02 01:31:19 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -657,7 +657,7 @@ Opt out
 # blacklist and would like to use this information. Spam reporting also drops
 # RABL blacklist files (see http://www.nuclearelephant.com/projects/rabl/). 
 #
-#TrackSources spam nonspam
+#TrackSources spam nonspam virus
 
 #
 # ParseToHeaders: In lieu of setting up individual aliases for each user,

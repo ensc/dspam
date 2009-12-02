@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.380 2009/11/18 07:38:17 sbajic Exp $ */
+/* $Id: dspam.c,v 1.381 2009/12/2 01:32:52 sbajic Exp $ */
 
 /*
  DSPAM
@@ -3671,8 +3671,13 @@ int tracksource(DSPAM_CTX *CTX) {
           if (file != NULL)
             fclose(file);
         }
-      }
-      if (CTX->result != DSR_ISSPAM &&
+      } else if (CTX->result == DSR_ISSPAM &&
+          strcmp(CTX->class, LANG_CLASS_VIRUS) == 0 &&
+          _ds_match_attribute(agent_config, "TrackSources", "virus"))
+      {
+        LOG (LOG_INFO, "infected message from %s", ip);
+      } else if (CTX->result != DSR_ISSPAM &&
+          strcmp(CTX->class, LANG_CLASS_VIRUS) != 0 &&
           _ds_match_attribute(agent_config, "TrackSources", "nonspam"))
       {
         LOG (LOG_INFO, "innocent message from %s", ip);

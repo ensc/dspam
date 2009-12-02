@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091202:0125] sbajic: Gentoo patch 8: Adding "virus" option to TrackSources
+
 [20091201:2310] sbajic: Fixed m4 macros for SQLite/SQLite3
 
 [20091129:1650] sbajic: Fixed and updated man files
