@@ -1,0 +1,142 @@
+<HTML>
+<HEAD><TITLE>Suite Administrativa de DSPAM v3</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Estadisticas de proteccion para <strong>Administrador ($REMOTE_USER$)</strong>
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li id="active"><a id="current" href="$CGI$?$USER$template=status">Estado del Sistema</a></li>
+		<li><a href="$CGI$?$USER$template=user">Estadisticas de usuario</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Gestion</a></li>
+		<li><a href="dspam.cgi">Centro de Control</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+La tabla y gr&aacute;ficos siguientes resumen el trabajo realizado por el filtro.
+</p>
+
+<div class="content">
+	<h3><strong>Resumen</strong></h3>
+			
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>Mensajes</th>
+			<th>Hoy</th>
+			<th>Esta hora</th>
+		</tr>
+		<tr class="rowEven">
+			<td>Spam</td>
+			<td>$SPAM_TODAY$</td>
+			<td>$SPAM_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Validos</td>
+			<td>$NONSPAM_TODAY$</td>
+			<td>$NONSPAM_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Mensajes no cazados</td>
+			<td>$SM_TODAY$</td>
+			<td>$SM_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Falsos positivos</td>
+			<td>$FP_TODAY$</td>
+			<td>$FP_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Inoculaciones</td>
+			<td>$INOC_TODAY$</td>
+			<td>$INOC_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Corpusfeds</td>
+			<td>$CORPUS_TODAY$</td>
+			<td>$CORPUS_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>A&ntilde;adidos a lista blanca</td>
+			<td>$WHITE_TODAY$</td>
+			<td>$WHITE_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Infectados</td>
+			<td>$VIRUS_TODAY$</td>
+			<td>$VIRUS_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>A&ntilde;adidos a lista negra</td>
+			<td>$BLACK_TODAY$</td>
+			<td>$BLACK_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Blocklisted</td>
+			<td>$BLOCK_TODAY$</td>
+			<td>$BLOCK_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowHighlight">
+			<td>Total</td>
+			<td>$TOTAL_TODAY$</td>
+			<td>$TOTAL_THIS_HOUR$</td>
+		</tr>
+	</table>
+
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>Estado</th>
+			<th>Valor actual</th>
+		</tr>
+		<tr class="rowEven">
+			<td>Tiempo medio de procesamiento de mensajes</td>
+			<td>$AVG_PROCESSING_TIME$ sec.</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Mensajes por segundo</td>
+			<td>$AVG_MSG_PER_SECOND$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Procesos de DSPAM ejecutandose</td>
+			<td>$DSPAM_PROCESSES$ processes</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Tiempo online</td>
+			<td>$UPTIME$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Longitud de la cola de mensajes</td>
+			<td>$MAIL_QUEUE$ mensajes</td>
+		</tr>
+	</table>
+</div>
+
+<div class="content">
+	<h3><strong>24 Hour Activity</strong> - $TS_DAILY$ SPAM, $TI_DAILY$ Validos, $SM_DAILY$ Mensajes no cazados, $FP_DAILY$ Falsos positivos, $INOC_DAILY$ Inoculaciones, $CORPUS_DAILY$ Corpusfeds, $WHITE_DAILY$ A&ntilde;adidos a lista blanca, $VIRUS_DAILY$ Virus, $BLACK_DAILY$ A&ntilde;adidos a lista negra, $BLOCK_DAILY$ Blocklisted</h3>
+	<img src="./admingraph.cgi?data=$DATA_DAILY$&x_label=Hour+of+the+day" />
+</div>
+
+<div class="content">
+	<h3><strong>Daily Activity</strong> - $TS_WEEKLY$ SPAM, $TI_WEEKLY$ Validos, $SM_WEEKLY$ Mensajes no cazados, $FP_WEEKLY$ Falsos positivos, $INOC_WEEKLY$ Inoculaciones, $CORPUS_WEEKLY$ Corpusfeds, $WHITE_WEEKLY$ A&ntilde;adidos a lista blanca, $VIRUS_WEEKLY$ Virus, $BLACK_WEEKLY$ A&ntilde;adidos a lista negra, $BLOCK_WEEKLY$ Blocklisted</h3>
+	<img src="./admingraph.cgi?data=$DATA_WEEKLY$&graph=period&x_label=Date" />
+</div>
+
+</div>
+
+
+
+</body>
+</html>

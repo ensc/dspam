@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.75 2009/11/26 00:50:46 sbajic Exp $
+dnl $Id: configure.ac,v 1.76 2009/12/03 02:53:28 sbajic Exp $
 dnl
 dnl    autoconf (GNU Autoconf) 2.59
 dnl    ltmain.sh (GNU libtool) 1.5.6
@@ -822,6 +822,7 @@ AC_CONFIG_FILES([src/tools.mysql_drv/Makefile])
 AC_CONFIG_FILES([txt/Makefile src/tools.pgsql_drv/Makefile ])
 AC_CONFIG_FILES([src/Makefile webui/cgi-bin/templates/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/templates/de/Makefile])
+AC_CONFIG_FILES([webui/cgi-bin/templates/es-es/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/templates/fr/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/templates/he/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/templates/pt-br/Makefile])

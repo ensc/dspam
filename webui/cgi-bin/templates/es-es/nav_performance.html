@@ -1,0 +1,107 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Centro de Control</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		$FORM_USER$
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li id="active"><a id="current" href="$CGI$?$USER$template=performance">Rendimiento</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Ajustes</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alertas</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">Mensajes en cuarentena ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">Analisis</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">Historial</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Si recibes un mensaje en tu buz&oacute;n que es spam y que el filtro no ha marcado, por favor reenv&iacute;alo a
+<strong>spam-$REMOTE_USER$$LOCAL_DOMAIN$</strong> para que pueda ser analizado y el filtro aprenda que es spam. Esto mejorar&aacute; la fiabilidad del filtro para el futuro
+</p>
+
+<div class="content">
+	<h3><strong>Estad&iacute;sticas de rendimiento</strong> - $TIME$</h3>
+
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>Metrica</th>
+			<th>&nbsp;</th>
+			<th>Calculado como</th>
+		</tr>
+		<tr class="rowEven">
+			<td>Precisi&oacute;n general (desde el ultimo reset)</td>
+			<td><strong>$OVERALL_ACCURACY$%</strong></td>
+			<td class="rowDivider"><span class="small">(Mensajes cazados + Mensajes validos entregados) / Numero total de mensajes</span></td>
+		</tr>
+                <tr class="rowOdd">
+                        <td>Identificaci&oacute;n de spam (desde el ultimo reset)</td>
+                        <td><strong>$SPAM_ACCURACY$%</strong></td>
+                        <td class="rowDivider"><span class="small">(Solo filtro spam)</td>
+               </tr>
+		<tr class="rowEven">
+			<td>Ratio de spam (of total processed)</td>
+			<td><strong>$SPAM_RATIO$%</strong></td>
+			<td class="rowDivider"><span class="small">Total SPAM mensajes (both caught & missed) / Total number of mensajes</span></td>
+		</tr>
+	</table>
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>&nbsp;</th>
+			<th>SPAM mensajes</th>
+			<th>Validos mensajes</th>
+		</tr>
+		<tr class="rowEven">
+			<td rowspan="3" valign="top" nowrap>Since last reset</td>
+			<td>$TOTAL_SPAM_MISSED$ missed</td>
+			<td>$TOTAL_NONSPAM_MISSED$ missed</td>
+		</tr>
+		<tr class="rowEven">
+			<td>$TOTAL_SPAM_CAUGHT$ caught</td>
+			<td>$TOTAL_NONSPAM_CAUGHT$ delivered</td>
+		</tr>
+		<tr class="rowEven">
+			<td>$SPAM_ACCURACY$% caught</td>
+			<td>$NONSPAM_ERROR_RATE$% missed</td>
+		</tr>
+		<tr class="rowOdd">
+			<td rowspan="2" valign="top" nowrap>Total processed by filter</td>
+			<td>$TOTAL_SPAM_LEARNED$ missed</td>
+			<td>$TOTAL_NONSPAM_LEARNED$ missed</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>$TOTAL_SPAM_SCANNED$ caught</td>
+			<td>$TOTAL_NONSPAM_SCANNED$ delivered</td>
+		</tr>
+		<tr class="rowEven">
+			<td valign="top" nowrap>From corpus</td>
+			<td>$TOTAL_SPAM_CORPUSFED$ fed</td>
+			<td>$TOTAL_NONSPAM_CORPUSFED$ fed</td>
+		</tr>
+	</table>
+
+	<p>
+		<a href="$CGI$?$USER$command=resetStats" title="Reset the statistics">Reset</a> | <a href="$CGI$?$USER$command=tweak" title="Adjustment for mensajes that are forwarded to the filter">Tweak -1</a>
+	</p>
+</div>
+
+</div>
+
+
+
+</body>
+</html>

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.24 2009/11/26 00:46:51 sbajic Exp $
+# $Id: Makefile.am,v 1.25 2009/12/03 02:53:01 sbajic Exp $
 #
 
 bin_SCRIPTS = configure_pl
@@ -17,6 +17,7 @@ EXTRA_DIST =            \
 SUBDIRS = 		\
 	templates	\
 	templates/de	\
+	templates/es-es	\
 	templates/fr	\
 	templates/he	\
 	templates/pt-br	\

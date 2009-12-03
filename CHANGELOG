@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091203:0255] sbajic: Adding Spanish templates for Web UI (translated by Daniel Sánchez Pearson <danielsanchez@hachete.com>)
+
 [20091202:0125] sbajic: Gentoo patch 8: Adding "virus" option to TrackSources
 
 [20091201:2310] sbajic: Fixed m4 macros for SQLite/SQLite3
