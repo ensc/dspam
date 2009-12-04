@@ -42,13 +42,13 @@ Marca los mensajes y luego usa las opciones para <strong>entregar los mensajes</
 <input type="hidden" name="template" value="quarantine" >
 <input type="hidden" name="user" value="$REMOTE_USER$" >
 <input type="hidden" name="sortby" value="$SORTBY$" >
-<input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
+<input type="submit" value="Entregar marcados" NAME="manyNotSpam" >
 &nbsp;
-<input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED mensajes in quarantine?')==false) { return false; }" />
+<input type="submit" value="Borrar mensajes marcados" onClick="if (confirm('&iquest;Est&aacute;s seguro de querer eliminar los mensajes SELECCIONADOS en la cuarentena?')==false) { return false; }" />
 <a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
-	document.forms[1].elements[j].checked = true; } } return false'>Select 200.</a>
+	document.forms[1].elements[j].checked = true; } } return false'>Seleccionar 200.</a>
 &nbsp;
-<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Are you sure you want to delete ALL mensajes in quarantine?')==false) { return false; }" >
+<input type="submit" value="Eliminar TODOS" name="deleteAll" onClick="if (confirm('&iquest;Est&aacute;s SEGURO de querer eliminar TODOS los mensajes en la cuarentena?')==false) { return false; }" >
 
 </p>
 <table border="0" cellspacing="0" cellpadding="2" width="100%">
@@ -60,13 +60,13 @@ $QUARANTINE$
 </table>
 
 <p>
-<input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
+<input type="submit" value="Entregar marcados" NAME="manyNotSpam" >
 &nbsp;
-<input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED mensajes in quarantine?')==false) { return false; }" />
+<input type="submit" value="Delete Checked" onClick="if (confirm('&iquest;Est&aacute;s seguro de querer eliminar los mensajes SELECCIONADOS en la cuarentena?')==false) { return false; }" />
 <a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
-	document.forms[1].elements[j].checked = true; } } return false'>Select 200.</a>
+	document.forms[1].elements[j].checked = true; } } return false'>Seleccionar 200.</a>
 &nbsp;
-<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Are you sure you want to delete ALL mensajes in quarantine?')==false) { return false; }" />
+<input type="submit" value="Eliminar TODOS" name="deleteAll" onClick="if (confirm('&iquest;Est&aacute;s SEGURO de querer eliminar TODOS los mensajes en la cuarentena?')==false) { return false; }" />
 </p>
 
 </form>
