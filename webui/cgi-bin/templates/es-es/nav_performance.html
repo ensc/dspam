@@ -56,7 +56,7 @@ Si recibes un mensaje en tu buz&oacute;n que es spam y que el filtro no ha marca
 		<tr class="rowEven">
 			<td>Ratio de spam (del total de procesados)</td>
 			<td><strong>$SPAM_RATIO$%</strong></td>
-			<td class="rowDivider"><span class="small">Total de mensajes SPAM (cazados + validos entregados) / N&uacute;mero total de mensajes</span></td>
+			<td class="rowDivider"><span class="small">Total de mensajes SPAM (cazados + fallados) / N&uacute;mero total de mensajes</span></td>
 		</tr>
 	</table>
 	<table border="0" cellspacing="0" cellpadding="4">
@@ -66,7 +66,7 @@ Si recibes un mensaje en tu buz&oacute;n que es spam y que el filtro no ha marca
 			<th>Mensajes v&aacute;lidos</th>
 		</tr>
 		<tr class="rowEven">
-			<td rowspan="3" valign="top" nowrap>Desde el reajuste pasado</td>
+			<td rowspan="3" valign="top" nowrap>Desde el &uacute;ltimo reset</td>
 			<td>$TOTAL_SPAM_MISSED$ fallados</td>
 			<td>$TOTAL_NONSPAM_MISSED$ fallados</td>
 		</tr>
@@ -80,15 +80,15 @@ Si recibes un mensaje en tu buz&oacute;n que es spam y que el filtro no ha marca
 		</tr>
 		<tr class="rowOdd">
 			<td rowspan="2" valign="top" nowrap>Total procesados por el filtro</td>
-			<td>$TOTAL_SPAM_LEARNED$ faltados</td>
-			<td>$TOTAL_NONSPAM_LEARNED$ faltados</td>
+			<td>$TOTAL_SPAM_LEARNED$ fallados</td>
+			<td>$TOTAL_NONSPAM_LEARNED$ fallados</td>
 		</tr>
 		<tr class="rowOdd">
 			<td>$TOTAL_SPAM_SCANNED$ cazados</td>
-			<td>$TOTAL_NONSPAM_SCANNED$ entregado</td>
+			<td>$TOTAL_NONSPAM_SCANNED$ entregados</td>
 		</tr>
 		<tr class="rowEven">
-			<td valign="top" nowrap>De copus</td>
+			<td valign="top" nowrap>De corpus</td>
 			<td>$TOTAL_SPAM_CORPUSFED$ alimentados</td>
 			<td>$TOTAL_NONSPAM_CORPUSFED$ alimentados</td>
 		</tr>

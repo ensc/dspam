@@ -35,7 +35,7 @@ Esta p&aacute;gina te permite cambiar las preferencias para cualquier usuario. T
 
 <p>
 Nombre de usuario:
-<INPUT NAME=username VALUE=$USERNAME$> <INPUT TYPE=SUBMIT VALUE=Edit>
+<INPUT NAME=username VALUE=$USERNAME$> <INPUT TYPE=SUBMIT VALUE="Cambiar">
 </p>
 
 <p>
@@ -50,9 +50,9 @@ $ERROR$
 <tr><td>
 DSPAM deber&iacute;a aprender:<br><br>
 <INPUT TYPE=RADIO NAME=trainingMode VALUE="TEFT" $S_TEFT$>
-En cada mensaje procesado por el filtror<BR>
+En cada mensaje procesado por el filtro<BR>
 <INPUT TYPE=RADIO NAME=trainingMode VALUE="TOE" $S_TOE$>
-S&oacute;lo cuando el filtro se equivoca<BR>
+S&oacute;lo cuando el filtro se equivoque<BR>
 <INPUT TYPE=RADIO NAME=trainingMode VALUE="TUM" $S_TUM$>
 S&oacute;lo con nueva informaci&oacute;n o cuando el filtro se equivoque
 </td><td width=20>
@@ -68,7 +68,7 @@ Que DSPAM a&ntilde;ada su firma como <u>un adjunto</u><BR>
 </table>
 
 <p>
-Sensibilidad del filtro <strong>durante</strong> el periodo de aprendizaje:<br>
+Sensibilidad del filtro <strong>durante el periodo de aprendizaje</strong>:<br>
 <span class="small">Cazar m&aacute;s SPAM (M&aacute;s mensajes ir&aacute;n inicialmente a la cuarentena)</span>
     <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=0 $SEDATION_0$>
     <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=1 $SEDATION_1$>
@@ -91,7 +91,7 @@ Sensibilidad del filtro <strong>durante</strong> el periodo de aprendizaje:<br>
 <p>
 Cuando un mensaje es identificado como spam:<br><br>
 <INPUT TYPE=RADIO NAME=spamAction VALUE="quarantine" $S_ACTION_QUARANTINE$>Poner el mensaje en cuarentena<BR>
-<INPUT TYPE=RADIO NAME=spamAction VALUE="tag" $S_ACTION_TAG$>A&ntilde;adir el siguiente mensaje al Asunto <INPUT NAME=spamSubject VALUE="$SPAM_SUBJECT$" SIZE=8><BR>
+<INPUT TYPE=RADIO NAME=spamAction VALUE="tag" $S_ACTION_TAG$>A&ntilde;adir el siguiente mensaje en el Asunto <INPUT NAME=spamSubject VALUE="$SPAM_SUBJECT$" SIZE=8><BR>
 <INPUT TYPE=RADIO NAME=spamAction VALUE="deliver" $S_ACTION_DELIVER$>Entregar el mensaje normalmente, pero a&ntilde;adirle una cabecera deX-DSPAM-Result<BR>
 </p>
 
