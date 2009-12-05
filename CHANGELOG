@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091205:1550] sbajic: Fixing HTML tags and some translation errors in German Web UI template
+
 [20091204:1430] sbajic: Removed old and obsolete .cvsignore files
 
 [20091204:1255] sbajic: Translating some left English elements in the Spanish templates for Web UI

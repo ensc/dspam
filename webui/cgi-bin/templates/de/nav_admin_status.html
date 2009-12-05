@@ -1,11 +1,12 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD><TITLE>DSPAM v3 Verwaltungsbereich</TITLE>
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 </HEAD>
-<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
 <div id="header">
 	<div id="logo">
-		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
@@ -13,7 +14,7 @@
 	</div>
 </div>
 
-<br clear="left" />
+<br clear="left">
 
 <div id="navcontainer">
 	<ul id="navlist">
@@ -126,12 +127,12 @@ Die folgenden Grafiken und Tabellen fassen die Verarbeitung des Filters zusammen
 
 <div class="content">
 	<h3><strong>24 Std. Aktivit&auml;t</strong> - $TS_DAILY$ SPAM, $TI_DAILY$ Gut, $SM_DAILY$ &Uuml;bersehener Spam, $FP_DAILY$ Falsch positives Ergebnis, $INOC_DAILY$ Einimpfungen, $CORPUS_DAILY$ Korpuszufuhr, $WHITE_DAILY$ Whitelisted, $VIRUS_DAILY$ Virus, $BLACK_DAILY$ Blacklisted, $BLOCK_DAILY$ Blocklisted</h3>
-	<img src="./admingraph.cgi?data=$DATA_DAILY$&x_label=Hour+of+the+day" />
+	<img src="./admingraph.cgi?data=$DATA_DAILY$&amp;x_label=Stunde+des+Tages">
 </div>
 
 <div class="content">
 	<h3><strong>Tages Aktivit&auml;t</strong> - $TS_WEEKLY$ SPAM, $TI_WEEKLY$ Gut, $SM_WEEKLY$ &Uuml;bersehener Spam, $FP_WEEKLY$ Falsch positives Ergebnis, $INOC_WEEKLY$ Einimpfungen, $CORPUS_WEEKLY$ Korpuszufuhr, $WHITE_WEEKLY$ Whitelisted, $VIRUS_WEEKLY$ Virus, $BLACK_WEEKLY$ Blacklisted, $BLOCK_WEEKLY$ Blocklisted</h3>
-	<img src="./admingraph.cgi?data=$DATA_WEEKLY$&graph=period&x_label=Date" />
+	<img src="./admingraph.cgi?data=$DATA_WEEKLY$&amp;graph=period&amp;x_label=Datum">
 </div>
 
 </div>
