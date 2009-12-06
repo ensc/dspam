@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091206:1730] sbajic: Prettifying dspam.conf and extending the notes on some configuration options
+
 [20091205:1550] sbajic: Fixing HTML tags and some translation errors in German Web UI template
 
 [20091204:1430] sbajic: Removed old and obsolete .cvsignore files
