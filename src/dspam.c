@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.381 2009/12/2 01:32:52 sbajic Exp $ */
+/* $Id: dspam.c,v 1.382 2009/12/06 18:06:42 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1788,7 +1788,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
     ATX->PTX = load_aggregated_prefs(ATX, username);
     if (!strcmp(_ds_pref_val(ATX->PTX, "fallbackDomain"), "on")) {
-      if (!strcmp(username, "@")) {
+      if (username != NULL && strchr(username, '@')) {
         char *domain = strchr(username, '@');
         username = domain;
       } else {
@@ -4088,7 +4088,7 @@ agent_pref_t load_aggregated_prefs(AGENT_CTX *ATX, const char *username) {
                       _ds_read_attribute(agent_config, "Home"), ATX->dbh);
 
   if (!UTX && _ds_match_attribute(agent_config, "FallbackDomains", "on")) {
-    if (!strcmp(username, "@")) {
+    if (username != NULL && strchr(username, '@')) {
       char *domain = strchr(username, '@');
       if (domain) {
         UTX = _ds_pref_load(agent_config,
