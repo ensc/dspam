@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.41 2009/11/28 00:26:12 sbajic Exp $
+# $Id: dspam.cgi,v 1.42 2009/12/09 01:28:56 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -607,10 +607,9 @@ sub DisplayAnalysis {
   foreach my $period (qw( daily weekly )) {
     my $uc_period=uc($period);
     my $hk="DATA_$uc_period";
-    my %lst=();
+    my %lst=(spam => [], nonspam => [], title => []);
     foreach my $hr (sort {$a->{idx}<=>$b->{idx}} (values %{$Stats{$period}})) {
       foreach my $type (qw( spam nonspam title )) {
-        (exists $lst{$type}) || ($lst{$type}=[]);
         push(@{$lst{$type}},$hr->{$type});
         my $totk="";
         if ($type eq "spam") { $totk="S"; }

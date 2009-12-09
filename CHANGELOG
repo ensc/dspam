@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091209:0130] sbajic: Fixing issue with empty historical data by preinitializing empty variables for the history chart/view
+
 [20091206:1840] sbajic: Fixing problem with fallbackDomains
 
 [20091206:1730] sbajic: Prettifying dspam.conf and extending the notes on some configuration options
