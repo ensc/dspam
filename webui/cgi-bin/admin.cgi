@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.20 2009/11/25 09:42:38 sbajic Exp $
+# $Id: admin.cgi,v 1.21 2009/12/12 04:49:27 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -53,6 +53,7 @@ do {
     chomp;
     if ($_ eq $ENV{'REMOTE_USER'}) {
       $admin = 1;
+      last;
     }
   }
   close(FILE);

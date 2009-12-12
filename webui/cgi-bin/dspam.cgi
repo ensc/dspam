@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.42 2009/12/09 01:28:56 sbajic Exp $
+# $Id: dspam.cgi,v 1.43 2009/12/12 04:40:57 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -69,7 +69,7 @@ if ($CONFIG{'AUTODETECT'} == 1 || $CONFIG{'AUTODETECT'} eq "") {
     if ($x =~ /--enable-domain-scale/) {
       $CONFIG{'DOMAIN_SCALE'} = 1;
     }
-  };
+  }
 }
 
 #
@@ -83,6 +83,7 @@ if ($ENV{'REMOTE_USER'} ne "") {
     chomp;
     if ($_ eq $ENV{'REMOTE_USER'}) {
       $CONFIG{'ADMIN'} = 1;
+      last;
     }
   }
   close(FILE);
@@ -237,25 +238,23 @@ sub DisplayHistory {
 
   if ($FORM{'command'} eq "retrainChecked") {
     foreach my $i (0 .. $#{ $FORM{retrain_checked} }) {
-        my ($retrain, $signature) = split(/:/, $FORM{retrain_checked}[$i]);
-        if ($retrain eq "innocent") {
-          $FORM{'signatureID'} = $signature;
-          &ProcessFalsePositive();
-          undef $FORM{'signatureID'};
-         } elsif ($retrain eq "innocent" or $retrain eq "spam") {
-           system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($retrain) . " --signature=" . quotemeta($signature) . " --user " . quotemeta("$CURRENT_USER"));
-         }
+      my ($retrain, $signature) = split(/:/, $FORM{retrain_checked}[$i]);
+      if ($retrain eq "innocent") {
+        $FORM{'signatureID'} = $signature;
+        &ProcessFalsePositive();
+        undef $FORM{'signatureID'};
+      } elsif ($retrain eq "innocent" or $retrain eq "spam") {
+        system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($retrain) . " --signature=" . quotemeta($signature) . " --user " . quotemeta("$CURRENT_USER"));
+      }
     }
-  redirect("$MYURL&show=$show&history_page=$history_page");
-  } else {
-    if ($FORM{'retrain'} ne "") {
-       if ($FORM{'retrain'} eq "innocent") {
-         &ProcessFalsePositive();
-       } else {
-         system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($FORM{'retrain'}) . " --signature=" . quotemeta($FORM{'signatureID'}) . " --user " . quotemeta("$CURRENT_USER"));
-       }
     redirect("$MYURL&show=$show&history_page=$history_page");
+  } elsif ($FORM{'retrain'} ne "") {
+    if ($FORM{'retrain'} eq "innocent") {
+      &ProcessFalsePositive();
+    } else {
+      system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($FORM{'retrain'}) . " --signature=" . quotemeta($FORM{'signatureID'}) . " --user " . quotemeta("$CURRENT_USER"));
     }
+    redirect("$MYURL&show=$show&history_page=$history_page");
   }
 
   my($LOG) = "$USER.log";
@@ -283,7 +282,7 @@ sub DisplayHistory {
         $rec{$signature}->{'info'} = $info 
           if ($rec{$signature}->{'info'} eq "");
       }
-      # filter out resents if there are any.  Since it's the same
+      # filter out resents if there are any. Since it's the same
       # message we only allow retraining on the 1st occurence of it.
     } elsif ($messageid == ''
 	     || $rec{$signature}->{'messageid'} != $messageid
@@ -489,7 +488,7 @@ _END
     $DATA{'HISTORYPAGES'} = "<div class=\"historypages\">[";
     if (($history_pages > 1) && ($history_page > 1)) {
       my $i = $history_page-1;
-      $DATA{'HISTORYPAGES'} = "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\">&nbsp;&lt;&nbsp;</a>";
+      $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\">&nbsp;&lt;&nbsp;</a>";
     }
     for(my $i = 1; $i <= $history_pages; $i++) {
   
@@ -619,6 +618,10 @@ sub DisplayAnalysis {
         (exists $DATA{$sk}) || ($DATA{$sk}=0);
         $DATA{$sk}+=$hr->{$type};
       }
+    }
+    foreach my $type (qw( spam nonspam title )) {
+      (exists $lst{$type}) || ($lst{$type}=[]);
+      @{$lst{$type}} = (0) if (scalar(@{$lst{$type}}) == 0);
     }
     $DATA{$hk}=join("_",
 		join(",",@{$lst{spam}}),
@@ -1499,7 +1502,7 @@ sub redirect {
   print "Cache-control: no-cache\n";
   print "Location: $loc\n\n";
   exit(0);
-  }
+}
 
 sub output {
   if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
@@ -1531,7 +1534,7 @@ sub output {
     } else {
       s/\$USER\$//g;
     }
-    s/\$([A-Z0-9_]*)\$/$DATA{$1}/g; 
+    s/\$([A-Z0-9_]*)\$/$DATA{$1}/g;
     print;
   }
   close(FILE);
@@ -1657,7 +1660,9 @@ sub GetPrefs {
   my($FILE) = "$USER.prefs";
 
   if ($CONFIG{'PREFERENCES_EXTENSION'} == 1) {
-    open(PIPE, "$CONFIG{'DSPAM_BIN'}/dspam_admin agg pref " . quotemeta($CURRENT_USER) . "|");
+    my $PREF_USER = $CURRENT_USER;
+    $PREF_USER = "default" if($CURRENT_USER eq "");
+    open(PIPE, "$CONFIG{'DSPAM_BIN'}/dspam_admin agg pref " . quotemeta($PREF_USER) . "|");
     while(<PIPE>) {
       chomp;
       my($directive, $value) = split(/\=/);
