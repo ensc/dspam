@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+# $Id: configure.pl,v 1.00 2009/12/12 05:51:21 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -31,35 +32,35 @@ $CONFIG{'DSPAM_ARGS'}	= "--deliver=innocent --class=innocent " .
                           "--source=error --user %CURRENT_USER% -d %u";
 $CONFIG{'TEMPLATES'}	= "./templates";	# Location of HTML templates
 $CONFIG{'DSPAM_PROCESSES'} = "ps auxw | grep dspam | grep -v 'grep\|cgi\|sock' | wc -l"; # use ps -deaf for Solaris
-$CONFIG{'MAIL_QUEUE'}   = "mailq | grep '^[0-9,A-F]\{10,12\}[\t ][\t ]*[1-9]' | wc -l";
+$CONFIG{'MAIL_QUEUE'}	= "mailq | grep '^[0-9,A-F]\{10,12\}[\t ][\t ]*[1-9]' | wc -l";
 
-$CONFIG{'WEB_ROOT'}     = ""; # URL location of included htdocs/ files
+$CONFIG{'WEB_ROOT'}	= ""; # URL location of included htdocs/ files
 
 # Default DSPAM display
-#$CONFIG{'DATE_FORMAT'}  = "%d.%m.%Y %H:%M"; # Date format in strftime style
+#$CONFIG{'DATE_FORMAT'}	= "%d.%m.%Y %H:%M"; # Date format in strftime style
 					     # if undefined use default DSPAM display format
-$CONFIG{'HISTORY_SIZE'} = 799;		# Number of items in history
-$CONFIG{'HISTORY_PER_PAGE'} = 100;
+$CONFIG{'HISTORY_SIZE'}	= 799;		# Number of items in history
+$CONFIG{'HISTORY_PER_PAGE'} = 100;	# Number of items per page
 $CONFIG{'HISTORY_DUPLICATES'} = "yes";	# Wether to show duplicate entries in history "yes" or "no"
 $CONFIG{'MAX_COL_LEN'}	= 50;		# Max chars in list columns
 $CONFIG{'SORT_DEFAULT'}	= "Rating";	# Show quarantine by "Date" or "Rating"
-$CONFIG{'3D_GRAPHS'}	= 1;
+$CONFIG{'3D_GRAPHS'}	= 1;		# 0=graphs in 2D, 1=graphs in 3D
 $CONFIG{'OPTMODE'}	= "NONE";	# OUT=OptOut IN=OptIn NONE=not selectable
 $CONFIG{'LOCAL_DOMAIN'}	= "localhost";
 
 # Add customized settings below
 $CONFIG{'LOCAL_DOMAIN'}	= "yourdomain.com";
 
-$ENV{'PATH'} = "$ENV{'PATH'}:$CONFIG{'DSPAM_BIN'}";
+$ENV{'PATH'}		= "$ENV{'PATH'}:$CONFIG{'DSPAM_BIN'}";
 
 # Autodetect filesystem layout and preference options
-$CONFIG{'AUTODETECT'} = 1;
+$CONFIG{'AUTODETECT'}	= 1;
 
 # Or, if you're running dspam.cgi as untrusted, it won't be able to auto-detect
 # so you will need to specify some features manually:
-#$CONFIG{'AUTODETECT'} = 0;
-#$CONFIG{'LARGE_SCALE'} = 0;
-#$CONFIG{'DOMAIN_SCALE'} = 0;
+#$CONFIG{'AUTODETECT'}	= 0;
+#$CONFIG{'LARGE_SCALE'}	= 0;
+#$CONFIG{'DOMAIN_SCALE'}= 0;
 #$CONFIG{'PREFERENCES_EXTENSION'} = 0;
 
 # Get DSPAM version

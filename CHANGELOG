@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091212:0550] sbajic: Adding more comments to conigure.pl.in for the Web UI
+
 [20091212:0545] sbajic: Fixing various issues in the CGI scripts for the Web UI
 
 [20091209:0130] sbajic: Fixing issue with empty historical data by preinitializing empty variables for the history chart/view
