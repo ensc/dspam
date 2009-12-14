@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.43 2009/12/12 04:40:57 sbajic Exp $
+# $Id: dspam.cgi,v 1.44 2009/12/14 14:18:41 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -454,6 +454,10 @@ sub DisplayHistory {
       $retrain_action = qq! <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)">$retrain</td>!;
     }
 
+    # HTMLize special characters
+    $from=htmlize($from);
+    $subject=htmlize($subject);
+
     my($entry) = <<_END;
 <tr>
 	<td class="$cl $rowclass" nowrap="true"><small>$cllabel</td>
@@ -485,24 +489,25 @@ _END
   while($line = pop(@history)) { $DATA{'HISTORY'} .= $line; }
 
   if ($CONFIG{'HISTORY_PER_PAGE'} > 0) {
-    $DATA{'HISTORYPAGES'} = "<div class=\"historypages\">[";
+    $DATA{'HISTORYPAGES'} = "<div class=\"historypages\">";
+    $DATA{'HISTORYPAGES'} .= "[" if ($history_pages > 0);
     if (($history_pages > 1) && ($history_page > 1)) {
       my $i = $history_page-1;
       $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\">&nbsp;&lt;&nbsp;</a>";
     }
     for(my $i = 1; $i <= $history_pages; $i++) {
-  
-      if ($i == $history_page) {
-        $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\"><big><strong>&nbsp;$i&nbsp;</strong></big></a>";
-      } else {
-        $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\">&nbsp;$i&nbsp;</a>";
-      }
+      $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\">";
+      $DATA{'HISTORYPAGES'} .= "<big><strong>" if ($i == $history_page);
+      $DATA{'HISTORYPAGES'} .= "&nbsp;$i&nbsp;";
+      $DATA{'HISTORYPAGES'} .= "</big></strong>" if ($i == $history_page);
+      $DATA{'HISTORYPAGES'} .= "</a>";
     }
     if (($history_pages > 1) && ($history_page < $history_pages)) {
       my $i = $history_page+1;
       $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\">&nbsp;&gt;&nbsp;</a>";
     }
-    $DATA{'HISTORYPAGES'} .= "]</div>";
+    $DATA{'HISTORYPAGES'} .= "]" if ($history_pages > 0);
+    $DATA{'HISTORYPAGES'} .= "</div>";
   }
 
   $DATA{'SHOW'} = $show;
@@ -1494,6 +1499,393 @@ _end
 #
 # Global Functions
 #
+
+sub htmlize {
+  #
+  # Replace some characters
+  # to be HTML characters
+  #
+  my($text) = @_;
+  my %html_char_table = ();
+  $html_char_table{ 'A0' } = '&nbsp;';
+  $html_char_table{ 'A1' } = '&iexcl;';
+  $html_char_table{ 'A2' } = '&cent;';
+  $html_char_table{ 'A3' } = '&pound;';
+  $html_char_table{ 'A4' } = '&curren;';
+  $html_char_table{ 'A5' } = '&yen;';
+  $html_char_table{ 'A6' } = '&brvbar;';
+  $html_char_table{ 'A7' } = '&sect;';
+  $html_char_table{ 'A8' } = '&uml;';
+  $html_char_table{ 'A9' } = '&copy;';
+  $html_char_table{ 'AA' } = '&ordf;';
+  $html_char_table{ 'AB' } = '&laquo;';
+  $html_char_table{ 'AC' } = '&not;';
+  $html_char_table{ 'AD' } = '&shy;';
+  $html_char_table{ 'AE' } = '&reg;';
+  $html_char_table{ 'AF' } = '&macr;';
+  $html_char_table{ 'B0' } = '&deg;';
+  $html_char_table{ 'B1' } = '&plusmn;';
+  $html_char_table{ 'B2' } = '&sup2;';
+  $html_char_table{ 'B3' } = '&sup3;';
+  $html_char_table{ 'B4' } = '&acute;';
+  $html_char_table{ 'B5' } = '&micro;';
+  $html_char_table{ 'B6' } = '&para;';
+  $html_char_table{ 'B7' } = '&middot;';
+  $html_char_table{ 'B8' } = '&cedil;';
+  $html_char_table{ 'B9' } = '&sup1;';
+  $html_char_table{ 'BA' } = '&ordm;';
+  $html_char_table{ 'BB' } = '&raquo;';
+  $html_char_table{ 'BC' } = '&frac14;';
+  $html_char_table{ 'BD' } = '&frac12;';
+  $html_char_table{ 'BE' } = '&frac34;';
+  $html_char_table{ 'BF' } = '&iquest;';
+  $html_char_table{ 'C0' } = '&Agrave;';
+  $html_char_table{ 'C1' } = '&Aacute;';
+  $html_char_table{ 'C2' } = '&Acirc;';
+  $html_char_table{ 'C3' } = '&Atilde;';
+  $html_char_table{ 'C4' } = '&Auml;';
+  $html_char_table{ 'C5' } = '&Aring;';
+  $html_char_table{ 'C6' } = '&AElig;';
+  $html_char_table{ 'C7' } = '&Ccedil;';
+  $html_char_table{ 'C8' } = '&Egrave;';
+  $html_char_table{ 'C9' } = '&Eacute;';
+  $html_char_table{ 'CA' } = '&Ecirc;';
+  $html_char_table{ 'CB' } = '&Euml;';
+  $html_char_table{ 'CC' } = '&Igrave;';
+  $html_char_table{ 'CD' } = '&Iacute;';
+  $html_char_table{ 'CE' } = '&Icirc;';
+  $html_char_table{ 'CF' } = '&Iuml;';
+  $html_char_table{ 'D0' } = '&ETH;';
+  $html_char_table{ 'D1' } = '&Ntilde;';
+  $html_char_table{ 'D2' } = '&Ograve;';
+  $html_char_table{ 'D3' } = '&Oacute;';
+  $html_char_table{ 'D4' } = '&Ocirc;';
+  $html_char_table{ 'D5' } = '&Otilde;';
+  $html_char_table{ 'D6' } = '&Ouml;';
+  $html_char_table{ 'D7' } = '&times;';
+  $html_char_table{ 'D8' } = '&Oslash;';
+  $html_char_table{ 'D9' } = '&Ugrave;';
+  $html_char_table{ 'DA' } = '&Uacute;';
+  $html_char_table{ 'DB' } = '&Ucirc;';
+  $html_char_table{ 'DC' } = '&Uuml;';
+  $html_char_table{ 'DD' } = '&Yacute;';
+  $html_char_table{ 'DE' } = '&THORN;';
+  $html_char_table{ 'DF' } = '&szlig;';
+  $html_char_table{ 'E0' } = '&agrave;';
+  $html_char_table{ 'E1' } = '&aacute;';
+  $html_char_table{ 'E2' } = '&acirc;';
+  $html_char_table{ 'E3' } = '&atilde;';
+  $html_char_table{ 'E4' } = '&auml;';
+  $html_char_table{ 'E5' } = '&aring;';
+  $html_char_table{ 'E6' } = '&aelig;';
+  $html_char_table{ 'E7' } = '&ccedil;';
+  $html_char_table{ 'E8' } = '&egrave;';
+  $html_char_table{ 'E9' } = '&eacute;';
+  $html_char_table{ 'EA' } = '&ecirc;';
+  $html_char_table{ 'EB' } = '&euml;';
+  $html_char_table{ 'EC' } = '&igrave;';
+  $html_char_table{ 'ED' } = '&iacute;';
+  $html_char_table{ 'EE' } = '&icirc;';
+  $html_char_table{ 'EF' } = '&iuml;';
+  $html_char_table{ 'F0' } = '&eth;';
+  $html_char_table{ 'F1' } = '&ntilde;';
+  $html_char_table{ 'F2' } = '&ograve;';
+  $html_char_table{ 'F3' } = '&oacute;';
+  $html_char_table{ 'F4' } = '&ocirc;';
+  $html_char_table{ 'F5' } = '&otilde;';
+  $html_char_table{ 'F6' } = '&ouml;';
+  $html_char_table{ 'F7' } = '&divide;';
+  $html_char_table{ 'F8' } = '&oslash;';
+  $html_char_table{ 'F9' } = '&ugrave;';
+  $html_char_table{ 'FA' } = '&uacute;';
+  $html_char_table{ 'FB' } = '&ucirc;';
+  $html_char_table{ 'FC' } = '&uuml;';
+  $html_char_table{ 'FD' } = '&yacute;';
+  $html_char_table{ 'FE' } = '&thorn;';
+  $html_char_table{ 'FF' } = '&yuml;';
+
+  my %html_additional_char_table = ();
+  $html_additional_char_table{ '\\xC4\\x80' } = '&#x100;';
+  $html_additional_char_table{ '\\xC4\\x81' } = '&#x101;';
+  $html_additional_char_table{ '\\xC4\\x82' } = '&#x102;';
+  $html_additional_char_table{ '\\xC4\\x83' } = '&#x103;';
+  $html_additional_char_table{ '\\xC4\\x84' } = '&#x104;';
+  $html_additional_char_table{ '\\xC4\\x85' } = '&#x105;';
+  $html_additional_char_table{ '\\xC4\\x86' } = '&#x106;';
+  $html_additional_char_table{ '\\xC4\\x87' } = '&#x107;';
+  $html_additional_char_table{ '\\xC4\\x88' } = '&#x108;';
+  $html_additional_char_table{ '\\xC4\\x89' } = '&#x109;';
+  $html_additional_char_table{ '\\xC4\\x8A' } = '&#x10A;';
+  $html_additional_char_table{ '\\xC4\\x8B' } = '&#x10B;';
+  $html_additional_char_table{ '\\xC4\\x8C' } = '&#x10C;';
+  $html_additional_char_table{ '\\xC4\\x8D' } = '&#x10D;';
+  $html_additional_char_table{ '\\xC4\\x8E' } = '&#x10E;';
+  $html_additional_char_table{ '\\xC4\\x8F' } = '&#x10F;';
+  $html_additional_char_table{ '\\xC4\\x90' } = '&#x110;';
+  $html_additional_char_table{ '\\xC4\\x91' } = '&#x111;';
+  $html_additional_char_table{ '\\xC4\\x92' } = '&#x112;';
+  $html_additional_char_table{ '\\xC4\\x93' } = '&#x113;';
+  $html_additional_char_table{ '\\xC4\\x94' } = '&#x114;';
+  $html_additional_char_table{ '\\xC4\\x95' } = '&#x115;';
+  $html_additional_char_table{ '\\xC4\\x96' } = '&#x116;';
+  $html_additional_char_table{ '\\xC4\\x97' } = '&#x117;';
+  $html_additional_char_table{ '\\xC4\\x98' } = '&#x118;';
+  $html_additional_char_table{ '\\xC4\\x99' } = '&#x119;';
+  $html_additional_char_table{ '\\xC4\\x9A' } = '&#x11A;';
+  $html_additional_char_table{ '\\xC4\\x9B' } = '&#x11B;';
+  $html_additional_char_table{ '\\xC4\\x9C' } = '&#x11C;';
+  $html_additional_char_table{ '\\xC4\\x9D' } = '&#x11D;';
+  $html_additional_char_table{ '\\xC4\\x9E' } = '&#x11E;';
+  $html_additional_char_table{ '\\xC4\\x9F' } = '&#x11F;';
+  $html_additional_char_table{ '\\xC4\\xA0' } = '&#x120;';
+  $html_additional_char_table{ '\\xC4\\xA1' } = '&#x121;';
+  $html_additional_char_table{ '\\xC4\\xA2' } = '&#x122;';
+  $html_additional_char_table{ '\\xC4\\xA3' } = '&#x123;';
+  $html_additional_char_table{ '\\xC4\\xA4' } = '&#x124;';
+  $html_additional_char_table{ '\\xC4\\xA5' } = '&#x125;';
+  $html_additional_char_table{ '\\xC4\\xA6' } = '&#x126;';
+  $html_additional_char_table{ '\\xC4\\xA7' } = '&#x127;';
+  $html_additional_char_table{ '\\xC4\\xA8' } = '&#x128;';
+  $html_additional_char_table{ '\\xC4\\xA9' } = '&#x129;';
+  $html_additional_char_table{ '\\xC4\\xAA' } = '&#x12A;';
+  $html_additional_char_table{ '\\xC4\\xAB' } = '&#x12B;';
+  $html_additional_char_table{ '\\xC4\\xAC' } = '&#x12C;';
+  $html_additional_char_table{ '\\xC4\\xAD' } = '&#x12D;';
+  $html_additional_char_table{ '\\xC4\\xAE' } = '&#x12E;';
+  $html_additional_char_table{ '\\xC4\\xAF' } = '&#x12F;';
+  $html_additional_char_table{ '\\xC4\\xB0' } = '&#x130;';
+  $html_additional_char_table{ '\\xC4\\xB1' } = '&#x131;';
+  $html_additional_char_table{ '\\xC4\\xB2' } = '&#x132;';
+  $html_additional_char_table{ '\\xC4\\xB3' } = '&#x133;';
+  $html_additional_char_table{ '\\xC4\\xB4' } = '&#x134;';
+  $html_additional_char_table{ '\\xC4\\xB5' } = '&#x135;';
+  $html_additional_char_table{ '\\xC4\\xB6' } = '&#x136;';
+  $html_additional_char_table{ '\\xC4\\xB7' } = '&#x137;';
+  $html_additional_char_table{ '\\xC4\\xB8' } = '&#x138;';
+  $html_additional_char_table{ '\\xC4\\xB9' } = '&#x139;';
+  $html_additional_char_table{ '\\xC4\\xBA' } = '&#x13A;';
+  $html_additional_char_table{ '\\xC4\\xBB' } = '&#x13B;';
+  $html_additional_char_table{ '\\xC4\\xBC' } = '&#x13C;';
+  $html_additional_char_table{ '\\xC4\\xBD' } = '&#x13D;';
+  $html_additional_char_table{ '\\xC4\\xBE' } = '&#x13E;';
+  $html_additional_char_table{ '\\xC4\\xBF' } = '&#x13F;';
+  $html_additional_char_table{ '\\xC5\\x80' } = '&#x140;';
+  $html_additional_char_table{ '\\xC5\\x81' } = '&#x141;';
+  $html_additional_char_table{ '\\xC5\\x82' } = '&#x142;';
+  $html_additional_char_table{ '\\xC5\\x83' } = '&#x143;';
+  $html_additional_char_table{ '\\xC5\\x84' } = '&#x144;';
+  $html_additional_char_table{ '\\xC5\\x85' } = '&#x145;';
+  $html_additional_char_table{ '\\xC5\\x86' } = '&#x146;';
+  $html_additional_char_table{ '\\xC5\\x87' } = '&#x147;';
+  $html_additional_char_table{ '\\xC5\\x88' } = '&#x148;';
+  $html_additional_char_table{ '\\xC5\\x89' } = '&#x149;';
+  $html_additional_char_table{ '\\xC5\\x8A' } = '&#x14A;';
+  $html_additional_char_table{ '\\xC5\\x8B' } = '&#x14B;';
+  $html_additional_char_table{ '\\xC5\\x8C' } = '&#x14C;';
+  $html_additional_char_table{ '\\xC5\\x8D' } = '&#x14D;';
+  $html_additional_char_table{ '\\xC5\\x8E' } = '&#x14E;';
+  $html_additional_char_table{ '\\xC5\\x8F' } = '&#x14F;';
+  $html_additional_char_table{ '\\xC5\\x90' } = '&#x150;';
+  $html_additional_char_table{ '\\xC5\\x91' } = '&#x151;';
+  $html_additional_char_table{ '\\xC5\\x92' } = '&#x152;';
+  $html_additional_char_table{ '\\xC5\\x93' } = '&#x153;';
+  $html_additional_char_table{ '\\xC5\\x94' } = '&#x154;';
+  $html_additional_char_table{ '\\xC5\\x95' } = '&#x155;';
+  $html_additional_char_table{ '\\xC5\\x96' } = '&#x156;';
+  $html_additional_char_table{ '\\xC5\\x97' } = '&#x157;';
+  $html_additional_char_table{ '\\xC5\\x98' } = '&#x158;';
+  $html_additional_char_table{ '\\xC5\\x99' } = '&#x159;';
+  $html_additional_char_table{ '\\xC5\\x9A' } = '&#x15A;';
+  $html_additional_char_table{ '\\xC5\\x9B' } = '&#x15B;';
+  $html_additional_char_table{ '\\xC5\\x9C' } = '&#x15C;';
+  $html_additional_char_table{ '\\xC5\\x9D' } = '&#x15D;';
+  $html_additional_char_table{ '\\xC5\\x9E' } = '&#x15E;';
+  $html_additional_char_table{ '\\xC5\\x9F' } = '&#x15F;';
+  $html_additional_char_table{ '\\xC5\\xA0' } = '&#x160;';
+  $html_additional_char_table{ '\\xC5\\xA1' } = '&#x161;';
+  $html_additional_char_table{ '\\xC5\\xA2' } = '&#x162;';
+  $html_additional_char_table{ '\\xC5\\xA3' } = '&#x163;';
+  $html_additional_char_table{ '\\xC5\\xA4' } = '&#x164;';
+  $html_additional_char_table{ '\\xC5\\xA5' } = '&#x165;';
+  $html_additional_char_table{ '\\xC5\\xA6' } = '&#x166;';
+  $html_additional_char_table{ '\\xC5\\xA7' } = '&#x167;';
+  $html_additional_char_table{ '\\xC5\\xA8' } = '&#x168;';
+  $html_additional_char_table{ '\\xC5\\xA9' } = '&#x169;';
+  $html_additional_char_table{ '\\xC5\\xAA' } = '&#x16A;';
+  $html_additional_char_table{ '\\xC5\\xAB' } = '&#x16B;';
+  $html_additional_char_table{ '\\xC5\\xAC' } = '&#x16C;';
+  $html_additional_char_table{ '\\xC5\\xAD' } = '&#x16D;';
+  $html_additional_char_table{ '\\xC5\\xAE' } = '&#x16E;';
+  $html_additional_char_table{ '\\xC5\\xAF' } = '&#x16F;';
+  $html_additional_char_table{ '\\xC5\\xB0' } = '&#x170;';
+  $html_additional_char_table{ '\\xC5\\xB1' } = '&#x171;';
+  $html_additional_char_table{ '\\xC5\\xB2' } = '&#x172;';
+  $html_additional_char_table{ '\\xC5\\xB3' } = '&#x173;';
+  $html_additional_char_table{ '\\xC5\\xB4' } = '&#x174;';
+  $html_additional_char_table{ '\\xC5\\xB5' } = '&#x175;';
+  $html_additional_char_table{ '\\xC5\\xB6' } = '&#x176;';
+  $html_additional_char_table{ '\\xC5\\xB7' } = '&#x177;';
+  $html_additional_char_table{ '\\xC5\\xB8' } = '&#x178;';
+  $html_additional_char_table{ '\\xC5\\xB9' } = '&#x179;';
+  $html_additional_char_table{ '\\xC5\\xBA' } = '&#x17A;';
+  $html_additional_char_table{ '\\xC5\\xBB' } = '&#x17B;';
+  $html_additional_char_table{ '\\xC5\\xBC' } = '&#x17C;';
+  $html_additional_char_table{ '\\xC5\\xBD' } = '&#x17D;';
+  $html_additional_char_table{ '\\xC5\\xBE' } = '&#x17E;';
+  $html_additional_char_table{ '\\xC5\\xBF' } = '&#x17F;';
+  $html_additional_char_table{ '\\xC6\\x80' } = '&#x180;';
+  $html_additional_char_table{ '\\xC6\\x81' } = '&#x181;';
+  $html_additional_char_table{ '\\xC6\\x82' } = '&#x182;';
+  $html_additional_char_table{ '\\xC6\\x83' } = '&#x183;';
+  $html_additional_char_table{ '\\xC6\\x84' } = '&#x184;';
+  $html_additional_char_table{ '\\xC6\\x85' } = '&#x185;';
+  $html_additional_char_table{ '\\xC6\\x86' } = '&#x186;';
+  $html_additional_char_table{ '\\xC6\\x87' } = '&#x187;';
+  $html_additional_char_table{ '\\xC6\\x88' } = '&#x188;';
+  $html_additional_char_table{ '\\xC6\\x89' } = '&#x189;';
+  $html_additional_char_table{ '\\xC6\\x8A' } = '&#x18A;';
+  $html_additional_char_table{ '\\xC6\\x8B' } = '&#x18B;';
+  $html_additional_char_table{ '\\xC6\\x8C' } = '&#x18C;';
+  $html_additional_char_table{ '\\xC6\\x8D' } = '&#x18D;';
+  $html_additional_char_table{ '\\xC6\\x8E' } = '&#x18E;';
+  $html_additional_char_table{ '\\xC6\\x8F' } = '&#x18F;';
+  $html_additional_char_table{ '\\xC6\\x90' } = '&#x190;';
+  $html_additional_char_table{ '\\xC6\\x91' } = '&#x191;';
+  $html_additional_char_table{ '\\xC6\\x92' } = '&#x192;';
+  $html_additional_char_table{ '\\xC6\\x93' } = '&#x193;';
+  $html_additional_char_table{ '\\xC6\\x94' } = '&#x194;';
+  $html_additional_char_table{ '\\xC6\\x95' } = '&#x195;';
+  $html_additional_char_table{ '\\xC6\\x96' } = '&#x196;';
+  $html_additional_char_table{ '\\xC6\\x97' } = '&#x197;';
+  $html_additional_char_table{ '\\xC6\\x98' } = '&#x198;';
+  $html_additional_char_table{ '\\xC6\\x99' } = '&#x199;';
+  $html_additional_char_table{ '\\xC6\\x9A' } = '&#x19A;';
+  $html_additional_char_table{ '\\xC6\\x9B' } = '&#x19B;';
+  $html_additional_char_table{ '\\xC6\\x9C' } = '&#x19C;';
+  $html_additional_char_table{ '\\xC6\\x9D' } = '&#x19D;';
+  $html_additional_char_table{ '\\xC6\\x9E' } = '&#x19E;';
+  $html_additional_char_table{ '\\xC6\\x9F' } = '&#x19F;';
+  $html_additional_char_table{ '\\xC6\\xA0' } = '&#x1A0;';
+  $html_additional_char_table{ '\\xC6\\xA1' } = '&#x1A1;';
+  $html_additional_char_table{ '\\xC6\\xA2' } = '&#x1A2;';
+  $html_additional_char_table{ '\\xC6\\xA3' } = '&#x1A3;';
+  $html_additional_char_table{ '\\xC6\\xA4' } = '&#x1A4;';
+  $html_additional_char_table{ '\\xC6\\xA5' } = '&#x1A5;';
+  $html_additional_char_table{ '\\xC6\\xA6' } = '&#x1A6;';
+  $html_additional_char_table{ '\\xC6\\xA7' } = '&#x1A7;';
+  $html_additional_char_table{ '\\xC6\\xA8' } = '&#x1A8;';
+  $html_additional_char_table{ '\\xC6\\xA9' } = '&#x1A9;';
+  $html_additional_char_table{ '\\xC6\\xAA' } = '&#x1AA;';
+  $html_additional_char_table{ '\\xC6\\xAB' } = '&#x1AB;';
+  $html_additional_char_table{ '\\xC6\\xAC' } = '&#x1AC;';
+  $html_additional_char_table{ '\\xC6\\xAD' } = '&#x1AD;';
+  $html_additional_char_table{ '\\xC6\\xAE' } = '&#x1AE;';
+  $html_additional_char_table{ '\\xC6\\xAF' } = '&#x1AF;';
+  $html_additional_char_table{ '\\xC6\\xB0' } = '&#x1B0;';
+  $html_additional_char_table{ '\\xC6\\xB1' } = '&#x1B1;';
+  $html_additional_char_table{ '\\xC6\\xB2' } = '&#x1B2;';
+  $html_additional_char_table{ '\\xC6\\xB3' } = '&#x1B3;';
+  $html_additional_char_table{ '\\xC6\\xB4' } = '&#x1B4;';
+  $html_additional_char_table{ '\\xC6\\xB5' } = '&#x1B5;';
+  $html_additional_char_table{ '\\xC6\\xB6' } = '&#x1B6;';
+  $html_additional_char_table{ '\\xC6\\xB7' } = '&#x1B7;';
+  $html_additional_char_table{ '\\xC6\\xB8' } = '&#x1B8;';
+  $html_additional_char_table{ '\\xC6\\xB9' } = '&#x1B9;';
+  $html_additional_char_table{ '\\xC6\\xBA' } = '&#x1BA;';
+  $html_additional_char_table{ '\\xC6\\xBB' } = '&#x1BB;';
+  $html_additional_char_table{ '\\xC6\\xBC' } = '&#x1BC;';
+  $html_additional_char_table{ '\\xC6\\xBD' } = '&#x1BD;';
+  $html_additional_char_table{ '\\xC6\\xBE' } = '&#x1BE;';
+  $html_additional_char_table{ '\\xC6\\xBF' } = '&#x1BF;';
+  $html_additional_char_table{ '\\xC7\\x80' } = '&#x1C0;';
+  $html_additional_char_table{ '\\xC7\\x81' } = '&#x1C1;';
+  $html_additional_char_table{ '\\xC7\\x82' } = '&#x1C2;';
+  $html_additional_char_table{ '\\xC7\\x83' } = '&#x1C3;';
+  $html_additional_char_table{ '\\xC7\\x84' } = '&#x1C4;';
+  $html_additional_char_table{ '\\xC7\\x85' } = '&#x1C5;';
+  $html_additional_char_table{ '\\xC7\\x86' } = '&#x1C6;';
+  $html_additional_char_table{ '\\xC7\\x87' } = '&#x1C7;';
+  $html_additional_char_table{ '\\xC7\\x88' } = '&#x1C8;';
+  $html_additional_char_table{ '\\xC7\\x89' } = '&#x1C9;';
+  $html_additional_char_table{ '\\xC7\\x8A' } = '&#x1CA;';
+  $html_additional_char_table{ '\\xC7\\x8B' } = '&#x1CB;';
+  $html_additional_char_table{ '\\xC7\\x8C' } = '&#x1CC;';
+  $html_additional_char_table{ '\\xC7\\x8D' } = '&#x1CD;';
+  $html_additional_char_table{ '\\xC7\\x8E' } = '&#x1CE;';
+  $html_additional_char_table{ '\\xC7\\x8F' } = '&#x1CF;';
+  $html_additional_char_table{ '\\xC7\\x90' } = '&#x1D0;';
+  $html_additional_char_table{ '\\xC7\\x91' } = '&#x1D1;';
+  $html_additional_char_table{ '\\xC7\\x92' } = '&#x1D2;';
+  $html_additional_char_table{ '\\xC7\\x93' } = '&#x1D3;';
+  $html_additional_char_table{ '\\xC7\\x94' } = '&#x1D4;';
+  $html_additional_char_table{ '\\xC7\\x95' } = '&#x1D5;';
+  $html_additional_char_table{ '\\xC7\\x96' } = '&#x1D6;';
+  $html_additional_char_table{ '\\xC7\\x97' } = '&#x1D7;';
+  $html_additional_char_table{ '\\xC7\\x98' } = '&#x1D8;';
+  $html_additional_char_table{ '\\xC7\\x99' } = '&#x1D9;';
+  $html_additional_char_table{ '\\xC7\\x9A' } = '&#x1DA;';
+  $html_additional_char_table{ '\\xC7\\x9B' } = '&#x1DB;';
+  $html_additional_char_table{ '\\xC7\\x9C' } = '&#x1DC;';
+  $html_additional_char_table{ '\\xC7\\x9D' } = '&#x1DD;';
+  $html_additional_char_table{ '\\xC7\\x9E' } = '&#x1DE;';
+  $html_additional_char_table{ '\\xC7\\x9F' } = '&#x1DF;';
+  $html_additional_char_table{ '\\xC7\\xA0' } = '&#x1E0;';
+  $html_additional_char_table{ '\\xC7\\xA1' } = '&#x1E1;';
+  $html_additional_char_table{ '\\xC7\\xA2' } = '&#x1E2;';
+  $html_additional_char_table{ '\\xC7\\xA3' } = '&#x1E3;';
+  $html_additional_char_table{ '\\xC7\\xA4' } = '&#x1E4;';
+  $html_additional_char_table{ '\\xC7\\xA5' } = '&#x1E5;';
+  $html_additional_char_table{ '\\xC7\\xA6' } = '&#x1E6;';
+  $html_additional_char_table{ '\\xC7\\xA7' } = '&#x1E7;';
+  $html_additional_char_table{ '\\xC7\\xA8' } = '&#x1E8;';
+  $html_additional_char_table{ '\\xC7\\xA9' } = '&#x1E9;';
+  $html_additional_char_table{ '\\xC7\\xAA' } = '&#x1EA;';
+  $html_additional_char_table{ '\\xC7\\xAB' } = '&#x1EB;';
+  $html_additional_char_table{ '\\xC7\\xAC' } = '&#x1EC;';
+  $html_additional_char_table{ '\\xC7\\xAD' } = '&#x1ED;';
+  $html_additional_char_table{ '\\xC7\\xAE' } = '&#x1EE;';
+  $html_additional_char_table{ '\\xC7\\xAF' } = '&#x1EF;';
+  $html_additional_char_table{ '\\xC7\\xB0' } = '&#x1F0;';
+  $html_additional_char_table{ '\\xC7\\xB1' } = '&#x1F1;';
+  $html_additional_char_table{ '\\xC7\\xB2' } = '&#x1F2;';
+  $html_additional_char_table{ '\\xC7\\xB3' } = '&#x1F3;';
+  $html_additional_char_table{ '\\xC7\\xB4' } = '&#x1F4;';
+  $html_additional_char_table{ '\\xC7\\xB5' } = '&#x1F5;';
+  $html_additional_char_table{ '\\xC7\\xB6' } = '&#x1F6;';
+  $html_additional_char_table{ '\\xC7\\xB7' } = '&#x1F7;';
+  $html_additional_char_table{ '\\xC7\\xB8' } = '&#x1F8;';
+  $html_additional_char_table{ '\\xC7\\xB9' } = '&#x1F9;';
+  $html_additional_char_table{ '\\xC7\\xBA' } = '&#x1FA;';
+  $html_additional_char_table{ '\\xC7\\xBB' } = '&#x1FB;';
+  $html_additional_char_table{ '\\xC7\\xBC' } = '&#x1FC;';
+  $html_additional_char_table{ '\\xC7\\xBD' } = '&#x1FD;';
+  $html_additional_char_table{ '\\xC7\\xBE' } = '&#x1FE;';
+  $html_additional_char_table{ '\\xC7\\xBF' } = '&#x1FF;';
+
+  # First do the special characters
+  while ( my ($hex_key_reg, $html_char) = each(%html_additional_char_table) ) {
+    $text =~ s!$hex_key_reg!$html_char!g;
+  }
+
+  # Then do our quick and dirty UTF-8 (it's wider then latin)
+  while ( my ($hex_key, $html_char) = each(%html_char_table) ) {
+    my $hex_utf8_reg;
+    if (hex("0x$hex_key") >= 192) {
+      $hex_utf8_reg = '\\xC3\\x' . uc(sprintf("%x", hex("0x$hex_key")-64));
+    } else {
+      $hex_utf8_reg = '\\xC2\\x' . $hex_key;
+    }
+    $text =~ s!$hex_utf8_reg!$html_char!g;
+  }
+
+  # Then do latin
+  while ( my ($hex_key, $html_char) = each(%html_char_table) ) {
+    my $hex_latin_reg = '\\x' . $hex_key;
+    $text =~ s!$hex_latin_reg!$html_char!g;
+  }
+
+  return $text;
+}
 
 sub redirect {
   my($loc) = @_;
