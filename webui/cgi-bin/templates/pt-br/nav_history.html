@@ -1,0 +1,85 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Centro de Controle</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+                $FORM_USER$
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance">Performance</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Prefer&ecirc;ncias</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alertas</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">Quarentena ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">An&aacute;lise</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=history&history_page=1">Hist&oacute;rico</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+As mensagens que foram processadas pelo filtro s&atilde;o exibidas abaixo. As mais recentes s&atilde;o mostradas primeiro.<br> 
+Use a op&ccedil;&atilde;o retreinar para corrigir erros e despachar qualquer falso positivo que ainda esteja na quarentena.
+</p>
+
+<form name="history" action="dspam.cgi" method="POST">
+<input type="submit" value="Retrain Checked">
+<input type="hidden" name="template" value="history">
+<input type="hidden" name="command" value="retrainChecked">
+<input type="hidden" name="user" value="$REMOTE_USER$">
+<input type="hidden" name="show" value="$SHOW$" >
+
+&nbsp;&nbsp;$SHOW_SELECTOR$
+
+<table border="0" cellspacing="0" cellpadding="2" width="100%">
+<tr>
+	<th>Tipo</th>
+        <th>Retreinar</th>
+	<th>Dia/Hora</th>
+	<th>De</th>
+	<th>Assunto</th>
+	<th>Informa&ccedil;&atilde;o Adicional</th>
+</tr>
+$HISTORY$
+</table>
+
+$HISTORYPAGES$
+
+<input type="submit" value="Retrain Checked">
+</form>
+
+</div>
+
+
+
+<script language="javascript">
+<!--
+var remote = null;
+
+function openwin(width, height, scroll, url) {
+  remote = window.open('', 'SpecialIntro', 'width=' + width + ',height='
+                  + height + ',resizable=1,dependent,scrollbars=' + scroll +
+                  ',status=0');
+  if (remote != null) {
+    if (remote.opener == null) { remote.opener = self; }
+    remote.location.href = url;
+  }
+}
+//-->
+</script>
+
+</BODY>
+</HTML>

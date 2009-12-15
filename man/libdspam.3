@@ -1,31 +1,33 @@
-.\" $Id: libdspam.3,v 1.8 2007/12/07 00:15:31 mjohnson Exp $
+.\" $Id: libdspam.3,v 1.9 2009/11/29 16:35:37 sbajic Exp $
 .\"  -*- nroff -*-
 .\"
-.\" dspam3.8
+.\" dspam3.9
 .\"
-.\" Authors:    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+.\" Authors:	Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+.\"		Stevan Bajic <stevan@bajic.ch>
 .\"
 .\" Copyright (c) 2002-2009 DSPAM Project
 .\" All rights reserved
 .\"
-.TH libdspam 3  "Sep 29, 2004" "libdspam" "libdspam"
+.TH libdspam 3  "Nov 29, 2009" "libdspam" "libdspam"
 
 .SH NAME
-libdspam, dspam_init, dspam_create, dspam_addattribute, dspam_attach, dspam_process, dspam_getsource, dspam_detach, dspam_clearattributes, dspam_destroy 
+libdspam, dspam_init, dspam_create, dspam_addattribute, dspam_attach, dspam_process,
+dspam_getsource, dspam_detach, dspam_clearattributes, dspam_destroy
 .PP
-DSPAM Core Analyis Engine Functions
+\fBDSPAM\fP Core Analyis Engine Functions
 
 .SH SYNOPSIS
 .nf
 .B #include <libdspam.h>
 .sp
-.BI "DSPAM_CTX *dspam_init(const char *" user ", const char *" group ", " 
-.BI "  const char *" home ", int " mode ", u_int32_t " flags ");"
+.BI "DSPAM_CTX *dspam_init(const char *" username ", const char *" group ", "
+.BI "  const char *" home ", int " operating_mode ", u_int32_t " flags ");"
 .sp
-.BI "DSPAM_CTX *dspam_create(const char *" user ", const char *" group ", "
-.BI "  const char *" home ", int " mode ", u_int32_t " flags ");"
+.BI "DSPAM_CTX *dspam_create(const char *" username ", const char *" group ", "
+.BI "  const char *" home ", int " operating_mode ", u_int32_t " flags ");"
 .sp
-.BI "int dspam_addattribute(DSPAM_CTX *" CTX ", const char *" name ", "
+.BI "int dspam_addattribute(DSPAM_CTX *" CTX ", const char *" key ", "
 .BI "  const char *" value ");"
 .sp
 .BI "int dspam_clearattributes(DSPAM_CTX *" CTX ");"
@@ -52,15 +54,15 @@ read and write information stored for the user and group specified. The
 base directory specified. The \fBmode\fP specifies the operating mode to
 initialize the classification context with and may be one of:
 .PP
- \fBDSM_PROCESS\fP   Process the message and return a result
- \fBDSM_CLASSIFY\fP  Classify message only, no learning
+ \fBDSM_PROCESS\fP   Classify and learn the supplied message using whatever training mode is specified
+ \fBDSM_CLASSIFY\fP  Classify the supplied message only; do not learn or update any counters.
  \fBDSM_TOOLS\fP     No processing, attach to storage only
 .PP
 The \fBflags\fP provided further tune the classification context for a specific
 function. Multiple flags may be OR'd together.
 .PP
- \fBDSF_CHAINED\fP   Use a Chained (Multi-Word) Tokenizer  
- \fBDSF_SBPH\fP      Use Sparse Binary Polynomial Hashing Tokenizer
+ \fBDSF_UNLEARN\fP   Unlearn the message
+ \fBDSF_BIAS\fP      Assign processor bias to unknown tokens
  \fBDSF_SIGNATURE\fP A binary signature is requested/provided
  \fBDSF_NOISE\fP     Apply Bayesian Noise Reduction logic
  \fBDSF_WHITELIST\fP Use automatic whitelisting logic
@@ -138,10 +140,11 @@ no longer needed. If a connection was established to storage internally,
 the connection is closed and all data is flushed and written. If a 
 handle was attached, the handle will remain open.
 .PP 
-.SH AUTHORS
-.LP
-
-Jonathan A. Zdziarski
+.SH COPYRIGHT
+Copyright \(co 2002\-2009 DSPAM Project
+.br
+All rights reserved.
+.br
 
 For more information, see http://dspam.sourceforge.net.
 

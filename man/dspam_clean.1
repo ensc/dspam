@@ -1,21 +1,26 @@
-.\" $Id: dspam_clean.1,v 1.6 2007/03/18 16:55:07 jonz Exp $
+.\" $Id: dspam_clean.1,v 1.7 2009/11/29 02:54:06 sbajic Exp $
 .\"  -*- nroff -*-
 .\"
-.\" dspam_clean3.8
+.\" dspam_clean3.9
 .\"
-.\" Authors:    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+.\" Authors:	Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+.\"		Stevan Bajic <stevan@bajic.ch>
 .\"
 .\" Copyright (c) 2002-2009 DSPAM Project
 .\" All rights reserved
 .\"
-.TH dspam_clean 1  "May 31, 2004" "DSPAM" "DSPAM"
+.TH dspam_clean 1  "Nov 29, 2009" "DSPAM" "DSPAM"
 
 .SH NAME
-dspam_clean - perform periodic maintenance of metadata
+dspam_clean \- perform periodic maintenance of metadata
 
 .SH SYNOPSIS
 .na
 .B dspam_clean
+[\c
+.B \--profile\c
+=PROFILE\c
+]
 [\c
 .I \-s[signature_life]\fR\c
 ]
@@ -23,10 +28,10 @@ dspam_clean - perform periodic maintenance of metadata
 .I \-p[probability_life]\fR\c
 ]
 [\c
-.I \-u[sl,hcl,shl,ihl]\fR
+.I \-u[sl,hcl,shl,ihl]\fR\c
 ]
 [\c
-.I \ user1 user2 ... userN \fR
+.I user1 user2 ... userN\fR\c
 ]
 
 .ad
@@ -38,6 +43,13 @@ deleting old or useless data.
 
 .SH OPTIONS
 .LP
+
+.ne 3
+.TP
+.BI \ \--profile= \PROFILE\c
+Specify a storage profile from dspam.conf. The storage profile selected will be used
+for all database connectivity. See dspam.conf for more information.
+
 .ne 3
 .TP
 .BI \-s\fR\c
@@ -73,7 +85,7 @@ Tokens witha single spam hit
 .B ihl
 Tokens with a single innocent hit
 
-Ages may be overridden by specifying a format string, such as -u30,15,10,10
+Ages may be overridden by specifying a format string, such as \-u30,15,10,10
 where each number represents the respective life. Specifying a life of zero
 will delete all unused tokens in the category.
 
@@ -96,10 +108,11 @@ Operation was successful.
 Operation resulted in an error. 
 .PD
 
-.SH AUTHORS
-.LP
-
-Jonathan A. Zdziarski
+.SH COPYRIGHT
+Copyright \(co 2002\-2009 DSPAM Project
+.br
+All rights reserved.
+.br
 
 For more information, see http://dspam.sourceforge.net.
 

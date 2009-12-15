@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.863 2009/10/12 09:19:17 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.867 2009/11/13 22:25:20 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1676,16 +1676,30 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   return 0;
 }
 
+/*
+ * _ds_get_nextuser()
+ *
+ * DESCRIPTION
+ *   The _ds_get_nextuser() function is called to get the next user from the
+ *   classification context. Calling this function repeatedly will return all
+ *   users one by one.
+ *
+ * RETURN VALUES
+ *   returns username on success, NULL on failure or when all usernames have
+ *   already been returned for the classification context. When there are no
+ *   more users to return then iter_user of the storage driver is set to NULL.
+ */
+
 char *
 _ds_get_nextuser (DSPAM_CTX * CTX)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
 #ifndef VIRTUAL_USERS
   struct passwd *p;
-  uid_t uid;
 #else
   char *virtual_table, *virtual_username;
 #endif
+  uid_t uid;
   char query[256];
   MYSQL_ROW row;
 
@@ -1734,29 +1748,37 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     return NULL;
   }
 
-#ifdef VIRTUAL_USERS
-  strlcpy (s->u_getnextuser, row[0], sizeof (s->u_getnextuser));
-#else
   uid = (uid_t) atoi (row[0]);
   if (uid == INT_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nextuser: failed converting %s to uid", row[0]);
-    mysql_free_result (s->iter_user);
-    s->iter_user = NULL;
     return NULL;
   }
+#ifdef VIRTUAL_USERS
+  strlcpy (s->u_getnextuser, row[0], sizeof (s->u_getnextuser));
+#else
   p = _mysql_drv_getpwuid (CTX, uid);
   if (p == NULL)
-  {
-    mysql_free_result (s->iter_user);
-    s->iter_user = NULL;
     return NULL;
-  }
 
   strlcpy (s->u_getnextuser, p->pw_name, sizeof (s->u_getnextuser));
 #endif
 
   return s->u_getnextuser;
 }
+
+/*
+ * _ds_get_nexttoken()
+ *
+ * DESCRIPTION
+ *   The _ds_get_nexttoken() function is called to get the next token from the
+ *   classification context. Calling this function repeatedly will return all
+ *   tokens for a user or group one by one.
+ *
+ * RETURN VALUES
+ *   returns token on success, NULL on failure or when all tokens have already
+ *   been returned for the user or group. When there are no more tokens to return
+ *   then iter_token of the storage driver is set to NULL.
+ */
 
 struct _ds_storage_record *
 _ds_get_nexttoken (DSPAM_CTX * CTX)
@@ -1805,22 +1827,20 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
       LOGDEBUG ("_ds_get_nexttoken: unable to run query: %s", query);
-      free(st);
-      st = NULL;
-      return NULL;
+      goto FAIL;
     }
 
     s->iter_token = mysql_use_result (s->dbt->dbh_read);
-    if (s->iter_token == NULL) {
-      free(st);
-      st = NULL;
-      return NULL;
-    }
+    if (s->iter_token == NULL)
+      goto FAIL;
   }
 
   row = mysql_fetch_row (s->iter_token);
-  if (row == NULL)
+  if (row == NULL) {
+    mysql_free_result (s->iter_token);
+    s->iter_token = NULL;
     goto FAIL;
+  }
 
   st->token = strtoull (row[0], NULL, 0);
   if (st->token == ULLONG_MAX && errno == ERANGE) {
@@ -1842,15 +1862,27 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     LOGDEBUG("_ds_get_nexttoken: failed converting %s to st->last_hit", row[3]);
     goto FAIL;
   }
+
   return st;
 
 FAIL:
-  mysql_free_result (s->iter_token);
-  s->iter_token = NULL;
   free(st);
-  st = NULL;
   return NULL;
 }
+
+/*
+ * _ds_get_nextsignature()
+ *
+ * DESCRIPTION
+ *   The _ds_get_nextsignature() function is called to get the next signature
+ *   from the classification context. Calling this function repeatedly will return
+ *   all signatures for a user or group one by one.
+ *
+ * RETURN VALUES
+ *   returns signature on success, NULL on failure or when all signatures have
+ *   already been returned for the user or group. When there are no more signatures
+ *   to return then iter_sig of the storage driver is set to NULL.
+ */
 
 struct _ds_storage_signature *
 _ds_get_nextsignature (DSPAM_CTX * CTX)
@@ -1901,22 +1933,20 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
       LOGDEBUG ("_ds_get_nextsignature: unable to run query: %s", query);
-      free(st);
-      st = NULL;
-      return NULL;
+      goto FAIL;
     }
 
     s->iter_sig = mysql_use_result (s->dbt->dbh_read);
-    if (s->iter_sig == NULL) {
-      free(st);
-      st = NULL;
-      return NULL;
-    }
+    if (s->iter_sig == NULL)
+      goto FAIL;
   }
 
   row = mysql_fetch_row (s->iter_sig);
-  if (row == NULL)
+  if (row == NULL) {
+    mysql_free_result (s->iter_sig);
+    s->iter_sig = NULL;
     goto FAIL;
+  }
 
   lengths = mysql_fetch_lengths (s->iter_sig);
   if (lengths == NULL || lengths[0] == 0)
@@ -1943,19 +1973,10 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     goto FAIL;
   }
 
-  if (s->iter_sig != NULL) {
-    mysql_free_result (s->iter_sig);
-    s->iter_sig = NULL;
-  }
   return st;
 
 FAIL:
-  if (s->iter_sig != NULL) {
-    mysql_free_result (s->iter_sig);
-    s->iter_sig = NULL;
-  }
   free(st);
-  st = NULL;
   return NULL;
 }
 
@@ -2913,6 +2934,7 @@ MYSQL *_mysql_drv_connect (DSPAM_CTX *CTX, const char *prefix)
       else if (i == 1) {
         port = atoi (buffer);
         if (port == INT_MAX && errno == ERANGE) {
+          fclose (file);
           LOGDEBUG("_mysql_drv_connect: failed converting %s to port", buffer);
           goto FAILURE;
         }

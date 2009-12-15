@@ -21,9 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 CREDITS
 
 Original Work By
-  Lead development: Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
-  Postgres driver: Rustam Aliyev <rustam@azernews.com>
-  Various: 
+  Lead development till 3.8.0: Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+  PostgreSQL driver: Rustam Aliyev <rustam@azernews.com>
+  External Lookup module: Hugo Monteiro <hugo.monteiro@fct.unl.pt>
+  Various:
     Feb/2006 Cove Schneider <cove@wildpackets.com>
     Jan/2006 Norman Maurer <nm@byteaction.de>
 

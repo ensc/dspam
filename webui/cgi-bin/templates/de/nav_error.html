@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD><TITLE>DSPAM v3 Verwaltungsbereich</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Statistischer SPAM Schutz f&uuml;r <strong>$REMOTE_USER$</strong>
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance">Leistungsmerkmale</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Einstellungen</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alarme</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">Quarant&auml;ne ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">Analyse</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">Historie</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<H2>Ein Fehler ist aufgetreten</H2>
+$MESSAGE$
+
+</div>
+
+
+
+</BODY>
+</HTML>

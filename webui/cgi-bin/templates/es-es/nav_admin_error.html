@@ -1,0 +1,37 @@
+<HTML>
+<HEAD><TITLE>Suite Administrativa de DSPAM v3</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Estad&iacute;sticas de la protecci&oacute;n DSPAM para <strong>Administrador ($REMOTE_USER$)</strong>
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=status">Estado del Sistema</a></li>
+		<li><a href="$CGI$?$USER$template=user">Estadisticas de usuario</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Gestion</a></li>
+		<li><a href="dspam.cgi">Centro de Control</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<H2>Ha ocurrido un error</H2>
+$MESSAGE$
+
+</div>
+
+
+
+</body>
+</html>
