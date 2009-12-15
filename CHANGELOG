@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091215:0330] sbajic: Removed LDAP driver (replaced by ExtLookup)
+
 [20091215:0100] sbajic: Replacing non ascii characters in Romanian template with HTML characters entries
 
 [20091214:1420] sbajic: Web UI changes: Fix display for history page selection and add and use function to transform some special characters (sender and subject) into HTML character entries
