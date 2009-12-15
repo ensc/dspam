@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.88 2009/09/24 23:54:21 sbajic Exp $
+## $Id: dspam.conf.in,v 1.91 2009/12/06 16:54:54 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -67,10 +67,10 @@ TrustedDeliveryAgent "@delivery_agent@"
 # If you would like to set up DeliveryHost's on a per-domain basis, use
 # the syntax: DeliveryHost.domain.com 1.2.3.4
 #
-#DeliveryHost        127.0.0.1
-#DeliveryPort        24
-#DeliveryIdent       localhost
-#DeliveryProto       LMTP
+#DeliveryHost		127.0.0.1
+#DeliveryPort		24
+#DeliveryIdent		localhost
+#DeliveryProto		LMTP
 
 #
 # FallbackDomains: If you want to specify certain domains as fallback domains,
@@ -233,7 +233,7 @@ Algorithm graham burton
 #   sbph    Sparse Binary Polynomial Hashing tokenizer
 #           Creates sparse token patterns across sliding window of 5-tokens
 #           example: "the quick * fox jumped" and "the * * fox jumped"
-#   osb     Orthogonal Sparse biGram
+#   osb     Orthogonal Sparse biGram tokenizer
 #           Similar to SBPH, but only uses the biGrams
 #           example: "the * * fox" and "the * * * jumped"
 #
@@ -245,7 +245,6 @@ Tokenizer chain
 #    bcr         Bayesian Chain Rule (Graham's Technique - "A Plan for Spam")
 #    robinson    Robinson's Technique (used in Chi-Square) 
 #    markov      Markovian Weighted Technique (for Markovian discrimination)
-#    osb         OSB/OSBF/WINNOW Weighted Technique (for OSB)
 #
 # Unlike the "Algorithms" property, you may only have one of these defined. 
 # Use of the chi-square algorithm automatically changes this to robinson.
@@ -254,7 +253,6 @@ Tokenizer chain
 #
 #PValue robinson
 #PValue markov
-#PValue osb
 PValue bcr
 
 #
@@ -273,26 +271,58 @@ WebStats on
 # If user or default.prefs are found, the user's preferences will override any
 # defaults.
 #
-Preference "spamAction=quarantine"
-Preference "signatureLocation=message"	# 'message' or 'headers'
-Preference "showFactors=on"
-#Preference "spamAction=tag"
-#Preference "spamSubject=SPAM"
+Preference "trainingMode=TEFT"		# { TOE | TUM | TEFT | NOTRAIN } -> default:teft
+Preference "spamAction=quarantine"	# { quarantine | tag | deliver } -> default:quarantine
+Preference "spamSubject=[SPAM]"		# { string } -> default:[SPAM]
+Preference "statisticalSedation=5"	# { 0 - 10 } -> default:0
+Preference "enableBNR=on"		# { on | off } -> default:off
+Preference "enableWhitelist=on"		# { on | off } -> default:on
+Preference "signatureLocation=message"	# { message | headers } -> default:message
+Preference "tagSpam=off"		# { on | off }
+Preference "tagNonspam=off"		# { on | off }
+Preference "showFactors=off"		# { on | off } -> default:off
+Preference "optIn=off"			# { on | off }
+Preference "optOut=off"			# { on | off }
+Preference "whitelistThreshold=10"	# { Integer } -> default:10
+Preference "makeCorpus=off"		# { on | off } -> default:off
+Preference "storeFragments=off"		# { on | off } -> default:off
+Preference "localStore="		# { on | off } -> default:username
+Preference "processorBias=on"		# { on | off } -> default:on
+Preference "fallbackDomain=off"		# { on | off } -> default:off
+Preference "trainPristine=off"		# { on | off } -> default:off
+Preference "optOutClamAV=off"		# { on | off } -> default:off
+Preference "ignoreRBLLookups=off"	# { on | off } -> default:off
+Preference "RBLInoculate=off"		# { on | off } -> default:off
 
 #
 # Overrides: Specifies the user preferences which may override configuration
 # and commandline defaults. Any other preferences supplied by an untrusted user
 # will be ignored.
 #
-AllowOverride trainingMode
-AllowOverride spamAction spamSubject
-AllowOverride statisticalSedation
 AllowOverride enableBNR
 AllowOverride enableWhitelist
-AllowOverride signatureLocation
+AllowOverride fallbackDomain
+AllowOverride ignoreGroups
+AllowOverride ignoreRBLLookups
+AllowOverride localStore
+AllowOverride makeCorpus
+AllowOverride optIn
+AllowOverride optOut
+AllowOverride optOutClamAV
+AllowOverride processorBias
+AllowOverride RBLInoculate
 AllowOverride showFactors
-AllowOverride optIn optOut
+AllowOverride signatureLocation
+AllowOverride spamAction
+AllowOverride spamSubject
+AllowOverride statisticalSedation
+AllowOverride storeFragments
+AllowOverride tagNonspam
+AllowOverride tagSpam
+AllowOverride trainPristine
+AllowOverride trainingMode
 AllowOverride whitelistThreshold
+AllowOverride dailyQuarantineSummary
 
 # --- MySQL ---
 
@@ -300,11 +330,11 @@ AllowOverride whitelistThreshold
 # Storage driver settings: Specific to a particular storage driver. Uncomment
 # the configuration specific to your installation, if applicable.
 #
-#MySQLServer    	/var/lib/mysql/mysql.sock
-#MySQLPort
-#MySQLUser 	     	dspam
-#MySQLPass    		changeme
-#MySQLDb      	  	dspam
+#MySQLServer		/var/lib/mysql/mysql.sock
+#MySQLPort		
+#MySQLUser		dspam
+#MySQLPass		changeme
+#MySQLDb		dspam
 #MySQLCompress		true
 #MySQLReconnect		true
 
@@ -342,24 +372,28 @@ AllowOverride whitelistThreshold
 # change the table dspam uses to perform username/uid lookups, you can over-
 # ride it below
 
-#MySQLVirtualTable          dspam_virtual_uids
-#MySQLVirtualUIDField       uid
-#MySQLVirtualUsernameField  username
+#MySQLVirtualTable		dspam_virtual_uids
+#MySQLVirtualUIDField		uid
+#MySQLVirtualUsernameField	username
 
 # UIDInSignature: MySQL supports the insertion of the user id into the DSPAM 
 # signature. This allows you to create one single spam or fp alias 
 # (pointing to some arbitrary user), and the uid in the signature will
 # switch to the correct user. Result: you need only one spam alias 
 
-#MySQLUIDInSignature    on
+#MySQLUIDInSignature	on
 
 # --- PostgreSQL ---
 
-#PgSQLServer    	127.0.0.1
-#PgSQLPort      	5432
-#PgSQLUser      	dspam
-#PgSQLPass      	changeme
-#PgSQLDb        	dspam
+# For PgSQLServer you can Use a TCP/IP address or a socket. If your socket is
+# in /var/run/postgresql/.s.PGSQL.5432 specify just the path where the socket
+# resits (without .s.PGSQL.5432).
+
+#PgSQLServer		/var/run/postgresql/
+#PgSQLPort		
+#PgSQLUser		dspam
+#PgSQLPass		changeme
+#PgSQLDb		dspam
 
 # If you're running DSPAM in client/server (daemon) mode, uncomment the
 # setting below to override the default connection cache size (the number
@@ -372,19 +406,19 @@ AllowOverride whitelistThreshold
 # (pointing to some arbitrary user), and the uid in the signature will
 # switch to the correct user. Result: you need only one spam alias
 
-#PgSQLUIDInSignature	on 
+#PgSQLUIDInSignature	on
 
 # If you're using vpopmail or some other type of virtual setup and wish to
 # change the table dspam uses to perform username/uid lookups, you can over-
 # ride it below
 
-#PgSQLVirtualTable          dspam_virtual_uids
-#PgSQLVirtualUIDField       uid
-#PgSQLVirtualUsernameField  username
+#PgSQLVirtualTable		dspam_virtual_uids
+#PgSQLVirtualUIDField		uid
+#PgSQLVirtualUsernameField	username
 
 # --- SQLite ---
 
-#SQLitePragma   "synchronous = OFF"
+#SQLitePragma		"synchronous = OFF"
 
 # --- Hash ---
 
@@ -436,7 +470,7 @@ HashExtentSize		49157
 # HashPctIncrease is not used, is to always use # HashExtentSize with no 
 # increase.
 #
-HashPctIncrease 10
+HashPctIncrease		10
 
 #
 # HashMaxSeek: The maximum number of record seeks when inserting a new record
@@ -513,24 +547,24 @@ HashConnectionCache	10
 # use on the commandline with --profile. For example:
 #
 #Profile DECAlpha
-#MySQLServer.DECAlpha   10.0.0.1
-#MySQLPort.DECAlpha     3306
-#MySQLUser.DECAlpha     dspam
-#MySQLPass.DECAlpha     changeme
-#MySQLDb.DECAlpha       dspam
-#MySQLCompress.DECAlpha true
+#MySQLServer.DECAlpha	10.0.0.1
+#MySQLPort.DECAlpha	3306
+#MySQLUser.DECAlpha	dspam
+#MySQLPass.DECAlpha	changeme
+#MySQLDb.DECAlpha	dspam
+#MySQLCompress.DECAlpha	true
 #MySQLReconnect.DECAlpha	true
 #
 #Profile Sun420R
-#MySQLServer.Sun420R    10.0.0.2
-#MySQLPort.Sun420R      3306
-#MySQLUser.Sun420R      dspam
-#MySQLPass.Sun420R      changeme
-#MySQLDb.Sun420R        dspam
-#MySQLCompress.Sun420R  false
+#MySQLServer.Sun420R	10.0.0.2
+#MySQLPort.Sun420R	3306
+#MySQLUser.Sun420R	dspam
+#MySQLPass.Sun420R	changeme
+#MySQLDb.Sun420R	dspam
+#MySQLCompress.Sun420R	false
 #MySQLReconnect.Sun420R	true
 #
-#DefaultProfile DECAlpha
+#DefaultProfile	DECAlpha
 
 #
 # If you're using storage profiles, you can set failovers for each profile.
@@ -540,15 +574,15 @@ HashConnectionCache	10
 # configuring per-user data, however, you'll need to set up some type of
 # replication between databases.
 #
-#Failover.DECAlpha      SUN420R
-#Failover.Sun420R       DECAlpha
+#Failover.DECAlpha	SUN420R
+#Failover.Sun420R	DECAlpha
 
 # If the storage fails, the agent will follow each profile's failover up to
 # a maximum number of failover attempts. This should be set to a maximum of
 # the number of profiles you have, otherwise the agent could loop and try
 # the same profile multiple times (unless this is your desired behavior).
 #
-#FailoverAttempts       1
+#FailoverAttempts	1
 
 #
 # Ignored headers: If DSPAM is behind other tools which may add a header to
@@ -577,13 +611,13 @@ HashConnectionCache	10
 # maintained by humans as they're often inaccurate and could hurt filter
 # learning and accuracy.
 #
-#Lookup	"sbl.yourdomain.com"
+#Lookup		"sbl.yourdomain.com"
 
 #
 # RBLInoculate: If you want to inoculate the user from RBL'd messages it would
 # have otherwise missed, set this to on.
 #
-#RBLInoculate off
+#RBLInoculate	off
 
 #
 # Notifications: Enable the sending of notification emails to users (first
@@ -595,28 +629,34 @@ Notifications	off
 # Purge configuration: Set dspam_clean purge default options, if not otherwise
 # specified on the commandline
 #
-PurgeSignatures 14          # Stale signatures
-PurgeNeutral    90          # Tokens with neutralish probabilities
-PurgeUnused     90          # Unused tokens
-PurgeHapaxes    30          # Tokens with less than 5 hits (hapaxes)
-PurgeHits1S	15          # Tokens with only 1 spam hit
-PurgeHits1I	15          # Tokens with only 1 innocent hit
+PurgeSignatures 14	# Stale signatures
+PurgeNeutral	90	# Tokens with neutralish probabilities
+PurgeUnused	90	# Unused tokens
+PurgeHapaxes	30	# Tokens with less than 5 hits (hapaxes)
+PurgeHits1S	15	# Tokens with only 1 spam hit
+PurgeHits1I	15	# Tokens with only 1 innocent hit
 
 #
 # Purge configuration for SQL-based installations using purge.sql
 #
-#PurgeSignature	off # Specified in purge.sql
-#PurgeNeutral   90
-#PurgeUnused    off # Specified in purge.sql
-#PurgeHapaxes   off # Specified in purge.sql
-#PurgeHits1S    off # Specified in purge.sql
-#PurgeHits1I    off # Specified in purge.sql
+#PurgeSignature	off	# Specified in purge.sql
+#PurgeNeutral	90
+#PurgeUnused	off	# Specified in purge.sql
+#PurgeHapaxes	off	# Specified in purge.sql
+#PurgeHits1S	off	# Specified in purge.sql
+#PurgeHits1I	off	# Specified in purge.sql
 
 #
 # Local Mail Exchangers: Used for source address tracking, tells DSPAM which
 # mail exchangers are local and therefore should be ignored in the Received:
 # header when tracking the source of an email. Note: you should use the address
 # of the host as appears between brackets [ ] in the Received header.
+# By default DSPAM is considering the following IPs always as LocalMX:
+#	10.0.0.0/8	- Private IP addresses (RFC 1918)
+#	127.0.0.0/8	- Localhost Loopback Address (RFC 1700)
+#	169.254.0.0/16	- Zeroconf / APIPA (RFC 3330)
+#	172.16.0.0/12	- Private IP addresses (RFC 1918)
+#	192.168.0.0/16	- Private IP addresses (RFC 1918)
 #
 LocalMX 127.0.0.1
 
@@ -624,8 +664,8 @@ LocalMX 127.0.0.1
 # Logging: Disabling logging for users will make usage graphs unavailable to
 # them. Disabling system logging will make admin graphs unavailable.
 #
-SystemLog on
-UserLog   on
+SystemLog	on
+UserLog		on
 
 #
 # TrainPristine: for systems where the original message remains server side 
@@ -659,7 +699,7 @@ Opt out
 # blacklist and would like to use this information. Spam reporting also drops
 # RABL blacklist files (see http://www.nuclearelephant.com/projects/rabl/). 
 #
-#TrackSources spam nonspam
+#TrackSources spam nonspam virus
 
 #
 # ParseToHeaders: In lieu of setting up individual aliases for each user,
@@ -718,9 +758,9 @@ Opt out
 #                 accept (accept the message and quietly drop the message)
 #                 spam   (treat as spam and quarantine/tag/whatever)
 #
-#ClamAVPort	3310
-#ClamAVHost	127.0.0.1
-#ClamAVResponse accept
+#ClamAVPort		3310
+#ClamAVHost		127.0.0.1
+#ClamAVResponse		accept
 
 # -- CLIENT / SERVER --
 
@@ -738,7 +778,7 @@ Opt out
 #ServerHost		127.0.0.1
 #ServerPort		24
 #ServerQueueSize	32
-#ServerPID              /var/run/dspam.pid
+#ServerPID		/var/run/dspam.pid
 
 #
 # ServerMode specifies the type of LMTP server to start. This can be one of:
@@ -774,7 +814,7 @@ Opt out
 # you are running the client and server on the same machine, as it eliminates
 # much of the bandwidth overhead.
 #
-#ServerDomainSocketPath  "/tmp/dspam.sock"
+#ServerDomainSocketPath	"/tmp/dspam.sock"
 
 #
 # Client Mode: If you are running DSPAM in client/server mode, uncomment and
@@ -798,13 +838,13 @@ Opt out
 # email-like headers (such as documents), uncomment the line below. This
 # will cause the entire input to be treated like a message "body"
 #
-#DataSource      document
+#DataSource document
 
 # ProcessorWordFrequency: By default, words are only counted once per message.
 # If you are classifying large documents, however, you may wish to count once
 # per occurrence instead.
 #
-#ProcessorWordFrequency  occurrence
+#ProcessorWordFrequency occurrence
 
 # ProcessorURLContext: By default, a URL context is generated for URLs, which
 # records their tokens as separate from words found in documents. To use

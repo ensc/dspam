@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD><TITLE>DSPAM v3 Verwaltungsbereich</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Statistischer SPAM Schutz f&uuml;r <strong>Administrator ($REMOTE_USER$)</strong>
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=status">System Status</a></li>
+		<li><a href="$CGI$?$USER$template=user">Benutzer Statistiken</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Administration</a></li>
+		<li><a href="dspam.cgi">Kontroll Zenter</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<H2>Ein Fehler ist aufgetreten</H2>
+$MESSAGE$
+
+</div>
+
+</body>
+</html>

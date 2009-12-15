@@ -1,3 +1,5 @@
+$Id: sqlite_drv.txt,v 1.0 2009/11/15 20:21:07 sbajic Exp $
+
 Copyright (c) 2002-2009 DSPAM Project
 http://dspam.sourceforge.net
 
@@ -91,11 +93,13 @@ Note: - Do not put a semicolon at the end of any statements in sqlite.pragma.
 
 ERRORS
 
-Any SQL errors will be reported to /var/log/dspam/sql.errors (or what ever directory
-you have specified at compile time with '--with-logdir=') as well as the standard
+Any SQL errors will be reported to LOGDIR/sql.errors as well as the standard
 syslog facilities (although the query will be truncated).
 
 QUESTIONS
 
 Please contact the dspam-dev mailing list with any questions or constructive
 feedback.
+
+Initial storage driver written by Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+and later enhanced by Stevan Bajic <stevan@bajic.ch> for DSPAM 3.9.0.

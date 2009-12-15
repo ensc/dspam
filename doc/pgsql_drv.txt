@@ -1,7 +1,6 @@
-$Id: pgsql_drv.txt,v 1.5 2005/09/24 17:48:58 jonz Exp $
+$Id: pgsql_drv.txt,v 1.5.1 2009/11/15 20:21:49 sbajic Exp $
 
-pgsql_drv: PostgreSQL storage driver for DSPAM
-API v3.0
+Copyright (c) 2002-2009 DSPAM Project
 http://dspam.sourceforge.net
 
 LICENSE
@@ -22,9 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 ABOUT
 
-pgsql_drv is a PostgreSQL storage driver for DSPAM. This driver enables DSPAM
-to read and write all token, signature, and statistics data from a PostgreSQL 
-database. The advantages of using a SQL backend are obvious:
+pgsql_drv is a PostgreSQL storage driver for DSPAM v3.0 and above.
+This driver enables DSPAM to read and write all token, signature,
+and statistics data from a PostgreSQL database. The advantages of
+using a SQL backend are obvious:
 
 - Centralized data storage
 - Structured queries for information
@@ -66,9 +66,6 @@ driver.
 
 If you plan on enabling virtual users (something you'll need to do if the users
 don't actually exist on your system), also run virtual_users.sql.
-
-NOTE: If you plan on having more than 32,768 users, you'll want to change
-smallint to int for all uid fields.
 
 NOTE: If you are running pgsql < v8.0, you may get an error when running
 pgsql_objects.sql. It is safe to disregard this error, as it is for a function
@@ -162,5 +159,5 @@ QUESTIONS
 Please contact the dspam-dev mailing list with any questions or constructive
 feedback.
 
-Rustam Aliyev
-<rustam@azernews.com>
+Initial storage driver written by Rustam Aliyev <rustam@azernews.com> and later
+enhanced by Stevan Bajic <stevan@bajic.ch> for DSPAM 3.9.0.

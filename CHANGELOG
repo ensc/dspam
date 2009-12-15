@@ -1,6 +1,98 @@
 Version 3.9.0
 -------------
 
+[20091214:1420] sbajic: Web UI changes: Fix display for history page selection and add and use function to transform some special characters (sender and subject) into HTML character entries
+
+[20091212:0550] sbajic: Adding more comments to conigure.pl.in for the Web UI
+
+[20091212:0545] sbajic: Fixing various issues in the CGI scripts for the Web UI
+
+[20091209:0130] sbajic: Fixing issue with empty historical data by preinitializing empty variables for the history chart/view
+
+[20091206:1840] sbajic: Fixing problem with fallbackDomains
+
+[20091206:1730] sbajic: Prettifying dspam.conf and extending the notes on some configuration options
+
+[20091205:1550] sbajic: Fixing HTML tags and some translation errors in German Web UI template
+
+[20091204:1430] sbajic: Removed old and obsolete .cvsignore files
+
+[20091204:1255] sbajic: Translating some left English elements in the Spanish templates for Web UI
+
+[20091203:0255] sbajic: Adding Spanish templates for Web UI (translated by Daniel Sánchez Pearson <danielsanchez@hachete.com>)
+
+[20091202:0125] sbajic: Gentoo patch 8: Adding "virus" option to TrackSources
+
+[20091201:2310] sbajic: Fixed m4 macros for SQLite/SQLite3
+
+[20091129:1650] sbajic: Fixed and updated man files
+
+[20091128:1000] sbajic: Replaced umlauts in German template to use HTML character encodings
+
+[20091128:1000] sbajic: Fixed HTML markup error in pt-br/nav_fragment.html
+
+[20091128:0030] sbajic: Fixed HTML markup error in dspam.cgi
+
+[20091126:0050] sbajic: Adding Brazilian Portuguese templates for Web UI (translated by Felipe Szczesny Rout <felipe.rout@al.rs.gov.br>)
+
+[20091125:0940] sbajic: Fix Web UI access in admin area to userdir in case of domainscale and a username beginning with @ or in case of empty domain
+
+[20091125:0930] sbajic: Fix Web UI access to userdir in case of domainscale and a username beginning with @
+
+[20091118:1700] sbajic: Require @ in username for fallbackDomains to work and don't allow calling ctx_init() without or with empty username
+
+[20091117:1705] sbajic: Enhancing HTML message processing
+
+[20091115:2050] sbajic: Updating documentation
+
+[20091115:1250] sbajic: Fixing missing <HTML> start tag in nav_fragment.html for EN, FR and RO
+
+[20091114:1140] sbajic: Fixing bugs in _ds_get_nextuser(), _ds_get_nexttoken() and _ds_get_nextsignature() in the PostgreSQL driver
+
+[20091114:0120] sbajic: Fixing compile failure of the PostgreSQL driver tool dspam_pg2int8
+
+[20091113:2225] sbajic: Adding documentation into MySQL driver source code for _ds_get_nextuser(), _ds_get_nexttoken() and _ds_get_nextsignature()
+
+[20091113:2155] sbajic: Fixing bug in _ds_get_nextuser() and _ds_get_nexttoken() in MySQL driver
+
+[20091113:2050] sbajic: Fixing bug in _ds_get_nextsignature() in MySQL driver
+
+[20091113:1410] sbajic: Reverting one block from submit ec9a6de09f178eaf838aad5b66b07b15951d6ef3 that breaks decoding base64/quoted-printable
+
+[20091113:0400] sbajic: Fixing memory leak in dspam_merge.c
+
+[20091113:0345] sbajic: Fixing file descriptor leak in PostgreSQL driver
+
+[20091113:0340] sbajic: Fixing file descriptor leak in MySQL driver
+
+[20091113:0310] sbajic: Speeding up various functions in dspam.c
+
+[20091112:2325] sbajic: Fixing bug in quoted printable decoding
+
+[20091105:2025] sbajic: Adding German templates for Web UI
+
+[20091105:1655] sbajic: Added missing files into various make files
+
+[20091104:0255] sbajic: Removed non properly working OSB for PValue
+
+[20091104:0255] sbajic: Speeding up _ds_calc_result()
+
+[20091104:0145] sbajic: Updating make files to include changes mentioned in log entry [20090818:0100]
+
+[20091103:1843] sbajic: Typo fixes in the french WebUI (patch provided by Julien Valroff <julien@kirya.net>)
+
+[20091103:0945] sbajic: Fixing build issues in Mac OS X
+
+[20091029:0810] sbajic: Fixing build issues in Mac OS X
+
+[20091028:1018] sbajic: Fixing build issues of dynamically linked libraries
+
+[20091028:0028] sbajic: Changes in External Lookup
+* Removing not needed header files (agent_shared.h)
+* Decoupling dependency to OpenLDAP (if the libraries are there
+  then LDAP lookups are enabled in External Lookup else LDAP
+  lookups are disabled in the External Lookup module)
+
 [20091027:1300] sbajic: Fixing various issues (memory leaks and logical errors) in PostgreSQL driver
 
 [20091016:1022] sbajic: Fixing (potential) branching on uninitialized variable in SQLite3 driver

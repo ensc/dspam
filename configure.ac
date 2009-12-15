@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.73 2009/08/18 01:22:00 sbajic Exp $
+dnl $Id: configure.ac,v 1.76 2009/12/03 02:53:28 sbajic Exp $
 dnl
 dnl    autoconf (GNU Autoconf) 2.59
 dnl    ltmain.sh (GNU libtool) 1.5.6
@@ -821,9 +821,12 @@ AC_CONFIG_FILES([Makefile src/tools/Makefile webui/Makefile m4/Makefile])
 AC_CONFIG_FILES([src/tools.mysql_drv/Makefile])
 AC_CONFIG_FILES([txt/Makefile src/tools.pgsql_drv/Makefile ])
 AC_CONFIG_FILES([src/Makefile webui/cgi-bin/templates/Makefile])
-AC_CONFIG_FILES([webui/cgi-bin/templates/he/Makefile])
-AC_CONFIG_FILES([webui/cgi-bin/templates/ro/Makefile])
+AC_CONFIG_FILES([webui/cgi-bin/templates/de/Makefile])
+AC_CONFIG_FILES([webui/cgi-bin/templates/es-es/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/templates/fr/Makefile])
+AC_CONFIG_FILES([webui/cgi-bin/templates/he/Makefile])
+AC_CONFIG_FILES([webui/cgi-bin/templates/pt-br/Makefile])
+AC_CONFIG_FILES([webui/cgi-bin/templates/ro/Makefile])
 AC_CONFIG_FILES([src/tools.sqlite_drv/Makefile man/Makefile])
 AC_CONFIG_FILES([src/dspam.pc src/dspam-uninstalled.pc])
 AC_CONFIG_FILES([doc/Makefile src/tools.hash_drv/Makefile scripts/Makefile])
