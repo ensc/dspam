@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.76 2009/12/03 02:53:28 sbajic Exp $
+dnl $Id: configure.ac,v 1.77 2009/12/15 23:34:05 sbajic Exp $
 dnl
 dnl    autoconf (GNU Autoconf) 2.59
 dnl    ltmain.sh (GNU libtool) 1.5.6
@@ -831,5 +831,6 @@ AC_CONFIG_FILES([src/tools.sqlite_drv/Makefile man/Makefile])
 AC_CONFIG_FILES([src/dspam.pc src/dspam-uninstalled.pc])
 AC_CONFIG_FILES([doc/Makefile src/tools.hash_drv/Makefile scripts/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/Makefile webui/htdocs/Makefile])
+AC_CONFIG_FILES([contrib/Makefile])
 AC_OUTPUT
 
