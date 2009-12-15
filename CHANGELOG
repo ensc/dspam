@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091215:1710] sbajic: Fixing small typo in pt-BR template
+
 [20091215:0330] sbajic: Removed LDAP driver (replaced by ExtLookup)
 
 [20091215:0100] sbajic: Replacing non ascii characters in Romanian template with HTML characters entries
