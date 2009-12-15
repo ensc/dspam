@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091215:0100] sbajic: Replacing non ascii characters in Romanian template with HTML characters entries
+
 [20091214:1420] sbajic: Web UI changes: Fix display for history page selection and add and use function to transform some special characters (sender and subject) into HTML character entries
 
 [20091212:0550] sbajic: Adding more comments to conigure.pl.in for the Web UI

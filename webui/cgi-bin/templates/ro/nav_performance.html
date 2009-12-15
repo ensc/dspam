@@ -17,10 +17,10 @@
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li id="active"><a id="current" href="$CGI$?$USER$template=performance">Performanță</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">Preferințe</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=performance">Performan&#x021B;&#x0103;</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Preferin&#x021B;e</a></li>
 		<li><a href="$CGI$?$USER$template=alerts">Alerte</a></li>
-		<li><a href="$CGI$?$USER$template=quarantine">Carantină ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">Carantin&#x0103; ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
 		<li><a href="$CGI$?$USER$template=analysis">Analize</a></li>
 		<li><a href="$CGI$?$USER$template=history&history_page=1">Istoric</a></li>
 		$NAV_ADMIN$
@@ -30,25 +30,25 @@
 <div id="panel">
 
 <p>
-Dacă primești un mesaj în aplicația de email care nu a fost prins de filtru
-înaintează-l (forward) la:
+Dac&#x0103; prime&#x0219;ti un mesaj &icirc;n aplica&#x021B;ia de email care nu a fost prins de filtru
+&icirc;nainteaz&#x0103;-l (forward) la:
 <strong>spam-$REMOTE_USER$$LOCAL_DOMAIN$</strong>
 so that it can be analyzed and learned as SPAM. This will improve the filter's accuracy in the future.
 </p>
 
 <div class="content">
-	<h3><strong>Statistici de performanță</strong> - $TIME$</h3>
+	<h3><strong>Statistici de performan&#x021B;&#x0103;</strong> - $TIME$</h3>
 
 	<table border="0" cellspacing="0" cellpadding="4">
 		<tr>
-			<th>Măsurătoare</th>
+			<th>M&#x0103;sur&#x0103;toare</th>
 			<th>&nbsp;</th>
-			<th>Calculată ca</th>
+			<th>Calculat&#x0103; ca</th>
 		</tr>
 		<tr class="rowEven">
-			<td>Acuratețea globală (de la ultima resetare)</td>
+			<td>Acurate&#x021B;ea global&#x0103; (de la ultima resetare)</td>
 			<td><strong>$OVERALL_ACCURACY$%</strong></td>
-			<td class="rowDivider"><span class="small">(mesaje SPAM prinse + mesaje non-spam livrate) / Numărul totat de mesaje</span></td>
+			<td class="rowDivider"><span class="small">(mesaje SPAM prinse + mesaje non-spam livrate) / Num&#x0103;rul totat de mesaje</span></td>
 		</tr>
                 <tr class="rowOdd">
                         <td>Identificarea spam-ului (de la ultima resetare)</td>
@@ -58,7 +58,7 @@ so that it can be analyzed and learned as SPAM. This will improve the filter's a
 		<tr class="rowEven">
 			<td>Spam ratio (of total processed)</td>
 			<td><strong>$SPAM_RATIO$%</strong></td>
-			<td class="rowDivider"><span class="small">Numărul total de mesaje spam (prinse și scăpate) / Numărul total de mesaje</span></td>
+			<td class="rowDivider"><span class="small">Num&#x0103;rul total de mesaje spam (prinse &#x0219;i sc&#x0103;pate) / Num&#x0103;rul total de mesaje</span></td>
 		</tr>
 	</table>
 	<table border="0" cellspacing="0" cellpadding="4">
@@ -69,8 +69,8 @@ so that it can be analyzed and learned as SPAM. This will improve the filter's a
 		</tr>
 		<tr class="rowEven">
 			<td rowspan="3" valign="top" nowrap>De la ultima resetare</td>
-			<td>$TOTAL_SPAM_MISSED$ scăpate</td>
-			<td>$TOTAL_NONSPAM_MISSED$ scăpate</td>
+			<td>$TOTAL_SPAM_MISSED$ sc&#x0103;pate</td>
+			<td>$TOTAL_NONSPAM_MISSED$ sc&#x0103;pate</td>
 		</tr>
 		<tr class="rowEven">
 			<td>$TOTAL_SPAM_CAUGHT$ prinse</td>
@@ -78,12 +78,12 @@ so that it can be analyzed and learned as SPAM. This will improve the filter's a
 		</tr>
 		<tr class="rowEven">
 			<td>$SPAM_ACCURACY$% prinse</td>
-			<td>$NONSPAM_ERROR_RATE$% scăpate</td>
+			<td>$NONSPAM_ERROR_RATE$% sc&#x0103;pate</td>
 		</tr>
 		<tr class="rowOdd">
 			<td rowspan="2" valign="top" nowrap>Total procesate de filtru</td>
-			<td>$TOTAL_SPAM_LEARNED$ scăpate</td>
-			<td>$TOTAL_NONSPAM_LEARNED$ scăpate</td>
+			<td>$TOTAL_SPAM_LEARNED$ sc&#x0103;pate</td>
+			<td>$TOTAL_NONSPAM_LEARNED$ sc&#x0103;pate</td>
 		</tr>
 		<tr class="rowOdd">
 			<td>$TOTAL_SPAM_SCANNED$ prinse</td>
@@ -97,7 +97,7 @@ so that it can be analyzed and learned as SPAM. This will improve the filter's a
 	</table>
 
 	<p>
-		<a href="$CGI$?$USER$command=resetStats" title="Resetează statisticile">Reset</a> | <a href="$CGI$?$USER$command=tweak" title="Ajustări pentru mesajele care sunt înaintate filtrului">Tweak -1</a>
+		<a href="$CGI$?$USER$command=resetStats" title="Reseteaz&#x0103; statisticile">Reset</a> | <a href="$CGI$?$USER$command=tweak" title="Ajust&#x0103;ri pentru mesajele care sunt &icirc;naintate filtrului">Tweak -1</a>
 	</p>
 </div>
 
