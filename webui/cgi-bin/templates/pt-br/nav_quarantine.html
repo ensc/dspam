@@ -1,0 +1,84 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Control Center</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+                $FORM_USER$
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance">Performance</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Prefer&ecirc;ncias</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alertas</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Quarentena ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">An&aacute;lise</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">Hist&oacute;rico</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+
+As mensagens abaixo n&atilde;o foram entregues em sua caixa postal normal porque foram classificadas como spam.
+Clique no Assunto para ver a mensagem ou escolha uma forma de ordenamento diferente (clicando no nome de cada coluna).
+Use as caixas de sele&ccedil;&atilde;o  e o bot&atilde;o <strong>Deliver Checked</strong> para despachar as mensagens que voc&ecirc; quer ler, ou use <strong>Delete All</strong> para esvaziar a quarentena.
+</p>
+
+<form action="$CGI$" method="post">
+<p>
+<input type="hidden" name="command" value="processQuarantine" >
+<input type="hidden" name="template" value="quarantine" >
+<input type="hidden" name="user" value="$REMOTE_USER$" >
+<input type="hidden" name="sortby" value="$SORTBY$" >
+<input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
+&nbsp;
+<input type="submit" value="Delete Checked" onClick="if (confirm('Tem certeza que deseja apagar as mensagens SELECIONADAS da quarentena ?')==false) { return false; }" />
+<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
+	document.forms[1].elements[j].checked = true; } } return false'>Select 200.</a>
+&nbsp;
+<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Tem certeza que deseja apagar TODAS mensagens da quarentena ?')==false) { return false; }" >
+
+</p>
+<table border="0" cellspacing="0" cellpadding="2" width="100%">
+	<tr>
+		<th>&nbsp;</th>
+		$SORT_QUARANTINE$
+	</tr>
+$QUARANTINE$
+</table>
+
+<p>
+<input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
+&nbsp;
+<input type="submit" value="Delete Checked" onClick="if (confirm('ATem certeza que deseja apagar as mensagens SELECIONADAS da quarentena ?')==false) { return false; }" />
+<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
+	document.forms[1].elements[j].checked = true; } } return false'>Select 200.</a>
+&nbsp;
+<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Tem certeza que deseja apagar TODAS mensagens da quarentena ?')==false) { return false; }" />
+</p>
+
+</form>
+
+<p>
+Classifica&ccedil;&atilde;o do SPAM de acordo com as cores: <span class="low">Baixo &Iacute;ndice</span>, <span class="medium">M&eacute;dio &Iacute;ndice, <span class="high">Alto &Iacute;ndice</span>
+</p>
+
+</div>
+
+
+
+</BODY>
+</HTML>

@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD><TITLE>DSPAM v3 Verwaltungsbereich</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Statistischer SPAM Schutz f&uuml;r <strong>$REMOTE_USER$</strong>
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance">Leistungsmerkmale</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Einstellungen</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alarme</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Quarant&auml;ne ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">Analyse</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;history_page=1">Historie</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Die unten aufgef&uuml;hrten Nachrichten wurden nicht an ihre Mailanwendung weitergeleitet weil sie als SPAM verd&auml;chtigt werden.
+Dr&uuml;cken sie auf den Betreff, um die Nachricht anzuzeigen oder w&auml;hlen sie eine Sortierungsoption um die Auflistung zu beeinflussen.
+
+
+<br>Benutzen sie die Schalter <strong>gepr&uuml;fte Zustellen</strong> um Nachrichten zuzustellen die sie lesen m&ouml;chten, oder <strong>Alle L&ouml;schen</strong> um die Quarant&auml;ne vollst&auml;ndig zu l&ouml;schen.
+</p>
+
+<form action="$CGI$" method="get">
+<p>
+<input type="hidden" name="command" value="processQuarantine" >
+<input type="hidden" name="template" value="quarantine" >
+<input type="hidden" name="user" value="$REMOTE_USER$" >
+<input type="hidden" name="sortby" value="$SORTBY$" >
+<input type="submit" value="gepr&uuml;fte Zustellen" NAME="manyNotSpam" >
+&nbsp;
+<input type="submit" value="Delete Checked" onClick="if (confirm('Sind sie sicher, dass sie die AUSGEW&Auml;HLTEN Nachrichten l&ouml;schen m&ouml;chten?')==false) { return false; }">
+<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
+	document.forms[1].elements[j].checked = true; } } return false'>W&auml;hle 200.</a>
+&nbsp;
+<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Sind sie sicher, dass sie ALLE Nachrichten aus der Quarant&auml;ne l&ouml;schen m&ouml;chten?')==false) { return false; }" >
+
+</p>
+<table border="0" cellspacing="0" cellpadding="2" width="100%">
+	<tr>
+		<th>&nbsp;</th>
+		$SORT_QUARANTINE$
+	</tr>
+$QUARANTINE$
+</table>
+
+<p>
+<input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
+&nbsp;
+<input type="submit" value="Delete Checked" onClick="if (confirm('Sind sie sicher, dass sie die AUSGEW&Auml;HLTEN Nachrichten l&ouml;schen m&ouml;chten?')==false) { return false; }">
+<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
+	document.forms[1].elements[j].checked = true; } } return false'>W&auml;hle 200.</a>
+&nbsp;
+<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Sind sie sicher, dass sie ALLE Nachrichten aus der Quarant&auml;ne l&ouml;schen m&ouml;chten?')==false) { return false; }">
+</p>
+
+</form>
+
+<p>
+Farblegende: <span class="low">Tiefe SPAM Bewertung</span>, <span class="medium">Mittlere SPAM Bewertung</span>, <span class="high">Hohe SPAM Bewertung</span>
+</p>
+
+</div>
+
+
+
+</BODY>
+</HTML>

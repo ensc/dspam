@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.377 2009/10/09 22:00:58 sbajic Exp $ */
+/* $Id: dspam.c,v 1.382 2009/12/06 18:06:42 sbajic Exp $ */
 
 /*
  DSPAM
@@ -462,7 +462,7 @@ process_message (
 
   have_signature = find_signature(CTX, ATX);
   if (ATX->source == DSS_CORPUS || ATX->source == DSS_NONE)
-     have_signature = 0; /* ignore sigs from corpusfed and inbound email */
+    have_signature = 0; /* ignore sigs from corpusfed and inbound email */
 
   if (have_signature)
   {
@@ -1788,8 +1788,12 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
     ATX->PTX = load_aggregated_prefs(ATX, username);
     if (!strcmp(_ds_pref_val(ATX->PTX, "fallbackDomain"), "on")) {
-      char *domain = strchr(username, '@');
-      username = domain;
+      if (username != NULL && strchr(username, '@')) {
+        char *domain = strchr(username, '@');
+        username = domain;
+      } else {
+        LOG(LOG_ERR, "process_users(): Can not fallback to domains for username '%s' without @domain part.", username);
+      }
     }
 
     ATX->train_pristine = 0;
@@ -2365,6 +2369,11 @@ NEXT:
  */
 
 DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
+  /* We NEED a username. Without it we can't do much */
+  if (username == NULL) {
+    LOG (LOG_CRIT, ERR_AGENT_USER_UNDEFINED);
+    return NULL;
+  }
   DSPAM_CTX *CTX;
   char filename[MAX_FILENAME_LENGTH];
   char ctx_group[128] = { 0 };
@@ -2916,10 +2925,13 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       while(node_header != NULL) {
         head = (ds_header_t) node_header->ptr;
 	if (head) {
-          if (!strcasecmp(head->heading, "Subject"))
+          if (!strcasecmp(head->heading, "Subject")) {
             subject = head->data;
-          else if (!strcasecmp(head->heading, "From"))
+            if (from != NULL) break;
+          } else if (!strcasecmp(head->heading, "From")) {
             from = head->data;
+            if (subject != NULL) break;
+          }
         }
 
         node_header = node_header->next;
@@ -3659,8 +3671,13 @@ int tracksource(DSPAM_CTX *CTX) {
           if (file != NULL)
             fclose(file);
         }
-      }
-      if (CTX->result != DSR_ISSPAM &&
+      } else if (CTX->result == DSR_ISSPAM &&
+          strcmp(CTX->class, LANG_CLASS_VIRUS) == 0 &&
+          _ds_match_attribute(agent_config, "TrackSources", "virus"))
+      {
+        LOG (LOG_INFO, "infected message from %s", ip);
+      } else if (CTX->result != DSR_ISSPAM &&
+          strcmp(CTX->class, LANG_CLASS_VIRUS) != 0 &&
           _ds_match_attribute(agent_config, "TrackSources", "nonspam"))
       {
         LOG (LOG_INFO, "innocent message from %s", ip);
@@ -3865,7 +3882,9 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           if (strncmp(buff, "127.0.0.", 8) == 0) {
             STATUS("Blacklisted (%s)", attrib->value);
             bad = 1;
-  	}
+            freeaddrinfo(res);
+            break;
+          }
         }
         freeaddrinfo(res);
       }
@@ -3915,6 +3934,7 @@ int is_blocklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           chomp(buf);
           if (!strcasecmp(buf, domain+1)) {
             blocklisted = 1;
+            break;
           }
         }
       }
@@ -4068,18 +4088,22 @@ agent_pref_t load_aggregated_prefs(AGENT_CTX *ATX, const char *username) {
                       _ds_read_attribute(agent_config, "Home"), ATX->dbh);
 
   if (!UTX && _ds_match_attribute(agent_config, "FallbackDomains", "on")) {
-    char *domain = strchr(username, '@');
-    if (domain) {
-      UTX = _ds_pref_load(agent_config,
-                          domain,
-                          _ds_read_attribute(agent_config, "Home"), ATX->dbh);
-      if (UTX && !strcmp(_ds_pref_val(UTX, "fallbackDomain"), "on")) {
-        LOGDEBUG("empty prefs found. falling back to %s", domain);
-        username = domain;
-      } else {
-        _ds_pref_free(UTX);
-        UTX = NULL;
+    if (username != NULL && strchr(username, '@')) {
+      char *domain = strchr(username, '@');
+      if (domain) {
+        UTX = _ds_pref_load(agent_config,
+                            domain,
+                            _ds_read_attribute(agent_config, "Home"), ATX->dbh);
+        if (UTX && !strcmp(_ds_pref_val(UTX, "fallbackDomain"), "on")) {
+          LOGDEBUG("empty prefs found. falling back to %s", domain);
+          username = domain;
+        } else {
+          _ds_pref_free(UTX);
+          UTX = NULL;
+        }
       }
+    } else {
+      LOG(LOG_ERR, "load_aggregated_prefs(): Can not fallback to domains for username '%s' without @domain part.", username);
     }
   }
 

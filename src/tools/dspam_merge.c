@@ -1,4 +1,4 @@
-/* $Id: dspam_merge.c,v 1.15 2006/05/13 01:13:01 jonz Exp $ */
+/* $Id: dspam_merge.c,v 1.151 2009/11/13 03:56:39 sbajic Exp $ */
 
 /*
  DSPAM
@@ -245,12 +245,17 @@ main (int argc, char **argv)
   exit (EXIT_SUCCESS);
 
 bail:
+  if (merge1 != NULL)
+    ds_diction_destroy(merge1);
+  if (merge2 != NULL)
+    ds_diction_destroy(merge2);
   if (open_ctx != NULL)
     dspam_destroy (open_ctx);
   if (open_mtx != NULL)
     dspam_destroy (open_mtx);
   dspam_shutdown_driver (NULL);
-  nt_destroy(users);
+  if (users != NULL)
+    nt_destroy(users);
   _ds_destroy_config(agent_config);
   libdspam_shutdown();
   exit (EXIT_FAILURE);

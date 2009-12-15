@@ -1,40 +1,54 @@
-.\" $Id: dspam_stats.1,v 1.9 2007/12/07 00:15:31 mjohnson Exp $
+.\" $Id: dspam_stats.1,v 1.10 2009/11/29 02:40:52 sbajic Exp $
 .\"  -*- nroff -*-
 .\"
-.\" dspam_stats3.8
+.\" dspam_stats3.9
 .\"
-.\" Authors:    Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+.\" Authors:	Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+.\"		Stevan Bajic <stevan@bajic.ch>
 .\"
-.\" Copyright (c) 2002-2007 Sensory Networks
+.\" Copyright (c) 2002-2009 DSPAM Project
 .\" All rights reserved
 .\"
-.TH dspam_stats 1  "May 31, 2004" "DSPAM" "DSPAM"
+.TH dspam_stats 1  "Nov 29, 2009" "DSPAM" "DSPAM"
 
 .SH NAME
-dspam_stats - display spam statistics
+dspam_stats \- display spam statistics
 
 .SH SYNOPSIS
 .na
 .B dspam_stats
 [\c
+.B \--profile\c
+=PROFILE]\c
+[\c
 .BI \-HhrSst\fR\c
 ]
 [\c
-.I \ username \fR\c
+.I username\fR\c
 ]
 
 .ad
 .SH DESCRIPTION 
 .LP
 .B dspam_stats
-displays the spam filtering statistics for one or all users on the system. Displays TS (Total Spams), TI (Total Innocent), TM (Total Spam Misses) and FP (Total False Positives).  To calculate the total number of spams caught by DSPAM, subtract TM from TS.
+displays the spam filtering statistics for one or all users on the system.
+Displays TP (True Positives (Spam)), TN (True Negatives (Innocent)), FP
+(False Positives), FN (False Negatives), SC (Spam Corpusfed) and NC
+(Nonspam Corpusfed).
 
 .SH OPTIONS
 .LP
+
+.ne 3
+.TP
+.BI \ \--profile= \PROFILE\c
+Specify a storage profile from dspam.conf. The storage profile selected will be used
+for all database connectivity. See dspam.conf for more information.
+
 .ne 3
 .TP
 .BI \-H\fR\c
-Uses multi-line, human-readable output displaying the fully-qualified names for
+Uses multi\-line, human\-readable output displaying the fully\-qualified names for
 each class of totals, instead of their abbreviated terms.
  
 .ne 3
@@ -81,10 +95,11 @@ Operation was successful.
 Operation resulted in an error. 
 .PD
 
-.SH AUTHORS
-.LP
-
-Jonathan A. Zdziarski
+.SH COPYRIGHT
+Copyright \(co 2002\-2009 DSPAM Project
+.br
+All rights reserved.
+.br
 
 For more information, see http://dspam.sourceforge.net.
 

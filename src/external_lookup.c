@@ -1,3 +1,5 @@
+/* $Id: external_lookup.c,v 0.6 2009/10/27 23:36:33 sbajic Exp $ */
+
 /*
  COPYRIGHT (C) 2006 HUGO MONTEIRO
 
@@ -36,7 +38,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/time.h>
-#include "agent_shared.h"
 #include "libdspam.h"
 #include "external_lookup.h"
 #include "config.h"
@@ -44,11 +45,11 @@
 #include "error.h"
 #include "config_shared.h"
 
-
 /* LDAP */
-#include <ldap.h>
-#define BIND_TIMEOUT	10
-
+#ifdef USE_LDAP
+#   include <ldap.h>
+#   define BIND_TIMEOUT	10
+#endif
 
 void 
 sig_alrm(int signum)
@@ -64,12 +65,17 @@ external_lookup(config_t agent_config, const char *username, char *external_uid)
 
 	char *driver = _ds_read_attribute(agent_config, "ExtLookupDriver");
 
-	if (strcmp(driver, "ldap") == 0)
+	if (strcmp(driver, "ldap") == 0) {
+#ifdef USE_LDAP
 		return ldap_lookup(agent_config, username, external_uid);
-	else if (strcmp(driver, "program") == 0)
+#else
+		LOG(LOG_ERR, "external_lookup: LDAP driver was not enabled at compile time.");
+		return NULL;
+#endif
+	} else if (strcmp(driver, "program") == 0) {
 		return program_lookup(agent_config, username, external_uid);
 	/* add here your 'else if' statements like the one above to extend */
-	else if (driver == NULL) {
+	} else if (driver == NULL) {
 		LOG(LOG_ERR, "external_lookup: lookup driver not defined");
 		return NULL;
 	} else {
@@ -142,7 +148,7 @@ char
 	return transcoded_query;
 }
 
-
+#ifdef USE_LDAP
 char*
 ldap_lookup(config_t agent_config, const char *username, char *external_uid)
 {
@@ -355,8 +361,7 @@ ldap_lookup(config_t agent_config, const char *username, char *external_uid)
 	ldap_unbind( ld );
 	return external_uid;
 }
-
-
+#endif
 
 char*
 program_lookup(config_t agent_config, const char *username, char *external_uid)

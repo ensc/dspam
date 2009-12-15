@@ -1,0 +1,58 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Suite Administrativa</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		Prote&ccedil;&atilde;o Estat&iacute;stica de SPAM para <strong>Administrador ($REMOTE_USER$)</strong>
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=status">Status do Sistema</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=user">Estat&iacute;sticas de Usu&aacute;rio</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Administra&ccedil;&atilde;o</a></li>
+		<li><a href="dspam.cgi">Centro de Controle</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+A tabela abaixo mostra o n&uacute;mero de mensagens processadas para cada usu&aacute;rio com suas prefer&ecirc;ncias atuais.
+</p>
+
+<table border="0" cellspacing="0" cellpadding="4">
+	<tr>
+		<th>Nome</th>
+		<th>Tam.Fila</th>
+		<th>TP</th>
+                <th>TN</th>
+		<th>FP</th>
+		<th>FN</th>
+		<th>SC</th>
+		<th>IC</th>
+		<th>Modo</th>
+		<th>Qdo.Spam</th>
+		<th>BNR</th>
+		<th>Lista Branca</th>
+                <th>Sed.</th>
+                <th>Loc. Ass.</th>
+	</tr>
+$TABLE$
+</table>
+
+</div>
+
+
+
+</body>
+</html>

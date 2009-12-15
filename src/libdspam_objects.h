@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.22 2009/09/24 23:51:59 sbajic Exp $ */
+/* $Id: libdspam_objects.h,v 1.23 2009/11/05 00:26:18 sbajic Exp $ */
 
 /*
  DSPAM
@@ -272,8 +272,8 @@ struct _ds_config
  *
  *      DSZ_WORD		Use WORD (uniGram) tokenizer
  *      DSZ_CHAIN		Use CHAIN (biGram) tokenizer
- *      DSZ_SBPH		Use SBPH (Sparse BP Hashing) tokenizer
- *      DSZ_OSB			Use OSB (Orthogonal Sparse biGram)
+ *      DSZ_SBPH		Use SBPH (Sparse Binary Polynomial Hashing) tokenizer
+ *      DSZ_OSB			Use OSB (Orthogonal Sparse biGram) tokenizer
  *
  *  algorithms (input)
  *    Optional API to override the default algorithms. This value is set
@@ -290,7 +290,6 @@ struct _ds_config
  *      DSP_ROBINSON		Robinson's Technique
  *      DSP_GRAHAM		Graham's Technique
  *      DSP_MARKOV		Markov Weighted Technique
- *      DSP_OSB			OSB/OSBF/WINNOW Weighted Technique
  *
  *  locked (output)
  *    Identifies that the user's storage is presently locked
@@ -357,7 +356,6 @@ typedef struct
 #define DSP_GRAHAM		0x20
 #define DSP_MARKOV		0x40
 #define DSA_NAIVE		0x80
-#define DSP_OSB			0x0100
 
 /* Operating Modes */
 

@@ -1,0 +1,82 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Centro de Control</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+                $FORM_USER$
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance">Rendimiento</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Ajustes</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">Alertas</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Mensajes en cuarentena ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">Analisis</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">Historial</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Los mensajes siguientes no se han entregado al cliente de email final porque el filtro los ha identificado como spam. Pincha en el asunto para ver el contenido o elige un criterio para ordenar los mensajes.
+Marca los mensajes y luego usa las opciones para <strong>entregar los mensajes</strong> al cliente final, o <strong>Eliminar TODOS</strong> para vaciar la cuarentena.
+</p>
+
+<form action="$CGI$" method="post">
+<p>
+<input type="hidden" name="command" value="processMensajes en cuarentena" >
+<input type="hidden" name="template" value="quarantine" >
+<input type="hidden" name="user" value="$REMOTE_USER$" >
+<input type="hidden" name="sortby" value="$SORTBY$" >
+<input type="submit" value="Entregar marcados" NAME="manyNotSpam" >
+&nbsp;
+<input type="submit" value="Borrar mensajes marcados" onClick="if (confirm('&iquest;Est&aacute;s seguro de querer eliminar los mensajes SELECCIONADOS en la cuarentena?')==false) { return false; }" />
+<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
+	document.forms[1].elements[j].checked = true; } } return false'>Seleccionar 200.</a>
+&nbsp;
+<input type="submit" value="Eliminar TODOS" name="deleteAll" onClick="if (confirm('&iquest;Est&aacute;s SEGURO de querer eliminar TODOS los mensajes en la cuarentena?')==false) { return false; }" >
+
+</p>
+<table border="0" cellspacing="0" cellpadding="2" width="100%">
+	<tr>
+		<th>&nbsp;</th>
+		$SORT_QUARANTINE$
+	</tr>
+$QUARANTINE$
+</table>
+
+<p>
+<input type="submit" value="Entregar marcados" NAME="manyNotSpam" >
+&nbsp;
+<input type="submit" value="Borrar mensajes marcados" onClick="if (confirm('&iquest;Est&aacute;s seguro de querer eliminar los mensajes SELECCIONADOS en la cuarentena?')==false) { return false; }" />
+<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
+	document.forms[1].elements[j].checked = true; } } return false'>Seleccionar 200.</a>
+&nbsp;
+<input type="submit" value="Eliminar TODOS" name="deleteAll" onClick="if (confirm('&iquest;Est&aacute;s SEGURO de querer eliminar TODOS los mensajes en la cuarentena?')==false) { return false; }" />
+</p>
+
+</form>
+
+<p>
+Llave de color: <span class="low">Menor probabilidad de que sea spam</span>, <span class="medium">Probabilidad intermedia, <span class="high">Muy alta probabilidad</span>
+</p>
+
+</div>
+
+
+
+</BODY>
+</HTML>

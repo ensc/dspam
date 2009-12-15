@@ -1,0 +1,52 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Centro de Controle</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+                $FORM_USER$
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance">Performance</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Prefer&ecirc;ncias</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=alerts">Alertas</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine">Quarentena ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">An&aacute;lise</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">Hist&oacute;rico</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Alertas auxil&iacute;am na localiza&ccedil;&atilde;o de mensagens em quarentena. Se o texto do alerta for encontrado na mensagem, sua coluna ser&aacute; destacada, ajudando a identificar aquelas que podem n&atilde;o ser SPAM.
+</p>
+
+$ALERTS$
+<p>
+<FORM ACTION="$CGI$">
+<INPUT TYPE=HIDDEN NAME=command VALUE=addAlert>
+<INPUT TYPE=HIDDEN NAME=template VALUE=alerts>
+<INPUT TYPE=HIDDEN NAME=user VALUE="$REMOTE_USER$">
+<INPUT NAME=ALERT> &nbsp;<INPUT TYPE=SUBMIT VALUE="Add Alert">
+</FORM>
+</p>
+
+
+</div>
+
+
+
+</BODY>
+</HTML>
