@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.9.1 2009/11/05 16:46:09 sbajic Exp $
+# $Id: Makefile.am,v 1.9.2 2009/11/15 23:20:38 sbajic Exp $
 #
 # Makefile.am
 #
@@ -9,7 +9,7 @@
 includedir=@includedir@/dspam
 
 SUBDIRS = . webui m4 man src 
-DIST_SUBDIRS = . webui m4 txt man src doc scripts
+DIST_SUBDIRS = . webui m4 txt man src doc scripts contrib
 
 EXTRA_DIST = autogen.sh RELEASE.NOTES CHANGELOG LICENSE \
 	README README.cssclean UPGRADING
@@ -18,7 +18,6 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 auto-config.h.in \
 	config.guess config.sub configure depcomp install-sh   \
 	ltmain.sh missing mkinstalldirs
 
-DEFS = @DEFS@ 
+DEFS = @DEFS@
 
 ACLOCAL_AMFLAGS = -I m4
-

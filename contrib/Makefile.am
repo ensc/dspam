@@ -1,0 +1,56 @@
+# $Id: Makefile.am,v 1.0 2009/12/15 23:11:22 sbajic Exp $
+# contrib/Makefile.am
+#
+
+EXTRA_DIST =									\
+	README									\
+	dspam_maintenance							\
+	dspam_maintenance/README						\
+	dspam_maintenance/dspam_maintenance.sh					\
+	lotus_notes								\
+	lotus_notes/README							\
+	lotus_notes/libDSPAMReporting.lss					\
+	plugins									\
+	plugins/dspam-thunderbird-extension.xpi					\
+	plugins/thunderbird							\
+	plugins/thunderbird/Makefile						\
+	plugins/thunderbird/README						\
+	plugins/thunderbird/TODO						\
+	plugins/thunderbird/chrome.manifest					\
+	plugins/thunderbird/chrome						\
+	plugins/thunderbird/chrome/content					\
+	plugins/thunderbird/chrome/content/contents.rdf				\
+	plugins/thunderbird/chrome/content/dspam.js				\
+	plugins/thunderbird/chrome/content/messenger.xul			\
+	plugins/thunderbird/chrome/content/options.js				\
+	plugins/thunderbird/chrome/content/options.xul				\
+	plugins/thunderbird/chrome/content/toolbar.xul				\
+	plugins/thunderbird/chrome/locale					\
+	plugins/thunderbird/chrome/locale/de-DE					\
+	plugins/thunderbird/chrome/locale/de-DE/contents.rdf			\
+	plugins/thunderbird/chrome/locale/de-DE/dspam.dtd			\
+	plugins/thunderbird/chrome/locale/de-DE/dspam.properties		\
+	plugins/thunderbird/chrome/locale/en-US					\
+	plugins/thunderbird/chrome/locale/en-US/contents.rdf			\
+	plugins/thunderbird/chrome/locale/en-US/dspam.dtd			\
+	plugins/thunderbird/chrome/locale/en-US/dspam.properties		\
+	plugins/thunderbird/chrome/locale/pt-PT					\
+	plugins/thunderbird/chrome/locale/pt-PT/contents.rdf			\
+	plugins/thunderbird/chrome/locale/pt-PT/dspam.dtd			\
+	plugins/thunderbird/chrome/locale/pt-PT/dspam.properties		\
+	plugins/thunderbird/chrome/skin						\
+	plugins/thunderbird/chrome/skin/contents.rdf				\
+	plugins/thunderbird/chrome/skin/dspam-logo-eyes-small.gif		\
+	plugins/thunderbird/chrome/skin/dspam-logo-eyes-transp-small.png	\
+	plugins/thunderbird/chrome/skin/dspam-logo-eyes.gif			\
+	plugins/thunderbird/chrome/skin/dspam-logo-small.gif			\
+	plugins/thunderbird/chrome/skin/dspam-logo-text.gif			\
+	plugins/thunderbird/chrome/skin/dspam-logo.gif				\
+	plugins/thunderbird/chrome/skin/dspam.css				\
+	plugins/thunderbird/chrome/skin/report-spam-orig.png			\
+	plugins/thunderbird/chrome/skin/reportham-large.png			\
+	plugins/thunderbird/chrome/skin/reportham-small.png			\
+	plugins/thunderbird/chrome/skin/reportspam-large.png			\
+	plugins/thunderbird/chrome/skin/reportspam-small.png			\
+	plugins/thunderbird/install.rdf						\
+	plugins/thunderbird/license.txt

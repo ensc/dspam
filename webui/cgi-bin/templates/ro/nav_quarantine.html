@@ -18,11 +18,11 @@
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li><a href="$CGI$?$USER$template=performance">Performață</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">Preferințe</a></li>
+		<li><a href="$CGI$?$USER$template=performance">Performa&#x021B;&#x0103;</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">Preferin&#x021B;e</a></li>
 		<li><a href="$CGI$?$USER$template=alerts">Alerte</a></li>
-		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Carantină ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
-		<li><a href="$CGI$?$USER$template=analysis">Analiză</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Carantin&#x0103; ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">Analiz&#x0103;</a></li>
 		<li><a href="$CGI$?$USER$template=history&history_page=1">Istoric</a></li>
 		$NAV_ADMIN$
 	</ul>
@@ -31,11 +31,11 @@
 <div id="panel">
 
 <p>
-Mesajele de mai jos nu au fost livrate aplicației de mail pentru că sunt suspecte de a fi spam.
-Click pe linia 'Subiect' pentru a vedea mesajul sau alege o opțiune de 
+Mesajele de mai jos nu au fost livrate aplica&#x021B;iei de mail pentru c&#x0103; sunt suspecte de a fi spam.
+Click pe linia 'Subiect' pentru a vedea mesajul sau alege o op&#x021B;iune de 
 sortare pentru a schimba modul de ordonare a mesajelor.
-Folosește Căsuţele de bifare și <strong>Livreaza Mesajele Bifate</strong> pentru a livra 
-mesajele pe care vrei să le citești sau <strong>Șterge Tot</strong> pentru a goli carantina.
+Folose&#x0219;te C&#x0103;su&#x0163;ele de bifare &#x0219;i <strong>Livreaza Mesajele Bifate</strong> pentru a livra 
+mesajele pe care vrei s&#x0103; le cite&#x0219;ti sau <strong>&#x0218;terge Tot</strong> pentru a goli carantina.
 </p>
 
 <form action="$CGI$" method="post">
@@ -46,11 +46,11 @@ mesajele pe care vrei să le citești sau <strong>Șterge Tot</strong> pentru a 
 <input type="hidden" name="sortby" value="$SORTBY$" >
 <input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
 &nbsp;
-<input type="submit" value="Delete Checked" onClick="if (confirm('Ești sigur că vrei să ștergi mesajele SELECTATE din carantină?')==false) { return false; }" />
+<input type="submit" value="Delete Checked" onClick="if (confirm('E&#x0219;ti sigur c&#x0103; vrei s&#x0103; &#x0219;tergi mesajele SELECTATE din carantin&#x0103;?')==false) { return false; }" />
 <a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
-	document.forms[1].elements[j].checked = true; } } return false'>Selectează 200.</a>
+	document.forms[1].elements[j].checked = true; } } return false'>Selecteaz&#x0103; 200.</a>
 &nbsp;
-<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Ești sigur că vrei să ștergi TOATE mesajele din carantină?')==false) { return false; }" >
+<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('E&#x0219;ti sigur c&#x0103; vrei s&#x0103; &#x0219;tergi TOATE mesajele din carantin&#x0103;?')==false) { return false; }" >
 
 </p>
 <table border="0" cellspacing="0" cellpadding="2" width="100%">
@@ -64,17 +64,17 @@ $QUARANTINE$
 <p>
 <input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
 &nbsp;
-<input type="submit" value="Delete Checked" onClick="if (confirm('Ești sigur că vrei să ștergi mesajele SELECTATE din carantină?')==false) { return false; }" />
+<input type="submit" value="Delete Checked" onClick="if (confirm('E&#x0219;ti sigur c&#x0103; vrei s&#x0103; &#x0219;tergi mesajele SELECTATE din carantin&#x0103;?')==false) { return false; }" />
 <a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
-	document.forms[1].elements[j].checked = true; } } return false'>Selectează 200.</a>
+	document.forms[1].elements[j].checked = true; } } return false'>Selecteaz&#x0103; 200.</a>
 &nbsp;
-<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Ești sigur că vrei să ștergi TOATE mesajele din carantină?')==false) { return false; }" />
+<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('E&#x0219;ti sigur c&#x0103; vrei s&#x0103; &#x0219;tergi TOATE mesajele din carantin&#x0103;?')==false) { return false; }" />
 </p>
 
 </form>
 
 <p>
-Legenda culorilor: <span class="low">Probabilitate SPAM: mică</span>, <span class="medium">Probabilitate SPAM: medie, <span class="high">Probabilitate SPAM: mare</span>
+Legenda culorilor: <span class="low">Probabilitate SPAM: mic&#x0103;</span>, <span class="medium">Probabilitate SPAM: medie, <span class="high">Probabilitate SPAM: mare</span>
 </p>
 
 </div>
