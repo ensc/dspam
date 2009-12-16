@@ -1,4 +1,4 @@
-/* $Id: config_api.c,v 1.17 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: config_api.c,v 1.18 2009/12/15 03:28:31 sbajic Exp $ */
 
 /*
  DSPAM
@@ -83,10 +83,8 @@ int set_libdspam_attributes(DSPAM_CTX *CTX) {
 
       if (!strncasecmp(t->key, "MySQL", 5)  ||
           !strncasecmp(t->key, "PgSQL", 5)  ||
-          !strncasecmp(t->key, "Ora", 3)    ||
           !strncasecmp(t->key, "SQLite", 6) ||
           !strcasecmp(t->key, "LocalMX")    ||
-          !strncasecmp(t->key, "LDAP", 4)   ||
           !strncasecmp(t->key, "Storage", 7) ||
           !strncasecmp(t->key, "Processor", 9) ||
           !strncasecmp(t->key, "Hash", 4))
