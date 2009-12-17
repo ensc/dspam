@@ -2040,8 +2040,9 @@ DATA
   OS/distribution has its own contributors (they know perfectly their
   distribution's policy, their special guidelines, testing procedures, etc.).
 
-  Please check doc/RE_QA/ports [WIP] for a list of known ports/packages of
-  various OSes and distros and their maintainers, or check your OS/distro docs.
+  Take a look at the DSPAM Wiki for packages/ports for various distributions located
+  at http://sourceforge.net/apps/mediawiki/dspam/index.php?title=Main_Page or read
+  http://dspam.sourceforge.net
 
   If you wish to port DSPAM to an other OS/distro/platform and need help or have
   patches you would like to be merged in the repo please email

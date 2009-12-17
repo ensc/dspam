@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091217:2300] sbajic: Updated section 3.1 (PORTS / PACKAGES) of the README
+
 [20091217:2255] sbajic: Small changes to MySQL 4.1+ database schema
 
 [20091217:2250] sbajic: Fixing small typo in doc/mysql_drv.txt
