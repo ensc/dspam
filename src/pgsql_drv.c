@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.732 2009/11/14 11:33:12 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.733 2009/12/17 12:08:29 sbajic Exp $ */
 
 /*
  DSPAM
@@ -237,7 +237,7 @@ _pgsql_drv_get_spamtotals (DSPAM_CTX * CTX)
 
   result = PQexec(s->dbh, query);
 
-  if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
@@ -467,7 +467,7 @@ _pgsql_drv_set_spamtotals (DSPAM_CTX * CTX)
     result = PQexec(s->dbh, query);
   }
 
-  if ( s->control_totals.innocent_learned != 0 || PQresultStatus(result) != PGRES_COMMAND_OK )
+  if ( s->control_totals.innocent_learned != 0 || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     if (result) PQclear(result);
 
@@ -516,7 +516,7 @@ _pgsql_drv_set_spamtotals (DSPAM_CTX * CTX)
 
     result = PQexec(s->dbh, query);
 
-    if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+    if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
     {
       _pgsql_drv_query_error (PQresultErrorMessage(result), query);
       if (result) PQclear(result);
@@ -655,7 +655,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return 0;
 
   result = PQexec(s->dbh, query->data);
-  if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query->data);
     if (result) PQclear(result);
@@ -827,7 +827,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 
   /* prepare update and insert statement */
   result = PQexec(s->dbh, prepare->data);
-  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), prepare->data);
     if (result) PQclear(result);
@@ -888,7 +888,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       insertValues[2] = stat.innocent_hits > 0 ? "1" : "0";
 
       result = PQexecPrepared(s->dbh, "dspam_insert_plan", 3, insertValues, NULL, NULL, 1);
-      if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK) {
+      if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) ) {
         stat.status |= TST_DISK;
       }
       if (result) PQclear(result);
@@ -919,7 +919,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   if (update_one)
   {
     result = PQexec(s->dbh, update->data);
-    if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+    if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
     {
       _pgsql_drv_query_error (PQresultErrorMessage(result), update->data);
       if (result) PQclear(result);
@@ -937,7 +937,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
                                        "DEALLOCATE dspam_update_plan;");
 
   result = PQexec(s->dbh, scratch);
-  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), scratch);
     if (result) PQclear(result);
@@ -992,7 +992,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   stat->status &= ~TST_DISK;
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
@@ -1072,7 +1072,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     result = PQexec(s->dbh, query);
   }
 
-  if ((stat->status & TST_DISK) || PQresultStatus(result) != PGRES_COMMAND_OK )
+  if ((stat->status & TST_DISK) || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     /* insert failed; try updating instead */
     snprintf (query, sizeof (query), "UPDATE dspam_token_data"
@@ -1088,7 +1088,7 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
 
     result = PQexec(s->dbh, query);
 
-    if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+    if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
     {
       _pgsql_drv_query_error (PQresultErrorMessage(result), query);
       if (result) PQclear(result);
@@ -1156,7 +1156,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
      single transaction to avoid deadlocks
 
   result = PQexec(s->dbh, "BEGIN");
-  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), "BEGIN");
     if (result) PQclear(result);
@@ -1367,7 +1367,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
             (int) uid, signature);
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
@@ -1467,7 +1467,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   mem = NULL;
 
   result = PQexec(s->dbh, query->data);
-  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query->data);
     if (result) PQclear(result);
@@ -1515,7 +1515,7 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
             (int) p->pw_uid, signature);
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
@@ -1561,7 +1561,7 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
             (int) p->pw_uid, signature);
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
@@ -1633,7 +1633,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
 
     /* Start transaction block */
     result = PQexec(s->dbh, "BEGIN");
-    if ( PQresultStatus(result) != PGRES_COMMAND_OK ) {
+    if ( PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR ) {
       _pgsql_drv_query_error (PQresultErrorMessage(result), "_ds_get_nextuser: BEGIN command failed");
       if (result) PQclear(result);
       result = PQexec(s->dbh, "END");
@@ -1652,7 +1652,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
 #endif
 
     result = PQexec(s->dbh, query);
-    if ( PQresultStatus(result) != PGRES_COMMAND_OK ) {
+    if ( PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR ) {
       _pgsql_drv_query_error (PQresultErrorMessage(result), query);
       if (result) PQclear(result);
       result = PQexec(s->dbh, "CLOSE dsnucursor");
@@ -1667,7 +1667,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     PQclear(s->iter_user);
 
   s->iter_user = PQexec(s->dbh, "FETCH NEXT FROM dsnucursor");
-  if ( PQresultStatus(s->iter_user) != PGRES_TUPLES_OK ) {
+  if ( PQresultStatus(s->iter_user) != PGRES_TUPLES_OK && PQresultStatus(s->iter_user) != PGRES_NONFATAL_ERROR ) {
     _pgsql_drv_query_error (PQresultErrorMessage(s->iter_user), "FETCH NEXT command failed");
     result = PQexec(s->dbh, "CLOSE dsnucursor");
     if (result) PQclear(result);
@@ -1765,7 +1765,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
 
     /* Start transaction block */
     result = PQexec(s->dbh, "BEGIN");
-    if ( PQresultStatus(result) != PGRES_COMMAND_OK ) {
+    if ( PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR ) {
       _pgsql_drv_query_error (PQresultErrorMessage(result), "_ds_get_nextsignature: BEGIN command failed");
       if (result) PQclear(result);
       result = PQexec(s->dbh, "END");
@@ -1783,7 +1783,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
               (int) p->pw_uid);
 
     result = PQexec(s->dbh, query);
-    if ( PQresultStatus(result) != PGRES_COMMAND_OK ) {
+    if ( PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR ) {
       _pgsql_drv_query_error (PQresultErrorMessage(result), query);
       if (result) PQclear(result);
       result = PQexec(s->dbh, "CLOSE dsntcursor");
@@ -1799,7 +1799,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     PQclear(s->iter_token);
 
   s->iter_token = PQexec(s->dbh, "FETCH NEXT FROM dsntcursor");
-  if ( PQresultStatus(s->iter_token) != PGRES_TUPLES_OK ) {
+  if ( PQresultStatus(s->iter_token) != PGRES_TUPLES_OK && PQresultStatus(s->iter_token) != PGRES_NONFATAL_ERROR ) {
     _pgsql_drv_query_error (PQresultErrorMessage(s->iter_token), "FETCH NEXT command failed");
     result = PQexec(s->dbh, "CLOSE dsntcursor");
     if (result) PQclear(result);
@@ -1900,7 +1900,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
 
     /* Start transaction block */
     result = PQexec(s->dbh, "BEGIN");
-    if ( PQresultStatus(result) != PGRES_COMMAND_OK ) {
+    if ( PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR ) {
       _pgsql_drv_query_error (PQresultErrorMessage(result), "_ds_get_nextsignature: BEGIN command failed");
       if (result) PQclear(result);
       result = PQexec(s->dbh, "END");
@@ -1918,7 +1918,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
               (int) p->pw_uid);
 
     result = PQexec(s->dbh, query);
-    if ( PQresultStatus(result) != PGRES_COMMAND_OK ) {
+    if ( PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR ) {
       _pgsql_drv_query_error (PQresultErrorMessage(result), query);
       if (result) PQclear(result);
       result = PQexec(s->dbh, "CLOSE dsnscursor");
@@ -1934,7 +1934,7 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
     PQclear(s->iter_sig);
 
   s->iter_sig = PQexec(s->dbh, "FETCH NEXT FROM dsnscursor");
-  if ( PQresultStatus(s->iter_sig) != PGRES_TUPLES_OK ) {
+  if ( PQresultStatus(s->iter_sig) != PGRES_TUPLES_OK && PQresultStatus(s->iter_sig) != PGRES_NONFATAL_ERROR ) {
     _pgsql_drv_query_error (PQresultErrorMessage(s->iter_sig), "FETCH NEXT command failed");
     result = PQexec(s->dbh, "CLOSE dsnscursor");
     if (result) PQclear(result);
@@ -2066,7 +2066,7 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
             virtual_uid, virtual_table, virtual_username, name);
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
       LOGDEBUG("_pgsql_drv_getpwnam returning NULL for query on name: %s that returned a null result", name);
@@ -2186,7 +2186,7 @@ _pgsql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
             virtual_username, virtual_table, virtual_uid, (int) uid);
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
@@ -2275,7 +2275,7 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
    * by another process */
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
@@ -2324,7 +2324,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
             _pgsql_drv_token_write (s->pg_token_type, token, tok_buf, sizeof(tok_buf)) );
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
@@ -2398,7 +2398,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       buffer_cat (query, ")");
 
       result = PQexec(s->dbh, query->data);
-      if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+      if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
       {
         _pgsql_drv_query_error (PQresultErrorMessage(result), query->data);
         if (result) PQclear(result);
@@ -2424,7 +2424,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     buffer_cat (query, ")");
 
     result = PQexec(s->dbh, query->data);
-    if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+    if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
     {
       _pgsql_drv_query_error (PQresultErrorMessage(result), query->data);
       if (result) PQclear(result);
@@ -2522,7 +2522,7 @@ agent_pref_t _ds_pref_load(
                               " FROM dspam_preferences WHERE uid=%d", (int) uid);
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
@@ -2631,7 +2631,7 @@ int _ds_pref_set (
     " WHERE uid=%d AND preference='%s'", (int) uid, m1);
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
@@ -2644,7 +2644,7 @@ int _ds_pref_set (
     " (uid,preference,value) VALUES (%d,'%s','%s')", (int) uid, m1, m2);
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
@@ -2712,7 +2712,7 @@ int _ds_pref_del (
     " WHERE uid=%d AND preference='%s'", (int) uid, m1);
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_COMMAND_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
@@ -2931,7 +2931,7 @@ _pgsql_drv_token_type(struct _pgsql_drv_storage *s, PGresult *result, int column
           " (SELECT oid FROM pg_class WHERE relname='dspam_token_data'));");
 
     select_res = PQexec(s->dbh,query);
-    if ( !select_res || PQresultStatus(select_res) != PGRES_TUPLES_OK )
+    if ( !select_res || (PQresultStatus(select_res) != PGRES_TUPLES_OK && PQresultStatus(select_res) != PGRES_NONFATAL_ERROR) )
     {
       _pgsql_drv_query_error (PQresultErrorMessage(select_res), query);
       if (select_res) PQclear(select_res);
@@ -3005,7 +3005,7 @@ _pgsql_drv_get_dbversion(struct _pgsql_drv_storage *s)
   snprintf (query, sizeof (query), "SELECT split_part(split_part(version(),' ',2),'.',1)::int2");
 
   result = PQexec(s->dbh, query);
-  if ( !result || PQresultStatus(result) != PGRES_TUPLES_OK )
+  if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);

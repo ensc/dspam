@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091217:1210] sbajic: Adding code to PostgreSQL driver to not fail with an error on non fatal PostgreSQL errors
+
 [20091215:2335] sbajic: Adding contrib to distribution
 
 [20091215:1710] sbajic: Fixing small typo in pt-BR template
