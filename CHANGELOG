@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091218:0030] sbajic: Updated UPGRADING regarding indices for MySQL for speeding up purging
+
 [20091217:2300] sbajic: Updated section 3.1 (PORTS / PACKAGES) of the README
 
 [20091217:2255] sbajic: Small changes to MySQL 4.1+ database schema

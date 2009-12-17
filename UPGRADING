@@ -45,11 +45,18 @@ UPGRADING FROM 3.8
 
    If you need to speed up the MySQL purging script and can afford to use more
    disk space for the DSPAM MySQL data, then consider executing the following
-   clause for adding three additional indices:
+   clause for adding additional indices to the dspam_token_data table:
      ALTER TABLE `dspam_token_data`
-       ADD INDEX(`spam_hits`),
-       ADD INDEX(`innocent_hits`),
-       ADD INDEX(`last_hit`); 
+       ADD INDEX(`spam_hits`,`innocent_hits`),
+       ADD INDEX(`last_hit`);
+
+   You can of course combine all three fields in one index (and save some space):
+     ALTER TABLE `dspam_token_data`
+       ADD INDEX(`spam_hits`,`innocent_hits`,`last_hit`);
+
+   Those additional indices/index can speed up the purging for MyISAM tables. If you
+   are using InnoDB tables then the difference with/without them is not that striking
+   and in most cases not worth the needed additional space/processing power.
 
 2. Ensure PosgreSQL is using the new database schema. The following clauses should
    be executed for upgrading pre-3.9.0 DSPAM PosgreSQL schema to the 3.9.0 schema:
