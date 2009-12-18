@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.382 2009/12/06 18:06:42 sbajic Exp $ */
+/* $Id: dspam.c,v 1.383 2009/12/18 22:48:45 sbajic Exp $ */
 
 /*
  DSPAM
@@ -4216,11 +4216,20 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   if (_ds_match_attribute(agent_config, "Notifications", "on")) {
     struct stat s;
     char qfile[MAX_FILENAME_LENGTH];
+    int qwarn_size = 1024*1024*2;
+
+    if (_ds_read_attribute(agent_config, "QuarantineWarnSize")) {
+      qwarn_size = atoi(_ds_read_attribute(agent_config, "QuarantineWarnSize"));
+      if (qwarn_size == INT_MAX && errno == ERANGE) {
+        LOG (LOG_INFO, "Value for 'QuarantineWarnSize' not valid (will use 2MB for now)");
+        qwarn_size = 1024*1024*2;
+      }
+    }
 
     _ds_userdir_path(qfile, _ds_read_attribute(agent_config, "Home"),
                      LOOKUP(ATX->PTX, CTX->username), "mbox");
 
-    if (!stat(qfile, &s) && s.st_size > 1024*1024*2) {
+    if (!stat(qfile, &s) && s.st_size > qwarn_size) {
       _ds_userdir_path(qfile, _ds_read_attribute(agent_config, "Home"),
                        LOOKUP(ATX->PTX, CTX->username), "mboxwarn");
       if (stat(qfile, &s)) {

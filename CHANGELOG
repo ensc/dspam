@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091218:2310] sbajic: Adding QuarantineWarnSize option to dspam.conf. This controls the size when DSPAM will send "Quarantine Full" notification messages to users
+
 [20091218:1930] sbajic: Updating README section 7 (NOTIFICATIONS)
 
 [20091218:0930] sbajic: Adding Czech templates for Web UI (translated by Frantisek Hanzlik <franta@hanzlici.cz>)

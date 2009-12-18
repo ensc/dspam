@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.91 2009/12/06 16:54:54 sbajic Exp $
+## $Id: dspam.conf.in,v 1.92 2009/12/18 22:56:07 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -624,6 +624,13 @@ HashConnectionCache	10
 # message, quarantine full, etc.)
 #
 Notifications	off
+
+#
+# QuarantineWarnSize: You may specify a size when DSPAM should send a "Quarantine
+# Full" message to each user. This is only working if you enable notifications
+# (see above). Value is in bytes. Default is 2097152 -> 2MB.
+#
+#QuarantineWarnSize 2097152
 
 #
 # Purge configuration: Set dspam_clean purge default options, if not otherwise
