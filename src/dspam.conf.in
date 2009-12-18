@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.93 2009/12/18 23:35:18 sbajic Exp $
+## $Id: dspam.conf.in,v 1.94 2009/12/18 23:45:09 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -105,6 +105,12 @@ TrustedDeliveryAgent "@delivery_agent@"
 # new specified character. The default is '+'.
 #
 #PlusedCharacter	+
+
+#
+# Turn this feature on if you want to force DSPAM to lowercase the "plused
+# users" username.
+#
+#PlusedUserLowercase	on
 
 #
 # Quarantine Mailbox: DSPAM's LMTP code can send spam mail using LMTP to a 

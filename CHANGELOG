@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091218:2345] sbajic: Adding description to dspam.conf for option PlusedUserLowercase.
+
 [20091218:2340] sbajic: Adding PlusedCharacter option to dspam.conf. This allows setting the separator between user names and address extensions (user+foo).
 
 [20091218:2310] sbajic: Adding QuarantineWarnSize option to dspam.conf. This controls the size when DSPAM will send "Quarantine Full" notification messages to users
