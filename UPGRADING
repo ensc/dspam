@@ -55,7 +55,7 @@ UPGRADING FROM 3.8
        ADD INDEX(`spam_hits`,`innocent_hits`,`last_hit`);
 
    Those additional indices/index can speed up the purging for MyISAM tables. If you
-   are using InnoDB tables then the difference with/without them is not that striking
+   are using InnoDB tables then the difference with/without them is not that amazing
    and in most cases not worth the needed additional space/processing power.
 
 2. Ensure PosgreSQL is using the new database schema. The following clauses should
