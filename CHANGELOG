@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091218:0930] sbajic: Adding Czech templates for Web UI (translated by Frantisek Hanzlik <franta@hanzlici.cz>)
+
 [20091218:0145] sbajic: Updated purge-4.1.sql SQL script for MySQL
 
 [20091218:0100] sbajic: Updated purge.sql SQL script for MySQL
