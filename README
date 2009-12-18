@@ -767,11 +767,17 @@ FRESH INSTALLATION
        spam
 
      - A "Quarantine Full" message sent to each user when their quarantine box
-       is > 2MB in size.
+       is > 2MB in size (note: the 2MB limit is hardcoded in DSPAM).
 
    These notifications can be activated by copying the txt/ directory from the
-   distribution into DSPAM's home (by default /usr/local/var/dspam).  You will
-   want to modify these templates prior to installing them to reflect the 
+   distribution into DSPAM's home (by default /usr/local/var/dspam).
+
+   Example:
+   /usr/local/var/dspam/txt/firstrun.txt
+   /usr/local/var/dspam/txt/firstspam.txt
+   /usr/local/var/dspam/txt/qurantinefull.txt
+
+   You will want to modify these templates prior to installing them to reflect the
    correct email addresses and URLs (look for 'configureme' and 'yourdomain').
 
    NOTE: The quarantine warning is reset when the user clicks 'Delete All', but
