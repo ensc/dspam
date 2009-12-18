@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.383 2009/12/18 22:48:45 sbajic Exp $ */
+/* $Id: dspam.c,v 1.384 2009/12/18 23:27:52 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1668,11 +1668,14 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
          delivery and strip detail for processing */
 
     if (_ds_match_attribute(agent_config, "EnablePlusedDetail", "on")) {
+      char plused_char = '+';
+      if (_ds_read_attribute(agent_config, "PlusedCharacter"))
+        plused_char = _ds_read_attribute(agent_config, "PlusedCharacter")[0];
       strlcpy(mailbox, username, sizeof(mailbox));
       ATX->recipient = mailbox;
       if (_ds_match_attribute(agent_config, "PlusedUserLowercase", "on"))
         lc (username, username);
-      plus = index(username, '+');
+      plus = index(username, plused_char);
       if (plus) {
         atsign = index(plus, '@');
         if (atsign)
