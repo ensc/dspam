@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.94 2009/12/18 23:45:09 sbajic Exp $
+## $Id: dspam.conf.in,v 1.95 2009/12/19 01:07:46 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -307,6 +307,7 @@ Preference "trainPristine=off"		# { on | off } -> default:off
 Preference "optOutClamAV=off"		# { on | off } -> default:off
 Preference "ignoreRBLLookups=off"	# { on | off } -> default:off
 Preference "RBLInoculate=off"		# { on | off } -> default:off
+Preference "notifications=off"		# { on | off } -> default:off
 
 #
 # Overrides: Specifies the user preferences which may override configuration
@@ -337,6 +338,7 @@ AllowOverride trainPristine
 AllowOverride trainingMode
 AllowOverride whitelistThreshold
 AllowOverride dailyQuarantineSummary
+AllowOverride notifications
 
 # --- MySQL ---
 

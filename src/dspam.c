@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.384 2009/12/18 23:27:52 sbajic Exp $ */
+/* $Id: dspam.c,v 1.385 2009/12/19 01:02:19 sbajic Exp $ */
 
 /*
  DSPAM
@@ -4169,7 +4169,9 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   /* First run notification */
 
-  if (_ds_match_attribute(agent_config, "Notifications", "on")) {
+  if ((_ds_match_attribute(agent_config, "Notifications", "on") ||
+      !strcasecmp(_ds_pref_val(ATX->PTX, "notifications"), "on")) &&
+      strcasecmp(_ds_pref_val(ATX->PTX, "notifications"), "off")) {
     _ds_userdir_path(filename,
                     _ds_read_attribute(agent_config, "Home"),
                     LOOKUP(ATX->PTX, CTX->username), "firstrun");
@@ -4193,7 +4195,9 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   /* First spam notification */
 
   if (CTX->result == DSR_ISSPAM &&
-       _ds_match_attribute(agent_config, "Notifications", "on"))
+       (_ds_match_attribute(agent_config, "Notifications", "on") ||
+        !strcasecmp(_ds_pref_val(ATX->PTX, "notifications"), "on")) &&
+       strcasecmp(_ds_pref_val(ATX->PTX, "notifications"), "off"))
   {
     _ds_userdir_path(filename,
                     _ds_read_attribute(agent_config, "Home"),
@@ -4216,7 +4220,9 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   /* Quarantine size notification */
 
-  if (_ds_match_attribute(agent_config, "Notifications", "on")) {
+  if ((_ds_match_attribute(agent_config, "Notifications", "on") ||
+      !strcasecmp(_ds_pref_val(ATX->PTX, "notifications"), "on")) &&
+      strcasecmp(_ds_pref_val(ATX->PTX, "notifications"), "off")) {
     struct stat s;
     char qfile[MAX_FILENAME_LENGTH];
     int qwarn_size = 1024*1024*2;
