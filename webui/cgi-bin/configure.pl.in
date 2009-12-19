@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: configure.pl,v 1.00 2009/12/12 05:51:21 sbajic Exp $
+# $Id: configure.pl,v 1.01 2009/12/20 00:45:49 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -46,7 +46,6 @@ $CONFIG{'MAX_COL_LEN'}	= 50;		# Max chars in list columns
 $CONFIG{'SORT_DEFAULT'}	= "Rating";	# Show quarantine by "Date" or "Rating"
 $CONFIG{'3D_GRAPHS'}	= 1;		# 0=graphs in 2D, 1=graphs in 3D
 $CONFIG{'OPTMODE'}	= "NONE";	# OUT=OptOut IN=OptIn NONE=not selectable
-$CONFIG{'LOCAL_DOMAIN'}	= "localhost";
 
 # Add customized settings below
 $CONFIG{'LOCAL_DOMAIN'}	= "yourdomain.com";
