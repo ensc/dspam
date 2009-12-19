@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# $Id: dspam_maintenance.sh,v 1.01 2009/12/19 18:29:40 sbajic Exp $
+#
 # Copyright 2007-2009 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
 #
@@ -36,10 +39,15 @@ for foo in $@
 do
 	case "${foo}" in
 		--logdays=*) LOGROTATE_AGE="${foo#--logdays=}";;
-		--sigdays=*) SIGNATURE_AGE="${foo#--sigdays=}";;
+		--signatures=*) SIGNATURE_AGE="${foo#--signatures=}";;
+		--neutral=*) NEUTRAL_AGE="${foo#--neutral=}";;
+		--unused=*) UNUSED_AGE="${foo#--unused=}";;
+		--hapaxes=*) HAPAXES_AGE="${foo#--hapaxes=}";;
+		--hits1s=*) HITS1S_AGE="${foo#--hits1s=}";;
+		--hits1i=*) HITS1I_AGE="${foo#--hits1i=}";;
 		--without-sql-purge) USE_SQL_PURGE=false;;
 		*)
-			echo "usage: $0 [--logdays=no_of_days] [--sigdays=no_of_days] [--without-sql-purge]"
+			echo "Usage: $0 [--logdays=no_of_days] [--signatures=no_of_days] [--neutral=no_of_days] [--unused=no_of_days] [--hapaxes=no_of_days] [--hits1s=no_of_days] [--hits1i=no_of_days] [--without-sql-purge]"
 			exit 1
 			;;
 	esac
@@ -47,23 +55,15 @@ done
 
 
 #
-# Parameters
-#
-[ -z "${LOGROTATE_AGE}" ] && LOGROTATE_AGE=15 # Delete log entries older than $LOGROTATE_AGE days
-[ -z "${SIGNATURE_AGE}" ] && SIGNATURE_AGE=15 # Delete signatures older than $SIGNATURE_AGE days
-[ -z "${USE_SQL_PURGE}" ] && USE_SQL_PURGE=true # Run sql purge scripts
-
-
-#
 # Function to run dspam_clean
 #
 run_dspam_clean() {
 	local PURGE_SIG="${1}"
-	if [ "${PURGE_SIG}" == "YES" ]
+	if [ "${PURGE_SIG}" = "YES" ]
 	then
-		${DSPAM_BIN_DIR}/dspam_clean -s${SIGNATURE_AGE} -p${SIGNATURE_AGE} -u${SIGNATURE_AGE},${SIGNATURE_AGE},${SIGNATURE_AGE},${SIGNATURE_AGE} >/dev/null 2>&1
+		${DSPAM_BIN_DIR}/dspam_clean -s${SIGNATURE_AGE} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
 	else
-		${DSPAM_BIN_DIR}/dspam_clean -p${SIGNATURE_AGE} -u${SIGNATURE_AGE},${SIGNATURE_AGE},${SIGNATURE_AGE},${SIGNATURE_AGE} >/dev/null 2>&1
+		${DSPAM_BIN_DIR}/dspam_clean -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
 	fi
 	return ${?}
 }
@@ -74,7 +74,7 @@ run_dspam_clean() {
 #
 check_for_tools() {
 	local myrc=0
-	for foo in awk cut sed
+	for foo in awk cut sed sort
 	do
 		if ! which ${foo} >/dev/null 2>&1
 		then
@@ -91,9 +91,11 @@ check_for_tools() {
 #
 read_dspam_params() {
 	local PARAMETER VALUE
+	local INCLUDE_DIRS
+	INCLUDE_DIRS=$(awk "BEGIN { IGNORECASE=1; } \$1==\"Include\" { print \$2 \"/*.conf\"; }" "${DSPAM_CONFIGDIR}/dspam.conf")
 	for PARAMETER in $@ ; do
-		VALUE=$(awk "BEGIN { IGNORECASE=1; } \$1==\"${PARAMETER}\" { print \$2; exit; }" "${DSPAM_CONFIGDIR}/dspam.conf")
-		[ ${?} == 0 ] || return 1
+		VALUE=$(awk "BEGIN { IGNORECASE=1; } \$1==\"${PARAMETER}\" { print \$2; exit; }" "${DSPAM_CONFIGDIR}/dspam.conf" ${INCLUDE_DIRS[@]})
+		[ ${?} = 0 ] || return 1
 		eval ${PARAMETER}=\"${VALUE}\"
 	done
 	return 0
@@ -162,7 +164,7 @@ clean_mysql_drv() {
 			DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --host=${MySQLServer}"
 		[ -n "${MySQLPort}" ] &&
 			DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --port=${MySQLPort}"
-		[ "${MySQLCompress}" == "true" ] &&
+		[ "${MySQLCompress}" = "true" ] &&
 			DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --compress"
 
 		# Run the MySQL purge script
@@ -352,25 +354,25 @@ DSPAM_CRON_LOCKFILE="/var/run/$(basename $0 .sh).pid"
 if [ -f ${DSPAM_CRON_LOCKFILE} ]; then
 	DSPAM_REMOVE_CRON_LOCKFILE="YES"
 	for foo in $(cat ${DSPAM_CRON_LOCKFILE} 2>/dev/null); do
-		if [ -L "/proc/${foo}/exe" -a "$(readlink -f /proc/${foo}/exe)" == "$(readlink -f /proc/$$/exe)" ]; then
+		if [ -L "/proc/${foo}/exe" -a "$(readlink -f /proc/${foo}/exe)" = "$(readlink -f /proc/$$/exe)" ]; then
 			DSPAM_REMOVE_CRON_LOCKFILE="NO"
 		fi
 	done
-	if [ "${DSPAM_REMOVE_CRON_LOCKFILE}" == "YES" ]; then
+	if [ "${DSPAM_REMOVE_CRON_LOCKFILE}" = "YES" ]; then
 		rm -f ${DSPAM_CRON_LOCKFILE} >/dev/null 2>&1
 	elif [ $(($(date +%s)-$(stat --printf="%X" ${DSPAM_CRON_LOCKFILE}))) -ge $((12*60*60)) ]; then
 		for foo in $(cat ${DSPAM_CRON_LOCKFILE} 2>/dev/null); do
-			if [ -L "/proc/${foo}/exe" -a "$(readlink -f /proc/${foo}/exe)" == "$(readlink -f /proc/$$/exe)" ]; then
+			if [ -L "/proc/${foo}/exe" -a "$(readlink -f /proc/${foo}/exe)" = "$(readlink -f /proc/$$/exe)" ]; then
 				kill -s KILL ${foo} >/dev/null 2>&1
 			fi
 		done
 		DSPAM_REMOVE_CRON_LOCKFILE="YES"
 		for foo in $(cat ${DSPAM_CRON_LOCKFILE} 2>/dev/null); do
-			if [ -L "/proc/${foo}/exe" -a "$(readlink -f /proc/${foo}/exe)" == "$(readlink -f /proc/$$/exe)" ]; then
+			if [ -L "/proc/${foo}/exe" -a "$(readlink -f /proc/${foo}/exe)" = "$(readlink -f /proc/$$/exe)" ]; then
 				DSPAM_REMOVE_CRON_LOCKFILE="NO"
 			fi
 		done
-		if [ "${DSPAM_REMOVE_CRON_LOCKFILE}" == "YES" ]; then
+		if [ "${DSPAM_REMOVE_CRON_LOCKFILE}" = "YES" ]; then
 			rm -f ${DSPAM_CRON_LOCKFILE} >/dev/null 2>&1
 		fi
 	fi
@@ -454,6 +456,68 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		exit 2
 	fi
 
+
+	#
+	# Parameters
+	#
+	[ -z "${LOGROTATE_AGE}" ] && LOGROTATE_AGE=15	# System and user log
+	[ -z "${USE_SQL_PURGE}" ] && USE_SQL_PURGE=true	# Run sql purge scripts
+	if [  -z "${SIGNATURE_AGE}" ]
+	then
+		if read_dspam_params PurgeSignatures && [ -n "${PurgeSignatures}" -a "${PurgeSignatures}" != "off" ]
+		then
+			SIGNATURE_AGE=${PurgeSignatures}
+		else
+			SIGNATURE_AGE=14		# Stale signatures
+		fi
+	fi
+	if [  -z "${NEUTRAL_AGE}" ]
+	then
+		if read_dspam_params PurgeNeutral && [ -n "${PurgeNeutral}" -a "${PurgeNeutral}" != "off" ]
+		then
+			NEUTRAL_AGE=${PurgeNeutral}
+		else
+			NEUTRAL_AGE=90			# Tokens with neutralish probabilities
+		fi
+	fi
+	if [  -z "${UNUSED_AGE}" ]
+	then
+		if read_dspam_params PurgeUnused && [ -n "${PurgeUnused}" -a "${PurgeUnused}" != "off" ]
+		then
+			UNUSED_AGE=${PurgeUnused}
+		else
+			UNUSED_AGE=90			# Unused tokens
+		fi
+	fi
+	if [  -z "${HAPAXES_AGE}" ]
+	then
+		if read_dspam_params PurgeHapaxes && [ -n "${PurgeHapaxes}" -a "${PurgeHapaxes}" != "off" ]
+		then
+			HAPAXES_AGE=${PurgeHapaxes}
+		else
+			HAPAXES_AGE=30			# Tokens with less than 5 hits (hapaxes)
+		fi
+	fi
+	if [  -z "${HITS1S_AGE}" ]
+	then
+		if read_dspam_params PurgeHits1S && [ -n "${PurgeHits1S}" -a "${PurgeHits1S}" != "off" ]
+		then
+			HITS1S_AGE=${PurgeHits1S}
+		else
+			HITS1S_AGE=15			# Tokens with only 1 spam hit
+		fi
+	fi
+	if [  -z "${HITS1I_AGE}" ]
+	then
+		if read_dspam_params PurgeHits1I && [ -n "${PurgeHits1I}" -a "${PurgeHits1I}" != "off" ]
+		then
+			HITS1I_AGE=${PurgeHits1I}
+		else
+			HITS1I_AGE=15			# Tokens with only 1 innocent hit
+		fi
+	fi
+
+
 	#
 	# Try to get DSPAM data home directory
 	#
@@ -491,7 +555,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	#
 	# Process all available storage drivers
 	#
-	for foo in $(${DSPAM_BIN_DIR}/dspam --version 2>&1 | sed -n "s:,: :g;s:^.*\-\-with\-storage\-driver=\([^\']*\).*:\1:gIp")
+	for foo in $(${DSPAM_BIN_DIR}/dspam --version 2>&1 | sed -n "s:,: :g;s:^.*\-\-with\-storage\-driver=\([^\']*\).*:\1:gIp" | sort -u)
 	do
 		case "${foo}" in
 			hash_drv)
