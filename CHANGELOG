@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091219:0540] sbajic: Updating syntax/help output for dspam_stats
+
 [20091219:0115] sbajic: Added option "notifications" as an user preference. Works the same way as "Notifications" in dspam.conf
 
 [20091218:2345] sbajic: Adding description to dspam.conf for option PlusedUserLowercase.

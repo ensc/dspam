@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.26 2008/05/02 23:59:57 mjohnson Exp $ */
+/* $Id: dspam_stats.c,v 1.27 2009/12/19 05:21:06 sbajic Exp $ */
 
 /*
  DSPAM
@@ -45,7 +45,7 @@
 #include "language.h"
 #include "util.h"
 
-#define TSYNTAX	"syntax: dspam_stats [-hHrsSt] [username]"
+#define TSYNTAX	"syntax: dspam_stats [-h]\|[--profile=PROFILE] [-HrsSt] [user [user...]]"
 
 #ifdef _WIN32
 /* no trusted users under Windows */
@@ -452,11 +452,15 @@ void
 usage (void)
 {
   (void)fprintf (stderr,
-    "usage: dspam_stats [-hH] [user [user...]]\n\
+    "usage: dspam_stats [-h]|[--profile=PROFILE] [-HrsSt] [user [user...]]\n\
       \tPrint dspam statistics for users.\n\
       \tIf no users are specified, stats for all users are printed.\n\
       \t-h: print this message\n\
-      \t-H: print stats in \"human friendly\" format\n");
+      \t-H: print stats in \"human friendly\" format\n\
+      \t-r: Resets the current snapshot\n\
+      \t-s: Displays stats since last snapshot (instead of since epoch)\n\
+      \t-S: Displays accuracy percentages in addition to stats\n\
+      \t-t: Displays a total of all statistics displayed\n");
   _ds_destroy_config(agent_config);
   exit(EXIT_FAILURE);
 }
