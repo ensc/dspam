@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.385 2009/12/19 01:02:19 sbajic Exp $ */
+/* $Id: dspam.c,v 1.386 2009/12/19 14:45:19 sbajic Exp $ */
 
 /*
  DSPAM
@@ -415,9 +415,11 @@ process_message (
       result = DSR_ISSPAM;
       strcpy(CTX->class, LANG_CLASS_VIRUS);
       internally_canned = 1;
-      if (!dspam_getsource (CTX, ip, sizeof (ip)))
-      {
-        LOG(LOG_WARNING, "virus warning: infected message from %s", ip);
+      if(!_ds_match_attribute(agent_config, "TrackSources", "virus")) {
+        if (!dspam_getsource (CTX, ip, sizeof (ip)))
+        {
+          LOG(LOG_WARNING, "virus warning: infected message from %s", ip);
+        }
       }
     }
   }

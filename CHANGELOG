@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091219:1505] sbajic: Do not log virus infected files separately if "TrackSources virus" is activated
+
 [20091219:0540] sbajic: Updating syntax/help output for dspam_stats
 
 [20091219:0115] sbajic: Added option "notifications" as an user preference. Works the same way as "Notifications" in dspam.conf
