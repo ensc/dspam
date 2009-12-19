@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091219:2210] sbajic: Adding man for dspam_admin, dspam_crc and dspam_logrotate
+
 [20091219:1830] sbajic: Updated contrib/dspam_maintenance/dspam_maintenance.sh to handle correctly split config
 
 [20091219:1810] sbajic: Updated purge-4.1.sql SQL script for MySQL
