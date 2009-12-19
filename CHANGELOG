@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091219:1810] sbajic: Updated purge-4.1.sql SQL script for MySQL
+
 [20091219:1650] sbajic: Updated purge.sql SQL script for MySQL
 
 [20091219:1650] sbajic: Updated purge-4.1.sql SQL script for MySQL

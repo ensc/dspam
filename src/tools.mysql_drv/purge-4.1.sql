@@ -1,4 +1,4 @@
--- $Id: purge-4.1.sql,v 1.9 2008/12/19 16:32:16 sbajic Exp $
+-- $Id: purge-4.1.sql,v 1.10 2008/12/19 18:04:04 sbajic Exp $
 
 -- ---------------------------------------------------------------------------
 -- Note: Should you have modified your dspam.conf to have other intervals for
@@ -6,7 +6,7 @@
 --       'TEFT' then please modify this SQL file to be in sync with your
 --       dspam.conf.
 --
--- Note: It is difficult to purge unused tokens with SQL clauses the same way
+-- Note: It is difficult to purge neutral tokens with SQL clauses the same way
 --       as dspam_clean is doing it. So you should still run dspam_clean with
 --       the "-u" parameter from time to time.
 -- ---------------------------------------------------------------------------
@@ -28,8 +28,8 @@ SET @today           = to_days(current_date());
 START TRANSACTION;
 DELETE LOW_PRIORITY QUICK
   FROM dspam_token_data
-    WHERE from_days(@today-@PurgeHapaxes) > last_hit
-      AND (2*innocent_hits)+spam_hits < 5;
+  WHERE from_days(@today-@PurgeHapaxes) > last_hit
+    AND (2*innocent_hits)+spam_hits < 5;
 COMMIT;
 
 --
@@ -38,8 +38,8 @@ COMMIT;
 START TRANSACTION;
 DELETE LOW_PRIORITY QUICK
   FROM dspam_token_data
-    WHERE from_days(@today-@PurgeHits1S) > last_hit
-      AND innocent_hits = 0 AND spam_hits = 1;
+  WHERE from_days(@today-@PurgeHits1S) > last_hit
+    AND innocent_hits = 0 AND spam_hits = 1;
 COMMIT;
 
 --
@@ -48,8 +48,8 @@ COMMIT;
 START TRANSACTION;
 DELETE LOW_PRIORITY QUICK
   FROM dspam_token_data
-    WHERE from_days(@today-@PurgeHits1I) > last_hit
-      AND innocent_hits = 1 AND spam_hits = 0;
+  WHERE from_days(@today-@PurgeHits1I) > last_hit
+    AND innocent_hits = 1 AND spam_hits = 0;
 COMMIT;
 
 --
@@ -58,8 +58,8 @@ COMMIT;
 START TRANSACTION;
 DELETE LOW_PRIORITY QUICK
   FROM t USING dspam_token_data t
-    LEFT JOIN dspam_preferences p ON p.preference = 'trainingMode' AND p.uid = t.uid
-    LEFT JOIN dspam_preferences d ON d.preference = 'trainingMode' AND d.uid = 0
+    LEFT JOIN dspam_preferences p ON (p.preference = 'trainingMode' AND p.uid = t.uid)
+    LEFT JOIN dspam_preferences d ON (d.preference = 'trainingMode' AND d.uid = 0)
   WHERE COALESCE(p.value,d.value,@TrainingMode) NOT IN ('TOE','TUM','NOTRAIN')
     AND from_days(@today-@PurgeUnused) > last_hit;
 COMMIT;
@@ -70,8 +70,8 @@ COMMIT;
 START TRANSACTION;
 DELETE LOW_PRIORITY QUICK
   FROM t USING dspam_token_data t
-    LEFT JOIN dspam_preferences p ON p.preference = 'trainingMode' AND p.uid = t.uid
-    LEFT JOIN dspam_preferences d ON d.preference = 'trainingMode' AND d.uid = 0
+    LEFT JOIN dspam_preferences p ON (p.preference = 'trainingMode' AND p.uid = t.uid)
+    LEFT JOIN dspam_preferences d ON (d.preference = 'trainingMode' AND d.uid = 0)
   WHERE COALESCE(p.value,d.value,@TrainingMode) = 'TUM'
     AND from_days(@today-@PurgeUnused) > last_hit
     AND innocent_hits + spam_hits < 50;
