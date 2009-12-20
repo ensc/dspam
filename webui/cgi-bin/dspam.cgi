@@ -455,8 +455,10 @@ sub DisplayHistory {
     }
 
     # HTMLize special characters
-    $from=htmlize($from);
-    $subject=htmlize($subject);
+    if ($CONFIG{'HISTORY_HTMLIZE'} eq "yes") {
+      $from=htmlize($from);
+      $subject=htmlize($subject);
+    }
 
     my($entry) = <<_END;
 <tr>
