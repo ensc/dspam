@@ -1,17 +1,18 @@
-# $Id: Makefile.am,v 1.26 2009/12/18 09:30:58 sbajic Exp $
+# $Id: Makefile.am,v 1.27 2009/12/20 20:14:00 sbajic Exp $
 #
 
 bin_SCRIPTS = configure_pl
 CLEANFILES = configure.pl
 
-EXTRA_DIST =            \
-	dspam.cgi       \
-	graph.cgi       \
-	default.prefs   \
-	rgb.txt         \
-	admin.cgi       \
-	admingraph.cgi  \
-	admins          \
+EXTRA_DIST =		\
+	dspam.cgi	\
+	graph.cgi	\
+	default.prefs	\
+	rgb.txt		\
+	admin.cgi	\
+	admingraph.cgi	\
+	admins		\
+	subadmins	\
 	configure.pl.in
 
 SUBDIRS = 		\

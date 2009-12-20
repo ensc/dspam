@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091220:2020] sbajic: Added sub-administrator functionality to Web UI
+
 [20091220:1825] sbajic: Added option to Web UI to allow turning on/off (default off) the transformation (sender and subject) of special characters into HTML character entries
 
 [20091220:0130] sbajic: Fixed typoe in strings.pl for German Web UI

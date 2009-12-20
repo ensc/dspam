@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.44 2009/12/14 14:18:41 sbajic Exp $
+# $Id: dspam.cgi,v 1.45 2009/12/20 19:47:51 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -20,7 +20,7 @@
 
 use strict;
 use Time::Local;
-use vars qw { %CONFIG %DATA %FORM %LANG $MAILBOX $CURRENT_USER $USER $TMPFILE};
+use vars qw { %CONFIG %DATA %FORM %LANG $MAILBOX $CURRENT_USER $USER $TMPFILE $USERSELECT };
 use vars qw { $CURRENT_STORE };
 require "ctime.pl";
 
@@ -88,6 +88,29 @@ if ($ENV{'REMOTE_USER'} ne "") {
   }
   close(FILE);
 }
+$CONFIG{'SUBADMIN'} = 0;
+$CONFIG{'SUBADMIN_USERS'} = {};
+if ($ENV{'REMOTE_USER'} ne "" && $CONFIG{'ADMIN'} == 0) {
+  open(FILE, "<./subadmins");
+  while(<FILE>) {
+    chomp;
+    if ($_ !~ /^\s*#/) {
+      my ($subadmin, $users) = (split(/\s*:\s*/))[0,1];
+      if ($subadmin eq $ENV{'REMOTE_USER'}) {
+        $CONFIG{'SUBADMIN'} = 1;
+        $CONFIG{'SUBADMIN_USERS'}->{ $ENV{'REMOTE_USER'} } = 1;
+        for (split(/\s*,\s*/,$users)) {
+          my $user_clean = $_;
+          $user_clean =~ s/^\s+//;
+          $user_clean =~ s/\s+$//;
+          $CONFIG{'SUBADMIN_USERS'}->{ $user_clean } = 1 if $user_clean ne "";
+        }
+        last;
+      }
+    }
+  }
+  close(FILE);
+}
 
 #
 # Configure Filesystem
@@ -97,10 +120,21 @@ if ($ENV{'REMOTE_USER'} ne "") {
 
 $CURRENT_USER = $ENV{'REMOTE_USER'};
 
-if ($FORM{'user'} ne "" && $CONFIG{'ADMIN'} == 1) {
-  $CURRENT_USER = $FORM{'user'};
+if ($FORM{'user'} ne "") {
+  if ($CONFIG{'ADMIN'} == 1) {
+    $CURRENT_USER = $FORM{'user'};
+  } elsif ($CONFIG{'SUBADMIN'} == 1) {
+    my $form_user_domain = (split(/@/, $FORM{'user'}))[1];
+    if ($CONFIG{'SUBADMIN_USERS'}->{ $FORM{'user'} } == 1 || ($form_user_domain ne "" && $CONFIG{'SUBADMIN_USERS'}->{ "*@" . $form_user_domain } == 1)) {
+      $CURRENT_USER = $FORM{'user'};
+    } else {
+      $FORM{'user'} = $CURRENT_USER;
+    }
+  } else {
+   $FORM{'user'} = $CURRENT_USER;
+  }
 } else {
-  $FORM{'user'} = $CURRENT_USER ;
+  $FORM{'user'} = $CURRENT_USER;
 }
 
 $CONFIG{'DSPAM_ARGS'} =~ s/%CURRENT_USER%/$CURRENT_USER/g;
@@ -122,6 +156,45 @@ if ($CURRENT_USER eq "") {
 
 if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
   $FORM{'template'} = "performance";
+}
+
+#
+# Create a list of known users
+#
+if ($CONFIG{'ADMIN'} == 1 || $CONFIG{'SUBADMIN'} == 1) {
+  my @dsusers = ();
+  push(@dsusers, qq!<select name="user">!);
+  open(IN, "$CONFIG{'DSPAM_STATS'}|");
+  while(<IN>) {
+    chomp;
+    my($username) = (split(/\s+/))[0,2,4,6,8,10,12];
+    if ($username ne "") {
+      if ($username eq $CURRENT_USER) {
+        # Add always current user to selection list
+        push(@dsusers, qq!<option value="$username" selected>&nbsp;$username</option>!);
+      } else {
+        if ($CONFIG{'ADMIN'} == 1) {
+          # Real administrators can see all users
+          push(@dsusers, qq!<option value="$username">&nbsp;$username</option>!);
+        } elsif ($CONFIG{'SUBADMIN'} == 1) {
+          # Sub-administrators can only see their users. Either full
+          # quallified email address or *@domain.tld
+          my $form_user_domain = (split(/@/, $username))[1];
+          if($CONFIG{'SUBADMIN_USERS'}->{ $username } == 1 || ($form_user_domain ne "" && $CONFIG{'SUBADMIN_USERS'}->{ "*@" . $form_user_domain } == 1)) {
+            $CONFIG{'SUBADMIN_USERS'}->{ $username } = 1; # Add full email to hash list so that we
+                                                          # can later check to ensure and secure
+                                                          # access/switch to target user by sub-
+                                                          # administrator.
+            push(@dsusers, qq!<option value="$username">&nbsp;$username</option>!);
+          }
+        }
+      }
+    }
+  }
+  push(@dsusers, qq!</select>!);
+  close(IN);
+  $USERSELECT = join("\n",@dsusers);
+  @dsusers=();
 }
 
 my($MYURL);
@@ -1913,18 +1986,31 @@ sub output {
   do {
     if ($CONFIG{'ADMIN'} == 1) {
       $DATA{'NAV_ADMIN'} = qq!<li><a href="admin.cgi">$LANG{'admin_suite'}</a></li>!;
-      $DATA{'FORM_USER'} = qq!<form action="$CONFIG{'ME'}"><input type=hidden name="template" value="$FORM{'template'}">$LANG{'user_form'} <INPUT TYPE=TEXT NAME=user SIZE=16 value="$CURRENT_USER"> <input type=submit value="$LANG{'user_form_submit'}"></form>!;
+      $DATA{'FORM_USER'} = qq!<form action="$CONFIG{'ME'}"><input type=hidden name="template" value="$FORM{'template'}">$LANG{'user_form'}&nbsp;$USERSELECT&nbsp;&nbsp;<input type=submit value="$LANG{'user_form_submit'}"></form>!;
+    } elsif ($CONFIG{'SUBADMIN'} == 1) {
+      $DATA{'FORM_USER'} = qq!<form action="$CONFIG{'ME'}"><input type=hidden name="template" value="$FORM{'template'}">$LANG{'user_form'}&nbsp;$USERSELECT&nbsp;&nbsp;<input type=submit value="$LANG{'user_form_submit'}"></form>!;
     } else {
       $DATA{'NAV_ADMIN'} = '';
-      $DATA{'FORM_USER'} = "$LANG{'user_form'} <strong>$CURRENT_USER</strong>";
+      $DATA{'FORM_USER'} = "$LANG{'user_form'}&nbsp;<strong>$CURRENT_USER</strong>";
     }
   };
 
   open(FILE, "<$CONFIG{'TEMPLATES'}/nav_$FORM{'template'}.html");
   while(<FILE>) { 
     s/\$CGI\$/$CONFIG{'ME'}/g;
-    if ($CONFIG{'ADMIN'} == 1 && $FORM{'user'}) {
-      s/\$USER\$/user=$FORM{'user'}&/g;
+    if($FORM{'user'}) {
+      if($CONFIG{'ADMIN'} == 1) {
+        s/\$USER\$/user=$FORM{'user'}&/g;
+      } elsif ($CONFIG{'SUBADMIN'} == 1) {
+        my $form_user_domain = (split(/@/, $FORM{'user'}))[1];
+        if($CONFIG{'SUBADMIN_USERS'}->{ $FORM{'user'} } == 1 || ($form_user_domain ne "" && $CONFIG{'SUBADMIN_USERS'}->{ "*@" . $form_user_domain } == 1)) {
+          s/\$USER\$/user=$FORM{'user'}&/g;
+        } else {
+          s/\$USER\$//g;
+        }
+      } else {
+        s/\$USER\$//g;
+      }
     } else {
       s/\$USER\$//g;
     }
