@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: strings.pl,v 1.00 2009/08/18 00:41:12 sbajic Exp $
+# $Id: strings.pl,v 1.01 2009/12/20 01:32:24 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -68,7 +68,7 @@ $LANG{'error_filesystem_scale'}		= "Kann nicht Dateisystemskalierung festzustell
 $LANG{'error_load_default_prefs'}	= "Kann vorgabe Werte nicht laden";
 $LANG{'error_access_denied'}		= "Zugriff verweigert";
 
-$LANG{'graph_legend_nb_messages'}	= "Nummer der Nachrichten";
+$LANG{'graph_legend_nb_messages'}	= "Anzahl der Nachrichten";
 $LANG{'graph_legend_spam'}		= "SPAM";
 $LANG{'graph_legend_good'}		= "Gut";
 $LANG{'graph_legend_inoculations'}	= "Impfungen";

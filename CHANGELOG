@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091220:0130] sbajic: Fixed typoe in strings.pl for German Web UI
+
 [20091220:0045] sbajic: Removed double configuration option in configure.pl
 
 [20091219:2215] sbajic: Fixing bug regarding "broken returnCodes" (bug was introduced in 3.9.0)
