@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.4 2009/12/19 22:04:33 sbajic Exp $
+# $Id: Makefile.am,v 1.5 2009/12/21 20:28:35 sbajic Exp $
 #
 # autoconf (GNU Autoconf) 2.59
 # ltmain.sh (GNU libtool) 1.5.6
@@ -68,7 +68,7 @@ install-data-hook:
 	ln -s $(mandir)/man1/dspam_merge.1 $(DESTDIR)$(mandir)/man1/dspam_merge.1
 	ln -s $(mandir)/man1/dspam_stats.1 $(DESTDIR)$(mandir)/man1/dspam_stats.1
 	ln -s $(mandir)/man1/dspam_train.1 $(DESTDIR)$(mandir)/man1/dspam_train.1
-	ln -s $(mandir)/man3/libdspam.3 $(DESTDIR)$(mandir)/man1/libdspam.3
+	ln -s $(mandir)/man3/libdspam.3 $(DESTDIR)$(mandir)/man3/libdspam.3
 
 uninstall-hook:
 	rm -f $(DESTDIR)$(mandir)/man1/dspam.1
