@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.21 2009/12/12 04:49:27 sbajic Exp $
+# $Id: admin.cgi,v 1.22 2009/12/21 17:36:33 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -300,6 +300,12 @@ sub DisplayUserStatistics {
       $b = "rowEven";
     }
     s/:/ /g;
+    # sl = Spam Learned = TP True Positives
+    # il = Innocent Learned = TN True Negatives
+    # fp = False Positive = FP False Positives
+    # sm = Spam Missed = FN False Negatives
+    # sc = Spam Corpusfed = SC Spam Corpusfed
+    # ic = Innocent Corpusfed = NC Nonspam Corpusfed
     my($username, $sl, $il, $fp, $sm, $sc, $ic) = (split(/\s+/))[0,2,4,6,8,10,12]; 
     if ($sl eq "") {
       $_ = <IN>;
@@ -357,8 +363,8 @@ sub DisplayUserStatistics {
                     "	<td class=\"$b rowDivider\" align=\"right\">$mailbox_total_display</td>".
                     "	<td class=\"$b rowDivider\">$sl_total</td>".
                     "	<td class=\"$b\">$il_total</td>".
-                    "	<td class=\"$b\">$sm_total</td>".
                     "	<td class=\"$b\">$fp_total</td>".
+                    "	<td class=\"$b\">$sm_total</td>".
                     "	<td class=\"$b\">$sc_total</td>".
                     "	<td class=\"$b\">$ic_total</td>".
                     "	<td class=\"$b rowDivider\">&nbsp;</td>".
