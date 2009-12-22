@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091222:0210] sbajic: Adding verbose debug output to config_shared.c
+
 [20091221:2030] sbajic: Fixing typo/bug in Makefile for the man pages
 
 [20091221:1740] sbajic: Fixing the display of totals in the 'User Statistics' tab for the Administrative Suite of the Web UI
