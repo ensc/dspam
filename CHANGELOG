@@ -1,8 +1,6 @@
 Version 3.9.0
 -------------
 
-[20091221:2350] sbajic: Use internal ltrim function when processing configuration instead of own trimming code in function
-
 [20091221:2030] sbajic: Fixing typo/bug in Makefile for the man pages
 
 [20091221:1740] sbajic: Fixing the display of totals in the 'User Statistics' tab for the Administrative Suite of the Web UI
