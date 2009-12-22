@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.192 2009/11/05 00:25:54 sbajic Exp $ */
+/* $Id: read_config.c,v 1.193 2009/12/21 23:47:21 sbajic Exp $ */
 
 /*
  DSPAM
@@ -81,21 +81,14 @@ static char *tokenize(char *text, char **next)
 {
   /* Initialize */
   if (text)
-    *next = text;
+    *next = ltrim(text);
 
-  while (**next) {
-    /* Skip leading whitespace */
-    if (**next == ' ' || **next == '\t') {
-      *next += 1;
-      continue;
-    }
-
-    /* Strip off one token */
-    if (**next == '\"') {
-      *next += 1;
-      return next_quoted_token(next);
-    } else
-      return next_normal_token(next);
+  /* Strip off one token */
+  if (**next == '\"') {
+    *next += 1;
+    return next_quoted_token(next);
+  } else {
+    return next_normal_token(next);
   }
 
   return NULL;
