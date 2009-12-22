@@ -1,3 +1,5 @@
+$Id: markov.txt,v 1.00 2009/12/22 12:25:59 sbajic Exp $
+
 To implement Markovian weighting, the following pieces must be configured:
 
 1. The storage driver. Be sure and compile using Bill Yerazunis' CRM114

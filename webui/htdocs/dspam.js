@@ -1,3 +1,5 @@
+// $Id: dspam.js,v 1.00 2009/12/22 12:25:59 sbajic Exp $
+
 // Select intermediate checkboxes on shift-click
 var shifty = false;
 var lastcheckboxchecked = false;

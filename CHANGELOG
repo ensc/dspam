@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091222:1250] sbajic: Tagging a bunch of files that did not have any change tags in their header
+
 [20091222:0210] sbajic: Adding verbose debug output to config_shared.c
 
 [20091221:2030] sbajic: Fixing typo/bug in Makefile for the man pages

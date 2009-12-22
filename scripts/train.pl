@@ -1,5 +1,7 @@
 #!/usr/bin/perl
-
+#
+# $Id: train.pl,v 1.00 2009/12/22 12:25:59 sbajic Exp $
+#
 # train.pl
 # This tool trains a corpus of messages (a directory containing a nonspam and
 # a spam subdirectory, each with messages in individual files) to a specific

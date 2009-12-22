@@ -1,3 +1,4 @@
+# $Id: subadmins,v 1.00 2009/12/22 12:25:59 sbajic Exp $
 #
 # Subadmins listed here can manage other users or a group of users, while still
 # not beeing real DSPAM admins.
@@ -12,4 +13,3 @@
 #
 
 #subadmin@mydomain.tld: *@mydomain.tld, *@otherdomain.tld, user1@yourdomain.tld, user2@hisdomain.tld
-
