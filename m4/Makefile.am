@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.00 2009/12/22 12:25:59 sbajic Exp $
+# $Id: Makefile.am,v 1.01 2009/12/23 10:04:48 sbajic Exp $
 # m4/Makefile.am
 #
 
@@ -12,6 +12,5 @@ EXTRA_DIST = 					\
 	dllibs.m4				\
 	external_lookup.m4			\
 	pthread.m4				\
-	ncore.m4				\
 	split_configuration.m4			\
 	dspam_functions.m4
