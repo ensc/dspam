@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.292 2009/10/12 08:55:07 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.293 2009/12/23 09:47:44 sbajic Exp $ */
 
 /*
  DSPAM
@@ -62,16 +62,6 @@
 #include "util.h"
 #include "libdspam.h"
 #include "language.h"
-#ifdef NCORE
-#include <ncore/ncore.h>
-#include <ncore/types.h>
-#include "ncore_adp.h"
-#endif
-
-#ifdef NCORE
-extern nc_dev_t		g_ncDevice;
-extern NC_STREAM_CTX	g_ncDelimiters;
-#endif
 
 /*
  * _ds_tokenize() - tokenize the message
@@ -104,16 +94,13 @@ _ds_tokenize (DSPAM_CTX * CTX, char *headers, char *body, ds_diction_t diction)
 }
 
 int _ds_tokenize_ngram(
-  DSPAM_CTX *CTX, 
-  char *headers, 
-  char *body, 
+  DSPAM_CTX *CTX,
+  char *headers,
+  char *body,
   ds_diction_t diction)
 {
   char *token;				/* current token */
   char *previous_token = NULL;		/* used for bigrams (chained tokens) */
-#ifdef NCORE
-  nc_strtok_t NTX;
-#endif
   char *line = NULL;			/* header broken up into lines */
   char *ptrptr;
   char heading[128];			/* current heading */
@@ -132,7 +119,7 @@ int _ds_tokenize_ngram(
   }
 
   /*
-   * Header Tokenization 
+   * Header Tokenization
    */
  
   header = nt_create (NT_CHAR);
@@ -230,28 +217,20 @@ int _ds_tokenize_ngram(
   LOGDEBUG("parsing message body");
 #endif
 
-#ifdef NCORE
-  token = strtok_n (body, &g_ncDelimiters, &NTX);
-#else
   token = strtok_r (body, DELIMITERS, &ptrptr);
-#endif
   while (token != NULL)
   {
     l = strlen (token);
     if (l >= 1 && l < 50)
     {
-      /* Process "current" token */ 
+      /* Process "current" token */
       if ( !_ds_process_body_token(CTX, token, previous_token, diction)
         && tokenizer == DSZ_CHAIN)
       {
         previous_token = token;
       }
-    } 
-#ifdef NCORE
-    token = strtok_n (NULL, NULL, &NTX);
-#else
+    }
     token = strtok_r (NULL, DELIMITERS, &ptrptr);
-#endif
   }
 
   /* Final token reassembly (anything left in the buffer) */
@@ -260,17 +239,14 @@ int _ds_tokenize_ngram(
 }
 
 int _ds_tokenize_sparse(
-  DSPAM_CTX *CTX, 
-  char *headers, 
-  char *body, 
+  DSPAM_CTX *CTX,
+  char *headers,
+  char *body,
   ds_diction_t diction)
 {
   int i;
   char *token;				/* current token */
   char *previous_tokens[SPARSE_WINDOW_SIZE];	/* sparse chain */
-#ifdef NCORE
-  nc_strtok_t NTX;
-#endif
 
   char *line = NULL;			/* header broken up into lines */
   char *ptrptr;
@@ -387,32 +363,23 @@ int _ds_tokenize_sparse(
    * Body Tokenization
    */
 
-#ifdef NCORE
-  token = strtok_n (body, &g_ncDelimiters, &NTX);
-#else
   token = strtok_r (body, DELIMITERS, &ptrptr);
-#endif
   while (token != NULL)
   {
     l = strlen (token);
     if (l > 0 && l < 50)
     {
-      /* Process "current" token */ 
+      /* Process "current" token */
       _ds_map_body_token (CTX, token, previous_tokens, diction, bitpattern);
-    } 
-
-#ifdef NCORE
-    token = strtok_n (NULL, NULL, &NTX);
-#else
+    }
     token = strtok_r (NULL, DELIMITERS, &ptrptr);
-#endif
   }
 
   for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
     _ds_map_body_token(CTX, NULL, previous_tokens, diction, bitpattern);
   }
 
-  _ds_sparse_clear(previous_tokens); 
+  _ds_sparse_clear(previous_tokens);
 
   free(bitpattern);
   return 0;

@@ -1,4 +1,4 @@
-/* $Id: base64.c,v 1.94 2009/10/08 22:25:46 sbajic Exp $ */
+/* $Id: base64.c,v 1.95 2009/12/23 09:40:27 sbajic Exp $ */
 
 /*
  DSPAM
@@ -36,7 +36,6 @@
 #include "error.h"
 #include "base64.h"
 
-#ifndef NCORE
 char *
 base64decode (const char *buf)
 {
@@ -125,7 +124,6 @@ base64decode (const char *buf)
     strcat(decoded, "\n");
   return decoded;
 }
-#endif /* NCORE */
 
 char *
 base64encode (const char *buf)

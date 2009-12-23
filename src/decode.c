@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.383 2009/11/17 08:43:18 sbajic Exp $ */
+/* $Id: decode.c,v 1.384 2009/12/23 09:45:28 sbajic Exp $ */
 
 /*
  DSPAM
@@ -45,9 +45,6 @@
 #include "buffer.h"
 #include "base64.h"
 #include "libdspam.h"
-#ifdef NCORE
-#include "ncore_adp.h"
-#endif
 
 /*
  * _ds_actualize_message (const char *message)
@@ -767,7 +764,6 @@ _ds_decode_block (ds_message_part_t block)
  *   a pointer to the allocated character array containing the decoded body
  */
 
-#ifndef NCORE
 char *
 _ds_decode_base64 (const char *body)
 {
@@ -852,7 +848,6 @@ _ds_decode_hex8bit (const char *body)
   *n = '\0';
   return (char *)out;
 }
-#endif /* NCORE */
 
 /*
  * _ds_encode_block (ds_message_part_t block, int encoding)

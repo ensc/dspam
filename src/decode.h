@@ -1,4 +1,4 @@
-/* $Id: decode.h,v 1.17 2009/07/05 19:02:48 sbajic Exp $ */
+/* $Id: decode.h,v 1.18 2009/12/23 09:49:46 sbajic Exp $ */
 
 /*
  DSPAM
@@ -98,10 +98,8 @@ typedef struct _ds_message
 
 /* adapter dependent functions */
 
-#ifndef NCORE
 char *  _ds_decode_base64       (const char *body);
 char *  _ds_decode_quoted       (const char *body);
-#endif
 
 /* Adapter-independent functions */
 

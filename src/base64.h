@@ -1,4 +1,4 @@
-/* $Id: base64.h,v 1.7 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: base64.h,v 1.8 2009/12/23 09:43:39 sbajic Exp $ */
 
 /*
  DSPAM
@@ -23,9 +23,7 @@
 #ifndef _BASE64_H
 #  define _BASE64_H
 
-#ifndef NCORE
 char *base64decode (const char *);
-#endif
 char *base64encode (const char *);
 
 #endif /* _BASE64_H */

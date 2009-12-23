@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.78 2009/12/18 09:30:07 sbajic Exp $
+dnl $Id: configure.ac,v 1.79 2009/12/23 09:37:03 sbajic Exp $
 dnl
 dnl    autoconf (GNU Autoconf) 2.59
 dnl    ltmain.sh (GNU libtool) 1.5.6
@@ -130,13 +130,6 @@ then
     AC_MSG_FAILURE([required libraries are not found or not usable])
 fi
 LIBS="$LIBS $DLLIBS"
-
-#
-#   Support for NodalCore(r) C-Series Hardware Extensions
-#
-DS_NCORE()
-
-AM_CONDITIONAL([BUILD_NCORE], [ test x$build_ncore = xyes ])
 
 #---------------------------------------------------------
 #   DSPAM features
@@ -830,7 +823,7 @@ AC_CONFIG_FILES([webui/cgi-bin/templates/pt-br/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/templates/ro/Makefile])
 AC_CONFIG_FILES([src/tools.sqlite_drv/Makefile man/Makefile])
 AC_CONFIG_FILES([src/dspam.pc src/dspam-uninstalled.pc])
-AC_CONFIG_FILES([doc/Makefile src/tools.hash_drv/Makefile scripts/Makefile])
+AC_CONFIG_FILES([doc/Makefile src/tools.hash_drv/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/Makefile webui/htdocs/Makefile])
 AC_CONFIG_FILES([contrib/Makefile])
 AC_OUTPUT

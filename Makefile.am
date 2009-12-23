@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.9.2 2009/11/15 23:20:38 sbajic Exp $
+# $Id: Makefile.am,v 1.93 2009/12/23 09:55:328 sbajic Exp $
 #
 # Makefile.am
 #
@@ -9,7 +9,7 @@
 includedir=@includedir@/dspam
 
 SUBDIRS = . webui m4 man src 
-DIST_SUBDIRS = . webui m4 txt man src doc scripts contrib
+DIST_SUBDIRS = . webui m4 txt man src doc contrib
 
 EXTRA_DIST = autogen.sh RELEASE.NOTES CHANGELOG LICENSE \
 	README README.cssclean UPGRADING

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.45 2009/11/03 09:37:17 sbajic Exp $
+# $Id: Makefile.am,v 1.46 2009/12/23 09:37:43 sbajic Exp $
 #
 # autoconf (GNU Autoconf) 2.59
 # ltmain.sh (GNU libtool) 1.5.6
@@ -80,10 +80,6 @@ libdspam_la_SOURCES = \
 	tokenizer.c tokenizer.h \
 	storage_driver.h
 
-if BUILD_NCORE
-libdspam_la_SOURCES += ncore_adp.c ncore_adp.h
-endif
-
 if DYNAMIC_DRIVER
 libdspam_la_SOURCES += storage_driver.c
 endif
@@ -113,7 +109,7 @@ EXTRA_libdspam_la_SOURCES = \
 #endif
 
 libdspam_la_LIBADD = $(adapter_objects)
-libdspam_la_LIBADD += -lm $(NETLIBS) $(NCORELIBS)
+libdspam_la_LIBADD += -lm $(NETLIBS)
 libdspam_la_DEPENDENCIES = $(adapter_objects)
 if STATIC_DRIVER
 libdspam_la_LIBADD += $(active_driver).lo
