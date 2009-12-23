@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.5 2009/12/21 20:28:35 sbajic Exp $
+# $Id: Makefile.am,v 1.6 2009/12/23 02:03:10 sbajic Exp $
 #
 # autoconf (GNU Autoconf) 2.59
 # ltmain.sh (GNU libtool) 1.5.6
@@ -49,37 +49,34 @@ DEFS = @DEFS@
 #
 # Solaris' ln seems to have a problem with -sf and existing symlinks.
 install-data-hook:
-	rm -f $(DESTDIR)$(mandir)/man1/dspam.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_admin.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_clean.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_crc.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_dump.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_logrotate.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_merge.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_stats.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_train.1
-	rm -f $(DESTDIR)$(mandir)/man3/libdspam.3
-	ln -s $(mandir)/man1/dspam.1 $(DESTDIR)$(mandir)/man1/dspam.1
-	ln -s $(mandir)/man1/dspam_admin.1 $(DESTDIR)$(mandir)/man1/dspam_admin.1
-	ln -s $(mandir)/man1/dspam_clean.1 $(DESTDIR)$(mandir)/man1/dspam_clean.1
-	ln -s $(mandir)/man1/dspam_crc.1 $(DESTDIR)$(mandir)/man1/dspam_crc.1
-	ln -s $(mandir)/man1/dspam_dump.1 $(DESTDIR)$(mandir)/man1/dspam_dump.1
-	ln -s $(mandir)/man1/dspam_logrotate.1 $(DESTDIR)$(mandir)/man1/dspam_logrotate.1
-	ln -s $(mandir)/man1/dspam_merge.1 $(DESTDIR)$(mandir)/man1/dspam_merge.1
-	ln -s $(mandir)/man1/dspam_stats.1 $(DESTDIR)$(mandir)/man1/dspam_stats.1
-	ln -s $(mandir)/man1/dspam_train.1 $(DESTDIR)$(mandir)/man1/dspam_train.1
-	ln -s $(mandir)/man3/libdspam.3 $(DESTDIR)$(mandir)/man3/libdspam.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_addattribute.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_attach.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_clearattributes.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_create.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_destroy.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_detach.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_getsource.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_init.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_process.3
+	cd $(DESTDIR)$(mandir)/man3/ && ln -s libdspam.3 dspam_addattribute.3
+	cd $(DESTDIR)$(mandir)/man3/ && ln -s libdspam.3 dspam_attach.3
+	cd $(DESTDIR)$(mandir)/man3/ && ln -s libdspam.3 dspam_clearattributes.3
+	cd $(DESTDIR)$(mandir)/man3/ && ln -s libdspam.3 dspam_create.3
+	cd $(DESTDIR)$(mandir)/man3/ && ln -s libdspam.3 dspam_destroy.3
+	cd $(DESTDIR)$(mandir)/man3/ && ln -s libdspam.3 dspam_detach.3
+	cd $(DESTDIR)$(mandir)/man3/ && ln -s libdspam.3 dspam_getsource.3
+	cd $(DESTDIR)$(mandir)/man3/ && ln -s libdspam.3 dspam_init.3
+	cd $(DESTDIR)$(mandir)/man3/ && ln -s libdspam.3 dspam_process.3
 
 uninstall-hook:
-	rm -f $(DESTDIR)$(mandir)/man1/dspam.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_admin.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_clean.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_crc.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_dump.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_logrotate.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_merge.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_stats.1
-	rm -f $(DESTDIR)$(mandir)/man1/dspam_train.1
-	rm -f $(DESTDIR)$(mandir)/man3/libdspam.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_addattribute.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_attach.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_clearattributes.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_create.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_destroy.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_detach.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_getsource.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_init.3
+	rm -f $(DESTDIR)$(mandir)/man3/dspam_process.3
 
 ACLOCAL_AMFLAGS = -I m4
