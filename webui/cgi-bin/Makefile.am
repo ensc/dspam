@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.27 2009/12/20 20:14:00 sbajic Exp $
+# $Id: Makefile.am,v 1.28 2009/12/25 03:01:54 sbajic Exp $
 #
 
 bin_SCRIPTS = configure_pl
@@ -13,7 +13,8 @@ EXTRA_DIST =		\
 	admingraph.cgi	\
 	admins		\
 	subadmins	\
-	configure.pl.in
+	configure.pl.in	\
+	htmlize.pl
 
 SUBDIRS = 		\
 	templates	\

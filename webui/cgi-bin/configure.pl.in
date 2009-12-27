@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: configure.pl,v 1.02 2009/12/20 18:12:29 sbajic Exp $
+# $Id: configure.pl,v 1.03 2009/12/24 00:23:54 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -75,6 +75,52 @@ while(<PIPE>) {
 }
 close(PIPE);
 
+# Make a list of available templates/languages
+my @dslanguages = ();
+undef %LANG;
+require "$CONFIG{'TEMPLATES'}/strings.pl";
+while (($key, $value) = each(%LANG)) {
+  $CONFIG{'LANG'}->{'en'}->{$key} = $value;
+}
+$CONFIG{'LANG'}->{'en'}->{'TEMPLATEDIR'} = $CONFIG{'TEMPLATES'};
+$CONFIG{'LANG'}->{'en'}->{'NAME'} = 'en';
+$CONFIG{'LANG'}->{'en'}->{'NAME'} = $LANG{'lang_name'} if (defined $LANG{'lang_name'});
+push(@dslanguages, qq!<option value="en">&nbsp;$CONFIG{'LANG'}->{'en'}->{'NAME'}</option>!);
+# Do now the other languages
+opendir TEMPLDIR, $CONFIG{'TEMPLATES'} or die "Can not open template directory";
+my @templatefiles = sort grep !/^\.\.?$/, readdir TEMPLDIR;
+closedir TEMPLDIR;
+foreach (@templatefiles) {
+  my $langcode = $_;
+  my $langname = $_;
+  if ($langcode ne "" && -d "$CONFIG{'TEMPLATES'}/$langcode") {
+    $CONFIG{'LANG'}->{$langcode}->{'TEMPLATEDIR'} = "$CONFIG{'TEMPLATES'}/$langcode";
+    $CONFIG{'LANG'}->{$langcode}->{'NAME'} = $langcode;
+    undef %LANG;
+    if (-s "$CONFIG{'TEMPLATES'}/$langcode/strings.pl") {
+      require "$CONFIG{'TEMPLATES'}/$langcode/strings.pl";
+    } else {
+      while (($key, $value) = each(%{$CONFIG{'LANG'}->{'en'}})) {
+        $LANG{$key} = $value if($key ne "NAME" && $key ne "TEMPLATEDIR");
+      }
+      delete($LANG{'lang_name'});
+    }
+    $CONFIG{'LANG'}->{$langcode}->{'NAME'} = $LANG{'lang_name'} if (defined $LANG{'lang_name'});
+    while (($key, $value) = each(%LANG)) {
+      $CONFIG{'LANG'}->{$langcode}->{$key} = $value;
+    }
+    push(@dslanguages, qq!<option value="$langcode">&nbsp;$CONFIG{'LANG'}->{$langcode}->{'NAME'}</option>!);
+  }
+}
+if (scalar(@dslanguages) == 0) {
+  $CONFIG{'LANGUAGES'} = "";
+} else {
+  unshift(@dslanguages, qq!&nbsp;&nbsp;<select name="language">!);
+  push(@dslanguages, qq!</select>!);
+  $CONFIG{'LANGUAGES'} = join("\n", @dslanguages);
+}
+@templatefiles=();
+
 # Determine if templates are available for the current
 # HTTP_ACCEPT_LANGUAGE (see RFC 4646 for more info).
 my $langlist = lc($ENV{'HTTP_ACCEPT_LANGUAGE'})||'';
@@ -82,6 +128,7 @@ my $langpat = qr'[a-zA-Z]{1,8}(\-[a-zA-Z]{1,8})?';
 my $qvalpat = qr'(0(\.\d{0,3})?)|(1(\.0{0,3})?)';
 my $q = -1.0;
 my $templates = '';
+my $langused = '';
 for my $langpref (split /,\s*/, $langlist) {
   $langpref =~ /^([^;]+)(;q=)?(.*)?/;
   my $lang = $1 || '';
@@ -96,15 +143,24 @@ for my $langpref (split /,\s*/, $langlist) {
       if ($lang ne '' && $lang ne '*' && -e $CONFIG{'TEMPLATES'} . '/' . $lang . '/nav_performance.html') {
         $q = $qval;
         $templates = $CONFIG{'TEMPLATES'} . '/' . $lang;
+        $langused = $lang;
+      } elsif ($langcode eq 'en') {
+        $q = $qval;
+        $templates = $CONFIG{'TEMPLATES'};
+        $langused = 'en';
       } elsif ($langcode ne '' && -e $CONFIG{'TEMPLATES'} . '/' . $langcode . '/nav_performance.html') {
         $q = $qval;
         $templates = $CONFIG{'TEMPLATES'} . '/' . $langcode;
+        $langused = $langcode;
       }
     }
   }
 }
 if ($templates ne '') {
   $CONFIG{'TEMPLATES'} = $templates;
+  $CONFIG{'LANGUAGE_USED'} = $langused;
+} else {
+  $CONFIG{'LANGUAGE_USED'} = 'en';
 }
 
 $CONFIG{'DSPAM_CGI'} = "dspam.cgi";

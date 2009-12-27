@@ -18,12 +18,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+$LANG{'lang_name'}			= "Deutsch";
+$LANG{'lang_select'}			= "Sprache";
+
 $LANG{'empty'}				= "Leer";
 $LANG{'admin_suite'}			= "Administrativer Verwaltungsbereich";
 $LANG{'alert_name'}			= "Alarm Name";
 $LANG{'remove_alert'}			= "Entfehrne";
 $LANG{'user_form'}			= "Statistischer SPAM Schutz f&uuml;r";
-$LANG{'user_form_submit'}		= "Speichern";
+$LANG{'user_form_submit'}		= "&Auml;ndern";
+
+$LANG{'admin_form'}			= "Statistischer SPAM Schutz f&uuml;r <strong>Administrator</strong>";
+$LANG{'admin_form_submit'}		= "&Auml;ndern";
 
 $LANG{'option_disable_filtering'}	= "Ausdr&uuml;ckliche Ablehnung der DSPAM Filterung";
 $LANG{'option_enable_filtering'}	= "Ausdr&uuml;ckliche Zustimmung der DSPAM Filterung";
@@ -42,7 +48,7 @@ $LANG{'history_retrain_as_spam'}	= "spam";
 $LANG{'history_retrain_as_innocent'}	= "unschuldig";
 $LANG{'history_retrain_as'}		= "Als";
 $LANG{'history_retrain_undo'}		= "R&uuml;ckg&auml;ngig";
-$LANG{'history_retrained'}		= "Retrained";
+$LANG{'history_retrained'}		= "Umtrainiert";
 $LANG{'history_label_resend'}		= "Resend";
 $LANG{'history_label_whitelist'}	= "Whitelist";
 $LANG{'history_label_spam'}		= "SPAM";

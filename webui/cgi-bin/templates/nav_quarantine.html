@@ -1,12 +1,13 @@
 <HTML>
 <HEAD><TITLE>DSPAM v3 Control Center</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 <script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
 </HEAD>
 <BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
 <div id="header">
 	<div id="logo">
-		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
@@ -14,16 +15,16 @@
 	</div>
 </div>
 
-<br clear="left" />
+<br clear="left">
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li><a href="$CGI$?$USER$template=performance">Performance</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">Preferences</a></li>
-		<li><a href="$CGI$?$USER$template=alerts">Alerts</a></li>
-		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Quarantine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
-		<li><a href="$CGI$?$USER$template=analysis">Analysis</a></li>
-		<li><a href="$CGI$?$USER$template=history&history_page=1">History</a></li>
+		<li><a href="$CGI$?$USER$template=performance&amp;language=$LANG$">Performance</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Preferences</a></li>
+		<li><a href="$CGI$?$USER$template=alerts&amp;language=$LANG$">Alerts</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine&amp;language=$LANG$">Quarantine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis&amp;language=$LANG$">Analysis</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;language=$LANG$&history_page=1">History</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -39,15 +40,16 @@ Use the checkboxes and <strong>Deliver Checked</strong> to deliver messages you 
 
 <form action="$CGI$" method="post">
 <p>
-<input type="hidden" name="command" value="processQuarantine" >
-<input type="hidden" name="template" value="quarantine" >
-<input type="hidden" name="user" value="$REMOTE_USER$" >
-<input type="hidden" name="sortby" value="$SORTBY$" >
+<input type="hidden" name="command" value="processQuarantine">
+<input type="hidden" name="template" value="quarantine">
+<input type="hidden" name="user" value="$REMOTE_USER$">
+<input type="hidden" name="sortby" value="$SORTBY$">
+<input type="hidden" name="language" value="$LANG$">
 <input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
 &nbsp;
-<input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED messages in quarantine?')==false) { return false; }" />
-<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
-	document.forms[1].elements[j].checked = true; } } return false'>Select 200.</a>
+<input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED messages in quarantine?')==false) { return false; }">
+&nbsp;
+<input type="button" value="Select 200" onClick='for(j=0; j<200;j++) { if (document.forms[1] && document.forms[1].elements[j] && document.forms[1].elements[j].type == "checkbox") { document.forms[1].elements[j].checked = true; } } return false'>
 &nbsp;
 <input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Are you sure you want to delete ALL messages in quarantine?')==false) { return false; }" >
 
@@ -61,13 +63,13 @@ $QUARANTINE$
 </table>
 
 <p>
-<input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
+<input type="submit" value="Deliver Checked" NAME="manyNotSpam">
 &nbsp;
-<input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED messages in quarantine?')==false) { return false; }" />
-<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
-	document.forms[1].elements[j].checked = true; } } return false'>Select 200.</a>
+<input type="submit" value="Delete Checked" onClick="if (confirm('Are you sure you want to delete SELECTED messages in quarantine?')==false) { return false; }">
 &nbsp;
-<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Are you sure you want to delete ALL messages in quarantine?')==false) { return false; }" />
+<input type="button" value="Select 200" onClick='for(j=0; j<200;j++) { if (document.forms[1] && document.forms[1].elements[j] && document.forms[1].elements[j].type == "checkbox") { document.forms[1].elements[j].checked = true; } } return false'>
+&nbsp;
+<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('Are you sure you want to delete ALL messages in quarantine?')==false) { return false; }">
 </p>
 
 </form>

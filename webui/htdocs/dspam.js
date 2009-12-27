@@ -1,4 +1,4 @@
-// $Id: dspam.js,v 1.00 2009/12/22 12:25:59 sbajic Exp $
+// $Id: dspam.js,v 1.02 2009/12/25 03:00:40 sbajic Exp $
 
 // Select intermediate checkboxes on shift-click
 var shifty = false;
@@ -20,7 +20,7 @@ function checkboxclicked(checkbox)
 
 function recordshiftiness(e)
 {
-	e = e || window.event || window.Event;
+	if (!e) var e = window.event;
 	shifty = e && ((typeof (e.shiftKey) != 'undefined' && e.shiftKey) ||
 		       e.modifiers & event.SHIFT_MASK);
 }

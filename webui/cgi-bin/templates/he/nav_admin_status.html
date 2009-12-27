@@ -1,17 +1,18 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD><TITLE>DSPAM v3 מרכז הבקרה</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1255">
 </HEAD>
 <BODY DIR="rtl" BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
 <div id="header">
 	<div id="logo">
-		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
-		סטטיסטיקת הגנה עבור <strong>מנהל המערכת ($REMOTE_USER$)</strong>
+		$FORM_ADMIN$
 	</div>
 </div>
 
@@ -19,10 +20,10 @@
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li id="active"><a id="current" href="$CGI$?$USER$template=status">מצב המערכת</a></li>
-		<li><a href="$CGI$?$USER$template=user">מידע משמתשים</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">ניהול</a></li>
-		<li><a href="dspam.cgi">מרכז הבקרה</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=status&amp;language=$LANG$">מצב המערכת</a></li>
+		<li><a href="$CGI$?$USER$template=user&amp;language=$LANG$">מידע משמתשים</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">ניהול</a></li>
+		<li><a href="dspam.cgi?language=$LANG$">מרכז הבקרה</a></li>
 	</ul>
 </div>
 
@@ -103,12 +104,12 @@
 
 <div class="content">
 	<h3><strong>פעילות 24 שעות</strong> - $TS_DAILY$ זבל, $TI_DAILY$ טוב, $SM_DAILY$ החטאות זבל, $FP_DAILY$ החטאות דואר טוב, $INOC_DAILY$ חיסונים</h3>
-	<img src="./admingraph.cgi?data=$DATA_DAILY$&amp;x_label=Hour+of+the+day" alt="פעילות 24 שעות">
+	<img src="./admingraph.cgi?data=$DATA_DAILY$&amp;x_label=Hour+of+the+day&amp;language=$LANG$" alt="פעילות 24 שעות">
 </div>
 
 <div class="content">
 	<h3><strong>פעילות יומית</strong> - $TS_WEEKLY$ זבל, $TI_WEEKLY$ טוב, $SM_WEEKLY$ החטאות זבל, $FP_WEEKLY$ החטאות דואר טוב, $INOC_WEEKLY$ חיסונים</h3>
-	<img src="./admingraph.cgi?data=$DATA_WEEKLY$&amp;graph=period&amp;x_label=Date" alt="פעילות יומית">
+	<img src="./admingraph.cgi?data=$DATA_WEEKLY$&amp;graph=period&amp;x_label=Date&amp;language=$LANG$" alt="פעילות יומית">
 </div>
 
 </div>

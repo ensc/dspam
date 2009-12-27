@@ -1,12 +1,13 @@
 <HTML>
 <HEAD><TITLE>DSPAM v3 Centro de Controle</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 <script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
 </HEAD>
 <BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
 <div id="header">
 	<div id="logo">
-		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
@@ -14,16 +15,16 @@
 	</div>
 </div>
 
-<br clear="left" />
+<br clear="left">
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li><a href="$CGI$?$USER$template=performance">Performance</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">Prefer&ecirc;ncias</a></li>
-		<li><a href="$CGI$?$USER$template=alerts">Alertas</a></li>
-		<li><a href="$CGI$?$USER$template=quarantine">Quarentena ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
-		<li><a href="$CGI$?$USER$template=analysis">An&aacute;lise</a></li>
-		<li id="active"><a id="current" href="$CGI$?$USER$template=history&history_page=1">Hist&oacute;rico</a></li>
+		<li><a href="$CGI$?$USER$template=performance&amp;language=$LANG$">Performance</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Prefer&ecirc;ncias</a></li>
+		<li><a href="$CGI$?$USER$template=alerts&amp;language=$LANG$">Alertas</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine&amp;language=$LANG$">Quarentena ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis&amp;language=$LANG$">An&aacute;lise</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=history&amp;language=$LANG$&history_page=1">Hist&oacute;rico</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -35,12 +36,13 @@ As mensagens que foram processadas pelo filtro s&atilde;o exibidas abaixo. As ma
 Use a op&ccedil;&atilde;o retreinar para corrigir erros e despachar qualquer falso positivo que ainda esteja na quarentena.
 </p>
 
-<form name="history" action="dspam.cgi" method="POST">
+<form name="history" action="dspam.cgi?language=$LANG$" method="POST">
 <input type="submit" value="Retrain Checked">
 <input type="hidden" name="template" value="history">
 <input type="hidden" name="command" value="retrainChecked">
 <input type="hidden" name="user" value="$REMOTE_USER$">
-<input type="hidden" name="show" value="$SHOW$" >
+<input type="hidden" name="show" value="$SHOW$">
+<input type="hidden" name="language" value="$LANG$">
 
 &nbsp;&nbsp;$SHOW_SELECTOR$
 

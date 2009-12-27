@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: strings.pl,v 1.00 2009/08/18 00:41:12 sbajic Exp $
+# $Id: strings.pl,v 1.01 2009/12/24 13:52:23 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -18,12 +18,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+$LANG{'lang_name'}			= "&#x10c;esk&yacute;";
+$LANG{'lang_select'}			= "Jazyk";
+
 $LANG{'empty'}				= "Pr&aacute;zdn&yacute;";
 $LANG{'admin_suite'}			= "Administrace";
 $LANG{'alert_name'}			= "Jm&eacute;no v&yacute;strahy";
 $LANG{'remove_alert'}			= "Vyjmout";
 $LANG{'user_form'}			= "Statistick&aacute; ochrana proti SPAMu pro";
 $LANG{'user_form_submit'}		= "Zm&#283;nit";
+
+$LANG{'admin_form'}			= "Statistick&aacute; ochrana proti SPAMu pro <strong>Administrator</strong>";
+$LANG{'admin_form_submit'}		= "Zm&#283;nit";
 
 $LANG{'option_disable_filtering'}	= "Zaka&#382; filtrov&aacute;n&iacute; DSPAMem";
 $LANG{'option_enable_filtering'}	= "Povol filtrov&aacute;n&iacute; DSPAMem";

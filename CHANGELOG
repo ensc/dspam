@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091226:1330] sbajic: Adding language selection drop down in Web UI and fixing some other small and big issues in the Web UI
+
 [20091223:1030] sbajic: Adding information about sub-administrators/domain level admins to README
 
 [20091223:0950] sbajic: Removing NCORE code, m4/libtool_hack.m4 and scripts/train.pl from DSPAM

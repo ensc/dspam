@@ -1,16 +1,17 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD><TITLE>DSPAM v3 Verwaltungsbereich</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 </HEAD>
 <BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
 <div id="header">
 	<div id="logo">
-		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
-		Statistischer SPAM Schutz f&uuml;r <strong>$REMOTE_USER$</strong>
+		$FORM_USER$
 	</div>
 </div>
 
@@ -18,12 +19,12 @@
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li id="active"><a id="current" href="$CGI$?$USER$template=performance">Leistungsmerkmale</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">Einstellungen</a></li>
-		<li><a href="$CGI$?$USER$template=alerts">Alarme</a></li>
-		<li><a href="$CGI$?$USER$template=quarantine">Quarant&auml;ne ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
-		<li><a href="$CGI$?$USER$template=analysis">Analyse</a></li>
-		<li><a href="$CGI$?$USER$template=history&amp;history_page=1">Historie</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=performance&amp;language=$LANG$">Leistungsmerkmale</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Einstellungen</a></li>
+		<li><a href="$CGI$?$USER$template=alerts&amp;language=$LANG$">Alarme</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine&amp;language=$LANG$">Quarant&auml;ne ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis&amp;language=$LANG$">Analyse</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;language=$LANG$&amp;history_page=1">Historie</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -34,7 +35,7 @@
 Wenn sie eine E-Mail in ihrer Mailanwendung erhalten welche nicht durch den Filter erfasst wurde, dann leiten sie die Nachricht an <strong>spam-$REMOTE_USER$$LOCAL_DOMAIN$</strong> weiter, so dass die Nachricht analysiert und als Spam gelernt werden kann. Dies steigert in Zukunft die Erkennungsrate.
 </p>
 
-<div id="content">
+<div class="content">
 	<h3><strong>Statistik der Leistungsmerkmale</strong> - $TIME$</h3>
 
 	<table border="0" cellspacing="0" cellpadding="4">
@@ -44,19 +45,19 @@ Wenn sie eine E-Mail in ihrer Mailanwendung erhalten welche nicht durch den Filt
 			<th>Berechnung als</th>
 		</tr>
 		<tr class="rowEven">
-			<td>Allgemeine Pr&auml;zision (seit letztem Zur&uuml;cksetzen)</td>
+			<td>Gesamt-Pr&auml;zision (seit letzter R&uuml;ckstellung)</td>
 			<td><strong>$OVERALL_ACCURACY$%</strong></td>
 			<td class="rowDivider"><span class="small">(SPAM Mails erkannt + Gute Mails zugestellt) / Anzahl der Nachrichten</span></td>
 		</tr>
                 <tr class="rowOdd">
-                        <td>Spam Identifikation (seit letztem Zur&uuml;cksetzen)</td>
+                        <td>Spam Erkennung (seit letzter R&uuml;ckstellung)</td>
                         <td><strong>$SPAM_ACCURACY$%</strong></td>
                         <td class="rowDivider"><span class="small">(Spam Erkennungsrate einzeln)</span></td>
                </tr>
 		<tr class="rowEven">
 			<td>Spam Anteil (der verarbeiteten Nachrichten)</td>
 			<td><strong>$SPAM_RATIO$%</strong></td>
-			<td class="rowDivider"><span class="small">Alle SPAM Mails (beides erkannt &amp; nicht erkannt) / Anzahl der Nachrichten</span></td>
+			<td class="rowDivider"><span class="small">Alle SPAM Mails (erkannt + nicht erkannt) / Anzahl der Nachrichten</span></td>
 		</tr>
 	</table>
 	<table border="0" cellspacing="0" cellpadding="4">
@@ -66,7 +67,7 @@ Wenn sie eine E-Mail in ihrer Mailanwendung erhalten welche nicht durch den Filt
 			<th>Nicht SPAM Mails</th>
 		</tr>
 		<tr class="rowEven">
-			<td rowspan="3" valign="top" nowrap>Seit letztem Zur&uuml;cksetzen</td>
+			<td rowspan="3" valign="top" nowrap>Seit letzter R&uuml;ckstellung</td>
 			<td>$TOTAL_SPAM_MISSED$ nicht erkannt</td>
 			<td>$TOTAL_NONSPAM_MISSED$ nicht erkannt</td>
 		</tr>
@@ -79,7 +80,7 @@ Wenn sie eine E-Mail in ihrer Mailanwendung erhalten welche nicht durch den Filt
 			<td>$NONSPAM_ERROR_RATE$% nicht erkannt</td>
 		</tr>
 		<tr class="rowOdd">
-			<td rowspan="2" valign="top" nowrap>Verarbeitete Mails durch Filter</td>
+			<td rowspan="2" valign="top" nowrap>Durch Filter verarbeitete Mails</td>
 			<td>$TOTAL_SPAM_LEARNED$ nicht erkannt</td>
 			<td>$TOTAL_NONSPAM_LEARNED$ nicht erkannt</td>
 		</tr>
@@ -95,7 +96,7 @@ Wenn sie eine E-Mail in ihrer Mailanwendung erhalten welche nicht durch den Filt
 	</table>
 
 	<p>
-		<a href="$CGI$?$USER$command=resetStats" title="Zur&uuml;cksetzen der Statistik">Zur&uuml;cksetzen</a> | <a href="$CGI$?$USER$command=tweak" title="Feineinstellung f&uuml;r Nachrichten welche zum Filter weitergeleitet wurden">Tweak -1</a>
+		<a href="$CGI$?$USER$command=resetStats&amp;language=$LANG$" title="Zur&uuml;cksetzen der Statistik">Zur&uuml;cksetzen</a> | <a href="$CGI$?$USER$command=tweak" title="Feineinstellung f&uuml;r Nachrichten welche zum Filter weitergeleitet wurden">Optimiere -1</a>
 	</p>
 </div>
 

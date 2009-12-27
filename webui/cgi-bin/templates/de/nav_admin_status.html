@@ -1,16 +1,17 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD><TITLE>DSPAM v3 Verwaltungsbereich</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 </HEAD>
 <BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
 <div id="header">
 	<div id="logo">
-		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
-		Statistischer SPAM Schutz f&uuml;r <strong>Administrator ($REMOTE_USER$)</strong>
+		$FORM_ADMIN$
 	</div>
 </div>
 
@@ -18,10 +19,10 @@
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li id="active"><a id="current" href="$CGI$?$USER$template=status">System Status</a></li>
-		<li><a href="$CGI$?$USER$template=user">Benutzer Statistik</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">Administration</a></li>
-		<li><a href="dspam.cgi">Kontroll Zenter</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=status&amp;language=$LANG$">System Status</a></li>
+		<li><a href="$CGI$?$USER$template=user&amp;language=$LANG$">Benutzer Statistik</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Administration</a></li>
+		<li><a href="dspam.cgi?language=$LANG$">Kontroll Zenter</a></li>
 	</ul>
 </div>
 
@@ -31,7 +32,7 @@
 Die folgenden Grafiken und Tabellen fassen die Verarbeitung des Filters zusammen.
 </p>
 
-<div id="content">
+<div class="content">
 	<h3><strong>&Uuml;bersicht</strong></h3>
 
 	<table border="0" cellspacing="0" cellpadding="4">
@@ -127,12 +128,12 @@ Die folgenden Grafiken und Tabellen fassen die Verarbeitung des Filters zusammen
 
 <div class="content">
 	<h3><strong>24 Std. Aktivit&auml;t</strong> - $TS_DAILY$ SPAM, $TI_DAILY$ Gut, $SM_DAILY$ &Uuml;bersehener Spam, $FP_DAILY$ Falsch positives Ergebnis, $INOC_DAILY$ Einimpfungen, $CORPUS_DAILY$ Korpuszufuhr, $WHITE_DAILY$ Whitelisted, $VIRUS_DAILY$ Virus, $BLACK_DAILY$ Blacklisted, $BLOCK_DAILY$ Blocklisted</h3>
-	<img src="./admingraph.cgi?data=$DATA_DAILY$&amp;x_label=Stunde+des+Tages" alt="tag">
+	<img src="./admingraph.cgi?data=$DATA_DAILY$&amp;x_label=Stunde+des+Tages&amp;language=$LANG$" alt="tag">
 </div>
 
 <div class="content">
 	<h3><strong>Tages Aktivit&auml;t</strong> - $TS_WEEKLY$ SPAM, $TI_WEEKLY$ Gut, $SM_WEEKLY$ &Uuml;bersehener Spam, $FP_WEEKLY$ Falsch positives Ergebnis, $INOC_WEEKLY$ Einimpfungen, $CORPUS_WEEKLY$ Korpuszufuhr, $WHITE_WEEKLY$ Whitelisted, $VIRUS_WEEKLY$ Virus, $BLACK_WEEKLY$ Blacklisted, $BLOCK_WEEKLY$ Blocklisted</h3>
-	<img src="./admingraph.cgi?data=$DATA_WEEKLY$&amp;graph=period&amp;x_label=Datum" alt="woche">
+	<img src="./admingraph.cgi?data=$DATA_WEEKLY$&amp;graph=period&amp;x_label=Datum&amp;language=$LANG$" alt="woche">
 </div>
 
 </div>

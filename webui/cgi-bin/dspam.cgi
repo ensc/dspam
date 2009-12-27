@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.45 2009/12/20 19:47:51 sbajic Exp $
+# $Id: dspam.cgi,v 1.46 2009/12/23 12:18:37 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -21,22 +21,21 @@
 use strict;
 use Time::Local;
 use vars qw { %CONFIG %DATA %FORM %LANG $MAILBOX $CURRENT_USER $USER $TMPFILE $USERSELECT };
-use vars qw { $CURRENT_STORE };
+use vars qw { $CURRENT_STORE $LANGUAGE };
+
 require "ctime.pl";
 
+#
 # Read configuration parameters common to all CGI scripts
-require "configure.pl";
-
 #
-# Read language file
-#
-if (-s "$CONFIG{'TEMPLATES'}/strings.pl") {
-  require "$CONFIG{'TEMPLATES'}/strings.pl";
-} elsif (-s "$CONFIG{'TEMPLATES'}/../strings.pl") {
-  require "$CONFIG{'TEMPLATES'}/../strings.pl";
-} else {
-  &error("Missing language file strings.pl.");
+if (!(-e "configure.pl") || !(-r "configure.pl")) {
+  &htmlheader;
+  print "<html><head><title>Error!</title></head><body bgcolor='white' text='black'><center><h1>";
+  print "Missing file configure.pl";
+  print "</h1></center></body></html>\n";
+  exit;
 }
+require "configure.pl";
 
 if($CONFIG{"DATE_FORMAT"}) {
   use POSIX qw(strftime);
@@ -113,10 +112,38 @@ if ($ENV{'REMOTE_USER'} ne "" && $CONFIG{'ADMIN'} == 0) {
 }
 
 #
-# Configure Filesystem
+# Parse form
 #
 
 %FORM = &ReadParse;
+
+#
+# Configure languages
+#
+
+if ($FORM{'language'} ne "") {
+  $LANGUAGE = $FORM{'language'};
+} else {
+  $LANGUAGE = $CONFIG{'LANGUAGE_USED'};
+}
+if (! defined $CONFIG{'LANG'}->{$LANGUAGE}->{'NAME'}) {
+  $LANGUAGE = $CONFIG{'LANGUAGE_USED'};
+}
+my @dslanguages = ();
+for (split(/\n/,$CONFIG{'LANGUAGES'})) {
+  my $lang = $_;
+  $lang =~ s/\s*selected>/>/;
+  if ($lang =~ /value="([^"]+)"/) {
+    $lang =~ s/>/ selected>/ if ($1 eq $LANGUAGE);
+  }
+  push(@dslanguages, $lang);
+}
+$CONFIG{'LANGUAGES'} = join("\n", @dslanguages);
+$CONFIG{'TEMPLATES'} = $CONFIG{'LANG'}->{$LANGUAGE}->{'TEMPLATEDIR'};
+
+#
+# Configure Filesystem
+#
 
 $CURRENT_USER = $ENV{'REMOTE_USER'};
 
@@ -151,7 +178,7 @@ $MAILBOX = $USER . ".mbox";
 $TMPFILE = $USER . ".tmp";
 
 if ($CURRENT_USER eq "") {
-  &error("$LANG{'error_no_identity'}");
+  &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_no_identity'}");
 }
 
 if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
@@ -198,7 +225,7 @@ if ($CONFIG{'ADMIN'} == 1 || $CONFIG{'SUBADMIN'} == 1) {
 }
 
 my($MYURL);
-$MYURL = "$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}";
+$MYURL = qq!$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}&language=$LANGUAGE!;
 
 #
 # Set up initial display variables
@@ -270,7 +297,7 @@ if ($FORM{'template'} eq "performance") {
 } elsif ($FORM{'template'} eq "fragment") {
   &DisplayFragment;
 } else {
-  &error("$LANG{'error_invalid_command'} $FORM{'COMMAND'}");
+  &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_invalid_command'} $FORM{'COMMAND'}");
 }
 
 #
@@ -332,7 +359,7 @@ sub DisplayHistory {
 
   my($LOG) = "$USER.log";
   if (! -e $LOG) {
-    &error("$LANG{'error_no_historic'}");
+    &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_no_historic'}");
   }
 
   # Preseed retraining information and delivery errors
@@ -446,34 +473,34 @@ sub DisplayHistory {
 
     my($cl, $cllabel);
     $class = $rec{$signature}->{'class'} if ($rec{$signature}->{'class'} ne "");
-    if ($class eq "S") { $cl = "spam"; $cllabel="$LANG{'history_label_spam'}"; }
-    elsif ($class eq "I") { $cl = "innocent"; $cllabel="$LANG{'history_label_innocent'}"; }
+    if ($class eq "S") { $cl = "spam"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_spam'}"; }
+    elsif ($class eq "I") { $cl = "innocent"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_innocent'}"; }
     elsif ($class eq "F") {
       if ($rec{$signature}->{'count'} % 2 != 0) {
-        $cl = "false"; $cllabel="$LANG{'history_label_miss'}";
+        $cl = "false"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_miss'}";
       } else {
-        $cl = "innocent"; $cllabel="$LANG{'history_label_innocent'}";
+        $cl = "innocent"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_innocent'}";
       }
     }
     elsif ($class eq "M") { 
       if ($rec{$signature}->{'count'} % 2 != 0) {
-          $cl = "missed"; $cllabel="$LANG{'history_label_miss'}";
+          $cl = "missed"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_miss'}";
       } else {
-          $cl = "spam"; $cllabel="$LANG{'history_label_spam'}";
+          $cl = "spam"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_spam'}";
       }
     }
-    elsif ($class eq "W") { $cl = "whitelisted"; $cllabel="$LANG{'history_label_whitelist'}"; }
-    elsif ($class eq "V") { $cl = "virus"; $cllabel="$LANG{'history_label_virus'}"; }
-    elsif ($class eq "A") { $cl = "blacklisted"; $cllabel="$LANG{'history_label_rbl'}"; }
-    elsif ($class eq "O") { $cl = "blocklisted"; $cllabel="$LANG{'history_label_block'}"; }
-    elsif ($class eq "N") { $cl = "inoculation"; $cllabel="$LANG{'history_label_spam'}"; }
-    elsif ($class eq "C") { $cl = "corpus"; $cllabel="$LANG{'history_label_corpus'}"; }
-    elsif ($class eq "U") { $cl = "unknown"; $cllabel="$LANG{'history_label_unknown'}"; }
-    elsif ($class eq "E") { $cl = "error"; $cllabel="$LANG{'history_label_error'}"; }
+    elsif ($class eq "W") { $cl = "whitelisted"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_whitelist'}"; }
+    elsif ($class eq "V") { $cl = "virus"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_virus'}"; }
+    elsif ($class eq "A") { $cl = "blacklisted"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_rbl'}"; }
+    elsif ($class eq "O") { $cl = "blocklisted"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_block'}"; }
+    elsif ($class eq "N") { $cl = "inoculation"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_spam'}"; }
+    elsif ($class eq "C") { $cl = "corpus"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_corpus'}"; }
+    elsif ($class eq "U") { $cl = "unknown"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_unknown'}"; }
+    elsif ($class eq "E") { $cl = "error"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_error'}"; }
     if ($messageid ne "") {
       if ($rec{$messageid}->{'resend'} ne "") {
         $cl = "relay";
-        $cllabel = "$LANG{'history_label_resend'}";
+        $cllabel = "$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_resend'}";
       }
       $rec{$messageid}->{'resend'} = $signature;
     }
@@ -494,13 +521,13 @@ sub DisplayHistory {
 
     my($retrain);
     if ($rec{$signature}->{'class'} =~ /^(M|F)$/ && $rec{$signature}->{'count'} % 2 != 0) {
-      $retrain = "<b>$LANG{'history_retrained'}</b>";
+      $retrain = "<b>$CONFIG{'LANG'}->{$LANGUAGE}->{'history_retrained'}</b>";
     } 
 
     if ($retrain eq "") {
-      $retrain = qq!<A HREF="$MYURL&amp;show=$show&amp;history_page=$history_page&amp;retrain=$rclass&amp;signatureID=$signature">$LANG{'history_retrain_as'}&nbsp;! . ucfirst($LANG{'history_retrain_as_'.$rclass}) . "</A>";
+      $retrain = qq!<A HREF="$MYURL&amp;show=$show&amp;history_page=$history_page&amp;retrain=$rclass&amp;signatureID=$signature">$CONFIG{'LANG'}->{$LANGUAGE}->{'history_retrain_as'}&nbsp;! . ucfirst($CONFIG{'LANG'}->{$LANGUAGE}->{'history_retrain_as_'.$rclass}) . "</A>";
     } else {
-      $retrain .= qq! (<A HREF="$MYURL&amp;show=$show&amp;history_page=$history_page&amp;retrain=$rclass&amp;signatureID=$signature">$LANG{'history_retrain_undo'}</A>)!;
+      $retrain .= qq! (<A HREF="$MYURL&amp;show=$show&amp;history_page=$history_page&amp;retrain=$rclass&amp;signatureID=$signature">$CONFIG{'LANG'}->{$LANGUAGE}->{'history_retrain_undo'}</A>)!;
     }
 
     my($path) = "$USER.frag/$signature.frag";
@@ -586,29 +613,29 @@ _END
   }
 
   $DATA{'SHOW'} = $show;
-  $DATA{'SHOW_SELECTOR'} .=  "$LANG{'history_show'}: <a href=\"$MYURL&amp;show=all\">";
+  $DATA{'SHOW_SELECTOR'} .=  "$CONFIG{'LANG'}->{$LANGUAGE}->{'history_show'}: <a href=\"$MYURL&amp;show=all\">";
   if ($show eq "all") {
-    $DATA{'SHOW_SELECTOR'} .= "<strong>$LANG{'history_show_all'}</strong>";
+    $DATA{'SHOW_SELECTOR'} .= "<strong>$CONFIG{'LANG'}->{$LANGUAGE}->{'history_show_all'}</strong>";
   } else {
-    $DATA{'SHOW_SELECTOR'} .= "$LANG{'history_show_all'}";
+    $DATA{'SHOW_SELECTOR'} .= "$CONFIG{'LANG'}->{$LANGUAGE}->{'history_show_all'}";
   }
   $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&amp;show=spam\">";
   if ($show eq "spam") {
-    $DATA{'SHOW_SELECTOR'} .= "<strong>$LANG{'history_show_spam'}</strong>";
+    $DATA{'SHOW_SELECTOR'} .= "<strong>$CONFIG{'LANG'}->{$LANGUAGE}->{'history_show_spam'}</strong>";
   } else {
-    $DATA{'SHOW_SELECTOR'} .= "$LANG{'history_show_spam'}";
+    $DATA{'SHOW_SELECTOR'} .= "$CONFIG{'LANG'}->{$LANGUAGE}->{'history_show_spam'}";
   }
   $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&amp;show=innocent\">";
   if ($show eq "innocent") {
-    $DATA{'SHOW_SELECTOR'} .= "<strong>$LANG{'history_show_innocent'}</strong>";
+    $DATA{'SHOW_SELECTOR'} .= "<strong>$CONFIG{'LANG'}->{$LANGUAGE}->{'history_show_innocent'}</strong>";
   } else {
-    $DATA{'SHOW_SELECTOR'} .= "$LANG{'history_show_innocent'}";
+    $DATA{'SHOW_SELECTOR'} .= "$CONFIG{'LANG'}->{$LANGUAGE}->{'history_show_innocent'}";
   }
   $DATA{'SHOW_SELECTOR'} .=  "</a> | <a href=\"$MYURL&amp;show=whitelisted\">";
   if ($show eq "whitelisted") {
-    $DATA{'SHOW_SELECTOR'} .= "<strong>$LANG{'history_show_whitelisted'}</strong>";
+    $DATA{'SHOW_SELECTOR'} .= "<strong>$CONFIG{'LANG'}->{$LANGUAGE}->{'history_show_whitelisted'}</strong>";
   } else {
-    $DATA{'SHOW_SELECTOR'} .= "$LANG{'history_show_whitelisted'}";
+    $DATA{'SHOW_SELECTOR'} .= "$CONFIG{'LANG'}->{$LANGUAGE}->{'history_show_whitelisted'}";
   }
   $DATA{'SHOW_SELECTOR'} .=  "</a>";
 
@@ -633,10 +660,10 @@ sub DisplayAnalysis {
   my ($dailystart) = time - (3600*23);
 
   if (! -e $LOG) {
-    &error("$LANG{'error_no_historic'}");
+    &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_no_historic'}");
   }
 
-  open(LOG, "<$LOG") || &error("$LANG{'error_cannot_open_log'}: $!");
+  open(LOG, "<$LOG") || &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_cannot_open_log'}: $!");
   while(<LOG>) {
     my($t_log, $c_log) = split(/\t/);
 
@@ -789,7 +816,7 @@ sub DisplayPreferences {
 
 
     } else {
-      open(FILE, ">$FILE") || do { &error("$LANG{'error_cannot_write_prefs'}: $!"); };
+      open(FILE, ">$FILE") || do { &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_cannot_write_prefs'}: $!"); };
       print FILE <<_END;
 trainingMode=$FORM{'trainingMode'}
 spamAction=$FORM{'spamAction'}
@@ -805,7 +832,7 @@ dailyQuarantineSummary=$FORM{'dailyQuarantineSummary'}
 _END
       close(FILE);
     }
-  redirect("$CONFIG{'ME'}?user=$FORM{'user'}&template=preferences");
+  redirect("$CONFIG{'ME'}?user=$FORM{'user'}&template=preferences&language=$LANGUAGE");
   }
 
   %PREFS = GetPrefs();
@@ -835,9 +862,9 @@ _END
   }
 
   if ($CONFIG{'OPTMODE'} eq "OUT") {
-    $DATA{"OPTION"} = "<INPUT TYPE=CHECKBOX NAME=optOut " . $DATA{'C_OPTOUT'} . ">$LANG{'option_disable_filtering'}<br>";
+    $DATA{"OPTION"} = "<INPUT TYPE=CHECKBOX NAME=optOut " . $DATA{'C_OPTOUT'} . ">$CONFIG{'LANG'}->{$LANGUAGE}->{'option_disable_filtering'}<br>";
   } elsif ($CONFIG{'OPTMODE'} eq "IN") {
-    $DATA{"OPTION"} = "<INPUT TYPE=CHECKBOX NAME=optIn " . $DATA{'C_OPTIN'} . ">$LANG{'option_enable_filtering'}<br>";
+    $DATA{"OPTION"} = "<INPUT TYPE=CHECKBOX NAME=optIn " . $DATA{'C_OPTIN'} . ">$CONFIG{'LANG'}->{$LANGUAGE}->{'option_enable_filtering'}<br>";
   } else {
     $DATA{"OPTION"} = "";
   }
@@ -862,7 +889,7 @@ sub ProcessQuarantine {
 sub ProcessFalsePositive {
   my(@buffer, %head, $found);
   if ($FORM{'signatureID'} eq "") {
-    &error("$LANG{'error_no_sigid'}");
+    &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_no_sigid'}");
   }
   open(FILE, "<$MAILBOX");
   while(<FILE>) {
@@ -1000,7 +1027,7 @@ sub Quarantine_ViewMessage {
   my(@buffer);
 
   if ($FORM{'signatureID'} eq "") {
-    &error("$LANG{'error_no_sigid'}");
+    &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_no_sigid'}");
   }
 
   $DATA{'MESSAGE_ID'} = $FORM{'signatureID'};
@@ -1070,7 +1097,7 @@ sub Quarantine_DeleteSpam {
 
     $FORM{'template'} = "performance";
     &CheckQuarantine;
-    redirect("$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}");
+    redirect("$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}&language=$LANGUAGE");
     return; 
   }
   open(FILE, "<$MAILBOX");
@@ -1244,29 +1271,29 @@ sub DisplayQuarantine {
   }
 
   $DATA{'SORTBY'} = $sortBy;
-  $DATA{'SORT_QUARANTINE'} .=  "<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=quarantine&amp;sortby=Rating&amp;user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=quarantine&amp;language=$LANGUAGE&amp;sortby=Rating&amp;user=$FORM{'user'}\">";
   if ($sortBy eq "Rating") {
-    $DATA{'SORT_QUARANTINE'} .= "<strong>$LANG{'quarantine_rating'}</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>$CONFIG{'LANG'}->{$LANGUAGE}->{'quarantine_rating'}</strong>";
   } else {
-    $DATA{'SORT_QUARANTINE'} .= "$LANG{'quarantine_rating'}";
+    $DATA{'SORT_QUARANTINE'} .= "$CONFIG{'LANG'}->{$LANGUAGE}->{'quarantine_rating'}";
   }
-  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=quarantine&amp;sortby=Date&amp;user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=quarantine&amp;language=$LANGUAGE&amp;sortby=Date&amp;user=$FORM{'user'}\">";
   if ($sortBy eq "Date") {
-    $DATA{'SORT_QUARANTINE'} .= "<strong>$LANG{'quarantine_date'}</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>$CONFIG{'LANG'}->{$LANGUAGE}->{'quarantine_date'}</strong>";
   } else {
-    $DATA{'SORT_QUARANTINE'} .= "$LANG{'quarantine_date'}";
+    $DATA{'SORT_QUARANTINE'} .= "$CONFIG{'LANG'}->{$LANGUAGE}->{'quarantine_date'}";
   }
-  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=quarantine&amp;sortby=From&amp;user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=quarantine&amp;language=$LANGUAGE&amp;sortby=From&amp;user=$FORM{'user'}\">";
   if ($sortBy eq "From") {
-    $DATA{'SORT_QUARANTINE'} .= "<strong>$LANG{'quarantine_from'}</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>$CONFIG{'LANG'}->{$LANGUAGE}->{'quarantine_from'}</strong>";
   } else {
-    $DATA{'SORT_QUARANTINE'} .= "$LANG{'quarantine_from'}";
+    $DATA{'SORT_QUARANTINE'} .= "$CONFIG{'LANG'}->{$LANGUAGE}->{'quarantine_from'}";
   }
-  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=quarantine&amp;sortby=Subject&amp;user=$FORM{'user'}\">";
+  $DATA{'SORT_QUARANTINE'} .=  "</a></th>\n\t<th><a href=\"$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=quarantine&amp;language=$LANGUAGE&amp;sortby=Subject&amp;user=$FORM{'user'}\">";
   if ($sortBy eq "Subject") {
-    $DATA{'SORT_QUARANTINE'} .= "<strong>$LANG{'quarantine_subject'}</strong>";
+    $DATA{'SORT_QUARANTINE'} .= "<strong>$CONFIG{'LANG'}->{$LANGUAGE}->{'quarantine_subject'}</strong>";
   } else {
-    $DATA{'SORT_QUARANTINE'} .= "$LANG{'quarantine_subject'}";
+    $DATA{'SORT_QUARANTINE'} .= "$CONFIG{'LANG'}->{$LANGUAGE}->{'quarantine_subject'}";
   }
   $DATA{'SORT_QUARANTINE'} .=  "</a></th>";
 
@@ -1503,7 +1530,7 @@ sub DisplayIndex {
 
 sub AddAlert {
   if ($FORM{'ALERT'} eq "") {
-    &error("$LANG{'error_no_alert_specified'}");
+    &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_no_alert_specified'}");
   }
   open(FILE, ">>$USER.alerts");
   print FILE "$FORM{'ALERT'}\n";
@@ -1515,7 +1542,7 @@ sub DeleteAlert {
   my($line, @alerts);
   $line = 0;
   if ($FORM{'line'} eq "") {
-    &Error("$LANG{'error_no_alert_specified'}");
+    &Error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_no_alert_specified'}");
   }
   open(FILE, "<$USER.alerts");
   while(<FILE>) {
@@ -1538,7 +1565,7 @@ sub DisplayAlerts {
   $DATA{'ALERTS'} = <<_end;
 <table border="0" cellspacing="0" cellpadding="2">
 	<tr>
-		<th>$LANG{'alert_name'}</th>
+		<th>$CONFIG{'LANG'}->{$LANGUAGE}->{'alert_name'}</th>
 		<th>&nbsp;</th>
 	</tr>
 _end
@@ -1552,7 +1579,7 @@ _end
     while(<FILE>) {
       s/</&lt;/g;
       s/>/&gt;/g;
-      $DATA{'ALERTS'} .= qq!<tr><td class="$rowclass">$_</td><td class="$rowclass">[<a href="$CONFIG{'ME'}?command=deleteAlert&amp;user=$FORM{'user'}&amp;template=alerts&amp;line=$line">$LANG{'remove_alert'}</a>]</td></tr>\n!;
+      $DATA{'ALERTS'} .= qq!<tr><td class="$rowclass">$_</td><td class="$rowclass">[<a href="$CONFIG{'ME'}?command=deleteAlert&amp;user=$FORM{'user'}&amp;template=alerts&amp;language=$LANGUAGE&amp;line=$line">$CONFIG{'LANG'}->{$LANGUAGE}->{'remove_alert'}</a>]</td></tr>\n!;
       $line++;
 
       if ($rowclass eq "rowEven") {
@@ -1575,390 +1602,34 @@ _end
 # Global Functions
 #
 
+sub is_utf8 {
+  my $s = "\x80" . $_[0];
+  my $internal = unpack "p", pack "p", $s;
+  return $s ne $internal;
+}
+
 sub htmlize {
   #
   # Replace some characters
   # to be HTML characters
   #
   my($text) = @_;
-  my %html_char_table = ();
-  $html_char_table{ 'A0' } = '&nbsp;';
-  $html_char_table{ 'A1' } = '&iexcl;';
-  $html_char_table{ 'A2' } = '&cent;';
-  $html_char_table{ 'A3' } = '&pound;';
-  $html_char_table{ 'A4' } = '&curren;';
-  $html_char_table{ 'A5' } = '&yen;';
-  $html_char_table{ 'A6' } = '&brvbar;';
-  $html_char_table{ 'A7' } = '&sect;';
-  $html_char_table{ 'A8' } = '&uml;';
-  $html_char_table{ 'A9' } = '&copy;';
-  $html_char_table{ 'AA' } = '&ordf;';
-  $html_char_table{ 'AB' } = '&laquo;';
-  $html_char_table{ 'AC' } = '&not;';
-  $html_char_table{ 'AD' } = '&shy;';
-  $html_char_table{ 'AE' } = '&reg;';
-  $html_char_table{ 'AF' } = '&macr;';
-  $html_char_table{ 'B0' } = '&deg;';
-  $html_char_table{ 'B1' } = '&plusmn;';
-  $html_char_table{ 'B2' } = '&sup2;';
-  $html_char_table{ 'B3' } = '&sup3;';
-  $html_char_table{ 'B4' } = '&acute;';
-  $html_char_table{ 'B5' } = '&micro;';
-  $html_char_table{ 'B6' } = '&para;';
-  $html_char_table{ 'B7' } = '&middot;';
-  $html_char_table{ 'B8' } = '&cedil;';
-  $html_char_table{ 'B9' } = '&sup1;';
-  $html_char_table{ 'BA' } = '&ordm;';
-  $html_char_table{ 'BB' } = '&raquo;';
-  $html_char_table{ 'BC' } = '&frac14;';
-  $html_char_table{ 'BD' } = '&frac12;';
-  $html_char_table{ 'BE' } = '&frac34;';
-  $html_char_table{ 'BF' } = '&iquest;';
-  $html_char_table{ 'C0' } = '&Agrave;';
-  $html_char_table{ 'C1' } = '&Aacute;';
-  $html_char_table{ 'C2' } = '&Acirc;';
-  $html_char_table{ 'C3' } = '&Atilde;';
-  $html_char_table{ 'C4' } = '&Auml;';
-  $html_char_table{ 'C5' } = '&Aring;';
-  $html_char_table{ 'C6' } = '&AElig;';
-  $html_char_table{ 'C7' } = '&Ccedil;';
-  $html_char_table{ 'C8' } = '&Egrave;';
-  $html_char_table{ 'C9' } = '&Eacute;';
-  $html_char_table{ 'CA' } = '&Ecirc;';
-  $html_char_table{ 'CB' } = '&Euml;';
-  $html_char_table{ 'CC' } = '&Igrave;';
-  $html_char_table{ 'CD' } = '&Iacute;';
-  $html_char_table{ 'CE' } = '&Icirc;';
-  $html_char_table{ 'CF' } = '&Iuml;';
-  $html_char_table{ 'D0' } = '&ETH;';
-  $html_char_table{ 'D1' } = '&Ntilde;';
-  $html_char_table{ 'D2' } = '&Ograve;';
-  $html_char_table{ 'D3' } = '&Oacute;';
-  $html_char_table{ 'D4' } = '&Ocirc;';
-  $html_char_table{ 'D5' } = '&Otilde;';
-  $html_char_table{ 'D6' } = '&Ouml;';
-  $html_char_table{ 'D7' } = '&times;';
-  $html_char_table{ 'D8' } = '&Oslash;';
-  $html_char_table{ 'D9' } = '&Ugrave;';
-  $html_char_table{ 'DA' } = '&Uacute;';
-  $html_char_table{ 'DB' } = '&Ucirc;';
-  $html_char_table{ 'DC' } = '&Uuml;';
-  $html_char_table{ 'DD' } = '&Yacute;';
-  $html_char_table{ 'DE' } = '&THORN;';
-  $html_char_table{ 'DF' } = '&szlig;';
-  $html_char_table{ 'E0' } = '&agrave;';
-  $html_char_table{ 'E1' } = '&aacute;';
-  $html_char_table{ 'E2' } = '&acirc;';
-  $html_char_table{ 'E3' } = '&atilde;';
-  $html_char_table{ 'E4' } = '&auml;';
-  $html_char_table{ 'E5' } = '&aring;';
-  $html_char_table{ 'E6' } = '&aelig;';
-  $html_char_table{ 'E7' } = '&ccedil;';
-  $html_char_table{ 'E8' } = '&egrave;';
-  $html_char_table{ 'E9' } = '&eacute;';
-  $html_char_table{ 'EA' } = '&ecirc;';
-  $html_char_table{ 'EB' } = '&euml;';
-  $html_char_table{ 'EC' } = '&igrave;';
-  $html_char_table{ 'ED' } = '&iacute;';
-  $html_char_table{ 'EE' } = '&icirc;';
-  $html_char_table{ 'EF' } = '&iuml;';
-  $html_char_table{ 'F0' } = '&eth;';
-  $html_char_table{ 'F1' } = '&ntilde;';
-  $html_char_table{ 'F2' } = '&ograve;';
-  $html_char_table{ 'F3' } = '&oacute;';
-  $html_char_table{ 'F4' } = '&ocirc;';
-  $html_char_table{ 'F5' } = '&otilde;';
-  $html_char_table{ 'F6' } = '&ouml;';
-  $html_char_table{ 'F7' } = '&divide;';
-  $html_char_table{ 'F8' } = '&oslash;';
-  $html_char_table{ 'F9' } = '&ugrave;';
-  $html_char_table{ 'FA' } = '&uacute;';
-  $html_char_table{ 'FB' } = '&ucirc;';
-  $html_char_table{ 'FC' } = '&uuml;';
-  $html_char_table{ 'FD' } = '&yacute;';
-  $html_char_table{ 'FE' } = '&thorn;';
-  $html_char_table{ 'FF' } = '&yuml;';
 
-  my %html_additional_char_table = ();
-  $html_additional_char_table{ '\\xC4\\x80' } = '&#x100;';
-  $html_additional_char_table{ '\\xC4\\x81' } = '&#x101;';
-  $html_additional_char_table{ '\\xC4\\x82' } = '&#x102;';
-  $html_additional_char_table{ '\\xC4\\x83' } = '&#x103;';
-  $html_additional_char_table{ '\\xC4\\x84' } = '&#x104;';
-  $html_additional_char_table{ '\\xC4\\x85' } = '&#x105;';
-  $html_additional_char_table{ '\\xC4\\x86' } = '&#x106;';
-  $html_additional_char_table{ '\\xC4\\x87' } = '&#x107;';
-  $html_additional_char_table{ '\\xC4\\x88' } = '&#x108;';
-  $html_additional_char_table{ '\\xC4\\x89' } = '&#x109;';
-  $html_additional_char_table{ '\\xC4\\x8A' } = '&#x10A;';
-  $html_additional_char_table{ '\\xC4\\x8B' } = '&#x10B;';
-  $html_additional_char_table{ '\\xC4\\x8C' } = '&#x10C;';
-  $html_additional_char_table{ '\\xC4\\x8D' } = '&#x10D;';
-  $html_additional_char_table{ '\\xC4\\x8E' } = '&#x10E;';
-  $html_additional_char_table{ '\\xC4\\x8F' } = '&#x10F;';
-  $html_additional_char_table{ '\\xC4\\x90' } = '&#x110;';
-  $html_additional_char_table{ '\\xC4\\x91' } = '&#x111;';
-  $html_additional_char_table{ '\\xC4\\x92' } = '&#x112;';
-  $html_additional_char_table{ '\\xC4\\x93' } = '&#x113;';
-  $html_additional_char_table{ '\\xC4\\x94' } = '&#x114;';
-  $html_additional_char_table{ '\\xC4\\x95' } = '&#x115;';
-  $html_additional_char_table{ '\\xC4\\x96' } = '&#x116;';
-  $html_additional_char_table{ '\\xC4\\x97' } = '&#x117;';
-  $html_additional_char_table{ '\\xC4\\x98' } = '&#x118;';
-  $html_additional_char_table{ '\\xC4\\x99' } = '&#x119;';
-  $html_additional_char_table{ '\\xC4\\x9A' } = '&#x11A;';
-  $html_additional_char_table{ '\\xC4\\x9B' } = '&#x11B;';
-  $html_additional_char_table{ '\\xC4\\x9C' } = '&#x11C;';
-  $html_additional_char_table{ '\\xC4\\x9D' } = '&#x11D;';
-  $html_additional_char_table{ '\\xC4\\x9E' } = '&#x11E;';
-  $html_additional_char_table{ '\\xC4\\x9F' } = '&#x11F;';
-  $html_additional_char_table{ '\\xC4\\xA0' } = '&#x120;';
-  $html_additional_char_table{ '\\xC4\\xA1' } = '&#x121;';
-  $html_additional_char_table{ '\\xC4\\xA2' } = '&#x122;';
-  $html_additional_char_table{ '\\xC4\\xA3' } = '&#x123;';
-  $html_additional_char_table{ '\\xC4\\xA4' } = '&#x124;';
-  $html_additional_char_table{ '\\xC4\\xA5' } = '&#x125;';
-  $html_additional_char_table{ '\\xC4\\xA6' } = '&#x126;';
-  $html_additional_char_table{ '\\xC4\\xA7' } = '&#x127;';
-  $html_additional_char_table{ '\\xC4\\xA8' } = '&#x128;';
-  $html_additional_char_table{ '\\xC4\\xA9' } = '&#x129;';
-  $html_additional_char_table{ '\\xC4\\xAA' } = '&#x12A;';
-  $html_additional_char_table{ '\\xC4\\xAB' } = '&#x12B;';
-  $html_additional_char_table{ '\\xC4\\xAC' } = '&#x12C;';
-  $html_additional_char_table{ '\\xC4\\xAD' } = '&#x12D;';
-  $html_additional_char_table{ '\\xC4\\xAE' } = '&#x12E;';
-  $html_additional_char_table{ '\\xC4\\xAF' } = '&#x12F;';
-  $html_additional_char_table{ '\\xC4\\xB0' } = '&#x130;';
-  $html_additional_char_table{ '\\xC4\\xB1' } = '&#x131;';
-  $html_additional_char_table{ '\\xC4\\xB2' } = '&#x132;';
-  $html_additional_char_table{ '\\xC4\\xB3' } = '&#x133;';
-  $html_additional_char_table{ '\\xC4\\xB4' } = '&#x134;';
-  $html_additional_char_table{ '\\xC4\\xB5' } = '&#x135;';
-  $html_additional_char_table{ '\\xC4\\xB6' } = '&#x136;';
-  $html_additional_char_table{ '\\xC4\\xB7' } = '&#x137;';
-  $html_additional_char_table{ '\\xC4\\xB8' } = '&#x138;';
-  $html_additional_char_table{ '\\xC4\\xB9' } = '&#x139;';
-  $html_additional_char_table{ '\\xC4\\xBA' } = '&#x13A;';
-  $html_additional_char_table{ '\\xC4\\xBB' } = '&#x13B;';
-  $html_additional_char_table{ '\\xC4\\xBC' } = '&#x13C;';
-  $html_additional_char_table{ '\\xC4\\xBD' } = '&#x13D;';
-  $html_additional_char_table{ '\\xC4\\xBE' } = '&#x13E;';
-  $html_additional_char_table{ '\\xC4\\xBF' } = '&#x13F;';
-  $html_additional_char_table{ '\\xC5\\x80' } = '&#x140;';
-  $html_additional_char_table{ '\\xC5\\x81' } = '&#x141;';
-  $html_additional_char_table{ '\\xC5\\x82' } = '&#x142;';
-  $html_additional_char_table{ '\\xC5\\x83' } = '&#x143;';
-  $html_additional_char_table{ '\\xC5\\x84' } = '&#x144;';
-  $html_additional_char_table{ '\\xC5\\x85' } = '&#x145;';
-  $html_additional_char_table{ '\\xC5\\x86' } = '&#x146;';
-  $html_additional_char_table{ '\\xC5\\x87' } = '&#x147;';
-  $html_additional_char_table{ '\\xC5\\x88' } = '&#x148;';
-  $html_additional_char_table{ '\\xC5\\x89' } = '&#x149;';
-  $html_additional_char_table{ '\\xC5\\x8A' } = '&#x14A;';
-  $html_additional_char_table{ '\\xC5\\x8B' } = '&#x14B;';
-  $html_additional_char_table{ '\\xC5\\x8C' } = '&#x14C;';
-  $html_additional_char_table{ '\\xC5\\x8D' } = '&#x14D;';
-  $html_additional_char_table{ '\\xC5\\x8E' } = '&#x14E;';
-  $html_additional_char_table{ '\\xC5\\x8F' } = '&#x14F;';
-  $html_additional_char_table{ '\\xC5\\x90' } = '&#x150;';
-  $html_additional_char_table{ '\\xC5\\x91' } = '&#x151;';
-  $html_additional_char_table{ '\\xC5\\x92' } = '&#x152;';
-  $html_additional_char_table{ '\\xC5\\x93' } = '&#x153;';
-  $html_additional_char_table{ '\\xC5\\x94' } = '&#x154;';
-  $html_additional_char_table{ '\\xC5\\x95' } = '&#x155;';
-  $html_additional_char_table{ '\\xC5\\x96' } = '&#x156;';
-  $html_additional_char_table{ '\\xC5\\x97' } = '&#x157;';
-  $html_additional_char_table{ '\\xC5\\x98' } = '&#x158;';
-  $html_additional_char_table{ '\\xC5\\x99' } = '&#x159;';
-  $html_additional_char_table{ '\\xC5\\x9A' } = '&#x15A;';
-  $html_additional_char_table{ '\\xC5\\x9B' } = '&#x15B;';
-  $html_additional_char_table{ '\\xC5\\x9C' } = '&#x15C;';
-  $html_additional_char_table{ '\\xC5\\x9D' } = '&#x15D;';
-  $html_additional_char_table{ '\\xC5\\x9E' } = '&#x15E;';
-  $html_additional_char_table{ '\\xC5\\x9F' } = '&#x15F;';
-  $html_additional_char_table{ '\\xC5\\xA0' } = '&#x160;';
-  $html_additional_char_table{ '\\xC5\\xA1' } = '&#x161;';
-  $html_additional_char_table{ '\\xC5\\xA2' } = '&#x162;';
-  $html_additional_char_table{ '\\xC5\\xA3' } = '&#x163;';
-  $html_additional_char_table{ '\\xC5\\xA4' } = '&#x164;';
-  $html_additional_char_table{ '\\xC5\\xA5' } = '&#x165;';
-  $html_additional_char_table{ '\\xC5\\xA6' } = '&#x166;';
-  $html_additional_char_table{ '\\xC5\\xA7' } = '&#x167;';
-  $html_additional_char_table{ '\\xC5\\xA8' } = '&#x168;';
-  $html_additional_char_table{ '\\xC5\\xA9' } = '&#x169;';
-  $html_additional_char_table{ '\\xC5\\xAA' } = '&#x16A;';
-  $html_additional_char_table{ '\\xC5\\xAB' } = '&#x16B;';
-  $html_additional_char_table{ '\\xC5\\xAC' } = '&#x16C;';
-  $html_additional_char_table{ '\\xC5\\xAD' } = '&#x16D;';
-  $html_additional_char_table{ '\\xC5\\xAE' } = '&#x16E;';
-  $html_additional_char_table{ '\\xC5\\xAF' } = '&#x16F;';
-  $html_additional_char_table{ '\\xC5\\xB0' } = '&#x170;';
-  $html_additional_char_table{ '\\xC5\\xB1' } = '&#x171;';
-  $html_additional_char_table{ '\\xC5\\xB2' } = '&#x172;';
-  $html_additional_char_table{ '\\xC5\\xB3' } = '&#x173;';
-  $html_additional_char_table{ '\\xC5\\xB4' } = '&#x174;';
-  $html_additional_char_table{ '\\xC5\\xB5' } = '&#x175;';
-  $html_additional_char_table{ '\\xC5\\xB6' } = '&#x176;';
-  $html_additional_char_table{ '\\xC5\\xB7' } = '&#x177;';
-  $html_additional_char_table{ '\\xC5\\xB8' } = '&#x178;';
-  $html_additional_char_table{ '\\xC5\\xB9' } = '&#x179;';
-  $html_additional_char_table{ '\\xC5\\xBA' } = '&#x17A;';
-  $html_additional_char_table{ '\\xC5\\xBB' } = '&#x17B;';
-  $html_additional_char_table{ '\\xC5\\xBC' } = '&#x17C;';
-  $html_additional_char_table{ '\\xC5\\xBD' } = '&#x17D;';
-  $html_additional_char_table{ '\\xC5\\xBE' } = '&#x17E;';
-  $html_additional_char_table{ '\\xC5\\xBF' } = '&#x17F;';
-  $html_additional_char_table{ '\\xC6\\x80' } = '&#x180;';
-  $html_additional_char_table{ '\\xC6\\x81' } = '&#x181;';
-  $html_additional_char_table{ '\\xC6\\x82' } = '&#x182;';
-  $html_additional_char_table{ '\\xC6\\x83' } = '&#x183;';
-  $html_additional_char_table{ '\\xC6\\x84' } = '&#x184;';
-  $html_additional_char_table{ '\\xC6\\x85' } = '&#x185;';
-  $html_additional_char_table{ '\\xC6\\x86' } = '&#x186;';
-  $html_additional_char_table{ '\\xC6\\x87' } = '&#x187;';
-  $html_additional_char_table{ '\\xC6\\x88' } = '&#x188;';
-  $html_additional_char_table{ '\\xC6\\x89' } = '&#x189;';
-  $html_additional_char_table{ '\\xC6\\x8A' } = '&#x18A;';
-  $html_additional_char_table{ '\\xC6\\x8B' } = '&#x18B;';
-  $html_additional_char_table{ '\\xC6\\x8C' } = '&#x18C;';
-  $html_additional_char_table{ '\\xC6\\x8D' } = '&#x18D;';
-  $html_additional_char_table{ '\\xC6\\x8E' } = '&#x18E;';
-  $html_additional_char_table{ '\\xC6\\x8F' } = '&#x18F;';
-  $html_additional_char_table{ '\\xC6\\x90' } = '&#x190;';
-  $html_additional_char_table{ '\\xC6\\x91' } = '&#x191;';
-  $html_additional_char_table{ '\\xC6\\x92' } = '&#x192;';
-  $html_additional_char_table{ '\\xC6\\x93' } = '&#x193;';
-  $html_additional_char_table{ '\\xC6\\x94' } = '&#x194;';
-  $html_additional_char_table{ '\\xC6\\x95' } = '&#x195;';
-  $html_additional_char_table{ '\\xC6\\x96' } = '&#x196;';
-  $html_additional_char_table{ '\\xC6\\x97' } = '&#x197;';
-  $html_additional_char_table{ '\\xC6\\x98' } = '&#x198;';
-  $html_additional_char_table{ '\\xC6\\x99' } = '&#x199;';
-  $html_additional_char_table{ '\\xC6\\x9A' } = '&#x19A;';
-  $html_additional_char_table{ '\\xC6\\x9B' } = '&#x19B;';
-  $html_additional_char_table{ '\\xC6\\x9C' } = '&#x19C;';
-  $html_additional_char_table{ '\\xC6\\x9D' } = '&#x19D;';
-  $html_additional_char_table{ '\\xC6\\x9E' } = '&#x19E;';
-  $html_additional_char_table{ '\\xC6\\x9F' } = '&#x19F;';
-  $html_additional_char_table{ '\\xC6\\xA0' } = '&#x1A0;';
-  $html_additional_char_table{ '\\xC6\\xA1' } = '&#x1A1;';
-  $html_additional_char_table{ '\\xC6\\xA2' } = '&#x1A2;';
-  $html_additional_char_table{ '\\xC6\\xA3' } = '&#x1A3;';
-  $html_additional_char_table{ '\\xC6\\xA4' } = '&#x1A4;';
-  $html_additional_char_table{ '\\xC6\\xA5' } = '&#x1A5;';
-  $html_additional_char_table{ '\\xC6\\xA6' } = '&#x1A6;';
-  $html_additional_char_table{ '\\xC6\\xA7' } = '&#x1A7;';
-  $html_additional_char_table{ '\\xC6\\xA8' } = '&#x1A8;';
-  $html_additional_char_table{ '\\xC6\\xA9' } = '&#x1A9;';
-  $html_additional_char_table{ '\\xC6\\xAA' } = '&#x1AA;';
-  $html_additional_char_table{ '\\xC6\\xAB' } = '&#x1AB;';
-  $html_additional_char_table{ '\\xC6\\xAC' } = '&#x1AC;';
-  $html_additional_char_table{ '\\xC6\\xAD' } = '&#x1AD;';
-  $html_additional_char_table{ '\\xC6\\xAE' } = '&#x1AE;';
-  $html_additional_char_table{ '\\xC6\\xAF' } = '&#x1AF;';
-  $html_additional_char_table{ '\\xC6\\xB0' } = '&#x1B0;';
-  $html_additional_char_table{ '\\xC6\\xB1' } = '&#x1B1;';
-  $html_additional_char_table{ '\\xC6\\xB2' } = '&#x1B2;';
-  $html_additional_char_table{ '\\xC6\\xB3' } = '&#x1B3;';
-  $html_additional_char_table{ '\\xC6\\xB4' } = '&#x1B4;';
-  $html_additional_char_table{ '\\xC6\\xB5' } = '&#x1B5;';
-  $html_additional_char_table{ '\\xC6\\xB6' } = '&#x1B6;';
-  $html_additional_char_table{ '\\xC6\\xB7' } = '&#x1B7;';
-  $html_additional_char_table{ '\\xC6\\xB8' } = '&#x1B8;';
-  $html_additional_char_table{ '\\xC6\\xB9' } = '&#x1B9;';
-  $html_additional_char_table{ '\\xC6\\xBA' } = '&#x1BA;';
-  $html_additional_char_table{ '\\xC6\\xBB' } = '&#x1BB;';
-  $html_additional_char_table{ '\\xC6\\xBC' } = '&#x1BC;';
-  $html_additional_char_table{ '\\xC6\\xBD' } = '&#x1BD;';
-  $html_additional_char_table{ '\\xC6\\xBE' } = '&#x1BE;';
-  $html_additional_char_table{ '\\xC6\\xBF' } = '&#x1BF;';
-  $html_additional_char_table{ '\\xC7\\x80' } = '&#x1C0;';
-  $html_additional_char_table{ '\\xC7\\x81' } = '&#x1C1;';
-  $html_additional_char_table{ '\\xC7\\x82' } = '&#x1C2;';
-  $html_additional_char_table{ '\\xC7\\x83' } = '&#x1C3;';
-  $html_additional_char_table{ '\\xC7\\x84' } = '&#x1C4;';
-  $html_additional_char_table{ '\\xC7\\x85' } = '&#x1C5;';
-  $html_additional_char_table{ '\\xC7\\x86' } = '&#x1C6;';
-  $html_additional_char_table{ '\\xC7\\x87' } = '&#x1C7;';
-  $html_additional_char_table{ '\\xC7\\x88' } = '&#x1C8;';
-  $html_additional_char_table{ '\\xC7\\x89' } = '&#x1C9;';
-  $html_additional_char_table{ '\\xC7\\x8A' } = '&#x1CA;';
-  $html_additional_char_table{ '\\xC7\\x8B' } = '&#x1CB;';
-  $html_additional_char_table{ '\\xC7\\x8C' } = '&#x1CC;';
-  $html_additional_char_table{ '\\xC7\\x8D' } = '&#x1CD;';
-  $html_additional_char_table{ '\\xC7\\x8E' } = '&#x1CE;';
-  $html_additional_char_table{ '\\xC7\\x8F' } = '&#x1CF;';
-  $html_additional_char_table{ '\\xC7\\x90' } = '&#x1D0;';
-  $html_additional_char_table{ '\\xC7\\x91' } = '&#x1D1;';
-  $html_additional_char_table{ '\\xC7\\x92' } = '&#x1D2;';
-  $html_additional_char_table{ '\\xC7\\x93' } = '&#x1D3;';
-  $html_additional_char_table{ '\\xC7\\x94' } = '&#x1D4;';
-  $html_additional_char_table{ '\\xC7\\x95' } = '&#x1D5;';
-  $html_additional_char_table{ '\\xC7\\x96' } = '&#x1D6;';
-  $html_additional_char_table{ '\\xC7\\x97' } = '&#x1D7;';
-  $html_additional_char_table{ '\\xC7\\x98' } = '&#x1D8;';
-  $html_additional_char_table{ '\\xC7\\x99' } = '&#x1D9;';
-  $html_additional_char_table{ '\\xC7\\x9A' } = '&#x1DA;';
-  $html_additional_char_table{ '\\xC7\\x9B' } = '&#x1DB;';
-  $html_additional_char_table{ '\\xC7\\x9C' } = '&#x1DC;';
-  $html_additional_char_table{ '\\xC7\\x9D' } = '&#x1DD;';
-  $html_additional_char_table{ '\\xC7\\x9E' } = '&#x1DE;';
-  $html_additional_char_table{ '\\xC7\\x9F' } = '&#x1DF;';
-  $html_additional_char_table{ '\\xC7\\xA0' } = '&#x1E0;';
-  $html_additional_char_table{ '\\xC7\\xA1' } = '&#x1E1;';
-  $html_additional_char_table{ '\\xC7\\xA2' } = '&#x1E2;';
-  $html_additional_char_table{ '\\xC7\\xA3' } = '&#x1E3;';
-  $html_additional_char_table{ '\\xC7\\xA4' } = '&#x1E4;';
-  $html_additional_char_table{ '\\xC7\\xA5' } = '&#x1E5;';
-  $html_additional_char_table{ '\\xC7\\xA6' } = '&#x1E6;';
-  $html_additional_char_table{ '\\xC7\\xA7' } = '&#x1E7;';
-  $html_additional_char_table{ '\\xC7\\xA8' } = '&#x1E8;';
-  $html_additional_char_table{ '\\xC7\\xA9' } = '&#x1E9;';
-  $html_additional_char_table{ '\\xC7\\xAA' } = '&#x1EA;';
-  $html_additional_char_table{ '\\xC7\\xAB' } = '&#x1EB;';
-  $html_additional_char_table{ '\\xC7\\xAC' } = '&#x1EC;';
-  $html_additional_char_table{ '\\xC7\\xAD' } = '&#x1ED;';
-  $html_additional_char_table{ '\\xC7\\xAE' } = '&#x1EE;';
-  $html_additional_char_table{ '\\xC7\\xAF' } = '&#x1EF;';
-  $html_additional_char_table{ '\\xC7\\xB0' } = '&#x1F0;';
-  $html_additional_char_table{ '\\xC7\\xB1' } = '&#x1F1;';
-  $html_additional_char_table{ '\\xC7\\xB2' } = '&#x1F2;';
-  $html_additional_char_table{ '\\xC7\\xB3' } = '&#x1F3;';
-  $html_additional_char_table{ '\\xC7\\xB4' } = '&#x1F4;';
-  $html_additional_char_table{ '\\xC7\\xB5' } = '&#x1F5;';
-  $html_additional_char_table{ '\\xC7\\xB6' } = '&#x1F6;';
-  $html_additional_char_table{ '\\xC7\\xB7' } = '&#x1F7;';
-  $html_additional_char_table{ '\\xC7\\xB8' } = '&#x1F8;';
-  $html_additional_char_table{ '\\xC7\\xB9' } = '&#x1F9;';
-  $html_additional_char_table{ '\\xC7\\xBA' } = '&#x1FA;';
-  $html_additional_char_table{ '\\xC7\\xBB' } = '&#x1FB;';
-  $html_additional_char_table{ '\\xC7\\xBC' } = '&#x1FC;';
-  $html_additional_char_table{ '\\xC7\\xBD' } = '&#x1FD;';
-  $html_additional_char_table{ '\\xC7\\xBE' } = '&#x1FE;';
-  $html_additional_char_table{ '\\xC7\\xBF' } = '&#x1FF;';
+  use Encode;
+  use HTML::Entities;
 
-  # First do the special characters
-  while ( my ($hex_key_reg, $html_char) = each(%html_additional_char_table) ) {
-    $text =~ s!$hex_key_reg!$html_char!g;
+  if ($text =~ /^(.*?)=\?([^?]+)\?([qb])\?([^?]*)\?=(.*)$/is) {
+    $text = encode_entities(decode($2, Encode::decode('MIME-Header', $text)));
+  } else {
+    $text = decode("utf8", $text) if ($text =~ /[\xC2-\xDF][\x80-\xBF]/);
+    $text = encode_entities(decode_entities($text));
   }
-
-  # Then do our quick and dirty UTF-8 (it's wider then latin)
-  while ( my ($hex_key, $html_char) = each(%html_char_table) ) {
-    my $hex_utf8_reg;
-    if (hex("0x$hex_key") >= 192) {
-      $hex_utf8_reg = '\\xC3\\x' . uc(sprintf("%x", hex("0x$hex_key")-64));
-    } else {
-      $hex_utf8_reg = '\\xC2\\x' . $hex_key;
+  if ($text =~ /[\xC2-\xDF][\x80-\xBF]/) {
+    if ((-e "htmlize.pl") && (-r "htmlize.pl")) {
+      require "htmlize.pl";
+      $text = htmlize_chars($text);
     }
-    $text =~ s!$hex_utf8_reg!$html_char!g;
   }
-
-  # Then do latin
-  while ( my ($hex_key, $html_char) = each(%html_char_table) ) {
-    my $hex_latin_reg = '\\x' . $hex_key;
-    $text =~ s!$hex_latin_reg!$html_char!g;
-  }
-
   return $text;
 }
 
@@ -1971,27 +1642,32 @@ sub redirect {
   exit(0);
 }
 
-sub output {
-  if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
-    $FORM{'template'} = "performance";
-  }
+sub htmlheader {
   print "Expires: now\n";
   print "Pragma: no-cache\n";
   print "Cache-control: no-cache\n";
   print "Content-type: text/html\n\n";
+}
+
+sub output {
+  if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
+    $FORM{'template'} = "performance";
+  }
+  &htmlheader;
   my(%DATA) = @_;
   $DATA{'WEB_ROOT'} = $CONFIG{'WEB_ROOT'};
+  $DATA{'LANG'} = $LANGUAGE;
 
   # Check admin permissions
   do {
     if ($CONFIG{'ADMIN'} == 1) {
-      $DATA{'NAV_ADMIN'} = qq!<li><a href="admin.cgi">$LANG{'admin_suite'}</a></li>!;
-      $DATA{'FORM_USER'} = qq!<form action="$CONFIG{'ME'}"><input type=hidden name="template" value="$FORM{'template'}">$LANG{'user_form'}&nbsp;$USERSELECT&nbsp;&nbsp;<input type=submit value="$LANG{'user_form_submit'}"></form>!;
+      $DATA{'NAV_ADMIN'} = qq!<li><a href="admin.cgi?language=$LANGUAGE">$CONFIG{'LANG'}->{$LANGUAGE}->{'admin_suite'}</a></li>!;
+      $DATA{'FORM_USER'} = qq!<form action="$CONFIG{'ME'}"><input type="hidden" name="template" value="$FORM{'template'}">$CONFIG{'LANG'}->{$LANGUAGE}->{'user_form'}&nbsp;$USERSELECT&nbsp;&nbsp;&nbsp;&nbsp;$CONFIG{'LANG'}->{$LANGUAGE}->{'lang_select'}$CONFIG{'LANGUAGES'}&nbsp;&nbsp;<input type="submit" value="$CONFIG{'LANG'}->{$LANGUAGE}->{'user_form_submit'}"></form>!;
     } elsif ($CONFIG{'SUBADMIN'} == 1) {
-      $DATA{'FORM_USER'} = qq!<form action="$CONFIG{'ME'}"><input type=hidden name="template" value="$FORM{'template'}">$LANG{'user_form'}&nbsp;$USERSELECT&nbsp;&nbsp;<input type=submit value="$LANG{'user_form_submit'}"></form>!;
+      $DATA{'FORM_USER'} = qq!<form action="$CONFIG{'ME'}"><input type="hidden" name="template" value="$FORM{'template'}"><input type="hidden" name="language" value="$LANGUAGE">$CONFIG{'LANG'}->{$LANGUAGE}->{'user_form'}&nbsp;$USERSELECT&nbsp;&nbsp;&nbsp;&nbsp;$CONFIG{'LANG'}->{$LANGUAGE}->{'lang_select'}$CONFIG{'LANGUAGES'}&nbsp;&nbsp;<input type="submit" value="$CONFIG{'LANG'}->{$LANGUAGE}->{'user_form_submit'}"></form>!;
     } else {
       $DATA{'NAV_ADMIN'} = '';
-      $DATA{'FORM_USER'} = "$LANG{'user_form'}&nbsp;<strong>$CURRENT_USER</strong>";
+      $DATA{'FORM_USER'} = qq!<form action="$CONFIG{'ME'}">$CONFIG{'LANG'}->{$LANGUAGE}->{'user_form'}&nbsp;<strong>$CURRENT_USER</strong>&nbsp;&nbsp;&nbsp;&nbsp;$CONFIG{'LANG'}->{$LANGUAGE}->{'lang_select'}$CONFIG{'LANGUAGES'}&nbsp;&nbsp;<input type="submit" value="$CONFIG{'LANG'}->{$LANGUAGE}->{'user_form_submit'}"></form>!;
     }
   };
 
@@ -2037,11 +1713,11 @@ sub error {
   my($error) = @_;
   $FORM{'template'} = "error";
   $DATA{'MESSAGE'} = <<_end;
-$LANG{'error_message_part1'}
+$CONFIG{'LANG'}->{$LANGUAGE}->{'error_message_part1'}
 <BR>
 <B>$error</B><BR>
 <BR>
-$LANG{'error_message_part2'}
+$CONFIG{'LANG'}->{$LANGUAGE}->{'error_message_part2'}
 _end
   &output(%DATA);
   exit;
@@ -2083,7 +1759,7 @@ sub CheckQuarantine {
   }
   close(FILE);   
   if ($f == 0) {
-    $f = "$LANG{'empty'}";
+    $f = "$CONFIG{'LANG'}->{$LANGUAGE}->{'empty'}";
   }
 
   $DATA{'TOTAL_QUARANTINED_MESSAGES'} = $f;
@@ -2154,7 +1830,7 @@ sub GetPrefs {
   if (keys(%PREFS) eq "0" || $CONFIG{'PREFERENCES_EXTENSION'} != 1) {
 
     if (! -e "./default.prefs") {
-      &error("$LANG{'error_load_default_prefs'}");
+      &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_load_default_prefs'}");
     }
     open(FILE, "<./default.prefs");
     while(<FILE>) {
