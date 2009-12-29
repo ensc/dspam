@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.79 2009/12/23 09:37:03 sbajic Exp $
+dnl $Id: configure.ac,v 1.80 2009/12/29 01:20:14 sbajic Exp $
 dnl
 dnl    autoconf (GNU Autoconf) 2.59
 dnl    ltmain.sh (GNU libtool) 1.5.6
@@ -781,7 +781,7 @@ fi
 
 if test x"$enable_daemon" = xyes && test x"$mysql_drv" != xyes && test x"$pgsql_drv" != xyes && test x"$hash_drv" != xyes
 then
-  AC_MSG_ERROR([daemon mode requires one of the following storage drivers: mysql_drv pgsql_drv])
+  AC_MSG_ERROR([daemon mode requires one of the following storage drivers: mysql_drv pgsql_drv hash_drv])
 fi
 
 
