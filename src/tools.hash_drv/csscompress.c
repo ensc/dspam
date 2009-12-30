@@ -1,4 +1,4 @@
-/* $Id: csscompress.c,v 1.832 2009/10/12 10:10:47 sbajic Exp $ */
+/* $Id: csscompress.c,v 1.833 2009/12/30 17:43:34 sbajic Exp $ */
 
 /*
  DSPAM
@@ -142,13 +142,13 @@ int csscompress(const char *filename) {
   /* determine total record length */
   header = old.addr;
   reclen = 0;
-  while((unsigned long) header < (unsigned long) (old.addr + old.file_len)) {
+  while((unsigned long) header < (unsigned long) ((unsigned long) old.addr + old.file_len)) {
     unsigned long max = header->hash_rec_max;
     reclen += max;
     offset = header;
-    offset = offset + sizeof(struct _hash_drv_header);
+    offset = (void *)((unsigned long) offset + sizeof(struct _hash_drv_header));
     max *= sizeof(struct _hash_drv_spam_record);
-    offset += max;
+    offset = (void *)((unsigned long) offset + max);
     header = offset;
   }
 
@@ -165,7 +165,7 @@ int csscompress(const char *filename) {
     printf("compressing %lu records in extent %lu\n", header->hash_rec_max, extent);
     extent++;
     for(i=0;i<header->hash_rec_max;i++) {
-      rec = old.addr+filepos;
+      rec = (void *)((unsigned long) old.addr + filepos);
       if (rec->hashcode) {
         if (_hash_drv_set_spamrecord(&new, rec, 0)) {
           LOG(LOG_WARNING, "aborting on error");
@@ -177,14 +177,14 @@ int csscompress(const char *filename) {
       }
       filepos += sizeof(struct _hash_drv_spam_record);
     }
-    offset = old.addr + filepos;
+    offset = (void *)((unsigned long) old.addr + filepos);
     header = offset;
     filepos += sizeof(struct _hash_drv_header);
   }
 
   _hash_drv_close(&new);
   _hash_drv_close(&old);
-  if (rename(newfile, filename)) 
+  if (rename(newfile, filename))
     fprintf(stderr, "rename(%s, %s): %s\n", newfile, filename, strerror(errno));
   return 0;
 }
