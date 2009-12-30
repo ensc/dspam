@@ -1,4 +1,4 @@
-/* $Id: cssclean.c,v 1.133 2009/10/12 10:05:11 sbajic Exp $ */
+/* $Id: cssclean.c,v 1.134 2009/12/30 15:04:41 sbajic Exp $ */
 
 /*
  DSPAM
@@ -187,7 +187,7 @@ int cssclean(const char *filename, int heavy) {
   header = old.addr;
   while(filepos < old.file_len) {
     for(i=0;i<header->hash_rec_max;i++) {
-      rec = old.addr+filepos;
+      rec = (void *)((unsigned long) old.addr + filepos);
 
       nonspam = rec->nonspam & 0x0fffffff;
       spam = rec->spam & 0x0fffffff;
@@ -229,7 +229,7 @@ int cssclean(const char *filename, int heavy) {
       }
       filepos += sizeof(struct _hash_drv_spam_record);
     }
-    offset = old.addr + filepos;
+    offset = (void *)((unsigned long) old.addr + filepos);
     header = offset;
     filepos += sizeof(struct _hash_drv_header);
   }
