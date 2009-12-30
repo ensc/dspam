@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.387 2009/12/19 22:14:21 sbajic Exp $ */
+/* $Id: dspam.c,v 1.388 2009/12/30 01:38:22 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1615,7 +1615,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
     int optin, optout;
-    char *username;
+    char *username = NULL;
 
     /* If ServerParameters specifies a --user, there will only be one
      * instance on the stack, but possible multiple recipients. So we

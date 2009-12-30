@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20091230:0135] sbajic: Fixing compiler warnings
+
 [20091230:0130] sbajic: Fixing compiler warnings
 
 [20091229:0120] sbajic: Fix small error/typo in configure.ac regarding daemon mode and hash_drv
