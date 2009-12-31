@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.291 2009/10/12 09:04:46 sbajic Exp $ */
+/* $Id: hash_drv.c,v 1.292 2009/12/31 03:29:16 sbajic Exp $ */
 
 /*
  DSPAM
@@ -930,7 +930,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     s->offset_header = s->map->addr;
     s->offset_nexttoken = sizeof(struct _hash_drv_header);
     memcpy(&rec,
-           s->map->addr+s->offset_nexttoken, 
+           (void *)((unsigned long) s->map->addr + s->offset_nexttoken),
            sizeof(struct _hash_drv_spam_record));
     if (rec.hashcode)
       _ds_get_spamrecord (CTX, rec.hashcode, &stat);
@@ -948,8 +948,8 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
       (s->offset_header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
     { 
       if (s->offset_nexttoken < s->map->file_len) {
-        s->offset_header = s->map->addr + 
-          (s->offset_nexttoken - sizeof(struct _hash_drv_spam_record));
+        s->offset_header = (void *)((unsigned long) s->map->addr + 
+          (s->offset_nexttoken - sizeof(struct _hash_drv_spam_record)));
 
         s->offset_nexttoken += sizeof(struct _hash_drv_header);
         s->offset_nexttoken -= sizeof(struct _hash_drv_spam_record);
@@ -960,7 +960,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     }
 
     memcpy(&rec,
-           s->map->addr+s->offset_nexttoken, 
+           (void *)((unsigned long) s->map->addr + s->offset_nexttoken), 
            sizeof(struct _hash_drv_spam_record));
     _ds_get_spamrecord (CTX, rec.hashcode, &stat);
   }
@@ -1178,9 +1178,9 @@ unsigned long _hash_drv_seek(
   unsigned long long hashcode,
   int flags)
 {
-  hash_drv_header_t header = map->addr + offset;
+  hash_drv_header_t header = (void *)((unsigned long) map->addr + offset);
   hash_drv_spam_record_t rec;
-  unsigned long long fpos;
+  unsigned long fpos;
   unsigned long iterations = 0;
 
   if (offset >= map->file_len)
@@ -1189,7 +1189,7 @@ unsigned long _hash_drv_seek(
   fpos = sizeof(struct _hash_drv_header) + 
     ((hashcode % header->hash_rec_max) * sizeof(struct _hash_drv_spam_record));
 
-  rec = map->addr + offset + fpos;
+  rec = (void *)((unsigned long) map->addr + offset + fpos);
   while(rec->hashcode != hashcode  &&   /* Match token     */ 
         rec->hashcode != 0         &&   /* Insert on empty */
         iterations < map->max_seek)     /* Max Iterations  */
@@ -1199,7 +1199,7 @@ unsigned long _hash_drv_seek(
 
     if (fpos >= (header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
       fpos = sizeof(struct _hash_drv_header);
-    rec = map->addr + offset + fpos;
+    rec = (void *)((unsigned long) map->addr + offset + fpos);
   }     
 
   if (rec->hashcode == hashcode) 
@@ -1224,13 +1224,13 @@ _hash_drv_set_spamrecord (
     return EINVAL;
 
   if (map_offset) {
-    rec = map->addr + map_offset;
+    rec = (void *)((unsigned long) map->addr + map_offset);
   } else {
     while(rec_offset <= 0 && offset < map->file_len)
     {
       rec_offset = _hash_drv_seek(map, offset, wrec->hashcode, HSEEK_INSERT);
       if (rec_offset <= 0) {
-        hash_drv_header_t header = map->addr + offset;
+        hash_drv_header_t header = (void *)((unsigned long) map->addr + offset);
         offset += sizeof(struct _hash_drv_header) +
           (sizeof(struct _hash_drv_spam_record) * header->hash_rec_max);
         last_extent_size = header->hash_rec_max;
@@ -1252,7 +1252,7 @@ _hash_drv_set_spamrecord (
       }
     }
   
-    rec = map->addr + offset + rec_offset;
+    rec = (void *)((unsigned long) map->addr + offset + rec_offset);
   }
   rec->hashcode = wrec->hashcode;
   rec->nonspam  = wrec->nonspam;
@@ -1280,7 +1280,7 @@ _hash_drv_get_spamrecord (
   {
     rec_offset = _hash_drv_seek(map, offset, wrec->hashcode, 0);
     if (rec_offset <= 0) {
-      hash_drv_header_t header = map->addr + offset;
+      hash_drv_header_t header = (void *)((unsigned long) map->addr + offset);
       offset += sizeof(struct _hash_drv_header) +
         (sizeof(struct _hash_drv_spam_record) * header->hash_rec_max);
       extents++;
@@ -1291,7 +1291,7 @@ _hash_drv_get_spamrecord (
     return 0;
 
   offset += rec_offset;
-  rec = map->addr + offset;
+  rec = (void *)((unsigned long) map->addr + offset);
   
   wrec->nonspam  = rec->nonspam;
   wrec->spam     = rec->spam;
