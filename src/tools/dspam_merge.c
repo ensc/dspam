@@ -1,4 +1,4 @@
-/* $Id: dspam_merge.c,v 1.151 2009/11/13 03:56:39 sbajic Exp $ */
+/* $Id: dspam_merge.c,v 1.152 2009/12/31 05:33:24 sbajic Exp $ */
 
 /*
  DSPAM
@@ -264,6 +264,7 @@ bail:
 void
 dieout (int signal)
 {
+  signal = signal; /* Keep compile happy */
   fprintf (stderr, "terminated.\n");
   if (open_ctx != NULL)
     dspam_destroy (open_ctx);

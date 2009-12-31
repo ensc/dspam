@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.241 2009/10/09 21:08:33 sbajic Exp $ */
+/* $Id: dspam_clean.c,v 1.241 2009/11/31 05:30:55 sbajic Exp $ */
 
 /*
  DSPAM
@@ -462,6 +462,7 @@ int process_unused (DSPAM_CTX *CTX, int any, int quota, int nospam, int onehit) 
 void
 dieout (int signal)
 {
+  signal = signal; /* Keep compiler happy */
   fprintf (stderr, "terminated.\n");
   if (open_ctx != NULL)
     dspam_destroy (open_ctx);

@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.27 2009/12/19 05:21:06 sbajic Exp $ */
+/* $Id: dspam_stats.c,v 1.28 2009/12/31 05:34:27 sbajic Exp $ */
 
 /*
  DSPAM
@@ -439,6 +439,7 @@ stat_user (const char *username, struct _ds_spam_totals *totals)
 void
 dieout (int signal)
 {
+  signal = signal; /* Keep compile happy */
   fprintf (stderr, "terminated.\n");
   if (open_ctx != NULL)
     dspam_destroy (open_ctx);

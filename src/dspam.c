@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.388 2009/12/30 01:38:22 sbajic Exp $ */
+/* $Id: dspam.c,v 1.389 2009/12/31 05:22:35 sbajic Exp $ */
 
 /*
  DSPAM
@@ -3257,6 +3257,7 @@ int embed_msgtag(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   FILE *f;
   char buff[1024], msgfile[MAX_FILENAME_LENGTH];
   buffer *b;
+  ATX = ATX; /* Keep compiler happy */
 
   if (CTX->result != DSR_ISSPAM && CTX->result != DSR_ISINNOCENT)
       return EINVAL;
@@ -3968,6 +3969,7 @@ int is_blocklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 int daemon_start(AGENT_CTX *ATX) {
   DRIVER_CTX DTX;
   char *pidfile;
+  ATX = ATX; /* Keep compiler happy */
 
   __daemon_run  = 1;
   __num_threads = 0;

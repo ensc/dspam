@@ -1,4 +1,4 @@
-/* $Id: dspam_2sql.c,v 1.11 2006/05/13 01:13:01 jonz Exp $ */
+/* $Id: dspam_2sql.c,v 1.12 2009/12/31 05:36:11 sbajic Exp $ */
 
 /*
  DSPAM
@@ -203,6 +203,7 @@ dump_user (const char *username)
 void
 dieout (int signal)
 {
+  signal = signal; /* Keep compiler happy */
   fprintf (stderr, "terminated.\n");
   if (open_ctx != NULL)
     dspam_destroy (open_ctx);

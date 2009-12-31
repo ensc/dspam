@@ -1,4 +1,4 @@
-/* $Id: dspam_admin.c,v 1.18 2006/05/13 01:13:01 jonz Exp $ */
+/* $Id: dspam_admin.c,v 1.19 2009/12/31 05:35:25 sbajic Exp $ */
 
 /*
  DSPAM
@@ -171,6 +171,7 @@ BAIL:
 void
 dieout (int signal)
 {
+  signal = signal; /* Keep compile happy */
   fprintf (stderr, "terminated.\n");
   _ds_destroy_config(agent_config);
   exit (EXIT_SUCCESS);

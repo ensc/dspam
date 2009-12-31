@@ -1,4 +1,4 @@
-/* $Id: hash_drv.c,v 1.292 2009/12/31 03:29:16 sbajic Exp $ */
+/* $Id: hash_drv.c,v 1.293 2009/12/31 05:19:33 sbajic Exp $ */
 
 /*
  DSPAM
@@ -866,6 +866,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
 void *_ds_connect (DSPAM_CTX *CTX)
 {
+  CTX = CTX; /* Keep compiler happy */
   return NULL;
 }
 
@@ -876,6 +877,7 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
   char digit[6];
   int pid, j;
  
+  CTX = CTX; /* Keep compiler happy */
   pid = getpid ();
   snprintf (session, sizeof (session), "%8lx%d", (long) time (NULL), pid);
  
@@ -1107,12 +1109,15 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
 struct _ds_storage_signature *
 _ds_get_nextsignature (DSPAM_CTX * CTX)
 {
+  CTX = CTX; /* Keep compiler happy */
   return NULL;
 }
 
 int
 _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
+  CTX = CTX; /* Keep compiler happy */
+  diction = diction; /* Keep compiler happy */
   return 0;
 }
 

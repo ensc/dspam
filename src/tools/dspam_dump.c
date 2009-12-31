@@ -1,4 +1,4 @@
-/* $Id: dspam_dump.c,v 1.14 2008/05/06 21:29:07 mjohnson Exp $ */
+/* $Id: dspam_dump.c,v 1.15 2009/12/31 05:28:58 sbajic Exp $ */
 
 /*
  DSPAM
@@ -230,6 +230,7 @@ dump_database (DSPAM_CTX * CTX, const char *token, int sql)
 void
 dieout (int signal)
 {
+  signal = signal; /* Keep compiler happy */
   fprintf (stderr, "terminated.\n");
   if (open_ctx != NULL)
     dspam_destroy (open_ctx);
