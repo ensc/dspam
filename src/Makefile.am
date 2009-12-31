@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.46 2009/12/23 09:37:43 sbajic Exp $
+# $Id: Makefile.am,v 1.47 2009/12/31 05:44:34 sbajic Exp $
 #
 # autoconf (GNU Autoconf) 2.59
 # ltmain.sh (GNU libtool) 1.5.6
@@ -56,8 +56,12 @@ bin_PROGRAMS = dspam dspamc
 
 # installed for libdspam
 include_HEADERS = buffer.h config_shared.h decode.h error.h diction.h \
-	libdspam.h libdspam_objects.h nodetree.h tokenizer.h external_lookup.h \
+	libdspam.h libdspam_objects.h nodetree.h tokenizer.h \
 	storage_driver.h heap.h config.h pref.h read_config.h
+
+if BUILD_EXT_LOOKUP
+include_HEADERS += external_lookup.h
+endif
 
 # libdspam.a contans objects common for dspam and tools/* binaries
 libdspam_la_SOURCES = \
@@ -76,9 +80,12 @@ libdspam_la_SOURCES = \
 	bnr.c bnr.h \
 	hash.c hash.h \
 	list.c list.h \
-	external_lookup.c external_lookup.h \
 	tokenizer.c tokenizer.h \
 	storage_driver.h
+
+if BUILD_EXT_LOOKUP
+libdspam_la_SOURCES += external_lookup.c external_lookup.h
+endif
 
 if DYNAMIC_DRIVER
 libdspam_la_SOURCES += storage_driver.c

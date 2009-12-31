@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.80 2009/12/29 01:20:14 sbajic Exp $
+dnl $Id: configure.ac,v 1.81 2009/12/31 05:48:10 sbajic Exp $
 dnl
 dnl    autoconf (GNU Autoconf) 2.59
 dnl    ltmain.sh (GNU libtool) 1.5.6
@@ -757,6 +757,7 @@ AM_CONDITIONAL([BUILD_MYSQL_DRV], [ test x"$mysql_drv" = xyes ])
 AM_CONDITIONAL([BUILD_PGSQL_DRV], [ test x"$pgsql_drv" = xyes ])
 AM_CONDITIONAL([STATIC_DRIVER], [ test x"$static_driver" = xyes ])
 AM_CONDITIONAL([DYNAMIC_DRIVER], [ test x"$static_driver" = xno ])
+AM_CONDITIONAL([BUILD_EXT_LOOKUP], [ test x"$enable_external_lookup" = xyes ])
 
 AC_MSG_CHECKING([whether we are building a single, static storage driver])
 
@@ -827,4 +828,3 @@ AC_CONFIG_FILES([doc/Makefile src/tools.hash_drv/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/Makefile webui/htdocs/Makefile])
 AC_CONFIG_FILES([contrib/Makefile])
 AC_OUTPUT
-
