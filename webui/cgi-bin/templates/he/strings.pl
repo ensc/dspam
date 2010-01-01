@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: strings.pl,v 1.01 2009/12/24 03:42:33 sbajic Exp $
+# $Id: strings.pl,v 1.02 2010/01/01 19:49:38 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-$LANG{'lang_name'}			= "עברית";
+$LANG{'lang_name'}			= "&#1506;&#1489;&#1512;&#1497;&#1514;";
 $LANG{'lang_select'}			= "שפה";
 
 $LANG{'empty'}				= "ריק";
