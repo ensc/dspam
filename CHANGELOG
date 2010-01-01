@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090101:1730] sbajic: Fixing typo in Czech strings.pl
+
 [20091231:0555] sbajic: Fixing compiler warnings
 
 [20091231:0550] sbajic: Fixing build system for EXT_LOOKUP
