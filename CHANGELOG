@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090102:0400] sbajic: Adding TTF font support for legend, x and y labels in Web UI
+
 [20090101:1730] sbajic: Setting 'lang_name' in Hebrew strings.pl to use HTML character entities encoding so that other languages display the language name properly even when not using CP1255/Windows-1255 encoding
 
 [20090101:1730] sbajic: Fixing typo in Czech strings.pl

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: graph.cgi,v 1.42 2009/12/25 02:36:39 sbajic Exp $
+# $Id: graph.cgi,v 1.43 2010/01/02 03:19:52 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -88,7 +88,21 @@ $mygraph->set(
 
 #         dclrs => [ qw( darkorchid2 mediumvioletred deeppink darkturquoise ) ],
 
-$mygraph->set_legend_font(GD::gdMediumBoldFont);
+if (defined $CONFIG{'GRAPHS_X_LABEL_FONT'} && $CONFIG{'GRAPHS_X_LABEL_FONT'} ne "" && -r $CONFIG{'GRAPHS_X_LABEL_FONT'}) {
+  $mygraph->set_x_label_font([$CONFIG{'GRAPHS_X_LABEL_FONT'}, GD::gdMediumBoldFont, 'verdana', 'arial'], 8);
+} else {
+  $mygraph->set_x_label_font(GD::gdMediumBoldFont);
+}
+if (defined $CONFIG{'GRAPHS_Y_LABEL_FONT'} && $CONFIG{'GRAPHS_Y_LABEL_FONT'} ne "" && -r $CONFIG{'GRAPHS_Y_LABEL_FONT'}) {
+  $mygraph->set_y_label_font([$CONFIG{'GRAPHS_Y_LABEL_FONT'}, GD::gdMediumBoldFont, 'verdana', 'arial'], 8);
+} else {
+  $mygraph->set_y_label_font(GD::gdMediumBoldFont);
+}
+if (defined $CONFIG{'GRAPHS_LEGEND_FONT'} && $CONFIG{'GRAPHS_LEGEND_FONT'} ne "" && -r $CONFIG{'GRAPHS_LEGEND_FONT'}) {
+  $mygraph->set_legend_font([$CONFIG{'GRAPHS_LEGEND_FONT'}, GD::gdMediumBoldFont, 'verdana', 'arial'], 8);
+} else {
+  $mygraph->set_legend_font(GD::gdMediumBoldFont);
+}
 $mygraph->set_legend("$CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_spam'}","$CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_good'}");
 my $myimage = $mygraph->plot(\@data) or die $mygraph->error;
                                                                                 

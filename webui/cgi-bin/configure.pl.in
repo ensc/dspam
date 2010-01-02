@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: configure.pl,v 1.03 2009/12/24 00:23:54 sbajic Exp $
+# $Id: configure.pl,v 1.04 2010/01/02 02:51:59 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -47,6 +47,12 @@ $CONFIG{'MAX_COL_LEN'}	= 50;		# Max chars in list columns
 $CONFIG{'SORT_DEFAULT'}	= "Rating";	# Show quarantine by "Date" or "Rating"
 $CONFIG{'3D_GRAPHS'}	= 1;		# 0=graphs in 2D, 1=graphs in 3D
 $CONFIG{'OPTMODE'}	= "NONE";	# OUT=OptOut IN=OptIn NONE=not selectable
+
+# Full path to TTF font(s) used for legend, x and y labels in Graphs. GD must be compiled
+# with TTF support if you want to use this feature.
+#$CONFIG{'GRAPHS_X_LABEL_FONT'} = "/usr/share/fonts/dejavu/DejaVuSans.ttf";
+#$CONFIG{'GRAPHS_Y_LABEL_FONT'} = "/usr/share/fonts/dejavu/DejaVuSans.ttf";
+#$CONFIG{'GRAPHS_LEGEND_FONT'}  = "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf";
 
 # Add customized settings below
 $CONFIG{'LOCAL_DOMAIN'}	= "yourdomain.com";
