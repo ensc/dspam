@@ -1,4 +1,6 @@
-/* $Id: rtl.css,v 1.00 2010/01/01 21:38:42 sbajic Exp $ */
+/* $Id: rtl.css,v 1.01 2010/01/02 04:38:53 sbajic Exp $ */
+
+/* Used for languages that have a (r)ight-(t)o-(l)eft text page direction */
 
 /* global */
 
@@ -9,6 +11,7 @@ th {
 /* classes */
 
 .rowDivider {
+	border-left:0;
 	border-right:1px solid black;
 }
 
