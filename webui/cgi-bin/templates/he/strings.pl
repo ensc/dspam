@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: strings.pl,v 1.04 2010/01/02 15:20:53 sbajic Exp $
+# $Id: strings.pl,v 1.05 2010/01/02 21:03:00 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -88,7 +88,7 @@ $LANG{'graph_legend_good'}		= "&#1503;&#1497;&#1511;&#1514;";
 $LANG{'graph_legend_inoculations'}	= "&#1501;&#1497;&#1504;&#1493;&#1505;&#1497;&#1495;";
 $LANG{'graph_legend_corpusfeds'}	= "&#1512;&#1490;&#1488;&#1502;&#1502;";
 $LANG{'graph_legend_virus'}		= "&#1505;&#1493;&#1512;&#1497;&#1493;";
-$LANG{'graph_legend_RBL'}		= "&#1492;&#1512;&#1493;&#1497;&#1513; &#1492;&#1502;&#1497;&#1513;&#1512;&#1489;";
+$LANG{'graph_legend_RBL'}		= "&#1492;&#1512;&#1493;&#1495;&#1513; &#1492;&#1502;&#1497;&#1513;&#1512;&#1489;";
 $LANG{'graph_legend_blocklisted'}	= "&#1493;&#1501;&#1505;&#1495;&#1504;";
 $LANG{'graph_legend_whitelisted'}	= "&#1501;&#1497;&#1504;&#1505;&#1493;&#1495;&#1502;";
 $LANG{'graph_legend_nonspam'}		= "&#1503;&#1497;&#1511;&#1514;";
