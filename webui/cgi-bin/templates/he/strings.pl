@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: strings.pl,v 1.03 2010/01/02 03:55:14 sbajic Exp $
+# $Id: strings.pl,v 1.04 2010/01/02 15:20:53 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -48,7 +48,7 @@ $LANG{'history_retrain_as_spam'}	= "זבל";
 $LANG{'history_retrain_as_innocent'}	= "תקין";
 $LANG{'history_retrain_as'}		= "כ-";
 $LANG{'history_retrain_undo'}		= "בטל";
-$LANG{'history_retrained'}		= "נלמדו";
+$LANG{'history_retrained'}		= "נלמד";
 $LANG{'history_label_resend'}		= "נשלח שוב";
 $LANG{'history_label_whitelist'}	= "מחוסן";
 $LANG{'history_label_spam'}		= "דואר זבל";
@@ -76,19 +76,23 @@ $LANG{'error_access_denied'}		= "הגישה נשחתה";
 
 # The text for the legend should be encoded in HTML character entities in order
 # to be displayed correctly by GD. You should as well set GRAPHS_X_LABEL_FONT,
-# GRAPHS_Y_LABEL_FONT and GRAPHS_LEGEND_FONT in configue.pl to a TTF font that
-# is capable to display Hebrew characters.
-$LANG{'graph_legend_nb_messages'}	= "&#1502;&#1505;&#1508;&#1512; &#1492;&#1492;&#1493;&#1491;&#1506;&#1493;&#1514;";
-$LANG{'graph_legend_spam'}		= "&#1491;&#1493;&#1488;&#1512; &#1494;&#1489;&#1500;";
-$LANG{'graph_legend_good'}		= "&#1514;&#1511;&#1497;&#1503;";
-$LANG{'graph_legend_inoculations'}	= "&#1495;&#1497;&#1505;&#1493;&#1504;&#1497;&#1501;";
-$LANG{'graph_legend_corpusfeds'}	= "&#1502;&#1502;&#1488;&#1490;&#1512;";
-$LANG{'graph_legend_virus'}		= "&#1493;&#1497;&#1512;&#1493;&#1505;";
-$LANG{'graph_legend_RBL'}		= "&#1489;&#1512;&#1513;&#1497;&#1502;&#1492; &#1513;&#1497;&#1493;&#1512;&#1492;";
-$LANG{'graph_legend_blocklisted'}	= "&#1504;&#1495;&#1505;&#1501;&#1493;";
-$LANG{'graph_legend_whitelisted'}	= "&#1502;&#1495;&#1493;&#1505;&#1504;&#1497;&#1501;";
-$LANG{'graph_legend_nonspam'}		= "&#1514;&#1511;&#1497;&#1503;";
-$LANG{'graph_legend_spam_misses'}	= "&#1492;&#1495;&#1496;&#1488;&#1493;&#1514; &#1491;&#1493;&#1488;&#1512; &#1494;&#1489;&#1500;";
-$LANG{'graph_legend_falsepositives'}	= "&#1492;&#1495;&#1496;&#1488;&#1493;&#1514; &#1491;&#1493;&#1488;&#1512; &#1514;&#1511;&#1497;&#1503;";
+# GRAPHS_Y_LABEL_FONT and GRAPHS_LEGEND_FONT in configure.pl to a TTF font that
+# is capable to display Hebrew characters. And you NEED to write all the text
+# backwards since GD does not know anything about right-to-left page direction.
+# If you don't know how to convert the characters to be HTML charater entities
+# then use something like recode (http://recode.progiciels-bpi.ca/) and/or
+# htmlrecode (http://bisqwit.iki.fi/source/htmlrecode.html).
+$LANG{'graph_legend_nb_messages'}	= "&#1514;&#1493;&#1506;&#1491;&#1493;&#1492;&#1492; &#1512;&#1508;&#1505;&#1502;";
+$LANG{'graph_legend_spam'}		= "&#1500;&#1489;&#1494; &#1512;&#1488;&#1493;&#1491;";
+$LANG{'graph_legend_good'}		= "&#1503;&#1497;&#1511;&#1514;";
+$LANG{'graph_legend_inoculations'}	= "&#1501;&#1497;&#1504;&#1493;&#1505;&#1497;&#1495;";
+$LANG{'graph_legend_corpusfeds'}	= "&#1512;&#1490;&#1488;&#1502;&#1502;";
+$LANG{'graph_legend_virus'}		= "&#1505;&#1493;&#1512;&#1497;&#1493;";
+$LANG{'graph_legend_RBL'}		= "&#1492;&#1512;&#1493;&#1497;&#1513; &#1492;&#1502;&#1497;&#1513;&#1512;&#1489;";
+$LANG{'graph_legend_blocklisted'}	= "&#1493;&#1501;&#1505;&#1495;&#1504;";
+$LANG{'graph_legend_whitelisted'}	= "&#1501;&#1497;&#1504;&#1505;&#1493;&#1495;&#1502;";
+$LANG{'graph_legend_nonspam'}		= "&#1503;&#1497;&#1511;&#1514;";
+$LANG{'graph_legend_spam_misses'}	= "&#1500;&#1489;&#1494; &#1512;&#1488;&#1493;&#1491; &#1514;&#1493;&#1488;&#1496;&#1495;&#1492;";
+$LANG{'graph_legend_falsepositives'}	= "&#1503;&#1497;&#1511;&#1514; &#1512;&#1488;&#1493;&#1491; &#1514;&#1493;&#1488;&#1496;&#1495;&#1492;";
 
 1;

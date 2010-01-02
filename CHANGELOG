@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090102:2030] sbajic: Fixing typos in Hebrew template
+
 [20090102:0440] sbajic: Fixing small issue in rtl.css (used in right-to-left page direction templates)
 
 [20090102:0400] sbajic: Fixing the display of Hebrew templates in the Web UI
