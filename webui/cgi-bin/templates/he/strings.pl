@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: strings.pl,v 1.02 2010/01/01 19:49:38 sbajic Exp $
+# $Id: strings.pl,v 1.03 2010/01/02 03:55:14 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2009
 #
@@ -74,17 +74,21 @@ $LANG{'error_filesystem_scale'}		= "לא ניתן לקבוע את הגדרת המערכת";
 $LANG{'error_load_default_prefs'}	= "לא ניתן לטעון את העדפות ברירת המחדל";
 $LANG{'error_access_denied'}		= "הגישה נשחתה";
 
-$LANG{'graph_legend_nb_messages'}	= "מספר ההודעות";
-$LANG{'graph_legend_spam'}		= "דואר זבל";
-$LANG{'graph_legend_good'}		= "תקין";
-$LANG{'graph_legend_inoculations'}	= "חיסונים";
-$LANG{'graph_legend_corpusfeds'}	= "ממאגר";
-$LANG{'graph_legend_virus'}		= "וירוס";
-$LANG{'graph_legend_RBL'}		= "ברשימה שיורה";
-$LANG{'graph_legend_blocklisted'}	= "נחסםו";
-$LANG{'graph_legend_whitelisted'}	= "מחוסנים";
-$LANG{'graph_legend_nonspam'}		= "תקין";
-$LANG{'graph_legend_spam_misses'}	= "החטאות דואר זבל";
-$LANG{'graph_legend_falsepositives'}	= "החטאות דואר תקין";
+# The text for the legend should be encoded in HTML character entities in order
+# to be displayed correctly by GD. You should as well set GRAPHS_X_LABEL_FONT,
+# GRAPHS_Y_LABEL_FONT and GRAPHS_LEGEND_FONT in configue.pl to a TTF font that
+# is capable to display Hebrew characters.
+$LANG{'graph_legend_nb_messages'}	= "&#1502;&#1505;&#1508;&#1512; &#1492;&#1492;&#1493;&#1491;&#1506;&#1493;&#1514;";
+$LANG{'graph_legend_spam'}		= "&#1491;&#1493;&#1488;&#1512; &#1494;&#1489;&#1500;";
+$LANG{'graph_legend_good'}		= "&#1514;&#1511;&#1497;&#1503;";
+$LANG{'graph_legend_inoculations'}	= "&#1495;&#1497;&#1505;&#1493;&#1504;&#1497;&#1501;";
+$LANG{'graph_legend_corpusfeds'}	= "&#1502;&#1502;&#1488;&#1490;&#1512;";
+$LANG{'graph_legend_virus'}		= "&#1493;&#1497;&#1512;&#1493;&#1505;";
+$LANG{'graph_legend_RBL'}		= "&#1489;&#1512;&#1513;&#1497;&#1502;&#1492; &#1513;&#1497;&#1493;&#1512;&#1492;";
+$LANG{'graph_legend_blocklisted'}	= "&#1504;&#1495;&#1505;&#1501;&#1493;";
+$LANG{'graph_legend_whitelisted'}	= "&#1502;&#1495;&#1493;&#1505;&#1504;&#1497;&#1501;";
+$LANG{'graph_legend_nonspam'}		= "&#1514;&#1511;&#1497;&#1503;";
+$LANG{'graph_legend_spam_misses'}	= "&#1492;&#1495;&#1496;&#1488;&#1493;&#1514; &#1491;&#1493;&#1488;&#1512; &#1494;&#1489;&#1500;";
+$LANG{'graph_legend_falsepositives'}	= "&#1492;&#1495;&#1496;&#1488;&#1493;&#1514; &#1491;&#1493;&#1488;&#1512; &#1514;&#1511;&#1497;&#1503;";
 
 1;

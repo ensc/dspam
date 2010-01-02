@@ -1,0 +1,47 @@
+/* $Id: rtl.css,v 1.00 2010/01/01 21:38:42 sbajic Exp $ */
+
+/* global */
+
+th {
+	text-align:right;
+}
+
+/* classes */
+
+.rowDivider {
+	border-right:1px solid black;
+}
+
+/* ids */
+
+#logo {
+	text-align:left;
+	float:left;
+}
+#logo p{
+        clear:right;
+}
+#navcontainer {
+	text-align:right;
+}
+#navcontainer li {
+	float:right;
+}
+#navcontainer li a{
+	float:right;
+}
+#panel {
+	clear:right;
+}
+
+/* classes */
+
+.content {
+	text-align:right;
+}
+.content table,img {
+	float:right;
+}
+.content p {
+	clear:right;
+}
