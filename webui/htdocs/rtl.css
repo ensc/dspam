@@ -1,12 +1,8 @@
-/* $Id: rtl.css,v 1.02 2010/01/02 21:48:13 sbajic Exp $ */
+/* $Id: rtl.css,v 1.03 2010/01/03 04:05:05 sbajic Exp $ */
 
 /* Used for languages that have a (r)ight-(t)o-(l)eft text page direction */
 
 /* global */
-
-title {
-	direction:rtl;
-}
 
 th {
 	text-align:right;
