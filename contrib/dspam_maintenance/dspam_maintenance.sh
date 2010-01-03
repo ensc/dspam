@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.01 2009/12/19 18:29:40 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.02 2010/01/03 15:22:43 sbajic Exp $
 #
-# Copyright 2007-2009 Stevan Bajic <stevan@bajic.ch>
+# Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
 #
 # Purpose: Remove old signatures and unimportant tokens from the DSPAM
