@@ -1,8 +1,8 @@
-/* $Id: pref.c,v 1.35 2009/11/31 05:24:49 sbajic Exp $ */
+/* $Id: pref.c,v 1.36 2010/01/03 14:26:31 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

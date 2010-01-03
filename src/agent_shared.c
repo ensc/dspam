@@ -1,8 +1,8 @@
-/* $Id: agent_shared.c,v 1.72 2007/12/06 05:10:12 mjohnson Exp $ */
+/* $Id: agent_shared.c,v 1.73 2010/01/03 14:26:31 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -427,7 +427,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     if (!strcmp (argv[i], "--version"))
     {
       printf ("\nDSPAM Anti-Spam Suite %s (agent/library)\n\n", VERSION);
-      printf ("Copyright (c) 2002-2009 DSPAM Project\n");
+      printf ("Copyright (c) 2002-2010 DSPAM Project\n");
       printf ("http://dspam.sourceforge.net.\n\n");
       printf ("DSPAM may be copied only under the terms of the GNU "
               "General Public License,\n");

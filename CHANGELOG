@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090103:1515] sbajic: Changing year in copyright notices and version output from 2009 to 2010
+
 [20090103:0520] sbajic: Swapping out x labels from graphs to be in strings.pl
 
 [20090103:0415] sbajic: Fixing page direction in Hebrew templates

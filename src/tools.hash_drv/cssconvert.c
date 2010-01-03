@@ -1,8 +1,8 @@
-/* $Id: cssconvert.c,v 1.622 2009/12/30 17:36:52 sbajic Exp $ */
+/* $Id: cssconvert.c,v 1.623 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

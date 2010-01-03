@@ -1,8 +1,8 @@
-/* $Id: csscompress.c,v 1.833 2009/12/30 17:43:34 sbajic Exp $ */
+/* $Id: csscompress.c,v 1.834 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

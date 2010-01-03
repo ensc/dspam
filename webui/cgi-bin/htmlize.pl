@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.00 2009/12/23 12:19:07 sbajic Exp $
+# $Id: dspam.cgi,v 1.01 2010/01/03 14:39:13 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2009
+# COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

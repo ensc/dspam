@@ -1,11 +1,11 @@
-dnl $Id: configure.ac,v 1.81 2009/12/31 05:48:10 sbajic Exp $
+dnl $Id: configure.ac,v 1.82 2010/01/03 14:26:31 sbajic Exp $
 dnl
 dnl    autoconf (GNU Autoconf) 2.59
 dnl    ltmain.sh (GNU libtool) 1.5.6
 dnl    automake (GNU automake) 1.9.2
 dnl
 AC_PREREQ(2.59)
-AC_COPYRIGHT([Copyright (C) 2002-2009 DSPAM Project])
+AC_COPYRIGHT([Copyright (C) 2002-2010 DSPAM Project])
 AC_INIT([dspam],[GIT],[dspam-devel@lists.sourceforge.net])
 AC_CONFIG_SRCDIR(./src)
 

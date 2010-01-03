@@ -1,8 +1,8 @@
-/* $Id: libdspam.c,v 1.189 2009/12/23 09:46:33 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.190 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

@@ -1,8 +1,8 @@
-/* $Id: config_shared.c,v 1.92 2009/12/22 02:06:38 sbajic Exp $ */
+/* $Id: config_shared.c,v 1.93 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
