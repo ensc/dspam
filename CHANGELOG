@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090103:0520] sbajic: Swapping out x labels from graphs to be in strings.pl
+
 [20090103:0415] sbajic: Fixing page direction in Hebrew templates
 
 [20090102:2150] sbajic: Fixing typos in Hebrew template

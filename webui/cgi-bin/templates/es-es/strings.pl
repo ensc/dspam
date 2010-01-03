@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: strings.pl,v 1.01 2009/12/24 13:50:27 sbajic Exp $
+# $Id: strings.pl,v 1.02 2010/01/03 04:22:39 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2009
+# COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -74,6 +74,8 @@ $LANG{'error_filesystem_scale'}		= "No se ha podido determinar la escala del sis
 $LANG{'error_load_default_prefs'}	= "No se han podido cargar los ajustes por defecto";
 $LANG{'error_access_denied'}		= "Acceso denegado";
 
+$LANG{'graph_legend_x_label_hour'}	= "Hora del d&iacute;a";
+$LANG{'graph_legend_x_label_date'}	= "Fecha";
 $LANG{'graph_legend_nb_messages'}	= "Numero de mensajes";
 $LANG{'graph_legend_spam'}		= "SPAM";
 $LANG{'graph_legend_good'}		= "Buenos";

@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: strings.pl,v 1.05 2010/01/02 21:03:00 sbajic Exp $
+# $Id: strings.pl,v 1.06 2010/01/03 04:22:39 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2009
+# COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -77,11 +77,14 @@ $LANG{'error_access_denied'}		= "הגישה נשחתה";
 # The text for the legend should be encoded in HTML character entities in order
 # to be displayed correctly by GD. You should as well set GRAPHS_X_LABEL_FONT,
 # GRAPHS_Y_LABEL_FONT and GRAPHS_LEGEND_FONT in configure.pl to a TTF font that
-# is capable to display Hebrew characters. And you NEED to write all the text
-# backwards since GD does not know anything about right-to-left page direction.
+# is capable to display Hebrew characters. Unfortunately U+202B and U+202C don't
+# work with GD and you NEED to write all the text backwards since GD does not
+# know anything about right-to-left page direction.
 # If you don't know how to convert the characters to be HTML charater entities
 # then use something like recode (http://recode.progiciels-bpi.ca/) and/or
 # htmlrecode (http://bisqwit.iki.fi/source/htmlrecode.html).
+$LANG{'graph_legend_x_label_hour'}	= "&#1492;&#1506;&#1513;";
+$LANG{'graph_legend_x_label_date'}	= "&#1498;&#1497;&#1512;&#1488;&#1514;";
 $LANG{'graph_legend_nb_messages'}	= "&#1514;&#1493;&#1506;&#1491;&#1493;&#1492;&#1492; &#1512;&#1508;&#1505;&#1502;";
 $LANG{'graph_legend_spam'}		= "&#1500;&#1489;&#1494; &#1512;&#1488;&#1493;&#1491;";
 $LANG{'graph_legend_good'}		= "&#1503;&#1497;&#1511;&#1514;";

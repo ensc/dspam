@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: strings.pl,v 1.01 2009/12/24 13:48:12 sbajic Exp $
+# $Id: strings.pl,v 1.02 2010/01/03 04:22:39 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2009
+# COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -75,6 +75,8 @@ $LANG{'error_filesystem_scale'}		= "Impossible de d&eacute;terminer l'organisati
 $LANG{'error_load_default_prefs'}	= "Impossible de charger les pr&eacute;f&eacute;rences par d&eacute;faut.";
 $LANG{'error_access_denied'}		= "Acc&egrave;s interdit";
 
+$LANG{'graph_legend_x_label_hour'}	= "Heure du jour";
+$LANG{'graph_legend_x_label_date'}	= "Date";
 $LANG{'graph_legend_nb_messages'}	= "Nombre de messages";
 $LANG{'graph_legend_spam'}		= "Pourriels";
 $LANG{'graph_legend_good'}		= "Messages legitimes";

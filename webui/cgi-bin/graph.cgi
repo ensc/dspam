@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: graph.cgi,v 1.43 2010/01/02 03:19:52 sbajic Exp $
+# $Id: graph.cgi,v 1.44 2010/01/03 05:01:01 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2009
+# COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -71,7 +71,7 @@ if ($CONFIG{'3D_GRAPHS'} == 1) {
   $mygraph = GD::Graph::lines->new(500, 200);
 }
 $mygraph->set(
-    x_label     => "$FORM{'x_label'}",
+    x_label     => "$CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_x_label_'.$FORM{'x_label'}}",
     y_label     => "$CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_nb_messages'}",
 #   title       => "$FORM{'title'}",
     line_width   => 2,
