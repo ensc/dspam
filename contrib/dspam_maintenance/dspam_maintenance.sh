@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.03 2010/01/06 01:07:52 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.04 2010/01/06 14:36:02 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -82,7 +82,7 @@ run_dspam_clean() {
 #
 check_for_tools() {
 	local myrc=0
-	for foo in awk cut sed sort
+	for foo in awk cut sed sort strings grep
 	do
 		if ! which ${foo} >/dev/null 2>&1
 		then
@@ -408,19 +408,36 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	# Try to read most of the configuration options from DSPAM
 	#
 	DSPAM_CONFIG_PARAMETERS=$(dspam --version 2>&1 | sed -n "s:^Configuration parameters\:[\t ]*\(.*\)$:\1:gI;s:' '\-\-:\n--:g;s:^'::g;s:' '[a-zA-Z].*::gp")
-	for foo in ${DSPAM_CONFIG_PARAMETERS}
-	do
-		case "${foo}" in
-			--sysconfdir=*)
-				DSPAM_CONFIGDIR="${foo#--sysconfdir=}"
-				;;
-			--with-dspam-home=*)
-				DSPAM_HOMEDIR="${foo#--with-dspam-home=}"
-				;;
-			--prefix=*)
-				DSPAM_BIN_DIR="${foo#--prefix=}"/bin
-		esac
-	done
+	if [ -z "${DSPAM_CONFIG_PARAMETERS}" ]
+	then
+		# Not good! dspam --version does not print out configuration parameters.
+		# Try getting the information by parsing the strings in the DSPAM binary.
+		DSPAM_CONFIG_PARAMETERS=$(strings $(whereis dspam | awk '{print $2}') 2>&1 | sed -n "/'\-\-[^']*'[\t ]*'\-\-[^']*'/p;s:' '\-\-:\n--:g;s:^[\t ]*'::g;s:' '[a-zA-Z].*::gp")
+	fi
+	if [ -n "${DSPAM_CONFIG_PARAMETERS}" ]
+	then
+		for foo in ${DSPAM_CONFIG_PARAMETERS}
+		do
+			case "${foo}" in
+				--sysconfdir=*)
+					DSPAM_CONFIGDIR="${foo#--sysconfdir=}"
+					;;
+				--with-dspam-home=*)
+					DSPAM_HOMEDIR="${foo#--with-dspam-home=}"
+					;;
+				--prefix=*)
+					DSPAM_BIN_DIR="${foo#--prefix=}"/bin
+					;;
+				--with-storage-driver=*)
+					STORAGE_DRIVERS="${foo#--with-storage-driver=}"
+					STORAGE_DRIVERS=($(echo ${STORAGE_DRIVERS} | sed "s:,:\n:g" | sort -u))
+					;;
+			esac
+		done
+	else
+		echo "Warning: dspam --version does not print configuration parameters!"
+	fi
+
 
 	#
 	# Try to get DSPAM bin directory
@@ -574,15 +591,12 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 
 
 	#
-	# Available DSPAM storage drivers
-	#
-	STORAGE_DRIVERS=($(${DSPAM_BIN_DIR}/dspam --version 2>&1 | sed -n "s:,: :;s:^.*\-\-with\-storage\-driver=\([^'\"]*\).*:\1:p" | sort -u))
-
-	#
 	# Currently active storage driver
 	#
-	if [ ${#STORAGE_DRIVERS[@]} -gt 1 ]
+	if [ ${#STORAGE_DRIVERS[@]} -eq 1 ]
 	then
+		ACTIVE_DRIVER="${STORAGE_DRIVERS[@]}"
+	else
 		read_dspam_params StorageDriver
 		if [ -n "${StorageDriver}" ]
 		then
@@ -595,8 +609,6 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 				fi
 			done
 		fi
-	else
-		ACTIVE_DRIVER="${STORAGE_DRIVERS[@]}"
 	fi
 
 
@@ -606,8 +618,14 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	if ! ${PURGE_ALL_DRIVERS} && [ -n "${ACTIVE_DRIVER}" ]
 	then
 		DRIVERS_TO_PROCESS=${ACTIVE_DRIVER}
-	else
+	elif [ ${#STORAGE_DRIVERS[@]} -gt 0 ]
+	then
 		DRIVERS_TO_PROCESS=${STORAGE_DRIVERS[@]}
+	else
+		echo "Warning: Could not get a list of supported storage drivers!"
+		echo "Warning: Could not determine the currently active storage driver!"
+		DRIVERS_TO_PROCESS=""
+		RUN_FULL_DSPAM_CLEAN="YES"
 	fi
 
 
