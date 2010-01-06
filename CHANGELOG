@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090106:1605] sbajic: Fixing parallel builds
+
 [20090106:1440] sbajic: Enhancing dspam_maintenance.sh to support DSPAM binary that does not print out configuration options when using switch "--version"
 
 [20090106:0110] sbajic: Adding profile support to dspam_maintenance.sh. Restricting purging with dspam_maintenance.sh to only consider currently active driver.
