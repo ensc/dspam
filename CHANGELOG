@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090107:2320] sbajic: Adding option (--purgescriptdir) to dspam_maintenance.sh allowing the end-user to specify the directory where the purge scripts are located
+
 [20090106:1605] sbajic: Fixing parallel builds
 
 [20090106:1440] sbajic: Enhancing dspam_maintenance.sh to support DSPAM binary that does not print out configuration options when using switch "--version"

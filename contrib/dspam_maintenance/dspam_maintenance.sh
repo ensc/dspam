@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.04 2010/01/06 14:36:02 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.05 2010/01/07 23:11:46 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -30,6 +30,7 @@ SQLITE3_BIN_DIR="/usr/bin"
 DSPAM_CONFIGDIR=""
 DSPAM_HOMEDIR=""
 DSPAM_BIN_DIR=""
+DSPAM_PURGE_SCRIPT_DIR=""
 
 
 #
@@ -46,10 +47,11 @@ do
 		--hapaxes=*) HAPAXES_AGE="${foo#--hapaxes=}";;
 		--hits1s=*) HITS1S_AGE="${foo#--hits1s=}";;
 		--hits1i=*) HITS1I_AGE="${foo#--hits1i=}";;
+		--purgescriptdir=*) DSPAM_PURGE_SCRIPT_DIR="${foo#--purgescriptdir=}";;
 		--without-sql-purge) USE_SQL_PURGE=false;;
 		--with-all-drivers) PURGE_ALL_DRIVERS=true;;
 		*)
-			echo -ne "Usage: $0 \n\t[--profile=[PROFILE]]\n\t[--logdays=no_of_days]\n\t[--signatures=no_of_days]\n\t[--neutral=no_of_days]\n\t[--unused=no_of_days]\n\t[--hapaxes=no_of_days]\n\t[--hits1s=no_of_days]\n\t[--hits1i=no_of_days]\n\t[--without-sql-purge]\n\t[--with-all-drivers]\n"
+			echo -ne "Usage: $0 \n\t[--profile=[PROFILE]]\n\t[--logdays=no_of_days]\n\t[--signatures=no_of_days]\n\t[--neutral=no_of_days]\n\t[--unused=no_of_days]\n\t[--hapaxes=no_of_days]\n\t[--hits1s=no_of_days]\n\t[--hits1i=no_of_days]\n\t[--without-sql-purge]\n\t[--purgescriptdir=[DIRECTORY]\n\t[--with-all-drivers]\n"
 			exit 1
 			;;
 	esac
@@ -128,33 +130,59 @@ clean_mysql_drv() {
 			return 1
 		fi
 		DSPAM_MySQL_PURGE_SQL=
+		DSPAM_MySQL_PURGE_SQL_FILES=
 		DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql_config --version | sed "s:[^0-9.]*::g")
 		DSPAM_MySQL_MAJOR=$(echo "${DSPAM_MySQL_VER}" | cut -d. -f1)
 		DSPAM_MySQL_MINOR=$(echo "${DSPAM_MySQL_VER}" | cut -d. -f2)
 		DSPAM_MySQL_MICRO=$(echo "${DSPAM_MySQL_VER}" | cut -d. -f3)
 		DSPAM_MySQL_INT=$(($DSPAM_MySQL_MAJOR * 65536 + $DSPAM_MySQL_MINOR * 256 + $DSPAM_MySQL_MICRO))
 
-		# For MySQL >= 4.1 use the new purge script
 		if [ "${DSPAM_MySQL_INT}" -ge "262400" ]
 		then
-			if [ -f "${DSPAM_CONFIGDIR}/config/mysql_purge-4.1-optimized.sql" -o -f "${DSPAM_CONFIGDIR}/mysql_purge-4.1-optimized.sql" ]
-			then
-				# See: http://securitydot.net/txt/id/32/type/articles/
-				[ -f "${DSPAM_CONFIGDIR}/config/mysql_purge-4.1-optimized.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/config/mysql_purge-4.1-optimized.sql"
-				[ -f "${DSPAM_CONFIGDIR}/mysql_purge-4.1-optimized.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/mysql_purge-4.1-optimized.sql"
-			else
-				[ -f "${DSPAM_CONFIGDIR}/config/mysql_purge-4.1.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/config/mysql_purge-4.1.sql"
-				[ -f "${DSPAM_CONFIGDIR}/mysql_purge-4.1.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/mysql_purge-4.1.sql"
-			fi
+			# For MySQL >= 4.1 use the new purge script
+			# For the 4.1-optimized version see:
+			# http://securitydot.net/txt/id/32/type/articles/
+			# Version >= 3.9.0 of DSPAM do already include a better purge script.
+			DSPAM_MySQL_PURGE_SQL_FILES="mysql_purge-4.1-optimized mysql_purge-4.1"
 		else
-			[ -f "${DSPAM_CONFIGDIR}/config/mysql_purge.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/config/mysql_purge.sql"
-			[ -f "${DSPAM_CONFIGDIR}/mysql_purge.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/mysql_purge.sql"
+			DSPAM_MySQL_PURGE_SQL_FILES="mysql_purge"
+
 		fi
+
+		#
+		# We first search for the purge scripts in the directory the user has
+		# told us to look for (command line option: --purgescriptdir
+		# Then we look in DSPAM configuration directory under ./config/ and then
+		# in the DSPAM configuration directory it self.
+		#
+		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR}
+		do
+			for bar in ${DSPAM_MySQL_PURGE_SQL_FILES}
+			do
+				if [ -f "${foo}/${bar}.sql" ]
+				then
+					DSPAM_MySQL_PURGE_SQL="${foo}/${bar}.sql"
+					break
+				elif [ -f "${foo}/${bar/_//}.sql" ]
+				then
+					DSPAM_MySQL_PURGE_SQL="${foo}/${bar/_//}.sql"
+					break
+				fi
+			done
+			[ -n "${DSPAM_MySQL_PURGE_SQL}" ] && break
+		done
 
 		if [ -z "${DSPAM_MySQL_PURGE_SQL}" ]
 		then
 			echo "Can not run MySQL purge script:"
 			echo "  No mysql_purge SQL script found"
+			return 1
+		fi
+
+		if [ ! -r "${DSPAM_MySQL_PURGE_SQL}" ]
+		then
+			echo "Can not read MySQL purge script:"
+			echo "  ${DSPAM_MySQL_PURGE_SQL}"
 			return 1
 		fi
 
@@ -199,19 +227,43 @@ clean_pgsql_drv() {
 		read_dspam_params PgSQLServer${PROFILE} PgSQLPort${PROFILE} PgSQLUser${PROFILE} PgSQLPass${PROFILE} PgSQLDb${PROFILE} && \
 		[ -n "${PgSQLServer}" -a -n "${PgSQLUser}" -a -n "${PgSQLDb}" ]
 	then
-		DSPAM_PgSQL_PURGE_SQL=""
-		if [ -f "${DSPAM_CONFIGDIR}/config/config/pgsql_pe-purge.sql" -o -f "${DSPAM_CONFIGDIR}/pgsql_pe-purge.sql" ]
-		then
-			[ -f "${DSPAM_CONFIGDIR}/config/pgsql_pe-purge.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/config/pgsql_pe-purge.sql"
-			[ -f "${DSPAM_CONFIGDIR}/pgsql_pe-purge.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/pgsql_pe-purge.sql"
-		else
-			[ -f "${DSPAM_CONFIGDIR}/config/pgsql_purge.sql" ] && DSPAM_PgSQL_PURGE_SQL="${DSPAM_CONFIGDIR}/config/pgsql_purge.sql"
-			[ -f "${DSPAM_CONFIGDIR}/pgsql_purge.sql" ] && DSPAM_PgSQL_PURGE_SQL="${DSPAM_CONFIGDIR}/pgsql_purge.sql"
-		fi
+		DSPAM_PgSQL_PURGE_SQL=
+		DSPAM_PgSQL_PURGE_SQL_FILES="pgsql_pe-purge"
+
+		#
+		# We first search for the purge scripts in the directory the user has
+		# told us to look for (command line option: --purgescriptdir
+		# Then we look in DSPAM configuration directory under ./config/ and then
+		# in the DSPAM configuration directory it self.
+		#
+		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR}
+		do
+			for bar in ${DSPAM_PgSQL_PURGE_SQL_FILES}
+			do
+				if [ -f "${foo}/${bar}.sql" ]
+				then
+					DSPAM_PgSQL_PURGE_SQL="${foo}/${bar}.sql"
+					break
+				elif [ -f "${foo}/${bar/_//}.sql" ]
+				then
+					DSPAM_PgSQL_PURGE_SQL="${foo}/${bar/_//}.sql"
+					break
+				fi
+			done
+			[ -n "${DSPAM_PgSQL_PURGE_SQL}" ] && break
+		done
+
 		if [ -z "${DSPAM_PgSQL_PURGE_SQL}" ]
 		then
 			echo "Can not run PostgreSQL purge script:"
 			echo "  No pgsql_purge SQL script found"
+			return 1
+		fi
+
+		if [ ! -r "${DSPAM_PgSQL_PURGE_SQL}" ]
+		then
+			echo "Can not read PostgreSQL purge script:"
+			echo "  ${DSPAM_PgSQL_PURGE_SQL}"
 			return 1
 		fi
 
