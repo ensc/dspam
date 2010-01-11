@@ -1,3 +1,5 @@
+$Id: README.cssclean,v 1.00 2009/12/22 12:25:59 sbajic Exp $
+
 HASH_DRV NIGHTLY MAINTENANCE
 
 The tool for nightly maintenance - dspam_clean - does not work with hash_drv,
@@ -31,4 +33,3 @@ With special options - heavy - cssclean is more strict and removes
 tokens for which:
 - NONSPAM + SPAM <= 1
 - NONSPAM is equal or almost equal SPAM
-

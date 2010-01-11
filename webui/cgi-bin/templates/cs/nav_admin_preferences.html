@@ -1,0 +1,128 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Administrace</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		$FORM_ADMIN$
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=status&amp;language=$LANG$">Stav syst&eacute;mu</a></li>
+		<li><a href="$CGI$?$USER$template=user&amp;language=$LANG$">Statistiky u&#382;ivatele</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Administrace</a></li>
+		<li><a href="dspam.cgi?language=$LANG$">&#344;&iacute;d&iacute;c&iacute; centrum</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<FORM ACTION="$CGI$">
+
+<p>
+Tato str&aacute;nka v&aacute;m umo&#382;n&iacute; upravit p&#345;edvolby pro libovoln&eacute;ho u&#382;ivatele. Tak&eacute; m&#367;&#382;ete upravit defaultn&iacute; volby DSPAMu tak, &#382;e nech&aacute;te vstupn&iacute; pole pr&aacute;zdn&eacute;.
+</p>
+
+<p>
+Zadejte jm&eacute;no u&#382;ivatele:
+<INPUT NAME=username VALUE=$USERNAME$> <INPUT TYPE=SUBMIT VALUE=Poslat>
+</p>
+
+<p>
+$ERROR$
+</p>
+
+<INPUT TYPE=HIDDEN NAME="template" VALUE="preferences">
+<input type="hidden" name="language" value="$LANG$">
+
+<div class="content">
+	<h3><strong>Tr&eacute;nink</strong> - Nastavte jak se filtr u&#269;&iacute; ze zpracov&aacute;van&yacute;ch zpr&aacute;v</h3>
+<table class="hollow">
+<tr><td>
+DSPAM by se m&#283;l u&#269;it:<br><br>
+<INPUT TYPE=RADIO NAME=trainingMode VALUE="TEFT" $S_TEFT$>
+Z ka&#382;d&eacute; zpr&aacute;vy, kter&aacute; skrz n&#283;j projde<BR>
+<INPUT TYPE=RADIO NAME=trainingMode VALUE="TOE" $S_TOE$>
+Pouze kdy&#382; se filtr splete<BR>
+<INPUT TYPE=RADIO NAME=trainingMode VALUE="TUM" $S_TUM$>
+Pouze na zpr&aacute;v&aacute;ch s nov&yacute;mi vzorky nebo kdy&#382; se filtr splete
+</td><td width=20>
+ &nbsp;</td><td>
+P&#345;i u&#269;en&iacute; DSPAMu preferuji:<br><br>
+<INPUT TYPE=RADIO NAME=signatureLocation VALUE="message" $S_LOC_MESSAGE$>
+<u>P&#345;epos&iacute;l&aacute;n&iacute;</u> m&yacute;ch spam&#367; (signatura je v t&#283;le zpr&aacute;vy)<BR>
+<INPUT TYPE=RADIO NAME=signatureLocation VALUE="headers" $S_LOC_HEADERS$>
+<u>Odm&iacute;t&aacute;n&iacute;</u> m&yacute;ch spam&#367; (signatura je v hlavi&#269;ce zpr&aacute;vy)<BR>
+<INPUT TYPE=RADIO NAME=signatureLocation VALUE="attachment" $S_LOC_ATTACHMENT$>
+Aby DSPAM p&#345;idal signaturu jako <u>p&#345;&iacute;lohu</u><BR>
+</td></tr>
+</table>
+
+<p>
+Citlivost filtru <strong>b&#283;hem</strong> obdob&iacute; tr&eacute;ninku:<br>
+<span class="small">Lapej SPAM (v&iacute;ce v karant&eacute;n&#283;)</span>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=0 $SEDATION_0$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=1 $SEDATION_1$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=2 $SEDATION_2$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=3 $SEDATION_3$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=4 $SEDATION_4$>
+    | <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=5 $SEDATION_5$> |
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=6 $SEDATION_6$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=7 $SEDATION_7$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=8 $SEDATION_8$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=9 $SEDATION_9$>
+    <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=10 $SEDATION_10$> 
+<span class="small">P&#345;edpokl&aacute;dej OK (m&eacute;n&#283; v karant&eacute;n&#283;)</span>
+</p>
+
+</div>
+
+<div class="content">
+	<h3><strong>Obsluha zpr&aacute;v</strong> - nastaven&iacute; zach&aacute;zen&iacute; s SPAMem</h3>
+<p>
+Pokud je identifikov&aacute;na SPAM zpr&aacute;va:<br><br>
+<INPUT TYPE=RADIO NAME=spamAction VALUE="quarantine" $S_ACTION_QUARANTINE$>Dej ji do karant&eacute;ny<BR>
+<INPUT TYPE=RADIO NAME=spamAction VALUE="tag" $S_ACTION_TAG$>Ozna&#269; hlavi&#269;ku Subject &#345;et&#283;zcem <INPUT NAME=spamSubject VALUE="$SPAM_SUBJECT$" SIZE=8><BR>
+<INPUT TYPE=RADIO NAME=spamAction VALUE="deliver" $S_ACTION_DELIVER$>Norm&aacute;ln&#283; doru&#269; zpr&aacute;vu s X-DSPAM-Result hlavi&#269;kou<BR>
+</p>
+
+</div>
+
+<div class="content">
+	<h3><strong>Vlastnosti</strong> - up&#345;esn&#283;n&iacute; filtrace SPAMu</h3>
+<p>
+<INPUT TYPE=CHECKBOX NAME=enableBNR $C_BNR$>
+Povolen&iacute; redukce &scaron;umu, co&#382; oby&#269;ejn&#283; zlep&scaron;&iacute; p&#345;esnost filtrov&aacute;n&iacute;<br>
+<INPUT TYPE=CHECKBOX NAME=enableWhitelist $C_WHITELIST$>
+Povolen&iacute; automatick&eacute;ho whitelistingu k zapamatov&aacute;n&iacute; &#269;ast&eacute; korespondence<br>
+<INPUT TYPE=CHECKBOX NAME=showFactors $C_FACTORS$>
+P&#345;id&aacute;n&iacute; souhrnu token&#367; ka&#382;d&eacute;ho mailu do jeho &uacute;pln&eacute; hlavi&#269;ky<br>
+<input type="checkbox" name="dailyQuarantineSummary" id="dailyQuarantineSummary" $C_SUMMARY$>
+<label for="dailyQuarantineSummary">Povolen&iacute; denn&iacute;ho zas&iacute;l&aacute;n&iacute; mail&#367; se sumarizac&iacute; likvidace SPAM&#367;</label>
+</p>
+
+</div>
+
+<p>
+<INPUT TYPE=SUBMIT NAME=submit VALUE="Odeslat zm&#283;ny">
+</p>
+
+</FORM>
+
+</div>
+
+
+
+</BODY>
+</HTML>

@@ -1,5 +1,8 @@
 #!/bin/sh
-# Copyright 2007-2009 Stevan Bajic <stevan@bajic.ch>
+#
+# $Id: dspam_maintenance.sh,v 1.05 2010/01/07 23:11:46 sbajic Exp $
+#
+# Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
 #
 # Purpose: Remove old signatures and unimportant tokens from the DSPAM
@@ -27,6 +30,7 @@ SQLITE3_BIN_DIR="/usr/bin"
 DSPAM_CONFIGDIR=""
 DSPAM_HOMEDIR=""
 DSPAM_BIN_DIR=""
+DSPAM_PURGE_SCRIPT_DIR=""
 
 
 #
@@ -35,11 +39,19 @@ DSPAM_BIN_DIR=""
 for foo in $@
 do
 	case "${foo}" in
+		--profile=*) PROFILE="${foo#--profile=}";;
 		--logdays=*) LOGROTATE_AGE="${foo#--logdays=}";;
-		--sigdays=*) SIGNATURE_AGE="${foo#--sigdays=}";;
+		--signatures=*) SIGNATURE_AGE="${foo#--signatures=}";;
+		--neutral=*) NEUTRAL_AGE="${foo#--neutral=}";;
+		--unused=*) UNUSED_AGE="${foo#--unused=}";;
+		--hapaxes=*) HAPAXES_AGE="${foo#--hapaxes=}";;
+		--hits1s=*) HITS1S_AGE="${foo#--hits1s=}";;
+		--hits1i=*) HITS1I_AGE="${foo#--hits1i=}";;
+		--purgescriptdir=*) DSPAM_PURGE_SCRIPT_DIR="${foo#--purgescriptdir=}";;
 		--without-sql-purge) USE_SQL_PURGE=false;;
+		--with-all-drivers) PURGE_ALL_DRIVERS=true;;
 		*)
-			echo "usage: $0 [--logdays=no_of_days] [--sigdays=no_of_days] [--without-sql-purge]"
+			echo -ne "Usage: $0 \n\t[--profile=[PROFILE]]\n\t[--logdays=no_of_days]\n\t[--signatures=no_of_days]\n\t[--neutral=no_of_days]\n\t[--unused=no_of_days]\n\t[--hapaxes=no_of_days]\n\t[--hits1s=no_of_days]\n\t[--hits1i=no_of_days]\n\t[--without-sql-purge]\n\t[--purgescriptdir=[DIRECTORY]\n\t[--with-all-drivers]\n"
 			exit 1
 			;;
 	esac
@@ -47,23 +59,21 @@ done
 
 
 #
-# Parameters
-#
-[ -z "${LOGROTATE_AGE}" ] && LOGROTATE_AGE=15 # Delete log entries older than $LOGROTATE_AGE days
-[ -z "${SIGNATURE_AGE}" ] && SIGNATURE_AGE=15 # Delete signatures older than $SIGNATURE_AGE days
-[ -z "${USE_SQL_PURGE}" ] && USE_SQL_PURGE=true # Run sql purge scripts
-
-
-#
 # Function to run dspam_clean
 #
 run_dspam_clean() {
 	local PURGE_SIG="${1}"
-	if [ "${PURGE_SIG}" == "YES" ]
+	local ADD_PARAMETER=""
+	read_dspam_params DefaultProfile
+	if [ -n "${PROFILE}" -a -n "${DefaultProfile}" -a "${PROFILE/*.}" != "${DefaultProfile}" ]
 	then
-		${DSPAM_BIN_DIR}/dspam_clean -s${SIGNATURE_AGE} -p${SIGNATURE_AGE} -u${SIGNATURE_AGE},${SIGNATURE_AGE},${SIGNATURE_AGE},${SIGNATURE_AGE} >/dev/null 2>&1
+		ADD_PARAMETER="--profile=${PROFILE/*.}"
+	fi
+	if [ "${PURGE_SIG}" = "YES" ]
+	then
+		${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -s${SIGNATURE_AGE} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
 	else
-		${DSPAM_BIN_DIR}/dspam_clean -p${SIGNATURE_AGE} -u${SIGNATURE_AGE},${SIGNATURE_AGE},${SIGNATURE_AGE},${SIGNATURE_AGE} >/dev/null 2>&1
+		${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
 	fi
 	return ${?}
 }
@@ -74,7 +84,7 @@ run_dspam_clean() {
 #
 check_for_tools() {
 	local myrc=0
-	for foo in awk cut sed
+	for foo in awk cut sed sort strings grep
 	do
 		if ! which ${foo} >/dev/null 2>&1
 		then
@@ -91,10 +101,12 @@ check_for_tools() {
 #
 read_dspam_params() {
 	local PARAMETER VALUE
+	local INCLUDE_DIRS
+	INCLUDE_DIRS=$(awk "BEGIN { IGNORECASE=1; } \$1==\"Include\" { print \$2 \"/*.conf\"; }" "${DSPAM_CONFIGDIR}/dspam.conf" 2>/dev/null)
 	for PARAMETER in $@ ; do
-		VALUE=$(awk "BEGIN { IGNORECASE=1; } \$1==\"${PARAMETER}\" { print \$2; exit; }" "${DSPAM_CONFIGDIR}/dspam.conf")
-		[ ${?} == 0 ] || return 1
-		eval ${PARAMETER}=\"${VALUE}\"
+		VALUE=$(awk "BEGIN { IGNORECASE=1; } \$1==\"${PARAMETER}\" { print \$2; exit; }" "${DSPAM_CONFIGDIR}/dspam.conf" ${INCLUDE_DIRS[@]} 2>/dev/null)
+		[ ${?} = 0 ] || return 1
+		eval ${PARAMETER/.*}=\"${VALUE}\"
 	done
 	return 0
 }
@@ -108,7 +120,7 @@ clean_mysql_drv() {
 	# MySQL
 	#
 	if	${USE_SQL_PURGE} && \
-		read_dspam_params MySQLServer MySQLPort MySQLUser MySQLPass MySQLDb MySQLCompress && \
+		read_dspam_params MySQLServer${PROFILE} MySQLPort${PROFILE} MySQLUser${PROFILE} MySQLPass${PROFILE} MySQLDb${PROFILE} MySQLCompress${PROFILE} && \
 		[ -n "${MySQLServer}" -a -n "${MySQLUser}" -a -n "${MySQLDb}" ]
 	then
 		if [ ! -e "${MYSQL_BIN_DIR}/mysql_config" ]
@@ -118,33 +130,59 @@ clean_mysql_drv() {
 			return 1
 		fi
 		DSPAM_MySQL_PURGE_SQL=
+		DSPAM_MySQL_PURGE_SQL_FILES=
 		DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql_config --version | sed "s:[^0-9.]*::g")
 		DSPAM_MySQL_MAJOR=$(echo "${DSPAM_MySQL_VER}" | cut -d. -f1)
 		DSPAM_MySQL_MINOR=$(echo "${DSPAM_MySQL_VER}" | cut -d. -f2)
 		DSPAM_MySQL_MICRO=$(echo "${DSPAM_MySQL_VER}" | cut -d. -f3)
 		DSPAM_MySQL_INT=$(($DSPAM_MySQL_MAJOR * 65536 + $DSPAM_MySQL_MINOR * 256 + $DSPAM_MySQL_MICRO))
 
-		# For MySQL >= 4.1 use the new purge script
 		if [ "${DSPAM_MySQL_INT}" -ge "262400" ]
 		then
-			if [ -f "${DSPAM_CONFIGDIR}/config/mysql_purge-4.1-optimized.sql" -o -f "${DSPAM_CONFIGDIR}/mysql_purge-4.1-optimized.sql" ]
-			then
-				# See: http://securitydot.net/txt/id/32/type/articles/
-				[ -f "${DSPAM_CONFIGDIR}/config/mysql_purge-4.1-optimized.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/config/mysql_purge-4.1-optimized.sql"
-				[ -f "${DSPAM_CONFIGDIR}/mysql_purge-4.1-optimized.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/mysql_purge-4.1-optimized.sql"
-			else
-				[ -f "${DSPAM_CONFIGDIR}/config/mysql_purge-4.1.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/config/mysql_purge-4.1.sql"
-				[ -f "${DSPAM_CONFIGDIR}/mysql_purge-4.1.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/mysql_purge-4.1.sql"
-			fi
+			# For MySQL >= 4.1 use the new purge script
+			# For the 4.1-optimized version see:
+			# http://securitydot.net/txt/id/32/type/articles/
+			# Version >= 3.9.0 of DSPAM do already include a better purge script.
+			DSPAM_MySQL_PURGE_SQL_FILES="mysql_purge-4.1-optimized mysql_purge-4.1"
 		else
-			[ -f "${DSPAM_CONFIGDIR}/config/mysql_purge.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/config/mysql_purge.sql"
-			[ -f "${DSPAM_CONFIGDIR}/mysql_purge.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/mysql_purge.sql"
+			DSPAM_MySQL_PURGE_SQL_FILES="mysql_purge"
+
 		fi
+
+		#
+		# We first search for the purge scripts in the directory the user has
+		# told us to look for (command line option: --purgescriptdir
+		# Then we look in DSPAM configuration directory under ./config/ and then
+		# in the DSPAM configuration directory it self.
+		#
+		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR}
+		do
+			for bar in ${DSPAM_MySQL_PURGE_SQL_FILES}
+			do
+				if [ -f "${foo}/${bar}.sql" ]
+				then
+					DSPAM_MySQL_PURGE_SQL="${foo}/${bar}.sql"
+					break
+				elif [ -f "${foo}/${bar/_//}.sql" ]
+				then
+					DSPAM_MySQL_PURGE_SQL="${foo}/${bar/_//}.sql"
+					break
+				fi
+			done
+			[ -n "${DSPAM_MySQL_PURGE_SQL}" ] && break
+		done
 
 		if [ -z "${DSPAM_MySQL_PURGE_SQL}" ]
 		then
 			echo "Can not run MySQL purge script:"
 			echo "  No mysql_purge SQL script found"
+			return 1
+		fi
+
+		if [ ! -r "${DSPAM_MySQL_PURGE_SQL}" ]
+		then
+			echo "Can not read MySQL purge script:"
+			echo "  ${DSPAM_MySQL_PURGE_SQL}"
 			return 1
 		fi
 
@@ -162,7 +200,7 @@ clean_mysql_drv() {
 			DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --host=${MySQLServer}"
 		[ -n "${MySQLPort}" ] &&
 			DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --port=${MySQLPort}"
-		[ "${MySQLCompress}" == "true" ] &&
+		[ "${MySQLCompress}" = "true" ] &&
 			DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --compress"
 
 		# Run the MySQL purge script
@@ -186,22 +224,46 @@ clean_pgsql_drv() {
 	# PostgreSQL
 	#
 	if	${USE_SQL_PURGE} && \
-		read_dspam_params PgSQLServer PgSQLPort PgSQLUser PgSQLPass PgSQLDb && \
+		read_dspam_params PgSQLServer${PROFILE} PgSQLPort${PROFILE} PgSQLUser${PROFILE} PgSQLPass${PROFILE} PgSQLDb${PROFILE} && \
 		[ -n "${PgSQLServer}" -a -n "${PgSQLUser}" -a -n "${PgSQLDb}" ]
 	then
-		DSPAM_PgSQL_PURGE_SQL=""
-		if [ -f "${DSPAM_CONFIGDIR}/config/config/pgsql_pe-purge.sql" -o -f "${DSPAM_CONFIGDIR}/pgsql_pe-purge.sql" ]
-		then
-			[ -f "${DSPAM_CONFIGDIR}/config/pgsql_pe-purge.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/config/pgsql_pe-purge.sql"
-			[ -f "${DSPAM_CONFIGDIR}/pgsql_pe-purge.sql" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_CONFIGDIR}/pgsql_pe-purge.sql"
-		else
-			[ -f "${DSPAM_CONFIGDIR}/config/pgsql_purge.sql" ] && DSPAM_PgSQL_PURGE_SQL="${DSPAM_CONFIGDIR}/config/pgsql_purge.sql"
-			[ -f "${DSPAM_CONFIGDIR}/pgsql_purge.sql" ] && DSPAM_PgSQL_PURGE_SQL="${DSPAM_CONFIGDIR}/pgsql_purge.sql"
-		fi
+		DSPAM_PgSQL_PURGE_SQL=
+		DSPAM_PgSQL_PURGE_SQL_FILES="pgsql_pe-purge"
+
+		#
+		# We first search for the purge scripts in the directory the user has
+		# told us to look for (command line option: --purgescriptdir
+		# Then we look in DSPAM configuration directory under ./config/ and then
+		# in the DSPAM configuration directory it self.
+		#
+		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR}
+		do
+			for bar in ${DSPAM_PgSQL_PURGE_SQL_FILES}
+			do
+				if [ -f "${foo}/${bar}.sql" ]
+				then
+					DSPAM_PgSQL_PURGE_SQL="${foo}/${bar}.sql"
+					break
+				elif [ -f "${foo}/${bar/_//}.sql" ]
+				then
+					DSPAM_PgSQL_PURGE_SQL="${foo}/${bar/_//}.sql"
+					break
+				fi
+			done
+			[ -n "${DSPAM_PgSQL_PURGE_SQL}" ] && break
+		done
+
 		if [ -z "${DSPAM_PgSQL_PURGE_SQL}" ]
 		then
 			echo "Can not run PostgreSQL purge script:"
 			echo "  No pgsql_purge SQL script found"
+			return 1
+		fi
+
+		if [ ! -r "${DSPAM_PgSQL_PURGE_SQL}" ]
+		then
+			echo "Can not read PostgreSQL purge script:"
+			echo "  ${DSPAM_PgSQL_PURGE_SQL}"
 			return 1
 		fi
 
@@ -352,25 +414,25 @@ DSPAM_CRON_LOCKFILE="/var/run/$(basename $0 .sh).pid"
 if [ -f ${DSPAM_CRON_LOCKFILE} ]; then
 	DSPAM_REMOVE_CRON_LOCKFILE="YES"
 	for foo in $(cat ${DSPAM_CRON_LOCKFILE} 2>/dev/null); do
-		if [ -L "/proc/${foo}/exe" -a "$(readlink -f /proc/${foo}/exe)" == "$(readlink -f /proc/$$/exe)" ]; then
+		if [ -L "/proc/${foo}/exe" -a "$(readlink -f /proc/${foo}/exe)" = "$(readlink -f /proc/$$/exe)" ]; then
 			DSPAM_REMOVE_CRON_LOCKFILE="NO"
 		fi
 	done
-	if [ "${DSPAM_REMOVE_CRON_LOCKFILE}" == "YES" ]; then
+	if [ "${DSPAM_REMOVE_CRON_LOCKFILE}" = "YES" ]; then
 		rm -f ${DSPAM_CRON_LOCKFILE} >/dev/null 2>&1
 	elif [ $(($(date +%s)-$(stat --printf="%X" ${DSPAM_CRON_LOCKFILE}))) -ge $((12*60*60)) ]; then
 		for foo in $(cat ${DSPAM_CRON_LOCKFILE} 2>/dev/null); do
-			if [ -L "/proc/${foo}/exe" -a "$(readlink -f /proc/${foo}/exe)" == "$(readlink -f /proc/$$/exe)" ]; then
+			if [ -L "/proc/${foo}/exe" -a "$(readlink -f /proc/${foo}/exe)" = "$(readlink -f /proc/$$/exe)" ]; then
 				kill -s KILL ${foo} >/dev/null 2>&1
 			fi
 		done
 		DSPAM_REMOVE_CRON_LOCKFILE="YES"
 		for foo in $(cat ${DSPAM_CRON_LOCKFILE} 2>/dev/null); do
-			if [ -L "/proc/${foo}/exe" -a "$(readlink -f /proc/${foo}/exe)" == "$(readlink -f /proc/$$/exe)" ]; then
+			if [ -L "/proc/${foo}/exe" -a "$(readlink -f /proc/${foo}/exe)" = "$(readlink -f /proc/$$/exe)" ]; then
 				DSPAM_REMOVE_CRON_LOCKFILE="NO"
 			fi
 		done
-		if [ "${DSPAM_REMOVE_CRON_LOCKFILE}" == "YES" ]; then
+		if [ "${DSPAM_REMOVE_CRON_LOCKFILE}" = "YES" ]; then
 			rm -f ${DSPAM_CRON_LOCKFILE} >/dev/null 2>&1
 		fi
 	fi
@@ -398,19 +460,36 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	# Try to read most of the configuration options from DSPAM
 	#
 	DSPAM_CONFIG_PARAMETERS=$(dspam --version 2>&1 | sed -n "s:^Configuration parameters\:[\t ]*\(.*\)$:\1:gI;s:' '\-\-:\n--:g;s:^'::g;s:' '[a-zA-Z].*::gp")
-	for foo in ${DSPAM_CONFIG_PARAMETERS}
-	do
-		case "${foo}" in
-			--sysconfdir=*)
-				DSPAM_CONFIGDIR="${foo#--sysconfdir=}"
-				;;
-			--with-dspam-home=*)
-				DSPAM_HOMEDIR="${foo#--with-dspam-home=}"
-				;;
-			--prefix=*)
-				DSPAM_BIN_DIR="${foo#--prefix=}"/bin
-		esac
-	done
+	if [ -z "${DSPAM_CONFIG_PARAMETERS}" ]
+	then
+		# Not good! dspam --version does not print out configuration parameters.
+		# Try getting the information by parsing the strings in the DSPAM binary.
+		DSPAM_CONFIG_PARAMETERS=$(strings $(whereis dspam | awk '{print $2}') 2>&1 | sed -n "/'\-\-[^']*'[\t ]*'\-\-[^']*'/p;s:' '\-\-:\n--:g;s:^[\t ]*'::g;s:' '[a-zA-Z].*::gp")
+	fi
+	if [ -n "${DSPAM_CONFIG_PARAMETERS}" ]
+	then
+		for foo in ${DSPAM_CONFIG_PARAMETERS}
+		do
+			case "${foo}" in
+				--sysconfdir=*)
+					DSPAM_CONFIGDIR="${foo#--sysconfdir=}"
+					;;
+				--with-dspam-home=*)
+					DSPAM_HOMEDIR="${foo#--with-dspam-home=}"
+					;;
+				--prefix=*)
+					DSPAM_BIN_DIR="${foo#--prefix=}"/bin
+					;;
+				--with-storage-driver=*)
+					STORAGE_DRIVERS="${foo#--with-storage-driver=}"
+					STORAGE_DRIVERS=($(echo ${STORAGE_DRIVERS} | sed "s:,:\n:g" | sort -u))
+					;;
+			esac
+		done
+	else
+		echo "Warning: dspam --version does not print configuration parameters!"
+	fi
+
 
 	#
 	# Try to get DSPAM bin directory
@@ -454,6 +533,78 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		exit 2
 	fi
 
+
+	#
+	# Parameters
+	#
+	if [ -z "${PROFILE}" ]
+	then
+		if read_dspam_params DefaultProfile && [ -n "${DefaultProfile}" ]
+		then
+			PROFILE=.${DefaultProfile}
+		fi
+	else
+		PROFILE=.${PROFILE}
+	fi
+	[ -z "${LOGROTATE_AGE}" ] && LOGROTATE_AGE=15			# System and user log
+	[ -z "${USE_SQL_PURGE}" ] && USE_SQL_PURGE=true			# Run SQL purge scripts
+	[ -z "${PURGE_ALL_DRIVERS}" ] && PURGE_ALL_DRIVERS=false	# Only purge active driver
+	if [ -z "${SIGNATURE_AGE}" ]
+	then
+		if read_dspam_params PurgeSignatures && [ -n "${PurgeSignatures}" -a "${PurgeSignatures}" != "off" ]
+		then
+			SIGNATURE_AGE=${PurgeSignatures}
+		else
+			SIGNATURE_AGE=14		# Stale signatures
+		fi
+	fi
+	if [ -z "${NEUTRAL_AGE}" ]
+	then
+		if read_dspam_params PurgeNeutral && [ -n "${PurgeNeutral}" -a "${PurgeNeutral}" != "off" ]
+		then
+			NEUTRAL_AGE=${PurgeNeutral}
+		else
+			NEUTRAL_AGE=90			# Tokens with neutralish probabilities
+		fi
+	fi
+	if [ -z "${UNUSED_AGE}" ]
+	then
+		if read_dspam_params PurgeUnused && [ -n "${PurgeUnused}" -a "${PurgeUnused}" != "off" ]
+		then
+			UNUSED_AGE=${PurgeUnused}
+		else
+			UNUSED_AGE=90			# Unused tokens
+		fi
+	fi
+	if [ -z "${HAPAXES_AGE}" ]
+	then
+		if read_dspam_params PurgeHapaxes && [ -n "${PurgeHapaxes}" -a "${PurgeHapaxes}" != "off" ]
+		then
+			HAPAXES_AGE=${PurgeHapaxes}
+		else
+			HAPAXES_AGE=30			# Tokens with less than 5 hits (hapaxes)
+		fi
+	fi
+	if [ -z "${HITS1S_AGE}" ]
+	then
+		if read_dspam_params PurgeHits1S && [ -n "${PurgeHits1S}" -a "${PurgeHits1S}" != "off" ]
+		then
+			HITS1S_AGE=${PurgeHits1S}
+		else
+			HITS1S_AGE=15			# Tokens with only 1 spam hit
+		fi
+	fi
+	if [ -z "${HITS1I_AGE}" ]
+	then
+		if read_dspam_params PurgeHits1I && [ -n "${PurgeHits1I}" -a "${PurgeHits1I}" != "off" ]
+		then
+			HITS1I_AGE=${PurgeHits1I}
+		else
+			HITS1I_AGE=15			# Tokens with only 1 innocent hit
+		fi
+	fi
+
+
 	#
 	# Try to get DSPAM data home directory
 	#
@@ -473,6 +624,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		exit 2
 	fi
 
+
 	#
 	# System and user log purging
 	#
@@ -483,15 +635,56 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	fi
 	${DSPAM_BIN_DIR}/dspam_logrotate -a ${LOGROTATE_AGE} -d "${DSPAM_HOMEDIR}" >/dev/null &
 
+
 	#
 	# Don't purge signatures with dspam_clean if we purged them with SQL
 	#
 	RUN_FULL_DSPAM_CLEAN="NO"
 
+
 	#
-	# Process all available storage drivers
+	# Currently active storage driver
 	#
-	for foo in $(${DSPAM_BIN_DIR}/dspam --version 2>&1 | sed -n "s:,: :g;s:^.*\-\-with\-storage\-driver=\([^\']*\).*:\1:gIp")
+	if [ ${#STORAGE_DRIVERS[@]} -eq 1 ]
+	then
+		ACTIVE_DRIVER="${STORAGE_DRIVERS[@]}"
+	else
+		read_dspam_params StorageDriver
+		if [ -n "${StorageDriver}" ]
+		then
+			for foo in hash_drv mysql_drv pgsql_drv sqlite3_drv sqlite_drv
+			do
+				if ( echo "${StorageDriver}" | grep -q "${foo}" )
+				then
+					ACTIVE_DRIVER="${foo}"
+					break
+				fi
+			done
+		fi
+	fi
+
+
+	#
+	# Which drivers to process/purge
+	#
+	if ! ${PURGE_ALL_DRIVERS} && [ -n "${ACTIVE_DRIVER}" ]
+	then
+		DRIVERS_TO_PROCESS=${ACTIVE_DRIVER}
+	elif [ ${#STORAGE_DRIVERS[@]} -gt 0 ]
+	then
+		DRIVERS_TO_PROCESS=${STORAGE_DRIVERS[@]}
+	else
+		echo "Warning: Could not get a list of supported storage drivers!"
+		echo "Warning: Could not determine the currently active storage driver!"
+		DRIVERS_TO_PROCESS=""
+		RUN_FULL_DSPAM_CLEAN="YES"
+	fi
+
+
+	#
+	# Process selected storage drivers
+	#
+	for foo in ${DRIVERS_TO_PROCESS}
 	do
 		case "${foo}" in
 			hash_drv)
@@ -516,10 +709,12 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		esac
 	done
 
+
 	#
 	# Run the dspam_clean command
 	#
 	run_dspam_clean ${RUN_FULL_DSPAM_CLEAN}
+
 
 	#
 	# Release lock

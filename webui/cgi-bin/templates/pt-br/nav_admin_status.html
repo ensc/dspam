@@ -1,26 +1,27 @@
 <HTML>
 <HEAD><TITLE>DSPAM v3 Suite Administrativa</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 </HEAD>
 <BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
 <div id="header">
 	<div id="logo">
-		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
-		Prote&ccedil;&atilde;o Estat&iacute;stica de SPAM para <strong>Administrador ($REMOTE_USER$)</strong>
+		$FORM_ADMIN$
 	</div>
 </div>
 
-<br clear="left" />
+<br clear="left">
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li id="active"><a id="current" href="$CGI$?$USER$template=status">Status do Sistema</a></li>
-		<li><a href="$CGI$?$USER$template=user">Estat&iacute;sticas de Usu&aacute;rio</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">Administra&ccedil;&atilde;o</a></li>
-		<li><a href="dspam.cgi">Centro de Controle</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=status&amp;language=$LANG$">Status do Sistema</a></li>
+		<li><a href="$CGI$?$USER$template=user&amp;language=$LANG$">Estat&iacute;sticas de Usu&aacute;rio</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Administra&ccedil;&atilde;o</a></li>
+		<li><a href="dspam.cgi?language=$LANG$">Centro de Controle</a></li>
 	</ul>
 </div>
 
@@ -126,12 +127,12 @@ Os gr&aacute;ficos e tables abaixo resumem o processamento feito pelo filtro.
 
 <div class="content">
 	<h3><strong>Atividade em 24 horas</strong> - $TS_DAILY$ SPAM, $TI_DAILY$ Bons, $SM_DAILY$ Spams Perdidos, $FP_DAILY$ Falsos Positivos, $INOC_DAILY$ Inocula&ccedil;&otilde;es, $CORPUS_DAILY$ Ger. Corpus, $WHITE_DAILY$ Lista Branca, $VIRUS_DAILY$ V&iacute;rus, $BLACK_DAILY$ Lista Negra, $BLOCK_DAILY$ Bloqueados</h3>
-	<img src="./admingraph.cgi?data=$DATA_DAILY$&x_label=Hour+of+the+day" />
+	<img src="./admingraph.cgi?data=$DATA_DAILY$&x_label=hour&amp;language=$LANG$">
 </div>
 
 <div class="content">
 	<h3><strong>Atividade di&aacute;ria</strong> - $TS_WEEKLY$ SPAM, $TI_WEEKLY$ Bons, $SM_WEEKLY$ Spam Perdidos, $FP_WEEKLY$ Falsos Positivos, $INOC_WEEKLY$ Inocula&ccedil;&otilde;es, $CORPUS_WEEKLY$ Ger. Corpus, $WHITE_WEEKLY$ Lista Branca, $VIRUS_WEEKLY$ V&iacute;rus, $BLACK_WEEKLY$ Lista Negra, $BLOCK_WEEKLY$ Bloqueados</h3>
-	<img src="./admingraph.cgi?data=$DATA_WEEKLY$&graph=period&x_label=Date" />
+	<img src="./admingraph.cgi?data=$DATA_WEEKLY$&graph=period&x_label=date&amp;language=$LANG$">
 </div>
 
 </div>

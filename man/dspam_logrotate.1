@@ -1,0 +1,88 @@
+.\" $Id: dspam_logrotate.1,v 1.1 2010/01/03 15:02:55 sbajic Exp $
+.\"  -*- nroff -*-
+.\"
+.\" dspam_logrotate3.9
+.\"
+.\" Authors:	Stevan Bajic <stevan@bajic.ch>
+.\"
+.\" Copyright (c) 2002-2010 DSPAM Project
+.\" All rights reserved
+.\"
+.TH dspam_logrotate 1  "Jan 03, 2010" "DSPAM" "DSPAM"
+
+.SH NAME
+dspam_logrotate \- Rotate DSPAM logfiles
+
+.SH SYNOPSIS
+.na
+.B dspam_logrotate
+.B \-a age \c
+[\-v]\ [[\c
+.B \-l \c
+[\c
+.I logfile\c
+]]|[\c
+.B \-d \c
+[\c
+.I dir\c
+]]]
+
+.ad
+.SH DESCRIPTION 
+.LP
+.B dspam_logrotate
+can be used to rotate DSPAM system log and/or the user logs. 
+
+.SH OPTIONS
+.LP
+
+.ne 3
+.TP
+.BI \-a\ age\c
+All log entries older than 'age' days will be removed.
+
+.ne 3
+.TP
+.BI \-v\c
+Print verbose output.
+
+.n 3
+.TP
+.BI \-l \ logfile\c
+A list of one or more files to process.
+
+.n 3
+.TP
+.BI \-d \ dir\c
+The home directory of DSPAM or the root path where user logs are located.
+
+.SH EXIT VALUE
+.LP
+.ne 3
+.PD 0
+.TP
+.B 0
+Operation was successful.
+.ne 3
+.TP
+.B other
+Operation resulted in an error. 
+.PD
+
+.SH COPYRIGHT
+Copyright \(co 2002\-2010 DSPAM Project
+.br
+All rights reserved.
+.br
+
+For more information, see http://dspam.sourceforge.net.
+
+.SH SEE ALSO
+.BR dspam (1),
+.BR dspam_admin (1),
+.BR dspam_clean (1),
+.BR dspam_crc (1),
+.BR dspam_dump (1),
+.BR dspam_merge (1),
+.BR dspam_stats (1),
+.BR dspam_train (1)

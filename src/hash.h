@@ -1,9 +1,9 @@
-/* $Id: hash.h,v 1.3 2005/09/24 17:48:59 jonz Exp $ */
+/* $Id: hash.h,v 1.4 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
-  Bayesian Noise Reduction - Contextual Symmetry Logic
-  http://bnr.nuclearelephant.com
-  Copyright (c) 2004-2009 Dpsam Project
+  Bayesian Noise Reduction - Jonathan A. Zdziarski
+  http://www.zdziarski.com/papers/bnr.html
+  Copyright (c) 2004-2010 DSPAM PROJECT
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

@@ -1,0 +1,50 @@
+/* $Id: rtl.css,v 1.03 2010/01/03 04:05:05 sbajic Exp $ */
+
+/* Used for languages that have a (r)ight-(t)o-(l)eft text page direction */
+
+/* global */
+
+th {
+	text-align:right;
+}
+
+/* classes */
+
+.rowDivider {
+	border-left:0;
+	border-right:1px solid black;
+}
+
+/* ids */
+
+#logo {
+	text-align:left;
+	float:left;
+}
+#logo p{
+        clear:right;
+}
+#navcontainer {
+	text-align:right;
+}
+#navcontainer li {
+	float:right;
+}
+#navcontainer li a{
+	float:right;
+}
+#panel {
+	clear:right;
+}
+
+/* classes */
+
+.content {
+	text-align:right;
+}
+.content table,img {
+	float:right;
+}
+.content p {
+	clear:right;
+}

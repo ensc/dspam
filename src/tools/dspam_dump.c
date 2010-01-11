@@ -1,8 +1,8 @@
-/* $Id: dspam_dump.c,v 1.14 2008/05/06 21:29:07 mjohnson Exp $ */
+/* $Id: dspam_dump.c,v 1.16 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -230,6 +230,7 @@ dump_database (DSPAM_CTX * CTX, const char *token, int sql)
 void
 dieout (int signal)
 {
+  signal = signal; /* Keep compiler happy */
   fprintf (stderr, "terminated.\n");
   if (open_ctx != NULL)
     dspam_destroy (open_ctx);

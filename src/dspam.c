@@ -1,8 +1,8 @@
-/* $Id: dspam.c,v 1.382 2009/12/06 18:06:42 sbajic Exp $ */
+/* $Id: dspam.c,v 1.390 2010/01/03 14:26:31 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -415,9 +415,11 @@ process_message (
       result = DSR_ISSPAM;
       strcpy(CTX->class, LANG_CLASS_VIRUS);
       internally_canned = 1;
-      if (!dspam_getsource (CTX, ip, sizeof (ip)))
-      {
-        LOG(LOG_WARNING, "virus warning: infected message from %s", ip);
+      if(!_ds_match_attribute(agent_config, "TrackSources", "virus")) {
+        if (!dspam_getsource (CTX, ip, sizeof (ip)))
+        {
+          LOG(LOG_WARNING, "virus warning: infected message from %s", ip);
+        }
       }
     }
   }
@@ -1584,7 +1586,7 @@ int send_notice(
  */
 
 int process_users(AGENT_CTX *ATX, buffer *message) {
-  int i = 0, have_rcpts = 0, retcode = 0;
+  int i = 0, have_rcpts = 0, return_code = 0, retcode = 0;
   struct nt_node *node_nt;
   struct nt_node *node_rcpt = NULL;
   struct nt_c c_nt, c_rcpt;
@@ -1613,7 +1615,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     struct stat s;
     char filename[MAX_FILENAME_LENGTH];
     int optin, optout;
-    char *username;
+    char *username = NULL;
 
     /* If ServerParameters specifies a --user, there will only be one
      * instance on the stack, but possible multiple recipients. So we
@@ -1668,11 +1670,14 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
          delivery and strip detail for processing */
 
     if (_ds_match_attribute(agent_config, "EnablePlusedDetail", "on")) {
+      char plused_char = '+';
+      if (_ds_read_attribute(agent_config, "PlusedCharacter"))
+        plused_char = _ds_read_attribute(agent_config, "PlusedCharacter")[0];
       strlcpy(mailbox, username, sizeof(mailbox));
       ATX->recipient = mailbox;
       if (_ds_match_attribute(agent_config, "PlusedUserLowercase", "on"))
         lc (username, username);
-      plus = index(username, '+');
+      plus = index(username, plused_char);
       if (plus) {
         atsign = index(plus, '@');
         if (atsign)
@@ -1897,7 +1902,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
       if (_ds_match_attribute(agent_config, "Broken", "returnCodes")) {
         if (result == DSR_ISSPAM)
-          retcode = 99;
+          return_code = 99;
       }
 
       /*
@@ -2104,11 +2109,11 @@ RSET:
     } else
       free(presult);
     presult = NULL;
-    LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", retcode);
+    LOGDEBUG ("DSPAM Instance Shutdown.  Exit Code: %d", return_code);
     buffer_destroy(parse_message);
   }
 
-  return retcode;
+  return return_code;
 }
 // break
 // load_agg
@@ -3252,6 +3257,7 @@ int embed_msgtag(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   FILE *f;
   char buff[1024], msgfile[MAX_FILENAME_LENGTH];
   buffer *b;
+  ATX = ATX; /* Keep compiler happy */
 
   if (CTX->result != DSR_ISSPAM && CTX->result != DSR_ISINNOCENT)
       return EINVAL;
@@ -3963,6 +3969,7 @@ int is_blocklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 int daemon_start(AGENT_CTX *ATX) {
   DRIVER_CTX DTX;
   char *pidfile;
+  ATX = ATX; /* Keep compiler happy */
 
   __daemon_run  = 1;
   __num_threads = 0;
@@ -4166,7 +4173,9 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   /* First run notification */
 
-  if (_ds_match_attribute(agent_config, "Notifications", "on")) {
+  if ((_ds_match_attribute(agent_config, "Notifications", "on") ||
+      !strcasecmp(_ds_pref_val(ATX->PTX, "notifications"), "on")) &&
+      strcasecmp(_ds_pref_val(ATX->PTX, "notifications"), "off")) {
     _ds_userdir_path(filename,
                     _ds_read_attribute(agent_config, "Home"),
                     LOOKUP(ATX->PTX, CTX->username), "firstrun");
@@ -4190,7 +4199,9 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   /* First spam notification */
 
   if (CTX->result == DSR_ISSPAM &&
-       _ds_match_attribute(agent_config, "Notifications", "on"))
+       (_ds_match_attribute(agent_config, "Notifications", "on") ||
+        !strcasecmp(_ds_pref_val(ATX->PTX, "notifications"), "on")) &&
+       strcasecmp(_ds_pref_val(ATX->PTX, "notifications"), "off"))
   {
     _ds_userdir_path(filename,
                     _ds_read_attribute(agent_config, "Home"),
@@ -4213,14 +4224,25 @@ int do_notifications(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   /* Quarantine size notification */
 
-  if (_ds_match_attribute(agent_config, "Notifications", "on")) {
+  if ((_ds_match_attribute(agent_config, "Notifications", "on") ||
+      !strcasecmp(_ds_pref_val(ATX->PTX, "notifications"), "on")) &&
+      strcasecmp(_ds_pref_val(ATX->PTX, "notifications"), "off")) {
     struct stat s;
     char qfile[MAX_FILENAME_LENGTH];
+    int qwarn_size = 1024*1024*2;
+
+    if (_ds_read_attribute(agent_config, "QuarantineWarnSize")) {
+      qwarn_size = atoi(_ds_read_attribute(agent_config, "QuarantineWarnSize"));
+      if (qwarn_size == INT_MAX && errno == ERANGE) {
+        LOG (LOG_INFO, "Value for 'QuarantineWarnSize' not valid (will use 2MB for now)");
+        qwarn_size = 1024*1024*2;
+      }
+    }
 
     _ds_userdir_path(qfile, _ds_read_attribute(agent_config, "Home"),
                      LOOKUP(ATX->PTX, CTX->username), "mbox");
 
-    if (!stat(qfile, &s) && s.st_size > 1024*1024*2) {
+    if (!stat(qfile, &s) && s.st_size > qwarn_size) {
       _ds_userdir_path(qfile, _ds_read_attribute(agent_config, "Home"),
                        LOOKUP(ATX->PTX, CTX->username), "mboxwarn");
       if (stat(qfile, &s)) {

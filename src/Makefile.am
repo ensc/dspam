@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.45 2009/11/03 09:37:17 sbajic Exp $
+# $Id: Makefile.am,v 1.48 2010/01/06 16:04:53 sbajic Exp $
 #
 # autoconf (GNU Autoconf) 2.59
 # ltmain.sh (GNU libtool) 1.5.6
@@ -56,8 +56,12 @@ bin_PROGRAMS = dspam dspamc
 
 # installed for libdspam
 include_HEADERS = buffer.h config_shared.h decode.h error.h diction.h \
-	libdspam.h libdspam_objects.h nodetree.h tokenizer.h external_lookup.h \
+	libdspam.h libdspam_objects.h nodetree.h tokenizer.h \
 	storage_driver.h heap.h config.h pref.h read_config.h
+
+if BUILD_EXT_LOOKUP
+include_HEADERS += external_lookup.h
+endif
 
 # libdspam.a contans objects common for dspam and tools/* binaries
 libdspam_la_SOURCES = \
@@ -76,12 +80,11 @@ libdspam_la_SOURCES = \
 	bnr.c bnr.h \
 	hash.c hash.h \
 	list.c list.h \
-	external_lookup.c external_lookup.h \
 	tokenizer.c tokenizer.h \
 	storage_driver.h
 
-if BUILD_NCORE
-libdspam_la_SOURCES += ncore_adp.c ncore_adp.h
+if BUILD_EXT_LOOKUP
+libdspam_la_SOURCES += external_lookup.c external_lookup.h
 endif
 
 if DYNAMIC_DRIVER
@@ -113,7 +116,7 @@ EXTRA_libdspam_la_SOURCES = \
 #endif
 
 libdspam_la_LIBADD = $(adapter_objects)
-libdspam_la_LIBADD += -lm $(NETLIBS) $(NCORELIBS)
+libdspam_la_LIBADD += -lm $(NETLIBS)
 libdspam_la_DEPENDENCIES = $(adapter_objects)
 if STATIC_DRIVER
 libdspam_la_LIBADD += $(active_driver).lo
@@ -131,7 +134,7 @@ libmysql_drv_la_LIBADD = $(libmysql_drv_libs) -L. -ldspam
 libmysql_drv_la_CPPFLAGS = $(libmysql_drv_cppflags)
 libmysql_drv_la_LDFLAGS = $(libmysql_drv_ldflags)
 libmysql_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion) 
-libmysql_drv_la_DEPENDENCIES =
+libmysql_drv_la_DEPENDENCIES = libdspam.la
 
 libpgsql_drv_la_SOURCES = \
 	pgsql_drv.c pgsql_drv.h 
@@ -139,7 +142,7 @@ libpgsql_drv_la_LIBADD = $(libpgsql_drv_libs) -L. -ldspam
 libpgsql_drv_la_CPPFLAGS = $(libpgsql_drv_cppflags)
 libpgsql_drv_la_LDFLAGS = $(libpgsql_drv_ldflags)
 libpgsql_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
-libpgsql_drv_la_DEPENDENCIES =
+libpgsql_drv_la_DEPENDENCIES = libdspam.la
 
 libsqlite_drv_la_SOURCES = \
 	sqlite_drv.c sqlite_drv.h 
@@ -147,7 +150,7 @@ libsqlite_drv_la_LIBADD = $(libsqlite_drv_libs) -L. -ldspam
 libsqlite_drv_la_CPPFLAGS = $(libsqlite_drv_cppflags)
 libsqlite_drv_la_LDFLAGS = $(libsqlite_drv_ldflags)
 libsqlite_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
-libsqlite_drv_la_DEPENDENCIES =
+libsqlite_drv_la_DEPENDENCIES = libdspam.la
 
 libsqlite3_drv_la_SOURCES = \
 	sqlite3_drv.c sqlite3_drv.h 
@@ -155,7 +158,7 @@ libsqlite3_drv_la_LIBADD = $(libsqlite3_drv_libs) -L. -ldspam
 libsqlite3_drv_la_CPPFLAGS = $(libsqlite3_drv_cppflags)
 libsqlite3_drv_la_LDFLAGS = $(libsqlite3_drv_ldflags)
 libsqlite3_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
-libsqlite3_drv_la_DEPENDENCIES =
+libsqlite3_drv_la_DEPENDENCIES = libdspam.la
 
 libhash_drv_la_SOURCES = \
 	hash_drv.c hash_drv.h
@@ -163,7 +166,7 @@ libhash_drv_la_LIBADD = $(libhash_drv_libs) -L. -ldspam
 libhash_drv_la_CPPFLAGS = $(libhash_drv_cppflags)
 libhash_drv_la_LDFLAGS = $(libhash_drv_ldflags)
 libhash_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
-libhash_drv_la_DEPENDENCIES =
+libhash_drv_la_DEPENDENCIES = libdspam.la
 
 endif
 
@@ -178,6 +181,7 @@ dspam_SOURCES = \
 	agent_shared.c agent_shared.h
 
 dspam_LDADD = -lm pref.o libdspam.la
+dspam_DEPENDENCIES = pref.o libdspam.la
 
 dspamc_SOURCES = \
 	config.h language.h \
@@ -189,6 +193,7 @@ dspamc_SOURCES = \
 
 dspamc_LDADD = -lm buffer.o config_shared.o error.o read_config.o pref.o nodetree.o util.o $(NETLIBS)
 dspamc_LDFLAGS = 
+dspamc_DEPENDENCIES = buffer.o config_shared.o error.o read_config.o pref.o nodetree.o util.o
 
 # Failing of chgrp is expected and normal case when someone do
 #   make install DESTDIR=...

@@ -1,8 +1,8 @@
-/* $Id: pref.c,v 1.34 2009/10/08 18:51:19 sbajic Exp $ */
+/* $Id: pref.c,v 1.36 2010/01/03 14:26:31 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -171,6 +171,8 @@ agent_pref_t _ds_ff_pref_load(
   FILE *file;
   char *p, *q;
   int i = 0;
+  config = config; /* Keep compiler happy */
+  ignore = ignore; /* Keep compiler happy */
 
   if (PTX == NULL) {
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
@@ -305,6 +307,8 @@ int _ds_ff_pref_set (
 {
   char filename[MAX_FILENAME_LENGTH];
   FILE *out_file;
+  config = config; /* Keep compiler happy */
+  ignore = ignore; /* Keep compiler happy */
 
   if (username == NULL) {
     snprintf(filename, MAX_FILENAME_LENGTH, "%s/default.prefs", home);
@@ -332,6 +336,8 @@ int _ds_ff_pref_del (
   char filename[MAX_FILENAME_LENGTH];
   FILE *out_file;
   int nlines; 
+  config = config; /* Keep compiler happy */
+  ignore = ignore; /* Keep compiler happy */
 
   if (username == NULL) {
     snprintf(filename, MAX_FILENAME_LENGTH, "%s/default.prefs", home);

@@ -1,12 +1,13 @@
 <HTML>
 <HEAD><TITLE>DSPAM v3 Centro de Control</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 <script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
 </HEAD>
 <BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
 <div id="header">
 	<div id="logo">
-		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
@@ -14,16 +15,16 @@
 	</div>
 </div>
 
-<br clear="left" />
+<br clear="left">
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li><a href="$CGI$?$USER$template=performance">Rendimiento</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">Ajustes</a></li>
-		<li><a href="$CGI$?$USER$template=alerts">Alertas</a></li>
-		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Mensajes en cuarentena ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
-		<li><a href="$CGI$?$USER$template=analysis">Analisis</a></li>
-		<li><a href="$CGI$?$USER$template=history&history_page=1">Historial</a></li>
+		<li><a href="$CGI$?$USER$template=performance&amp;language=$LANG$">Rendimiento</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Ajustes</a></li>
+		<li><a href="$CGI$?$USER$template=alerts&amp;language=$LANG$">Alertas</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine&amp;language=$LANG$">Mensajes en cuarentena ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis&amp;language=$LANG$">Analisis</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;language=$LANG$&history_page=1">Historial</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -37,15 +38,16 @@ Marca los mensajes y luego usa las opciones para <strong>entregar los mensajes</
 
 <form action="$CGI$" method="post">
 <p>
-<input type="hidden" name="command" value="processMensajes en cuarentena" >
-<input type="hidden" name="template" value="quarantine" >
-<input type="hidden" name="user" value="$REMOTE_USER$" >
-<input type="hidden" name="sortby" value="$SORTBY$" >
-<input type="submit" value="Entregar marcados" NAME="manyNotSpam" >
+<input type="hidden" name="command" value="processMensajes en cuarentena">
+<input type="hidden" name="template" value="quarantine">
+<input type="hidden" name="user" value="$REMOTE_USER$">
+<input type="hidden" name="sortby" value="$SORTBY$">
+<input type="hidden" name="language" value="$LANG$">
+<input type="submit" value="Entregar marcados" NAME="manyNotSpam">
 &nbsp;
-<input type="submit" value="Borrar mensajes marcados" onClick="if (confirm('&iquest;Est&aacute;s seguro de querer eliminar los mensajes SELECCIONADOS en la cuarentena?')==false) { return false; }" />
-<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
-	document.forms[1].elements[j].checked = true; } } return false'>Seleccionar 200.</a>
+<input type="submit" value="Borrar mensajes marcados" onClick="if (confirm('&iquest;Est&aacute;s seguro de querer eliminar los mensajes SELECCIONADOS en la cuarentena?')==false) { return false; }">
+&nbsp;
+<input type="button" value="Seleccionar 200" onClick='for(j=0; j<200;j++) { if (document.forms[1] && document.forms[1].elements[j] && document.forms[1].elements[j].type == "checkbox") { document.forms[1].elements[j].checked = true; } } return false'>
 &nbsp;
 <input type="submit" value="Eliminar TODOS" name="deleteAll" onClick="if (confirm('&iquest;Est&aacute;s SEGURO de querer eliminar TODOS los mensajes en la cuarentena?')==false) { return false; }" >
 
@@ -59,13 +61,13 @@ $QUARANTINE$
 </table>
 
 <p>
-<input type="submit" value="Entregar marcados" NAME="manyNotSpam" >
+<input type="submit" value="Entregar marcados" NAME="manyNotSpam">
 &nbsp;
-<input type="submit" value="Borrar mensajes marcados" onClick="if (confirm('&iquest;Est&aacute;s seguro de querer eliminar los mensajes SELECCIONADOS en la cuarentena?')==false) { return false; }" />
-<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
-	document.forms[1].elements[j].checked = true; } } return false'>Seleccionar 200.</a>
+<input type="submit" value="Borrar mensajes marcados" onClick="if (confirm('&iquest;Est&aacute;s seguro de querer eliminar los mensajes SELECCIONADOS en la cuarentena?')==false) { return false; }">
 &nbsp;
-<input type="submit" value="Eliminar TODOS" name="deleteAll" onClick="if (confirm('&iquest;Est&aacute;s SEGURO de querer eliminar TODOS los mensajes en la cuarentena?')==false) { return false; }" />
+<input type="button" value="Seleccionar 200" onClick='for(j=0; j<200;j++) { if (document.forms[1] && document.forms[1].elements[j] && document.forms[1].elements[j].type == "checkbox") { document.forms[1].elements[j].checked = true; } } return false'>
+&nbsp;
+<input type="submit" value="Eliminar TODOS" name="deleteAll" onClick="if (confirm('&iquest;Est&aacute;s SEGURO de querer eliminar TODOS los mensajes en la cuarentena?')==false) { return false; }">
 </p>
 
 </form>

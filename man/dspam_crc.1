@@ -1,0 +1,64 @@
+.\" $Id: dspam_crc.1,v 1.1 2010/01/03 15:02:55 sbajic Exp $
+.\"  -*- nroff -*-
+.\"
+.\" dspam_crc3.9
+.\"
+.\" Authors:	Stevan Bajic <stevan@bajic.ch>
+.\"
+.\" Copyright (c) 2002-2010 DSPAM Project
+.\" All rights reserved
+.\"
+.TH dspam_crc 1  "Jan 03, 2010" "DSPAM" "DSPAM"
+
+.SH NAME
+dspam_crc \- calculate the DSPAM CRC/hash value for a text token
+
+.SH SYNOPSIS
+.na
+.B dspam_crc
+.I [token]\fR\c
+
+.ad
+.SH DESCRIPTION 
+.LP
+.B dspam_crc
+is used to calculate the DSPAM CRC/hash value for a text token.
+
+.SH OPTIONS
+.LP
+
+.ne 3
+.TP
+.BI [token]\fR\c
+Data that will be CRC-ized/hashed.
+
+.SH EXIT VALUE
+.LP
+.ne 3
+.PD 0
+.TP
+.B 0
+Operation was successful.
+.ne 3
+.TP
+.B other
+Operation resulted in an error. 
+.PD
+
+.SH COPYRIGHT
+Copyright \(co 2002\-2010 DSPAM Project
+.br
+All rights reserved.
+.br
+
+For more information, see http://dspam.sourceforge.net.
+
+.SH SEE ALSO
+.BR dspam (1),
+.BR dspam_admin (1),
+.BR dspam_clean (1),
+.BR dspam_dump (1),
+.BR dspam_logrotate (1),
+.BR dspam_merge (1),
+.BR dspam_stats (1),
+.BR dspam_train (1)

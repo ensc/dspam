@@ -1,8 +1,8 @@
-/* $Id: decode.h,v 1.17 2009/07/05 19:02:48 sbajic Exp $ */
+/* $Id: decode.h,v 1.19 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -98,10 +98,8 @@ typedef struct _ds_message
 
 /* adapter dependent functions */
 
-#ifndef NCORE
 char *  _ds_decode_base64       (const char *body);
 char *  _ds_decode_quoted       (const char *body);
-#endif
 
 /* Adapter-independent functions */
 

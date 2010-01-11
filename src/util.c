@@ -1,8 +1,8 @@
-/* $Id: util.c,v 1.263 2009/10/12 08:32:09 sbajic Exp $ */
+/* $Id: util.c,v 1.266 2010/01/11 20:07:07 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -734,7 +734,13 @@ int _ds_get_fcntl_lock(int fd) {
   f.l_start = 0;
   f.l_len = 0;
 
-  signal(SIGALRM, (void *)(int)timeout);
+#if defined __GLIBC__ && __GLIBC__ >= 2
+  signal(SIGALRM, (sighandler_t)timeout);
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+  signal(SIGALRM, (sig_t)timeout);
+#else
+  signal(SIGALRM, (void *)timeout);
+#endif
   alarm(300);
   r=fcntl(fd, F_SETLKW, &f);
   alarm(0);

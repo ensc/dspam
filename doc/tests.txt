@@ -1,3 +1,5 @@
+$Id: tests.txt,v 1.00 2009/12/22 12:25:59 sbajic Exp $
+
 Various DSPAM Configurations Tested 
 All variables not mentioned are stock
 Classifier Version: CVS-20060517

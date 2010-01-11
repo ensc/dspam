@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: strings.pl,v 1.00 2009/08/18 00:41:12 sbajic Exp $
+# $Id: strings.pl,v 1.02 2010/01/03 04:22:39 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2009
+# COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,12 +18,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+$LANG{'lang_name'}			= "Portugu&ecirc;s brasileiro";
+$LANG{'lang_select'}			= "L&iacute;ngua";
+
 $LANG{'empty'}				= "Vazio";
 $LANG{'admin_suite'}			= "Suite Administrativa";
 $LANG{'alert_name'}			= "Nome em Alerta";
 $LANG{'remove_alert'}			= "Remover";
 $LANG{'user_form'}			= "Prote&ccedil;&atilde;o Estat&iacute;stica para";
 $LANG{'user_form_submit'}		= "Trocar";
+
+$LANG{'admin_form'}			= "Prote&ccedil;&atilde;o Estat&iacute;stica para <strong>Administrador</strong>";
+$LANG{'admin_form_submit'}		= "Trocar";
 
 $LANG{'option_disable_filtering'}	= " Desabilita DSPAM";
 $LANG{'option_enable_filtering'}	= " Habilita DSPAM";
@@ -68,6 +74,8 @@ $LANG{'error_filesystem_scale'}		= "Incapaz de determinar o tamanho do sistema d
 $LANG{'error_load_default_prefs'}	= "Incapaz de carregar preferencias padrao";
 $LANG{'error_access_denied'}		= "Acesso Negado";
 
+$LANG{'graph_legend_x_label_hour'}	= "Hora do dia";
+$LANG{'graph_legend_x_label_date'}	= "Data";
 $LANG{'graph_legend_nb_messages'}	= "Numero de Mensagens";
 $LANG{'graph_legend_spam'}		= "SPAM";
 $LANG{'graph_legend_good'}		= "Inocentes";

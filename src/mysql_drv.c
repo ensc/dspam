@@ -1,8 +1,8 @@
-/* $Id: mysql_drv.c,v 1.867 2009/11/13 22:25:20 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.868 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

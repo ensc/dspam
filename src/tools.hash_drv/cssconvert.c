@@ -1,8 +1,8 @@
-/* $Id: cssconvert.c,v 1.622 2009/10/12 10:09:03 sbajic Exp $ */
+/* $Id: cssconvert.c,v 1.623 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -159,7 +159,7 @@ int cssconvert(const char *filename) {
   header = old.addr;
   while(filepos < old.file_len) {
     for(i=0;i<header->hash_rec_max;i++) {
-      rec = old.addr+filepos;
+      rec = (void *)((unsigned long) old.addr + filepos);
       if (_hash_drv_set_spamrecord(&new, rec, 0)) {
         LOG(LOG_WARNING, "aborting on error");
         _hash_drv_close(&new);
@@ -169,7 +169,7 @@ int cssconvert(const char *filename) {
       }
       filepos += sizeof(struct _hash_drv_spam_record);
     }
-    offset = old.addr + filepos;
+    offset = (void *)((unsigned long) old.addr + filepos);
     header = offset;
     filepos += sizeof(struct _old_hash_drv_header);
   }

@@ -1,0 +1,59 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Administrace</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		$FORM_ADMIN$
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=status&amp;language=$LANG$">Stav syst&eacute;mu</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=user&amp;language=$LANG$">Statistiky u&#382;ivatele</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Administrace</a></li>
+		<li><a href="dspam.cgi?language=$LANG$">&#344;&iacute;d&iacute;c&iacute; centrum</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+N&aacute;sleduj&iacute;c&iacute; tabulka ukazuje po&#269;et zpracovan&yacute;ch zpr&aacute;v pro ka&#382;d&eacute;ho u&#382;ivatele a jejich sou&#269;asn&eacute; nastaven&iacute; voleb.
+</p>
+
+<table border="0" cellspacing="0" cellpadding="4">
+	<tr>
+		<th>Jm&eacute;no</th>
+		<th>Q.Size</th>
+		<th>TP</th>
+                <th>TN</th>
+		<th>FP</th>
+		<th>FN</th>
+		<th>SC</th>
+		<th>IC</th>
+		<th>M&oacute;d</th>
+		<th>P&#345;i SPAMu</th>
+		<th>BNR</th>
+		<th>Whitelist</th>
+                <th>Sed</th>
+                <th>Sig Loc</th>
+	</tr>
+$TABLE$
+</table>
+
+</div>
+
+
+
+</body>
+</html>

@@ -1,8 +1,8 @@
-/* $Id: decode.c,v 1.383 2009/11/17 08:43:18 sbajic Exp $ */
+/* $Id: decode.c,v 1.385 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -45,9 +45,6 @@
 #include "buffer.h"
 #include "base64.h"
 #include "libdspam.h"
-#ifdef NCORE
-#include "ncore_adp.h"
-#endif
 
 /*
  * _ds_actualize_message (const char *message)
@@ -767,7 +764,6 @@ _ds_decode_block (ds_message_part_t block)
  *   a pointer to the allocated character array containing the decoded body
  */
 
-#ifndef NCORE
 char *
 _ds_decode_base64 (const char *body)
 {
@@ -852,7 +848,6 @@ _ds_decode_hex8bit (const char *body)
   *n = '\0';
   return (char *)out;
 }
-#endif /* NCORE */
 
 /*
  * _ds_encode_block (ds_message_part_t block, int encoding)

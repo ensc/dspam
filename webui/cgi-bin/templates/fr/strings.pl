@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: strings.pl,v 1.00 2009/08/18 01:17:50 sbajic Exp $
+# $Id: strings.pl,v 1.02 2010/01/03 04:22:39 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2009
+# COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,12 +18,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+$LANG{'lang_name'}			= "Fran&ccedil;ais";
+$LANG{'lang_select'}			= "Langue";
+
 $LANG{'empty'}				= "Vide";
 $LANG{'admin_suite'}			= "Administration";
 $LANG{'alert_name'}			= "Nom de l'alerte";
 $LANG{'remove_alert'}			= "Supprimer";
 $LANG{'user_form'}			= "Centre de contr&ocirc;le DSPAM pour";
 $LANG{'user_form_submit'}		= "Changer";
+
+$LANG{'admin_form'}			= "Centre de contr&ocirc;le DSPAM pour <strong>Administrateur</strong>";
+$LANG{'admin_form_submit'}		= "Changer";
 
 $LANG{'option_disable_filtering'}       = "D&eacute;sactiver le filtre DSPAM";
 $LANG{'option_enable_filtering'}        = "Activer le filtre DSPAM";
@@ -69,6 +75,8 @@ $LANG{'error_filesystem_scale'}		= "Impossible de d&eacute;terminer l'organisati
 $LANG{'error_load_default_prefs'}	= "Impossible de charger les pr&eacute;f&eacute;rences par d&eacute;faut.";
 $LANG{'error_access_denied'}		= "Acc&egrave;s interdit";
 
+$LANG{'graph_legend_x_label_hour'}	= "Heure du jour";
+$LANG{'graph_legend_x_label_date'}	= "Date";
 $LANG{'graph_legend_nb_messages'}	= "Nombre de messages";
 $LANG{'graph_legend_spam'}		= "Pourriels";
 $LANG{'graph_legend_good'}		= "Messages legitimes";

@@ -1,8 +1,8 @@
-/* $Id: base64.c,v 1.94 2009/10/08 22:25:46 sbajic Exp $ */
+/* $Id: base64.c,v 1.96 2010/01/03 14:26:31 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -36,7 +36,6 @@
 #include "error.h"
 #include "base64.h"
 
-#ifndef NCORE
 char *
 base64decode (const char *buf)
 {
@@ -125,7 +124,6 @@ base64decode (const char *buf)
     strcat(decoded, "\n");
   return decoded;
 }
-#endif /* NCORE */
 
 char *
 base64encode (const char *buf)
