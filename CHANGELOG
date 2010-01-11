@@ -1,6 +1,130 @@
 Version 3.9.0
 -------------
 
+[20090111:2035] sbajic: Fixing signal handler under *BSD
+
+[20090107:2320] sbajic: Adding option (--purgescriptdir) to dspam_maintenance.sh allowing the end-user to specify the directory where the purge scripts are located
+
+[20090106:1605] sbajic: Fixing parallel builds
+
+[20090106:1440] sbajic: Enhancing dspam_maintenance.sh to support DSPAM binary that does not print out configuration options when using switch "--version"
+
+[20090106:0110] sbajic: Adding profile support to dspam_maintenance.sh. Restricting purging with dspam_maintenance.sh to only consider currently active driver.
+
+[20090103:1520] sbajic: Changing year in copyright notices from 2009 to 2010 in dspam_maintenance.sh
+
+[20090103:1515] sbajic: Changing year in copyright notices and version output from 2009 to 2010
+
+[20090103:0520] sbajic: Swapping out x labels from graphs to be in strings.pl
+
+[20090103:0415] sbajic: Fixing page direction in Hebrew templates
+
+[20090102:2150] sbajic: Fixing typos in Hebrew template
+
+[20090102:2030] sbajic: Fixing typos in Hebrew template
+
+[20090102:0440] sbajic: Fixing small issue in rtl.css (used in right-to-left page direction templates)
+
+[20090102:0400] sbajic: Fixing the display of Hebrew templates in the Web UI
+
+[20090102:0400] sbajic: Adding TTF font support for legend, x and y labels in Web UI
+
+[20090101:1730] sbajic: Setting 'lang_name' in Hebrew strings.pl to use HTML character entities encoding so that other languages display the language name properly even when not using CP1255/Windows-1255 encoding
+
+[20090101:1730] sbajic: Fixing typo in Czech strings.pl
+
+[20091231:0555] sbajic: Fixing compiler warnings
+
+[20091231:0550] sbajic: Fixing build system for EXT_LOOKUP
+
+[20091231:0410] sbajic: Fixing compiler warnings
+
+[20091231:0330] sbajic: Fixing compiler warnings
+
+[20091230:1750] sbajic: Fixing compiler warnings
+
+[20091230:1740] sbajic: Fixing compiler warnings
+
+[20091230:1505] sbajic: Fixing compiler warnings
+
+[20091230:1350] sbajic: Fixing compiler warnings
+
+[20091230:0135] sbajic: Fixing compiler warnings
+
+[20091230:0130] sbajic: Fixing compiler warnings
+
+[20091230:0110] sbajic: Fixing compiler warnings
+
+[20091229:0120] sbajic: Fix small error/typo in configure.ac regarding daemon mode and hash_drv
+
+[20091228:1100] sbajic: Adding strings.pl to Hebrew Web UI (translated by Dudi Goldenberg)
+
+[20091226:1330] sbajic: Adding language selection drop down in Web UI and fixing some other small and big issues in the Web UI
+
+[20091223:1030] sbajic: Adding information about sub-administrators/domain level admins to README
+
+[20091223:0950] sbajic: Removing NCORE code, m4/libtool_hack.m4 and scripts/train.pl from DSPAM
+
+[20091223:0205] sbajic: Fixing installtion of man pages
+
+[20091222:1250] sbajic: Tagging a bunch of files that did not have any change tags in their header
+
+[20091222:0210] sbajic: Adding verbose debug output to config_shared.c
+
+[20091221:2030] sbajic: Fixing typo/bug in Makefile for the man pages
+
+[20091221:1740] sbajic: Fixing the display of totals in the 'User Statistics' tab for the Administrative Suite of the Web UI
+
+[20091220:2020] sbajic: Added sub-administrator functionality to Web UI
+
+[20091220:1825] sbajic: Added option to Web UI to allow turning on/off (default off) the transformation (sender and subject) of special characters into HTML character entries
+
+[20091220:0130] sbajic: Fixed typoe in strings.pl for German Web UI
+
+[20091220:0045] sbajic: Removed double configuration option in configure.pl
+
+[20091219:2215] sbajic: Fixing bug regarding "broken returnCodes" (bug was introduced in 3.9.0)
+
+[20091219:2210] sbajic: Adding man for dspam_admin, dspam_crc and dspam_logrotate
+
+[20091219:1830] sbajic: Updated contrib/dspam_maintenance/dspam_maintenance.sh to handle correctly split config
+
+[20091219:1810] sbajic: Updated purge-4.1.sql SQL script for MySQL
+
+[20091219:1650] sbajic: Updated purge.sql SQL script for MySQL
+
+[20091219:1650] sbajic: Updated purge-4.1.sql SQL script for MySQL
+
+[20091219:1505] sbajic: Do not log virus infected files separately if "TrackSources virus" is activated
+
+[20091219:0540] sbajic: Updating syntax/help output for dspam_stats
+
+[20091219:0115] sbajic: Added option "notifications" as an user preference. Works the same way as "Notifications" in dspam.conf
+
+[20091218:2345] sbajic: Adding description to dspam.conf for option PlusedUserLowercase.
+
+[20091218:2340] sbajic: Adding PlusedCharacter option to dspam.conf. This allows setting the separator between user names and address extensions (user+foo).
+
+[20091218:2310] sbajic: Adding QuarantineWarnSize option to dspam.conf. This controls the size when DSPAM will send "Quarantine Full" notification messages to users
+
+[20091218:1930] sbajic: Updating README section 7 (NOTIFICATIONS)
+
+[20091218:0930] sbajic: Adding Czech templates for Web UI (translated by Frantisek Hanzlik <franta@hanzlici.cz>)
+
+[20091218:0145] sbajic: Updated purge-4.1.sql SQL script for MySQL
+
+[20091218:0100] sbajic: Updated purge.sql SQL script for MySQL
+
+[20091218:0030] sbajic: Updated UPGRADING regarding indices for MySQL for speeding up purging
+
+[20091217:2300] sbajic: Updated section 3.1 (PORTS / PACKAGES) of the README
+
+[20091217:2255] sbajic: Small changes to MySQL 4.1+ database schema
+
+[20091217:2250] sbajic: Fixing small typo in doc/mysql_drv.txt
+
+[20091217:1210] sbajic: Adding code to PostgreSQL driver to not fail with an error on non fatal PostgreSQL errors
+
 [20091215:2335] sbajic: Adding contrib to distribution
 
 [20091215:1710] sbajic: Fixing small typo in pt-BR template
@@ -526,7 +650,7 @@ Added support for MySQL >= 5.0.3 client libraries
 
 [20090523:0200] sbajic: Closing Bug-ID: 2527286 and 2527289
 
-* Added ability to swith RBLInoculate as a user preference.
+* Added ability to set RBLInoculate as a user preference.
 * Added ability to ignore RBLLookups as a user preference.
 See ignoreRBLLookups and RBLLookups in README
 

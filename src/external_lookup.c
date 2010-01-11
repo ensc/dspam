@@ -1,4 +1,4 @@
-/* $Id: external_lookup.c,v 0.6 2009/10/27 23:36:33 sbajic Exp $ */
+/* $Id: external_lookup.c,v 0.6.1 2009/12/31 04:00:01 sbajic Exp $ */
 
 /*
  COPYRIGHT (C) 2006 HUGO MONTEIRO
@@ -54,6 +54,7 @@
 void 
 sig_alrm(int signum)
 {
+   signum = signum;  /* Keep compiler happy */
    LOG(LOG_ERR,"%s: Timed out.", ERR_EXT_LOOKUP_INIT_FAIL);
    exit(200);
 }
@@ -89,7 +90,7 @@ char
 *transcode_query(const char *query, const char *username, char *transcoded_query)
 {	
 	
-	char *saveptr, *token;
+	char *saveptr = NULL, *token;
 	int i, j, len, replacements;
 	int namelen = strlen(username);
 	int querylen = strlen(query);
@@ -160,8 +161,8 @@ ldap_lookup(config_t agent_config, const char *username, char *external_uid)
 	char		**vals = NULL;
 	struct		timeval	ldaptimeout = {0};
 	int			i, rc=0, num_entries=0;
-	char		*transcoded_query;
-	char		*ldap_uri;
+	char		*transcoded_query = NULL;
+	char		*ldap_uri = NULL;
 	char		*end_ptr;
 	char		*ldap_host = _ds_read_attribute(agent_config, "ExtLookupServer");
 	char		*port = _ds_read_attribute(agent_config, "ExtLookupPort");
@@ -398,7 +399,12 @@ program_lookup(config_t agent_config, const char *username, char *external_uid)
 	}
 	args[i] = (char *) 0;
 
-	pipe(fd);
+	if (pipe(fd) == -1) {
+		LOG(LOG_ERR, "%s: errno=%i (%s)", ERR_EXT_LOOKUP_INIT_FAIL, errno, strerror(errno));
+		free(output);
+		free(args);
+		return NULL;
+	}
 
 	switch(pid=fork()) {
 
@@ -425,8 +431,9 @@ program_lookup(config_t agent_config, const char *username, char *external_uid)
 				}
 				if (WIFEXITED(status)) {
 					LOGDEBUG("exited, status=%d\n", WEXITSTATUS(status));
-					if (WEXITSTATUS(status))
+					if (WEXITSTATUS(status)) {
 						LOGDEBUG("Error running %s. Check path and permissions.\n", args[0]);
+					}
 				} else if (WIFSIGNALED(status)) {
 					LOGDEBUG("killed by signal %d\n", WTERMSIG(status));
 				} else if (WIFSTOPPED(status)) {
@@ -438,7 +445,12 @@ program_lookup(config_t agent_config, const char *username, char *external_uid)
 			close(fd[1]);
 			/* just in case there's no line break at the end of the return... */
 			memset(output, 0, 1024);
-			read(fd[0], output, 1024);
+			if (read(fd[0], output, 1024) == -1) {
+				LOG(LOG_ERR, "%s: errno=%i (%s)", ERR_EXT_LOOKUP_INIT_FAIL, errno, strerror(errno));
+				free(output);
+				free(args);
+				return NULL;
+			}
 			close(fd[0]);
 	}
 

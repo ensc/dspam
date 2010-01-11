@@ -1,0 +1,110 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 &#344;&iacute;d&iacute;c&iacute; centrum</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		$FORM_USER$
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li id="active"><a id="current" href="$CGI$?$USER$template=performance&amp;language=$LANG$">V&yacute;kon</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">P&#345;edvolby</a></li>
+		<li><a href="$CGI$?$USER$template=alerts&amp;language=$LANG$">V&yacute;strahy</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine&amp;language=$LANG$">Karant&eacute;na ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis&amp;language=$LANG$">Anal&yacute;za</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;language=$LANG$&history_page=1">Historie</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Pokud s va&scaron;&iacute;m e-mailov&yacute;m programem obdr&#382;&iacute;te zpr&aacute;vu - spam, kter&yacute; nebyl zachycen
+DSPAM filtrem, p&#345;epo&scaron;lete ji pros&iacute;m na
+<strong>spam-$REMOTE_USER$$LOCAL_DOMAIN$</strong>
+tak&#382;e bude moci b&yacute;t analyzov&aacute;na a filtr p&#345;eu&#269;en &#382;e &scaron;lo o spam. To zlep&scaron;&iacute; p&#345;esnost filtru v budoucnosti.
+</p>
+
+<div class="content">
+	<h3><strong>V&yacute;konnostn&iacute; statistiky</strong> - $TIME$</h3>
+
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>Metrika</th>
+			<th>&nbsp;</th>
+			<th>Kalkulov&aacute;no jako</th>
+		</tr>
+		<tr class="rowEven">
+			<td>Celkov&aacute; p&#345;esnost (od posledn&iacute;ho vynulov&aacute;n&iacute;)</td>
+			<td><strong>$OVERALL_ACCURACY$%</strong></td>
+			<td class="rowDivider"><span class="small">(SPAM zpr&aacute;v zachyceno + OK zpr&aacute;v doru&#269;eno) / Celkov&yacute; po&#269;et zpr&aacute;v</span></td>
+		</tr>
+                <tr class="rowOdd">
+                        <td>Identifikace SPAMu (od posledn&iacute;ho vynulov&aacute;n&iacute;)</td>
+                        <td><strong>$SPAM_ACCURACY$%</strong></td>
+                        <td class="rowDivider"><span class="small">(Pouze m&iacute;ra zachycen&iacute; SPAMu)</td>
+               </tr>
+		<tr class="rowEven">
+			<td>Pod&iacute;l SPAMu (z celkem zpracovan&yacute;ch)</td>
+			<td><strong>$SPAM_RATIO$%</strong></td>
+			<td class="rowDivider"><span class="small">Celkem SPAM zpr&aacute;v (chycen&yacute;ch & proklouzl&yacute;ch) / Celkov&yacute; po&#269;et zpr&aacute;v</span></td>
+		</tr>
+	</table>
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>&nbsp;</th>
+			<th>SPAM zpr&aacute;v</th>
+			<th>Dobr&yacute;ch zpr&aacute;v</th>
+		</tr>
+		<tr class="rowEven">
+			<td rowspan="3" valign="top" nowrap>od posledn&iacute;ho vynulov&aacute;n&iacute;</td>
+			<td>$TOTAL_SPAM_MISSED$ proklouzl&yacute;ch</td>
+			<td>$TOTAL_NONSPAM_MISSED$ proklouzl&yacute;ch</td>
+		</tr>
+		<tr class="rowEven">
+			<td>$TOTAL_SPAM_CAUGHT$ lapeno</td>
+			<td>$TOTAL_NONSPAM_CAUGHT$ doru&#269;eno</td>
+		</tr>
+		<tr class="rowEven">
+			<td>$SPAM_ACCURACY$% lapeno</td>
+			<td>$NONSPAM_ERROR_RATE$% proklouzlo</td>
+		</tr>
+		<tr class="rowOdd">
+			<td rowspan="2" valign="top" nowrap>Celkem zpracov&aacute;no filtrem</td>
+			<td>$TOTAL_SPAM_LEARNED$ omyl&#367;</td>
+			<td>$TOTAL_NONSPAM_LEARNED$ omyl&#367;</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>$TOTAL_SPAM_SCANNED$ lapeno</td>
+			<td>$TOTAL_NONSPAM_SCANNED$ doru&#269;eno</td>
+		</tr>
+		<tr class="rowEven">
+			<td valign="top" nowrap>Z hromady</td>
+			<td>$TOTAL_SPAM_CORPUSFED$ nal&aacute;dov&aacute;no</td>
+			<td>$TOTAL_NONSPAM_CORPUSFED$ nal&aacute;dov&aacute;no</td>
+		</tr>
+	</table>
+
+	<p>
+		<a href="$CGI$?$USER$command=resetStats&amp;language=$LANG$" title="Vynulov&aacute;n&iacute; statistik">Vynulov&aacute;n&iacute;</a> | <a href="$CGI$?$USER$command=tweak" title="P&#345;izp&#367;soben&iacute; pro zpr&aacute;vy, kter&eacute; byly p&#345;eposl&aacute;ny do filtru">Vylep&scaron;i -1</a>
+	</p>
+</div>
+
+</div>
+
+
+
+</body>
+</html>

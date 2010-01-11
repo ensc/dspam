@@ -1,11 +1,12 @@
 <HTML>
 <HEAD><TITLE>DSPAM v3 Control Center</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 </HEAD>
 <BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
 <div id="header">
 	<div id="logo">
-		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
@@ -13,16 +14,16 @@
 	</div>
 </div>
 
-<br clear="left" />
+<br clear="left">
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li id="active"><a id="current" href="$CGI$?$USER$template=performance">Performance</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">Preferences</a></li>
-		<li><a href="$CGI$?$USER$template=alerts">Alerts</a></li>
-		<li><a href="$CGI$?$USER$template=quarantine">Quarantine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
-		<li><a href="$CGI$?$USER$template=analysis">Analysis</a></li>
-		<li><a href="$CGI$?$USER$template=history&history_page=1">History</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=performance&amp;language=$LANG$">Performance</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Preferences</a></li>
+		<li><a href="$CGI$?$USER$template=alerts&amp;language=$LANG$">Alerts</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine&amp;language=$LANG$">Quarantine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis&amp;language=$LANG$">Analysis</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;language=$LANG$&history_page=1">History</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -97,7 +98,7 @@ so that it can be analyzed and learned as SPAM. This will improve the filter's a
 	</table>
 
 	<p>
-		<a href="$CGI$?$USER$command=resetStats" title="Reset the statistics">Reset</a> | <a href="$CGI$?$USER$command=tweak" title="Adjustment for messages that are forwarded to the filter">Tweak -1</a>
+		<a href="$CGI$?$USER$command=resetStats&amp;language=$LANG$" title="Reset the statistics">Reset</a> | <a href="$CGI$?$USER$command=tweak" title="Adjustment for messages that are forwarded to the filter">Tweak -1</a>
 	</p>
 </div>
 

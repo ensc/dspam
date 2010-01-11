@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.91 2009/12/06 16:54:54 sbajic Exp $
+## $Id: dspam.conf.in,v 1.95 2009/12/19 01:07:46 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -100,11 +100,25 @@ TrustedDeliveryAgent "@delivery_agent@"
 #EnablePlusedDetail	on
 
 #
+# Character to use as seperator between user names and address extensions.
+# If you change this value then please adjust QuarantineMailbox to use the
+# new specified character. The default is '+'.
+#
+#PlusedCharacter	+
+
+#
+# Turn this feature on if you want to force DSPAM to lowercase the "plused
+# users" username.
+#
+#PlusedUserLowercase	on
+
+#
 # Quarantine Mailbox: DSPAM's LMTP code can send spam mail using LMTP to a 
 # "plused" mailbox (such as user+quarantine) leaving quarantine processing
 # for retraining or deletion to be performed by the LDA and the mail client.
-# "plused" mailboxes are supported by Cyrus IMAP and possibly other LDAs.
-# The mailbox name must have the +
+# "plused" mailboxes are supported by Cyrus IMAP and possibly other LDAs. If
+# you don't set/change PlusedCharacter then the mailbox name must have the +
+# since the + is the default used character.
 #
 #QuarantineMailbox	+quarantine
 
@@ -293,6 +307,7 @@ Preference "trainPristine=off"		# { on | off } -> default:off
 Preference "optOutClamAV=off"		# { on | off } -> default:off
 Preference "ignoreRBLLookups=off"	# { on | off } -> default:off
 Preference "RBLInoculate=off"		# { on | off } -> default:off
+Preference "notifications=off"		# { on | off } -> default:off
 
 #
 # Overrides: Specifies the user preferences which may override configuration
@@ -323,6 +338,7 @@ AllowOverride trainPristine
 AllowOverride trainingMode
 AllowOverride whitelistThreshold
 AllowOverride dailyQuarantineSummary
+AllowOverride notifications
 
 # --- MySQL ---
 
@@ -624,6 +640,13 @@ HashConnectionCache	10
 # message, quarantine full, etc.)
 #
 Notifications	off
+
+#
+# QuarantineWarnSize: You may specify a size when DSPAM should send a "Quarantine
+# Full" message to each user. This is only working if you enable notifications
+# (see above). Value is in bytes. Default is 2097152 -> 2MB.
+#
+#QuarantineWarnSize 2097152
 
 #
 # Purge configuration: Set dspam_clean purge default options, if not otherwise

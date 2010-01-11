@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+#
+# $Id: dspam_train.in,v 1.00 2009/12/22 12:25:59 sbajic Exp $
 
 use strict;
 use vars qw { $USER %CONFIG $SPAM_CORPUS $NONSPAM_CORPUS };
@@ -95,7 +97,6 @@ sub Train {
                 $count = ($#spam_corpus+1) / ($#nonspam_corpus+1);
             }
             for(1..$count-1)
-
             {
                 $msg = shift(@spam_corpus);
                 TestSpam($msg);
@@ -236,4 +237,3 @@ sub TestAny {
     }
     print "\n";
 }
-

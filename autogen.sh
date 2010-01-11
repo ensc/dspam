@@ -1,10 +1,11 @@
 #!/bin/sh
+# $Id: autogen.sh,v 1.00 2009/12/22 12:25:59 sbajic Exp $
 
 PROG=`basename $0`
 
 KEYFILE=src/libdspam.c
 
-# Some OS's have multiple versions (autoconf259, etc.) and don't have an 
+# Some OS's have multiple versions (autoconf259, etc.) and don't have an
 # autoconf binary
 
 AUTOCONF=`which autoconf`
@@ -22,7 +23,7 @@ then
     fi
     AUTOHEADER=autoheader
 else
-    FINDPATH=`echo ${PATH}|sed -e 's,:, ,g'` 
+    FINDPATH=`echo ${PATH}|sed -e 's,:, ,g'`
     AUTOCONF=`find ${FINDPATH} -name "autoconf*"|sort -r|head -1`
     AUTOMAKE=`find ${FINDPATH} -name "automake*"|sort -r|head -1`
     ACLOCAL=`find ${FINDPATH} -name "aclocal*"|sort -r|head -1`
@@ -74,4 +75,3 @@ ${ACLOCAL} ${ACLOCAL_FLAGS}        || die
 ${AUTOHEADER} ${AUTOHEADER_FLAGS}  || die
 ${AUTOMAKE} ${AUTOMAKE_FLAGS}      || die
 ${AUTOCONF} ${AUTOCONF_FLAGS}      || die
-

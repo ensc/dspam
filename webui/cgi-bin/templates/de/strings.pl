@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: strings.pl,v 1.00 2009/08/18 00:41:12 sbajic Exp $
+# $Id: strings.pl,v 1.02 2010/01/03 04:22:39 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2009
+# COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,12 +18,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+$LANG{'lang_name'}			= "Deutsch";
+$LANG{'lang_select'}			= "Sprache";
+
 $LANG{'empty'}				= "Leer";
 $LANG{'admin_suite'}			= "Administrativer Verwaltungsbereich";
 $LANG{'alert_name'}			= "Alarm Name";
 $LANG{'remove_alert'}			= "Entfehrne";
 $LANG{'user_form'}			= "Statistischer SPAM Schutz f&uuml;r";
-$LANG{'user_form_submit'}		= "Speichern";
+$LANG{'user_form_submit'}		= "&Auml;ndern";
+
+$LANG{'admin_form'}			= "Statistischer SPAM Schutz f&uuml;r <strong>Administrator</strong>";
+$LANG{'admin_form_submit'}		= "&Auml;ndern";
 
 $LANG{'option_disable_filtering'}	= "Ausdr&uuml;ckliche Ablehnung der DSPAM Filterung";
 $LANG{'option_enable_filtering'}	= "Ausdr&uuml;ckliche Zustimmung der DSPAM Filterung";
@@ -42,7 +48,7 @@ $LANG{'history_retrain_as_spam'}	= "spam";
 $LANG{'history_retrain_as_innocent'}	= "unschuldig";
 $LANG{'history_retrain_as'}		= "Als";
 $LANG{'history_retrain_undo'}		= "R&uuml;ckg&auml;ngig";
-$LANG{'history_retrained'}		= "Retrained";
+$LANG{'history_retrained'}		= "Umtrainiert";
 $LANG{'history_label_resend'}		= "Resend";
 $LANG{'history_label_whitelist'}	= "Whitelist";
 $LANG{'history_label_spam'}		= "SPAM";
@@ -68,7 +74,9 @@ $LANG{'error_filesystem_scale'}		= "Kann nicht Dateisystemskalierung festzustell
 $LANG{'error_load_default_prefs'}	= "Kann vorgabe Werte nicht laden";
 $LANG{'error_access_denied'}		= "Zugriff verweigert";
 
-$LANG{'graph_legend_nb_messages'}	= "Nummer der Nachrichten";
+$LANG{'graph_legend_x_label_hour'}	= "Stunde des Tages";
+$LANG{'graph_legend_x_label_date'}	= "Datum";
+$LANG{'graph_legend_nb_messages'}	= "Anzahl der Nachrichten";
 $LANG{'graph_legend_spam'}		= "SPAM";
 $LANG{'graph_legend_good'}		= "Gut";
 $LANG{'graph_legend_inoculations'}	= "Impfungen";

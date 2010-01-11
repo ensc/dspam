@@ -1,6 +1,6 @@
-$Id: pgsql_drv.txt,v 1.5.1 2009/11/15 20:21:49 sbajic Exp $
+$Id: pgsql_drv.txt,v 1.5.2 2010/01/03 14:26:31 sbajic Exp $
 
-Copyright (c) 2002-2009 DSPAM Project
+Copyright (c) 2002-2010 DSPAM Project
 http://dspam.sourceforge.net
 
 LICENSE

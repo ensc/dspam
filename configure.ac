@@ -1,11 +1,11 @@
-dnl $Id: configure.ac,v 1.77 2009/12/15 23:34:05 sbajic Exp $
+dnl $Id: configure.ac,v 1.82 2010/01/03 14:26:31 sbajic Exp $
 dnl
 dnl    autoconf (GNU Autoconf) 2.59
 dnl    ltmain.sh (GNU libtool) 1.5.6
 dnl    automake (GNU automake) 1.9.2
 dnl
 AC_PREREQ(2.59)
-AC_COPYRIGHT([Copyright (C) 2002-2009 DSPAM Project])
+AC_COPYRIGHT([Copyright (C) 2002-2010 DSPAM Project])
 AC_INIT([dspam],[GIT],[dspam-devel@lists.sourceforge.net])
 AC_CONFIG_SRCDIR(./src)
 
@@ -130,13 +130,6 @@ then
     AC_MSG_FAILURE([required libraries are not found or not usable])
 fi
 LIBS="$LIBS $DLLIBS"
-
-#
-#   Support for NodalCore(r) C-Series Hardware Extensions
-#
-DS_NCORE()
-
-AM_CONDITIONAL([BUILD_NCORE], [ test x$build_ncore = xyes ])
 
 #---------------------------------------------------------
 #   DSPAM features
@@ -764,6 +757,7 @@ AM_CONDITIONAL([BUILD_MYSQL_DRV], [ test x"$mysql_drv" = xyes ])
 AM_CONDITIONAL([BUILD_PGSQL_DRV], [ test x"$pgsql_drv" = xyes ])
 AM_CONDITIONAL([STATIC_DRIVER], [ test x"$static_driver" = xyes ])
 AM_CONDITIONAL([DYNAMIC_DRIVER], [ test x"$static_driver" = xno ])
+AM_CONDITIONAL([BUILD_EXT_LOOKUP], [ test x"$enable_external_lookup" = xyes ])
 
 AC_MSG_CHECKING([whether we are building a single, static storage driver])
 
@@ -788,7 +782,7 @@ fi
 
 if test x"$enable_daemon" = xyes && test x"$mysql_drv" != xyes && test x"$pgsql_drv" != xyes && test x"$hash_drv" != xyes
 then
-  AC_MSG_ERROR([daemon mode requires one of the following storage drivers: mysql_drv pgsql_drv])
+  AC_MSG_ERROR([daemon mode requires one of the following storage drivers: mysql_drv pgsql_drv hash_drv])
 fi
 
 
@@ -821,6 +815,7 @@ AC_CONFIG_FILES([Makefile src/tools/Makefile webui/Makefile m4/Makefile])
 AC_CONFIG_FILES([src/tools.mysql_drv/Makefile])
 AC_CONFIG_FILES([txt/Makefile src/tools.pgsql_drv/Makefile ])
 AC_CONFIG_FILES([src/Makefile webui/cgi-bin/templates/Makefile])
+AC_CONFIG_FILES([webui/cgi-bin/templates/cs/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/templates/de/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/templates/es-es/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/templates/fr/Makefile])
@@ -829,8 +824,7 @@ AC_CONFIG_FILES([webui/cgi-bin/templates/pt-br/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/templates/ro/Makefile])
 AC_CONFIG_FILES([src/tools.sqlite_drv/Makefile man/Makefile])
 AC_CONFIG_FILES([src/dspam.pc src/dspam-uninstalled.pc])
-AC_CONFIG_FILES([doc/Makefile src/tools.hash_drv/Makefile scripts/Makefile])
+AC_CONFIG_FILES([doc/Makefile src/tools.hash_drv/Makefile])
 AC_CONFIG_FILES([webui/cgi-bin/Makefile webui/htdocs/Makefile])
 AC_CONFIG_FILES([contrib/Makefile])
 AC_OUTPUT
-

@@ -1,8 +1,8 @@
-/* $Id: cssstat.c,v 1.81 2009/10/08 20:31:02 sbajic Exp $ */
+/* $Id: cssstat.c,v 1.83 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -133,13 +133,14 @@ int cssstat(const char *filename) {
   printf("filename %s length %ld\n", filename, (long) map.file_len);
 
   while(filepos < map.file_len) {
-    printf("extent %lu: record length %lu\n", extents, 
+    printf("extent %lu: record length %lu\n", extents,
       (unsigned long) header->hash_rec_max);
     efree = eused = 0;
     for(i=0;i<header->hash_rec_max;i++) {
-      rec = map.addr+filepos;
+      rec = map.addr;
+      rec += filepos;
       if (rec->hashcode) {
-        eused++; 
+        eused++;
         nused++;
       } else {
         efree++;
@@ -147,7 +148,8 @@ int cssstat(const char *filename) {
       }
       filepos += sizeof(struct _hash_drv_spam_record);
     }
-    header = map.addr + filepos;
+    header = map.addr;
+    header += filepos;
     filepos += sizeof(struct _hash_drv_header);
     extents++;
 

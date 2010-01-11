@@ -1,5 +1,5 @@
 DSPAM v3.9.0
-Copyright (c) 2002-2009 DSPAM Project
+Copyright (c) 2002-2010 DSPAM Project
 http://dspam.sourceforge.net/
 
 LICENSE
@@ -767,11 +767,17 @@ FRESH INSTALLATION
        spam
 
      - A "Quarantine Full" message sent to each user when their quarantine box
-       is > 2MB in size.
+       is > 2MB in size (note: the 2MB limit is hardcoded in DSPAM).
 
    These notifications can be activated by copying the txt/ directory from the
-   distribution into DSPAM's home (by default /usr/local/var/dspam).  You will
-   want to modify these templates prior to installing them to reflect the 
+   distribution into DSPAM's home (by default /usr/local/var/dspam).
+
+   Example:
+   /usr/local/var/dspam/txt/firstrun.txt
+   /usr/local/var/dspam/txt/firstspam.txt
+   /usr/local/var/dspam/txt/qurantinefull.txt
+
+   You will want to modify these templates prior to installing them to reflect the
    correct email addresses and URLs (look for 'configureme' and 'yourdomain').
 
    NOTE: The quarantine warning is reset when the user clicks 'Delete All', but
@@ -883,6 +889,13 @@ FRESH INSTALLATION
 
   Once you've configured the Web UI, you'll want to edit the 'admins' file to
   contain a list of users who are permitted to use the administration suite.
+
+  Configuring Sub-Administrators / Domain Level Administrators
+
+  It is possible to delegate the management of users to a list of sub-admins/
+  domain level admins. To accomplish that you should edit the 'subadmins'
+  file to contain a list of sub-admins/domain level admins which are permitted
+  to switch their username while using the DSPAM control center.
 
   Opt-In/Out
 
@@ -2040,8 +2053,9 @@ DATA
   OS/distribution has its own contributors (they know perfectly their
   distribution's policy, their special guidelines, testing procedures, etc.).
 
-  Please check doc/RE_QA/ports [WIP] for a list of known ports/packages of
-  various OSes and distros and their maintainers, or check your OS/distro docs.
+  Take a look at the DSPAM Wiki for packages/ports for various distributions located
+  at http://sourceforge.net/apps/mediawiki/dspam/index.php?title=Main_Page or read
+  http://dspam.sourceforge.net
 
   If you wish to port DSPAM to an other OS/distro/platform and need help or have
   patches you would like to be merged in the repo please email

@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: admingraph.cgi,v 1.42 2009/08/18 00:08:28 sbajic Exp $
+# $Id: admingraph.cgi,v 1.45 2010/01/03 05:01:01 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2009
+# COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,23 +21,37 @@
 use CGI ':standard';
 use GD::Graph::bars;
 use strict;
-use vars qw { %CONFIG %FORM %LANG @spam @nonspam @period @data @inoc @sm @fp @wh @corpus @virus @black @block };
+use vars qw { %CONFIG %FORM %LANG $LANGUAGE @spam @nonspam @period @data @inoc @sm @fp @wh @corpus @virus @black @block };
 
+#
 # Read configuration parameters common to all CGI scripts
+#
+if (!(-e "configure.pl") || !(-r "configure.pl")) {
+  &htmlheader;
+  print "<html><head><title>Error!</title></head><body bgcolor='white' text='black'><center><h1>";
+  print "Missing file configure.pl";
+  print "</h1></center></body></html>\n";
+  exit;
+}
 require "configure.pl";
 
 #
-# Read language file
+# Parse form
 #
-if (-s "$CONFIG{'TEMPLATES'}/strings.pl") {
-  require "$CONFIG{'TEMPLATES'}/strings.pl";
-} elsif (-s "$CONFIG{'TEMPLATES'}/../strings.pl") {
-  require "$CONFIG{'TEMPLATES'}/../strings.pl";
-} else {
-  &error("Missing language file strings.pl.");
-}
-
 %FORM = &ReadParse();
+
+#
+# Configure languages
+#
+
+if ($FORM{'language'} ne "") {
+  $LANGUAGE = $FORM{'language'};
+} else {
+  $LANGUAGE = $CONFIG{'LANGUAGE_USED'};
+}
+if (! defined $CONFIG{'LANG'}->{$LANGUAGE}->{'NAME'}) {
+  $LANGUAGE = $CONFIG{'LANGUAGE_USED'};
+}
 
 GD::Graph::colour::read_rgb("rgb.txt"); 
 
@@ -59,8 +73,8 @@ do {
 @data = ([@period], [@inoc], [@corpus], [@virus], [@black], [@block], [@wh], [@spam], [@nonspam], [@sm], [@fp]);
 my $mygraph = GD::Graph::bars->new(500, 250);
 $mygraph->set(
-    x_label     => "$FORM{'x_label'}",
-    y_label     => "$LANG{'graph_legend_nb_messages'}",
+    x_label     => "$CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_x_label_'.$FORM{'x_label'}}",
+    y_label     => "$CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_nb_messages'}",
     title       => "$FORM{'title'}",
     legend_placement => 'RT',
     legend_spacing => 2,
@@ -93,8 +107,22 @@ if ($CONFIG{'3D_GRAPHS'} == 1) {
   ) or warn $mygraph->error;
 }
 
-$mygraph->set_legend_font(GD::gdMediumBoldFont);
-$mygraph->set_legend(" $LANG{'graph_legend_inoculations'}"," $LANG{'graph_legend_corpusfeds'}"," $LANG{'graph_legend_virus'}"," $LANG{'graph_legend_RBL'}"," $LANG{'graph_legend_blocklisted'}"," $LANG{'graph_legend_whitelisted'}"," $LANG{'graph_legend_spam'}"," $LANG{'graph_legend_nonspam'}"," $LANG{'graph_legend_spam_misses'}"," $LANG{'graph_legend_falsepositives'}");
+if (defined $CONFIG{'GRAPHS_X_LABEL_FONT'} && $CONFIG{'GRAPHS_X_LABEL_FONT'} ne "" && -r $CONFIG{'GRAPHS_X_LABEL_FONT'}) {
+  $mygraph->set_x_label_font([$CONFIG{'GRAPHS_X_LABEL_FONT'}, GD::gdMediumBoldFont, 'verdana', 'arial'], 8);
+} else {
+  $mygraph->set_x_label_font(GD::gdMediumBoldFont);
+}
+if (defined $CONFIG{'GRAPHS_Y_LABEL_FONT'} && $CONFIG{'GRAPHS_Y_LABEL_FONT'} ne "" && -r $CONFIG{'GRAPHS_Y_LABEL_FONT'}) {
+  $mygraph->set_y_label_font([$CONFIG{'GRAPHS_Y_LABEL_FONT'}, GD::gdMediumBoldFont, 'verdana', 'arial'], 8);
+} else {
+  $mygraph->set_y_label_font(GD::gdMediumBoldFont);
+}
+if (defined $CONFIG{'GRAPHS_LEGEND_FONT'} && $CONFIG{'GRAPHS_LEGEND_FONT'} ne "" && -r $CONFIG{'GRAPHS_LEGEND_FONT'}) {
+  $mygraph->set_legend_font([$CONFIG{'GRAPHS_LEGEND_FONT'}, GD::gdMediumBoldFont, 'verdana', 'arial'], 8);
+} else {
+  $mygraph->set_legend_font(GD::gdMediumBoldFont);
+}
+$mygraph->set_legend(" $CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_inoculations'}"," $CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_corpusfeds'}"," $CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_virus'}"," $CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_RBL'}"," $CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_blocklisted'}"," $CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_whitelisted'}"," $CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_spam'}"," $CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_nonspam'}"," $CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_spam_misses'}"," $CONFIG{'LANG'}->{$LANGUAGE}->{'graph_legend_falsepositives'}");
 my $myimage = $mygraph->plot(\@data) or die $mygraph->error;
                                                                                 
 print "Content-type: image/png\n\n";
@@ -120,4 +148,11 @@ sub ReadParse {
     $FORM{$name} = $value;
   }
   return %FORM;
+}
+
+sub htmlheader {
+  print "Expires: now\n";
+  print "Pragma: no-cache\n";
+  print "Cache-control: no-cache\n";
+  print "Content-type: text/html\n\n";
 }
