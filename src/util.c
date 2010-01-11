@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.265 2010/01/03 14:26:31 sbajic Exp $ */
+/* $Id: util.c,v 1.266 2010/01/11 20:07:07 sbajic Exp $ */
 
 /*
  DSPAM
@@ -734,7 +734,13 @@ int _ds_get_fcntl_lock(int fd) {
   f.l_start = 0;
   f.l_len = 0;
 
+#if defined __GLIBC__ && __GLIBC__ >= 2
   signal(SIGALRM, (sighandler_t)timeout);
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+  signal(SIGALRM, (sig_t)timeout);
+#else
+  signal(SIGALRM, (void *)timeout);
+#endif
   alarm(300);
   r=fcntl(fd, F_SETLKW, &f);
   alarm(0);

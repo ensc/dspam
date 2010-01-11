@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090111:2035] sbajic: Fixing signal handler under *BSD
+
 [20090107:2320] sbajic: Adding option (--purgescriptdir) to dspam_maintenance.sh allowing the end-user to specify the directory where the purge scripts are located
 
 [20090106:1605] sbajic: Fixing parallel builds
