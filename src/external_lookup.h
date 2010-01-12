@@ -1,3 +1,5 @@
+/* $Id: external_lookup.h,v 1.00 2009/12/22 12:25:59 sbajic Exp $ */
+
 /*
  COPYRIGHT (C) 2006 HUGO MONTEIRO
 

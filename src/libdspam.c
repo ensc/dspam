@@ -1,8 +1,8 @@
-/* $Id: libdspam.c,v 1.188 2009/11/05 00:25:40 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.190 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -76,11 +76,6 @@ void *_drv_handle;
 #include "error.h"
 #include "decode.h"
 #include "language.h"
-#ifdef NCORE
-#include <ncore/ncore.h>
-#include <ncore/types.h>
-#include "ncore_adp.h"
-#endif
 
 #define CHI_S   0.1     /* Chi-Sq Strength */
 #define CHI_X   0.5000  /* Chi-Sq Assumed Probability */
@@ -90,12 +85,6 @@ void *_drv_handle;
 
 #ifdef DEBUG
 int DO_DEBUG = 0;
-#endif
-
-#ifdef NCORE
-nc_dev_t g_ncDevice;
-
-NC_STREAM_CTX	g_ncDelimiters;
 #endif
 
 /*
@@ -2188,31 +2177,23 @@ void _ds_factor_destroy(struct nt *factors) {
   nt_destroy(factors);
 
   return;
-} 
+}
 
 int libdspam_init(const char *driver) {
 
 #ifndef STATIC_DRIVER
   if (driver) {
     if ((_drv_handle = dlopen(driver, RTLD_NOW))==NULL) {
-      LOG(LOG_CRIT, "dlopen() failed: %s: %s", driver, dlerror()); 
+      LOG(LOG_CRIT, "dlopen() failed: %s: %s", driver, dlerror());
       return EFAILURE;
     }
   }
-#endif
-
-#ifdef NCORE
-  _ncsetup();
 #endif
 
   return 0;
 }
 
 int libdspam_shutdown(void) {
-
-#ifdef NCORE
-  _nccleanup();
-#endif
 
 #ifndef STATIC_DRIVER
   if (_drv_handle) {
@@ -2223,7 +2204,7 @@ int libdspam_shutdown(void) {
     }
   }
 #endif
-   
+
   return 0;
 }
 

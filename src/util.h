@@ -1,8 +1,8 @@
-/* $Id: util.h,v 1.16 2009/09/24 22:51:18 sbajic Exp $ */
+/* $Id: util.h,v 1.17 2010/01/03 14:26:31 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

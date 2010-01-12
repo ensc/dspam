@@ -1,8 +1,8 @@
-/* $Id: daemon.c,v 1.12 2009/10/09 21:15:02 sbajic Exp $ */
+/* $Id: daemon.c,v 1.13 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

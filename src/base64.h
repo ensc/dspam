@@ -1,8 +1,8 @@
-/* $Id: base64.h,v 1.7 2006/05/13 01:12:59 jonz Exp $ */
+/* $Id: base64.h,v 1.9 2010/01/03 14:26:31 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -23,9 +23,7 @@
 #ifndef _BASE64_H
 #  define _BASE64_H
 
-#ifndef NCORE
 char *base64decode (const char *);
-#endif
 char *base64encode (const char *);
 
 #endif /* _BASE64_H */

@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: admin.cgi,v 1.21 2009/12/12 04:49:27 sbajic Exp $
+# $Id: admin.cgi,v 1.23 2010/01/03 14:39:13 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2009
+# COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,28 +20,56 @@
 
 use strict;
 use Time::Local;
-use vars qw { %CONFIG %DATA %FORM %LANG };
+use vars qw { %CONFIG %DATA %FORM %LANG $LANGUAGE };
 require "ctime.pl";
 
+#
 # Read configuration parameters common to all CGI scripts
-require "configure.pl";
-
 #
-# Read language file
-#
-if (-s "$CONFIG{'TEMPLATES'}/strings.pl") {
-  require "$CONFIG{'TEMPLATES'}/strings.pl";
-} elsif (-s "$CONFIG{'TEMPLATES'}/../strings.pl") {
-  require "$CONFIG{'TEMPLATES'}/../strings.pl";
-} else {
-  &error("Missing language file strings.pl.");
+if (!(-e "configure.pl") || !(-r "configure.pl")) {
+  &htmlheader;
+  print "<html><head><title>Error!</title></head><body bgcolor='white' text='black'><center><h1>";
+  print "Missing file configure.pl";
+  print "</h1></center></body></html>\n";
+  exit;
 }
+require "configure.pl";
 
 #
 # The current CGI script
 #
 
 $CONFIG{'ME'}		    = "admin.cgi";
+
+#
+# Parse form
+#
+
+%FORM = &ReadParse;
+
+#
+# Configure languages
+#
+
+if ($FORM{'language'} ne "") {
+  $LANGUAGE = $FORM{'language'};
+} else {
+  $LANGUAGE = $CONFIG{'LANGUAGE_USED'};
+}
+if (! defined $CONFIG{'LANG'}->{$LANGUAGE}->{'NAME'}) {
+  $LANGUAGE = $CONFIG{'LANGUAGE_USED'};
+}
+my @dslanguages = ();
+for (split(/\n/,$CONFIG{'LANGUAGES'})) {
+  my $lang = $_;
+  $lang =~ s/\s*selected>/>/;
+  if ($lang =~ /value="([^"]+)"/) {
+    $lang =~ s/>/ selected>/ if ($1 eq $LANGUAGE);
+  }
+  push(@dslanguages, $lang);
+}
+$CONFIG{'LANGUAGES'} = join("\n", @dslanguages);
+$CONFIG{'TEMPLATES'} = $CONFIG{'LANG'}->{$LANGUAGE}->{'TEMPLATEDIR'};
 
 #
 # Check Permissions
@@ -57,9 +85,8 @@ do {
     }
   }
   close(FILE);
-
   if (!$admin) {
-    &error("$LANG{'error_access_denied'}");
+    &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_access_denied'}");
   }
 };
 
@@ -87,14 +114,8 @@ if ($CONFIG{'AUTODETECT'} == 1 || $CONFIG{'AUTODETECT'} eq "") {
   };
 }
 
-#
-# Parse Form Variables
-#
-
-%FORM = &ReadParse;
-
 if ($ENV{'REMOTE_USER'} eq "") { 
-  &error("$LANG{'error_no_identity'}");
+  &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_no_identity'}");
 }
 
 if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
@@ -129,7 +150,7 @@ if ($FORM{'template'} eq "status") {
   &DisplayPreferences;
 }
 
-&error("$LANG{'error_invalid_command'} $FORM{'COMMAND'}");
+&error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_invalid_command'} $FORM{'COMMAND'}");
 
 #
 # Preferences Functions
@@ -225,7 +246,7 @@ sub DisplayPreferences {
         . quotemeta($FORM{'dailyQuarantineSummary'}) . "> /dev/null");
 
     } else {
-      open(FILE, ">$FILE") || do { &error("$LANG{'error_cannot_write_prefs'}: $!"); };
+      open(FILE, ">$FILE") || do { &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_cannot_write_prefs'}: $!"); };
       print FILE <<_END;
 trainingMode=$FORM{'trainingMode'}
 spamAction=$FORM{'spamAction'}
@@ -300,6 +321,12 @@ sub DisplayUserStatistics {
       $b = "rowEven";
     }
     s/:/ /g;
+    # sl = Spam Learned = TP True Positives
+    # il = Innocent Learned = TN True Negatives
+    # fp = False Positive = FP False Positives
+    # sm = Spam Missed = FN False Negatives
+    # sc = Spam Corpusfed = SC Spam Corpusfed
+    # ic = Innocent Corpusfed = NC Nonspam Corpusfed
     my($username, $sl, $il, $fp, $sm, $sc, $ic) = (split(/\s+/))[0,2,4,6,8,10,12]; 
     if ($sl eq "") {
       $_ = <IN>;
@@ -357,8 +384,8 @@ sub DisplayUserStatistics {
                     "	<td class=\"$b rowDivider\" align=\"right\">$mailbox_total_display</td>".
                     "	<td class=\"$b rowDivider\">$sl_total</td>".
                     "	<td class=\"$b\">$il_total</td>".
-                    "	<td class=\"$b\">$sm_total</td>".
                     "	<td class=\"$b\">$fp_total</td>".
+                    "	<td class=\"$b\">$sm_total</td>".
                     "	<td class=\"$b\">$sc_total</td>".
                     "	<td class=\"$b\">$ic_total</td>".
                     "	<td class=\"$b rowDivider\">&nbsp;</td>".
@@ -398,7 +425,7 @@ sub DisplayStatus {
   my ($c_daily) = 0; 
 
   if (! -e $LOG) {
-    &error("$LANG{'error_no_historic'}");
+    &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_no_historic'}");
   }
 
   # Initialize each individual time period
@@ -436,7 +463,7 @@ sub DisplayStatus {
     $block_weekly[$_]		= 0;
   }
 
-  open(LOG, "<$LOG") || &error("$LANG{'error_cannot_open_log'}: $!");
+  open(LOG, "<$LOG") || &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_cannot_open_log'}: $!");
   while(<LOG>) {
     my($t_log, $c_log, $signature, $e_log) = (split(/\t/))[0,1,3,5];
     next if ($t_log > time);
@@ -711,16 +738,23 @@ sub DisplayStatus {
 # Global Functions
 #
 
-sub output {
-  if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
-    $FORM{'template'} = "performance";
-  }
+sub htmlheader {
   print "Expires: now\n";
   print "Pragma: no-cache\n";
   print "Cache-control: no-cache\n";
   print "Content-type: text/html\n\n";
+}
+
+sub output {
+  if ($FORM{'template'} eq "" || $FORM{'template'} !~ /^([A-Z0-9]*)$/i) {
+    $FORM{'template'} = "performance";
+  }
+  &htmlheader;
   my(%DATA) = @_;
   $DATA{'WEB_ROOT'} = $CONFIG{'WEB_ROOT'};
+  $DATA{'LANG'} = $LANGUAGE;
+
+  $DATA{'FORM_ADMIN'} = qq!<form action="$CONFIG{'ME'}"><input type=hidden name="template" value="$FORM{'template'}">$CONFIG{'LANG'}->{$LANGUAGE}->{'admin_form'}&nbsp;<strong>($ENV{'REMOTE_USER'})</strong>&nbsp;&nbsp;&nbsp;&nbsp;$CONFIG{'LANG'}->{$LANGUAGE}->{'lang_select'}$CONFIG{'LANGUAGES'}&nbsp;&nbsp;<input type=submit value="$CONFIG{'LANG'}->{$LANGUAGE}->{'admin_form_submit'}"></form>!;
 
   open(FILE, "<$CONFIG{'TEMPLATES'}/nav_admin_$FORM{'template'}.html");
   while(<FILE>) { 
@@ -748,11 +782,11 @@ sub error {
   my($error) = @_;
   $FORM{'template'} = "error";
   $DATA{'MESSAGE'} = <<_end;
-$LANG{'error_message_part1'}
+$CONFIG{'LANG'}->{$LANGUAGE}->{'error_message_part1'}
 <BR>
 <B>$error</B><BR>
 <BR>
-$LANG{'error_message_part2'}
+$CONFIG{'LANG'}->{$LANGUAGE}->{'error_message_part2'}
 _end
   &output(%DATA);
 }
@@ -841,7 +875,7 @@ sub GetPrefs {
     }
                                                                                 
     if (! -e $FILE) {
-      &error("$LANG{'error_load_default_prefs'}");
+      &error("$CONFIG{'LANG'}->{$LANGUAGE}->{'error_load_default_prefs'}");
     }
                                                                                 
     open(FILE, "<$FILE");

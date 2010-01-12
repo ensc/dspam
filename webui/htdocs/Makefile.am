@@ -1,9 +1,10 @@
-# $Id: Makefile.am,v 1.2 2008/02/01 21:41:05 mjohnson Exp $
+# $Id: Makefile.am,v 1.4 2010/01/02 04:03:18 sbajic Exp $
 # webui/htdocs/Makefile.am
 #
 
-EXTRA_DIST =		\
-	base.css	\
-	dspam-logo-small.gif \
-	dspam.js
-
+EXTRA_DIST =			\
+	base.css		\
+	rtl.css			\
+	dspam-logo-small.gif	\
+	dspam.js		\
+	favicon.ico

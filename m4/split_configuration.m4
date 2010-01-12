@@ -1,3 +1,4 @@
+# $Id: split_configuration.m4,v 1.00 2009/12/22 12:25:59 sbajic Exp $
 # m4/split_configuration.m4
 # Hugo Monteiro <hugo.monteiro@fct.unl.pt>
 #

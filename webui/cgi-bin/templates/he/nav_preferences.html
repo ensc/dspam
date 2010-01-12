@@ -1,13 +1,16 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<HTML DIR="rtl">
 <HEAD><TITLE>DSPAM v3 מרכז הבקרה</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/rtl.css">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1255">
 </HEAD>
-<BODY DIR="rtl" BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
 <div id="header">
 	<div id="logo">
-		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
@@ -15,16 +18,16 @@
 	</div>
 </div>
 
-<br clear="left">
+<br clear="right">
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li><a href="$CGI$?$USER$template=performance">ביצועים</a></li>
-		<li id="active"><a id="current" href="$CGI$?$USER$template=preferences">העדפות</a></li>
-		<li><a href="$CGI$?$USER$template=alerts">התראות</a></li>
-		<li><a href="$CGI$?$USER$template=quarantine">הסגר ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
-		<li><a href="$CGI$?$USER$template=analysis">אנליזה</a></li>
-		<li><a href="$CGI$?$USER$template=history&amp;history_page=1">היסטוריה</a></li>
+		<li><a href="$CGI$?$USER$template=performance&amp;language=$LANG$">ביצועים</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=preferences&amp;language=$LANG$">העדפות</a></li>
+		<li><a href="$CGI$?$USER$template=alerts&amp;language=$LANG$">התראות</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine&amp;language=$LANG$">הסגר ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis&amp;language=$LANG$">אנליזה</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;language=$LANG$&amp;history_page=1">היסטוריה</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -38,6 +41,7 @@
 <FORM ACTION="$CGI$">
 <INPUT TYPE="HIDDEN" NAME="template" VALUE="preferences">
 <INPUT TYPE="HIDDEN" NAME="user" VALUE="$REMOTE_USER$">
+<input type="hidden" name="language" value="$LANG$">
 
 <div class="content">
 	<h3><strong>לימוד</strong> - הגדר כיצד המערכת לומדת תוך כדי טיפול בהודעות</h3>

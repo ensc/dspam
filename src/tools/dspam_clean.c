@@ -1,8 +1,8 @@
-/* $Id: dspam_clean.c,v 1.241 2009/10/09 21:08:33 sbajic Exp $ */
+/* $Id: dspam_clean.c,v 1.242 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -462,6 +462,7 @@ int process_unused (DSPAM_CTX *CTX, int any, int quota, int nospam, int onehit) 
 void
 dieout (int signal)
 {
+  signal = signal; /* Keep compiler happy */
   fprintf (stderr, "terminated.\n");
   if (open_ctx != NULL)
     dspam_destroy (open_ctx);

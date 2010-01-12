@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+#
+# $Id: dspam_notify.pl,v 1.00 2009/12/22 12:25:59 sbajic Exp $
 
 use Net::SMTP;
 

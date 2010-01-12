@@ -1,8 +1,8 @@
-/* $Id: config_shared.c,v 1.91 2009/07/12 22:56:15 sbajic Exp $ */
+/* $Id: config_shared.c,v 1.93 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -48,14 +48,26 @@
 attribute_t _ds_find_attribute(config_t config, const char *key) {
   int i;
 
-  if (config == NULL) { return NULL; }
+#ifdef VERBOSE
+  LOGDEBUG("searching attribute '%s'", key);
+#endif
+
+  if (config == NULL) {
+#ifdef VERBOSE
+    LOGDEBUG("_ds_find_attribute(): NULL config");
+#endif
+    return NULL;
+  }
 
   for(i=0;config[i];i++) {
     attribute_t attr = config[i];
     if (!strcasecmp(attr->key, key)) {
+#ifdef VERBOSE
+      LOGDEBUG("found attribute '%s' with value '%s'", attr->key, attr->value);
+#endif
       return attr;
     }
-  } 
+  }
 
   return NULL;
 }
@@ -64,7 +76,7 @@ int _ds_add_attribute(config_t config, const char *key, const char *val) {
   attribute_t attr;
 
 #ifdef VERBOSE
-  LOGDEBUG("attribute %s = %s", key, val);
+  LOGDEBUG("adding attribute '%s' with value '%s'", key, val);
 #endif
 
   attr = _ds_find_attribute(config, key);
@@ -96,18 +108,17 @@ int _ds_add_attribute(config_t config, const char *key, const char *val) {
   return 0;
 }
 
-int _ds_overwrite_attribute(config_t config, const char *key, const char *val) 
-{
+int _ds_overwrite_attribute(config_t config, const char *key, const char *val) {
   attribute_t attr;
 
 #ifdef VERBOSE
-  LOGDEBUG("overwriting attribute %s with value '%s'", key, val);
+  LOGDEBUG("overwriting attribute '%s' with value '%s'", key, val);
 #endif
 
   attr = _ds_find_attribute(config, key);
   if (attr == NULL) {
     return _ds_add_attribute(config, key, val);
-  } 
+  }
 
   free(attr->value);
   attr->value = strdup(val);
@@ -116,30 +127,58 @@ int _ds_overwrite_attribute(config_t config, const char *key, const char *val)
 }
 
 char *_ds_read_attribute(config_t config, const char *key) {
+#ifdef VERBOSE
+  LOGDEBUG("reading attribute '%s'", key);
+#endif
   attribute_t attr = _ds_find_attribute(config, key);
 
-  if (!attr)
+  if (!attr) {
+#ifdef VERBOSE
+    LOGDEBUG("not found attribute '%s'", key);
+#endif
     return NULL;
+  }
+
+#ifdef VERBOSE
+  LOGDEBUG("found attribute '%s' with value '%s'", key, attr->value);
+#endif
   return attr->value;
 }
 
 int _ds_match_attribute(config_t config, const char *key, const char *val) {
+#ifdef VERBOSE
+  LOGDEBUG("searching for attribute '%s' matching value '%s'", key, val);
+#endif
   attribute_t attr;
 
   attr = _ds_find_attribute(config, key);
-  if (!attr) 
+  if (!attr) {
+#ifdef VERBOSE
+    LOGDEBUG("not found attribute '%s'", key);
+#endif
     return 0;
+  }
 
-  while(strcasecmp(attr->value, val) && attr->next != NULL) 
+  while(strcasecmp(attr->value, val) && attr->next != NULL)
     attr = attr->next;
 
-  if (!strcasecmp(attr->value, val))
+  if (!strcasecmp(attr->value, val)) {
+#ifdef VERBOSE
+    LOGDEBUG("found attribute '%s' but not with value '%s'", key, val);
+#endif
     return 1;
+  }
 
+#ifdef VERBOSE
+  LOGDEBUG("found attribute '%s' matching value '%s'", key, val);
+#endif
   return 0;
 }
 
 void _ds_destroy_config(config_t config) {
+#ifdef VERBOSE
+  LOGDEBUG("destroying/freeing configuration");
+#endif
   attribute_t x, y;
   int i;
 

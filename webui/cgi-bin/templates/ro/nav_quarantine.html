@@ -1,29 +1,30 @@
 <HTML>
 <HEAD><TITLE>DSPAM v3 - Centru de Control</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 <script type="text/javascript" src="$WEB_ROOT$/dspam.js"></script>
 </HEAD>
 <BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
 <div id="header">
 	<div id="logo">
-		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
-                $FORM_USER$
+		$FORM_USER$
 	</div>
 </div>
 
-<br clear="left" />
+<br clear="left">
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li><a href="$CGI$?$USER$template=performance">Performa&#x021B;&#x0103;</a></li>
-		<li><a href="$CGI$?$USER$template=preferences">Preferin&#x021B;e</a></li>
-		<li><a href="$CGI$?$USER$template=alerts">Alerte</a></li>
-		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">Carantin&#x0103; ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
-		<li><a href="$CGI$?$USER$template=analysis">Analiz&#x0103;</a></li>
-		<li><a href="$CGI$?$USER$template=history&history_page=1">Istoric</a></li>
+		<li><a href="$CGI$?$USER$template=performance&amp;language=$LANG$">Performa&#x021B;&#x0103;</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Preferin&#x021B;e</a></li>
+		<li><a href="$CGI$?$USER$template=alerts&amp;language=$LANG$">Alerte</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine&amp;language=$LANG$">Carantin&#x0103; ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis&amp;language=$LANG$">Analiz&#x0103;</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;language=$LANG$&history_page=1">Istoric</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -40,17 +41,18 @@ mesajele pe care vrei s&#x0103; le cite&#x0219;ti sau <strong>&#x0218;terge Tot<
 
 <form action="$CGI$" method="post">
 <p>
-<input type="hidden" name="command" value="processQuarantine" >
-<input type="hidden" name="template" value="quarantine" >
-<input type="hidden" name="user" value="$REMOTE_USER$" >
-<input type="hidden" name="sortby" value="$SORTBY$" >
-<input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
+<input type="hidden" name="command" value="processQuarantine">
+<input type="hidden" name="template" value="quarantine">
+<input type="hidden" name="user" value="$REMOTE_USER$">
+<input type="hidden" name="sortby" value="$SORTBY$">
+<input type="hidden" name="language" value="$LANG$">
+<input type="submit" value="Deliver Checked" NAME="manyNotSpam">
 &nbsp;
-<input type="submit" value="Delete Checked" onClick="if (confirm('E&#x0219;ti sigur c&#x0103; vrei s&#x0103; &#x0219;tergi mesajele SELECTATE din carantin&#x0103;?')==false) { return false; }" />
-<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
-	document.forms[1].elements[j].checked = true; } } return false'>Selecteaz&#x0103; 200.</a>
+<input type="submit" value="Delete Checked" onClick="if (confirm('E&#x0219;ti sigur c&#x0103; vrei s&#x0103; &#x0219;tergi mesajele SELECTATE din carantin&#x0103;?')==false) { return false; }">
 &nbsp;
-<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('E&#x0219;ti sigur c&#x0103; vrei s&#x0103; &#x0219;tergi TOATE mesajele din carantin&#x0103;?')==false) { return false; }" >
+<input type="button" value="Selecteaz&#x0103; 200" onClick='for(j=0; j<200;j++) { if (document.forms[1] && document.forms[1].elements[j] && document.forms[1].elements[j].type == "checkbox") { document.forms[1].elements[j].checked = true; } } return false'>
+&nbsp;
+<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('E&#x0219;ti sigur c&#x0103; vrei s&#x0103; &#x0219;tergi TOATE mesajele din carantin&#x0103;?')==false) { return false; }">
 
 </p>
 <table border="0" cellspacing="0" cellpadding="2" width="100%">
@@ -62,13 +64,13 @@ $QUARANTINE$
 </table>
 
 <p>
-<input type="submit" value="Deliver Checked" NAME="manyNotSpam" >
+<input type="submit" value="Deliver Checked" NAME="manyNotSpam">
 &nbsp;
-<input type="submit" value="Delete Checked" onClick="if (confirm('E&#x0219;ti sigur c&#x0103; vrei s&#x0103; &#x0219;tergi mesajele SELECTATE din carantin&#x0103;?')==false) { return false; }" />
-<a href="#" onClick='for(j=0; j<200;j++) { if (document.forms[1].elements[j].type == "checkbox") { 
-	document.forms[1].elements[j].checked = true; } } return false'>Selecteaz&#x0103; 200.</a>
+<input type="submit" value="Delete Checked" onClick="if (confirm('E&#x0219;ti sigur c&#x0103; vrei s&#x0103; &#x0219;tergi mesajele SELECTATE din carantin&#x0103;?')==false) { return false; }">
 &nbsp;
-<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('E&#x0219;ti sigur c&#x0103; vrei s&#x0103; &#x0219;tergi TOATE mesajele din carantin&#x0103;?')==false) { return false; }" />
+<input type="button" value="Selecteaz&#x0103; 200" onClick='for(j=0; j<200;j++) { if (document.forms[1] && document.forms[1].elements[j] && document.forms[1].elements[j].type == "checkbox") { document.forms[1].elements[j].checked = true; } } return false'>
+&nbsp;
+<input type="submit" value="Delete All" name="deleteAll" onClick="if (confirm('E&#x0219;ti sigur c&#x0103; vrei s&#x0103; &#x0219;tergi TOATE mesajele din carantin&#x0103;?')==false) { return false; }">
 </p>
 
 </form>

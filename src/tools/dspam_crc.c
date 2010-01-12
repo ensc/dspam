@@ -1,8 +1,8 @@
-/* $Id: dspam_crc.c,v 1.5 2006/05/13 01:13:01 jonz Exp $ */
+/* $Id: dspam_crc.c,v 1.6 2010/01/03 14:39:13 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2009 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2010 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

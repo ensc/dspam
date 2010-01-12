@@ -1,19 +1,21 @@
+/* $Id: base.css,v 1.01 2009/12/26 02:38:29 sbajic Exp $ */
+
 /* global */
 
 body, input, textarea, select {
-	font-family: "Lucida Grande", Tahoma, Arial, Helvetica, sans-serif;
-	font-size: 11px;
+	font-family:"Lucida Grande",Tahoma,Arial,Helvetica,sans-serif;
+	font-size:11px;
 }
 
 table {
-	border: 1px solid black;
+	border:1px solid black;
 }
 th {
-	font-size: 11px;
-	background-color: black;
-	color: white;
-	font-weight: bold;
-	text-align: left;
+	font-size:11px;
+	background-color:black;
+	color:white;
+	font-weight:bold;
+	text-align:left;
 }
 th a{
 	color:white;
@@ -22,139 +24,145 @@ th a{
 	text-align:center;
 }
 td {
-	font-size: 11px;
+	font-size:11px;
 }
 em {
-	color: red;
-	font-weight: bold;
-	font-style: normal;
+	color:red;
+	font-weight:bold;
+	font-style:normal;
 }
 
 /* classes */
 
-.rowEven {background-color: #dddddd;}
-.rowOdd {background-color: #eeeeee;}
-.rowAlert {background-color: yellow;}
-.rowHighlight {background-color: white; font-weight: bold;}
-.rowDivider {border-left: 1px solid black;}
+.rowEven {background-color:#dddddd;}
+.rowOdd {background-color:#eeeeee;}
+.rowAlert {background-color:yellow;}
+.rowHighlight {background-color:white;font-weight:bold;}
+.rowDivider {border-left:1px solid black;}
 
-.innocent {color: limegreen; background-color: green;}
-.whitelisted {color: magenta; background-color: purple;}
-.spam {color: red; background-color: darkred;}
-.false {color: white; font-weight: bold; background-color: green;}
-.missed {color: white; font-weight: bold; background-color: darkred;}
-.inoculation {color: dodgerblue; background-color: darkblue;}
-.corpus {color: black; background-color: white;}
-.relay {color: white; background-color: #994400;}
-.virus {color: yellow; background-color: darkred;}
-.blocklisted {color: darkblue; background-color: darkred;}
-.blacklisted {color: black; background-color: darkred;}
-.unknown {color: darkred; background-color: white;}
-.error {color: red; background-color: white;}
-.low {color: darkblue; font-weight: bold;}
-.medium {color: steelblue; font-weight: bold;}
-.high {color: darkorange; font-weight: bold;}
+.innocent {color:limegreen;background-color:green;}
+.whitelisted {color:magenta;background-color:purple;}
+.spam {color:red;background-color:darkred;}
+.false {color:white;font-weight:bold;background-color:green;}
+.missed {color:white;font-weight:bold;background-color:darkred;}
+.inoculation {color:dodgerblue;background-color:darkblue;}
+.corpus {color:black;background-color:white;}
+.relay {color:white;background-color:#994400;}
+.virus {color:yellow;background-color:darkred;}
+.blocklisted {color:darkblue;background-color:darkred;}
+.blacklisted {color:black;background-color:darkred;}
+.unknown {color:darkred;background-color:white;}
+.error {color:red;background-color:white;}
+.low {color:darkblue;font-weight:bold;}
+.medium {color:steelblue;font-weight:bold;}
+.high {color:darkorange;font-weight:bold;}
 
-.small { font-size: 9px;}
-.hollow { border: 0px; }
+.small {font-size:9px;}
+.hollow {border:0px;}
 
 
 /* ids */
 
 #header {
-	padding: 0;
-	margin: 0;
-	height: 25px;
+	padding:0;
+	margin:0;
+	height:25px;
+	white-space:nowrap;
 }
-#logo *{margin:0; padding:0;}
+#logo *{margin:0;padding:0;}
 #logo {
-	text-align: right;
-	float: right;
+	text-align:right;
+	float:right;
+	z-index:-1;
 }
-#logo img {border: none;}
+#logo img {border:none;}
 #logo p{
         text-align:center;
         clear:left;
         font-size:80%;
 }
-#userinfo {
+#userinfo {}
+#navcontainer {
+	margin:0;
+	padding:0;
+	white-space:nowrap;
 }
-
-#navcontainer *{margin:0; padding:0;}
-#navcontainer ul {list-style: none;}
+#navcontainer ul {list-style:none;white-space:nowrap;display:inline;}
 #navcontainer li {
-	margin: 0 4px 0 0;
-	background-color: lightgray;
-	color: white;
-	font-weight: bold;
-	/* the next 4 lines are magic:  moves box up to handle link elements */
-	display: block;
-	float: left;
+	margin:0 4px 0 0;
+	background-color:lightgray;
+	color:white;
+	font-weight:bold;
+	float:left;
+	white-space:nowrap;
 }
 #navcontainer li a{
-	display:block;
 	float:left;
+	white-space:nowrap;
 }
 #navcontainer a:link, #navcontainer a:visited {
-	background-color: lightgray;
-	color: black;
-	text-decoration: none;
-	padding: 4px;
+	background-color:lightgray;
+	color:black;
+	text-decoration:none;
+	padding:4px;
 }
 #navcontainer a:hover {
-	background-color: darkgray;
-	color: white;
+	background-color:darkgray;
+	color:white;
 }
 #navcontainerclear {
-	 display: none;
+	 display:none;
 }
 html>body #navcontainerclear {
-	display: block;
-	clear: both;
+	display:inline;
+	clear:both;
 }
 #navcontainer li#active a {
-	background-color: black;
-	color: white;
+	background-color:black;
+	color:white;
+	white-space:nowrap;
 }
 
 #panel {
-	background-color: #f7f7f7;
-	border: 2px solid black;
-	padding: 8px;
+	background-color:#f7f7f7;
+	border:2px solid black;
+	padding:8px;
 	clear:left;
 }
 
+/* classes */
+
 .content {
-	text-align: left;
-	display: table;
-	width: 100%;
-	background-color: #dddddd;
-	margin-bottom: 8px;
+	text-align:left;
+	display:table;
+	width:100%;
+	background-color:#dddddd;
+	margin-bottom:8px;
 }
 .content h3 {
-	font-size: 11px;
-	font-weight: normal;
-	background-color: #bbbbbb;
-	margin: 0;
-	padding: 2px;
+	font-size:11px;
+	font-weight:normal;
+	background-color:#bbbbbb;
+	margin:0;
+	padding:2px;
 }
 .content h3 strong {
-	font-weight: bold;
+	font-weight:bold;
 }
 .content table,img {
-	margin: 8px;
-	display: block;
-	float: left;
+	margin:8px;
+	display:block;
+	float:left;
 }
 .content img {
-	padding: 4px;
+	padding:4px;
 	background-color:#ddd;
 }
 .content p {
-	padding: 8px;
-	padding-top: 0px;
-	clear: left;
-	float: none;
+	padding:8px;
+	padding-top:0px;
+	clear:left;
+	float:none;
 }
 .historypages{
 	text-align:center;

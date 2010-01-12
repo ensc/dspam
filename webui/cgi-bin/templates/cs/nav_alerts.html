@@ -1,0 +1,54 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 &#344;&iacute;d&iacute;c&iacute; centrum</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+                $FORM_USER$
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance&amp;language=$LANG$">V&yacute;kon</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">P&#345;edvolby</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=alerts&amp;language=$LANG$">V&yacute;strahy</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine&amp;language=$LANG$">Karant&eacute;na ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis&amp;language=$LANG$">Anal&yacute;za</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;language=$LANG$&history_page=1">Historie</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+V&yacute;strahy v&aacute;m pomohou naj&iacute;t zpr&aacute;vy v karant&eacute;nn&iacute;m seznamu. Pokud je text v&yacute;strahy nalezen ve zpr&aacute;v&#283;, jej&iacute; &#345;&aacute;dek bude vysv&iacute;cen. To v&aacute;m pom&#367;&#382;e identifikovat zpr&aacute;vu, je&#382; nemus&iacute; b&yacute;t SPAM.
+</p>
+
+$ALERTS$
+<p>
+<FORM ACTION="$CGI$">
+<INPUT TYPE=HIDDEN NAME=command VALUE=addAlert>
+<INPUT TYPE=HIDDEN NAME=template VALUE=alerts>
+<INPUT TYPE=HIDDEN NAME=user VALUE="$REMOTE_USER$">
+<input type="hidden" name="language" value="$LANG$">
+<INPUT NAME=ALERT> &nbsp;<INPUT TYPE=SUBMIT VALUE="P&#345;idej v&yacute;strahu">
+</FORM>
+</p>
+
+
+</div>
+
+
+
+</BODY>
+</HTML>

@@ -1,16 +1,17 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD><TITLE>DSPAM v3 Verwaltungsbereich</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 </HEAD>
 <BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
 <div id="header">
 	<div id="logo">
-		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
 		<p>$DSPAMVERSION$</p>
 	</div>
 	<div id="userinfo">
-		Statistischer SPAM Schutz f&uuml;r <strong>Administrator ($REMOTE_USER$)</strong>
+		$FORM_ADMIN$
 	</div>
 </div>
 
@@ -18,10 +19,10 @@
 
 <div id="navcontainer">
 	<ul id="navlist">
-		<li><a href="$CGI$?$USER$template=status">System Status</a></li>
-		<li><a href="$CGI$?$USER$template=user">Benutzer Statistik</a></li>
-		<li id="active"><a id="current" href="$CGI$?$USER$template=preferences">Administration</a></li>
-		<li><a href="dspam.cgi">Kontroll Zenter</a></li>
+		<li><a href="$CGI$?$USER$template=status&amp;language=$LANG$">System Status</a></li>
+		<li><a href="$CGI$?$USER$template=user&amp;language=$LANG$">Benutzer Statistik</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Administration</a></li>
+		<li><a href="dspam.cgi?language=$LANG$">Kontroll Zenter</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -44,6 +45,7 @@ $ERROR$
 </p>
 
 <INPUT TYPE="HIDDEN" NAME="template" VALUE="preferences">
+<input type="hidden" name="language" value="$LANG$">
 
 <div class="content">
 	<h3><strong>Training</strong> - Konfiguration wie der Filter lernen soll, wenn er Mails verarbeitet</h3>

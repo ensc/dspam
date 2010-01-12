@@ -1,0 +1,143 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Administrace</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		$FORM_ADMIN$
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li id="active"><a id="current" href="$CGI$?$USER$template=status&amp;language=$LANG$">Stav syst&eacute;mu</a></li>
+		<li><a href="$CGI$?$USER$template=user&amp;language=$LANG$">Statistiky u&#382;ivatele</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Administrace</a></li>
+		<li><a href="dspam.cgi?language=$LANG$">&#344;&iacute;d&iacute;c&iacute; centrum</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+N&aacute;sleduj&iacute;c&iacute; grafy a tabulky sumarizuj&iacute; filtrem proveden&eacute; zpracov&aacute;n&iacute;.
+</p>
+
+<div class="content">
+	<h3><strong>P&#345;ehled</strong></h3>
+			
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>Zpr&aacute;v</th>
+			<th>Dnes</th>
+			<th>Tuto hodinu</th>
+		</tr>
+		<tr class="rowEven">
+			<td>Spam</td>
+			<td>$SPAM_TODAY$</td>
+			<td>$SPAM_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Dobr&eacute;</td>
+			<td>$NONSPAM_TODAY$</td>
+			<td>$NONSPAM_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Nezachycen&iacute; Spamu</td>
+			<td>$SM_TODAY$</td>
+			<td>$SM_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Omylem zachycen&eacute; dobr&eacute;</td>
+			<td>$FP_TODAY$</td>
+			<td>$FP_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>O&#269;kov&aacute;n&iacute;</td>
+			<td>$INOC_TODAY$</td>
+			<td>$INOC_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Hromadn&eacute; l&aacute;dov&aacute;n&iacute;</td>
+			<td>$CORPUS_TODAY$</td>
+			<td>$CORPUS_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Na Whitelistu</td>
+			<td>$WHITE_TODAY$</td>
+			<td>$WHITE_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Infikov&aacute;no virem</td>
+			<td>$VIRUS_TODAY$</td>
+			<td>$VIRUS_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>Na Blacklistu</td>
+			<td>$BLACK_TODAY$</td>
+			<td>$BLACK_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Na Bloklistu</td>
+			<td>$BLOCK_TODAY$</td>
+			<td>$BLOCK_THIS_HOUR$</td>
+		</tr>
+		<tr class="rowHighlight">
+			<td>Celkem</td>
+			<td>$TOTAL_TODAY$</td>
+			<td>$TOTAL_THIS_HOUR$</td>
+		</tr>
+	</table>
+
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tr>
+			<th>Stav</th>
+			<th>Sou&#269;asn&aacute; hodnota</th>
+		</tr>
+		<tr class="rowEven">
+			<td>Pr&#367;m&#283;rn&aacute; doba zpracov&aacute;n&iacute; zpr&aacute;vy</td>
+			<td>$AVG_PROCESSING_TIME$ sec.</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Pr&#367;m&#283;rn&aacute; propustnost</td>
+			<td>$AVG_MSG_PER_SECOND$ zpr&aacute;v/sec.</td>
+		</tr>
+		<tr class="rowEven">
+			<td>DSPAM instance</td>
+			<td>$DSPAM_PROCESSES$ procesy</td>
+		</tr>
+		<tr class="rowOdd">
+			<td>Syst&eacute;mov&yacute; uptime</td>
+			<td>$UPTIME$</td>
+		</tr>
+		<tr class="rowEven">
+			<td>D&eacute;lka mailov&eacute; fronty</td>
+			<td>$MAIL_QUEUE$ zpr&aacute;v</td>
+		</tr>
+	</table>
+</div>
+
+<div class="content">
+	<h3><strong>24 hodinov&aacute; aktivita</strong> - $TS_DAILY$ SPAM, $TI_DAILY$ Dobr&yacute;ch, $SM_DAILY$ Spam&#367; pro&scaron;lo, $FP_DAILY$ dobr&yacute;ch zachyceno, $INOC_DAILY$ o&#269;kov&aacute;n&iacute;, $CORPUS_DAILY$ hromadn&yacute;ch l&aacute;dov&aacute;n&iacute;, $WHITE_DAILY$ Whitelist-ovan&yacute;ch, $VIRUS_DAILY$ Vir&#367;, $BLACK_DAILY$ Blacklist-ovan&yacute;ch, $BLOCK_DAILY$ Blocklist-ovan&yacute;ch</h3>
+	<img src="./admingraph.cgi?data=$DATA_DAILY$&x_label=hour&amp;language=$LANG$">
+</div>
+
+<div class="content">
+	<h3><strong>Denn&iacute; aktivita</strong> - $TS_WEEKLY$ SPAM&#367;, $TI_WEEKLY$ dobr&yacute;ch, $SM_WEEKLY$ Spam&#367; pro&scaron;lo, $FP_WEEKLY$ dobr&yacute;ch zachyceno, $INOC_WEEKLY$ o&#269;kov&aacute;n&iacute;, $CORPUS_WEEKLY$ hromadn&yacute;ch l&aacute;dov&aacute;n&iacute;, $WHITE_WEEKLY$ Whitelist-ovan&yacute;ch, $VIRUS_WEEKLY$ Vir&#367;, $BLACK_WEEKLY$ Blacklist-ovan&yacute;ch, $BLOCK_WEEKLY$ Blocklist-ovan&yacute;ch</h3>
+	<img src="./admingraph.cgi?data=$DATA_WEEKLY$&graph=period&x_label=date&amp;language=$LANG$">
+</div>
+
+</div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+# $Id: subadmins,v 1.00 2009/12/22 12:25:59 sbajic Exp $
+#
+# Subadmins listed here can manage other users or a group of users, while still
+# not beeing real DSPAM admins.
+#
+# Format:
+#   <subadmin_user1>: <full1@email.address>, <full2@email.address>, *@<domain.tld>
+#   <subadmin_user2>: <full1@email.address>
+#   <subadmin_user3>: <full2@email.address>
+#   <subadmin_user4>: *@<domain.tld>
+#
+# Note: Lines starting with '#' are comments and are not processed
+#
+
+#subadmin@mydomain.tld: *@mydomain.tld, *@otherdomain.tld, user1@yourdomain.tld, user2@hisdomain.tld

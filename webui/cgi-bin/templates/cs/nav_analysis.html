@@ -1,0 +1,52 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 &#344;&iacute;d&iacute;c&iacute; centrum</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+                $FORM_USER$
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance&amp;language=$LANG$">V&yacute;kon</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">P&#345;edvolby</a></li>
+		<li><a href="$CGI$?$USER$template=alerts&amp;language=$LANG$">V&yacute;strahy</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine&amp;language=$LANG$">Karant&eacute;na ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=analysis&amp;language=$LANG$">Anal&yacute;za</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;language=$LANG$&history_page=1">Historie</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Grafy ukazuj&iacute;c&iacute; po&#269;et zpracovan&yacute;ch zpr&aacute;v jsou zobrazeny n&iacute;&#382;e.
+</p>
+
+<div class="content">
+	<h3><strong>24 hodinov&aacute; aktivita</strong> - $TS_DAILY$ SPAM&#367;, $TI_DAILY$ dobr&yacute;ch</h3>
+	<img src="./graph.cgi?data=$DATA_DAILY$&x_label=hour&amp;language=$LANG$">
+</div>
+
+<div class="content">
+	<h3><strong>14 denn&iacute; aktivita</strong> - $TS_WEEKLY$ SPAM&#367;, $TI_WEEKLY$ dobr&yacute;ch</h3>
+	<img src="./graph.cgi?data=$DATA_WEEKLY$&graph=period&x_label=date&amp;language=$LANG$">
+</div>
+
+</div>
+
+
+
+</BODY>
+</HTML>

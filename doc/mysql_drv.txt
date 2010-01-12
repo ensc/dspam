@@ -1,6 +1,6 @@
-$Id: mysql_drv.txt,v 1.0 2009/11/15 20:22:24 sbajic Exp $
+$Id: mysql_drv.txt,v 1.2 2010/01/03 14:26:31 sbajic Exp $
 
-Copyright (c) 2002-2009 DSPAM Project
+Copyright (c) 2002-2010 DSPAM Project
 http://dspam.sourceforge.net
 
 LICENSE
@@ -108,7 +108,7 @@ You may also wish to add this line to the mysqld portion of /etc/my.cnf:
 
 set-variable = max_allowed_packet=8192000
 
-This will extend the query size from 1MB to 4MB; some larger queries may
+This will extend the query size from 1MB to 8MB; some larger queries may
 cause MySQL to drop connection without this set.
 
 3. UPDATING DSPAM.CONF
