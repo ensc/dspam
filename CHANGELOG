@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090114:0210] sbajic: Change password handling for MySQL/PostgreSQL in dspam_maintenance.sh
+
 [20090111:2035] sbajic: Fixing signal handler under *BSD
 
 [20090107:2320] sbajic: Adding option (--purgescriptdir) to dspam_maintenance.sh allowing the end-user to specify the directory where the purge scripts are located

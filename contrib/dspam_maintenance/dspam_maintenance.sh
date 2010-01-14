@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.05 2010/01/07 23:11:46 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.06 2010/01/14 02:02:51 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -194,7 +194,11 @@ clean_mysql_drv() {
 		fi
 
 		# Construct mysql command line
-		DSPAM_MySQL_CMD="${MYSQL_BIN_DIR}/mysql --silent --user=${MySQLUser}"
+		echo -e "[client]\npassword=${MySQLPass}\n">"${DSPAM_CRON_TMPFILE}"
+		DSPAM_MySQL_CMD="${MYSQL_BIN_DIR}/mysql"
+		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --defaults-extra-file=${DSPAM_CRON_TMPFILE}"
+		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --silent"
+		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --user=${MySQLUser}"
 		[ -S "${MySQLServer}" ] &&
 			DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --socket=${MySQLServer}" ||
 			DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --host=${MySQLServer}"
@@ -204,12 +208,13 @@ clean_mysql_drv() {
 			DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --compress"
 
 		# Run the MySQL purge script
-		MYSQL_PWD="${MySQLPass}" ${DSPAM_MySQL_CMD} ${MySQLDb} < ${DSPAM_MySQL_PURGE_SQL} >/dev/null
+		${DSPAM_MySQL_CMD} ${MySQLDb} < ${DSPAM_MySQL_PURGE_SQL} >/dev/null
 		_RC=${?}
 		if [ ${_RC} != 0 ]
 		then
 			echo "MySQL purge script returned error code ${_RC}"
 		fi
+		echo "">"${DSPAM_CRON_TMPFILE}"
 
 		return 0
 	fi
@@ -275,18 +280,19 @@ clean_pgsql_drv() {
 		fi
 
 		# Construct psql command line
+		echo "*:*:${PgSQLDb}:${PgSQLUser}:${PgSQLPass}">"${DSPAM_CRON_TMPFILE}"
 		DSPAM_PgSQL_CMD="${PGSQL_BIN_DIR}/psql -q -U ${PgSQLUser} -h ${PgSQLServer} -d ${PgSQLDb}"
 		[ -n "${PgSQLPort}" ] &&
 			DSPAM_PgSQL_CMD="${DSPAM_PgSQL_CMD} -p ${PgSQLPort}"
 
 		# Run the PostgreSQL purge script
-		PGUSER="${PgSQLUser}" PGPASSWORD="${PgSQLPass}" ${DSPAM_PgSQL_CMD} -f "${DSPAM_PgSQL_PURGE_SQL}" >/dev/null
-
+		PGPASSFILE="${DSPAM_CRON_TMPFILE}" ${DSPAM_PgSQL_CMD} -f "${DSPAM_PgSQL_PURGE_SQL}" >/dev/null
 		_RC=${?}
 		if [ ${_RC} != 0 ]
 		then
 			echo "PostgreSQL purge script returned error code ${_RC}"
 		fi
+		echo "">"${DSPAM_CRON_TMPFILE}"
 
 		return 0
 	fi
@@ -409,6 +415,12 @@ DSPAM_CRON_LOCKFILE="/var/run/$(basename $0 .sh).pid"
 
 
 #
+# File used to save temporary data
+#
+DSPAM_CRON_TMPFILE="/tmp/.ds_$$"
+
+
+#
 # Kill process if lockfile is older or equal 12 hours
 #
 if [ -f ${DSPAM_CRON_LOCKFILE} ]; then
@@ -444,7 +456,18 @@ fi
 #
 if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 
-	trap 'rm -f "${DSPAM_CRON_LOCKFILE}"; exit ${?}' INT TERM EXIT
+	trap 'rm -f "${DSPAM_CRON_LOCKFILE}" "${DSPAM_CRON_TMPFILE}"; exit ${?}' INT TERM EXIT
+
+
+	#
+	# Create the temporary file
+	#
+	UMASK_OLD="$(umask)"
+	umask 077
+	[ -e "${DSPAM_CRON_TMPFILE}" ] && /bin/rm -f "${DSPAM_CRON_TMPFILE}" >/dev/null 2>&1
+	touch "${DSPAM_CRON_TMPFILE}"
+	umask "${UMASK_OLD}"
+
 
 	#
 	# Check for needed tools
@@ -455,6 +478,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		run_dspam_clean
 		exit ${?}
 	fi
+
 
 	#
 	# Try to read most of the configuration options from DSPAM
@@ -717,8 +741,9 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 
 
 	#
-	# Release lock
+	# Release lock and delete temp file
 	#
 	/bin/rm -f "${DSPAM_CRON_LOCKFILE}"
+	/bin/rm -f "${DSPAM_CRON_TMPFILE}"
 	trap - INT TERM EXIT
 fi
