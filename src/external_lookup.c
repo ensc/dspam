@@ -159,7 +159,7 @@ ldap_lookup(config_t agent_config, const char *username, char *external_uid)
 	BerElement	*ber;
 	char		*a, *dn;
 	char		**vals = NULL;
-	struct		timeval	ldaptimeout = {0};
+	struct		timeval	ldaptimeout = {.tv_sec = BIND_TIMEOUT, .tv_usec = 0};
 	int			i, rc=0, num_entries=0;
 	char		*transcoded_query = NULL;
 	char		*ldap_uri = NULL;
@@ -203,10 +203,6 @@ ldap_lookup(config_t agent_config, const char *username, char *external_uid)
 		ldap_scope = LDAP_SCOPE_ONELEVEL;
 	else /* defaults to sub */
 		ldap_scope = LDAP_SCOPE_SUBTREE;
-
-	/* set up the ldap search timeout */
-	ldaptimeout.tv_sec  = BIND_TIMEOUT;
-	ldaptimeout.tv_usec = 0;
 
 	/* set alarm handler */
 	signal(SIGALRM, sig_alrm);
