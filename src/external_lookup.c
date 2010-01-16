@@ -158,6 +158,8 @@ ldap_lookup(config_t agent_config, const char *username, char *external_uid)
 	LDAPMessage	*e;
 	BerElement	*ber;
 	char		*a, *dn;
+	char		*sane_username = malloc(strlen(username)*2);
+	char		*p = sane_username;
 	char		**vals = NULL;
 	struct		timeval	ldaptimeout = {.tv_sec = BIND_TIMEOUT, .tv_usec = 0};
 	int			i, rc=0, num_entries=0;
@@ -207,8 +209,31 @@ ldap_lookup(config_t agent_config, const char *username, char *external_uid)
 	/* set alarm handler */
 	signal(SIGALRM, sig_alrm);
 
+	/* sanitize username for filter integration */
+	for (; *username != '\0'; username++) {
+		switch(*username) {
+			case 0x2a: /* '*' */
+			case 0x28: /* '(' */
+			case 0x29: /* ')' */
+			case 0x5c: /* '\' */
+			case 0x00: /* NUL */
+				*p++ = 0x5c; /* '\' */
+				*p++ = *username;
+				break;
+
+			default:
+				*p++ = *username;
+				break;
+		}
+	}
+
+	*p = '\0';
+
+	LOGDEBUG("External Lookup: sanitized username is %s\n", sane_username);
+
 	/* build proper LDAP filter*/
-	transcoded_query = strdup(transcode_query(ldap_filter, username, transcoded_query));
+	transcoded_query = strdup(transcode_query(ldap_filter, sane_username, transcoded_query));
+	free(sane_username);
 	if (transcoded_query == NULL) {
 		LOG(LOG_ERR, "External Lookup: %s", ERR_EXT_LOOKUP_MISCONFIGURED); 
 		return NULL;
