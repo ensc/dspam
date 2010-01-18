@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20090115:2100] sbajic: Updating dspam_maintenance.sh to work better under Fedora
+
 [20090114:0210] sbajic: Change password handling for MySQL/PostgreSQL in dspam_maintenance.sh
 
 [20090111:2035] sbajic: Fixing signal handler under *BSD

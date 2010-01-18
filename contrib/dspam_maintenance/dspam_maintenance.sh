@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.06 2010/01/14 02:02:51 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.07 2010/01/15 20:52:41 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -48,10 +48,11 @@ do
 		--hits1s=*) HITS1S_AGE="${foo#--hits1s=}";;
 		--hits1i=*) HITS1I_AGE="${foo#--hits1i=}";;
 		--purgescriptdir=*) DSPAM_PURGE_SCRIPT_DIR="${foo#--purgescriptdir=}";;
-		--without-sql-purge) USE_SQL_PURGE=false;;
-		--with-all-drivers) PURGE_ALL_DRIVERS=true;;
+		--without-sql-purge) USE_SQL_PURGE="false";;
+		--with-all-drivers) PURGE_ALL_DRIVERS="true";;
+		--verbose) VERBOSE="true";;
 		*)
-			echo -ne "Usage: $0 \n\t[--profile=[PROFILE]]\n\t[--logdays=no_of_days]\n\t[--signatures=no_of_days]\n\t[--neutral=no_of_days]\n\t[--unused=no_of_days]\n\t[--hapaxes=no_of_days]\n\t[--hits1s=no_of_days]\n\t[--hits1i=no_of_days]\n\t[--without-sql-purge]\n\t[--purgescriptdir=[DIRECTORY]\n\t[--with-all-drivers]\n"
+			echo -ne "Usage: $0 \n\t[--profile=[PROFILE]]\n\t[--logdays=no_of_days]\n\t[--signatures=no_of_days]\n\t[--neutral=no_of_days]\n\t[--unused=no_of_days]\n\t[--hapaxes=no_of_days]\n\t[--hits1s=no_of_days]\n\t[--hits1i=no_of_days]\n\t[--without-sql-purge]\n\t[--purgescriptdir=[DIRECTORY]\n\t[--with-all-drivers]\n\t\[--verbose]\n"
 			exit 1
 			;;
 	esac
@@ -62,6 +63,7 @@ done
 # Function to run dspam_clean
 #
 run_dspam_clean() {
+	[ "${VERBOSE}" = "true" ] && echo -ne "Running dspam_clean"
 	local PURGE_SIG="${1}"
 	local ADD_PARAMETER=""
 	read_dspam_params DefaultProfile
@@ -71,8 +73,10 @@ run_dspam_clean() {
 	fi
 	if [ "${PURGE_SIG}" = "YES" ]
 	then
+		echo " (with purging old signatures)"
 		${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -s${SIGNATURE_AGE} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
 	else
+		echo " (without purging old signatures)"
 		${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
 	fi
 	return ${?}
@@ -119,7 +123,8 @@ clean_mysql_drv() {
 	#
 	# MySQL
 	#
-	if	${USE_SQL_PURGE} && \
+	[ "${VERBOSE}" = "true" ] && echo "Running MySQL storage driver data cleanup"
+	if	[ "${USE_SQL_PURGE}" = "true" ] && \
 		read_dspam_params MySQLServer${PROFILE} MySQLPort${PROFILE} MySQLUser${PROFILE} MySQLPass${PROFILE} MySQLDb${PROFILE} MySQLCompress${PROFILE} && \
 		[ -n "${MySQLServer}" -a -n "${MySQLUser}" -a -n "${MySQLDb}" ]
 	then
@@ -228,7 +233,8 @@ clean_pgsql_drv() {
 	#
 	# PostgreSQL
 	#
-	if	${USE_SQL_PURGE} && \
+	[ "${VERBOSE}" = "true" ] && echo "Running PostgreSQL storage driver data cleanup"
+	if	[ "${USE_SQL_PURGE}" = "true" ] && \
 		read_dspam_params PgSQLServer${PROFILE} PgSQLPort${PROFILE} PgSQLUser${PROFILE} PgSQLPass${PROFILE} PgSQLDb${PROFILE} && \
 		[ -n "${PgSQLServer}" -a -n "${PgSQLUser}" -a -n "${PgSQLDb}" ]
 	then
@@ -306,6 +312,7 @@ clean_hash_drv() {
 	#
 	# Hash
 	#
+	[ "${VERBOSE}" = "true" ] && echo "Running Hash storage driver data cleanup"
 	if [ -d "${DSPAM_HOMEDIR}/data" ]
 	then
 		if [ -e ${DSPAM_BIN_DIR}/cssclean ]
@@ -335,7 +342,8 @@ clean_sqlite3_drv() {
 	#
 	# SQLite3
 	#
-	if	${USE_SQL_PURGE}
+	[ "${VERBOSE}" = "true" ] && echo "Running SQLite v3 storage driver data cleanup"
+	if	[ "${USE_SQL_PURGE}" = "true" ]
 	then
 		DSPAM_SQLite3_PURGE_SQL=""
 		[ -f "${DSPAM_CONFIGDIR}/config/sqlite3_purge.sql" ] && DSPAM_SQLite3_PURGE_SQL="${DSPAM_CONFIGDIR}/config/sqlite3_purge.sql"
@@ -375,7 +383,8 @@ clean_sqlite_drv() {
 	#
 	# SQLite
 	#
-	if	${USE_SQL_PURGE}
+	[ "${VERBOSE}" = "true" ] && echo "Running SQLite v2 storage driver data cleanup"
+	if	[ "${USE_SQL_PURGE}" = "true" ]
 	then
 		DSPAM_SQLite_PURGE_SQL=""
 		[ -f "${DSPAM_CONFIGDIR}/config/sqlite_purge.sql" ] && DSPAM_SQLite_PURGE_SQL="${DSPAM_CONFIGDIR}/config/sqlite_purge.sql"
@@ -488,7 +497,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	then
 		# Not good! dspam --version does not print out configuration parameters.
 		# Try getting the information by parsing the strings in the DSPAM binary.
-		DSPAM_CONFIG_PARAMETERS=$(strings $(whereis dspam | awk '{print $2}') 2>&1 | sed -n "/'\-\-[^']*'[\t ]*'\-\-[^']*'/p;s:' '\-\-:\n--:g;s:^[\t ]*'::g;s:' '[a-zA-Z].*::gp")
+		DSPAM_CONFIG_PARAMETERS=$(strings $(whereis dspam | awk '{print $2}') 2>&1 | sed -n "/'\-\-[^']*'[\t ]*'\-\-[^']*'/p" 2>/dev/null | sed -n "s:' '\-\-:\n--:g;s:^[\t ]*'::g;s:' '[a-zA-Z].*::gp")
 	fi
 	if [ -n "${DSPAM_CONFIG_PARAMETERS}" ]
 	then
@@ -510,6 +519,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 					;;
 			esac
 		done
+		[ "${VERBOSE}" = "true" -a -n "${STORAGE_DRIVERS}" ] && echo "Enabled drivers are: ${STORAGE_DRIVERS[@]}"
 	else
 		echo "Warning: dspam --version does not print configuration parameters!"
 	fi
@@ -571,8 +581,9 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		PROFILE=.${PROFILE}
 	fi
 	[ -z "${LOGROTATE_AGE}" ] && LOGROTATE_AGE=15			# System and user log
-	[ -z "${USE_SQL_PURGE}" ] && USE_SQL_PURGE=true			# Run SQL purge scripts
-	[ -z "${PURGE_ALL_DRIVERS}" ] && PURGE_ALL_DRIVERS=false	# Only purge active driver
+	[ -z "${USE_SQL_PURGE}" ] && USE_SQL_PURGE="true"		# Run SQL purge scripts
+	[ -z "${PURGE_ALL_DRIVERS}" ] && PURGE_ALL_DRIVERS="false"	# Only purge active driver
+	[ -z "${VERBOSE}" ] && VERBOSE="false"				# No additional output
 	if [ -z "${SIGNATURE_AGE}" ]
 	then
 		if read_dspam_params PurgeSignatures && [ -n "${PurgeSignatures}" -a "${PurgeSignatures}" != "off" ]
@@ -657,6 +668,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		echo "dspam_logrotate not found! Can not continue without it."
 		exit 2
 	fi
+	[ "${VERBOSE}" = "true" ] && echo "Running dspam_logrotate"
 	${DSPAM_BIN_DIR}/dspam_logrotate -a ${LOGROTATE_AGE} -d "${DSPAM_HOMEDIR}" >/dev/null &
 
 
@@ -669,9 +681,10 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	#
 	# Currently active storage driver
 	#
+	ACTIVE_DRIVER=""
 	if [ ${#STORAGE_DRIVERS[@]} -eq 1 ]
 	then
-		ACTIVE_DRIVER="${STORAGE_DRIVERS[@]}"
+		ACTIVE_DRIVER="${STORAGE_DRIVERS[0]}"
 	else
 		read_dspam_params StorageDriver
 		if [ -n "${StorageDriver}" ]
@@ -686,12 +699,13 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 			done
 		fi
 	fi
+	[ "${VERBOSE}" = "true" -a -n "${ACTIVE_DRIVER}" ] && echo "Active driver is: ${ACTIVE_DRIVER}"
 
 
 	#
 	# Which drivers to process/purge
 	#
-	if ! ${PURGE_ALL_DRIVERS} && [ -n "${ACTIVE_DRIVER}" ]
+	if [ "${PURGE_ALL_DRIVERS}" = "false" -a -n "${ACTIVE_DRIVER}" ]
 	then
 		DRIVERS_TO_PROCESS=${ACTIVE_DRIVER}
 	elif [ ${#STORAGE_DRIVERS[@]} -gt 0 ]
@@ -737,7 +751,23 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	#
 	# Run the dspam_clean command
 	#
-	run_dspam_clean ${RUN_FULL_DSPAM_CLEAN}
+	# NOTE:	The hash driver does not work with dspam_clean. So under no
+	#	circumstances do run dspam_clean if the hash driver is the
+	#	ONLY or the currently used driver!
+	if [ -n "${ACTIVE_DRIVER}" ]
+	then
+		if [ "${ACTIVE_DRIVER}" = "hash_drv" ]
+		then
+			echo "Hash storage driver detected (not running dspam_clean)"
+		else
+			run_dspam_clean ${RUN_FULL_DSPAM_CLEAN}
+		fi
+	else
+		# Storage driver probably statically linked. Not running dspam_clean
+		# because of potential risk that the storage driver used is the Hash
+		# driver.
+		echo "Could not detect current storage driver (not running dspam_clean)"
+	fi
 
 
 	#
