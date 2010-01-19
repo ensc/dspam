@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.73 2010/01/03 14:26:31 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.74 2010/01/16 15:17:05 sbajic Exp $ */
 
 /*
  DSPAM
@@ -267,22 +267,27 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     {
       if (argv[i] != NULL && strlen (argv[i]) < MAX_USERNAME_LENGTH)
       {
-        char user[MAX_USERNAME_LENGTH];
+        if (strstr(argv[i], "../") != NULL || strstr(argv[i], "..\\") != NULL) {
+          LOG(LOG_ERR, "Illegal username ('../' or '..\\' not allowed in username)");
+          return EINVAL;
+        } else {
+          char user[MAX_USERNAME_LENGTH];
 
-        if (_ds_match_attribute(agent_config, "Broken", "case")) 
-          lc(user, argv[i]);
-        else 
-          strcpy(user, argv[i]);
+          if (_ds_match_attribute(agent_config, "Broken", "case"))
+            lc(user, argv[i]);
+          else
+            strcpy(user, argv[i]);
 
 #ifdef TRUSTED_USER_SECURITY
-        if (!ATX->trusted && strcmp(user, __pw_name)) {
-          LOG(LOG_ERR, ERR_TRUSTED_USER, __pw_uid, __pw_name);
-          return EINVAL;
-        }
+          if (!ATX->trusted && strcmp(user, __pw_name)) {
+            LOG(LOG_ERR, ERR_TRUSTED_USER, __pw_uid, __pw_name);
+            return EINVAL;
+          }
 
-        if (ATX->trusted)
+          if (ATX->trusted)
 #endif
-          nt_add (ATX->users, user);
+            nt_add (ATX->users, user);
+        }
       }
       continue;
     }
