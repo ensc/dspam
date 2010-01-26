@@ -838,7 +838,6 @@ process_message (
 
     if (ATX->sockfd) {
       fout = ATX->sockfd;
-      ATX->sockfd_output = 1;
     }
     else {
       fout = stdout;
@@ -1628,6 +1627,10 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
     node_rcpt = c_nt_first (ATX->recipients, &c_rcpt);
     have_rcpts = ATX->recipients->items;
   }
+
+  if (ATX->sockfd && (ATX->operating_mode == DSM_CLASSIFY ||
+                      (ATX->flags & DAF_SUMMARY)))
+	  ATX->sockfd_output = 1;
 
   /* Keep going as long as we have destination users */
 
