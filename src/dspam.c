@@ -1689,6 +1689,29 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       ATX->recipient = node_nt->ptr;
     }
 
+    presult = calloc(1, sizeof(struct agent_result));
+
+#ifdef EXT_LOOKUP
+    if (!verified_user) {
+	    LOG(LOG_ERR, ERR_AGENT_BAD_USER, (char const *)node_nt->ptr);
+	    presult->exitcode = ERC_PROCESS;
+	    strcpy(presult->text, ERR_AGENT_BAD_USER);
+
+	    if (ATX->results) {
+		    nt_add(ATX->results, presult);
+		    if (ATX->results->nodetype != NT_CHAR)
+			    presult = NULL;
+	    }
+	    free(presult);
+	    presult = NULL;
+
+	    node_nt = c_nt_next (ATX->users, &c_nt);
+	    retcode = EINVAL;
+
+	    continue;
+    }
+#endif
+
       /* If support for "+detail" is enabled, save full mailbox name for
          delivery and strip detail for processing */
 
@@ -1710,7 +1733,6 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       }
     }
 
-    presult = calloc(1, sizeof(struct agent_result));
     parse_message = buffer_create(message->data);
     if (parse_message == NULL) {
       LOG(LOG_CRIT, ERR_MEM_ALLOC);

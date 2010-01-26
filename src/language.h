@@ -73,6 +73,7 @@
 #define ERR_AGENT_SIG_RET_FAILED  "Signature retrieval for '%s' failed"
 #define ERR_AGENT_NO_VALID_SIG    "Unable to find a valid signature. Aborting."
 #define ERR_AGENT_OPTIN_DIR       "The opt-in file %s should be a directory"
+#define ERR_AGENT_BAD_USER	  "Invalid user '%s'"
 
 /* Local delivery agent error codes */
 
