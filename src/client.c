@@ -213,8 +213,11 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
 
     line = client_getline(&TTX, 300);
 
-    while(line != NULL && strcmp(line, ".")) {
+    while(line != NULL) {
       chomp(line);
+      if (!strcmp(line, "."))
+        break;
+
       if (!head) {
         head = 1;
         if (!strncmp(line, "250 ", 4)) {
@@ -232,7 +235,6 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
       } 
       free(line);
       line = client_getline(&TTX, 300);
-      if (line) chomp(line);
     }
     free(line);
   } else {
