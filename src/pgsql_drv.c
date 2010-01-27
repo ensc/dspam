@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.734 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.735 2010/01/27 18:49:26 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1105,7 +1105,9 @@ int
 _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 {
   struct _pgsql_drv_storage *s;
-  int ver = 0;
+  int major_ver = 0;
+  int minor_ver = 0;
+  int micro_ver = 0;
 
   if (CTX == NULL) {
     return EINVAL;
@@ -1127,8 +1129,10 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 
   if (dbh) {
       s->dbh = dbh;
-      ver = _pgsql_drv_get_dbversion(s);
-      if (ver < 0) {
+      major_ver = _pgsql_drv_get_dbversion(s, 1);
+      minor_ver = _pgsql_drv_get_dbversion(s, 2);
+      micro_ver = _pgsql_drv_get_dbversion(s, 3);
+      if ((major_ver < 0) || (minor_ver < 0) || (micro_ver < 0)) {
           LOG(LOG_WARNING, "_ds_init_storage: connection failed.");
           free(s);
           return EFAILURE;
@@ -1170,10 +1174,21 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   s->control_sh = 0;
 
   /* init db version and token type */
-  if (ver)
-      s->pg_major_ver = ver;
-  else
-      s->pg_major_ver = _pgsql_drv_get_dbversion(s);
+  if (major_ver) {
+      s->pg_major_ver = major_ver;
+  } else {
+      s->pg_major_ver = _pgsql_drv_get_dbversion(s, 1);
+  }
+  if (minor_ver) {
+      s->pg_minor_ver = minor_ver;
+  } else {
+      s->pg_minor_ver = _pgsql_drv_get_dbversion(s, 2);
+  }
+  if (micro_ver) {
+      s->pg_micro_ver = micro_ver;
+  } else {
+      s->pg_micro_ver = _pgsql_drv_get_dbversion(s, 3);
+  }
   s->pg_token_type = _pgsql_drv_token_type(s,NULL,0);
 
   /* get spam totals on successful init */
@@ -1455,7 +1470,11 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EUNKNOWN;
   }
 
-  mem = PQescapeByteaConn(s->dbh, SIG->data, SIG->length, &length);
+  if ((s->pg_major_ver >= 7 && s->pg_minor_ver >= 3) || (s->pg_major_ver >= 8)) {
+    mem = PQescapeByteaConn(s->dbh, SIG->data, SIG->length, &length);
+  } else {
+    mem = PQescapeBytea(SIG->data, SIG->length, &length);
+  }
 
   snprintf (scratch, sizeof (scratch),
             "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d,'%s',%lu,CURRENT_DATE,E'",
@@ -2624,8 +2643,13 @@ int _ds_pref_set (
     uid = 0; /* Default Preferences */
   }
 
-  m1 = PQescapeBytea((unsigned char *) preference, strlen(preference), &length);
-  m2 = PQescapeBytea((unsigned char *) value, strlen(value), &length);
+  if ((s->pg_major_ver >= 7 && s->pg_minor_ver >= 3) || (s->pg_major_ver >= 8)) {
+    m1 = PQescapeByteaConn(s->dbh, (unsigned char *) preference, strlen(preference), &length);
+    m2 = PQescapeByteaConn(s->dbh, (unsigned char *) value, strlen(value), &length);
+  } else {
+    m1 = PQescapeBytea((unsigned char *) preference, strlen(preference), &length);
+    m2 = PQescapeBytea((unsigned char *) value, strlen(value), &length);
+  }
 
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
     " WHERE uid=%d AND preference='%s'", (int) uid, m1);
@@ -2706,7 +2730,11 @@ int _ds_pref_del (
     uid = 0; /* Default Preferences */
   }
 
-  m1 = PQescapeBytea((unsigned char *) preference, strlen(preference), &length);
+  if ((s->pg_major_ver >= 7 && s->pg_minor_ver >= 3) || (s->pg_major_ver >= 8)) {
+    m1 = PQescapeByteaConn(s->dbh, (unsigned char *) preference, strlen(preference), &length);
+  } else {
+    m1 = PQescapeBytea((unsigned char *) preference, strlen(preference), &length);
+  }
 
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
     " WHERE uid=%d AND preference='%s'", (int) uid, m1);
@@ -2995,14 +3023,19 @@ _pgsql_drv_token_write(int type, unsigned long long token, char *buffer, size_t 
 
 /* Detects PostgreSQL database version */
 int
-_pgsql_drv_get_dbversion(struct _pgsql_drv_storage *s)
+_pgsql_drv_get_dbversion(struct _pgsql_drv_storage *s, unsigned int range)
 {
-  int pg_major_ver = 7;
+  int pg_ver = 0;
   char query[256];
   PGresult *result;
 
+  /* by default return major version number */
+  if (range > 3 || range < 1) {
+    range = 1;
+  }
+
   /* detect postgres version */
-  snprintf (query, sizeof (query), "SELECT split_part(split_part(version(),' ',2),'.',1)::int2");
+  snprintf (query, sizeof (query), "SELECT split_part(split_part(version(),' ',2),'.',%d)::int2", range);
 
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
@@ -3018,8 +3051,8 @@ _pgsql_drv_get_dbversion(struct _pgsql_drv_storage *s)
     return EFAILURE;
   }
 
-  pg_major_ver = strtol (PQgetvalue( result, 0, 0), NULL, 0);
+  pg_ver = strtol (PQgetvalue( result, 0, 0), NULL, 0);
   if (result) PQclear(result);
 
-  return pg_major_ver;
+  return pg_ver;
 }
