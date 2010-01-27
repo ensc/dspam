@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<language_config language="fr-FR">
+ <MainForm>
+  <bt_thankYou>Remercier le développeur</bt_thankYou>
+  <bt_checkForUpdate>Vérifier les mises à jour</bt_checkForUpdate>
+  <bt_sendLogToDeveloper>Envoyer le journal</bt_sendLogToDeveloper>
+  <bt_TrainingForm>configurer l'apprentissage</bt_TrainingForm>
+  <bt_AktionForm>configurer les actions</bt_AktionForm>
+  <bt_closeForm>Fermer</bt_closeForm>
+ </MainForm>
+ <TrainingForm>
+   <rB_trainWithWebUI>apprendre depuis l'historique</rB_trainWithWebUI>
+   <l_enterUrlOfDSpam>URL de DSpam</l_enterUrlOfDSpam>
+   <l_enterLoginOfDSpam>votre nom d'utilisateur</l_enterLoginOfDSpam>
+   <l_enterPasswordOfDSpam>votre mot de passe</l_enterPasswordOfDSpam>
+   <rB_trainWithForward>apprendre en transférant les mails</rB_trainWithForward>
+   <l_enterForwardForSpam>adresse mail pour le spam</l_enterForwardForSpam>
+   <l_enterForwardForHam>adresse mail pour les faux positifs</l_enterForwardForHam>
+   <cB_useAutoTrain>entraîner automagiquement</cB_useAutoTrain>
+   <l_enterFolderForSpam>dossier Outlook pour l'apprentissage du spam</l_enterFolderForSpam>
+   <l_enterFolderForHam>dossier Outlook pour l'apprentissage des faux-positifs</l_enterFolderForHam>
+   <bt_saveForm>Enregistrer</bt_saveForm>
+   <bt_closeForm>Fermer</bt_closeForm>
+ </TrainingForm>
+ <AktionForm>
+  <gB_afterTrainSpam>après entraînement du mail comme spam ...</gB_afterTrainSpam>
+  <rB_afterTrainSpam_Nothing>ne rien faire</rB_afterTrainSpam_Nothing>
+  <rB_afterTrainSpam_Delete>supprimer le mail</rB_afterTrainSpam_Delete>
+  <rB_afterTrainSpam_MoveTo>le déplacer dans le dossier</rB_afterTrainSpam_MoveTo>
+  <cB_afterTrainSpam_MarkAsRead>marquer comme lu</cB_afterTrainSpam_MarkAsRead>
+  <cB_afterTrainSpam_PrefixWith>préfixer le sujet avec</cB_afterTrainSpam_PrefixWith>
+  <gB_afterTrainHam>après aprentissage du mail comme faux positif ...</gB_afterTrainHam>
+  <rB_afterTrainHam_Nothing>ne rien faire</rB_afterTrainHam_Nothing>
+  <rB_afterTrainHam_Delete>suprimer le mail</rB_afterTrainHam_Delete>
+  <rB_afterTrainHam_MoveTo>le déplacer dans le dossier</rB_afterTrainHam_MoveTo>
+  <cB_afterTrainHam_MarkAsRead>marquer comme lu</cB_afterTrainHam_MarkAsRead>
+  <cB_afterTrainHam_PrefixWith>préfixer le sujet avec</cB_afterTrainHam_PrefixWith>
+   <bt_saveForm>Enregistrer</bt_saveForm>
+   <bt_closeForm>Fermer</bt_closeForm>
+ </AktionForm>
+ <checkForUpdate>
+  <Found>une mise à jour a été trouvée, veuiller l'indiquer à votre administrateur système</Found>
+  <NotFound>aucune mise à jour n'a été trouvée, vous utilisez déjà la version la plus récente</NotFound>
+ </checkForUpdate>
+ <Toolbar>
+  <Caption>
+   <cB_Button_AsSpam>Spam</cB_Button_AsSpam>
+   <cB_Button_AsHam>Faux-positif</cB_Button_AsHam>
+   <cB_Button_DoConfig>Configurer</cB_Button_DoConfig>
+  </Caption>
+  <Tag>
+   <cB_Button_AsSpam>Apprendre comme Spam</cB_Button_AsSpam>
+   <cB_Button_AsHam>Apprendre comme Non-spam</cB_Button_AsHam>
+   <cB_Button_DoConfig>Modifier votre configuration</cB_Button_DoConfig>
+  </Tag>
+ </Toolbar>
+</language_config>
