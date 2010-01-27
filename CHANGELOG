@@ -1,43 +1,45 @@
 Version 3.9.0
 -------------
 
-[20090116:1520] sbajic: Don't allow '../' or '..\' in user name
+[20100127:1520] sbajic: Fixing unresolved symbols in libdspam
 
-[20090115:2100] sbajic: Updating dspam_maintenance.sh to work better under Fedora
+[20100116:1520] sbajic: Don't allow '../' or '..\' in user name
 
-[20090114:0210] sbajic: Change password handling for MySQL/PostgreSQL in dspam_maintenance.sh
+[20100115:2100] sbajic: Updating dspam_maintenance.sh to work better under Fedora
 
-[20090111:2035] sbajic: Fixing signal handler under *BSD
+[20100114:0210] sbajic: Change password handling for MySQL/PostgreSQL in dspam_maintenance.sh
 
-[20090107:2320] sbajic: Adding option (--purgescriptdir) to dspam_maintenance.sh allowing the end-user to specify the directory where the purge scripts are located
+[20100111:2035] sbajic: Fixing signal handler under *BSD
 
-[20090106:1605] sbajic: Fixing parallel builds
+[20100107:2320] sbajic: Adding option (--purgescriptdir) to dspam_maintenance.sh allowing the end-user to specify the directory where the purge scripts are located
 
-[20090106:1440] sbajic: Enhancing dspam_maintenance.sh to support DSPAM binary that does not print out configuration options when using switch "--version"
+[20100106:1605] sbajic: Fixing parallel builds
 
-[20090106:0110] sbajic: Adding profile support to dspam_maintenance.sh. Restricting purging with dspam_maintenance.sh to only consider currently active driver.
+[20100106:1440] sbajic: Enhancing dspam_maintenance.sh to support DSPAM binary that does not print out configuration options when using switch "--version"
 
-[20090103:1520] sbajic: Changing year in copyright notices from 2009 to 2010 in dspam_maintenance.sh
+[20100106:0110] sbajic: Adding profile support to dspam_maintenance.sh. Restricting purging with dspam_maintenance.sh to only consider currently active driver.
 
-[20090103:1515] sbajic: Changing year in copyright notices and version output from 2009 to 2010
+[20100103:1520] sbajic: Changing year in copyright notices from 2009 to 2010 in dspam_maintenance.sh
 
-[20090103:0520] sbajic: Swapping out x labels from graphs to be in strings.pl
+[20100103:1515] sbajic: Changing year in copyright notices and version output from 2009 to 2010
 
-[20090103:0415] sbajic: Fixing page direction in Hebrew templates
+[20100103:0520] sbajic: Swapping out x labels from graphs to be in strings.pl
 
-[20090102:2150] sbajic: Fixing typos in Hebrew template
+[20100103:0415] sbajic: Fixing page direction in Hebrew templates
 
-[20090102:2030] sbajic: Fixing typos in Hebrew template
+[20100102:2150] sbajic: Fixing typos in Hebrew template
 
-[20090102:0440] sbajic: Fixing small issue in rtl.css (used in right-to-left page direction templates)
+[20100102:2030] sbajic: Fixing typos in Hebrew template
 
-[20090102:0400] sbajic: Fixing the display of Hebrew templates in the Web UI
+[20100102:0440] sbajic: Fixing small issue in rtl.css (used in right-to-left page direction templates)
 
-[20090102:0400] sbajic: Adding TTF font support for legend, x and y labels in Web UI
+[20100102:0400] sbajic: Fixing the display of Hebrew templates in the Web UI
 
-[20090101:1730] sbajic: Setting 'lang_name' in Hebrew strings.pl to use HTML character entities encoding so that other languages display the language name properly even when not using CP1255/Windows-1255 encoding
+[20100102:0400] sbajic: Adding TTF font support for legend, x and y labels in Web UI
 
-[20090101:1730] sbajic: Fixing typo in Czech strings.pl
+[20100101:1730] sbajic: Setting 'lang_name' in Hebrew strings.pl to use HTML character entities encoding so that other languages display the language name properly even when not using CP1255/Windows-1255 encoding
+
+[20100101:1730] sbajic: Fixing typo in Czech strings.pl
 
 [20091231:0555] sbajic: Fixing compiler warnings
 
