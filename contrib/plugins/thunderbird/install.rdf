@@ -18,7 +18,7 @@
     <!-- Front End MetaData -->
     <em:id>{f56de514-f1ab-4209-8ad5-05a378d0b24b}</em:id>
     <em:name>dspam</em:name>
-    <em:version>0.7</em:version>
+    <em:version>0.8</em:version>
     <em:description>DSPAM Extension for Thunderbird</em:description>
     <em:iconURL>chrome://dspam/skin/dspam-logo-eyes-small.gif</em:iconURL>
     <em:creator>Hugo Monteiro</em:creator>

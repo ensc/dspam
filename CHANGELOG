@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100128:2340] hmonteiro: Bumped thunderbird extension version number.
+
 [20100128:2320] hmonteiro: Converted pt-PT localized messages in thunderbird extension to UTF-8
 
 [20100128:0130] sbajic: Removing mapiprop.dll and adding note where to download the dll and source
