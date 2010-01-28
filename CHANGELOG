@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100128:0130] sbajic: Removing mapiprop.dll and adding note where to download the dll and source
+
 [20100127:2130] sbajic: Using PQescapeByteaConn instead of PQescapeBytea in PostgreSQL driver when PostgreSQL is >= 7.3
 
 [20100127:1520] sbajic: Fixing unresolved symbols in libdspam
