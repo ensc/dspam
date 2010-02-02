@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100202:1525] sbajic: Fixing issues with dirname() in cssclean, csscompress and cssconvert
+
 [20100128:2340] hmonteiro: Bumped thunderbird extension version number.
 
 [20100128:2320] hmonteiro: Converted pt-PT localized messages in thunderbird extension to UTF-8
