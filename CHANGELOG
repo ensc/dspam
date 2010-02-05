@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100206:0030] sbajic: Adding Russian templates
+
 [20100202:1525] sbajic: Fixing issues with dirname() in cssclean, csscompress and cssconvert
 
 [20100128:2340] hmonteiro: Bumped thunderbird extension version number.
