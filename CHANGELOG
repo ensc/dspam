@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100212:1400] sbajic: Fixing memory leaks in SQLite[2/3] driver
+
 [20100206:0030] sbajic: Adding Russian templates
 
 [20100202:1525] sbajic: Fixing issues with dirname() in cssclean, csscompress and cssconvert
