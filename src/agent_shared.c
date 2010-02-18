@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.74 2010/01/16 15:17:05 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.75 2010/02/18 22:21:41 sbajic Exp $ */
 
 /*
  DSPAM
@@ -736,13 +736,6 @@ buffer * read_stdin(AGENT_CTX *ATX) {
         }
       }
 
-      /* Quote message termination characters, that could truncate messages */
-      if (buf[0] == '.' && buf[1] < 32) {
-        char x[sizeof(buf)];
-        snprintf(x, sizeof(x), ".%s", buf);
-        strcpy(buf, x);
-      }
-  
       /*
        *  Don't include first line of message if it's a quarantine header added
        *  by dspam at time of quarantine 

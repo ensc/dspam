@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.682 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: client.c,v 1.683 2010/02/18 22:18:38 sbajic Exp $ */
 
 /*
  DSPAM
@@ -798,10 +798,16 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
 
     /* fill buf with partial msg, replacing \n with \r\n */
     buflen = 0;
-    while ((size_t)buflen < (sizeof(buf) - 1) && i < msglen) {
+    while ((size_t)buflen < (sizeof(buf) - 2) && i < msglen) {
       /* only replace \n and not \r\n */
       if (i > 0 && msg[i] == '\n' && msg[i - 1] != '\r') {
         buf[buflen] = '\r';
+        buflen++;
+      }
+
+      /* escape dot if first character on line */
+      if (msg[i] == '.' && (i == 0 || msg[i - 1] == '\n')) {
+        buf[buflen] = '.';
         buflen++;
       }
 
