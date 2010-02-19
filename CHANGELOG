@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100219:1215] sbajic: Returning non zero exit code if daemon was not able to bind to ip/port (SF Bug #2947397)
+
 [20100218:2225] sbajic: Fixing dot escaping in LMTP protocol
 
 [20100212:1400] sbajic: Fixing memory leaks in SQLite[2/3] driver

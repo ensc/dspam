@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.390 2010/01/03 14:26:31 sbajic Exp $ */
+/* $Id: dspam.c,v 1.391 2010/02/19 12:11:56 sbajic Exp $ */
 
 /*
  DSPAM
@@ -177,7 +177,7 @@ main (int argc, char *argv[])
   if (ATX.operating_mode == DSM_DAEMON)
 #endif
   {
-    daemon_start(&ATX);
+    exitcode = daemon_start(&ATX);
 
     if (agent_init) {
       nt_destroy(ATX.users);
@@ -191,7 +191,7 @@ main (int argc, char *argv[])
     pthread_mutex_destroy(&__syslog_lock);
     if (pwent_cache_init)
       free(__pw_name);
-    exit(EXIT_SUCCESS);
+    exit(exitcode);
   }
 #endif
 
@@ -3970,6 +3970,7 @@ int daemon_start(AGENT_CTX *ATX) {
   DRIVER_CTX DTX;
   char *pidfile;
   ATX = ATX; /* Keep compiler happy */
+  int exitcode = EXIT_SUCCESS;
 
   __daemon_run  = 1;
   __num_threads = 0;
@@ -4026,6 +4027,7 @@ int daemon_start(AGENT_CTX *ATX) {
     if (daemon_listen(&DTX)) {
       LOG(LOG_CRIT, ERR_DAEMON_FAIL);
       __daemon_run = 0;
+      exitcode = EXIT_FAILURE;
     } else {
 
       LOG(LOG_WARNING, "received signal. waiting for processing threads to exit.");
@@ -4067,7 +4069,7 @@ int daemon_start(AGENT_CTX *ATX) {
   pthread_mutex_destroy(&__lock);
   libdspam_shutdown();
 
-  return 0;
+  return exitcode;
 }
 #endif
 
