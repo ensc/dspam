@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.29 2010/01/03 14:26:31 sbajic Exp $ */
+/* $Id: agent_shared.h,v 1.30 2010/02/19 17:47:10 sbajic Exp $ */
 
 /*
  DSPAM
@@ -39,7 +39,7 @@ extern uid_t __pw_uid;
 
 #define STATUS( ... )   snprintf(ATX->status, sizeof(ATX->status), __VA_ARGS__);
 
-#define SYNTAX "Syntax: dspam [--help|--version|[--client|--daemon] [--debug] --mode=[toe|tum|teft|notrain|unlearn] --user [user1 user2 ... userN] [--feature=[no,wh,tb=N]] [--class=[spam|innocent]] [--source=[error|corpus|inoculation]] [--profile=[PROFILE]] [--deliver=[spam,innocent,summary]] [--process|--classify] [--stdout] [--mail-from=sender-address] [--rcpt-to recipient-address(es)] [--signature=DSPAM-Signature] [passthru-arguments]]"
+#define SYNTAX "Syntax: dspam [--help|--version|[--client|--daemon [--nofork]] [--debug] --mode=[toe|tum|teft|notrain|unlearn] --user [user1 user2 ... userN] [--feature=[no,wh,tb=N]] [--class=[spam|innocent]] [--source=[error|corpus|inoculation]] [--profile=[PROFILE]] [--deliver=[spam,innocent,summary]] [--process|--classify] [--stdout] [--mail-from=sender-address] [--rcpt-to recipient-address(es)] [--signature=DSPAM-Signature] [passthru-arguments]]"
 
 #define         SIGNATURE_BEGIN		"!DSPAM:"
 #define         SIGNATURE_END		"!"
@@ -50,6 +50,7 @@ extern uid_t __pw_uid;
 
 typedef struct {
   int operating_mode;       /* Processing Mode       IN DSM_ */
+  int fork;                 /* Fork daemon:          IN 1:0  */
   int client_mode;          /* Client Mode: 1:0 */
   int training_mode;        /* Training Mode         IN DST_ */
   int classification;       /* Classification        IN DSR_ */

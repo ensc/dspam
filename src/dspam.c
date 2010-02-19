@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.391 2010/02/19 12:11:56 sbajic Exp $ */
+/* $Id: dspam.c,v 1.392 2010/02/19 18:00:48 sbajic Exp $ */
 
 /*
  DSPAM
@@ -3971,6 +3971,9 @@ int daemon_start(AGENT_CTX *ATX) {
   char *pidfile;
   ATX = ATX; /* Keep compiler happy */
   int exitcode = EXIT_SUCCESS;
+
+  if (ATX->fork && fork())    /* Fork DSPAM into the background */
+    exit(exitcode);
 
   __daemon_run  = 1;
   __num_threads = 0;

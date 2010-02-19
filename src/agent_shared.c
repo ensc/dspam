@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.75 2010/02/18 22:21:41 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.76 2010/02/19 17:51:09 sbajic Exp $ */
 
 /*
  DSPAM
@@ -100,6 +100,7 @@ int initialize_atx(AGENT_CTX *ATX) {
   ATX->classification  = DSR_NONE;
   ATX->source          = DSS_NONE;
   ATX->operating_mode  = DSM_PROCESS;
+  ATX->fork            = 1;
   ATX->users           = nt_create (NT_CHAR);
 
   if (ATX->users == NULL) {
@@ -228,6 +229,11 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     }
 #endif
  
+    if (!strcmp (argv[i], "--nofork")) {
+      ATX->fork = 0;
+      continue;
+    }
+
     if (!strncmp (argv[i], "--mode=", 7))
     {
       char *mode = strchr(argv[i], '=')+1;
