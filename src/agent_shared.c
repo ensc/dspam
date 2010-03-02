@@ -260,9 +260,17 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
           return EINVAL;
         }
 
-        if (ATX->trusted)
+        if (ATX->trusted) {
 #endif
-          nt_add (ATX->recipients, user);
+          if (_ds_validate_address(user) == 1) {
+            nt_add (ATX->recipients, user);
+          } else {
+            LOG(LOG_ERR, "Invalid email address: %s", user);
+            return EINVAL;
+          }
+#ifdef TRUSTED_USER_SECURITY
+        }
+#endif
       }
       continue;
     }

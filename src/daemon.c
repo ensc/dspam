@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.13 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: daemon.c,v 1.14 2010/02/24 17:41:09 sbajic Exp $ */
 
 /*
  DSPAM
@@ -579,7 +579,8 @@ void *process_connection(void *ptr) {
         }
 
         if (_ds_extract_address(username, cmdline, sizeof(username)) ||
-            username[0] == 0 || username[0] == '-' || username[0] == '@')
+            username[0] == 0 || username[0] == '-' || username[0] == '@' ||
+            _ds_validate_address(username) == 0)
         {
           daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERR_LMTP_BAD_RCPT);
           goto GETCMD;

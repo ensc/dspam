@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.266 2010/01/11 20:07:07 sbajic Exp $ */
+/* $Id: util.c,v 1.267 2010/02/24 16:18:00 sbajic Exp $ */
 
 /*
  DSPAM
@@ -864,3 +864,72 @@ inet_ntoa_r(struct in_addr in, char *buf, int len)
   return strcpy(buf, b);
 }
 #endif
+
+/*
+ * _ds_validate_address() - Validate a email address
+ *
+ * DESCRIPTION
+ *   validate the supplied email address
+ *
+ * INPUT ARGUMENTS
+ *   const char *address      pointer to email address
+ *
+ * NOTES
+ *   This function is NOT RFC 821/822 complete. However... most invalid
+ *   RFC 821/822 email addresses should be caputred by this function.
+ *   Extend this function if you need to capture more invalid email addresses.
+ *
+ * RETURN VALUES
+ *   returns 1 if email address is valid
+ *   returns 0 if email address is not valid
+ *
+ */
+int _ds_validate_address(const char *address) {
+  int count = 0;
+  const char *p;
+  char *email;
+  const char *domain;
+  static char *rfc822_specials = "()<>@,;:\\\"[]";
+
+  /* remove < at the beginning and > at the end of email address */
+  email = ALLTRIM(strdup(address));
+  if (*email == '<' && *(email + strlen(email) - 1) == '>') {
+    *(email + strlen(email) - 1) = 0;
+    email++;
+  }
+
+  /* First validate the local part (local_part@domain_part.tld) */
+  if (*email == '.') return 0;
+  for (p = email;  *p;  p++) {
+    if (*p == '\"' && (p == email || *(p - 1) == '.' || *(p - 1) == '\"')) {
+      while (*++p) {
+        if (*p == '\"') break;
+        if (*p == '\\' && (*++p == ' ')) continue;
+        if (*p < ' ' || *p >= 127) return 0;
+      }
+      if (!*p++) return 0;
+      if (*p == '@') break;
+      if (*p != '.') return 0;
+      continue;
+    }
+    if (*p == '@') break;
+    if (*p == '.' && (*++p == '.')) return 0;
+    if (*p <= ' ' || *p >= 127) return 0;
+    if (strchr(rfc822_specials, *p)) return 0;
+  }
+  if (p == email || *(p - 1) == '.') return 0;
+
+  /* Next validate the domain part (local_part@domain_part.tld) */
+  if (!*(domain = ++p)) return 0;
+  do {
+    if (*p == '.') {
+      if (p == domain || *(p - 1) == '.') return 0;
+      count++;
+    }
+    if (*p <= ' ' || *p >= 127) return 0;
+    if (*p == '.' && (*++p == '.')) return 0;
+    if (strchr(rfc822_specials, *p)) return 0;
+  } while (*++p);
+
+  return (count >= 1);
+}
