@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100313:0235] sbajic: Removed dependency to grep, awk, cut, wc and friends from dspam_notify and fixed a bunch of bugs in dspam_notify.
+
 [20100313:0120] sbajic: Added installation of dspam_notify
 
 [20100224:1815] sbajic: Adding _ds_validate_address() to test recipients for valid email address format (the check is not catching all possible invalid email addresses).
