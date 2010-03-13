@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100313:0120] sbajic: Added installation of dspam_notify
+
 [20100224:1815] sbajic: Adding _ds_validate_address() to test recipients for valid email address format (the check is not catching all possible invalid email addresses).
 
 [20100219:1905] sbajic: Adding --nofork switch to prevent DSPAM to switch into background when using --daemon. New default is to fork into background when using --daemon switch. (SF ID #2955089)

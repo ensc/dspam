@@ -1,11 +1,11 @@
 #!/usr/bin/perl
 #
-# $Id: dspam_notify.pl,v 1.00 2009/12/22 12:25:59 sbajic Exp $
+# $Id: dspam_notify,v 1.01 2010/03/13 01:09:49 sbajic Exp $
 
 use Net::SMTP;
 
 # Enter the location of you dspam.conf file.
-$DSPAMCONF = "/etc/dspam.conf";
+$DSPAMCONF = "@sysconfdir@/dspam.conf";
 
 # Who will the notifications be sent from?
 $FROM = 'dspam@domain.tld';

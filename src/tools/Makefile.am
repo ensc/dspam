@@ -1,8 +1,8 @@
-# $Id: Makefile.am,v 1.84 2010/01/26 19:00:21 sbajic Exp $
+# $Id: Makefile.am,v 1.85 2010/03/13 00:57:23 sbajic Exp $
 # tools/Makefile.am
 
-EXTRA_DIST = dspam_train.in dspam_logrotate dspam_notify.pl
-CLEANFILES = dspam_train 
+EXTRA_DIST = dspam_train.in dspam_notify.in dspam_logrotate
+CLEANFILES = dspam_train dspam_notify
 
 AM_CPPFLAGS = \
   -DLOGDIR=\"$(logdir)\" -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\" \
@@ -11,7 +11,7 @@ AM_CPPFLAGS = \
 CFLAGS = @CFLAGS@ -I$(top_srcdir)/src
 
 bin_PROGRAMS = dspam_dump dspam_clean dspam_crc dspam_stats dspam_merge dspam_2sql dspam_admin
-bin_SCRIPTS = dspam_train dspam_logrotate
+bin_SCRIPTS = dspam_train dspam_logrotate dspam_notify
 
 dspam_2sql_SOURCES = dspam_2sql.c ../read_config.c ../config_api.c
 dspam_2sql_LDFLAGS = 
@@ -33,10 +33,15 @@ LDADD = ../libdspam.la
 sed_substitute_variables = \
 	dspam_transformed=`echo dspam | sed '$(transform)'`; \
 	sed -e 's,@bindir\@,$(bindir),g' \
+	    -e 's,@sysconfdir\@,$(sysconfdir),g' \
 	    -e 's,@PACKAGE_STRING\@,$(PACKAGE_STRING),g' \
 	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
 	    -e "s,@dspam_transformed\@,$$dspam_transformed,g"
 
 dspam_train: dspam_train.in Makefile
 	${sed_substitute_variables} < $(srcdir)/dspam_train.in > $@
+	chmod +x $@
+
+dspam_notify: dspam_notify.in Makefile
+	${sed_substitute_variables} < $(srcdir)/dspam_notify.in > $@
 	chmod +x $@
