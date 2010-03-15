@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100315:1945] sbajic: Fixed issue with empty Message-ID in Web-UI history display
+
 [20100313:2100] sbajic: Fixed a HTML markup error in dspam_notify and extended dspam_notify to list messages in quarantine
 
 [20100313:0235] sbajic: Removed dependency to grep, awk, cut, wc and friends from dspam_notify and fixed a bunch of bugs in dspam_notify.

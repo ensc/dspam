@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.47 2010/01/03 14:39:13 sbajic Exp $
+# $Id: dspam.cgi,v 1.48 2010/03/15 19:48:36 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
@@ -497,7 +497,7 @@ sub DisplayHistory {
     elsif ($class eq "C") { $cl = "corpus"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_corpus'}"; }
     elsif ($class eq "U") { $cl = "unknown"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_unknown'}"; }
     elsif ($class eq "E") { $cl = "error"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_error'}"; }
-    if ($messageid ne "") {
+    if ($messageid ne "" && $messageid ne "1") {
       if ($rec{$messageid}->{'resend'} ne "") {
         $cl = "relay";
         $cllabel = "$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_resend'}";
