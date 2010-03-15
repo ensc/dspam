@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# $Id: dspam_notify,v 1.03 2010/03/13 20:51:18 sbajic Exp $
+# $Id: dspam_notify,v 1.04 2010/03/15 22:57:49 sbajic Exp $
 
 use Net::SMTP;
 
@@ -15,8 +15,14 @@ $FROM = 'dspam@domain.tld';
 # What will the notification subject be?
 $SUBJECT = 'Daily Spam Quarantine Summary';
 
+# What text to display in the body?
+$BODY = qq!<p>This report has been sent to you from the Anti-Spam service hosted at ISP.com. Below is a list of items in your quarantine area. You can view or release a message by clicking on the links (right). If you no longer wish to receive these reports then you may change the option on the 'Preferences' page.</p>!;
+
 # Quarantine URL
 $DSPAM_URL = 'https://dspam.domain.tld';
+
+# Maximum of entries to show in mail
+$MAX_ITEMS = 200;
 
 # Address of your SMTP server?  localhost should be fine.
 $SERVER = 'localhost';
@@ -187,6 +193,7 @@ foreach $RECIPIENT (@RECIPIENT_LIST) {
 
 
 # Send some emails
+@Q_ROW_COLOR=('CCCCCC','FFFFFF');
 $SMTP = Net::SMTP->new(								# Establish SMTP Connection
 	Host => $SERVER . ":" . $PORT,
 	Timeout => 30) || die ("Could not connect to SMTP server " . $SERVER . ":" . $PORT . "; $!");
@@ -205,6 +212,7 @@ for ($I = 0; $I <= $#RECIPIENT_LIST; $I++) {					# Loop through Recipients List 
     $SMTP->datasend("<META HTTP-EQUIV='Content-Type' CONTENT='text/html; charset=utf-8'>\n");
     $SMTP->datasend("</HEAD>\n");
     $SMTP->datasend("<BODY>\n");
+    $SMTP->datasend($BODY ."\n");
     $SMTP->datasend("<TABLE>\n");
     $SMTP->datasend("<TR><TD>Quarantine Summary for</TD><TD>$RECIPIENT_LIST[$I]</TD></TR>\n");
     $SMTP->datasend("<TR><TD>Date</TD><TD>$TODAY, $YEAR</TD></TR>\n");
@@ -218,10 +226,17 @@ for ($I = 0; $I <= $#RECIPIENT_LIST; $I++) {					# Loop through Recipients List 
     @Q_SIG = split(/\n/,@Q_SIG_ITEMS[$I]);
     for ($J = 0; $J <= $#Q_SIG; $J++) {
       my $QCOMMAND = $QUARANTINE_URL . "&user=" . $RECIPIENT_LIST[$I] . "&signatureID=" . @Q_SIG[$J];
+      my $QROW_COLOR = 0;
+      $QROW_COLOR = 1 if(($J % 2) != 0);
       $SMTP->datasend("<TR>");
-      $SMTP->datasend("<TD>" . @Q_SUBJECT[$J] . "</TD>");
-      $SMTP->datasend("<TD><A HREF='" . $QCOMMAND . "&command=viewMessage' TARGET='_blank'>View</A></TD>");
-      $SMTP->datasend("<TD><A HREF='" . $QCOMMAND . "&command=processFalsePositive' TARGET='_blank'>Release</A></TD>");
+      if ($J >= $MAX_ITEMS) {
+        $SMTP->datasend("<TD COLSPAM='3' STYLE='background-color:" . @Q_ROW_COLOR[$QROW_COLOR] . ";'>To display more then " . $MAX_ITEMS . " messages, please visit the DSPAM Control Center.</TD>\n");
+        $SMTP->datasend("</TR>\n");
+        last;
+      }
+      $SMTP->datasend("<TD STYLE='background-color:" . @Q_ROW_COLOR[$QROW_COLOR] . ";'>" . @Q_SUBJECT[$J] . "</TD>");
+      $SMTP->datasend("<TD STYLE='background-color:" . @Q_ROW_COLOR[$QROW_COLOR] . ";'><A HREF='" . $QCOMMAND . "&command=viewMessage' TARGET='_blank'>View</A></TD>");
+      $SMTP->datasend("<TD STYLE='background-color:" . @Q_ROW_COLOR[$QROW_COLOR] . ";'><A HREF='" . $QCOMMAND . "&command=processFalsePositive' TARGET='_blank'>Release</A></TD>");
       $SMTP->datasend("</TR>\n");
     }
     $SMTP->datasend("</TABLE>\n");

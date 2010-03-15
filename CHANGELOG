@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100315:2300] sbajic: Added alternating colors for the quarantine notification message
+
 [20100315:1945] sbajic: Fixed issue with empty Message-ID in Web-UI history display
 
 [20100313:2100] sbajic: Fixed a HTML markup error in dspam_notify and extended dspam_notify to list messages in quarantine
