@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# $Id: dspam_notify,v 1.02 2010/03/13 02:33:44 sbajic Exp $
+# $Id: dspam_notify,v 1.03 2010/03/13 20:51:18 sbajic Exp $
 
 use Net::SMTP;
 
@@ -142,24 +142,47 @@ foreach $RECIPIENT (@RECIPIENT_LIST) {
     $MBOX = $DSPAMHOME . "/data/" . $RECIPIENT . "/" . $RECIPIENT . ".mbox";
   }
 
-  # Tally Quarantine messages
+  # Get total amount of quarantine messages and their signature
   $NEW = 0;
   $TOTAL = 0;
+  $SIG = '';
+  @Q_SIG = ();
+  @Q_SUBJECT = ();
   if ($USER_PREF ne "off" && -e $MBOX) {					# Check if .mbox file exists and user pref
     open(MBOX, "<$MBOX") || die("Could not open " . $MBOX . " file!");
     while(<MBOX>) {
       s/\r?\n//;
-      if ($_ ne "") {
-	if ($_ =~ /^From QUARANTINE/) {
-          $TOTAL++;								# Count Total messages in Quarantine
-          $NEW++ if ($_ =~ /^From QUARANTINE $TODAY/);				# Count New messages in Quarantine
+      next if ($_ !~ /^From QUARANTINE/);
+      $TOTAL++;									# Count Total messages in Quarantine
+      $NEW++ if ($_ =~ /^From QUARANTINE $TODAY/);				# Count New messages in Quarantine
+      $QSUBJECT = '<None Specified>';
+      while(<MBOX>) {
+        s/\r?\n//;
+        last if ($_ eq "");
+        my($key, $val) = split(/\: ?/, $_, 2);
+        if ($key =~ /^Subject$/i) {
+          $val =~ s/^\s+//;
+          $val =~ s/\s+$//;
+          $QSUBJECT = $val if ($val ne "");
+        }
+        if ($key =~ /^X\-DSPAM\-Signature$/) {
+          push(@Q_SIG, $val);
+          $QSUBJECT =~ s/</&lt;/g;
+          $QSUBJECT =~ s/>/&gt;/g;
+          $QSUBJECT = substr($QSUBJECT, 0, 50) . "..." if (length($QSUBJECT)>50);
+          push(@Q_SUBJECT, $QSUBJECT);
+          last;
         }
       }
     }
     close(MBOX);
   }
+  push(@Q_SUBJECT_ITEMS, join("\n", @Q_SUBJECT));
+  push(@Q_SIG_ITEMS, join("\n", @Q_SIG));
   push(@Q_NEW_ITEMS, $NEW);							# Send Count to Array for later use
   push(@Q_TOTAL_ITEMS, $TOTAL);							# Send Count to Array for later use
+  @Q_SUBJECT = ();
+  @Q_SIG = ();
 }
 
 
@@ -185,9 +208,22 @@ for ($I = 0; $I <= $#RECIPIENT_LIST; $I++) {					# Loop through Recipients List 
     $SMTP->datasend("<TABLE>\n");
     $SMTP->datasend("<TR><TD>Quarantine Summary for</TD><TD>$RECIPIENT_LIST[$I]</TD></TR>\n");
     $SMTP->datasend("<TR><TD>Date</TD><TD>$TODAY, $YEAR</TD></TR>\n");
-    $SMTP->datasend("<TR><TD ROWSPAN='2'>&nbsp;</TD></TR>\n");
+    $SMTP->datasend("<TR><TD COLSPAN='2'>&nbsp;</TD></TR>\n");
     $SMTP->datasend("<TR><TD>New Messages</TD><TD>@Q_NEW_ITEMS[$I]</TD></TR>\n");
     $SMTP->datasend("<TR><TD>Total Messages</TD><TD>@Q_TOTAL_ITEMS[$I]</TD></TR>\n");
+    $SMTP->datasend("</TABLE>\n");
+    $SMTP->datasend("<BR>\n");
+    $SMTP->datasend("<TABLE>\n");
+    @Q_SUBJECT = split(/\n/,@Q_SUBJECT_ITEMS[$I]);
+    @Q_SIG = split(/\n/,@Q_SIG_ITEMS[$I]);
+    for ($J = 0; $J <= $#Q_SIG; $J++) {
+      my $QCOMMAND = $QUARANTINE_URL . "&user=" . $RECIPIENT_LIST[$I] . "&signatureID=" . @Q_SIG[$J];
+      $SMTP->datasend("<TR>");
+      $SMTP->datasend("<TD>" . @Q_SUBJECT[$J] . "</TD>");
+      $SMTP->datasend("<TD><A HREF='" . $QCOMMAND . "&command=viewMessage' TARGET='_blank'>View</A></TD>");
+      $SMTP->datasend("<TD><A HREF='" . $QCOMMAND . "&command=processFalsePositive' TARGET='_blank'>Release</A></TD>");
+      $SMTP->datasend("</TR>\n");
+    }
     $SMTP->datasend("</TABLE>\n");
     $SMTP->datasend("<BR>\n");
     $SMTP->datasend("Please remember to check <A HREF='$QUARANTINE_URL' TARGET='_blank'>Your Quarantine</A> regularly.\n");
