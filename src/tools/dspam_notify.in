@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# $Id: dspam_notify,v 1.04 2010/03/15 22:57:49 sbajic Exp $
+# $Id: dspam_notify,v 1.05 2010/03/18 03:18:59 sbajic Exp $
 
 use Net::SMTP;
 
@@ -24,7 +24,7 @@ $DSPAM_URL = 'https://dspam.domain.tld';
 # Maximum of entries to show in mail
 $MAX_ITEMS = 200;
 
-# Address of your SMTP server?  localhost should be fine.
+# Address of your SMTP server? localhost should be fine.
 $SERVER = 'localhost';
 
 # Port of your SMTP server? 25 should be fine
@@ -73,15 +73,29 @@ $TODAY = $DAY_ABR . " " . $MONTH_ABR . " " . $DAY_NUM;
     
 # Get the location of DSPAM home and if AllowOverride is set for dailyQuarantineSummary
 $DSPAMHOME = "";
-$ALLOW_OVERRIDE = "off";
+$ALLOW_OVERRIDE = "";
+$DEFAULT_PREF = "";
 open(DCONF, $DSPAMCONF) || die("Could not open " . $DSPAMCONF . " file!");
 while(<DCONF>) {
   chomp;
   my($directive, $value) = split(/\s+/);
   $DSPAMHOME = $value if ($directive eq "Home");
   $ALLOW_OVERRIDE = "on" if ($directive eq "AllowOverride" && $value eq "dailyQuarantineSummary");
+  if ($directive eq "Preference") {
+    if ($value =~ /^\s*[\"\']?dailyQuarantineSummary[\t ]*=[\t ]*on[\"\']?/) {
+      $DEFAULT_PREF = "on";
+    } else {
+      $DEFAULT_PREF = "off";
+    }
+  }
+  last if($DSPAMHOME ne "" && $ALLOW_OVERRIDE ne "" && $DEFAULT_PREF ne "");
 }
 close(DCONF);
+$ALLOW_OVERRIDE = "off" if($ALLOW_OVERRIDE eq "");
+$DEFAULT_PREF = "off" if($DEFAULT_PREF eq "");
+if (! -d $DSPAMHOME) {
+  die("Could not determine DSPAM home!");
+}
 
 # Create list of users having TP bigger then zero
 open(IN, "$BINDIR/dspam_stats|");
@@ -99,7 +113,6 @@ while(<IN>) {
 close(IN);
 
 # Get default user preference for dailyQuarantineSummary
-$DEFAULT_PREF = "on";
 if ($PREF_CHECK == 1 && $PREFERENCES_EXTENSION == 1) {
   open(PIPE, "$BINDIR/dspam_admin agg pref 'default'|");
   while(<PIPE>) {

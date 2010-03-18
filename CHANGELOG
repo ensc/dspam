@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100318:0325] sbajic: Fixing reading dailyQuarantineSummary and AllowOverride evaluation in dspam_notify (still need to fix if preferences are overwritten by pref file in user home)
+
 [20100315:2300] sbajic: Added alternating colors for the quarantine notification message
 
 [20100315:1945] sbajic: Fixed issue with empty Message-ID in Web-UI history display
