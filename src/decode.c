@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.385 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: decode.c,v 1.386 2010/03/23 09:18:12 sbajic Exp $ */
 
 /*
  DSPAM
@@ -636,7 +636,6 @@ _ds_destroy_message (ds_message_t message)
 {
   struct nt_node *node_nt;
   struct nt_c c;
-  int i = 0;
 
   if (message == NULL)
     return;
@@ -648,7 +647,6 @@ _ds_destroy_message (ds_message_t message)
       ds_message_part_t block = (ds_message_part_t) node_nt->ptr;
       _ds_destroy_block(block);
       node_nt = c_nt_next (message->components, &c);
-      i++;
     }
     nt_destroy (message->components);
   }
@@ -936,7 +934,9 @@ _ds_assemble_message (ds_message_t message, const char *newline)
   struct nt_c c_nt, c_nt2;
   char *heading;
   char *copyback;
+#ifdef VERBOSE
   int i = 0;
+#endif
 
   if (!out) {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
@@ -1004,7 +1004,9 @@ _ds_assemble_message (ds_message_t message, const char *newline)
     }
 
     node_nt = c_nt_next (message->components, &c_nt);
+#ifdef VERBOSE
     i++;
+#endif
 
     if (node_nt != NULL && node_nt->ptr != NULL)
       buffer_cat (out, newline);
@@ -1364,7 +1366,6 @@ _ds_strip_html (const char *html)
         /* tag with uri found */
         if (tag_offset > 0) {
           int url_start = tag_offset;         /* start of url tag inclusive [ */
-          int url_end = 0;                    /* end of url tag, exclusive ) */
           int url_tag_len = strlen(url_tag);
           char delim = ' ';
           /* find start of uri */
@@ -1395,9 +1396,8 @@ _ds_strip_html (const char *html)
            || strncasecmp(html + url_start, "https:", 6) == 0
            || strncasecmp(html + url_start, "ftp:", 4) == 0) {
             html2[j++]=' ';
-            url_end = url_start;
             const char *w = &(html[url_start]);
-            while (*w != delim) {html2[j++]=*w;url_end++;w++;}
+            while (*w != delim) {html2[j++]=*w;w++;}
             html2[j++]=' ';
           }
 
