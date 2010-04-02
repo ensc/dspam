@@ -70,6 +70,10 @@ UPGRADING FROM 3.8
    clause for upgrading pre-3.9.0 DSPAM virtual uids to the 3.9.0 schema:
      ALTER TABLE dspam_virtual_uids ALTER COLUMN uid TYPE integer;
 
+   You need to add an second lookup_tokens function to PostgreSQL. The additional
+   lookup_tokens function can be found in pgsql_objects.sql and it's a slightly
+   different and enhanced then the function originally introduced in 3.6.8.
+
 
 UPGRADING FROM 3.6
 ------------------
