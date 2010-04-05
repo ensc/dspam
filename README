@@ -284,11 +284,10 @@ FRESH INSTALLATION
      --prefix=DIR
      Specify an alternative root prefix for installation.  The default is
      /usr/local. This does not affect the location of dspam.conf (which 
-     defaults to /usr/local/etc). Use --sysconfdir= for this.
+     defaults to /etc). Use --sysconfdir= for this.
 
      --sysconfdir=DIR
-     Specify an alternative home for the dspam.conf file. The default is
-     prefix/etc.
+     Specify an alternative home for the dspam.conf file. The default is /etc.
 
      --with-dspam-home=DIR
      Specify an alternative DSPAM home for installation. This can alternatively

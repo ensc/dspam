@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100405:2215] sbajic: Fixing README regarding wrong location of dspam.conf (--sysconfdir)
+
 [20100402:2345] sbajic: Updated UPGRADING regarding the additional lookup_tokens for PostgreSQL
 
 [20100323:0945] sbajic: Removing some unused variables from decode.c
