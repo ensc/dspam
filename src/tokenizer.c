@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.294 2010/01/03 14:26:31 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.295 2010/04/08 18:17:14 sbajic Exp $ */
 
 /*
  DSPAM
@@ -798,7 +798,7 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
           /* HTML-Specific Filters */
 
           if (block->media_subtype == MST_HTML) {
-            decode3 = _ds_strip_html((char *)&decode2);
+            decode3 = _ds_strip_html(decode2);
           } else {
             decode3 = strdup(decode2);
           }

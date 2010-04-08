@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100408:1820] sbajic: Fixed potential security issue with HTML message processing
+
 [20100405:2215] sbajic: Fixing README regarding wrong location of dspam.conf (--sysconfdir)
 
 [20100402:2345] sbajic: Updated UPGRADING regarding the additional lookup_tokens for PostgreSQL
