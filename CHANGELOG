@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100411:1445] sbajic: Update PostgreSQL driver to be able to parse versions that have non numeric values in major, minor or micro like 'PostgreSQL 9.0alpha4 on i686-pc-linux-gnu, compiled by GCC i686-pc-linux-gnu-gcc (Gentoo 4.5.0_alpha20100401) 4.5.0-alpha20100401 20100401 (experimental), 32-bit'
+
 [20100408:1820] sbajic: Fixed potential security issue with HTML message processing
 
 [20100405:2215] sbajic: Fixing README regarding wrong location of dspam.conf (--sysconfdir)
