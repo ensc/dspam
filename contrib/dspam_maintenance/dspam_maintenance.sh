@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.07 2010/01/15 20:52:41 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.08 2010/01/14 00:52:22 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -580,7 +580,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	else
 		PROFILE=.${PROFILE}
 	fi
-	[ -z "${LOGROTATE_AGE}" ] && LOGROTATE_AGE=15			# System and user log
+	[ -z "${LOGROTATE_AGE}" ] && LOGROTATE_AGE=31			# System and user log
 	[ -z "${USE_SQL_PURGE}" ] && USE_SQL_PURGE="true"		# Run SQL purge scripts
 	[ -z "${PURGE_ALL_DRIVERS}" ] && PURGE_ALL_DRIVERS="false"	# Only purge active driver
 	[ -z "${VERBOSE}" ] && VERBOSE="false"				# No additional output

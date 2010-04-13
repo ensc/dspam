@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100414:0055] sbajic: Updating dspam_maintenance.sh to use 31 days as default for system log purging. Old value was 15 days and that is way to short since the DSPAM Web-UI by default displays the last 25 days in the Administrative Suite dashboard
+
 [20100414:0050] sbajic: Adding hidden HTML snipplet to user and admin preferences HTML template in the English Web-UI
 
 [20100414:0040] sbajic: Fixing typo in user history page for the English Web-UI template
