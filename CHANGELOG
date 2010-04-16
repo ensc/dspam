@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100417:0025] sbajic: Fixing typos and other errors in the man pages
+
 [20100416:2100] sbajic: Do not attempt to retrain if zero tokens where retrieved from a signature
 
 [20100416:1830] sbajic: Do not treat user names as email addresses when using DLMTP
