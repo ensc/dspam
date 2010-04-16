@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.190 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.191 2010/04/16 20:34:58 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1233,128 +1233,144 @@ _ds_process_signature (DSPAM_CTX * CTX)
       strcpy(CTX->class, LANG_CLASS_INNOCENT);
   }
 
-  LOGDEBUG ("reversing %d tokens", num_tokens);
-  for (i = 0; i < num_tokens; i++)
+  /* Don't retrain if no tokens where loaded from the signature */
+  if (num_tokens == 0)
   {
-    memcpy (&t,
-            (char *) CTX->signature->data +
-            (i * sizeof (struct _ds_signature_token)),
-            sizeof (struct _ds_signature_token));
-    ds_term = ds_diction_touch (diction, t.token, "-", 0);
-    if (ds_term)
-      ds_term->frequency = t.frequency;
-  }
-
-  if (_ds_getall_spamrecords (CTX, diction)) {
-    ds_diction_destroy(diction);
-    return EUNKNOWN;
-  }
-
-  ds_c = ds_diction_cursor(diction);
-  ds_term = ds_diction_next(ds_c);
-  while(ds_term)
-  {
-    /* INNOCENT */
-    if (CTX->classification == DSR_ISINNOCENT)
+    LOG (LOG_WARNING, "Skipping retraining for signature '%s' with %d tokens", CTX->signature, num_tokens);
+    LOGDEBUG ("Skipping retraining for signature '%s' with %d tokens", CTX->signature, num_tokens);
+  } else {
+    LOGDEBUG ("Reversing %d tokens", num_tokens);
+    for (i = 0; i < num_tokens; i++)
     {
-      if (CTX->flags & DSF_UNLEARN) {
-        if (CTX->classification == DSR_ISSPAM)
-        {
-          if (occurrence)
-          {
-            ds_term->s.innocent_hits -= ds_term->frequency;
-            if (ds_term->s.innocent_hits < 0)
-              ds_term->s.innocent_hits = 0;
-          } else {
-            ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
-          }
-        }
-
-      } else {
-        if (occurrence)
-        {
-          ds_term->s.innocent_hits += ds_term->frequency;
-        } else {
-          ds_term->s.innocent_hits++;
-        }
-
-        if (CTX->source == DSS_ERROR          && 
-            CTX->training_mode != DST_NOTRAIN && 
-            CTX->training_mode != DST_TOE)
-        {
-          if (occurrence)
-          {
-            ds_term->s.spam_hits -= ds_term->frequency;
-            if (ds_term->s.spam_hits < 0)
-              ds_term->s.spam_hits = 0;
-          } else {
-            ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
-          }
-        }
+      memcpy (&t,
+              (char *) CTX->signature->data +
+              (i * sizeof (struct _ds_signature_token)),
+              sizeof (struct _ds_signature_token));
+      ds_term = ds_diction_touch (diction, t.token, "-", 0);
+      if (ds_term)
+      {
+        ds_term->frequency = t.frequency;
       }
     }
 
+    if (_ds_getall_spamrecords (CTX, diction)) {
+      ds_diction_destroy(diction);
+      return EUNKNOWN;
+    }
 
-    /* SPAM */
-    else if (CTX->classification == DSR_ISSPAM)
+    ds_c = ds_diction_cursor(diction);
+    ds_term = ds_diction_next(ds_c);
+    while(ds_term)
     {
-      if (CTX->flags & DSF_UNLEARN) {
-        if (CTX->classification == DSR_ISSPAM)
+      /* INNOCENT */
+      if (CTX->classification == DSR_ISINNOCENT)
+      {
+        if (CTX->flags & DSF_UNLEARN)
         {
+          if (CTX->classification == DSR_ISSPAM)
+          {
+            if (occurrence)
+            {
+              ds_term->s.innocent_hits -= ds_term->frequency;
+              if (ds_term->s.innocent_hits < 0)
+                ds_term->s.innocent_hits = 0;
+            } else {
+              ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
+            }
+          }
+
+        } else {
           if (occurrence)
           {
-            ds_term->s.spam_hits -= ds_term->frequency;
-            if (ds_term->s.spam_hits < 0)
-              ds_term->s.spam_hits = 0;
+            ds_term->s.innocent_hits += ds_term->frequency;
           } else {
-            ds_term->s.spam_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
+            ds_term->s.innocent_hits++;
+          }
+
+          if (CTX->source == DSS_ERROR          && 
+              CTX->training_mode != DST_NOTRAIN && 
+              CTX->training_mode != DST_TOE)
+          {
+            if (occurrence)
+            {
+              ds_term->s.spam_hits -= ds_term->frequency;
+              if (ds_term->s.spam_hits < 0)
+              {
+                ds_term->s.spam_hits = 0;
+              }
+            } else {
+              ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
+            }
           }
         }
+      }
 
-      } else {
-       if (CTX->source == DSS_ERROR          && 
-           CTX->training_mode != DST_NOTRAIN && 
-           CTX->training_mode != DST_TOE)
-       {
-          if (occurrence)
+      /* SPAM */
+      else if (CTX->classification == DSR_ISSPAM)
+      {
+        if (CTX->flags & DSF_UNLEARN)
+        {
+          if (CTX->classification == DSR_ISSPAM)
           {
-            ds_term->s.innocent_hits -= ds_term->frequency;
-            if (ds_term->s.innocent_hits < 0)
-              ds_term->s.innocent_hits = 0;
-          } else {
-            ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
+            if (occurrence)
+            {
+              ds_term->s.spam_hits -= ds_term->frequency;
+              if (ds_term->s.spam_hits < 0)
+              {
+                ds_term->s.spam_hits = 0;
+              }
+            } else {
+              ds_term->s.spam_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
+            }
           }
 
-       }
+        } else {
+          if (CTX->source == DSS_ERROR          && 
+              CTX->training_mode != DST_NOTRAIN && 
+              CTX->training_mode != DST_TOE)
+          {
+            if (occurrence)
+            {
+              ds_term->s.innocent_hits -= ds_term->frequency;
+              if (ds_term->s.innocent_hits < 0)
+                ds_term->s.innocent_hits = 0;
+            } else {
+              ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
+            }
+          }
 
-        if (CTX->source == DSS_INOCULATION)
-        {
-          if (ds_term->s.innocent_hits < 2 && ds_term->s.spam_hits < 5)
-            ds_term->s.spam_hits += 5;
-          else
-            ds_term->s.spam_hits += 2;
-        } else /* ERROR or CORPUS */
-        {
+          if (CTX->source == DSS_INOCULATION)
+          {
+            if (ds_term->s.innocent_hits < 2 && ds_term->s.spam_hits < 5)
+            {
+              ds_term->s.spam_hits += 5;
+            }
+            else
+            {
+              ds_term->s.spam_hits += 2;
+            }
+          } else /* ERROR or CORPUS */
+          {
             if (occurrence)
             {
               ds_term->s.spam_hits += ds_term->frequency;
             } else {
               ds_term->s.spam_hits++;
             }
-
+          }
         }
       }
+
+      ds_term->s.status |= TST_DIRTY;
+      ds_term = ds_diction_next(ds_c);
     }
+    ds_diction_close(ds_c);
 
-    ds_term->s.status |= TST_DIRTY;
-    ds_term = ds_diction_next(ds_c);
-  }
-  ds_diction_close(ds_c);
-
-  if (CTX->training_mode != DST_NOTRAIN) {
-    if (_ds_setall_spamrecords (CTX, diction)) {
-      ds_diction_destroy(diction);
-      return EUNKNOWN;
+    if (CTX->training_mode != DST_NOTRAIN) {
+      if (_ds_setall_spamrecords (CTX, diction)) {
+        ds_diction_destroy(diction);
+        return EUNKNOWN;
+      }
     }
   }
 
