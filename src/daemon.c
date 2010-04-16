@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.14 2010/02/24 17:41:09 sbajic Exp $ */
+/* $Id: daemon.c,v 1.15 2010/04/16 18:25:17 sbajic Exp $ */
 
 /*
  DSPAM
@@ -579,11 +579,12 @@ void *process_connection(void *ptr) {
         }
 
         if (_ds_extract_address(username, cmdline, sizeof(username)) ||
-            username[0] == 0 || username[0] == '-' || username[0] == '@' ||
-            _ds_validate_address(username) == 0)
+            username[0] == 0 || username[0] == '-' || username[0] == '@')
         {
-          daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERR_LMTP_BAD_RCPT);
-          goto GETCMD;
+          if ((server_mode == SSM_DSPAM) || (server_mode == SSM_STANDARD && _ds_validate_address(username) == 0)) {
+            daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERR_LMTP_BAD_RCPT);
+            goto GETCMD;
+          }
         }
 
         if (_ds_match_attribute(agent_config, "Broken", "case"))
