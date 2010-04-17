@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.192 2010/04/17 12:42:33 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.193 2010/04/17 15:01:01 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1378,11 +1378,13 @@ _ds_process_signature (DSPAM_CTX * CTX)
   {
     CTX->probability = 1.0;
     CTX->result = DSR_ISSPAM;
+    LOGDEBUG ("Message classification/result: SPAM");
   }
   else
   {
     CTX->probability = 0.0;
     CTX->result = DSR_ISINNOCENT;
+    LOGDEBUG ("Message classification/result: INNOCENT");
   }
 
   ds_diction_destroy(diction);
