@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100417:1615] sbajic: Updating dspam_maintenance.sh to work better under Debian Almquist Shell. Adding option to run vacuum/optimize/analyze after purging.
+
 [20100417:1500] sbajic: Adding more debug output to libdspam
 
 [20100417:1445] sbajic: Unifying the format of section headers (aka: # --- MySQL ---, # --- PostgreSQL ---, etc) and adding example for split configuration

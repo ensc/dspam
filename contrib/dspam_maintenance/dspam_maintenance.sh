@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.08 2010/01/14 00:52:22 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.09 2010/04/17 15:23:09 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -49,10 +49,24 @@ do
 		--hits1i=*) HITS1I_AGE="${foo#--hits1i=}";;
 		--purgescriptdir=*) DSPAM_PURGE_SCRIPT_DIR="${foo#--purgescriptdir=}";;
 		--without-sql-purge) USE_SQL_PURGE="false";;
+		--with-sql-optimization) USE_SQL_OPTIMIZATION="true";;
 		--with-all-drivers) PURGE_ALL_DRIVERS="true";;
 		--verbose) VERBOSE="true";;
 		*)
-			echo -ne "Usage: $0 \n\t[--profile=[PROFILE]]\n\t[--logdays=no_of_days]\n\t[--signatures=no_of_days]\n\t[--neutral=no_of_days]\n\t[--unused=no_of_days]\n\t[--hapaxes=no_of_days]\n\t[--hits1s=no_of_days]\n\t[--hits1i=no_of_days]\n\t[--without-sql-purge]\n\t[--purgescriptdir=[DIRECTORY]\n\t[--with-all-drivers]\n\t\[--verbose]\n"
+			echo "Usage: $0"
+			echo "  [--profile=[PROFILE]]"
+			echo "  [--logdays=no_of_days]"
+			echo "  [--signatures=no_of_days]"
+			echo "  [--neutral=no_of_days]"
+			echo "  [--unused=no_of_days]"
+			echo "  [--hapaxes=no_of_days]"
+			echo "  [--hits1s=no_of_days]"
+			echo "  [--hits1i=no_of_days]"
+			echo "  [--without-sql-purge]"
+			echo "  [--with-sql-optimization]"
+			echo "  [--purgescriptdir=[DIRECTORY]"
+			echo "  [--with-all-drivers]"
+			echo "  [--verbose]"
 			exit 1
 			;;
 	esac
@@ -63,7 +77,7 @@ done
 # Function to run dspam_clean
 #
 run_dspam_clean() {
-	[ "${VERBOSE}" = "true" ] && echo -ne "Running dspam_clean"
+	[ "${VERBOSE}" = "true" ] && echo "Running dspam_clean ..."
 	local PURGE_SIG="${1}"
 	local ADD_PARAMETER=""
 	read_dspam_params DefaultProfile
@@ -73,10 +87,10 @@ run_dspam_clean() {
 	fi
 	if [ "${PURGE_SIG}" = "YES" ]
 	then
-		echo " (with purging old signatures)"
+		[ "${VERBOSE}" = "true" ] && echo "  * with purging old signatures"
 		${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -s${SIGNATURE_AGE} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
 	else
-		echo " (without purging old signatures)"
+		[ "${VERBOSE}" = "true" ] && echo "  * without purging old signatures"
 		${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
 	fi
 	return ${?}
@@ -128,15 +142,23 @@ clean_mysql_drv() {
 		read_dspam_params MySQLServer${PROFILE} MySQLPort${PROFILE} MySQLUser${PROFILE} MySQLPass${PROFILE} MySQLDb${PROFILE} MySQLCompress${PROFILE} && \
 		[ -n "${MySQLServer}" -a -n "${MySQLUser}" -a -n "${MySQLDb}" ]
 	then
-		if [ ! -e "${MYSQL_BIN_DIR}/mysql_config" ]
+		if [ -e "${MYSQL_BIN_DIR}/mysql_config" ]
 		then
-			echo "Can not run MySQL purge script:"
-			echo "  ${MYSQL_BIN_DIR}/mysql_config does not exist"
+			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql_config --version | sed -e "s:[^0-9.]*::g" -e "1,/./{//d;}")
+		elif [ -e "${MYSQL_BIN_DIR}/mysql" ]
+		then
+			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql_config --version | sed -e "s:^.*Distrib[\t ]\{1,\}\([0-9.]*\).*:\1:g" -e "1,/./{//d;}")
+		fi
+
+		if [ -z "${DSPAM_MySQL_VER}" ]
+		then
+			echo "  Can not run MySQL purge script:"
+			echo "    ${MYSQL_BIN_DIR}/mysql_config or ${MYSQL_BIN_DIR}/mysql does not exist"
 			return 1
 		fi
+
 		DSPAM_MySQL_PURGE_SQL=
 		DSPAM_MySQL_PURGE_SQL_FILES=
-		DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql_config --version | sed "s:[^0-9.]*::g")
 		DSPAM_MySQL_MAJOR=$(echo "${DSPAM_MySQL_VER}" | cut -d. -f1)
 		DSPAM_MySQL_MINOR=$(echo "${DSPAM_MySQL_VER}" | cut -d. -f2)
 		DSPAM_MySQL_MICRO=$(echo "${DSPAM_MySQL_VER}" | cut -d. -f3)
@@ -179,27 +201,28 @@ clean_mysql_drv() {
 
 		if [ -z "${DSPAM_MySQL_PURGE_SQL}" ]
 		then
-			echo "Can not run MySQL purge script:"
-			echo "  No mysql_purge SQL script found"
+			echo "  Can not run MySQL purge script:"
+			echo "    None of the ${DSPAM_MySQL_PURGE_SQL_FILES} SQL script(s) found"
 			return 1
 		fi
 
 		if [ ! -r "${DSPAM_MySQL_PURGE_SQL}" ]
 		then
-			echo "Can not read MySQL purge script:"
-			echo "  ${DSPAM_MySQL_PURGE_SQL}"
+			echo "  Can not read MySQL purge script:"
+			echo "    ${DSPAM_MySQL_PURGE_SQL}"
 			return 1
 		fi
 
 		if [ ! -e "${MYSQL_BIN_DIR}/mysql" ]
 		then
-			echo "Can not run MySQL purge script:"
-			echo "  ${MYSQL_BIN_DIR}/mysql does not exist"
+			echo "  Can not run MySQL purge script:"
+			echo "    ${MYSQL_BIN_DIR}/mysql does not exist"
 			return 1
 		fi
 
 		# Construct mysql command line
-		echo -e "[client]\npassword=${MySQLPass}\n">"${DSPAM_CRON_TMPFILE}"
+		echo "[client]">"${DSPAM_CRON_TMPFILE}"
+		echo "password=${MySQLPass}">>"${DSPAM_CRON_TMPFILE}"
 		DSPAM_MySQL_CMD="${MYSQL_BIN_DIR}/mysql"
 		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --defaults-extra-file=${DSPAM_CRON_TMPFILE}"
 		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --silent"
@@ -218,6 +241,13 @@ clean_mysql_drv() {
 		if [ ${_RC} != 0 ]
 		then
 			echo "MySQL purge script returned error code ${_RC}"
+		elif [ "${USE_SQL_OPTIMIZATION}" = "true" ]
+		then
+			for foo in dspam_preferences dspam_signature_data dspam_stats dspam_token_data dspam_virtual_uids
+			do
+				${DSPAM_MySQL_CMD} --batch -e "OPTIMIZE TABLE ${foo};" ${MySQLDb} >/dev/null 2>&1
+				${DSPAM_MySQL_CMD} --batch -e "ANALYZE TABLE ${foo};" ${MySQLDb} >/dev/null 2>&1
+			done
 		fi
 		echo "">"${DSPAM_CRON_TMPFILE}"
 
@@ -266,22 +296,22 @@ clean_pgsql_drv() {
 
 		if [ -z "${DSPAM_PgSQL_PURGE_SQL}" ]
 		then
-			echo "Can not run PostgreSQL purge script:"
-			echo "  No pgsql_purge SQL script found"
+			echo "  Can not run PostgreSQL purge script:"
+			echo "    None of the ${DSPAM_PgSQL_PURGE_SQL_FILES} SQL script(s) found"
 			return 1
 		fi
 
 		if [ ! -r "${DSPAM_PgSQL_PURGE_SQL}" ]
 		then
-			echo "Can not read PostgreSQL purge script:"
-			echo "  ${DSPAM_PgSQL_PURGE_SQL}"
+			echo "  Can not read PostgreSQL purge script:"
+			echo "    ${DSPAM_PgSQL_PURGE_SQL}"
 			return 1
 		fi
 
 		if [ ! -e "${PGSQL_BIN_DIR}/psql" ]
 		then
-			echo "Can not run PostgreSQL purge script:"
-			echo "  ${PGSQL_BIN_DIR}/psql does not exist"
+			echo "  Can not run PostgreSQL purge script:"
+			echo "    ${PGSQL_BIN_DIR}/psql does not exist"
 			return 1
 		fi
 
@@ -322,7 +352,7 @@ clean_hash_drv() {
 				${DSPAM_BIN_DIR}/cssclean "${name}" 1>/dev/null 2>&1
 			done
 		else
-			echo "DSPAM cssclean binary not found!"
+			echo "  DSPAM cssclean binary not found!"
 		fi
 		find ${DSPAM_HOMEDIR}/data/ -maxdepth 4 -mindepth 1 -type d -name "*.sig" | while read name
 		do
@@ -346,20 +376,49 @@ clean_sqlite3_drv() {
 	if	[ "${USE_SQL_PURGE}" = "true" ]
 	then
 		DSPAM_SQLite3_PURGE_SQL=""
-		[ -f "${DSPAM_CONFIGDIR}/config/sqlite3_purge.sql" ] && DSPAM_SQLite3_PURGE_SQL="${DSPAM_CONFIGDIR}/config/sqlite3_purge.sql"
-		[ -f "${DSPAM_CONFIGDIR}/sqlite3_purge.sql" ] && DSPAM_SQLite3_PURGE_SQL="${DSPAM_CONFIGDIR}/sqlite3_purge.sql"
+		DSPAM_SQLite3_PURGE_SQL_FILES="sqlite3_purge"
+
+		#
+		# We first search for the purge scripts in the directory the user has
+		# told us to look for (command line option: --purgescriptdir
+		# Then we look in DSPAM configuration directory under ./config/ and then
+		# in the DSPAM configuration directory it self.
+		#
+		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR}
+		do
+			for bar in ${DSPAM_SQLite3_PURGE_SQL_FILES}
+			do
+				if [ -f "${foo}/${bar}.sql" ]
+				then
+					DSPAM_SQLite3_PURGE_SQL="${foo}/${bar}.sql"
+					break
+				elif [ -f "${foo}/${bar/_//}.sql" ]
+				then
+					DSPAM_SQLite3_PURGE_SQL="${foo}/${bar/_//}.sql"
+					break
+				fi
+			done
+			[ -n "${DSPAM_SQLite3_PURGE_SQL}" ] && break
+		done
 
 		if [ -z "${DSPAM_SQLite3_PURGE_SQL}" ]
 		then
-			echo "Can not run SQLite3 purge script:"
-			echo "  No sqlite_purge SQL script found"
+			echo "  Can not run SQLite3 purge script:"
+			echo "    None of the ${DSPAM_SQLite3_PURGE_SQL_FILES} SQL script(s) found"
+			return 1
+		fi
+
+		if [ ! -r "${DSPAM_SQLite3_PURGE_SQL}" ]
+		then
+			echo "  Can not read SQLite3 purge script:"
+			echo "    ${DSPAM_SQLite3_PURGE_SQL}"
 			return 1
 		fi
 
 		if [ ! -e "${SQLITE3_BIN_DIR}/sqlite3" ]
 		then
-			echo "Can not run SQLite3 purge script:"
-			echo "  ${SQLITE3_BIN_DIR}/sqlite3 does not exist"
+			echo "  Can not run SQLite3 purge script:"
+			echo "    ${SQLITE3_BIN_DIR}/sqlite3 does not exist"
 			return 1
 		fi
 
@@ -367,8 +426,11 @@ clean_sqlite3_drv() {
 		find "${DSPAM_HOMEDIR}" -name "*.sdb" -print | while read name
 		do
 			${SQLITE3_BIN_DIR}/sqlite3 "${name}" < "${DSPAM_SQLite3_PURGE_SQL}" >/dev/null
-			# Enable the next line if you don't vacuum in the purge script
-			# echo "vacuum;" | ${SQLITE3_BIN_DIR}/sqlite3 "${name}" >/dev/null
+			if [ "${USE_SQL_OPTIMIZATION}" = "true" ]
+			then
+				# Enable the next line if you don't vacuum in the purge script
+				echo "vacuum;" | ${SQLITE3_BIN_DIR}/sqlite3 "${name}" >/dev/null
+			fi
 		done 1>/dev/null 2>&1
 		return 0
 	fi
@@ -387,20 +449,49 @@ clean_sqlite_drv() {
 	if	[ "${USE_SQL_PURGE}" = "true" ]
 	then
 		DSPAM_SQLite_PURGE_SQL=""
-		[ -f "${DSPAM_CONFIGDIR}/config/sqlite_purge.sql" ] && DSPAM_SQLite_PURGE_SQL="${DSPAM_CONFIGDIR}/config/sqlite_purge.sql"
-		[ -f "${DSPAM_CONFIGDIR}/sqlite_purge.sql" ] && DSPAM_SQLite_PURGE_SQL="${DSPAM_CONFIGDIR}/sqlite_purge.sql"
+		DSPAM_SQLite_PURGE_SQL_FILES="sqlite_purge"
+
+		#
+		# We first search for the purge scripts in the directory the user has
+		# told us to look for (command line option: --purgescriptdir
+		# Then we look in DSPAM configuration directory under ./config/ and then
+		# in the DSPAM configuration directory it self.
+		#
+		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR}
+		do
+			for bar in ${DSPAM_SQLite_PURGE_SQL_FILES}
+			do
+				if [ -f "${foo}/${bar}.sql" ]
+				then
+					DSPAM_SQLite_PURGE_SQL="${foo}/${bar}.sql"
+					break
+				elif [ -f "${foo}/${bar/_//}.sql" ]
+				then
+					DSPAM_SQLite_PURGE_SQL="${foo}/${bar/_//}.sql"
+					break
+				fi
+			done
+			[ -n "${DSPAM_SQLite_PURGE_SQL}" ] && break
+		done
 
 		if [ -z "${DSPAM_SQLite_PURGE_SQL}" ]
 		then
-			echo "Can not run SQLite purge script:"
-			echo "  No sqlite_purge SQL script found"
+			echo "  Can not run SQLite purge script:"
+			echo "    None of the ${DSPAM_SQLite_PURGE_SQL_FILES} SQL script(s) found"
+			return 1
+		fi
+
+		if [ ! -r "${DSPAM_SQLite_PURGE_SQL}" ]
+		then
+			echo "  Can not read SQLite purge script:"
+			echo "    ${DSPAM_SQLite_PURGE_SQL}"
 			return 1
 		fi
 
 		if [ ! -e "${SQLITE_BIN_DIR}/sqlite" ]
 		then
-			echo "Can not run SQLite purge script:"
-			echo "  ${SQLITE_BIN_DIR}/sqlite does not exist"
+			echo "  Can not run SQLite purge script:"
+			echo "    ${SQLITE_BIN_DIR}/sqlite does not exist"
 			return 1
 		fi
 
@@ -408,8 +499,11 @@ clean_sqlite_drv() {
 		find "${DSPAM_HOMEDIR}" -name "*.sdb" -print | while read name
 		do
 			${SQLITE_BIN_DIR}/sqlite "${name}" < "${DSPAM_SQLite_PURGE_SQL}" >/dev/null
-			# Enable the next line if you don't vacuum in the purge script
-			# echo "vacuum;" | ${SQLITE_BIN_DIR}/sqlite "${name}" >/dev/null
+			if [ "${USE_SQL_OPTIMIZATION}" = "true" ]
+			then
+				# Enable the next line if you don't vacuum in the purge script
+				# echo "vacuum;" | ${SQLITE_BIN_DIR}/sqlite "${name}" >/dev/null
+			fi
 		done 1>/dev/null 2>&1
 		return 0
 	fi
@@ -580,10 +674,11 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	else
 		PROFILE=.${PROFILE}
 	fi
-	[ -z "${LOGROTATE_AGE}" ] && LOGROTATE_AGE=31			# System and user log
-	[ -z "${USE_SQL_PURGE}" ] && USE_SQL_PURGE="true"		# Run SQL purge scripts
-	[ -z "${PURGE_ALL_DRIVERS}" ] && PURGE_ALL_DRIVERS="false"	# Only purge active driver
-	[ -z "${VERBOSE}" ] && VERBOSE="false"				# No additional output
+	[ -z "${LOGROTATE_AGE}" ] && LOGROTATE_AGE=31				# System and user log
+	[ -z "${USE_SQL_PURGE}" ] && USE_SQL_PURGE="true"			# Run SQL purge scripts
+	[ -z "${USE_SQL_OPTIMIZATION}" ] && USE_SQL_OPTIMIZATION="false"	# Do not run vacuum or optimize
+	[ -z "${PURGE_ALL_DRIVERS}" ] && PURGE_ALL_DRIVERS="false"		# Only purge active driver
+	[ -z "${VERBOSE}" ] && VERBOSE="false"					# No additional output
 	if [ -z "${SIGNATURE_AGE}" ]
 	then
 		if read_dspam_params PurgeSignatures && [ -n "${PurgeSignatures}" -a "${PurgeSignatures}" != "off" ]
