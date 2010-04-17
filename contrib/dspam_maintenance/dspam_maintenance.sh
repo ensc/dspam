@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.13 2010/04/17 17:19:01 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.14 2010/04/17 17:33:08 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -760,11 +760,11 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	#
 	if [ ! -e "${DSPAM_BIN_DIR}/dspam_logrotate" ]
 	then
-		[ "${VERBOSE}" = "true" ] && echo "dspam_logrotate not found! Can not continue without it."
-		exit 2
+		[ "${VERBOSE}" = "true" ] && echo "dspam_logrotate not found! Not purging system and user logs."
+	else
+		[ "${VERBOSE}" = "true" ] && echo "Running dspam_logrotate in the background"
+		${DSPAM_BIN_DIR}/dspam_logrotate -a ${LOGROTATE_AGE} -d "${DSPAM_HOMEDIR}" >/dev/null &
 	fi
-	[ "${VERBOSE}" = "true" ] && echo "Running dspam_logrotate"
-	${DSPAM_BIN_DIR}/dspam_logrotate -a ${LOGROTATE_AGE} -d "${DSPAM_HOMEDIR}" >/dev/null &
 
 
 	#
