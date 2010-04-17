@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.09 2010/04/17 15:23:09 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.10 2010/04/17 16:14:18 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -246,7 +246,7 @@ clean_mysql_drv() {
 			for foo in dspam_preferences dspam_signature_data dspam_stats dspam_token_data dspam_virtual_uids
 			do
 				${DSPAM_MySQL_CMD} --batch -e "OPTIMIZE TABLE ${foo};" ${MySQLDb} >/dev/null 2>&1
-				${DSPAM_MySQL_CMD} --batch -e "ANALYZE TABLE ${foo};" ${MySQLDb} >/dev/null 2>&1
+				# ${DSPAM_MySQL_CMD} --batch -e "ANALYZE TABLE ${foo};" ${MySQLDb} >/dev/null 2>&1
 			done
 		fi
 		echo "">"${DSPAM_CRON_TMPFILE}"
