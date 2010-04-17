@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.191 2010/04/16 20:34:58 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.192 2010/04/17 12:42:33 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1236,8 +1236,8 @@ _ds_process_signature (DSPAM_CTX * CTX)
   /* Don't retrain if no tokens where loaded from the signature */
   if (num_tokens == 0)
   {
-    LOG (LOG_WARNING, "Skipping retraining for signature '%s' with %d tokens", CTX->signature, num_tokens);
-    LOGDEBUG ("Skipping retraining for signature '%s' with %d tokens", CTX->signature, num_tokens);
+    LOG (LOG_WARNING, "Skipping retraining for signature with %d tokens", num_tokens);
+    LOGDEBUG ("Skipping retraining for signature with %d tokens", num_tokens);
   } else {
     LOGDEBUG ("Reversing %d tokens", num_tokens);
     for (i = 0; i < num_tokens; i++)
