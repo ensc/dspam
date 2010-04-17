@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100417:1445] sbajic: Unifying the format of section headers (aka: # --- MySQL ---, # --- PostgreSQL ---, etc) and adding example for split configuration
+
 [20100417:1245] sbajic: Fixing typo in libdspam when retraining message from signature with zero tokens
 
 [20100417:0025] sbajic: Fixing typos and other errors in the man pages
