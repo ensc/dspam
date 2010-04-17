@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100417:1700] sbajic: Fixing bugs in dspam_maintenance.sh
+
 [20100417:1615] sbajic: Removed "ANALYZE TABLE" from dspam_maintenance.sh for MySQL
 
 [20100417:1615] sbajic: Updating dspam_maintenance.sh to work better under Debian Almquist Shell. Adding option to run vacuum/optimize/analyze after purging.

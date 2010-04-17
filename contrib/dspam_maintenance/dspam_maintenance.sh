@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.10 2010/04/17 16:14:18 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.11 2010/04/17 16:58:31 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -147,7 +147,7 @@ clean_mysql_drv() {
 			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql_config --version | sed -e "s:[^0-9.]*::g" -e "1,/./{//d;}")
 		elif [ -e "${MYSQL_BIN_DIR}/mysql" ]
 		then
-			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql_config --version | sed -e "s:^.*Distrib[\t ]\{1,\}\([0-9.]*\).*:\1:g" -e "1,/./{//d;}")
+			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql --version | sed -e "s:^.*Distrib[\t ]\{1,\}\([0-9.]*\).*:\1:g" -e "1,/./{//d;}")
 		fi
 
 		if [ -z "${DSPAM_MySQL_VER}" ]
@@ -502,7 +502,7 @@ clean_sqlite_drv() {
 			if [ "${USE_SQL_OPTIMIZATION}" = "true" ]
 			then
 				# Enable the next line if you don't vacuum in the purge script
-				# echo "vacuum;" | ${SQLITE_BIN_DIR}/sqlite "${name}" >/dev/null
+				echo "vacuum;" | ${SQLITE_BIN_DIR}/sqlite "${name}" >/dev/null
 			fi
 		done 1>/dev/null 2>&1
 		return 0
