@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.14 2010/04/17 17:33:08 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.15 2010/04/17 23:56:17 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -144,10 +144,10 @@ clean_mysql_drv() {
 	then
 		if [ -e "${MYSQL_BIN_DIR}/mysql_config" ]
 		then
-			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql_config --version | sed -e "s:[^0-9.]*::g" -n -e "1,/./{//p;q}")
+			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql_config --version | sed -n 's:^[^0-9]*\([0-9.]*\).*:\1:p')
 		elif [ -e "${MYSQL_BIN_DIR}/mysql" ]
 		then
-			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql --version | sed -e "s:^.*Distrib[\t ]\{1,\}\([0-9.]*\).*:\1:g" -n -e "1,/./{//p;q}")
+			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql --version | sed -n 's:^.*[\t ]Distrib[^0-9]*\([0-9.]*\).*:\1:p')
 		fi
 
 		if [ -z "${DSPAM_MySQL_VER}" ]
@@ -170,7 +170,7 @@ clean_mysql_drv() {
 			# For the 4.1-optimized version see:
 			# http://securitydot.net/txt/id/32/type/articles/
 			# Version >= 3.9.0 of DSPAM do already include a better purge script.
-			DSPAM_MySQL_PURGE_SQL_FILES="mysql_purge-4.1-optimized mysql_purge-4.1"
+			DSPAM_MySQL_PURGE_SQL_FILES="mysql_purge-4.1 mysql_purge-4.1-optimized"
 		else
 			DSPAM_MySQL_PURGE_SQL_FILES="mysql_purge"
 
