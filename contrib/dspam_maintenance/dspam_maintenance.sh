@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.12 2010/04/17 17:12:13 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.13 2010/04/17 17:19:01 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -144,10 +144,10 @@ clean_mysql_drv() {
 	then
 		if [ -e "${MYSQL_BIN_DIR}/mysql_config" ]
 		then
-			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql_config --version | sed -e "s:[^0-9.]*::g" -e "1,/./{//d;}")
+			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql_config --version | sed -e "s:[^0-9.]*::g" -n -e "1,/./{//p;q}")
 		elif [ -e "${MYSQL_BIN_DIR}/mysql" ]
 		then
-			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql --version | sed -e "s:^.*Distrib[\t ]\{1,\}\([0-9.]*\).*:\1:g" -e "1,/./{//d;}")
+			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql --version | sed -e "s:^.*Distrib[\t ]\{1,\}\([0-9.]*\).*:\1:g" -n -e "1,/./{//p;q}")
 		fi
 
 		if [ -z "${DSPAM_MySQL_VER}" ]
