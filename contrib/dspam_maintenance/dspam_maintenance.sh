@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: dspam_maintenance.sh,v 1.11 2010/04/17 16:58:31 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.12 2010/04/17 17:12:13 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -152,8 +152,8 @@ clean_mysql_drv() {
 
 		if [ -z "${DSPAM_MySQL_VER}" ]
 		then
-			echo "  Can not run MySQL purge script:"
-			echo "    ${MYSQL_BIN_DIR}/mysql_config or ${MYSQL_BIN_DIR}/mysql does not exist"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not run MySQL purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    ${MYSQL_BIN_DIR}/mysql_config or ${MYSQL_BIN_DIR}/mysql does not exist"
 			return 1
 		fi
 
@@ -201,22 +201,22 @@ clean_mysql_drv() {
 
 		if [ -z "${DSPAM_MySQL_PURGE_SQL}" ]
 		then
-			echo "  Can not run MySQL purge script:"
-			echo "    None of the ${DSPAM_MySQL_PURGE_SQL_FILES} SQL script(s) found"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not run MySQL purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    None of the ${DSPAM_MySQL_PURGE_SQL_FILES} SQL script(s) found"
 			return 1
 		fi
 
 		if [ ! -r "${DSPAM_MySQL_PURGE_SQL}" ]
 		then
-			echo "  Can not read MySQL purge script:"
-			echo "    ${DSPAM_MySQL_PURGE_SQL}"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not read MySQL purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    ${DSPAM_MySQL_PURGE_SQL}"
 			return 1
 		fi
 
 		if [ ! -e "${MYSQL_BIN_DIR}/mysql" ]
 		then
-			echo "  Can not run MySQL purge script:"
-			echo "    ${MYSQL_BIN_DIR}/mysql does not exist"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not run MySQL purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    ${MYSQL_BIN_DIR}/mysql does not exist"
 			return 1
 		fi
 
@@ -296,22 +296,22 @@ clean_pgsql_drv() {
 
 		if [ -z "${DSPAM_PgSQL_PURGE_SQL}" ]
 		then
-			echo "  Can not run PostgreSQL purge script:"
-			echo "    None of the ${DSPAM_PgSQL_PURGE_SQL_FILES} SQL script(s) found"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not run PostgreSQL purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    None of the ${DSPAM_PgSQL_PURGE_SQL_FILES} SQL script(s) found"
 			return 1
 		fi
 
 		if [ ! -r "${DSPAM_PgSQL_PURGE_SQL}" ]
 		then
-			echo "  Can not read PostgreSQL purge script:"
-			echo "    ${DSPAM_PgSQL_PURGE_SQL}"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not read PostgreSQL purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    ${DSPAM_PgSQL_PURGE_SQL}"
 			return 1
 		fi
 
 		if [ ! -e "${PGSQL_BIN_DIR}/psql" ]
 		then
-			echo "  Can not run PostgreSQL purge script:"
-			echo "    ${PGSQL_BIN_DIR}/psql does not exist"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not run PostgreSQL purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    ${PGSQL_BIN_DIR}/psql does not exist"
 			return 1
 		fi
 
@@ -326,7 +326,7 @@ clean_pgsql_drv() {
 		_RC=${?}
 		if [ ${_RC} != 0 ]
 		then
-			echo "PostgreSQL purge script returned error code ${_RC}"
+			[ "${VERBOSE}" = "true" ] && echo "PostgreSQL purge script returned error code ${_RC}"
 		fi
 		echo "">"${DSPAM_CRON_TMPFILE}"
 
@@ -352,7 +352,7 @@ clean_hash_drv() {
 				${DSPAM_BIN_DIR}/cssclean "${name}" 1>/dev/null 2>&1
 			done
 		else
-			echo "  DSPAM cssclean binary not found!"
+			[ "${VERBOSE}" = "true" ] && echo "  DSPAM cssclean binary not found!"
 		fi
 		find ${DSPAM_HOMEDIR}/data/ -maxdepth 4 -mindepth 1 -type d -name "*.sig" | while read name
 		do
@@ -403,22 +403,22 @@ clean_sqlite3_drv() {
 
 		if [ -z "${DSPAM_SQLite3_PURGE_SQL}" ]
 		then
-			echo "  Can not run SQLite3 purge script:"
-			echo "    None of the ${DSPAM_SQLite3_PURGE_SQL_FILES} SQL script(s) found"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not run SQLite3 purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    None of the ${DSPAM_SQLite3_PURGE_SQL_FILES} SQL script(s) found"
 			return 1
 		fi
 
 		if [ ! -r "${DSPAM_SQLite3_PURGE_SQL}" ]
 		then
-			echo "  Can not read SQLite3 purge script:"
-			echo "    ${DSPAM_SQLite3_PURGE_SQL}"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not read SQLite3 purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    ${DSPAM_SQLite3_PURGE_SQL}"
 			return 1
 		fi
 
 		if [ ! -e "${SQLITE3_BIN_DIR}/sqlite3" ]
 		then
-			echo "  Can not run SQLite3 purge script:"
-			echo "    ${SQLITE3_BIN_DIR}/sqlite3 does not exist"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not run SQLite3 purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    ${SQLITE3_BIN_DIR}/sqlite3 does not exist"
 			return 1
 		fi
 
@@ -476,22 +476,22 @@ clean_sqlite_drv() {
 
 		if [ -z "${DSPAM_SQLite_PURGE_SQL}" ]
 		then
-			echo "  Can not run SQLite purge script:"
-			echo "    None of the ${DSPAM_SQLite_PURGE_SQL_FILES} SQL script(s) found"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not run SQLite purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    None of the ${DSPAM_SQLite_PURGE_SQL_FILES} SQL script(s) found"
 			return 1
 		fi
 
 		if [ ! -r "${DSPAM_SQLite_PURGE_SQL}" ]
 		then
-			echo "  Can not read SQLite purge script:"
-			echo "    ${DSPAM_SQLite_PURGE_SQL}"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not read SQLite purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    ${DSPAM_SQLite_PURGE_SQL}"
 			return 1
 		fi
 
 		if [ ! -e "${SQLITE_BIN_DIR}/sqlite" ]
 		then
-			echo "  Can not run SQLite purge script:"
-			echo "    ${SQLITE_BIN_DIR}/sqlite does not exist"
+			[ "${VERBOSE}" = "true" ] && echo "  Can not run SQLite purge script:"
+			[ "${VERBOSE}" = "true" ] && echo "    ${SQLITE_BIN_DIR}/sqlite does not exist"
 			return 1
 		fi
 
@@ -615,7 +615,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		done
 		[ "${VERBOSE}" = "true" -a -n "${STORAGE_DRIVERS}" ] && echo "Enabled drivers are: ${STORAGE_DRIVERS[@]}"
 	else
-		echo "Warning: dspam --version does not print configuration parameters!"
+		[ "${VERBOSE}" = "true" ] && echo "Warning: dspam --version does not print configuration parameters!"
 	fi
 
 
@@ -628,13 +628,13 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		then
 			DSPAM_BIN_DIR="/usr/bin"
 		else
-			echo "DSPAM binary directory not found!"
+			[ "${VERBOSE}" = "true" ] && echo "DSPAM binary directory not found!"
 			exit 2
 		fi
 	fi
 	if [ ! -e "${DSPAM_BIN_DIR}/dspam" -o ! -e "${DSPAM_BIN_DIR}/dspam_clean" ]
 	then
-		echo "Binary for dspam and/or dspam_clean not found! Can not continue without it."
+		[ "${VERBOSE}" = "true" ] && echo "Binary for dspam and/or dspam_clean not found! Can not continue without it."
 		exit 2
 	fi
 
@@ -651,13 +651,13 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		then
 			DSPAM_CONFIGDIR="/etc/dspam"
 		else
-			echo "Configuration directory not found!"
+			[ "${VERBOSE}" = "true" ] && echo "Configuration directory not found!"
 			exit 2
 		fi
 	fi
 	if [ ! -f "${DSPAM_CONFIGDIR}/dspam.conf" ]
 	then
-		echo "dspam.conf not found! Can not continue without it."
+		[ "${VERBOSE}" = "true" ] && echo "dspam.conf not found! Can not continue without it."
 		exit 2
 	fi
 
@@ -750,7 +750,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	fi
 	if [ ! -d "${DSPAM_HOMEDIR}" -o -z "${DSPAM_HOMEDIR}" ]
 	then
-		echo "Home directory not found! Please fix your dspam.conf."
+		[ "${VERBOSE}" = "true" ] && echo "Home directory not found! Please fix your dspam.conf."
 		exit 2
 	fi
 
@@ -760,7 +760,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	#
 	if [ ! -e "${DSPAM_BIN_DIR}/dspam_logrotate" ]
 	then
-		echo "dspam_logrotate not found! Can not continue without it."
+		[ "${VERBOSE}" = "true" ] && echo "dspam_logrotate not found! Can not continue without it."
 		exit 2
 	fi
 	[ "${VERBOSE}" = "true" ] && echo "Running dspam_logrotate"
@@ -807,8 +807,8 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	then
 		DRIVERS_TO_PROCESS=${STORAGE_DRIVERS[@]}
 	else
-		echo "Warning: Could not get a list of supported storage drivers!"
-		echo "Warning: Could not determine the currently active storage driver!"
+		[ "${VERBOSE}" = "true" ] && echo "Warning: Could not get a list of supported storage drivers!"
+		[ "${VERBOSE}" = "true" ] && echo "Warning: Could not determine the currently active storage driver!"
 		DRIVERS_TO_PROCESS=""
 		RUN_FULL_DSPAM_CLEAN="YES"
 	fi
@@ -853,7 +853,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	then
 		if [ "${ACTIVE_DRIVER}" = "hash_drv" ]
 		then
-			echo "Hash storage driver detected (not running dspam_clean)"
+			[ "${VERBOSE}" = "true" ] && echo "Hash storage driver detected (not running dspam_clean)"
 		else
 			run_dspam_clean ${RUN_FULL_DSPAM_CLEAN}
 		fi
@@ -861,14 +861,14 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		# Storage driver probably statically linked. Not running dspam_clean
 		# because of potential risk that the storage driver used is the Hash
 		# driver.
-		echo "Could not detect current storage driver (not running dspam_clean)"
+		[ "${VERBOSE}" = "true" ] && echo "Could not detect current storage driver (not running dspam_clean)"
 	fi
 
 
 	#
 	# Release lock and delete temp file
 	#
-	/bin/rm -f "${DSPAM_CRON_LOCKFILE}"
-	/bin/rm -f "${DSPAM_CRON_TMPFILE}"
+	rm -f "${DSPAM_CRON_LOCKFILE}"
+	rm -f "${DSPAM_CRON_TMPFILE}"
 	trap - INT TERM EXIT
 fi
