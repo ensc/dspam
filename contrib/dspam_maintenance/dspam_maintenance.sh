@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# $Id: dspam_maintenance.sh,v 1.16 2010/04/18 02:33:17 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.17 2010/04/19 20:55:33 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -54,19 +54,64 @@ do
 		--verbose) VERBOSE="true";;
 		*)
 			echo "Usage: $0"
+			echo
 			echo "  [--profile=[PROFILE]]"
+			echo "    Specify a storage profile from dspam.conf. The storage profile"
+			echo "    selected will be used for all database connectivity. See"
+			echo "    dspam.conf for more information."
+			echo
 			echo "  [--logdays=no_of_days]"
+			echo "    All log entries older than 'no_of_days' days will be removed."
+			echo "    Note: Default is 31 days. (for more info: man dspam_logrotate)"
+			echo
 			echo "  [--signatures=no_of_days]"
+			echo "    All signatures older than 'no_of_days' days will be removed."
+			echo "    Note: Default is 14 days. Only used for the Hash driver."
+			echo "    For more info: man dspam_clean"
+			echo
 			echo "  [--neutral=no_of_days]"
+			echo "    Remove tokens whose probability is between 0.35 and 0.65."
+			echo "    Note: Default is 90 days."
+			echo "    For more info: man dspam_clean"
+			echo
 			echo "  [--unused=no_of_days]"
+			echo "    Remove tokens which have not been used for a long period of time."
+			echo "    Note: Default is 90 days."
+			echo "    For more info: man dspam_clean"
+			echo
 			echo "  [--hapaxes=no_of_days]"
+			echo "    Remove tokens with a total hit count below 5."
+			echo "    Note: Default is 30 days."
+			echo "    For more info: man dspam_clean"
+			echo
 			echo "  [--hits1s=no_of_days]"
+			echo "    Remove tokens with a single SPAM hit."
+			echo "    Note: Default is 15 days."
+			echo "    For more info: man dspam_clean"
+			echo
 			echo "  [--hits1i=no_of_days]"
+			echo "    Remove tokens with a single INNOCENT hit."
+			echo "    Note: Default is 15 days."
+			echo "    For more info: man dspam_clean"
+			echo
 			echo "  [--without-sql-purge]"
+			echo "    Do not use SQL based purging. Only run dspam_clean."
+			echo "    Note: Default is off (aka: use SQL based purging)."
+			echo
 			echo "  [--with-sql-optimization]"
+			echo "    Run VACUUM (for PostgreSQL/SQLite) and/or OPTIMIZE (for MySQL)."
+			echo "    Note: Default is on (aka: use for SQL based drivers)."
+			echo
 			echo "  [--purgescriptdir=[DIRECTORY]"
+			echo "    Space separated list of directories where to search for SQL files"
+			echo "    used for the SQL based purging."
+			echo
 			echo "  [--with-all-drivers]"
+			echo "    Process all installed storage drivers (not just the active driver)."
+			echo "    Note: Default is true (aka: process all installed drivers)."
+			echo
 			echo "  [--verbose]"
+			echo
 			exit 1
 			;;
 	esac
@@ -264,7 +309,22 @@ clean_mysql_drv() {
 
 		# Construct mysql command line
 		echo "[client]">"${DSPAM_CRON_TMPFILE}"
-		echo "password=${MySQLPass}">>"${DSPAM_CRON_TMPFILE}"
+		if ( echo ${MySQLPass} 2>&1 | grep -q '#\|\\\\\|\"\|\$' )
+		then
+			if [ "${DSPAM_MySQL_INT}" -lt "262160" ]
+			then
+				if [ "${VERBOSE}" = "true" ]
+				then
+					echo "  You will most likely have an authentication issue/failure with the"
+					echo "  currently used MySQL DSPAM password and your current MySQL version."
+				fi
+				echo "password=${MySQLPass}">>"${DSPAM_CRON_TMPFILE}"
+			else
+				echo "password='${MySQLPass}'">>"${DSPAM_CRON_TMPFILE}"
+			fi
+		else
+			echo "password=${MySQLPass}">>"${DSPAM_CRON_TMPFILE}"
+		fi
 		DSPAM_MySQL_CMD="${MYSQL_BIN_DIR}/mysql"
 		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --defaults-extra-file=${DSPAM_CRON_TMPFILE}"
 		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --silent"
