@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #
-# $Id: dspam_maintenance.sh,v 1.15 2010/04/17 23:56:17 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.16 2010/04/18 02:33:17 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -23,14 +23,14 @@
 #          your decision if you want to do so.
 ###
 
+DSPAM_CONFIGDIR=""
+DSPAM_HOMEDIR=""
+DSPAM_PURGE_SCRIPT_DIR=""
+DSPAM_BIN_DIR=""
 MYSQL_BIN_DIR="/usr/bin"
 PGSQL_BIN_DIR="/usr/bin"
 SQLITE_BIN_DIR="/usr/bin"
 SQLITE3_BIN_DIR="/usr/bin"
-DSPAM_CONFIGDIR=""
-DSPAM_HOMEDIR=""
-DSPAM_BIN_DIR=""
-DSPAM_PURGE_SCRIPT_DIR=""
 
 
 #
@@ -85,13 +85,19 @@ run_dspam_clean() {
 	then
 		ADD_PARAMETER="--profile=${PROFILE/*.}"
 	fi
-	if [ "${PURGE_SIG}" = "YES" ]
+	if [ -z "${SIGNATURE_AGE}" -o -z "${NEUTRAL_AGE}" -o -z "${UNUSED_AGE}" -o -z "${HAPAXES_AGE}" -o -z "${HITS1S_AGE}" -o -z "${HITS1I_AGE}" ]
 	then
-		[ "${VERBOSE}" = "true" ] && echo "  * with purging old signatures"
-		${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -s${SIGNATURE_AGE} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
+		[ "${VERBOSE}" = "true" ] && echo " * with default parameters"
+		${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER}
 	else
-		[ "${VERBOSE}" = "true" ] && echo "  * without purging old signatures"
-		${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
+		if [ "${PURGE_SIG}" = "YES" ]
+		then
+			[ "${VERBOSE}" = "true" ] && echo "  * with purging old signatures"
+			${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -s${SIGNATURE_AGE} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
+		else
+			[ "${VERBOSE}" = "true" ] && echo "  * without purging old signatures"
+			${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
+		fi
 	fi
 	return ${?}
 }
@@ -100,14 +106,16 @@ run_dspam_clean() {
 #
 # Function to check if we have all needed tools
 #
-check_for_tools() {
+check_for_tool() {
 	local myrc=0
-	for foo in awk cut sed sort strings grep
+	[ -z "${1}" ] && return 2
+	for foo in ${@}
 	do
 		if ! which ${foo} >/dev/null 2>&1
 		then
 			echo "Command ${foo} not found!"
 			myrc=1
+			break
 		fi
 	done
 	return ${myrc}
@@ -138,10 +146,18 @@ clean_mysql_drv() {
 	# MySQL
 	#
 	[ "${VERBOSE}" = "true" ] && echo "Running MySQL storage driver data cleanup"
-	if	[ "${USE_SQL_PURGE}" = "true" ] && \
+	if [ "${USE_SQL_PURGE}" = "true" ] && \
 		read_dspam_params MySQLServer${PROFILE} MySQLPort${PROFILE} MySQLUser${PROFILE} MySQLPass${PROFILE} MySQLDb${PROFILE} MySQLCompress${PROFILE} && \
 		[ -n "${MySQLServer}" -a -n "${MySQLUser}" -a -n "${MySQLDb}" ]
 	then
+		for foo in ${MYSQL_BIN_DIR} /usr/bin /usr/local/bin /usr/sbin /usr/local/sbin
+		do
+			if [ -e "${foo}/mysql_config" -o -e "${foo}/mysql" ]
+			then
+				MYSQL_BIN_DIR=${foo}
+				break
+			fi
+		done
 		if [ -e "${MYSQL_BIN_DIR}/mysql_config" ]
 		then
 			DSPAM_MySQL_VER=$(${MYSQL_BIN_DIR}/mysql_config --version | sed -n 's:^[^0-9]*\([0-9.]*\).*:\1:p')
@@ -182,21 +198,47 @@ clean_mysql_drv() {
 		# Then we look in DSPAM configuration directory under ./config/ and then
 		# in the DSPAM configuration directory it self.
 		#
-		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR}
+		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR} /usr/share/doc/libdspam7-drv-mysql/sql /usr/share/dspam/sql /usr/local/share/examples/dspam/mysql /usr/share/examples/dspam/mysql
 		do
 			for bar in ${DSPAM_MySQL_PURGE_SQL_FILES}
 			do
-				if [ -f "${foo}/${bar}.sql" ]
+				if [ -z "${DSPAM_MySQL_PURGE_SQL}" -a -f "${foo}/${bar}.sql" ]
 				then
 					DSPAM_MySQL_PURGE_SQL="${foo}/${bar}.sql"
-					break
-				elif [ -f "${foo}/${bar/_//}.sql" ]
+					if (grep -iq "to_days" "${DSPAM_MySQL_PURGE_SQL}")
+					then
+						break
+					else
+						DSPAM_MySQL_PURGE_SQL=""
+					fi
+				fi
+				if [ -z "${DSPAM_MySQL_PURGE_SQL}" -a -f "${foo}/${bar/_//}.sql" ]
 				then
 					DSPAM_MySQL_PURGE_SQL="${foo}/${bar/_//}.sql"
-					break
+					if (grep -iq "to_days" "${DSPAM_MySQL_PURGE_SQL}")
+					then
+						break
+					else
+						DSPAM_MySQL_PURGE_SQL=""
+					fi
+				fi
+				if [ -z "${DSPAM_MySQL_PURGE_SQL}" -a -f "${foo}/${bar/*_/}.sql" ]
+				then
+					DSPAM_MySQL_PURGE_SQL="${foo}/${bar/*_/}.sql"
+					if (grep -iq "to_days" "${DSPAM_MySQL_PURGE_SQL}")
+					then
+						break
+					else
+						DSPAM_MySQL_PURGE_SQL=""
+					fi
 				fi
 			done
-			[ -n "${DSPAM_MySQL_PURGE_SQL}" ] && break
+			if [ -n "${DSPAM_MySQL_PURGE_SQL}" ] && (grep -iq "to_days" "${DSPAM_MySQL_PURGE_SQL}")
+			then
+				break
+			else
+				DSPAM_MySQL_PURGE_SQL=""
+			fi
 		done
 
 		if [ -z "${DSPAM_MySQL_PURGE_SQL}" ]
@@ -264,12 +306,21 @@ clean_pgsql_drv() {
 	# PostgreSQL
 	#
 	[ "${VERBOSE}" = "true" ] && echo "Running PostgreSQL storage driver data cleanup"
-	if	[ "${USE_SQL_PURGE}" = "true" ] && \
+	if [ "${USE_SQL_PURGE}" = "true" ] && \
 		read_dspam_params PgSQLServer${PROFILE} PgSQLPort${PROFILE} PgSQLUser${PROFILE} PgSQLPass${PROFILE} PgSQLDb${PROFILE} && \
 		[ -n "${PgSQLServer}" -a -n "${PgSQLUser}" -a -n "${PgSQLDb}" ]
 	then
+		for foo in ${PGSQL_BIN_DIR} /usr/bin /usr/local/bin /usr/sbin /usr/local/sbin
+		do
+			if [ -e "${foo}/psql" ]
+			then
+				PGSQL_BIN_DIR=${foo}
+				break
+			fi
+		done
+
 		DSPAM_PgSQL_PURGE_SQL=
-		DSPAM_PgSQL_PURGE_SQL_FILES="pgsql_pe-purge"
+		DSPAM_PgSQL_PURGE_SQL_FILES="pgsql_pe-purge pgsql_purge-pe pgsql_purge"
 
 		#
 		# We first search for the purge scripts in the directory the user has
@@ -277,21 +328,47 @@ clean_pgsql_drv() {
 		# Then we look in DSPAM configuration directory under ./config/ and then
 		# in the DSPAM configuration directory it self.
 		#
-		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR}
+		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR} /usr/share/doc/libdspam7-drv-pgsql/sql /usr/share/dspam/sql /usr/local/share/examples/dspam/pgsql /usr/share/examples/dspam/pgsql
 		do
 			for bar in ${DSPAM_PgSQL_PURGE_SQL_FILES}
 			do
-				if [ -f "${foo}/${bar}.sql" ]
+				if [ -z "${DSPAM_PgSQL_PURGE_SQL}" -a -f "${foo}/${bar}.sql" ]
 				then
 					DSPAM_PgSQL_PURGE_SQL="${foo}/${bar}.sql"
-					break
-				elif [ -f "${foo}/${bar/_//}.sql" ]
+					if (grep -iq "VACUUM ANALYSE" "${DSPAM_PgSQL_PURGE_SQL}")
+					then
+						break
+					else
+						DSPAM_PgSQL_PURGE_SQL=""
+					fi
+				fi
+				if [ -z "${DSPAM_PgSQL_PURGE_SQL}" -a -f "${foo}/${bar/_//}.sql" ]
 				then
 					DSPAM_PgSQL_PURGE_SQL="${foo}/${bar/_//}.sql"
-					break
+					if (grep -iq "VACUUM ANALYSE" "${DSPAM_PgSQL_PURGE_SQL}")
+					then
+						break
+					else
+						DSPAM_PgSQL_PURGE_SQL=""
+					fi
+				fi
+				if [ -z "${DSPAM_PgSQL_PURGE_SQL}" -a -f "${foo}/${bar/*_/}.sql" ]
+				then
+					DSPAM_PgSQL_PURGE_SQL="${foo}/${bar/*_/}.sql"
+					if (grep -iq "VACUUM ANALYSE" "${DSPAM_PgSQL_PURGE_SQL}")
+					then
+						break
+					else
+						DSPAM_PgSQL_PURGE_SQL=""
+					fi
 				fi
 			done
-			[ -n "${DSPAM_PgSQL_PURGE_SQL}" ] && break
+			if [ -n "${DSPAM_PgSQL_PURGE_SQL}" ] && (grep -q "VACUUM ANALYSE" "${DSPAM_PgSQL_PURGE_SQL}")
+			then
+				break
+			else
+				DSPAM_PgSQL_PURGE_SQL=""
+			fi
 		done
 
 		if [ -z "${DSPAM_PgSQL_PURGE_SQL}" ]
@@ -342,26 +419,39 @@ clean_hash_drv() {
 	#
 	# Hash
 	#
+	local myrc=0
 	[ "${VERBOSE}" = "true" ] && echo "Running Hash storage driver data cleanup"
 	if [ -d "${DSPAM_HOMEDIR}/data" ]
 	then
 		if [ -e ${DSPAM_BIN_DIR}/cssclean ]
 		then
-			find ${DSPAM_HOMEDIR}/data/ -maxdepth 4 -mindepth 1 -type f -name "*.css" | while read name
-			do
-				${DSPAM_BIN_DIR}/cssclean "${name}" 1>/dev/null 2>&1
-			done
+			if ! check_for_tool find
+			then
+				[ "${VERBOSE}" = "true" ] && echo "  Can not run cleanup without 'find' binary"
+				myrc=1
+			else
+				find ${DSPAM_HOMEDIR}/data/ -maxdepth 4 -mindepth 1 -type f -name "*.css" | while read name
+				do
+					${DSPAM_BIN_DIR}/cssclean "${name}" 1>/dev/null 2>&1
+				done
+			fi
 		else
 			[ "${VERBOSE}" = "true" ] && echo "  DSPAM cssclean binary not found!"
 		fi
-		find ${DSPAM_HOMEDIR}/data/ -maxdepth 4 -mindepth 1 -type d -name "*.sig" | while read name
-		do
-			find "${name}" -maxdepth 1 -mindepth 1 -type f -mtime +${SIGNATURE_AGE} -name "*.sig" -exec /bin/rm "{}" ";"
-		done
-		return 0
+		if ! check_for_tool find
+		then
+			[ "${VERBOSE}" = "true" ] && echo "  Can not purge old signatures without 'find' binary"
+			myrc=1
+		else
+			find ${DSPAM_HOMEDIR}/data/ -maxdepth 4 -mindepth 1 -type d -name "*.sig" | while read name
+			do
+				find "${name}" -maxdepth 1 -mindepth 1 -type f -mtime +${SIGNATURE_AGE} -name "*.sig" -exec rm "{}" ";"
+			done
+		fi
 	else
-		return 1
+		myrc=1
 	fi
+	return ${myrc}
 }
 
 
@@ -373,10 +463,19 @@ clean_sqlite3_drv() {
 	# SQLite3
 	#
 	[ "${VERBOSE}" = "true" ] && echo "Running SQLite v3 storage driver data cleanup"
-	if	[ "${USE_SQL_PURGE}" = "true" ]
+	if [ "${USE_SQL_PURGE}" = "true" ]
 	then
+		for foo in ${SQLITE3_BIN_DIR} /usr/bin /usr/local/bin /usr/sbin /usr/local/sbin
+		do
+			if [ -e "${foo}/sqlite3" ]
+			then
+				SQLITE3_BIN_DIR=${foo}
+				break
+			fi
+		done
+
 		DSPAM_SQLite3_PURGE_SQL=""
-		DSPAM_SQLite3_PURGE_SQL_FILES="sqlite3_purge"
+		DSPAM_SQLite3_PURGE_SQL_FILES="sqlite3_purge sqlite3_purge-3"
 
 		#
 		# We first search for the purge scripts in the directory the user has
@@ -384,21 +483,47 @@ clean_sqlite3_drv() {
 		# Then we look in DSPAM configuration directory under ./config/ and then
 		# in the DSPAM configuration directory it self.
 		#
-		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR}
+		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR} /usr/share/doc/libdspam7-drv-sqlite3/sql /usr/share/dspam/sql /usr/share/dspam/clean /usr/local/share/examples/dspam/sqlite /usr/share/examples/dspam/sqlite
 		do
 			for bar in ${DSPAM_SQLite3_PURGE_SQL_FILES}
 			do
-				if [ -f "${foo}/${bar}.sql" ]
+				if [ -z "${DSPAM_SQLite3_PURGE_SQL}" -a -f "${foo}/${bar}.sql" ]
 				then
 					DSPAM_SQLite3_PURGE_SQL="${foo}/${bar}.sql"
-					break
-				elif [ -f "${foo}/${bar/_//}.sql" ]
+					if (grep -iq "julianday.*now" "${DSPAM_SQLite3_PURGE_SQL}")
+					then
+						break
+					else
+						DSPAM_SQLite3_PURGE_SQL=""
+					fi
+				fi
+				if [ -z "${DSPAM_SQLite3_PURGE_SQL}" -a  -f "${foo}/${bar/_//}.sql" ]
 				then
 					DSPAM_SQLite3_PURGE_SQL="${foo}/${bar/_//}.sql"
-					break
+					if (grep -iq "julianday.*now" "${DSPAM_SQLite3_PURGE_SQL}")
+					then
+						break
+					else
+						DSPAM_SQLite3_PURGE_SQL=""
+					fi
+				fi
+				if [ -z "${DSPAM_SQLite3_PURGE_SQL}" -a -f "${foo}/${bar/*_/}.sql" ]
+				then
+					DSPAM_SQLite3_PURGE_SQL="${foo}/${bar/*_/}.sql"
+					if (grep -iq "julianday.*now" "${DSPAM_SQLite3_PURGE_SQL}")
+					then
+						break
+					else
+						DSPAM_SQLite3_PURGE_SQL=""
+					fi
 				fi
 			done
-			[ -n "${DSPAM_SQLite3_PURGE_SQL}" ] && break
+			if [ -n "${DSPAM_SQLite3_PURGE_SQL}" ] && (grep -iq "julianday.*now" "${DSPAM_SQLite3_PURGE_SQL}")
+			then
+				break
+			else
+				DSPAM_SQLite3_PURGE_SQL=""
+			fi
 		done
 
 		if [ -z "${DSPAM_SQLite3_PURGE_SQL}" ]
@@ -446,10 +571,19 @@ clean_sqlite_drv() {
 	# SQLite
 	#
 	[ "${VERBOSE}" = "true" ] && echo "Running SQLite v2 storage driver data cleanup"
-	if	[ "${USE_SQL_PURGE}" = "true" ]
+	if [ "${USE_SQL_PURGE}" = "true" ]
 	then
+		for foo in ${SQLITE_BIN_DIR} /usr/bin /usr/local/bin /usr/sbin /usr/local/sbin
+		do
+			if [ -e "${foo}/sqlite" ]
+			then
+				SQLITE_BIN_DIR=${foo}
+				break
+			fi
+		done
+
 		DSPAM_SQLite_PURGE_SQL=""
-		DSPAM_SQLite_PURGE_SQL_FILES="sqlite_purge"
+		DSPAM_SQLite_PURGE_SQL_FILES="sqlite2_purge sqlite2_purge-2"
 
 		#
 		# We first search for the purge scripts in the directory the user has
@@ -457,21 +591,47 @@ clean_sqlite_drv() {
 		# Then we look in DSPAM configuration directory under ./config/ and then
 		# in the DSPAM configuration directory it self.
 		#
-		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR}
+		for foo in ${DSPAM_PURGE_SCRIPT_DIR} ${DSPAM_CONFIGDIR}/config ${DSPAM_CONFIGDIR} /usr/share/doc/libdspam7-drv-sqlite/sql /usr/share/dspam/sql /usr/share/dspam/clean /usr/local/share/examples/dspam/sqlite /usr/share/examples/dspam/sqlite
 		do
 			for bar in ${DSPAM_SQLite_PURGE_SQL_FILES}
 			do
-				if [ -f "${foo}/${bar}.sql" ]
+				if [ -z "${DSPAM_SQLite_PURGE_SQL}" -a -f "${foo}/${bar}.sql" ]
 				then
 					DSPAM_SQLite_PURGE_SQL="${foo}/${bar}.sql"
-					break
-				elif [ -f "${foo}/${bar/_//}.sql" ]
+					if (grep -iq "date.*now.*date" "${DSPAM_SQLite_PURGE_SQL}")
+					then
+						break
+					else
+						DSPAM_SQLite_PURGE_SQL=""
+					fi
+				fi
+				if [ -z "${DSPAM_SQLite_PURGE_SQL}" -a -f "${foo}/${bar/_//}.sql" ]
 				then
 					DSPAM_SQLite_PURGE_SQL="${foo}/${bar/_//}.sql"
-					break
+					if (grep -iq "date.*now.*date" "${DSPAM_SQLite_PURGE_SQL}")
+					then
+						break
+					else
+						DSPAM_SQLite_PURGE_SQL=""
+					fi
+				fi
+				if [ -z "${DSPAM_SQLite_PURGE_SQL}" -a -f "${foo}/${bar/*_/}.sql" ]
+				then
+					DSPAM_SQLite_PURGE_SQL="${foo}/${bar/*_/}.sql"
+					if (grep -iq "date.*now.*date" "${DSPAM_SQLite_PURGE_SQL}")
+					then
+						break
+					else
+						DSPAM_SQLite_PURGE_SQL=""
+					fi
 				fi
 			done
-			[ -n "${DSPAM_SQLite_PURGE_SQL}" ] && break
+			if [ -n "${DSPAM_SQLite_PURGE_SQL}" ] && (grep -iq "date.*now.*date" "${DSPAM_SQLite_PURGE_SQL}")
+			then
+				break
+			else
+				DSPAM_SQLite_PURGE_SQL=""
+			fi
 		done
 
 		if [ -z "${DSPAM_SQLite_PURGE_SQL}" ]
@@ -575,41 +735,71 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	#
 	# Check for needed tools
 	#
-	if ! check_for_tools
+	if ! check_for_tool awk cut sed sort tr grep
 	then
-		# We have not all needed tools installed. Run just the dspam_clean part.
-		run_dspam_clean
-		exit ${?}
+		# We don't have the tools needed to continue.
+		[ "${VERBOSE}" = "true" ] && echo "This script needs awk, cut, sed, sort, tr and grep to work."
+		exit 2
 	fi
 
 
 	#
 	# Try to read most of the configuration options from DSPAM
 	#
-	DSPAM_CONFIG_PARAMETERS=$(dspam --version 2>&1 | sed -n "s:^Configuration parameters\:[\t ]*\(.*\)$:\1:gI;s:' '\-\-:\n--:g;s:^'::g;s:' '[a-zA-Z].*::gp")
-	if [ -z "${DSPAM_CONFIG_PARAMETERS}" ]
+	DSPAM_CONFIG_PARAMETERS=($(dspam --version 2>&1 | sed -n "s:^Configuration parameters\:[\t ]*\(.*\)$:\1:g;s:' '\-\-:\n--:g;s:^'::g;s:' '[a-zA-Z].*::gp"))
+	if [ -z "${DSPAM_CONFIG_PARAMETERS}" -o "${#DSPAM_CONFIG_PARAMETERS[@]}" -lt 3 ]
+	then
+		DSPAM_CONFIG_PARAMETERS=($(dspam --version 2>&1 | sed -n "s:^Configuration parameters\:[\t ]*\(.*\)$:\1:gp" | tr -s "' '" "'\n'" | sed -n "s:^'\(\-\-.*\)'[\t ]*$:\1:gp"))
+	fi
+	if [ -z "${DSPAM_CONFIG_PARAMETERS}" -o "${#DSPAM_CONFIG_PARAMETERS[@]}" -lt 3 ]
 	then
 		# Not good! dspam --version does not print out configuration parameters.
 		# Try getting the information by parsing the strings in the DSPAM binary.
-		DSPAM_CONFIG_PARAMETERS=$(strings $(whereis dspam | awk '{print $2}') 2>&1 | sed -n "/'\-\-[^']*'[\t ]*'\-\-[^']*'/p" 2>/dev/null | sed -n "s:' '\-\-:\n--:g;s:^[\t ]*'::g;s:' '[a-zA-Z].*::gp")
+		if check_for_tool strings
+		then
+			DSPAM_CONFIG_PARAMETERS=($(strings $(whereis dspam | awk '{print $2}') 2>&1 | sed -n "/'\-\-[^']*'[\t ]*'\-\-[^']*'/p" 2>/dev/null | sed -n "s:' '\-\-:\n--:g;s:^[\t ]*'::g;s:' '[a-zA-Z].*::gp"))
+			if [ -z "${DSPAM_CONFIG_PARAMETERS}" -o "${#DSPAM_CONFIG_PARAMETERS[@]}" -lt 3 ]
+			then
+				DSPAM_CONFIG_PARAMETERS=($(strings $(whereis dspam | awk '{print $2}') 2>&1 | sed -n "/'\-\-[^']*'[\t ]*'\-\-[^']*'/p" 2>/dev/null | tr -s "' '" "'\n'" | sed -n "s:^'\(\-\-.*\)'[\t ]*$:\1:gp"))
+			fi
+		fi
 	fi
 	if [ -n "${DSPAM_CONFIG_PARAMETERS}" ]
 	then
-		for foo in ${DSPAM_CONFIG_PARAMETERS}
+		for foo in ${DSPAM_CONFIG_PARAMETERS[@]}
 		do
 			case "${foo}" in
 				--sysconfdir=*)
-					DSPAM_CONFIGDIR="${foo#--sysconfdir=}"
+					if [ -z "${DSPAM_CONFIGDIR}" -o ! -d "${DSPAM_CONFIGDIR}" ]
+					then
+						if [ -f "${foo#--sysconfdir=}/dspam.conf" ]
+						then
+							DSPAM_CONFIGDIR="${foo#--sysconfdir=}"
+						fi
+					fi
 					;;
 				--with-dspam-home=*)
-					DSPAM_HOMEDIR="${foo#--with-dspam-home=}"
+					if [ -z "${DSPAM_HOMEDIR}" -o ! -d "${DSPAM_HOMEDIR}" ]
+					then
+						if [ -d "${foo#--with-dspam-home=}/data" ]
+						then
+							DSPAM_HOMEDIR="${foo#--with-dspam-home=}"
+						fi
+					fi
 					;;
 				--prefix=*)
-					DSPAM_BIN_DIR="${foo#--prefix=}"/bin
+					if [ -z "${DSPAM_BIN_DIR}" -o ! -d "${DSPAM_BIN_DIR}" -o ! -e "${DSPAM_BIN_DIR}/dspam" ]
+					then
+						if [ -e "${foo#--prefix=}/bin/dspam" ]
+						then
+							DSPAM_BIN_DIR="${foo#--prefix=}"/bin
+						fi
+					fi
 					;;
 				--with-storage-driver=*)
 					STORAGE_DRIVERS="${foo#--with-storage-driver=}"
-					STORAGE_DRIVERS=($(echo ${STORAGE_DRIVERS} | sed "s:,:\n:g" | sort -u))
+					#STORAGE_DRIVERS=($(echo ${STORAGE_DRIVERS} | sed "s:,:\n:g" | sort -u))
+					STORAGE_DRIVERS=($(echo ${STORAGE_DRIVERS} | tr -s "," "\n" | sort -u))
 					;;
 			esac
 		done
@@ -624,15 +814,37 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	#
 	if [ -z "${DSPAM_BIN_DIR}" ]
 	then
-		if [ -e /usr/bin/dspam -a -e /usr/bin/dspam_clean ]
+		for foo in /usr/bin /usr/local/bin /usr/sbin /usr/local/sbin /opt/dspam /opt/dspam/bin
+		do
+			if [ -e "${foo}/dspam" -a -e "${foo}/dspam_clean" ]
+			then
+				DSPAM_BIN_DIR=${foo}
+				break
+			fi
+		done
+		if [ -n "${DSPAM_BIN_DIR}" -a ! -e "${DSPAM_BIN_DIR}/dspam" ]
 		then
-			DSPAM_BIN_DIR="/usr/bin"
+			[ "${VERBOSE}" = "true" ] && echo "DSPAM binary in directory ${DSPAM_BIN_DIR} not found!"
+			exit 2
+		elif [ -n "${DSPAM_BIN_DIR}" -a ! -e "${DSPAM_BIN_DIR}/dspam_clean" ]
+		then
+			[ "${VERBOSE}" = "true" ] && echo "DSPAM clean binary in directory ${DSPAM_BIN_DIR} not found!"
+			exit 2
 		else
 			[ "${VERBOSE}" = "true" ] && echo "DSPAM binary directory not found!"
 			exit 2
 		fi
+	else
+		for foo in ${DSPAM_BIN_DIR}
+		do
+			if [ -d "${foo}" -a -e "${foo}/dspam" ]
+			then
+				DSPAM_BIN_DIR=${foo}
+				break
+			fi
+		done
 	fi
-	if [ ! -e "${DSPAM_BIN_DIR}/dspam" -o ! -e "${DSPAM_BIN_DIR}/dspam_clean" ]
+	if [ -z "${DSPAM_BIN_DIR}" -o ! -e "${DSPAM_BIN_DIR}/dspam" -o ! -e "${DSPAM_BIN_DIR}/dspam_clean" ]
 	then
 		[ "${VERBOSE}" = "true" ] && echo "Binary for dspam and/or dspam_clean not found! Can not continue without it."
 		exit 2
@@ -644,18 +856,16 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	#
 	if [ -z "${DSPAM_CONFIGDIR}" ]
 	then
-		if [ -f /etc/mail/dspam/dspam.conf ]
-		then
-			DSPAM_CONFIGDIR="/etc/mail/dspam"
-		elif [ -f /etc/dspam/dspam.conf ]
-		then
-			DSPAM_CONFIGDIR="/etc/dspam"
-		else
-			[ "${VERBOSE}" = "true" ] && echo "Configuration directory not found!"
-			exit 2
-		fi
+		for foo in /etc/mail/dspam /etc/dspam /etc /usr/local/etc/mail/dspam /usr/local/etc/dspam /usr/local/etc
+		do
+			if [ -f "${foo}/dspam.conf" ]
+			then
+				DSPAM_CONFIGDIR=${foo}
+				break
+			fi
+		done
 	fi
-	if [ ! -f "${DSPAM_CONFIGDIR}/dspam.conf" ]
+	if [ -z "${DSPAM_CONFIGDIR}" -o ! -f "${DSPAM_CONFIGDIR}/dspam.conf" ]
 	then
 		[ "${VERBOSE}" = "true" ] && echo "dspam.conf not found! Can not continue without it."
 		exit 2
