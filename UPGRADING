@@ -1,6 +1,39 @@
 Follow the steps sequentially from the base version you are running up to
 the top.
 
+UPGRADING FROM 3.9.0
+--------------------
+
+1. Ensure MySQL is using latin1 character set. This should reduce the needed
+   database space. The following clauses should be executed for upgrading 3.9.0
+   DSPAM MySQL schema:
+     ALTER TABLE `dspam_signature_data`
+       CHANGE `signature` `signature` VARCHAR(32) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL;
+     ALTER TABLE `dspam_signature_data`
+       DEFAULT CHARACTER SET latin1 COLLATE latin1_general_ci;
+     ALTER TABLE `dspam_stats`
+       DEFAULT CHARACTER SET latin1 COLLATE latin1_general_ci;
+     ALTER TABLE `dspam_token_data`
+       DEFAULT CHARACTER SET latin1 COLLATE latin1_general_ci;
+
+   If you are using preference extension with DSPAM, then you should execute
+   the following clause for upgrading DSPAM preference MySQL schema to use
+   latin1 character set:
+     ALTER TABLE `dspam_preferences`
+       CHANGE `preference` `preference` VARCHAR(32) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL;
+     ALTER TABLE `dspam_preferences`
+       CHANGE `preference` `preference` VARCHAR(64) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL;
+     ALTER TABLE `dspam_preferences`
+       DEFAULT CHARACTER SET latin1 COLLATE latin1_general_ci;
+
+   If you are using the DSPAM virtual user feature then execute the following
+   clauses to update the DSPAM virtual user table to use latin1 character set:
+     ALTER TABLE `dspam_virtual_uids`
+       CHANGE `username` `username` VARCHAR(128) CHARACTER SET latin1 COLLATE latin1_general_ci NULL DEFAULT NULL;
+     ALTER TABLE `dspam_virtual_uids`
+       DEFAULT CHARACTER SET latin1 COLLATE latin1_general_ci;
+
+
 UPGRADING FROM 3.8
 ------------------
 
@@ -73,6 +106,8 @@ UPGRADING FROM 3.8
    You need to add an second lookup_tokens function to PostgreSQL. The additional
    lookup_tokens function can be found in pgsql_objects.sql and it's a slightly
    different and enhanced then the function originally introduced in 3.6.8.
+
+3. Follow steps in "UPGRADING FROM 3.9.0".
 
 
 UPGRADING FROM 3.6
