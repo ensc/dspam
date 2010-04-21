@@ -1,6 +1,10 @@
 Version 3.9.0
 -------------
 
+[20100421:1130] sbajic: Updating PostgreSQL and SQLite3 purge scripts to have 30 days (default value used in MySQL purge script, SQLite purge script, dspam_clean and dspam.conf) purging value for Hapaxes.
+
+[20100421:0900] sbajic: Fixing bugs in dspam_maintenance.sh
+
 [20100419:2100] sbajic: Fixing bugs in dspam_maintenance.sh
 
 [20100418:0235] sbajic: Fixing bugs in dspam_maintenance.sh

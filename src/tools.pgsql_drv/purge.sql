@@ -1,9 +1,9 @@
-/* $Id: purge.sql,v 1.51 2009/06/01 14:27:58 sbajic Exp $ */
+/* $Id: purge.sql,v 1.52 2010/04/21 11:30:39 sbajic Exp $ */
 
 START TRANSACTION;
 DELETE FROM dspam_token_data
   WHERE (innocent_hits*2) + spam_hits < 5
-  AND last_hit < CURRENT_DATE - 60;
+  AND last_hit < CURRENT_DATE - 30;
 COMMIT;
 
 START TRANSACTION;
