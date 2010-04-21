@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# $Id: dspam_maintenance.sh,v 1.17 2010/04/19 20:55:33 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.18 2010/04/21 08:49:29 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -50,9 +50,10 @@ do
 		--purgescriptdir=*) DSPAM_PURGE_SCRIPT_DIR="${foo#--purgescriptdir=}";;
 		--without-sql-purge) USE_SQL_PURGE="false";;
 		--with-sql-optimization) USE_SQL_OPTIMIZATION="true";;
+		--with-sql-autoupdate) USE_SQL_AUTOUPDATE="true";;
 		--with-all-drivers) PURGE_ALL_DRIVERS="true";;
 		--verbose) VERBOSE="true";;
-		*)
+		--help | -help | --h | -h)
 			echo "Usage: $0"
 			echo
 			echo "  [--profile=[PROFILE]]"
@@ -66,32 +67,39 @@ do
 			echo
 			echo "  [--signatures=no_of_days]"
 			echo "    All signatures older than 'no_of_days' days will be removed."
-			echo "    Note: Default is 14 days. Only used for the Hash driver."
+			echo "    Note: Default value is set by the 'PurgeSignatures' option in"
+			echo "    dspam.conf, if this option is not set, the default value is 14"
+			echo "    days. This option is only used for the Hash driver."
 			echo "    For more info: man dspam_clean"
 			echo
 			echo "  [--neutral=no_of_days]"
 			echo "    Remove tokens whose probability is between 0.35 and 0.65."
-			echo "    Note: Default is 90 days."
+			echo "    Note: Default value is set by the 'PurgeNeutral' option in dspam.conf,"
+			echo "    if this option is not set, the default value is 90 days."
 			echo "    For more info: man dspam_clean"
 			echo
 			echo "  [--unused=no_of_days]"
 			echo "    Remove tokens which have not been used for a long period of time."
-			echo "    Note: Default is 90 days."
+			echo "    Note: Default value is set by the 'PurgeUnused' option in dspam.conf,"
+			echo "    if this option is not set, the default value is 90 days."
 			echo "    For more info: man dspam_clean"
 			echo
 			echo "  [--hapaxes=no_of_days]"
 			echo "    Remove tokens with a total hit count below 5."
-			echo "    Note: Default is 30 days."
+			echo "    Note: Default value is set by the 'PurgeHapaxes' option in dspam.conf,"
+			echo "    if this option is not set, the default value is 30 days."
 			echo "    For more info: man dspam_clean"
 			echo
 			echo "  [--hits1s=no_of_days]"
 			echo "    Remove tokens with a single SPAM hit."
-			echo "    Note: Default is 15 days."
+			echo "    Note: Default value is set by the 'PurgeHits1S' option in dspam.conf,"
+			echo "    if this option is not set, the default value is 15 days."
 			echo "    For more info: man dspam_clean"
 			echo
 			echo "  [--hits1i=no_of_days]"
 			echo "    Remove tokens with a single INNOCENT hit."
-			echo "    Note: Default is 15 days."
+			echo "    Note: Default value is set by the 'PurgeHits1I' option in dspam.conf,"
+			echo "    if this option is not set, the default value is 15 days."
 			echo "    For more info: man dspam_clean"
 			echo
 			echo "  [--without-sql-purge]"
@@ -100,7 +108,11 @@ do
 			echo
 			echo "  [--with-sql-optimization]"
 			echo "    Run VACUUM (for PostgreSQL/SQLite) and/or OPTIMIZE (for MySQL)."
-			echo "    Note: Default is on (aka: use for SQL based drivers)."
+			echo "    Note: Default is off (aka: do not use optimizations)."
+			echo
+			echo "  [--with-sql-autoupdate]"
+			echo "    Run SQL based purging with purge day values passed to this script."
+			echo "    Note: Default is off (aka: do not attempt to modify SQL instructions)."
 			echo
 			echo "  [--purgescriptdir=[DIRECTORY]"
 			echo "    Space separated list of directories where to search for SQL files"
@@ -111,9 +123,15 @@ do
 			echo "    Note: Default is true (aka: process all installed drivers)."
 			echo
 			echo "  [--verbose]"
+			echo "    Verbose output while running maintenance script."
 			echo
 			exit 1
 			;;
+		*)
+			echo "Unrecognized parameter '${foo}'. Use parameter --help for more info."
+			exit 1
+			;;
+
 	esac
 done
 
@@ -177,7 +195,7 @@ read_dspam_params() {
 	for PARAMETER in $@ ; do
 		VALUE=$(awk "BEGIN { IGNORECASE=1; } \$1==\"${PARAMETER}\" { print \$2; exit; }" "${DSPAM_CONFIGDIR}/dspam.conf" ${INCLUDE_DIRS[@]} 2>/dev/null)
 		[ ${?} = 0 ] || return 1
-		eval ${PARAMETER/.*}=\"${VALUE}\"
+		eval ${PARAMETER/.*}=\'${VALUE}\'
 	done
 	return 0
 }
@@ -337,6 +355,19 @@ clean_mysql_drv() {
 		[ "${MySQLCompress}" = "true" ] &&
 			DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --compress"
 
+		# Use updated purge script to reflect purge days passed to this script
+		if [ "${USE_SQL_AUTOUPDATE}" = "true" ]
+		then
+			sed \
+				-e "s:^\(SET[\t ]\{1,\}\@PurgeSignatures[\t ]*=[\t ]*\)[0-9]\{1,\}\(.*\)$:\1${SIGNATURE_AGE}\2:g" \
+				-e "s:^\(SET[\t ]\{1,\}\@PurgeUnused[\t ]*=[\t ]*\)[0-9]\{1,\}\(.*\)$:\1${UNUSED_AGE}\2:g" \
+				-e "s:^\(SET[\t ]\{1,\}\@PurgeHapaxes[\t ]*=[\t ]*\)[0-9]\{1,\}\(.*\)$:\1${HAPAXES_AGE}\2:g" \
+				-e "s:^\(SET[\t ]\{1,\}\@PurgeHits1S[\t ]*=[\t ]*\)[0-9]\{1,\}\(.*\)$:\1${HITS1S_AGE}\2:g" \
+				-e "s:^\(SET[\t ]\{1,\}\@PurgeHits1I[\t ]*=[\t ]*\)[0-9]\{1,\}\(.*\)$:\1${HITS1I_AGE}\2:g" \
+				"${DSPAM_MySQL_PURGE_SQL}">"${DSPAM_SQL_TMPFILE}"
+			[ -r "${DSPAM_SQL_TMPFILE}" ] && DSPAM_MySQL_PURGE_SQL="${DSPAM_SQL_TMPFILE}"
+		fi
+
 		# Run the MySQL purge script
 		${DSPAM_MySQL_CMD} ${MySQLDb} < ${DSPAM_MySQL_PURGE_SQL} >/dev/null
 		_RC=${?}
@@ -352,6 +383,7 @@ clean_mysql_drv() {
 			done
 		fi
 		echo "">"${DSPAM_CRON_TMPFILE}"
+		echo "">"${DSPAM_SQL_TMPFILE}"
 
 		return 0
 	fi
@@ -458,6 +490,24 @@ clean_pgsql_drv() {
 		[ -n "${PgSQLPort}" ] &&
 			DSPAM_PgSQL_CMD="${DSPAM_PgSQL_CMD} -p ${PgSQLPort}"
 
+		# Use updated purge script to reflect purge days passed to this script
+		if [ "${USE_SQL_AUTOUPDATE}" = "true" ]
+		then
+			if [ "${HITS1S_AGE}" -gt "${HITS1I_AGE}" ]
+			then
+				HITS1MAX=${HITS1S_AGE}
+			else
+				HITS1MAX=${HITS1I_AGE}
+			fi
+			sed \
+				-e "/^DELETE FROM dspam_signature_data/,/COMMIT/{s:^\([\t ]*WHERE[\t ]\{1,\}created_on[\t ]\{1,\}<[\t ]\{1,\}CURRENT_DATE[\t ]\{1,\}\-[\t ]\{1,\}\)14\(.*\)$:\1${SIGNATURE_AGE}\2:g}" \
+				-e "/^DELETE FROM dspam_token_data/,/COMMIT/{s:^\([\t ]*AND[\t ]\{1,\}last_hit[\t ]\{1,\}<[\t ]\{1,\}CURRENT_DATE[\t ]\{1,\}\-[\t ]\{1,\}\)[36]0\(.*\)$:\1${HAPAXES_AGE}\2:g}" \
+				-e "/^DELETE FROM dspam_token_data/,/COMMIT/{s:^\([\t ]*AND[\t ]\{1,\}last_hit[\t ]\{1,\}<[\t ]\{1,\}CURRENT_DATE[\t ]\{1,\}\-[\t ]\{1,\}\)15\(.*\)$:\1${HITS1MAX}\2:g}" \
+				-e "/^DELETE FROM dspam_token_data/,/COMMIT/{s:^\([\t ]*\(AND\|WHERE\)[\t ]\{1,\}last_hit[\t ]\{1,\}<[\t ]\{1,\}CURRENT_DATE[\t ]\{1,\}\-[\t ]\{1,\}\)90\(.*\)$:\1${UNUSED_AGE}\2:g}" \
+				"${DSPAM_PgSQL_PURGE_SQL}">"${DSPAM_SQL_TMPFILE}"
+			[ -r "${DSPAM_SQL_TMPFILE}" ] && DSPAM_PgSQL_PURGE_SQL="${DSPAM_SQL_TMPFILE}"
+		fi
+
 		# Run the PostgreSQL purge script
 		PGPASSFILE="${DSPAM_CRON_TMPFILE}" ${DSPAM_PgSQL_CMD} -f "${DSPAM_PgSQL_PURGE_SQL}" >/dev/null
 		_RC=${?}
@@ -466,6 +516,7 @@ clean_pgsql_drv() {
 			[ "${VERBOSE}" = "true" ] && echo "PostgreSQL purge script returned error code ${_RC}"
 		fi
 		echo "">"${DSPAM_CRON_TMPFILE}"
+		echo "">"${DSPAM_SQL_TMPFILE}"
 
 		return 0
 	fi
@@ -607,6 +658,24 @@ clean_sqlite3_drv() {
 			return 1
 		fi
 
+		# Use updated purge script to reflect purge days passed to this script
+		if [ "${USE_SQL_AUTOUPDATE}" = "true" ]
+		then
+			if [ "${HITS1S_AGE}" -gt "${HITS1I_AGE}" ]
+			then
+				HITS1MAX=${HITS1S_AGE}
+			else
+				HITS1MAX=${HITS1I_AGE}
+			fi
+			sed \
+				-e "s:^\([\t ]*and[\t ]\{1,\}(julianday('now')\-\)[36]0\()[\t ]\{1,\}>[\t ]\{1,\}julianday(last_hit).*\)$:\1${HAPAXES_AGE}\2:g" \
+				-e "s:^\([\t ]*and[\t ]\{1,\}(julianday('now')\-\)15\()[\t ]\{1,\}>[\t ]\{1,\}julianday(last_hit).*\)$:\1${HITS1MAX}\2:g" \
+				-e "s:^\([\t ]*and[\t ]\{1,\}(julianday('now')\-\)90\()[\t ]\{1,\}>[\t ]\{1,\}julianday(last_hit).*\)$:\1${UNUSED_AGE}\2:g" \
+				-e "s:^\([\t ]*and[\t ]\{1,\}(julianday('now')\-\)14\()[\t ]\{1,\}>[\t ]\{1,\}julianday(created_on).*\)$:\1${SIGNATURE_AGE}\2:g" \
+				"${DSPAM_SQLite3_PURGE_SQL}">"${DSPAM_SQL_TMPFILE}"
+			[ -r "${DSPAM_SQL_TMPFILE}" ] && DSPAM_SQLite3_PURGE_SQL="${DSPAM_SQL_TMPFILE}"
+		fi
+
 		# Run the SQLite3 purge script and vacuum
 		find "${DSPAM_HOMEDIR}" -name "*.sdb" -print | while read name
 		do
@@ -617,6 +686,9 @@ clean_sqlite3_drv() {
 				echo "vacuum;" | ${SQLITE3_BIN_DIR}/sqlite3 "${name}" >/dev/null
 			fi
 		done 1>/dev/null 2>&1
+
+		echo "">"${DSPAM_SQL_TMPFILE}"
+
 		return 0
 	fi
 
@@ -715,6 +787,24 @@ clean_sqlite_drv() {
 			return 1
 		fi
 
+		# Use updated purge script to reflect purge days passed to this script
+		if [ "${USE_SQL_AUTOUPDATE}" = "true" ]
+		then
+			if [ "${HITS1S_AGE}" -gt "${HITS1I_AGE}" ]
+			then
+				HITS1MAX=${HITS1S_AGE}
+			else
+				HITS1MAX=${HITS1I_AGE}
+			fi
+			sed \
+				-e "s:^\([\t ]*and[\t ]\{1,\}date('now')\-date(last_hit)[\t ]\{1,\}>[\t ]\{1,\}\)[36]0\(.*\)$:\1${HAPAXES_AGE}\2:g" \
+				-e "s:^\([\t ]*and[\t ]\{1,\}date('now')\-date(last_hit)[\t ]\{1,\}>[\t ]\{1,\}\)15\(.*\)$:\1${HITS1MAX}\2:g" \
+				-e "s:^\([\t ]*and[\t ]\{1,\}date('now')\-date(last_hit)[\t ]\{1,\}>[\t ]\{1,\}\)90\(.*\)$:\1${UNUSED_AGE}\2:g" \
+				-e "s:^\([\t ]*and[\t ]\{1,\}date('now')\-date(created_on)[\t ]\{1,\}>[\t ]\{1,\}\)14\(.*\)$:\1${SIGNATURE_AGE}\2:g" \
+				"${DSPAM_SQLite_PURGE_SQL}">"${DSPAM_SQL_TMPFILE}"
+			[ -r "${DSPAM_SQL_TMPFILE}" ] && DSPAM_SQLite_PURGE_SQL="${DSPAM_SQL_TMPFILE}"
+		fi
+
 		# Run the SQLite purge script and vacuum
 		find "${DSPAM_HOMEDIR}" -name "*.sdb" -print | while read name
 		do
@@ -725,6 +815,9 @@ clean_sqlite_drv() {
 				echo "vacuum;" | ${SQLITE_BIN_DIR}/sqlite "${name}" >/dev/null
 			fi
 		done 1>/dev/null 2>&1
+
+		echo "">"${DSPAM_SQL_TMPFILE}"
+
 		return 0
 	fi
 
@@ -740,7 +833,8 @@ DSPAM_CRON_LOCKFILE="/var/run/$(basename $0 .sh).pid"
 #
 # File used to save temporary data
 #
-DSPAM_CRON_TMPFILE="/tmp/.ds_$$"
+DSPAM_CRON_TMPFILE="/tmp/.ds_$$_$RANDOM"
+DSPAM_SQL_TMPFILE="/tmp/.ds_$$_$RANDOM"
 
 
 #
@@ -787,8 +881,10 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	#
 	UMASK_OLD="$(umask)"
 	umask 077
-	[ -e "${DSPAM_CRON_TMPFILE}" ] && /bin/rm -f "${DSPAM_CRON_TMPFILE}" >/dev/null 2>&1
+	[ -e "${DSPAM_CRON_TMPFILE}" ] && rm -f "${DSPAM_CRON_TMPFILE}" >/dev/null 2>&1
+	[ -e "${DSPAM_SQL_TMPFILE}" ] && rm -f "${DSPAM_SQL_TMPFILE}" >/dev/null 2>&1
 	touch "${DSPAM_CRON_TMPFILE}"
+	touch "${DSPAM_SQL_TMPFILE}"
 	umask "${UMASK_OLD}"
 
 
@@ -947,6 +1043,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	[ -z "${LOGROTATE_AGE}" ] && LOGROTATE_AGE=31				# System and user log
 	[ -z "${USE_SQL_PURGE}" ] && USE_SQL_PURGE="true"			# Run SQL purge scripts
 	[ -z "${USE_SQL_OPTIMIZATION}" ] && USE_SQL_OPTIMIZATION="false"	# Do not run vacuum or optimize
+	[ -z "${USE_SQL_AUTOUPDATE}" ] && USE_SQL_AUTOUPDATE="false"		# Do not automatically modify purge days in SQL clause
 	[ -z "${PURGE_ALL_DRIVERS}" ] && PURGE_ALL_DRIVERS="false"		# Only purge active driver
 	[ -z "${VERBOSE}" ] && VERBOSE="false"					# No additional output
 	if [ -z "${SIGNATURE_AGE}" ]
@@ -1140,5 +1237,6 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 	#
 	rm -f "${DSPAM_CRON_LOCKFILE}"
 	rm -f "${DSPAM_CRON_TMPFILE}"
+	rm -f "${DSPAM_SQL_TMPFILE}"
 	trap - INT TERM EXIT
 fi
