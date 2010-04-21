@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100422:0120] sbajic: Fixing operation order when escaping and shortening strings in Web-UI history page
+
 [20100421:2200] sbajic: Adding section in UPGRADING (UPGRADING FROM 3.9.0) to explain how to change the character set/collation to latin1 (missed to mention that conversation task for the update to 3.9.0)
 
 [20100421:2115] sbajic: Updating purge-4.1.sql to better handle tables that have mixed character sets and collations

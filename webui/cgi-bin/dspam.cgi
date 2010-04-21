@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.48 2010/03/15 19:48:36 sbajic Exp $
+# $Id: dspam.cgi,v 1.49 2010/04/22 01:16:25 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
@@ -507,13 +507,20 @@ sub DisplayHistory {
 
     $info = $rec{$signature}->{'info'} if ($rec{$signature}->{'info'} ne "");
 
+    $from = substr($from, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "..." if (length($from)>$CONFIG{'MAX_COL_LEN'});
+    $subject = substr($subject, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "..." if (length($subject)>$CONFIG{'MAX_COL_LEN'});
+
+    $from =~ s/&/&amp;/g;
     $from =~ s/</&lt;/g;
     $from =~ s/>/&gt;/g;
+    $from =~ s/"/&quot;/g;
+    $from =~ s/'/&#39;/g;	# MSIE doesn't know "&apos;"
+
+    $subject =~ s/&/&amp;/g/;
     $subject =~ s/</&lt;/g;
     $subject =~ s/>/&gt;/g;
-
-    $from = substr($from, 0, $CONFIG{'MAX_COL_LEN'}) . "..." if (length($from)>$CONFIG{'MAX_COL_LEN'});
-    $subject = substr($subject, 0, $CONFIG{'MAX_COL_LEN'}) . "..." if (length($subject)>$CONFIG{'MAX_COL_LEN'});
+    $subject =~ s/"/&quot;/g;
+    $subject =~ s/'/&#39;/g;	# MSIE doesn't know "&apos;"
 
     my($rclass);
     $rclass = "spam" if ($class eq "I" || $class eq "W" || $class eq "F");
@@ -1226,11 +1233,11 @@ sub DisplayQuarantine {
 
     $new->{'Sub2'} = $new->{'X-DSPAM-Signature'};
     if (length($new->{'Subject'})>$CONFIG{'MAX_COL_LEN'}) {
-      $new->{'Subject'} = substr($new->{'Subject'}, 0, $CONFIG{'MAX_COL_LEN'}) . "...";
+      $new->{'Subject'} = substr($new->{'Subject'}, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "...";
     } 
  
     if (length($new->{'From'})>$CONFIG{'MAX_COL_LEN'}) {
-      $new->{'From'} = substr($new->{'From'}, 0, $CONFIG{'MAX_COL_LEN'}) . "...";
+      $new->{'From'} = substr($new->{'From'}, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "...";
     }
 
     if ($new->{'Subject'} eq "") {
