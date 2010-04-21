@@ -1,4 +1,4 @@
--- $Id: purge-4.1.sql,v 1.10 2008/12/19 18:04:04 sbajic Exp $
+-- $Id: purge-4.1.sql,v 1.11 2010/04/21 21:14:18 sbajic Exp $
 
 -- ---------------------------------------------------------------------------
 -- Note: Should you have modified your dspam.conf to have other intervals for
@@ -60,7 +60,7 @@ DELETE LOW_PRIORITY QUICK
   FROM t USING dspam_token_data t
     LEFT JOIN dspam_preferences p ON (p.preference = 'trainingMode' AND p.uid = t.uid)
     LEFT JOIN dspam_preferences d ON (d.preference = 'trainingMode' AND d.uid = 0)
-  WHERE COALESCE(p.value,d.value,@TrainingMode) NOT IN ('TOE','TUM','NOTRAIN')
+  WHERE COALESCE(CONVERT(p.value USING latin1) COLLATE latin1_general_ci,CONVERT(d.value USING latin1) COLLATE latin1_general_ci,CONVERT(@TrainingMode USING latin1) COLLATE latin1_general_ci) NOT IN (_latin1 'TOE',_latin1 'TUM',_latin1 'NOTRAIN')
     AND from_days(@today-@PurgeUnused) > last_hit;
 COMMIT;
 
@@ -72,7 +72,7 @@ DELETE LOW_PRIORITY QUICK
   FROM t USING dspam_token_data t
     LEFT JOIN dspam_preferences p ON (p.preference = 'trainingMode' AND p.uid = t.uid)
     LEFT JOIN dspam_preferences d ON (d.preference = 'trainingMode' AND d.uid = 0)
-  WHERE COALESCE(p.value,d.value,@TrainingMode) = 'TUM'
+  WHERE COALESCE(CONVERT(p.value USING latin1) COLLATE latin1_general_ci,CONVERT(d.value USING latin1) COLLATE latin1_general_ci,CONVERT(@TrainingMode USING latin1) COLLATE latin1_general_ci) = _latin1 'TUM'
     AND from_days(@today-@PurgeUnused) > last_hit
     AND innocent_hits + spam_hits < 50;
 COMMIT;

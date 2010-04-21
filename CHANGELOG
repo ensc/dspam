@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100421:2115] sbajic: Updating purge-4.1.sql to better handle tables that have mixed character sets and collations
+
 [20100421:1135] sbajic: Fixing bugs in dspam_maintenance.sh and adding parameter --with-sql-autoupdate
 
 [20100421:1130] sbajic: Updating PostgreSQL and SQLite3 purge scripts to have 30 days (default value used in MySQL purge script, SQLite purge script, dspam_clean and dspam.conf) purging value for Hapaxes.
