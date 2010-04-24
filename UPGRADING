@@ -22,7 +22,7 @@ UPGRADING FROM 3.9.0
      ALTER TABLE `dspam_preferences`
        CHANGE `preference` `preference` VARCHAR(32) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL;
      ALTER TABLE `dspam_preferences`
-       CHANGE `preference` `preference` VARCHAR(64) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL;
+       CHANGE `value` `value` VARCHAR(64) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL;
      ALTER TABLE `dspam_preferences`
        DEFAULT CHARACTER SET latin1 COLLATE latin1_general_ci;
 
