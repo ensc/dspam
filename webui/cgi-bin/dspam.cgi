@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.49 2010/04/22 01:16:25 sbajic Exp $
+# $Id: dspam.cgi,v 1.50 2010/04/25 15:43:35 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
@@ -516,7 +516,7 @@ sub DisplayHistory {
     $from =~ s/"/&quot;/g;
     $from =~ s/'/&#39;/g;	# MSIE doesn't know "&apos;"
 
-    $subject =~ s/&/&amp;/g/;
+    $subject =~ s/&/&amp;/g;
     $subject =~ s/</&lt;/g;
     $subject =~ s/>/&gt;/g;
     $subject =~ s/"/&quot;/g;

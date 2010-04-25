@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100425:1545] sbajic: Fixing typo in dspam.cgi
+
 [20100424:0200] sbajic: Fixing typo in UPGRADING
 
 [20100422:0120] sbajic: Fixing operation order when escaping and shortening strings in Web-UI history page
