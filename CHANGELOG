@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100426:1015] sbajic: Adding instruction to mysql_drv.txt how and when to use InnoDB with DSPAM.
+
 [20100425:1545] sbajic: Fixing typo in dspam.cgi
 
 [20100424:0200] sbajic: Fixing typo in UPGRADING
