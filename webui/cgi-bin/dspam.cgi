@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.50 2010/04/25 15:43:35 sbajic Exp $
+# $Id: dspam.cgi,v 1.51 2010/04/27 02:19:54 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
@@ -1808,7 +1808,7 @@ sub GetPath {
       $PATH = "$CONFIG{'DSPAM_HOME'}/data/" . substr($USER, 0, 1) .
         "/". substr($USER, 1, 1) . "/$USER/$USER";
     } else {
-      $PATH = "$CONFIG{'DSPAM_HOME'}/data/$USER/$USER";
+      $PATH = "$CONFIG{'DSPAM_HOME'}/data/$USER/$USER/$USER";
     }
     return $PATH;
   }
