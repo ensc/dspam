@@ -1,0 +1,286 @@
+.\" $Id: dspam_maintenance.1,v 1.0 2010/04/26 22:28:31 sbajic Exp $
+.\"  -*- nroff -*-
+.\"
+.\" dspam_maintenance
+.\"
+.\" Authors:	Julien Valroff <julien@kirya.net>
+.\"		Stevan Bajic <stevan@bajic.ch>
+.\"
+.\" Copyright (c) 2010 Julien Valroff <julien@kirya.net> for the
+.\" for the Debian project (but may be used by others).
+.\"
+.TH dspam_maintenance 1  "Apr 26, 2010" "dspam_maintenance" "User Commands"
+
+.SH NAME
+.B dspam_maintenance \c
+\- remove old signatures and unimportant tokens from the DSPAM storage backend
+
+.SH SYNOPSIS
+.na
+.B dspam_maintenance
+[\c
+.B \--profile\c
+=PROFILE\c
+]
+[\c
+.B \--logdays\c
+=no_of_days\c
+]
+[\c
+.B \--signatures\c
+=no_of_days\c
+]
+[\c
+.B \--neutral\c
+=no_of_days\c
+]
+[\c
+.B \--unused\c
+=no_of_days\c
+]
+[\c
+.B \--hapaxes\c
+=no_of_days\c
+]
+[\c
+.B \--hits1s\c
+=no_of_days\c
+]
+[\c
+.B \--hits1i\c
+=no_of_days\c
+]
+[\c
+.B \--without-sql-purge\c
+]
+[\c
+.B \--with-sql-automatization\c
+]
+[\c
+.B \--with-sql-autoupdate\c
+]
+[\c
+.B \--purgescriptdir\
+=directory\c
+]
+[\c
+.B \--with-all-drivers\c
+]
+[\c
+.B \--verbose\c
+]
+
+.ad
+.SH DESCRIPTION
+.LP
+.B dspam_maintenance
+is used to remove old signatures/tokens and unimportant tokens from the DSPAM
+storage backend and purge old log entries in user and system logs.
+
+This script can be called from the command line or run from within cron. Either
+add a line in your crontab or add this script in your cron.{hourly,daily,weekly,monthly}.
+Running this script every hour might not be the best idea but it's your decision
+if you want to do so.
+
+.SH OPTIONS
+.LP
+
+.ne 3
+.TP
+.BI \-\-profile= PROFILE\c
+.IP
+Specify a storage profile from dspam.conf. The storage profile selected will be used
+for all database connectivity.
+.IP
+.B NOTE: \c
+See
+.B dspam.conf \c
+for more information.
+
+.ne 3
+.TP
+.BI \-\-logdays= no_of_days\c
+.IP
+All log entries older than
+.B no_of_days \c
+days will be removed.
+.IP
+.B NOTE: \c
+Default is
+.B 31 \c
+days. (for more info:
+.B man dspam_logrotate\c
+)
+
+.ne 3
+.TP
+.BI \-\-signatures= no_of_days\c
+.IP
+All signatures older than
+.B no_of_days\c
+days will be removed.
+.IP
+.B NOTE: \c
+Default value is set by the
+.B PurgeSignatures \c
+option in dspam.conf, if this option is not set, the default value is
+.B 14 \c
+days. This option is only used for the Hash driver.
+
+.ne 3
+.TP
+.BI \-\-neutral= no_of_days\c
+.IP
+Deletes all tokens from the target users database whose probability is
+between 0.35 and 0.65 (fairly neutral, useless data).
+.IP
+.B NOTE: \c
+Default value is set by the
+.B PurgeNeutral \c
+option in dspam.conf, if this option is not set, the default value is
+.B 90 \c
+days.
+
+.ne 3
+.TP
+.BI \-\-unused= no_of_days\c
+.IP
+Remove stale tokens which have not been used for a long period of time.
+.IP
+.B NOTE: \c
+Default value is set by the
+.B PurgeUnused \c
+option in dspam.conf, if this option is not set, the default value is
+.B 90 \c
+days.
+
+.ne 3
+.TP
+.BI \-\-hapaxes= no_of_days\c
+.IP
+Remove tokens with a total hit count below 5 (which will be assigned a hapaxial
+value by DSPAM).
+.IP
+.B NOTE: \c
+Default value is set by the
+.B PurgeHapaxes \c
+option in dspam.conf, if this option is not set, the default value is
+.B 30 \c
+days.
+
+.ne 3
+.TP
+.BI \-\-hits1s= no_of_days\c
+.IP
+Remove tokens with a single SPAM hit.
+.IP
+.B NOTE: \c
+Default value is set by the
+.B PurgeHits1S \c
+option in dspam.conf, if this option is not set, the default value is
+.B 15 \c
+days.
+
+.ne 3
+.TP
+.BI \-\-hits1i= no_of_days\c
+.IP
+Remove tokens with a single INNOCENT hit.
+.IP
+.B NOTE: \c
+Default value is set by the
+.B PurgeHits1I \c
+option in dspam.conf, if this option is not set, the default value is
+.B 15 \c
+days.
+
+.ne 3
+.TP
+.BI \-\-without\-sql\-purge\c
+.IP
+Do not use SQL based purging. Only run dspam_clean.
+.IP
+.B NOTE: \c
+Default is
+.B off \c
+(aka: use SQL based purging).
+
+.ne 3
+.TP
+.BI \-\-with\-sql\-optimization
+.IP
+Run VACUUM (for PostgreSQL/SQLite) and/or OPTIMIZE (for MySQL).
+.IP
+.B NOTE: \c
+Default is
+.B off \c
+(aka: do not use optimizations).
+
+.ne 3
+.TP
+.BI \-\-with\-sql\-autoupdate
+.IP
+Run SQL based purging with purge day values passed to dspam_maintenance.
+.IP
+.B NOTE: \c
+Default is
+.B off \c
+(aka: do not attempt to modify SQL instructions).
+
+.ne 3
+.TP
+.BI \-\-purgescriptdir= directory
+.IP
+Space separated list of directories where to search for SQL files
+used for the SQL based purging.
+
+.ne 3
+.TP
+.BI \-\-with\-all\-drivers
+.IP
+Process all installed storage drivers (not just the active driver).
+.IP
+.B NOTE: \c
+Default is
+.B true \c
+(aka: process all installed drivers).
+
+.ne 3
+.TP
+.BI \-\-verbose
+.IP
+Verbose output while running maintenance script.
+
+.SH EXIT VALUE
+.LP
+.ne 3
+.PD 0
+.TP
+.B 0
+Operation was successful.
+.ne 3
+.TP
+.B other
+Operation resulted in an error. Run the script with
+.B \-\-verbose \c
+to get more information about error.
+.PD
+
+.SH COPYRIGHT
+Copyright \(co 2002\-2010 DSPAM Project
+.br
+All rights reserved.
+.br
+
+For more information, see http://dspam.sourceforge.net.
+
+.SH SEE ALSO
+.BR dspam (1),
+.BR dspam_admin (1),
+.BR dspam_clean (1),
+.BR dspam_crc (1),
+.BR dspam_dump (1),
+.BR dspam_logrotate (1),
+.BR dspam_merge (1),
+.BR dspam_stats (1),
+.BR dspam_train (1)
