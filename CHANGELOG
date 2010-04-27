@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100427:0230] sbajic: Speeding up purging in dspam_maintenance.sh when using SQL based purging in conjunction with dspam_clean.
+
 [20100427:0220] sbajic: Fix handling of single char usernames in Web-UI when using large scale.
 
 [20100426:1015] sbajic: Adding instruction to mysql_drv.txt how and when to use InnoDB with DSPAM.

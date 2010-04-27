@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# $Id: dspam_maintenance.sh,v 1.18 2010/04/21 08:49:29 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.19 2010/04/26 21:25:58 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -12,9 +12,10 @@
 #          is since then distributed with the Gentoo DSPAM ebuild. This
 #          edition here is slightly changed to be more flexible. I have
 #          not tested that script on other distros except on Gentoo Linux
-#          and on a older CentOS distro. Should you find any issues with
-#          this script then please post a message on the DSPAM user
-#          mailing list.
+#          and on a older CentOS distro. Other members from the DSPAM
+#          mailing list have tested the script on Debian. Should you find
+#          any issues with this script then please post a message on the
+#          DSPAM user mailing list.
 #
 # Note   : This script can be called from the command line or run from
 #          within cron. Either add a line in your crontab or add this
@@ -141,7 +142,7 @@ done
 #
 run_dspam_clean() {
 	[ "${VERBOSE}" = "true" ] && echo "Running dspam_clean ..."
-	local PURGE_SIG="${1}"
+	local PURGE_ALL="${1}"
 	local ADD_PARAMETER=""
 	read_dspam_params DefaultProfile
 	if [ -n "${PROFILE}" -a -n "${DefaultProfile}" -a "${PROFILE/*.}" != "${DefaultProfile}" ]
@@ -153,13 +154,13 @@ run_dspam_clean() {
 		[ "${VERBOSE}" = "true" ] && echo " * with default parameters"
 		${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER}
 	else
-		if [ "${PURGE_SIG}" = "YES" ]
+		if [ "${PURGE_ALL}" = "YES" ]
 		then
-			[ "${VERBOSE}" = "true" ] && echo "  * with purging old signatures"
+			[ "${VERBOSE}" = "true" ] && echo "  * with full purging"
 			${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -s${SIGNATURE_AGE} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
 		else
-			[ "${VERBOSE}" = "true" ] && echo "  * without purging old signatures"
-			${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -p${NEUTRAL_AGE} -u${UNUSED_AGE},${HAPAXES_AGE},${HITS1S_AGE},${HITS1I_AGE} >/dev/null 2>&1
+			[ "${VERBOSE}" = "true" ] && echo "  * with neutral token purging only"
+			${DSPAM_BIN_DIR}/dspam_clean ${ADD_PARAMETER} -p${NEUTRAL_AGE} >/dev/null 2>&1
 		fi
 	fi
 	return ${?}
@@ -1222,6 +1223,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		then
 			[ "${VERBOSE}" = "true" ] && echo "Hash storage driver detected (not running dspam_clean)"
 		else
+			[ "${USE_SQL_PURGE}" = "false" ] && RUN_FULL_DSPAM_CLEAN="YES"
 			run_dspam_clean ${RUN_FULL_DSPAM_CLEAN}
 		fi
 	else
