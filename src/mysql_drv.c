@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.868 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.869 2010/04/28 23:42:37 sbajic Exp $ */
 
 /*
  DSPAM
@@ -790,7 +790,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
   snprintf (inserthead, sizeof(inserthead),
             "INSERT INTO dspam_token_data(uid,token,spam_hits,"
-            "innocent_hits,last_hit) values");
+            "innocent_hits,last_hit) VALUES");
   buffer_copy (insert, inserthead);
 #endif
 
@@ -867,6 +867,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
           }
         }
         buffer_copy (insert, inserthead);
+        insert_any = 0;
       }
 #else
       snprintf(ins, sizeof (ins),
