@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.193 2010/04/17 15:01:01 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.194 2010/04/28 00:12:26 sbajic Exp $ */
 
 /*
  DSPAM
@@ -419,10 +419,11 @@ dspam_destroy (DSPAM_CTX * CTX)
   free (CTX->group);
   free (CTX->home);
 
-  if (! CTX->_sig_provided && CTX->signature != NULL)
-  {
-    free (CTX->signature->data);
-    free (CTX->signature);
+  if (! CTX->_sig_provided) {
+    if (CTX->signature->data != NULL)
+      free (CTX->signature->data);
+    if (CTX->signature != NULL)
+      free (CTX->signature);
   }
 
   if (CTX->message)
@@ -1135,8 +1136,10 @@ bail:
   ds_diction_destroy(diction);
   ds_diction_destroy(bnr_patterns);
   if (CTX->signature != NULL) {
-    if (CTX->signature->data != NULL)
+    if (CTX->signature->data != NULL) {
       free(CTX->signature->data);
+      CTX->signature->data = NULL;
+    }
     if (CTX->signature != NULL && heap_sort_items > 0)
       free (CTX->signature);
     CTX->signature = NULL;
