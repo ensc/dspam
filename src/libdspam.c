@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.194 2010/04/28 00:12:26 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.195 2010/04/29 17:30:27 sbajic Exp $ */
 
 /*
  DSPAM
@@ -419,11 +419,10 @@ dspam_destroy (DSPAM_CTX * CTX)
   free (CTX->group);
   free (CTX->home);
 
-  if (! CTX->_sig_provided) {
+  if (! CTX->_sig_provided && CTX->signature != NULL) {
     if (CTX->signature->data != NULL)
       free (CTX->signature->data);
-    if (CTX->signature != NULL)
-      free (CTX->signature);
+    free (CTX->signature);
   }
 
   if (CTX->message)

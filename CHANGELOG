@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100429:1730] sbajic: Fix segmentation fault in libdspam.c introduced with last commit
+
 [20100428:2350] sbajic: Fix double free or corruption in libdspam.c
 
 [20100428:2345] sbajic: Fix SQL query splitting in _ds_setall_spamrecords() for the MySQL driver
