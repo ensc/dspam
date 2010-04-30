@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100430:1820] sbajic: Fix typo in SQL query format in _pgsql_drv_get_dbversion() for PostgreSQL driver
+
 [20100429:1730] sbajic: Fix segmentation fault in libdspam.c introduced with last commit
 
 [20100428:2350] sbajic: Fix double free or corruption in libdspam.c

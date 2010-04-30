@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.736 2010/04/11 14:33:17 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.737 2010/04/30 18:18:24 sbajic Exp $ */
 
 /*
  DSPAM
@@ -3035,7 +3035,7 @@ _pgsql_drv_get_dbversion(struct _pgsql_drv_storage *s, unsigned int range)
   }
 
   /* detect postgres version */
-  snprintf (query, sizeof (query), "SELECT coalesce(substring(split_part(split_part(version(),' ',2),'.',%d) FROM '\\d+')::int2,0)", range);
+  snprintf (query, sizeof (query), "SELECT coalesce(substring(split_part(split_part(version(),' ',2),'.',%d) FROM '\\\\d+')::int2,0)", range);
 
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
