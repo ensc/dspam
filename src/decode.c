@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.386 2010/03/23 09:18:12 sbajic Exp $ */
+/* $Id: decode.c,v 1.387 2010/05/01 17:09:36 sbajic Exp $ */
 
 /*
  DSPAM
@@ -428,8 +428,8 @@ _ds_decode_headers (ds_message_part_t block) {
           was_null = 1;
         }
 
-        ptr = strtok_r (enc, "?", &ptrptr);
-        ptr = strtok_r (NULL, "?", &ptrptr);
+        strtok_r (enc, "?", &ptrptr);
+        strtok_r (NULL, "?", &ptrptr);
         ptr = strtok_r (NULL, "?", &ptrptr);
         dptr = strtok_r (NULL, "?", &ptrptr);
         if (!dptr) {
@@ -1365,7 +1365,7 @@ _ds_strip_html (const char *html)
         }
         /* tag with uri found */
         if (tag_offset > 0) {
-          int url_start = tag_offset;         /* start of url tag inclusive [ */
+          int url_start;         /* start of url tag inclusive [ */
           int url_tag_len = strlen(url_tag);
           char delim = ' ';
           /* find start of uri */

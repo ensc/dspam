@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.29 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: dspam_stats.c,v 1.30 2010/05/01 16:08:23 sbajic Exp $ */
 
 /*
  DSPAM
@@ -131,13 +131,13 @@ main (int argc, char **argv)
   ch = opt_humanfriendly = 0;
   opt_reset = opt_snapshot = opt_stats = opt_total =  0;
 
-#ifdef HAVE_GETOPT
-  while((ch = getopt(argc, argv, "hHrsS")) != -1)
-#else
+#ifndef HAVE_GETOPT
   while ( argv[optind] &&
             argv[optind][0] == '-' &&
               (ch = argv[optind][1]) &&
                 argv[optind][2] == '\0' )
+#else
+  while((ch = getopt(argc, argv, "hHrsS")) != -1)
 #endif
   {
     switch(ch) {
@@ -172,14 +172,16 @@ main (int argc, char **argv)
     optind++;
 #endif
   }
+#ifndef HAVE_GETOPT
   /* reset our option array and index to where we are after getopt */
   argv += optind;
   argc -= optind;
+#endif
 
   /* process arguments */
   for (i=0; i < argc; i++)
   {
-      if (strncmp(argv[i], "--", 2)) {
+      if (argv[i] && strncmp(argv[i], "--", 2)) {
 #ifdef TRUSTED_USER_SECURITY
         if ( !trusted && strcmp(argv[i], p->pw_name) )
         {

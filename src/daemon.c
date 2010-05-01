@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.15 2010/04/16 18:25:17 sbajic Exp $ */
+/* $Id: daemon.c,v 1.16 2010/05/01 18:11:52 sbajic Exp $ */
 
 /*
  DSPAM
@@ -837,7 +837,7 @@ RSET:
       free(cmdline);
       cmdline = NULL;
       TTX->authenticated = 0;
-      argc = 0;
+      /* argc = 0; */
     }
 
     free(p);

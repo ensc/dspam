@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.395 2010/05/01 15:55:27 sbajic Exp $ */
+/* $Id: dspam.c,v 1.396 2010/05/01 17:05:03 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2451,8 +2451,8 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
               if (do_inocgroups)
               {
                 char *l = list, *u;
-                u = strsep (&l, ":");
-                u = strsep (&l, ":");
+                strsep (&l, ":");
+                strsep (&l, ":");
                 u = strsep (&l, ",");
                 while (u != NULL)
                 {
@@ -2479,8 +2479,8 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
               else if (strcasecmp (type, "CLASSIFICATION") == 0)
               {
                 char *l = list, *u;
-                u = strsep (&l, ":");
-                u = strsep (&l, ":");
+                strsep (&l, ":");
+                strsep (&l, ":");
                 u = strsep (&l, ",");
                 while (u != NULL)
                 {
@@ -2500,8 +2500,8 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
               else if (strcasecmp (type, "MERGED") == 0 && strcasecmp(group, username) != 0)
               {
                 char *l = list, *u;
-                u = strsep (&l, ":");
-                u = strsep (&l, ":");
+                strsep (&l, ":");
+                strsep (&l, ":");
                 u = strsep (&l, ",");
                 while (u != NULL)
                 {
@@ -4113,7 +4113,6 @@ agent_pref_t load_aggregated_prefs(AGENT_CTX *ATX, const char *username) {
                             _ds_read_attribute(agent_config, "Home"), ATX->dbh);
         if (UTX && !strcmp(_ds_pref_val(UTX, "fallbackDomain"), "on")) {
           LOGDEBUG("empty prefs found. falling back to %s", domain);
-          username = domain;
         } else {
           _ds_pref_free(UTX);
           UTX = NULL;

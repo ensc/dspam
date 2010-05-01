@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100501:1610] sbajic: Make LLVM clang compiler happy
+
 [20100501:1600] sbajic: Fix bug in dspam.c main()
 
 [20100501:1555] sbajic: Fix dereference of null pointer in log_events()
