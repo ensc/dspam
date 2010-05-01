@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.393 2010/05/01 15:15:30 sbajic Exp $ */
+/* $Id: dspam.c,v 1.394 2010/05/01 15:49:06 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2915,31 +2915,31 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, (ATX->managed_group[0]) ? ATX->managed_group : CTX->username), "log");
 
-  node_nt = c_nt_first (CTX->message->components, &c_nt);
-  if (node_nt != NULL)
+  if (CTX->message)
   {
-    ds_message_part_t block;
-
-    block = node_nt->ptr;
-    if (block->headers != NULL)
+    node_nt = c_nt_first (CTX->message->components, &c_nt);
+    if (node_nt != NULL)
     {
-      ds_header_t head;
-      struct nt_node *node_header;
-
-      node_header = block->headers->first;
-      while(node_header != NULL) {
-        head = (ds_header_t) node_header->ptr;
-	if (head) {
-          if (!strcasecmp(head->heading, "Subject")) {
-            subject = head->data;
-            if (from != NULL) break;
-          } else if (!strcasecmp(head->heading, "From")) {
-            from = head->data;
-            if (subject != NULL) break;
+      ds_message_part_t block;
+      block = node_nt->ptr;
+      if (block->headers != NULL)
+      {
+        ds_header_t head;
+        struct nt_node *node_header;
+        node_header = block->headers->first;
+        while(node_header != NULL) {
+          head = (ds_header_t) node_header->ptr;
+          if (head) {
+            if (!strcasecmp(head->heading, "Subject")) {
+              subject = head->data;
+              if (from != NULL) break;
+            } else if (!strcasecmp(head->heading, "From")) {
+              from = head->data;
+              if (subject != NULL) break;
+            }
           }
+          node_header = node_header->next;
         }
-
-        node_header = node_header->next;
       }
     }
   }
