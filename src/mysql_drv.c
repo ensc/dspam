@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.869 2010/04/28 23:42:37 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.870 2010/04/29 11:04:13 sbajic Exp $ */
 
 /*
  DSPAM
@@ -172,6 +172,8 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
   char *name;
   MYSQL_RES *result;
   MYSQL_ROW row;
+  int query_rc = 0;
+  int query_errno = 0;
   struct _ds_spam_totals user, group;
   int uid = -1, gid = -1;
   result = NULL;
@@ -238,8 +240,16 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
 	      "spam_classified,innocent_classified"
 	      " FROM dspam_stats WHERE uid='%d'",
 	      (int) uid);
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
-  {
+  query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+  if (query_rc) {
+    query_errno = mysql_errno (s->dbt->dbh_read);
+    if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+      /* Locking issue. Wait 1 second and then retry the transaction again */
+      sleep(1);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+    }
+  }
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     LOGDEBUG ("_mysql_drv_get_spamtotals: unable to run query: %s", query);
     return EFAILURE;
@@ -394,7 +404,9 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
   struct passwd *p;
   char *name;
   char query[1024];
-  int result = -1;
+  int query_rc = 0;
+  int query_errno = 0;
+  int update_any = 0;
   struct _ds_spam_totals user;
 
   if (s->dbt == NULL)
@@ -444,7 +456,6 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
     if (CTX->totals.spam_corpusfed < 0) CTX->totals.spam_corpusfed = 0;
     if (CTX->totals.innocent_classified < 0) CTX->totals.innocent_classified = 0;
     if (CTX->totals.spam_classified < 0) CTX->totals.spam_classified = 0;
-
   }
 
   if (s->control_totals.innocent_learned == 0)
@@ -460,61 +471,143 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
               CTX->totals.innocent_misclassified, CTX->totals.spam_corpusfed,
               CTX->totals.innocent_corpusfed, CTX->totals.spam_classified,
               CTX->totals.innocent_classified);
-    result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    if (query_rc) {
+      query_errno = mysql_errno (s->dbt->dbh_write);
+      if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+        /* Locking issue. Wait 1 second and then retry the transaction again */
+        sleep(1);
+        query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+      }
+    }
+  } else {
+    query_rc = -1;
   }
 
-  if (result)
-  {
-    snprintf (query, sizeof (query),
-              "UPDATE dspam_stats SET spam_learned=spam_learned%s%d,"
-              "innocent_learned=innocent_learned%s%d,"
-              "spam_misclassified=spam_misclassified%s%d,"
-              "innocent_misclassified=innocent_misclassified%s%d,"
-              "spam_corpusfed=spam_corpusfed%s%d,"
-              "innocent_corpusfed=innocent_corpusfed%s%d,"
-              "spam_classified=spam_classified%s%d,"
-              "innocent_classified=innocent_classified%s%d"
-              " WHERE uid=%d",
-              (CTX->totals.spam_learned >
-               s->control_totals.spam_learned) ? "+" : "-",
-              abs (CTX->totals.spam_learned -
-                   s->control_totals.spam_learned),
-              (CTX->totals.innocent_learned >
-               s->control_totals.innocent_learned) ? "+" : "-",
-              abs (CTX->totals.innocent_learned -
-                   s->control_totals.innocent_learned),
-              (CTX->totals.spam_misclassified >
-               s->control_totals.spam_misclassified) ? "+" : "-",
-              abs (CTX->totals.spam_misclassified -
-                   s->control_totals.spam_misclassified),
-              (CTX->totals.innocent_misclassified >
-               s->control_totals.innocent_misclassified) ? "+" : "-",
-              abs (CTX->totals.innocent_misclassified -
-                   s->control_totals.innocent_misclassified),
-              (CTX->totals.spam_corpusfed >
-               s->control_totals.spam_corpusfed) ? "+" : "-",
-              abs (CTX->totals.spam_corpusfed -
-                   s->control_totals.spam_corpusfed),
-              (CTX->totals.innocent_corpusfed >
-               s->control_totals.innocent_corpusfed) ? "+" : "-",
-              abs (CTX->totals.innocent_corpusfed -
-                   s->control_totals.innocent_corpusfed),
-              (CTX->totals.spam_classified >
-               s->control_totals.spam_classified) ? "+" : "-",
-              abs (CTX->totals.spam_classified -
-                  s->control_totals.spam_classified),
-              (CTX->totals.innocent_classified >
-               s->control_totals.innocent_classified) ? "+" : "-",
-              abs (CTX->totals.innocent_classified -
-                  s->control_totals.innocent_classified), (int) p->pw_uid);
+  if (query_rc) {
+    /* Do not update stats if all values are zero (aka: no update needed) */
+    if (!(abs(CTX->totals.spam_learned           - s->control_totals.spam_learned) == 0 &&
+          abs(CTX->totals.innocent_learned       - s->control_totals.innocent_learned) == 0 &&
+          abs(CTX->totals.spam_misclassified     - s->control_totals.spam_misclassified) == 0 &&
+          abs(CTX->totals.innocent_misclassified - s->control_totals.innocent_misclassified) == 0 &&
+          abs(CTX->totals.spam_corpusfed         - s->control_totals.spam_corpusfed) == 0 &&
+          abs(CTX->totals.innocent_corpusfed     - s->control_totals.innocent_corpusfed) == 0 &&
+          abs(CTX->totals.spam_classified        - s->control_totals.spam_classified) == 0 &&
+          abs(CTX->totals.innocent_classified    - s->control_totals.innocent_classified) == 0)) {
 
-    if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
-    {
-      _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
-      LOGDEBUG ("_mysql_drv_set_spamtotals: unable to run query: %s", query);
-      if (CTX->flags & DSF_MERGED)
-        memcpy(&CTX->totals, &user, sizeof(struct _ds_spam_totals));
-      return EFAILURE;
+      buffer *buf;
+      buf = buffer_create (NULL);
+      if (query == NULL) {
+        LOG (LOG_CRIT, ERR_MEM_ALLOC);
+        return EUNKNOWN;
+      }
+
+      snprintf (query, sizeof (query),
+                "UPDATE dspam_stats SET ");
+      buffer_copy (buf, query);
+
+      /* Do not update spam learned if no change is needed */
+      if (abs (CTX->totals.spam_learned - s->control_totals.spam_learned) != 0) {
+        snprintf (query, sizeof (query),
+                  "%sspam_learned=spam_learned%s%d",
+                  (update_any) ? "," : "",
+                  (CTX->totals.spam_learned > s->control_totals.spam_learned) ? "+" : "-",
+                  abs (CTX->totals.spam_learned - s->control_totals.spam_learned));
+        update_any = 1;
+        buffer_cat (buf, query);
+      }
+      /* Do not update innocent learned if no change is needed */
+      if (abs (CTX->totals.innocent_learned - s->control_totals.innocent_learned) != 0) {
+        snprintf (query, sizeof (query),
+                  "%sinnocent_learned=innocent_learned%s%d",
+                  (update_any) ? "," : "",
+                  (CTX->totals.innocent_learned > s->control_totals.innocent_learned) ? "+" : "-",
+                  abs (CTX->totals.innocent_learned - s->control_totals.innocent_learned));
+        update_any = 1;
+        buffer_cat (buf, query);
+      }
+      /* Do not update spam misclassified if no change is needed */
+      if (abs (CTX->totals.spam_misclassified - s->control_totals.spam_misclassified) != 0) {
+        snprintf (query, sizeof (query),
+                  "%sspam_misclassified=spam_misclassified%s%d",
+                  (update_any) ? "," : "",
+                  (CTX->totals.spam_misclassified > s->control_totals.spam_misclassified) ? "+" : "-",
+                  abs (CTX->totals.spam_misclassified - s->control_totals.spam_misclassified));
+        update_any = 1;
+        buffer_cat (buf, query);
+      }
+      /* Do not update innocent misclassified if no change is needed */
+      if (abs (CTX->totals.innocent_misclassified - s->control_totals.innocent_misclassified) != 0) {
+        snprintf (query, sizeof (query),
+                  "%sinnocent_misclassified=innocent_misclassified%s%d",
+                  (update_any) ? "," : "",
+                  (CTX->totals.innocent_misclassified > s->control_totals.innocent_misclassified) ? "+" : "-",
+                  abs (CTX->totals.innocent_misclassified - s->control_totals.innocent_misclassified));
+        update_any = 1;
+        buffer_cat (buf, query);
+      }
+      /* Do not update spam corpusfed if no change is needed */
+      if (abs (CTX->totals.spam_corpusfed - s->control_totals.spam_corpusfed) != 0) {
+        snprintf (query, sizeof (query),
+                  "%sspam_corpusfed=spam_corpusfed%s%d",
+                  (update_any) ? "," : "",
+                  (CTX->totals.spam_corpusfed > s->control_totals.spam_corpusfed) ? "+" : "-",
+                  abs (CTX->totals.spam_corpusfed - s->control_totals.spam_corpusfed));
+        update_any = 1;
+        buffer_cat (buf, query);
+      }
+      /* Do not update innocent corpusfed if no change is needed */
+      if (abs (CTX->totals.innocent_corpusfed - s->control_totals.innocent_corpusfed) != 0) {
+        snprintf (query, sizeof (query),
+                  "%sinnocent_corpusfed=innocent_corpusfed%s%d",
+                  (update_any) ? "," : "",
+                  (CTX->totals.innocent_corpusfed > s->control_totals.innocent_corpusfed) ? "+" : "-",
+                  abs (CTX->totals.innocent_corpusfed - s->control_totals.innocent_corpusfed));
+        update_any = 1;
+        buffer_cat (buf, query);
+      }
+      /* Do not update spam classified if no change is needed */
+      if (abs (CTX->totals.spam_classified - s->control_totals.spam_classified) != 0) {
+        snprintf (query, sizeof (query),
+                  "%sspam_classified=spam_classified%s%d",
+                  (update_any) ? "," : "",
+                  (CTX->totals.spam_classified > s->control_totals.spam_classified) ? "+" : "-",
+                  abs (CTX->totals.spam_classified - s->control_totals.spam_classified));
+        update_any = 1;
+        buffer_cat (buf, query);
+      }
+      /* Do not update innocent classified if no change is needed */
+      if (abs (CTX->totals.innocent_classified - s->control_totals.innocent_classified) != 0) {
+        snprintf (query, sizeof (query),
+                  "%sinnocent_classified=innocent_classified%s%d",
+                  (update_any) ? "," : "",
+                  (CTX->totals.innocent_classified > s->control_totals.innocent_classified) ? "+" : "-",
+                  abs (CTX->totals.innocent_classified - s->control_totals.innocent_classified));
+        buffer_cat (buf, query);
+      }
+      snprintf (query, sizeof (query),
+                " WHERE uid=%d",
+                (int) p->pw_uid);
+      buffer_cat (buf, query);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, buf->data);
+      if (query_rc) {
+        query_errno = mysql_errno (s->dbt->dbh_write);
+        if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+          /* Locking issue. Wait 1 second and then retry the transaction again */
+          sleep(1);
+          query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, buf->data);
+        }
+      }
+
+      if (query_rc) {
+        _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), buf->data);
+        LOGDEBUG ("_mysql_drv_set_spamtotals: unable to run query: %s", buf->data);
+        if (CTX->flags & DSF_MERGED)
+          memcpy(&CTX->totals, &user, sizeof(struct _ds_spam_totals));
+        buffer_destroy (buf);
+        return EFAILURE;
+      }
+      buffer_destroy (buf);
     }
   }
 
@@ -537,6 +630,8 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   char queryhead[1024];
   MYSQL_RES *result;
   MYSQL_ROW row;
+  int query_rc = 0;
+  int query_errno = 0;
   struct _ds_spam_stat stat;
   unsigned long long token = 0;
   int uid = -1, gid = -1;
@@ -637,8 +732,16 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   _mysql_drv_query_error ("VERBOSE DEBUG (INFO ONLY - NOT AN ERROR)", query->data);
 #endif
 
-
-    if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query->data)) {
+    query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query->data);
+    if (query_rc) {
+      query_errno = mysql_errno (s->dbt->dbh_read);
+      if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+        /* Locking issue. Wait 1 second and then retry the transaction again */
+        sleep(1);
+        query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query->data);
+      }
+    }
+    if (query_rc) {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query->data);
       LOGDEBUG ("_ds_getall_spamrecords: unable to run query: %s", query->data);
       buffer_destroy(query);
@@ -719,6 +822,9 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   char queryhead[1024];
   buffer *query;
   char scratch[1024];
+  buffer *buf;
+  int query_rc = 0;
+  int query_errno = 0;
   struct passwd *p;
   char *name;
   int update_any = 0;
@@ -763,27 +869,56 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
+  buf = buffer_create (NULL);
+  if (buf == NULL)
+  {
+    buffer_destroy(query);
+    LOG (LOG_CRIT, ERR_MEM_ALLOC);
+    return EUNKNOWN;
+  }
 
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
   insert = buffer_create(NULL);
   if (insert == NULL)
   {
     buffer_destroy(query);
+    buffer_destroy(buf);
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     return EUNKNOWN;
   }
 #endif
 
   ds_diction_getstat(diction, s->control_token, &control);
-  snprintf (queryhead, sizeof (queryhead),
-            "UPDATE dspam_token_data SET last_hit=CURRENT_DATE(),"
-            "spam_hits=GREATEST(0,spam_hits%s%d),"
-            "innocent_hits=GREATEST(0,innocent_hits%s%d)"
+  snprintf (scratch, sizeof (scratch),
+            "UPDATE dspam_token_data SET last_hit=CURRENT_DATE()");
+  buffer_copy (buf, scratch);
+
+  /* Do not update spam hits if no change is needed */
+  if (abs(control.spam_hits - s->control_sh) != 0) {
+    snprintf (scratch, sizeof (scratch),
+              ",spam_hits=GREATEST(0,spam_hits%s%d)",
+              (control.spam_hits > s->control_sh) ? "+" : "-",
+              abs (control.spam_hits - s->control_sh));
+    buffer_cat (buf, scratch);
+  }
+  /* Do not update innocent hits if no change is needed */
+  if (abs(control.innocent_hits - s->control_ih) != 0) {
+    snprintf (scratch, sizeof (scratch),
+              ",innocent_hits=GREATEST(0,innocent_hits%s%d)",
+              (control.innocent_hits > s->control_ih) ? "+" : "-",
+              abs (control.innocent_hits - s->control_ih));
+    buffer_cat (buf, scratch);
+  }
+  snprintf (scratch, sizeof (scratch),
             " WHERE uid=%d AND token IN (",
-            (control.spam_hits > s->control_sh) ? "+" : "-",
-            abs (control.spam_hits - s->control_sh),
-            (control.innocent_hits > s->control_ih) ? "+" : "-",
-            abs (control.innocent_hits - s->control_ih), (int) p->pw_uid);
+            (int) p->pw_uid);
+  buffer_cat (buf, scratch);
+
+  /* Query head used for update */
+  snprintf (queryhead, sizeof (queryhead),
+            "%s",
+            buf->data);
+  buffer_destroy (buf);
 
   buffer_copy (query, queryhead);
 
@@ -851,15 +986,34 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
         LOGDEBUG("_ds_setall_spamrecords: Splitting insert query at %ld characters", insert->used);
         if (insert_any) {
           snprintf (scratch, sizeof (scratch),
-                    " ON DUPLICATE KEY UPDATE last_hit=CURRENT_DATE(),"
-                    "spam_hits=greatest(0,spam_hits%s%d),"
-                    "innocent_hits=greatest(0,innocent_hits%s%d)",
-                    (control.spam_hits > s->control_sh) ? "+" : "-",
-                    abs (control.spam_hits - s->control_sh) > 0 ? 1 : 0,
-                    (control.innocent_hits > s->control_ih) ? "+" : "-",
-                    abs (control.innocent_hits - s->control_ih) > 0 ? 1 : 0);
+                    " ON DUPLICATE KEY UPDATE last_hit=CURRENT_DATE()");
           buffer_cat(insert, scratch);
-          if (MYSQL_RUN_QUERY (s->dbt->dbh_write, insert->data)) {
+          /* Do not update spam hits if no change is needed */
+          if (abs(control.spam_hits - s->control_sh) != 0) {
+            snprintf (scratch, sizeof (scratch),
+                      ",spam_hits=GREATEST(0,spam_hits%s%d)",
+                      (control.spam_hits > s->control_sh) ? "+" : "-",
+                      abs (control.spam_hits - s->control_sh) > 0 ? 1 : 0);
+            buffer_cat(insert, scratch);
+          }
+          /* Do not update innocent hits if no change is needed */
+          if (abs(control.innocent_hits - s->control_ih) != 0) {
+            snprintf (scratch, sizeof (scratch),
+                      ",innocent_hits=GREATEST(0,innocent_hits%s%d)",
+                      (control.innocent_hits > s->control_ih) ? "+" : "-",
+                      abs (control.innocent_hits - s->control_ih) > 0 ? 1 : 0);
+            buffer_cat(insert, scratch);
+          }
+          query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, insert->data);
+          if (query_rc) {
+            query_errno = mysql_errno (s->dbt->dbh_write);
+            if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+              /* Locking issue. Wait 1 second and then retry the transaction again */
+              sleep(1);
+              query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, insert->data);
+            }
+          }
+          if (query_rc) {
             _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), insert->data);
             LOGDEBUG ("_ds_setall_spamrecords: unable to run insert query: %s", insert->data);
             buffer_destroy(insert);
@@ -879,7 +1033,16 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
                stat.spam_hits > 0 ? 1 : 0,
                stat.innocent_hits > 0 ? 1 : 0);
 
-      if (MYSQL_RUN_QUERY (s->dbt->dbh_write, ins))
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, ins);
+      if (query_rc) {
+        query_errno = mysql_errno (s->dbt->dbh_write);
+        if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+          /* Locking issue. Wait 1 second and then retry the transaction again */
+          sleep(1);
+          query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, ins);
+        }
+      }
+      if (query_rc)
         stat.status |= TST_DISK;
 #endif
     }
@@ -902,7 +1065,16 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       LOGDEBUG("_ds_setall_spamrecords: Splitting update query at %ld characters", query->used);
       buffer_cat (query, ")");
       if (update_any) {
-        if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data)) {
+        query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data);
+        if (query_rc) {
+          query_errno = mysql_errno (s->dbt->dbh_write);
+          if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+            /* Locking issue. Wait 1 second and then retry the transaction again */
+            sleep(1);
+            query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data);
+          }
+        }
+        if (query_rc) {
           _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
           LOGDEBUG ("_ds_setall_spamrecords: unable to run update query: %s", query->data);
           buffer_destroy(query);
@@ -931,10 +1103,17 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     control.spam_hits, control.innocent_hits,
     control.spam_hits - s->control_sh, control.innocent_hits - s->control_ih);
 
-  if (update_any)
-  {
-    if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data))
-    {
+  if (update_any) {
+    query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data);
+    if (query_rc) {
+      query_errno = mysql_errno (s->dbt->dbh_write);
+      if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+        /* Locking issue. Wait 1 second and then retry the transaction again */
+        sleep(1);
+        query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data);
+      }
+    }
+    if (query_rc) {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
       LOGDEBUG ("_ds_setall_spamrecords: unable to run update query: %s", query->data);
       buffer_destroy(query);
@@ -944,20 +1123,36 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   buffer_destroy (query);
 
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40100
-  if (insert_any)
-  {
-     snprintf (scratch, sizeof (scratch),
-            " ON DUPLICATE KEY UPDATE last_hit=CURRENT_DATE(),"
-            "spam_hits=greatest(0,spam_hits%s%d),"
-            "innocent_hits=greatest(0,innocent_hits%s%d)",
-            (control.spam_hits > s->control_sh) ? "+" : "-",
-            abs (control.spam_hits - s->control_sh) > 0 ? 1 : 0,
-            (control.innocent_hits > s->control_ih) ? "+" : "-",
-            abs (control.innocent_hits - s->control_ih) > 0 ? 1 : 0);
-
+  if (insert_any) {
+    snprintf (scratch, sizeof (scratch),
+              " ON DUPLICATE KEY UPDATE last_hit=CURRENT_DATE()");
     buffer_cat(insert, scratch);
-    if (MYSQL_RUN_QUERY (s->dbt->dbh_write, insert->data))
-    {
+    /* Do not update spam hits if no change is needed */
+    if (abs(control.spam_hits - s->control_sh) != 0) {
+      snprintf (scratch, sizeof (scratch),
+                ",spam_hits=GREATEST(0,spam_hits%s%d)",
+                (control.spam_hits > s->control_sh) ? "+" : "-",
+                abs (control.spam_hits - s->control_sh) > 0 ? 1 : 0);
+      buffer_cat(insert, scratch);
+    }
+    /* Do not update innocent hits if no change is needed */
+    if (abs(control.innocent_hits - s->control_ih) != 0) {
+      snprintf (scratch, sizeof (scratch),
+                ",innocent_hits=GREATEST(0,innocent_hits%s%d)",
+                (control.innocent_hits > s->control_ih) ? "+" : "-",
+                abs (control.innocent_hits - s->control_ih) > 0 ? 1 : 0);
+      buffer_cat(insert, scratch);
+    }
+    query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, insert->data);
+    if (query_rc) {
+      query_errno = mysql_errno (s->dbt->dbh_write);
+      if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+        /* Locking issue. Wait 1 second and then retry the transaction again */
+        sleep(1);
+        query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, insert->data);
+      }
+    }
+    if (query_rc) {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), insert->data);
       LOGDEBUG ("_ds_setall_spamrecords: unable to run insert query: %s", insert->data);
       buffer_destroy(insert);
@@ -981,6 +1176,8 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   char *name;
   MYSQL_RES *result;
   MYSQL_ROW row;
+  int query_rc = 0;
+  int query_errno = 0;
   result = NULL;
 
   if (s->dbt == NULL)
@@ -1018,8 +1215,16 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   stat->innocent_hits = 0;
   stat->status &= ~TST_DISK;
 
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
-  {
+  query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+  if (query_rc) {
+    query_errno = mysql_errno (s->dbt->dbh_read);
+    if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+      /* Locking issue. Wait 1 second and then retry the transaction again */
+      sleep(1);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+    }
+  }
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     LOGDEBUG ("_ds_get_spamrecord: unable to run query: %s", query);
     return EFAILURE;
@@ -1067,7 +1272,8 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
   char query[1024];
   struct passwd *p;
   char *name;
-  int result = -1;
+  int query_rc = 0;
+  int query_errno = 0;
 
   if (s->dbt == NULL)
   {
@@ -1108,7 +1314,15 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
               token,
               stat->spam_hits, stat->innocent_hits,
               stat->spam_hits, stat->innocent_hits);
-    result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    if (query_rc) {
+      query_errno = mysql_errno (s->dbt->dbh_write);
+      if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+        /* Locking issue. Wait 1 second and then retry the transaction again */
+        sleep(1);
+        query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+      }
+    }
   }
 #else
   /* It's either not on disk or the caller isn't using stat.status */
@@ -1118,10 +1332,20 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
               "INSERT INTO dspam_token_data (uid,token,spam_hits,innocent_hits,last_hit)"
               " VALUES (%d,'%llu',%lu,%lu,CURRENT_DATE())",
               (int) p->pw_uid, token, stat->spam_hits, stat->innocent_hits);
-    result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    if (query_rc) {
+      query_errno = mysql_errno (s->dbt->dbh_write);
+      if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+        /* Locking issue. Wait 1 second and then retry the transaction again */
+        sleep(1);
+        query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+      }
+    }
+  } else {
+    query_rc = -1;
   }
 
-  if ((stat->status & TST_DISK) || result)
+  if ((stat->status & TST_DISK) || query_rc)
   {
     /* insert failed; try updating instead */
     snprintf (query, sizeof (query), "UPDATE dspam_token_data"
@@ -1131,11 +1355,19 @@ _ds_set_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
               " WHERE uid=%d"
               " AND token='%llu'", stat->spam_hits,
               stat->innocent_hits, (int) p->pw_uid, token);
-    result = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    if (query_rc) {
+      query_errno = mysql_errno (s->dbt->dbh_write);
+      if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+        /* Locking issue. Wait 1 second and then retry the transaction again */
+        sleep(1);
+        query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+      }
+    }
   }
 #endif
 
-  if (result) {
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     LOGDEBUG ("_ds_set_spamrecord: unable to run query: %s", query);
     return EFAILURE;
@@ -1582,6 +1814,8 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   struct passwd *p;
   char *name;
   char query[256];
+  int query_rc = 0;
+  int query_errno = 0;
 
   if (s->dbt == NULL)
   {
@@ -1607,8 +1841,16 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   snprintf (query, sizeof (query),
             "DELETE FROM dspam_signature_data WHERE uid=%d AND signature=\"%s\"",
             (int) p->pw_uid, signature);
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
-  {
+  query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+  if (query_rc) {
+    query_errno = mysql_errno (s->dbt->dbh_write);
+    if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+      /* Locking issue. Wait 1 second and then retry the transaction again */
+      sleep(1);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    }
+  }
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     LOGDEBUG ("_ds_delete_signature: unable to run query: %s", query);
     return EFAILURE;
@@ -1626,6 +1868,8 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   char query[256];
   MYSQL_RES *result;
   MYSQL_ROW row;
+  int query_rc = 0;
+  int query_errno = 0;
   result = NULL;
 
   if (s->dbt == NULL)
@@ -1652,8 +1896,16 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   snprintf (query, sizeof (query),
             "SELECT signature FROM dspam_signature_data WHERE uid=%d AND signature=\"%s\"",
             (int) p->pw_uid, signature);
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
-  {
+  query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+  if (query_rc) {
+    query_errno = mysql_errno (s->dbt->dbh_read);
+    if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+      /* Locking issue. Wait 1 second and then retry the transaction again */
+      sleep(1);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+    }
+  }
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     LOGDEBUG ("_ds_verify_signature: unable to run query: %s", query);
     return EFAILURE;
@@ -1703,6 +1955,8 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   uid_t uid;
   char query[256];
   MYSQL_ROW row;
+  int query_rc = 0;
+  int query_errno = 0;
 
   if (s->dbt == NULL)
   {
@@ -1729,8 +1983,16 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
 #else
     strcpy (query, "SELECT DISTINCT uid FROM dspam_stats");
 #endif
-    if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
-    {
+    query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+    if (query_rc) {
+      query_errno = mysql_errno (s->dbt->dbh_read);
+      if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+        /* Locking issue. Wait 1 second and then retry the transaction again */
+        sleep(1);
+        query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+      }
+    }
+    if (query_rc) {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
       LOGDEBUG ("_ds_get_nextuser: unable to run query: %s", query);
       return NULL;
@@ -1788,6 +2050,8 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
   struct _ds_storage_record *st;
   char query[256];
   MYSQL_ROW row;
+  int query_rc = 0;
+  int query_errno = 0;
   struct passwd *p;
   char *name;
 
@@ -1824,8 +2088,16 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     snprintf (query, sizeof (query),
               "SELECT token,spam_hits,innocent_hits,unix_timestamp(last_hit) FROM dspam_token_data WHERE uid=%d",
               (int) p->pw_uid);
-    if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
-    {
+    query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+    if (query_rc) {
+      query_errno = mysql_errno (s->dbt->dbh_read);
+      if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+        /* Locking issue. Wait 1 second and then retry the transaction again */
+        sleep(1);
+        query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+      }
+    }
+    if (query_rc) {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
       LOGDEBUG ("_ds_get_nexttoken: unable to run query: %s", query);
       goto FAIL;
@@ -1985,7 +2257,8 @@ struct passwd *
 _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
-
+  int query_rc = 0;
+  int query_errno = 0;
 #ifndef VIRTUAL_USERS
   struct passwd *q;
 #if defined(_REENTRANT) && defined(HAVE_GETPWNAM_R)
@@ -2074,8 +2347,16 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   free (sql_username);
   sql_username = NULL;
 
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
-  {
+  query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+  if (query_rc) {
+    query_errno = mysql_errno (s->dbt->dbh_read);
+    if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+      /* Locking issue. Wait 1 second and then retry the transaction again */
+      sleep(1);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+    }
+  }
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     LOGDEBUG ("_mysql_drv_getpwnam: unable to run query: %s", query);
     return NULL;
@@ -2128,6 +2409,8 @@ struct passwd *
 _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
+  int query_rc = 0;
+  int query_errno = 0;
 #ifndef VIRTUAL_USERS
   struct passwd *q;
 #if defined(_REENTRANT) && defined(HAVE_GETPWUID_R)
@@ -2197,8 +2480,16 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
             "SELECT %s FROM %s WHERE %s='%d'",
             virtual_username, virtual_table, virtual_uid, (int) uid);
 
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
-  {
+  query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+  if (query_rc) {
+    query_errno = mysql_errno (s->dbt->dbh_read);
+    if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+      /* Locking issue. Wait 1 second and then retry the transaction again */
+      sleep(1);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+    }
+  }
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     LOGDEBUG ("_mysql_drv_getpwuid: unable to run query: %s", query);
     return NULL;
@@ -2262,6 +2553,8 @@ struct passwd *
 _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
 {
   char query[256];
+  int query_rc = 0;
+  int query_errno = 0;
   char *virtual_table, *virtual_uid, *virtual_username;
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   char *sql_username;
@@ -2302,10 +2595,18 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   free (sql_username);
   sql_username = NULL;
 
+  query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+  if (query_rc) {
+    query_errno = mysql_errno (s->dbt->dbh_write);
+    if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+      /* Locking issue. Wait 1 second and then retry the transaction again */
+      sleep(1);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    }
+  }
   /* we need to fail, to prevent a potential loop - even if it was inserted
    * by another process */
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
-  {
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     LOGDEBUG ("_mysql_drv_setpwnam: unable to run query: %s", query);
     return NULL;
@@ -2323,6 +2624,8 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
   struct passwd *p;
   char *name;
   char query[256];
+  int query_rc = 0;
+  int query_errno = 0;
 
   if (s->dbt == NULL)
   {
@@ -2353,8 +2656,16 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
             "DELETE FROM dspam_token_data WHERE uid=%d AND token=\"%llu\"",
             (int) p->pw_uid, token);
 
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
-  {
+  query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+  if (query_rc) {
+    query_errno = mysql_errno (s->dbt->dbh_write);
+    if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+      /* Locking issue. Wait 1 second and then retry the transaction again */
+      sleep(1);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    }
+  }
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     LOGDEBUG ("_ds_del_spamrecord: unable to run query: %s", query);
     return EFAILURE;
@@ -2371,6 +2682,8 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   buffer *query;
   char scratch[1024];
   char queryhead[1024];
+  int query_rc = 0;
+  int query_errno = 0;
   struct passwd *p;
   char *name;
 
@@ -2433,8 +2746,16 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     }
     buffer_cat (query, ")");
 
-    if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data))
-    {
+    query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data);
+    if (query_rc) {
+      query_errno = mysql_errno (s->dbt->dbh_write);
+      if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+        /* Locking issue. Wait 1 second and then retry the transaction again */
+        sleep(1);
+        query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query->data);
+      }
+    }
+    if (query_rc) {
       _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query->data);
       LOGDEBUG ("_ds_delall_spamrecords: unable to run query: %s", query->data);
       buffer_destroy(query);
@@ -2497,6 +2818,8 @@ agent_pref_t _ds_pref_load(
   struct _mysql_drv_storage *s;
   struct passwd *p;
   char query[256];
+  int query_rc = 0;
+  int query_errno = 0;
   MYSQL_RES *result;
   MYSQL_ROW row;
   DSPAM_CTX *CTX;
@@ -2535,8 +2858,16 @@ agent_pref_t _ds_pref_load(
   snprintf(query, sizeof(query), "SELECT preference,value"
                               " FROM dspam_preferences WHERE uid=%d", (int) uid);
 
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_read, query))
-  {
+  query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+  if (query_rc) {
+    query_errno = mysql_errno (s->dbt->dbh_read);
+    if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+      /* Locking issue. Wait 1 second and then retry the transaction again */
+      sleep(1);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
+    }
+  }
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_read), query);
     LOGDEBUG ("_ds_pref_load: unable to run query: %s", query);
     dspam_destroy(CTX);
@@ -2609,6 +2940,8 @@ int _ds_pref_set (
   struct _mysql_drv_storage *s;
   struct passwd *p;
   char query[256];
+  int query_rc = 0;
+  int query_errno = 0;
   DSPAM_CTX *CTX;
   int uid;
   char *m1, *m2;
@@ -2656,8 +2989,16 @@ int _ds_pref_set (
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
     " WHERE uid=%d AND preference='%s'", (int) uid, m1);
 
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
-  {
+  query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+  if (query_rc) {
+    query_errno = mysql_errno (s->dbt->dbh_write);
+    if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+      /* Locking issue. Wait 1 second and then retry the transaction again */
+      sleep(1);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    }
+  }
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     LOGDEBUG ("_ds_pref_set: unable to run query: %s", query);
     goto FAIL;
@@ -2666,8 +3007,16 @@ int _ds_pref_set (
   snprintf(query, sizeof(query), "INSERT INTO dspam_preferences"
     " (uid,preference,value) VALUES (%d,'%s','%s')", (int) uid, m1, m2);
 
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
-  {
+  query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+  if (query_rc) {
+    query_errno = mysql_errno (s->dbt->dbh_write);
+    if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+      /* Locking issue. Wait 1 second and then retry the transaction again */
+      sleep(1);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    }
+  }
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     LOGDEBUG ("_ds_pref_set: unable to run query: %s", query);
     goto FAIL;
@@ -2700,6 +3049,8 @@ int _ds_pref_del (
   struct _mysql_drv_storage *s;
   struct passwd *p;
   char query[256];
+  int query_rc = 0;
+  int query_errno = 0;
   DSPAM_CTX *CTX;
   int uid;
   char *m1;
@@ -2743,8 +3094,16 @@ int _ds_pref_del (
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
     " WHERE uid=%d AND preference='%s'", (int) uid, m1);
 
-  if (MYSQL_RUN_QUERY (s->dbt->dbh_write, query))
-  {
+  query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+  if (query_rc) {
+    query_errno = mysql_errno (s->dbt->dbh_write);
+    if (query_errno == ER_LOCK_DEADLOCK || query_errno == ER_LOCK_WAIT_TIMEOUT || query_errno == ER_LOCK_OR_ACTIVE_TRANSACTION) {
+      /* Locking issue. Wait 1 second and then retry the transaction again */
+      sleep(1);
+      query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
+    }
+  }
+  if (query_rc) {
     _mysql_drv_query_error (mysql_error (s->dbt->dbh_write), query);
     LOGDEBUG ("_ds_pref_del: unable to run query: %s", query);
     goto FAIL;
