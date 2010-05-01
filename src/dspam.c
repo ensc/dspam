@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.392 2010/02/19 18:00:48 sbajic Exp $ */
+/* $Id: dspam.c,v 1.393 2010/05/01 15:15:30 sbajic Exp $ */
 
 /*
  DSPAM
@@ -3856,6 +3856,7 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   char *ptr;
   char *octet[4];
   int i = 3;
+  octet[0] = octet[1] = octet[2] = octet[3] = NULL;
 
   if (!dspam_getsource (CTX, ip, sizeof (ip))) {
     host[0] = 0;
@@ -3868,8 +3869,10 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       i--;
     }
 
-      snprintf(host, sizeof(host), "%s.%s.%s.%s.",
-             octet[0], octet[1], octet[2], octet[3]);
+    if (octet[0] == NULL || octet[1] == NULL || octet[2] == NULL || octet[3] == NULL)
+      return 0;
+
+    snprintf(host, sizeof(host), "%s.%s.%s.%s.", octet[0], octet[1], octet[2], octet[3]);
 
     attrib = _ds_find_attribute(agent_config, "Lookup");
     while(attrib != NULL) {
