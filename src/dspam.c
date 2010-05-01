@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.394 2010/05/01 15:49:06 sbajic Exp $ */
+/* $Id: dspam.c,v 1.395 2010/05/01 15:55:27 sbajic Exp $ */
 
 /*
  DSPAM
@@ -292,12 +292,14 @@ BAIL:
   }
 
 #ifdef DAEMON
-  if (!ATX.client_mode) {
+  if (agent_init) {
+    if (!ATX.client_mode) {
 #endif
   if (driver_init)
     dspam_shutdown_driver(NULL);
   libdspam_shutdown();
 #ifdef DAEMON
+    }
   }
 #endif
 

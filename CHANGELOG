@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100501:1600] sbajic: Fix bug in dspam.c main()
+
 [20100501:1555] sbajic: Fix dereference of null pointer in log_events()
 
 [20100501:1545] sbajic: Fix pass by value bug in is_blacklisted()
