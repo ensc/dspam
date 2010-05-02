@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100502:1400] sbajic: Updating README section 2.1 (Configuring groups)
+
 [20100501:1945] sbajic: Make LLVM clang compiler happy
 
 [20100501:1610] sbajic: Make LLVM clang compiler happy
