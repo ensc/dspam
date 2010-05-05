@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100505:2325] sbajic: Fixing group file processing for inoculation groups and classification groups (global/network)
+
 [20100502:1500] sbajic: Fixing group file parsing and classification network and global group support
 
 [20100502:1400] sbajic: Updating README section 2.1 (Configuring groups)

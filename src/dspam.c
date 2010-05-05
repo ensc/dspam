@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.397 2010/05/01 18:31:42 sbajic Exp $ */
+/* $Id: dspam.c,v 1.398 2010/05/05 23:19:22 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2425,13 +2425,14 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
       {
         int do_inocgroups = 0;
         int do_classgroups = 0;
-        char *type, *list;
+        char *type, *list, *listentry;
         chomp (buffer);
 
         if (buffer[0] == 0 || buffer[0] == '#' || buffer[0] == ';')
           continue;
 
         list = strdup (buffer);
+        listentry = strdup (buffer);
         group = strtok (buffer, ":");
 
         if (group != NULL)
@@ -2611,7 +2612,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
            */
           if (do_inocgroups)
           {
-            char *l = list, *u;
+            char *l = listentry, *u;
             strsep (&l, ":");
             strsep (&l, ":");
             u = strsep (&l, ",");
@@ -2629,7 +2630,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
            */
           else if (do_classgroups)
           {
-            char *l = list, *u;
+            char *l = listentry, *u;
             strsep (&l, ":");
             strsep (&l, ":");
             u = strsep (&l, ",");
@@ -2663,6 +2664,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
           }
         }
         free (list);
+        free (listentry);
       }
       fclose (file);
     }
