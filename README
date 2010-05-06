@@ -1377,10 +1377,9 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   users with different email behavior, however, the users in the group will
   experience poor spam filtering and a higher number of false positives.
 
-  NOTE
-    The SQL-based storage drivers support shared groups, but has one caveat:
-    If you are NOT enabling "virtual users" support, you will need to create
-    an actual user on your system named after each group you create.
+  NOTE: The SQL-based storage drivers support shared groups, but has one caveat:
+        If you are NOT enabling "virtual users" support, you will need to create
+        an actual user on your system named after each group you create.
 
   On top of shared group support, a shared group can also be made to be
   'managed'.  Using the group type 'SHARED,MANAGED' will cause the group to
@@ -1499,38 +1498,33 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   dictionaries. A global group can be created by adding a CLASSIFICATION
   group definition (see above) but prefix the group member/user with a '*'.
 
-  For example:
+  The format for a global classification group is:
 
     groupname:classification:*globaluser
 
-  This will automatically add globaluser as a classification peer to all users.
-  Any user who has less than 1000 innocent messages or 250 spam messages in
-  their corpus, or whose filter is uncertain (confidence less than 0.65) about
-  a particular message will consult the globaluser dictionary for an answer.
+  This will automatically add user globaluser as a classification peer to all
+  users. Any user who has less than 1000 innocent messages or 250 spam messages
+  in their corpus, or whose filter is uncertain (confidence less than 0.65)
+  about a particular message will consult the globaluser dictionary for an
+  answer.
 
-  Global groups (in this case 'globaluser') will need to be trained using corpus
-  or other means, or by using the dspam_merge tool. The global user (in this
-  case 'globaluser') is treated just as any other user on the system.
+  The Global group user (in this case 'globaluser') will need to be trained
+  using corpus, by using the dspam_merge tool, or other means. The Global
+  group user (in this case 'globaluser') is treated just as any other user on
+  the system.
 
-  The format for a classification group is:
+  The group name (in the example above 'groupname') can be anything you like. It
+  is not used by DSPAM and does even not have to be unique.
 
-    group1:classification:*globaluser1
-
-  The group name (in the example above 'group1', 'group2') can be anything you
-  like. It is not used by DSPAM and does even not have to be unique.
-
-  The user/member list for inoculation group allows the following syntax:
-    *globaluser1   : Exact match of user with the name "globaluser1"
-
-  NOTE: Be sure and set your global user's preferences so that trainingMode
-        is set to TOE. This will prevent the purge tools you use from
-        purging them empty in 90 days.
+    NOTE: Be sure and set your global user's preferences so that trainingMode
+          is set to TOE. This will prevent the purge tools you use from
+          purging them empty in 90 days.
 
   MERGED
   Merged groups are similar to global groups in that the entire system uses a
-  single global user as a parent. What's different is that the global group is
+  single global user as a parent. What's different is that the merged group is
   merged with the individual user's training data at run-time, instead of
-  switching between the two. This allows the global group to be treated like a
+  switching between the two. This allows the merged group to be treated like a
   base dataset for all users, and provides for quicker learning and correction
   than the previous approach. It is recommended merged groups are only used with
   TOE-mode training so that only corrective data is stored, but systems with
@@ -1559,8 +1553,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
     group2:merged:user3,user4,userN
 
   The group name (in the example above 'group1', 'group2') can be anything you
-  like and represents the name of the global user to merge with all members
-  of the group. DSPAM will use that group name (in the example above 'group1',
+  like and represents the name of the group user to merge with all members of
+  the group. DSPAM will use that group name (in the example above 'group1',
   'group2') and merge at run-time the tokens from that group name with the tokens
   of the user (if the user is member of the merged group).
 
@@ -1581,9 +1575,9 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
         but allowing users to build their own data from scratch will still
         result in the best possible accuracy in the longrun.
 
-  NOTE: Be sure and set your global user's preferences so that trainingMode
-        is set to TOE. This will prevent the purge tools you use from
-        purging them empty in 90 days.
+  NOTE: Be sure and set your group user's preferences so that trainingMode is
+        set to TOE. This will prevent the purge tools you use from purging them
+        empty in 90 days.
 
   RESTRICTIONS!
 

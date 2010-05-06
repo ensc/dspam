@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100506:1850] sbajic: Fixing typos and formatting in README
+
 [20100505:2325] sbajic: Fixing group file processing for inoculation groups and classification groups (global/network)
 
 [20100502:1500] sbajic: Fixing group file parsing and classification network and global group support
