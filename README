@@ -1841,7 +1841,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
      DeliveryProto based on whether you would like to delivery via LMTP or SMTP.
 
      NOTE: If you would like to delivery to different hosts based on domain,
-     specify DeliveryHost.domain.com as the configuration directive
+           specify DeliveryHost.domain.com as the configuration directive. Use
+           DeliveryPort.domain.com to specify a port for the delivery.
 
   3. Add the --lmtp-recipient flag to the arguments passed into DSPAM. This is
      used to specify the destination address for the message. For example, in

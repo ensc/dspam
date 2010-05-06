@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.683 2010/02/18 22:18:38 sbajic Exp $ */
+/* $Id: client.c,v 1.684 2010/05/06 17:48:54 sbajic Exp $ */
 
 /*
  DSPAM
@@ -274,18 +274,23 @@ int client_connect(AGENT_CTX *ATX, int flags) {
   if (flags & CCF_DELIVERY) {
     host = _ds_read_attribute(agent_config, "DeliveryHost");
 
+    if (_ds_read_attribute(agent_config, "DeliveryPort"))
+      port = atoi(_ds_read_attribute(agent_config, "DeliveryPort"));
+
     if (ATX->recipient && ATX->recipient[0]) {
       char *domain = strchr(ATX->recipient, '@');
       if (domain) {
         char key[128];
-        snprintf(key, sizeof(key), "DeliveryHost.%s", domain+1);
+        char lcdomain[strlen(ATX->recipient)];
+        lc(lcdomain, domain+1);
+        snprintf(key, sizeof(key), "DeliveryHost.%s", lcdomain);
         if (_ds_read_attribute(agent_config, key))
           host = _ds_read_attribute(agent_config, key);
+        snprintf(key, sizeof(key), "DeliveryPort.%s", lcdomain);
+        if (_ds_read_attribute(agent_config, key))
+          port = atoi(_ds_read_attribute(agent_config, key));
       }
     }
-
-    if (_ds_read_attribute(agent_config, "DeliveryPort"))
-      port = atoi(_ds_read_attribute(agent_config, "DeliveryPort"));
 
     if (host && host[0] == '/') 
       domain = 1;
