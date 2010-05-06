@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.30 2010/02/19 17:47:10 sbajic Exp $ */
+/* $Id: agent_shared.h,v 1.31 2010/05/07 00:45:53 sbajic Exp $ */
 
 /*
  DSPAM
@@ -49,39 +49,39 @@ extern uid_t __pw_uid;
 /* AGENT_CTX: Agent context. Defines the behavior of the agent */
 
 typedef struct {
-  int operating_mode;       /* Processing Mode       IN DSM_ */
-  int fork;                 /* Fork daemon:          IN 1:0  */
-  int client_mode;          /* Client Mode: 1:0 */
-  int training_mode;        /* Training Mode         IN DST_ */
-  int classification;       /* Classification        IN DSR_ */
-  int source;               /* Classification Source IN DSS_ */
-  int spam_action;	    /* Action on Spam        IN DSA_ */
+  int operating_mode;			/* Processing Mode       IN DSM_ */
+  int fork;				/* Fork daemon:          IN 1:0  */
+  int client_mode;			/* Client Mode:          IN 1:0  */
+  int training_mode;			/* Training Mode         IN DST_ */
+  int classification;			/* Classification        IN DSR_ */
+  int source;				/* Classification Source IN DSS_ */
+  int spam_action;			/* Action on Spam        IN DSA_ */
 #ifdef TRUSTED_USER_SECURITY
-  int trusted;		    /* Trusted User?         IN      */
+  int trusted;				/* Trusted User?         IN      */
 #endif
-  int feature;		    /* Feature Overridden?   IN      */
-  int train_pristine;       /* Train Pristine?       IN      */
-  int tokenizer;            /* Tokenizer             IN      */
-  void *dbh;                /* Database Handle       IN      */
-  u_int64_t flags;          /* Flags DAF_            IN      */
-  int training_buffer;	    /* Sedation Level 0-10   IN      */
-  char *recipient;          /* Current Recipient             */
-  char mailer_args[256];        /* Delivery Args     IN      */
-  char spam_args[256];          /* Quarantine Args   IN      */
-  char managed_group[256];      /* Managed Groupname IN      */
-  char profile[32];	        /* Storage Profile   IN      */
-  char signature[128];          /* Signature Serial  IN/OUT  */
-  char mailfrom[256];		/* For LMTP or SMTP */
-  struct nt *users;	        /* Destination Users IN      */
-  struct nt *inoc_users;        /* Inoculate list    OUT     */
-  struct nt *classify_users;    /* Classify list     OUT     */
-  struct nt *recipients;	/* Recipients        IN      */
-  struct nt *results;		/* Process Results   OUT    */
-  struct _ds_spam_signature SIG;/* Signature object  OUT     */ 
-  int learned;                  /* Message learned?  OUT     */
-  FILE *sockfd;			/* Socket FD if not STDOUT   */
-  int sockfd_output;		/* Output sent to sockfd?    */
-  char client_args[1024];	/* Args for client connection */
+  int feature;				/* Feature Overridden?   IN      */
+  int train_pristine;			/* Train Pristine?       IN      */
+  int tokenizer;			/* Tokenizer             IN      */
+  void *dbh;				/* Database Handle       IN      */
+  u_int64_t flags;			/* Flags DAF_            IN      */
+  int training_buffer;			/* Sedation Level 0-10   IN      */
+  char *recipient;			/* Current Recipient             */
+  char mailer_args[256];		/* Delivery Args         IN      */
+  char spam_args[256];			/* Quarantine Args       IN      */
+  char managed_group[256];		/* Managed Groupname     IN      */
+  char profile[32];			/* Storage Profile       IN      */
+  char signature[128];			/* Signature Serial      IN/OUT  */
+  char mailfrom[256];			/* For LMTP or SMTP              */
+  struct nt *users;			/* Destination Users     IN      */
+  struct nt *inoc_users;		/* Inoculate list        OUT     */
+  struct nt *classify_users;		/* Classify list         OUT     */
+  struct nt *recipients;		/* Recipients            IN      */
+  struct nt *results;			/* Process Results       OUT     */
+  struct _ds_spam_signature SIG;	/* Signature object      OUT     */
+  int learned;                  	/* Message learned?      OUT     */
+  FILE *sockfd;				/* Socket FD if not STDOUT       */
+  int sockfd_output;			/* Output sent to sockfd?        */
+  char client_args[1024];		/* Args for client connection    */
   double timestart;
   agent_pref_t PTX;
 
