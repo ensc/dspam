@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.870 2010/04/29 11:04:13 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.871 2010/05/07 21:29:57 sbajic Exp $ */
 
 /*
  DSPAM
@@ -227,7 +227,7 @@ _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
   if (gid != uid)
     snprintf (query, sizeof (query),
 	      "SELECT uid,spam_learned,innocent_learned,"
-	      "spam_misclassified, innocent_misclassified,"
+	      "spam_misclassified,innocent_misclassified,"
 	      "spam_corpusfed,innocent_corpusfed,"
 	      "spam_classified,innocent_classified"
 	      " FROM dspam_stats WHERE uid IN ('%d','%d')",
@@ -497,7 +497,7 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
 
       buffer *buf;
       buf = buffer_create (NULL);
-      if (query == NULL) {
+      if (buf == NULL) {
         LOG (LOG_CRIT, ERR_MEM_ALLOC);
         return EUNKNOWN;
       }
