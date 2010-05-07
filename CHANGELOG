@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100508:0145] sbajic: Fixing bugs and wrong return values in MySQL driver
+
 [20100507:2130] sbajic: Fixing bug (typo) in MySQL driver
 
 [20100506:2140] sbajic: Enforce domain part in DeliveryHost to be in lowercase when using domain based delivery. Extending DeliveryPort to be domain delivery aware.

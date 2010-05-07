@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.871 2010/05/07 21:29:57 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.872 2010/05/07 21:42:37 sbajic Exp $ */
 
 /*
  DSPAM
@@ -499,6 +499,8 @@ _mysql_drv_set_spamtotals (DSPAM_CTX * CTX)
       buf = buffer_create (NULL);
       if (buf == NULL) {
         LOG (LOG_CRIT, ERR_MEM_ALLOC);
+        if (CTX->flags & DSF_MERGED)
+          memcpy(&CTX->totals, &user, sizeof(struct _ds_spam_totals));
         return EUNKNOWN;
       }
 
@@ -1668,7 +1670,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     dbh = _mysql_drv_sig_write_handle(CTX, s);
   }
 
-  if (uid == -1){
+  if (uid == -1) {
     uid = (int) p->pw_uid;
   }
 
@@ -1981,7 +1983,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
       virtual_username,
       virtual_table);
 #else
-    strcpy (query, "SELECT DISTINCT uid FROM dspam_stats");
+    strcpy (query, "SELECT DISTINCT uid FROM dspam_stats", sizeof(query));
 #endif
     query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
     if (query_rc) {
@@ -2238,11 +2240,13 @@ _ds_get_nextsignature (DSPAM_CTX * CTX)
   st->length = strtoul (row[2], NULL, 0);
   if ((unsigned long int)st->length == ULONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nextsignature: failed converting %s to st->length", row[2]);
+    free(st->data);
     goto FAIL;
   }
   st->created_on = (time_t) strtol (row[3], NULL, 0);
   if (st->created_on == LONG_MAX && errno == ERANGE) {
     LOGDEBUG("_ds_get_nextsignature: failed converting %s to st->created_on", row[3]);
+    free(st->data);
     goto FAIL;
   }
 
@@ -2323,11 +2327,6 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 
     free (s->p_getpwnam.pw_name);
     s->p_getpwnam.pw_name = NULL;
-  }
-
-  if (name == NULL) {
-      LOGDEBUG("_mysql_drv_getpwnam returning NULL.  Caller passed NULL for the name and I can't grok that.");
-      return NULL;
   }
 
   sql_username = malloc ((2 * strlen(name)) + 1);
@@ -2552,6 +2551,9 @@ _mysql_drv_query_error (const char *error, const char *query)
 struct passwd *
 _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
 {
+  if (name == NULL)
+    return NULL;
+
   char query[256];
   int query_rc = 0;
   int query_errno = 0;
@@ -2949,7 +2951,7 @@ int _ds_pref_set (
   CTX = _mysql_drv_init_tools(home, config, dbt, DSM_PROCESS);
   if (CTX == NULL) {
     LOG (LOG_WARNING, "_ds_pref_set: unable to initialize tools context");
-    return EUNKNOWN;
+    return EFAILURE;
   }
 
   s = (struct _mysql_drv_storage *) CTX->storage;
@@ -2962,7 +2964,7 @@ int _ds_pref_set (
       LOGDEBUG ("_ds_pref_set: unable to _mysql_drv_getpwnam(%s)",
               CTX->username);
       dspam_destroy(CTX);
-      return EUNKNOWN;
+      return EFAILURE;
     } else {
       uid = (int) p->pw_uid;
     }
@@ -2980,7 +2982,7 @@ int _ds_pref_set (
     m1 = NULL;
     free(m2);
     m2 = NULL;
-    return EUNKNOWN;
+    return EFAILURE;
   }
 
   mysql_real_escape_string (s->dbt->dbh_write, m1, preference, strlen(preference));
@@ -3071,7 +3073,7 @@ int _ds_pref_del (
       LOGDEBUG ("_ds_pref_del: unable to _mysql_drv_getpwnam(%s)",
               username);
       dspam_destroy(CTX);
-      return EUNKNOWN;
+      return EFAILURE;
     } else {
       uid = (int) p->pw_uid;
     }
@@ -3086,7 +3088,7 @@ int _ds_pref_del (
     dspam_destroy(CTX);
     free(m1);
     m1 = NULL;
-    return EUNKNOWN;
+    return EFAILURE;
   }
 
   mysql_real_escape_string (s->dbt->dbh_write, m1, preference, strlen(preference));
