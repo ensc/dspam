@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.387 2010/05/01 17:09:36 sbajic Exp $ */
+/* $Id: decode.c,v 1.388 2010/05/08 23:35:29 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1411,9 +1411,7 @@ _ds_strip_html (const char *html)
                 || strncasecmp(html + i, "<div", 4) == 0
                 || strncasecmp(html + i, "</select>", 9) == 0
                 || strncasecmp(html + i, "</table>", 8) == 0) {
-          if (*(html2-1) != '\n' && *(html2-1) != '\r') {
-            html2[j++] = '\n';
-          }
+          html2[j++] = '\n';
         } else if (strncasecmp(html + i, "<applet", 7) == 0) {
           cdata_close_tag = "</applet>";
         } else if (strncasecmp(html + i, "<embed", 6) == 0) {
