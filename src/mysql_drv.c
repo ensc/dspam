@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.872 2010/05/07 21:42:37 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.873 2010/05/09 12:13:43 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1983,7 +1983,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
       virtual_username,
       virtual_table);
 #else
-    strcpy (query, "SELECT DISTINCT uid FROM dspam_stats", sizeof(query));
+    strncpy (query, "SELECT DISTINCT uid FROM dspam_stats", sizeof(query));
 #endif
     query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
     if (query_rc) {
