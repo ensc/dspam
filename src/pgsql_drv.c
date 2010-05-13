@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.739 2010/05/07 21:14:36 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.740 2010/05/08 08:29:29 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1496,6 +1496,8 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   memcpy(mem2, mem, length);
   PQFREEMEM(mem);
+  if (SIG->data)
+    free(SIG->data);
   SIG->data = (void *) mem2;
 
   if (result) PQclear(result);
@@ -2127,18 +2129,6 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   PGresult *result;
   char *virtual_table, *virtual_uid, *virtual_username;
 
-  if ((virtual_table
-    = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualTable"))==NULL)
-  { virtual_table = "dspam_virtual_uids"; }
-
-  if ((virtual_uid
-    = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualUIDField"))==NULL)
-  { virtual_uid = "uid"; }
-
-  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
-    "PgSQLVirtualUsernameField")) ==NULL)
-  { virtual_username = "username"; }
-
   if (s->p_getpwnam.pw_name != NULL)
   {
     /* cache the last name queried */
@@ -2150,6 +2140,18 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     free (s->p_getpwnam.pw_name);
     s->p_getpwnam.pw_name = NULL;
   }
+
+  if ((virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualUIDField"))==NULL)
+  { virtual_uid = "uid"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
+    "PgSQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; }
 
   snprintf (query, sizeof (query),
             "SELECT %s FROM %s WHERE %s='%s'",
@@ -2527,6 +2529,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     if (result) PQclear(result);
   }
 
+  if (result) PQclear(result);
   buffer_destroy (query);
   return 0;
 }

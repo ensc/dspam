@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.873 2010/05/09 12:13:43 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.874 2010/05/09 12:18:15 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1719,6 +1719,8 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   }
 
   memcpy (mem, row[0], lengths[0]);
+  if (SIG->data)
+    free(SIG->data);
   SIG->data = mem;
   SIG->length = strtoul (row[1], NULL, 0);
   if (SIG->length == ULONG_MAX && errno == ERANGE) {
