@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100513:1245] sbajic: Fix bug in process_parseto()
+
 [20100509:1215] sbajic: Fix typo in MySQL driver
 
 [20100508:2330] sbajic: Fix bug in _ds_strip_html (invalid read of 1 byte before allocated block)

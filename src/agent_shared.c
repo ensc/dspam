@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.76 2010/02/19 17:51:09 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.77 2010/05/12 23:42:23 sbajic Exp $ */
 
 /*
  DSPAM
@@ -843,56 +843,53 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
   char *x;
   char *h;
 
-  if (!buf) 
+  if (!buf || strncmp(buf+2,":",1) != 0)
     return EINVAL;
-  h = strstr(buf, "\r\n\r\n");
-  if (!h) h = strstr(buf, "\n\n");
 
-  x = strstr(buf, "<spam-");
-  if (!x)
-    x = strstr(buf, " spam-");
-  if (!x)
-    x = strstr(buf, ":spam-");
-  if (!x)
-    x = strstr(buf, "<spam@");
-  if (!x)
-    x = strstr(buf, " spam@");
-  if (!x)
-    x = strstr(buf, ":spam@");
-  if (x > h) x = NULL;
-
-  if (x != NULL) {
-    y = strdup(x+6);
-
-    if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
-    {
-      ATX->classification = DSR_ISSPAM;
-      ATX->source = DSS_ERROR;
-    }
-  } else {
-
-    x = strstr(buf, "<notspam-");
-    if (!x)
-      x = strstr(buf, " notspam-");
-    if (!x)
-      x = strstr(buf, ":notspam-");
-    if (!x)
-      x = strstr(buf, "<notspam@");
-    if (!x)
-      x = strstr(buf, " notspam@");
-    if (!x)
-      x = strstr(buf, ":notspam@");
-
-    if (x > h) x = NULL;
-
-    if (x && strlen(x) >= 9) {
-      y = strdup(x+9);
-
-      if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
-      {
-        ATX->classification = DSR_ISINNOCENT;
+  strsep (&buf, ":");
+  h = strsep (&buf, "\n");
+  while (h != NULL) {
+    /* check for spam alias */
+    x = strstr(h, "<spam-");
+    if (!x) x = strstr(h, " spam-");
+    if (!x) x = strstr(h, "\tspam-");
+    if (!x) x = strstr(h, ",spam-");
+    if (!x) x = strstr(h, "<spam@");
+    if (!x) x = strstr(h, " spam@");
+    if (!x) x = strstr(h, "\tspam@");
+    if (!x) x = strstr(h, ",spam@");
+    if (x != NULL) {
+      y = strdup(x+6);
+      if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+        ATX->classification = DSR_ISSPAM;
         ATX->source = DSS_ERROR;
       }
+    } else {
+      /* check for nonspam alias */
+      x = strstr(h, "<notspam-");
+      if (!x) x = strstr(h, " notspam-");
+      if (!x) x = strstr(h, "\tnotspam-");
+      if (!x) x = strstr(h, ",notspam-");
+      if (!x) x = strstr(h, "<notspam@");
+      if (!x) x = strstr(h, " notspam@");
+      if (!x) x = strstr(h, "\tnotspam@");
+      if (!x) x = strstr(h, ",notspam@");
+      if (x && strlen(x) >= 9) {
+        y = strdup(x+9);
+        if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+          ATX->classification = DSR_ISINNOCENT;
+          ATX->source = DSS_ERROR;
+        }
+      }
+    }
+    /* do not continue if we found a spam/nonspam alias */
+    if (y) break;
+
+    /* get next line from 'To' header */
+    h = strsep (&buf, "\n");
+    if (h && h[0] != 32 && h[0] != 9) {
+      /* we are not any more in the 'To' header */
+      break;
     }
   }
 
@@ -901,7 +898,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
             _ds_match_attribute(agent_config,
                                "ChangeUserOnParse", "full") ||
             _ds_match_attribute(agent_config,
-                                "ChangeUserOnParse", "user"))) 
+                                "ChangeUserOnParse", "user")))
   {
     char *ptrptr;
     char *z;
@@ -909,7 +906,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
     if (_ds_match_attribute(agent_config, 
                             "ChangeUserOnParse", "full"))
     {
-      z = strtok_r(y, "> \n", &ptrptr);
+      z = strtok_r(y, ">, \t\r\n", &ptrptr);
     } else {
       if (!strstr(x, "spam@"))
         z = strtok_r(y, "@", &ptrptr);
