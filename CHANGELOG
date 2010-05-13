@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100513:2100] sbajic: Fix no substitution in error messages when logging to file
+
 [20100513:1245] sbajic: Fix bug in process_parseto()
 
 [20100509:1215] sbajic: Fix typo in MySQL driver
