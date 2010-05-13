@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.684 2010/05/06 17:48:54 sbajic Exp $ */
+/* $Id: client.c,v 1.685 2010/05/13 22:38:45 sbajic Exp $ */
 
 /*
  DSPAM
@@ -189,8 +189,6 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
         }
       } else {
         printf("%s\n", line);
-        if (ATX->flags & DAF_SUMMARY)
-          break;
       } 
       free(line);
       line = client_getline(&TTX, 300);

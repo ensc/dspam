@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.16 2010/05/01 18:11:52 sbajic Exp $ */
+/* $Id: daemon.c,v 1.17 2010/05/13 22:39:26 sbajic Exp $ */
 
 /*
  DSPAM
@@ -757,9 +757,8 @@ GETCMD:
     /* Send a terminating '.' if --stdout in 'dspam' mode */
 
     if (ATX->sockfd_output) {
-      if (!(ATX->flags & DAF_SUMMARY))
-        if (send_socket(TTX, ".")<=0)
-          goto CLOSE;
+      if (send_socket(TTX, ".")<=0)
+        goto CLOSE;
 
     /* Otherwise, produce standard delivery results */
 
