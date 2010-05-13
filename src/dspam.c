@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.398 2010/05/05 23:19:22 sbajic Exp $ */
+/* $Id: dspam.c,v 1.399 2010/05/10 23:15:31 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1882,6 +1882,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
           presult->classification = DSR_ISSPAM;
           presult->exitcode = ERC_PERMANENT_DELIVERY;
           strlcpy(presult->text, ATX->status, sizeof(presult->text));
+          free(result_string);
+          result_string = NULL;
           goto RSET;
         }
         else if (_ds_match_attribute(agent_config, "ClamAVResponse", "spam"))
@@ -1893,6 +1895,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
         } else {
           presult->classification = DSR_ISINNOCENT;
           presult->exitcode = ERC_SUCCESS;
+          free(result_string);
+          result_string = NULL;
           goto RSET;
         }
       }

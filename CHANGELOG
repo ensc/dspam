@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100513:2130] sbajic: Fix memory leak in process_users() when using ClamAV
+
 [20100513:2100] sbajic: Fix no substitution in error messages when logging to file
 
 [20100513:1245] sbajic: Fix bug in process_parseto()
