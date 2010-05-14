@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100514:1820] sbajic: Fixing compiler warnings in process_parseto()
+
 [20100513:2245] sbajic: Fix potential memory leak in MySQL and PostgreSQL storage driver
 
 [20100513:2240] sbajic: Fix client to read complete result for summary operations and instruct daemon to send final dot also for summary operations

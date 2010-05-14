@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.77 2010/05/12 23:42:23 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.78 2010/05/14 18:08:53 sbajic Exp $ */
 
 /*
  DSPAM
@@ -842,12 +842,13 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
   char *y = NULL;
   char *x;
   char *h;
+  char *buffer;
 
   if (!buf || strncmp(buf+2,":",1) != 0)
     return EINVAL;
 
-  strsep (&buf, ":");
-  h = strsep (&buf, "\n");
+  buffer = strdup (buf+3);
+  h = strsep (&buffer, "\n");
   while (h != NULL) {
     /* check for spam alias */
     x = strstr(h, "<spam-");
@@ -886,12 +887,14 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
     if (y) break;
 
     /* get next line from 'To' header */
-    h = strsep (&buf, "\n");
+    h = strsep (&buffer, "\n");
     if (h && h[0] != 32 && h[0] != 9) {
       /* we are not any more in the 'To' header */
       break;
     }
   }
+
+  free (buffer);
 
   if (y && (_ds_match_attribute(agent_config,
                                 "ChangeUserOnParse", "on") ||
