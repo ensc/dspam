@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100515:0255] sbajic: Better verbose output when reading configuration
+
 [20100514:1820] sbajic: Fixing compiler warnings in process_parseto()
 
 [20100513:2245] sbajic: Fix potential memory leak in MySQL and PostgreSQL storage driver
