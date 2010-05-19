@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.78 2010/05/14 18:08:53 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.79 2010/05/18 18:13:49 sbajic Exp $ */
 
 /*
  DSPAM
@@ -37,7 +37,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
-#ifdef HAVE_UNISTD_H_
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #include <pwd.h>
 #endif
@@ -841,14 +841,15 @@ bail:
 int process_parseto(AGENT_CTX *ATX, const char *buf) {
   char *y = NULL;
   char *x;
-  char *h;
+  char *h = NULL;
   char *buffer;
+  char *ptrptr;
 
   if (!buf || strncmp(buf+2,":",1) != 0)
     return EINVAL;
 
   buffer = strdup (buf+3);
-  h = strsep (&buffer, "\n");
+  h = strtok_r (buffer, "\n", &ptrptr);
   while (h != NULL) {
     /* check for spam alias */
     x = strstr(h, "<spam-");
@@ -887,7 +888,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
     if (y) break;
 
     /* get next line from 'To' header */
-    h = strsep (&buffer, "\n");
+    h = strtok_r (NULL, "\n", &ptrptr);
     if (h && h[0] != 32 && h[0] != 9) {
       /* we are not any more in the 'To' header */
       break;
@@ -903,7 +904,6 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
             _ds_match_attribute(agent_config,
                                 "ChangeUserOnParse", "user")))
   {
-    char *ptrptr;
     char *z;
 
     if (_ds_match_attribute(agent_config, 
@@ -926,9 +926,9 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
       }
       nt_add (ATX->users, z);
     }
-    free(y);
   }
 
+  if (y) free(y);
   return 0;
 }
 

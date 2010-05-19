@@ -178,7 +178,7 @@ DSPAM_CTX * dspam_create (
   }
 
   CTX->config->size = 128;
-  CTX->config->attributes = calloc(1, sizeof(attribute_t)*128);
+  CTX->config->attributes = calloc(1, sizeof(attribute_t)*(CTX->config->size));
   if (CTX->config->attributes == NULL) {
     LOG(LOG_WARNING, "dspam_create: unable to allocate space for classification context attributes");
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
@@ -267,7 +267,7 @@ int dspam_clearattributes (DSPAM_CTX * CTX) {
   if (CTX->config == NULL)
     goto bail;
   CTX->config->size = 128;
-  CTX->config->attributes = calloc(1, sizeof(attribute_t)*128);
+  CTX->config->attributes = calloc(1, sizeof(attribute_t)*(CTX->config->size));
   if (CTX->config->attributes == NULL)
     goto bail;
 
@@ -806,6 +806,12 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
        || ! (CTX->_sig_provided)) 
     && CTX->source != DSS_CORPUS)
   {
+    if (CTX->signature) {
+      if (CTX->signature->data)
+        free(CTX->signature->data);
+      free(CTX->signature);
+      CTX->signature = NULL;
+    }
     CTX->signature = calloc (1, sizeof (struct _ds_spam_signature));
     if (CTX->signature == NULL)
     {
@@ -972,6 +978,12 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     && CTX->flags & DSF_SIGNATURE 
     && (CTX->operating_mode != DSM_CLASSIFY || ! CTX->_sig_provided))
   {
+    if (CTX->signature) {
+      if (CTX->signature->data)
+        free(CTX->signature->data);
+      free(CTX->signature);
+      CTX->signature = NULL;
+    }
     CTX->signature = calloc (1, sizeof (struct _ds_spam_signature));
     if (CTX->signature == NULL)
     {

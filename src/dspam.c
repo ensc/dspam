@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.399 2010/05/10 23:15:31 sbajic Exp $ */
+/* $Id: dspam.c,v 1.400 2010/05/16 14:51:45 sbajic Exp $ */
 
 /*
  DSPAM
@@ -44,9 +44,9 @@
 #include <errno.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#include <pwd.h>
 #endif
 #include <sys/types.h>
-#include <pwd.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <netdb.h>
@@ -109,7 +109,7 @@ int
 main (int argc, char *argv[])
 {
   AGENT_CTX ATX;		/* agent configuration */
-  buffer *message = NULL;       /* input message */
+  buffer *message = NULL;	/* input message */
   int agent_init = 0;		/* agent is initialized */
   int driver_init = 0;		/* storage driver is initialized */
   int pwent_cache_init = 0;	/* cache for username and uid is initialized */
@@ -182,7 +182,6 @@ main (int argc, char *argv[])
     if (agent_init) {
       nt_destroy(ATX.users);
       nt_destroy(ATX.recipients);
-      free(ATX.recipient);
     }
 
     if (agent_config)
@@ -276,6 +275,7 @@ main (int argc, char *argv[])
     }
   }
   nt_destroy(ATX.results);
+  node_nt = NULL;
 
 #ifdef DAEMON
   }
@@ -306,11 +306,12 @@ BAIL:
   if (agent_config)
     _ds_destroy_config(agent_config);
 
-#ifdef DAEMON
-  pthread_mutex_destroy(&__syslog_lock);
-#endif
   if (pwent_cache_init)
     free(__pw_name);
+#ifdef DAEMON
+  pthread_mutex_destroy(&__syslog_lock);
+  pthread_exit(0);
+#endif
   exit(exitcode);
 }
 
@@ -612,7 +613,7 @@ process_message (
     CTX->signature = calloc(1, sizeof(struct _ds_spam_signature));
     if (CTX->signature) {
       CTX->signature->length = 8;
-      CTX->signature->data = calloc(1, 8);
+      CTX->signature->data = calloc(1, (CTX->signature->length));
     }
   }
 
@@ -956,7 +957,7 @@ deliver_message (
 
   /* If we're delivering to stdout, we need to provide a classification for
    * use by client/daemon setups where the client needs to know the result
-   * in order to support broken returnCodes.s
+   * in order to support broken returnCodes.
    */
 
   if (ATX->sockfd && ATX->flags & DAF_STDOUT)
@@ -1199,7 +1200,7 @@ int
 quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
 {
   char filename[MAX_FILENAME_LENGTH];
-  char *x, *msg, *omsg;
+  char *x, *msg, *ptrptr;
   int line = 1, i;
   FILE *file;
 
@@ -1234,7 +1235,6 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
   }
 
   msg = strdup(message);
-  omsg = msg;
 
   if (msg == NULL) {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
@@ -1243,7 +1243,7 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
 
   /* TODO: Is there a way to do this without a strdup/strsep ? */
 
-  x = strsep (&msg, "\n");
+  x = strtok_r (msg, "\n", &ptrptr);
   while (x != NULL)
   {
     /* Quote any lines beginning with 'From ' to keep mbox from breaking */
@@ -1253,14 +1253,14 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
     fputs (x, file);
     fputs ("\n", file);
     line++;
-    x = strsep (&msg, "\n");
+    x = strtok_r (NULL, "\n", &ptrptr);
   }
   fputs ("\n\n", file);
 
   _ds_free_fcntl_lock(fileno(file));
   fclose (file);
 
-  free (omsg);
+  free (msg);
   return 0;
 }
 
@@ -1655,7 +1655,6 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 #endif
 	username = node_nt->ptr;
 
-    presult = calloc(1, sizeof(struct agent_result));
     if (node_rcpt) {
       ATX->recipient = node_rcpt->ptr;
       node_rcpt = c_nt_next (ATX->recipients, &c_rcpt);
@@ -1689,6 +1688,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       }
     }
 
+    presult = calloc(1, sizeof(struct agent_result));
     parse_message = buffer_create(message->data);
     if (parse_message == NULL) {
       LOG(LOG_CRIT, ERR_MEM_ALLOC);
@@ -2119,6 +2119,7 @@ RSET:
     buffer_destroy(parse_message);
   }
 
+  if (presult) free(presult);
   return return_code;
 }
 // break
@@ -4138,6 +4139,7 @@ int daemon_start(AGENT_CTX *ATX) {
   pthread_mutex_init(&__lock, NULL);
   if (libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"))) {
     LOG(LOG_CRIT, ERR_DRV_INIT);
+    pthread_mutex_destroy(&__lock);
     exit(EXIT_FAILURE);
   }
 
@@ -4155,6 +4157,8 @@ int daemon_start(AGENT_CTX *ATX) {
     if (!DTX.CTX)
     {
       LOG(LOG_ERR, ERR_CORE_INIT);
+      pthread_mutex_destroy(&__lock);
+      libdspam_shutdown();
       exit(EXIT_FAILURE);
     }
 
@@ -4168,6 +4172,8 @@ int daemon_start(AGENT_CTX *ATX) {
     if (dspam_init_driver (&DTX))
     {
       LOG (LOG_WARNING, ERR_DRV_INIT);
+      pthread_mutex_destroy(&__lock);
+      libdspam_shutdown();
       exit(EXIT_FAILURE);
     }
 
@@ -4217,6 +4223,8 @@ int daemon_start(AGENT_CTX *ATX) {
       agent_config = read_config(NULL);
       if (!agent_config) {
         LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
+        pthread_mutex_destroy(&__lock);
+        libdspam_shutdown();
         exit(EXIT_FAILURE);
       }
 
