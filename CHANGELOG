@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100525:2120] sbajic: Do not shutdown libdspam and do not relase locks in daemon_start()
+
 [20100519:2300] sbajic: Fixing varous memory leaks
 
 [20100515:0255] sbajic: Better verbose output when reading configuration

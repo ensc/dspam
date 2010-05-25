@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.400 2010/05/16 14:51:45 sbajic Exp $ */
+/* $Id: dspam.c,v 1.401 2010/05/25 21:16:04 sbajic Exp $ */
 
 /*
  DSPAM
@@ -310,7 +310,7 @@ BAIL:
     free(__pw_name);
 #ifdef DAEMON
   pthread_mutex_destroy(&__syslog_lock);
-  pthread_exit(0);
+  // pthread_exit(0);
 #endif
   exit(exitcode);
 }
@@ -4139,7 +4139,7 @@ int daemon_start(AGENT_CTX *ATX) {
   pthread_mutex_init(&__lock, NULL);
   if (libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"))) {
     LOG(LOG_CRIT, ERR_DRV_INIT);
-    pthread_mutex_destroy(&__lock);
+    // pthread_mutex_destroy(&__lock);
     exit(EXIT_FAILURE);
   }
 
@@ -4157,8 +4157,8 @@ int daemon_start(AGENT_CTX *ATX) {
     if (!DTX.CTX)
     {
       LOG(LOG_ERR, ERR_CORE_INIT);
-      pthread_mutex_destroy(&__lock);
-      libdspam_shutdown();
+      // pthread_mutex_destroy(&__lock);
+      // libdspam_shutdown();
       exit(EXIT_FAILURE);
     }
 
@@ -4172,8 +4172,8 @@ int daemon_start(AGENT_CTX *ATX) {
     if (dspam_init_driver (&DTX))
     {
       LOG (LOG_WARNING, ERR_DRV_INIT);
-      pthread_mutex_destroy(&__lock);
-      libdspam_shutdown();
+      // pthread_mutex_destroy(&__lock);
+      // libdspam_shutdown();
       exit(EXIT_FAILURE);
     }
 
