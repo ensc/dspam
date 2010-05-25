@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.295 2010/04/08 18:17:14 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.296 2010/05/22 11:46:13 sbajic Exp $ */
 
 /*
  DSPAM
@@ -711,7 +711,7 @@ _ds_map_body_token (
 
 int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 {
-  char *decode;
+  char *decode = NULL;
   struct nt_node *node_nt, *node_header;
   struct nt_c c_nt, c_nt2;
   int i = 0;
@@ -783,7 +783,8 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 
         if (decode)
         {
-          char *decode2, *decode3;
+          char *decode2 = NULL;
+          char *decode3 = NULL;
 
           /* -- PREFILTERS BEGIN -- */
 
@@ -797,17 +798,21 @@ int _ds_degenerate_message(DSPAM_CTX *CTX, buffer * header, buffer * body)
 
           /* HTML-Specific Filters */
 
-          if (block->media_subtype == MST_HTML) {
-            decode3 = _ds_strip_html(decode2);
-          } else {
-            decode3 = strdup(decode2);
+          if (decode2) {
+            if (block->media_subtype == MST_HTML) {
+              decode3 = _ds_strip_html(decode2);
+            } else {
+              decode3 = strdup(decode2);
+            }
+            free(decode2);
           }
-          free(decode2);
 
           /* -- PREFILTERS END -- */
 
-          buffer_cat (body, decode3);
-          free(decode3);
+          if (decode3) {
+            buffer_cat (body, decode3);
+            free(decode3);
+          }
 
           /* If we've decoded the body, save the original copy */
           if (decode != block->body->data)

@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.388 2010/05/08 23:35:29 sbajic Exp $ */
+/* $Id: decode.c,v 1.389 2010/05/22 10:37:15 sbajic Exp $ */
 
 /*
  DSPAM
@@ -65,17 +65,30 @@
 ds_message_t
 _ds_actualize_message (const char *message)
 {
-  char *line, *in = strdup (message), *m_in;
+  char *line = NULL;
+  char *in = NULL;
+  char *m_in = NULL;
   ds_message_part_t current_block;
   ds_header_t current_heading = NULL;
-  struct nt *boundaries = nt_create (NT_CHAR);
-  ds_message_t out = (ds_message_t) calloc (1, sizeof (struct _ds_message));
+  struct nt *boundaries = NULL;
+  ds_message_t out = NULL;
   int block_position = BP_HEADER;
   int in_content = 0;
 
+  if (!message || !(*message))
+    goto MEMFAIL;
+
+  if (!(in = strdup(message)))
+    goto MEMFAIL;
+
   m_in = in;
 
-  if (!in || !boundaries || !out)
+  boundaries = nt_create (NT_CHAR);
+  if (!boundaries)
+    goto MEMFAIL;
+
+  out = (ds_message_t) calloc (1, sizeof (struct _ds_message));
+  if (!out)
     goto MEMFAIL;
 
   out->components = nt_create (NT_PTR);
@@ -262,9 +275,9 @@ _ds_actualize_message (const char *message)
   return out;
 
 MEMFAIL:
-  free(m_in);
-  nt_destroy (boundaries);
-  _ds_destroy_message(out);
+  if (m_in) free(m_in);
+  if (boundaries) nt_destroy (boundaries);
+  if (out) _ds_destroy_message(out);
   LOG (LOG_CRIT, ERR_MEM_ALLOC);
   return NULL;
 }
@@ -438,9 +451,11 @@ _ds_decode_headers (ds_message_part_t block) {
           continue;
         }
 
-        rest = dptr + strlen (dptr) + 1;
-        if (rest[0]!=0)
+        rest = dptr + strlen (dptr);
+        if (rest[0]!=0) {
           rest++;
+          if (rest[0]!=0) rest++;
+        }
 
         if (ptr != NULL && (ptr[0] == 'b' || ptr[0] == 'B'))
           decoded = _ds_decode_base64 (dptr);
@@ -1333,7 +1348,7 @@ _ds_strip_html (const char *html)
         closing_td_tag = 1;
         continue;
       } else if (strncasecmp(html + i, "<td", 3) == 0 && closing_td_tag) {
-        if (!isspace(*(html2-1))) {
+        if (j > 0 && !isspace(html2[j-1])) {
           html2[j++]=' ';
         }
         visible = 0;
@@ -1343,23 +1358,32 @@ _ds_strip_html (const char *html)
       }
       k = i + 1;
 
-      if (html[k] == ' ' || html[k] == '\t') {
+      if ((k < len) && (!( (html[k] >= 65 && html[k] <= 90) ||
+                           (html[k] >= 97 && html[k] <= 122) ||
+                           (html[k] == 47) ||
+                           (html[k] == 33) ))) {
+        /* Not a HTML tag. HTML tags start with a letter, forwardslash or exclamation mark */
         visible = 1;
         html2[j++]=html[i];
-        i += 1;
-        html2[j++]=html[i];
+        i = k;
+        const char *w = &(html[k]);
+        while (j < len && (w - html) < len && *w != '<') {
+          html2[j++]=*w;
+          w++;
+          i++;
+        }
         continue;
       } else if (html[k]) {
-        while (html[k] && html[k] != '<' && html[k] != '>') {k++;}
+        while (k < len && html[k] != '<' && html[k] != '>') {k++;}
 
         /* if we've got a tag with a uri, save the address to print later. */
         char *url_tag = " ";
         int tag_offset = 0, x = 0, y = 0;
         for (y = 0; y < num_uri; y++) {
           x = strlen(uritag[y].open_tag);
-          if (strncmp(html+i,uritag[y].open_tag,x)==0) {
+          if (strncasecmp(html+i,uritag[y].open_tag,x)==0 && (i+x < len && isspace(html[i+x]))) {
             url_tag = uritag[y].uri_tag;
-            tag_offset = x+1;
+            tag_offset = i + x + 1;
             break;
           }
         }
@@ -1369,7 +1393,7 @@ _ds_strip_html (const char *html)
           int url_tag_len = strlen(url_tag);
           char delim = ' ';
           /* find start of uri */
-          for (url_start = tag_offset; url_start < k; url_start++) {
+          for (url_start = tag_offset; url_start <= k; url_start++) {
             if (strncasecmp(html + url_start, url_tag, url_tag_len) == 0) {
               url_start += url_tag_len;
               while (html[url_start] && isspace(html[url_start])) {url_start++;}   /* remove spaces before = */
@@ -1387,20 +1411,33 @@ _ds_strip_html (const char *html)
               } else {
                 break;
               }
-            } else if (url_start >= 50) {
+            } else if ((url_start - tag_offset) >= 50) {
+              /* The length of the html tag is over 50 characters long without
+               * finding the start of the url/uri. Skip the whole tag.
+               */
+              i = url_start;
+              const char *w = &(html[tag_offset]);
+              while (i < len && (w - html) < len && *w != '>') {w++;i++;};
               break;
             }
           }
           /* find end of uri */
-          if (strncasecmp(html + url_start, "http:", 5) == 0
-           || strncasecmp(html + url_start, "https:", 6) == 0
-           || strncasecmp(html + url_start, "ftp:", 4) == 0) {
+          if (url_start < len &&
+              (strncasecmp(html + url_start, "http:", 5) == 0 ||
+               strncasecmp(html + url_start, "https:", 6) == 0 ||
+               strncasecmp(html + url_start, "ftp:", 4) == 0)) {
             html2[j++]=' ';
             const char *w = &(html[url_start]);
-            while (*w != delim) {html2[j++]=*w;w++;}
+            /* html2 is a buffer of len + 1, where the +1 is for NULL
+             * termination. This means we only want to loop to len
+             * since we will replace html2[j] right after the loop.
+             */
+            while (j < len && (w - html) < len && *w != delim) {
+              html2[j++]=*w;
+              w++;
+            }
             html2[j++]=' ';
           }
-
         } else if (strncasecmp(html + i, "<p>", 3) == 0
                 || strncasecmp(html + i, "<p ", 3) == 0
                 || strncasecmp(html + i, "<p\t", 3) == 0
@@ -1411,7 +1448,9 @@ _ds_strip_html (const char *html)
                 || strncasecmp(html + i, "<div", 4) == 0
                 || strncasecmp(html + i, "</select>", 9) == 0
                 || strncasecmp(html + i, "</table>", 8) == 0) {
-          html2[j++] = '\n';
+          if (j > 0 && html2[j-1] != '\n' && html2[j-1] != '\r') {
+            html2[j++] = '\n';
+          }
         } else if (strncasecmp(html + i, "<applet", 7) == 0) {
           cdata_close_tag = "</applet>";
         } else if (strncasecmp(html + i, "<embed", 6) == 0) {
@@ -1482,7 +1521,7 @@ _ds_strip_html (const char *html)
       int x = 0, y = 0;
       for (y = 0; y < num_chars; y++) {
         x = strlen(charset[y].entity);
-        if (strncmp(html+i,charset[y].entity,x)==0) {
+        if (strncasecmp(html+i,charset[y].entity,x)==0) {
           if (charset[y].id <= 255)
             html2[j++] = charset[y].id;
           i += x-1;
@@ -1492,9 +1531,11 @@ _ds_strip_html (const char *html)
       }
     }
 
-    if (visible)
+    if (j < len && visible)
       html2[j++] = html[i];
 
+    if (j >= len)
+      i = j = len;
   }
 
   html2[j] = '\0';
