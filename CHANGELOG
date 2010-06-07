@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100607:1400] sbajic: Adding MTA/MDA retraining script to contrib
+
 [20100525:2330] sbajic: Fixing out-of-bounds reads in various functions
 
 [20100525:2120] sbajic: Do not shutdown libdspam and do not relase locks in daemon_start()

@@ -79,20 +79,20 @@ while ($_ = $ARGV[0], /^\-\-/) {
   if ($ARGV[0] =~ /^\-\-help$/) {
     print STDERR "Usage: $0\n";
     print STDERR "  [--help]\n";
-	print STDERR "    This help screen.\n";
+    print STDERR "    This help screen.\n";
     print STDERR "  [--debug=[yes|no]]\n";
-	print STDERR "    Turn on debugging. No action will be performed, just printed.\n";
+    print STDERR "    Turn on debugging. No action will be performed, just printed.\n";
     print STDERR "  [--user username]]\n";
-	print STDERR "    User name to use for training.\n";
+    print STDERR "    User name to use for training.\n";
     print STDERR "  [--client]\n";
-	print STDERR "    To run in client mode.\n";
+    print STDERR "    To run in client mode.\n";
     print STDERR "  [--class=spam|innocent]\n";
-	print STDERR "    Class used for the training.\n";
+    print STDERR "    Class used for the training.\n";
     print STDERR "  [--mode=teft|toe|tum|notrain|unlearn]\n";
-	print STDERR "    Configures the training mode to be used for this process, overriding\n";
-	print STDERR "    any defaults in dspam.conf or the preference extension.\n";
+    print STDERR "    Configures the training mode to be used for this process, overriding\n";
+    print STDERR "    any defaults in dspam.conf or the preference extension.\n";
     print STDERR "  [--source=error|corpus|inoculation]\n";
-	print STDERR "    The source tells DSPAM how to learn the message being presented.\n";
+    print STDERR "    The source tells DSPAM how to learn the message being presented.\n";
     print STDERR "  [--full-email=[yes|no]]\n";
     print STDERR "    Use the full email address as username or just the local part.\n";
     print STDERR "  [--headers-only=[yes|no]]\n";
@@ -105,13 +105,13 @@ while ($_ = $ARGV[0], /^\-\-/) {
     print STDERR "    Skip the first found signature.\n";
     print STDERR "  [--mail-from=sender-address]\n";
     print STDERR "    Set the MAIL FROM sent on delivery of the message (only valid for\n";
-	print STDERR "    SMTP/LMTP delivery).\n";
+    print STDERR "    SMTP/LMTP delivery).\n";
     print STDERR "  [--rcpt-to=recipient-address]\n";
-	print STDERR "    Define the RCPT TO which will be used for the delivery (only valid\n";
-	print STDERR "    for SMTP/LMTP delivery).\n";
+    print STDERR "    Define the RCPT TO which will be used for the delivery (only valid\n";
+    print STDERR "    for SMTP/LMTP delivery).\n";
     print STDERR "  [--bin-dir=path]\n";
-	print STDERR "    Define the path where dspam/dspamc is located.\n";
-	exit $ERROR_CODE{'EX_USAGE'};
+    print STDERR "    Define the path where dspam/dspamc is located.\n";
+    exit $ERROR_CODE{'EX_USAGE'};
   } elsif ($ARGV[0] =~ /^\-\-debug$/) {
     $CONFIG{'DEBUG'} = 1;
     shift;
