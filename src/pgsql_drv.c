@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.740 2010/05/08 08:29:29 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.741 2010/06/12 09:47:46 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2656,19 +2656,56 @@ agent_pref_t _ds_pref_load(
 
   for (i=0; i<ntuples; i++)
   {
-    char *p = PQgetvalue(result,i,0);
-    char *q = PQgetvalue(result,i,1);
+    size_t attribute_length, value_length;
+    unsigned char *m1, *m2, *p, *q;
+    m1 = PQunescapeBytea((const unsigned char *) PQgetvalue(result,i,0), &attribute_length);
+    m2 = PQunescapeBytea((const unsigned char *) PQgetvalue(result,i,1), &value_length);
+
+    if (m1 == NULL || m2 == NULL) {
+      LOG (LOG_CRIT, ERR_MEM_ALLOC);
+      if (result) PQclear(result);
+      dspam_destroy(CTX);
+      PQFREEMEM(m1);
+      PQFREEMEM(m2);
+      return PTX;
+    }
+
+    p = calloc(1, attribute_length+1);
+    if (!p) {
+      LOG (LOG_CRIT, ERR_MEM_ALLOC);
+      if (result) PQclear(result);
+      dspam_destroy(CTX);
+      PQFREEMEM(m1);
+      PQFREEMEM(m2);
+      return PTX;
+    }
+    memcpy(p, m1, attribute_length);
+    PQFREEMEM(m1);
+
+    q = calloc(1, value_length+1);
+    if (!q) {
+      LOG (LOG_CRIT, ERR_MEM_ALLOC);
+      if (result) PQclear(result);
+      dspam_destroy(CTX);
+      PQFREEMEM(m2);
+      free(p);
+      return PTX;
+    }
+    memcpy(q, m2, value_length);
+    PQFREEMEM(m2);
 
     pref = malloc(sizeof(struct _ds_agent_attribute));
     if (pref == NULL) {
       LOG(LOG_CRIT, ERR_MEM_ALLOC);
       if (result) PQclear(result);
       dspam_destroy(CTX);
+      free(p);
+      free(q);
       return PTX;
     }
 
-    pref->attribute = strdup(p);
-    pref->value = strdup(q);
+    pref->attribute = (void *)(p);
+    pref->value = (void *)(q);
     PTX[i] = pref;
     PTX[i+1] = NULL;
   }
@@ -2738,7 +2775,7 @@ int _ds_pref_set (
   }
 
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
-    " WHERE uid=%d AND preference='%s'", (int) uid, m1);
+    " WHERE uid=%d AND preference=E'%s'", (int) uid, m1);
 
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
@@ -2751,7 +2788,7 @@ int _ds_pref_set (
   if (result) PQclear(result);
 
   snprintf(query, sizeof(query), "INSERT INTO dspam_preferences"
-    " (uid,preference,value) VALUES (%d,'%s','%s')", (int) uid, m1, m2);
+    " (uid,preference,value) VALUES (%d,E'%s',E'%s')", (int) uid, m1, m2);
 
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
@@ -2831,7 +2868,7 @@ int _ds_pref_del (
   }
 
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
-    " WHERE uid=%d AND preference='%s'", (int) uid, m1);
+    " WHERE uid=%d AND preference=E'%s'", (int) uid, m1);
 
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
