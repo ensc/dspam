@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.401 2010/05/25 21:16:04 sbajic Exp $ */
+/* $Id: dspam.c,v 1.402 2010/06/12 15:39:35 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1593,7 +1593,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_node *node_rcpt = NULL;
   struct nt_c c_nt, c_rcpt;
   buffer *parse_message;
-  agent_result_t presult;
+  agent_result_t presult = NULL;
   char *plus, *atsign;
   char mailbox[256];
   FILE *fout;

@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.874 2010/05/09 12:18:15 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.875 2010/06/12 15:23:18 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2271,9 +2271,13 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   struct passwd pwbuf;
   char buf[1024];
 #endif
+  int name_size;
 
-  if (name == NULL)
+  if (name == NULL) {
     return NULL;
+  } else {
+    name_size = strlen(name);
+  }
 
   if (s->p_getpwnam.pw_name != NULL)
   {
@@ -2331,7 +2335,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     s->p_getpwnam.pw_name = NULL;
   }
 
-  sql_username = malloc ((2 * strlen(name)) + 1);
+  sql_username = malloc ((2 * name_size) + 1);
   if (sql_username == NULL)
   {
     LOGDEBUG("_mysql_drv_getpwnam returning NULL for name:  %s.  malloc() failed somehow.", name);
