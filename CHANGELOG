@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100612:1515] sbajic: Updating documentation for Sendmail MTA using virtual users
+
 [20100612:1000] sbajic: Properly escape/unescape queries/values in _ds_pref_load(), _ds_pref_set() and _ds_pref_del() for PostgreSQL driver
 
 [20100607:1400] sbajic: Adding MTA/MDA retraining script to contrib
