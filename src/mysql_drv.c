@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.875 2010/06/12 15:23:18 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.876 2010/06/15 22:21:21 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2265,13 +2265,13 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   int query_rc = 0;
   int query_errno = 0;
+  int name_size = MAX_USERNAME_LENGTH;
 #ifndef VIRTUAL_USERS
   struct passwd *q;
 #if defined(_REENTRANT) && defined(HAVE_GETPWNAM_R)
   struct passwd pwbuf;
   char buf[1024];
 #endif
-  int name_size;
 
   if (name == NULL) {
     return NULL;
