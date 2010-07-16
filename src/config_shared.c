@@ -1,4 +1,4 @@
-/* $Id: config_shared.c,v 1.93 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: config_shared.c,v 1.94 2010/05/15 02:35:47 sbajic Exp $ */
 
 /*
  DSPAM
@@ -49,7 +49,7 @@ attribute_t _ds_find_attribute(config_t config, const char *key) {
   int i;
 
 #ifdef VERBOSE
-  LOGDEBUG("searching attribute '%s'", key);
+  LOGDEBUG("find attribute '%s'", key);
 #endif
 
   if (config == NULL) {
@@ -63,7 +63,7 @@ attribute_t _ds_find_attribute(config_t config, const char *key) {
     attribute_t attr = config[i];
     if (!strcasecmp(attr->key, key)) {
 #ifdef VERBOSE
-      LOGDEBUG("found attribute '%s' with value '%s'", attr->key, attr->value);
+      LOGDEBUG(" -> found attribute '%s' with value '%s'", attr->key, attr->value);
 #endif
       return attr;
     }
@@ -76,7 +76,7 @@ int _ds_add_attribute(config_t config, const char *key, const char *val) {
   attribute_t attr;
 
 #ifdef VERBOSE
-  LOGDEBUG("adding attribute '%s' with value '%s'", key, val);
+  LOGDEBUG("add attribute '%s' with value '%s'", key, val);
 #endif
 
   attr = _ds_find_attribute(config, key);
@@ -112,7 +112,7 @@ int _ds_overwrite_attribute(config_t config, const char *key, const char *val) {
   attribute_t attr;
 
 #ifdef VERBOSE
-  LOGDEBUG("overwriting attribute '%s' with value '%s'", key, val);
+  LOGDEBUG("overwrite attribute '%s' with value '%s'", key, val);
 #endif
 
   attr = _ds_find_attribute(config, key);
@@ -128,33 +128,33 @@ int _ds_overwrite_attribute(config_t config, const char *key, const char *val) {
 
 char *_ds_read_attribute(config_t config, const char *key) {
 #ifdef VERBOSE
-  LOGDEBUG("reading attribute '%s'", key);
+  LOGDEBUG("read attribute '%s'", key);
 #endif
   attribute_t attr = _ds_find_attribute(config, key);
 
   if (!attr) {
 #ifdef VERBOSE
-    LOGDEBUG("not found attribute '%s'", key);
+    LOGDEBUG(" -> read: not found attribute '%s'", key);
 #endif
     return NULL;
   }
 
 #ifdef VERBOSE
-  LOGDEBUG("found attribute '%s' with value '%s'", key, attr->value);
+  LOGDEBUG(" -> read attribute '%s' with value '%s'", key, attr->value);
 #endif
   return attr->value;
 }
 
 int _ds_match_attribute(config_t config, const char *key, const char *val) {
 #ifdef VERBOSE
-  LOGDEBUG("searching for attribute '%s' matching value '%s'", key, val);
+  LOGDEBUG("match attribute '%s' with value '%s'", key, val);
 #endif
   attribute_t attr;
 
   attr = _ds_find_attribute(config, key);
   if (!attr) {
 #ifdef VERBOSE
-    LOGDEBUG("not found attribute '%s'", key);
+    LOGDEBUG(" -> match: not found attribute '%s'", key);
 #endif
     return 0;
   }
@@ -164,13 +164,13 @@ int _ds_match_attribute(config_t config, const char *key, const char *val) {
 
   if (!strcasecmp(attr->value, val)) {
 #ifdef VERBOSE
-    LOGDEBUG("found attribute '%s' but not with value '%s'", key, val);
+    LOGDEBUG(" -> matched attribute '%s' with value '%s'", key, val);
 #endif
     return 1;
   }
 
 #ifdef VERBOSE
-  LOGDEBUG("found attribute '%s' matching value '%s'", key, val);
+  LOGDEBUG(" -> match: not found attribute '%s' with value '%s'", key, val);
 #endif
   return 0;
 }

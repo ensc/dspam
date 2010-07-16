@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.48 2010/01/06 16:04:53 sbajic Exp $
+# $Id: Makefile.am,v 1.49 2010/01/26 19:00:19 sbajic Exp $
 #
 # autoconf (GNU Autoconf) 2.59
 # ltmain.sh (GNU libtool) 1.5.6
@@ -75,7 +75,7 @@ libdspam_la_SOURCES = \
 	nodetree.c nodetree.h \
 	error.c error.h \
 	decode.c decode.h \
-	read_config.c read_config.h \
+	pref.c pref.h \
 	config_shared.c config_shared.h \
 	bnr.c bnr.h \
 	hash.c hash.h \
@@ -174,26 +174,26 @@ dspam_SOURCES = \
 	config.h libdspam.h language.h \
 	dspam.c dspam.h \
 	buffer.h storage_driver.h \
-	pref.h read_config.h \
+	read_config.c read_config.h \
 	config_api.c config_api.h \
 	daemon.c daemon.h \
 	client.c client.h \
 	agent_shared.c agent_shared.h
 
-dspam_LDADD = -lm pref.o libdspam.la
-dspam_DEPENDENCIES = pref.o libdspam.la
+dspam_LDADD = -lm libdspam.la
+dspam_DEPENDENCIES = libdspam.la
 
 dspamc_SOURCES = \
 	config.h language.h \
 	dspamc.c dspamc.h \
 	buffer.h error.h \
-	pref.h read_config.h \
+	read_config.c read_config.h \
 	client.c client.h \
 	agent_shared.c agent_shared.h 
 
-dspamc_LDADD = -lm buffer.o config_shared.o error.o read_config.o pref.o nodetree.o util.o $(NETLIBS)
+dspamc_LDADD = -lm buffer.o config_shared.o error.o pref.o nodetree.o util.o $(NETLIBS)
 dspamc_LDFLAGS = 
-dspamc_DEPENDENCIES = buffer.o config_shared.o error.o read_config.o pref.o nodetree.o util.o
+dspamc_DEPENDENCIES = buffer.o config_shared.o error.o pref.o nodetree.o util.o
 
 # Failing of chgrp is expected and normal case when someone do
 #   make install DESTDIR=...

@@ -1,0 +1,11 @@
+15.03.2007: Released as 2.0.3
+* Fix: Moved buttons from MainForm to ToolBar to avoid threading-problems
+* PROBLEM: had to disable the two mailbuttons, threading+outlook = bad idea
+* Fix: Button for selecting folders are disabled if checkbox/radiobutton is unchecked
+* Fix: SendMailToDeveloper and ThankYou have thrown exceptions, had to close MainForm first.
+* Fix: CheckForUpdated is called on every AddIn-Start (if the Url is not empty)
+
+14.03.2007: Released as 2.0.2
+ * All planned features are implemented
+ * Fix: TrainMail() checks for signature and MailItem too (needed for the AutoTrain-feature)
+ 

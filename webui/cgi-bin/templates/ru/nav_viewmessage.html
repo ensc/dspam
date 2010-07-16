@@ -1,0 +1,55 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 &#1062;&#1077;&#1085;&#1090;&#1088; &#1059;&#1087;&#1088;&#1072;&#1074;&#1083;&#1077;&#1085;&#1080;&#1103;</TITLE>
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+<meta http-equiv="content-type" &#1089;ontent="text/html;charset=utf-8" />
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo" /></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		&#1057;&#1090;&#1072;&#1090;&#1080;&#1089;&#1090;&#1080;&#1095;&#1077;&#1089;&#1082;&#1080;&#1081; &#1089;&#1087;&#1072;&#1084;-&#1092;&#1080;&#1083;&#1100;&#1090;&#1088; &#1076;&#1083;&#1103; <strong>$REMOTE_USER$</strong>
+	</div>
+</div>
+
+<br clear="left" />
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance">&#1055;&#1088;&#1086;&#1080;&#1079;&#1074;&#1086;&#1076;&#1080;&#1090;&#1077;&#1083;&#1100;&#1085;&#1086;&#1089;&#1090;&#1100;</a></li>
+		<li><a href="$CGI$?$USER$template=preferences">&#1053;&#1072;&#1089;&#1090;&#1088;&#1086;&#1081;&#1082;&#1080;</a></li>
+		<li><a href="$CGI$?$USER$template=alerts">&#1055;&#1088;&#1077;&#1076;&#1091;&#1087;&#1088;&#1077;&#1078;&#1076;&#1077;&#1085;&#1080;&#1103;</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=quarantine">&#1050;&#1072;&#1088;&#1072;&#1085;&#1090;&#1080;&#1085; (&#1055;&#1088;&#1086;&#1089;&#1084;&#1086;&#1090;&#1088;)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis">&#1040;&#1085;&#1072;&#1083;&#1080;&#1079;</a></li>
+		<li><a href="$CGI$?$USER$template=history&history_page=1">&#1048;&#1089;&#1090;&#1086;&#1088;&#1080;&#1103;</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+&#1057;&#1086;&#1076;&#1077;&#1088;&#1078;&#1080;&#1084;&#1086;&#1077; &#1087;&#1080;&#1089;&#1100;&#1084;&#1072;.
+</p>
+
+<FORM ACTION="$CGI$">
+<INPUT TYPE=HIDDEN NAME=signatureID VALUE="$MESSAGE_ID$">
+<INPUT TYPE=HIDDEN NAME=command VALUE="processFalsePositive">
+<INPUT TYPE=HIDDEN NAME=template VALUE="quarantine">
+<INPUT TYPE=HIDDEN NAME=user VALUE="$REMOTE_USER$">
+<INPUT TYPE=SUBMIT VALUE="&#1044;&#1086;&#1089;&#1090;&#1072;&#1074;&#1080;&#1090;&#1100; &#1087;&#1080;&#1089;&#1100;&#1084;&#1086;">, &#1087;&#1086;&#1090;&#1086;&#1084;&#1091; &#1095;&#1090;&#1086; &#1086;&#1085;&#1086; <strong>&#1085;&#1077;</strong> &#1089;&#1087;&#1072;&#1084;
+</FORM>
+<BR>
+<TEXTAREA ROWS=36 COLS=80 READONLY>
+$MESSAGE$
+</TEXTAREA>
+</FORM>
+
+</div>
+
+
+
+</BODY>
+</HTML>

@@ -1,4 +1,4 @@
-.\" $Id: dspam_clean.1,v 1.9 2010/01/03 15:02:55 sbajic Exp $
+.\" $Id: dspam_clean.1,v 1.10 2010/04/17 00:17:09 sbajic Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam_clean3.9
@@ -9,7 +9,7 @@
 .\" Copyright (c) 2002-2010 DSPAM Project
 .\" All rights reserved
 .\"
-.TH dspam_clean 1  "Jan 03, 2010" "DSPAM" "DSPAM"
+.TH dspam_clean 1  "Apr 17, 2010" "DSPAM" "DSPAM"
 
 .SH NAME
 dspam_clean \- perform periodic maintenance of metadata
@@ -57,7 +57,7 @@ Performs stale signature purging. If a value is specified, the default value of
 14 days will be overridden. Specifying an age of 0 will delete all signatures
 from the user(s) processed.
 
-.n 3
+.ne 3
 .TP
 .BI \-p\fR\c
 Deletes all tokens from the target user(s) database whose probability is
@@ -66,7 +66,7 @@ specified, the default life of 30 days will be overridden. It's a good idea
 to use this flag once with a life of 0 days for users after a significant amount
 of corpus training. 
 
-.n 3
+.ne 3
 .TP
 .BI \-u\fR\c
 Deletes all unused tokens from a user's dataset. Four different life values
@@ -89,7 +89,7 @@ Ages may be overridden by specifying a format string, such as \-u30,15,10,10
 where each number represents the respective life. Specifying a life of zero
 will delete all unused tokens in the category.
 
-.n 3
+.ne 3
 .TP
 .BI \ user1\ user2\ ...\ userN\fR\c
 Specify the username(s) to perform the selected maintenance operations on. If

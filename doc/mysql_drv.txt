@@ -1,4 +1,4 @@
-$Id: mysql_drv.txt,v 1.2 2010/01/03 14:26:31 sbajic Exp $
+$Id: mysql_drv.txt,v 1.3 2010/04/26 09:30:23 sbajic Exp $
 
 Copyright (c) 2002-2010 DSPAM Project
 http://dspam.sourceforge.net
@@ -189,6 +189,90 @@ consider InnoDB which performs row-level locking, but this is rarely necessary.
   Increase myisam_sort_buffer_size to a higher value, depending on your memory.
   Ideally, a few hundred MB would be great, but at least 64M would be an
   improvement.
+
+  5.1 USING INNODB
+
+  On very large tables using InnoDB instead of MyISAM could speedup DSPAM because
+  InnoDB uses row-level locking while MyISAM uses table-level locking. The row-
+  level locking (used in InnoDB) may be faster because additional updates are not
+  waiting for the entire table (used in MyISAM) to unlock. In most cases using
+  table-level locking instead of row-level locking is considered to be faster but
+  since DSPAM can use many concurrent processes (especially if running in daemon
+  mode) where each of the processes maintains his own connection to MySQL, switching
+  to row-level locking (as used in InnoDB) could noticeable speedup the processing
+  throughput of DSPAM.
+
+  To convert all DSPAM tables to use InnoDB engine, execute the following SQL
+  commands against your DSPAM database:
+    ALTER TABLE `dspam_signature_data`
+      ENGINE = InnoDB;
+    ALTER TABLE `dspam_stats`
+      ENGINE = InnoDB;
+    ALTER TABLE `dspam_token_data`
+      ENGINE = InnoDB;
+    ALTER TABLE `dspam_virtual_uids`
+      ENGINE = InnoDB;
+
+  If you are using the preference extension then issue the following SQL command
+  to convert the preference extension table to InnoDB:
+    ALTER TABLE `dspam_preferences`
+      ENGINE = InnoDB;
+
+  When using InnoDB you can add additional constrains to the DSPAM tables so that
+  automatically when you remove a user in DSPAM all his/her tokens, signatures,
+  preferences and statistic data get removed as well.
+
+  !! IMPORTANT: Do not add those constrains if you are using DSPAM virtual user
+  aliases (aka: DSPAM in relay mode) !!
+
+  To add the additional constrains execute the following SQL commands against your
+  DSPAM database:
+    SET FOREIGN_KEY_CHECKS=0;
+    ALTER TABLE `dspam_signature_data`
+      ADD CONSTRAINT `dspam_signature_data_ibfk_1`
+      FOREIGN KEY (`uid`)
+      REFERENCES `dspam_virtual_uids` (`uid`)
+      ON DELETE CASCADE;
+    ALTER TABLE `dspam_stats`
+      ADD CONSTRAINT `dspam_stats_ibfk_1`
+      FOREIGN KEY (`uid`)
+      REFERENCES `dspam_virtual_uids` (`uid`)
+      ON DELETE CASCADE;
+    ALTER TABLE `dspam_token_data`
+      ADD CONSTRAINT `dspam_token_data_ibfk_1`
+      FOREIGN KEY (`uid`)
+      REFERENCES `dspam_virtual_uids` (`uid`)
+      ON DELETE CASCADE;
+    SET FOREIGN_KEY_CHECKS=1;
+
+  If you are using the preference extension then issue the following SQL commands
+  to add the additional constrain to the preference extension table:
+    SET FOREIGN_KEY_CHECKS=0;
+    ALTER TABLE `dspam_preferences`
+      ADD CONSTRAINT `dspam_preferences_ibfk_1`
+      FOREIGN KEY (`uid`)
+      REFERENCES `dspam_virtual_uids` (`uid`)
+      ON DELETE CASCADE;
+    SET FOREIGN_KEY_CHECKS=1;
+
+  If you have added those constrains and later decide to switch to DSPAM virtual
+  user aliases or decide that you don't need/want those constrains then issue the
+  following SQL commands against your DSPAM database to remove the constrains:
+    SET FOREIGN_KEY_CHECKS=0;
+    ALTER TABLE `dspam_signature_data`
+      DROP FOREIGN KEY `dspam_signature_data_ibfk_1`;
+    ALTER TABLE `dspam_stats`
+      DROP FOREIGN KEY `dspam_stats_ibfk_1`;
+    ALTER TABLE `dspam_token_data`
+      DROP FOREIGN KEY `dspam_token_data_ibfk_1`;
+    SET FOREIGN_KEY_CHECKS=1;
+
+  If you have enabled the preference extension in DSPAM then do not forget to
+  remove the constrain from the dspam_preferences table as well:
+    SET FOREIGN_KEY_CHECKS=0;
+    ALTER TABLE `dspam_preferences`
+      DROP FOREIGN KEY `dspam_preferences_ibfk_1`;
+    SET FOREIGN_KEY_CHECKS=1;
 
 6. REPAIRING
 

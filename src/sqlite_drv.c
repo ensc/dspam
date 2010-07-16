@@ -1,4 +1,4 @@
-/* $Id: sqlite_drv.c,v 1.31 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: sqlite_drv.c,v 1.32 2010/02/12 12:29:32 sbajic Exp $ */
 
 /*
  DSPAM
@@ -648,8 +648,10 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
                                                                                 
   if (s->dbh == NULL)
   {
+    free(s);
     LOGDEBUG
-      ("_ds_init_storage: sqlite_open: unable to initialize database: %s", err);    return EUNKNOWN;
+      ("_ds_init_storage: sqlite_open: unable to initialize database: %s", err);
+    return EUNKNOWN;
   }
 
   /* Commit timeout of 20 minutes */

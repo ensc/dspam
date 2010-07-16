@@ -1,4 +1,4 @@
-.\" $Id: dspam_train.1,v 1.8 2010/01/03 15:02:55 sbajic Exp $
+.\" $Id: dspam_train.1,v 1.9 2010/04/17 00:18:22 sbajic Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam_train3.9
@@ -9,7 +9,7 @@
 .\" Copyright (c) 2002-2010 DSPAM Project
 .\" All rights reserved
 .\"
-.TH dspam_train 1  "Jan 03, 2010" "DSPAM" "DSPAM"
+.TH dspam_train 1  "Apr 17, 2010" "DSPAM" "DSPAM"
 
 .SH NAME
 dspam_train \- train a corpus of mail
@@ -49,12 +49,12 @@ of a particular corpus against DSPAM in a given configuration.
 .ne 3
 .TP
 
-.n3 3
+.ne 3
 .TP
 .BI \--client\c
 If specified, DSPAM is used in client\-server mode.
 
-.n3 3
+.ne 3
 .TP
 .BI username\c
 Specifies the user to train, if omitted the current user name is used.
@@ -69,14 +69,14 @@ Use a index file instead of the usual spam_corpus and nonspam_corpus.
 .br
 [class] [path to message]
 
-.n3 3
+.ne 3
 .TP
 .BI spam_corpus\c
 Specifies either the pathname to the directory containing the corpus of spam,
 with each in a separate file (e.g. maildir format) or a path to the mailbox in
 the traditional Unix MBOX format.
 
-.n3 3
+.ne 3
 .TP
 .BI nonspam_corpus\c
 Specifies either the pathname to the directory containing the corpus of

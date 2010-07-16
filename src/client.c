@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.682 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: client.c,v 1.685 2010/05/13 22:38:45 sbajic Exp $ */
 
 /*
  DSPAM
@@ -189,8 +189,6 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
         }
       } else {
         printf("%s\n", line);
-        if (ATX->flags & DAF_SUMMARY)
-          break;
       } 
       free(line);
       line = client_getline(&TTX, 300);
@@ -274,18 +272,23 @@ int client_connect(AGENT_CTX *ATX, int flags) {
   if (flags & CCF_DELIVERY) {
     host = _ds_read_attribute(agent_config, "DeliveryHost");
 
+    if (_ds_read_attribute(agent_config, "DeliveryPort"))
+      port = atoi(_ds_read_attribute(agent_config, "DeliveryPort"));
+
     if (ATX->recipient && ATX->recipient[0]) {
       char *domain = strchr(ATX->recipient, '@');
       if (domain) {
         char key[128];
-        snprintf(key, sizeof(key), "DeliveryHost.%s", domain+1);
+        char lcdomain[strlen(ATX->recipient)];
+        lc(lcdomain, domain+1);
+        snprintf(key, sizeof(key), "DeliveryHost.%s", lcdomain);
         if (_ds_read_attribute(agent_config, key))
           host = _ds_read_attribute(agent_config, key);
+        snprintf(key, sizeof(key), "DeliveryPort.%s", lcdomain);
+        if (_ds_read_attribute(agent_config, key))
+          port = atoi(_ds_read_attribute(agent_config, key));
       }
     }
-
-    if (_ds_read_attribute(agent_config, "DeliveryPort"))
-      port = atoi(_ds_read_attribute(agent_config, "DeliveryPort"));
 
     if (host && host[0] == '/') 
       domain = 1;
@@ -798,10 +801,16 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
 
     /* fill buf with partial msg, replacing \n with \r\n */
     buflen = 0;
-    while ((size_t)buflen < (sizeof(buf) - 1) && i < msglen) {
+    while ((size_t)buflen < (sizeof(buf) - 2) && i < msglen) {
       /* only replace \n and not \r\n */
       if (i > 0 && msg[i] == '\n' && msg[i - 1] != '\r') {
         buf[buflen] = '\r';
+        buflen++;
+      }
+
+      /* escape dot if first character on line */
+      if (msg[i] == '.' && (i == 0 || msg[i - 1] == '\n')) {
+        buf[buflen] = '.';
         buflen++;
       }
 

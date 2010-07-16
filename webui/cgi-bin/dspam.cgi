@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.47 2010/01/03 14:39:13 sbajic Exp $
+# $Id: dspam.cgi,v 1.51 2010/04/27 02:19:54 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
@@ -497,7 +497,7 @@ sub DisplayHistory {
     elsif ($class eq "C") { $cl = "corpus"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_corpus'}"; }
     elsif ($class eq "U") { $cl = "unknown"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_unknown'}"; }
     elsif ($class eq "E") { $cl = "error"; $cllabel="$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_error'}"; }
-    if ($messageid ne "") {
+    if ($messageid ne "" && $messageid ne "1") {
       if ($rec{$messageid}->{'resend'} ne "") {
         $cl = "relay";
         $cllabel = "$CONFIG{'LANG'}->{$LANGUAGE}->{'history_label_resend'}";
@@ -507,13 +507,20 @@ sub DisplayHistory {
 
     $info = $rec{$signature}->{'info'} if ($rec{$signature}->{'info'} ne "");
 
+    $from = substr($from, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "..." if (length($from)>$CONFIG{'MAX_COL_LEN'});
+    $subject = substr($subject, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "..." if (length($subject)>$CONFIG{'MAX_COL_LEN'});
+
+    $from =~ s/&/&amp;/g;
     $from =~ s/</&lt;/g;
     $from =~ s/>/&gt;/g;
+    $from =~ s/"/&quot;/g;
+    $from =~ s/'/&#39;/g;	# MSIE doesn't know "&apos;"
+
+    $subject =~ s/&/&amp;/g;
     $subject =~ s/</&lt;/g;
     $subject =~ s/>/&gt;/g;
-
-    $from = substr($from, 0, $CONFIG{'MAX_COL_LEN'}) . "..." if (length($from)>$CONFIG{'MAX_COL_LEN'});
-    $subject = substr($subject, 0, $CONFIG{'MAX_COL_LEN'}) . "..." if (length($subject)>$CONFIG{'MAX_COL_LEN'});
+    $subject =~ s/"/&quot;/g;
+    $subject =~ s/'/&#39;/g;	# MSIE doesn't know "&apos;"
 
     my($rclass);
     $rclass = "spam" if ($class eq "I" || $class eq "W" || $class eq "F");
@@ -1226,11 +1233,11 @@ sub DisplayQuarantine {
 
     $new->{'Sub2'} = $new->{'X-DSPAM-Signature'};
     if (length($new->{'Subject'})>$CONFIG{'MAX_COL_LEN'}) {
-      $new->{'Subject'} = substr($new->{'Subject'}, 0, $CONFIG{'MAX_COL_LEN'}) . "...";
+      $new->{'Subject'} = substr($new->{'Subject'}, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "...";
     } 
  
     if (length($new->{'From'})>$CONFIG{'MAX_COL_LEN'}) {
-      $new->{'From'} = substr($new->{'From'}, 0, $CONFIG{'MAX_COL_LEN'}) . "...";
+      $new->{'From'} = substr($new->{'From'}, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "...";
     }
 
     if ($new->{'Subject'} eq "") {
@@ -1801,7 +1808,7 @@ sub GetPath {
       $PATH = "$CONFIG{'DSPAM_HOME'}/data/" . substr($USER, 0, 1) .
         "/". substr($USER, 1, 1) . "/$USER/$USER";
     } else {
-      $PATH = "$CONFIG{'DSPAM_HOME'}/data/$USER/$USER";
+      $PATH = "$CONFIG{'DSPAM_HOME'}/data/$USER/$USER/$USER";
     }
     return $PATH;
   }

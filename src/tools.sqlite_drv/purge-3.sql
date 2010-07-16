@@ -1,7 +1,7 @@
--- $Id: purge-3.sql,v 1.0 2009/06/15 23:42:52 sbajic Exp $
+-- $Id: purge-3.sql,v 1.1 2010/04/21 11:31:00 sbajic Exp $
 delete from dspam_token_data
   where (innocent_hits*2) + spam_hits < 5
-  and (julianday('now')-60) > julianday(last_hit);
+  and (julianday('now')-30) > julianday(last_hit);
 delete from dspam_token_data
   where innocent_hits + spam_hits = 1
   and (julianday('now')-15) > julianday(last_hit);

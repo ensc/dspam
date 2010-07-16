@@ -1,4 +1,4 @@
-/* $Id: dspamc.c,v 1.16 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: dspamc.c,v 1.17 2010/05/16 14:45:00 sbajic Exp $ */
 
 /*
  DSPAM
@@ -42,7 +42,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
-#ifdef HAVE_UNISTD_H_
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #include <pwd.h>
 #endif
@@ -95,19 +95,19 @@ char debug_text[1024];
 int
 main (int argc, char *argv[])
 {
-  AGENT_CTX ATX;
-  int exitcode = EXIT_SUCCESS;
-  buffer *message = NULL;       /* input Message */
+  AGENT_CTX ATX;		/* agent configuration */
+  buffer *message = NULL;	/* input Message */
   int agent_init = 0;		/* agent is initialized */
   int pwent_cache_init = 0;	/* cache for username and uid is initialized */
+  int exitcode = EXIT_SUCCESS;
+
+  srand ((long) time(NULL) ^ (long) getpid());
+  umask (006);			/* rw-rw---- */
 
   setbuf (stdout, NULL);	/* unbuffered output */
 #ifdef DEBUG
   DO_DEBUG = 0;
 #endif
-
-  srand ((long) time(NULL) ^ (long) getpid());
-  umask (006);
 
 #ifndef DAEMON
   LOG(LOG_ERR, ERR_DAEMON_NO_SUPPORT);
@@ -138,7 +138,7 @@ main (int argc, char *argv[])
     goto BAIL;
   }
 
-  /* Set up agent context to define behavior of processor */
+  /* Set up an agent context to define the behavior of the processor */
 
   if (initialize_atx(&ATX)) {
     LOG(LOG_ERR, ERR_AGENT_INIT_ATX);
@@ -190,6 +190,9 @@ main (int argc, char *argv[])
        _ds_read_attribute(agent_config, "ServerDomainSocketPath")))
   {
     exitcode = client_process(&ATX, message);
+    if (exitcode<0) {
+      LOG(LOG_ERR, ERR_CLIENT_EXIT, exitcode);
+    }
   } else {
     LOG(LOG_ERR, ERR_CLIENT_INVALID_CONFIG);
     exitcode = EINVAL;
@@ -201,8 +204,10 @@ BAIL:
   if (message)
     buffer_destroy(message);
 
-  if (agent_init)
+  if (agent_init) {
     nt_destroy(ATX.users);
+    nt_destroy(ATX.recipients);
+  }
 
   if (agent_config)
     _ds_destroy_config(agent_config);
@@ -212,4 +217,3 @@ BAIL:
 
   exit (exitcode);
 }
-

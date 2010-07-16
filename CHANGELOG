@@ -1,37 +1,221 @@
 Version 3.9.0
 -------------
 
-[20090111:2035] sbajic: Fixing signal handler under *BSD
+[20100615:2225] sbajic: Fixing bug in _mysql_drv_getpwnam() regarding allocation of space for the username
 
-[20090107:2320] sbajic: Adding option (--purgescriptdir) to dspam_maintenance.sh allowing the end-user to specify the directory where the purge scripts are located
+[20100612:1540] sbajic: Make LLVM clang compiler happy
 
-[20090106:1605] sbajic: Fixing parallel builds
+[20100612:1515] sbajic: Updating documentation for Sendmail MTA using virtual users
 
-[20090106:1440] sbajic: Enhancing dspam_maintenance.sh to support DSPAM binary that does not print out configuration options when using switch "--version"
+[20100612:1000] sbajic: Properly escape/unescape queries/values in _ds_pref_load(), _ds_pref_set() and _ds_pref_del() for PostgreSQL driver
 
-[20090106:0110] sbajic: Adding profile support to dspam_maintenance.sh. Restricting purging with dspam_maintenance.sh to only consider currently active driver.
+[20100607:1400] sbajic: Adding MTA/MDA retraining script to contrib
 
-[20090103:1520] sbajic: Changing year in copyright notices from 2009 to 2010 in dspam_maintenance.sh
+[20100525:2330] sbajic: Fixing out-of-bounds reads in various functions
 
-[20090103:1515] sbajic: Changing year in copyright notices and version output from 2009 to 2010
+[20100525:2120] sbajic: Do not shutdown libdspam and do not relase locks in daemon_start()
 
-[20090103:0520] sbajic: Swapping out x labels from graphs to be in strings.pl
+[20100519:2300] sbajic: Fixing varous memory leaks
 
-[20090103:0415] sbajic: Fixing page direction in Hebrew templates
+[20100515:0255] sbajic: Better verbose output when reading configuration
 
-[20090102:2150] sbajic: Fixing typos in Hebrew template
+[20100514:1820] sbajic: Fixing compiler warnings in process_parseto()
 
-[20090102:2030] sbajic: Fixing typos in Hebrew template
+[20100513:2245] sbajic: Fix potential memory leak in MySQL and PostgreSQL storage driver
 
-[20090102:0440] sbajic: Fixing small issue in rtl.css (used in right-to-left page direction templates)
+[20100513:2240] sbajic: Fix client to read complete result for summary operations and instruct daemon to send final dot also for summary operations
 
-[20090102:0400] sbajic: Fixing the display of Hebrew templates in the Web UI
+[20100513:2130] sbajic: Fix memory leak in process_users() when using ClamAV
 
-[20090102:0400] sbajic: Adding TTF font support for legend, x and y labels in Web UI
+[20100513:2100] sbajic: Fix no substitution in error messages when logging to file
 
-[20090101:1730] sbajic: Setting 'lang_name' in Hebrew strings.pl to use HTML character entities encoding so that other languages display the language name properly even when not using CP1255/Windows-1255 encoding
+[20100513:1245] sbajic: Fix bug in process_parseto()
 
-[20090101:1730] sbajic: Fixing typo in Czech strings.pl
+[20100509:1215] sbajic: Fix typo in MySQL driver
+
+[20100508:2330] sbajic: Fix bug in _ds_strip_html (invalid read of 1 byte before allocated block)
+
+[20100508:0150] sbajic: Fix various errors/bugs in PostgreSQL driver, speedup SQL queries by omitting write/change to fields that are not changing their value
+
+[20100508:0145] sbajic: Fixing bugs and wrong return values in MySQL driver
+
+[20100507:2130] sbajic: Fixing bug (typo) in MySQL driver
+
+[20100506:2140] sbajic: Enforce domain part in DeliveryHost to be in lowercase when using domain based delivery. Extending DeliveryPort to be domain delivery aware.
+
+[20100506:1850] sbajic: Fixing typos and formatting in README
+
+[20100505:2325] sbajic: Fixing group file processing for inoculation groups and classification groups (global/network)
+
+[20100502:1500] sbajic: Fixing group file parsing and classification network and global group support
+
+[20100502:1400] sbajic: Updating README section 2.1 (Configuring groups)
+
+[20100501:1945] sbajic: Make LLVM clang compiler happy
+
+[20100501:1610] sbajic: Make LLVM clang compiler happy
+
+[20100501:1600] sbajic: Fix bug in dspam.c main()
+
+[20100501:1555] sbajic: Fix dereference of null pointer in log_events()
+
+[20100501:1545] sbajic: Fix pass by value bug in is_blacklisted()
+
+[20100501:1500] sbajic: Fix various errors/bugs in MySQL driver, make the driver more resistant against locking issues and speedup SQL queries by omitting write/change to fields that are not changing their value
+
+[20100430:2100] sbajic: Escape SQL query in _pgsql_drv_get_dbversion() for PostgreSQL driver
+
+[20100430:1820] sbajic: Fix typo in SQL query format in _pgsql_drv_get_dbversion() for PostgreSQL driver
+
+[20100429:1730] sbajic: Fix segmentation fault in libdspam.c introduced with last commit
+
+[20100428:2350] sbajic: Fix double free or corruption in libdspam.c
+
+[20100428:2345] sbajic: Fix SQL query splitting in _ds_setall_spamrecords() for the MySQL driver
+
+[20100427:1925] sbajic: Adding man page (provided by Julien Valroff <julien@kirya.net>) for dspam_maintenance.sh
+
+[20100427:0230] sbajic: Speeding up purging in dspam_maintenance.sh when using SQL based purging in conjunction with dspam_clean.
+
+[20100427:0220] sbajic: Fix handling of single char usernames in Web-UI when using large scale.
+
+[20100426:1015] sbajic: Adding instruction to mysql_drv.txt how and when to use InnoDB with DSPAM.
+
+[20100425:1545] sbajic: Fixing typo in dspam.cgi
+
+[20100424:0200] sbajic: Fixing typo in UPGRADING
+
+[20100422:0120] sbajic: Fixing operation order when escaping and shortening strings in Web-UI history page
+
+[20100421:2200] sbajic: Adding section in UPGRADING (UPGRADING FROM 3.9.0) to explain how to change the character set/collation to latin1 (missed to mention that conversation task for the update to 3.9.0)
+
+[20100421:2115] sbajic: Updating purge-4.1.sql to better handle tables that have mixed character sets and collations
+
+[20100421:1135] sbajic: Fixing bugs in dspam_maintenance.sh and adding parameter --with-sql-autoupdate
+
+[20100421:1130] sbajic: Updating PostgreSQL and SQLite3 purge scripts to have 30 days (default value used in MySQL purge script, SQLite purge script, dspam_clean and dspam.conf) purging value for Hapaxes.
+
+[20100421:0900] sbajic: Fixing bugs in dspam_maintenance.sh
+
+[20100419:2100] sbajic: Fixing bugs in dspam_maintenance.sh
+
+[20100418:0235] sbajic: Fixing bugs in dspam_maintenance.sh
+
+[20100418:0015] sbajic: Fixing bugs in dspam_maintenance.sh
+
+[20100417:1730] sbajic: Fixing bugs in dspam_maintenance.sh
+
+[20100417:1720] sbajic: Fixing bugs in dspam_maintenance.sh
+
+[20100417:1715] sbajic: Fixing bugs in dspam_maintenance.sh
+
+[20100417:1700] sbajic: Fixing bugs in dspam_maintenance.sh
+
+[20100417:1615] sbajic: Removed "ANALYZE TABLE" from dspam_maintenance.sh for MySQL
+
+[20100417:1615] sbajic: Updating dspam_maintenance.sh to work better under Debian Almquist Shell. Adding option to run vacuum/optimize/analyze after purging.
+
+[20100417:1500] sbajic: Adding more debug output to libdspam
+
+[20100417:1445] sbajic: Unifying the format of section headers (aka: # --- MySQL ---, # --- PostgreSQL ---, etc) and adding example for split configuration
+
+[20100417:1245] sbajic: Fixing typo in libdspam when retraining message from signature with zero tokens
+
+[20100417:0025] sbajic: Fixing typos and other errors in the man pages
+
+[20100416:2100] sbajic: Do not attempt to retrain if zero tokens where retrieved from a signature
+
+[20100416:1830] sbajic: Do not treat user names as email addresses when using DLMTP
+
+[20100414:0055] sbajic: Updating dspam_maintenance.sh to use 31 days as default for system log purging. Old value was 15 days and that is way to short since the DSPAM Web-UI by default displays the last 25 days in the Administrative Suite dashboard
+
+[20100414:0050] sbajic: Adding hidden HTML snipplet to user and admin preferences HTML template in the English Web-UI
+
+[20100414:0040] sbajic: Fixing typo in user history page for the English Web-UI template
+
+[20100411:1445] sbajic: Update PostgreSQL driver to be able to parse versions that have non numeric values in major, minor or micro like 'PostgreSQL 9.0alpha4 on i686-pc-linux-gnu, compiled by GCC i686-pc-linux-gnu-gcc (Gentoo 4.5.0_alpha20100401) 4.5.0-alpha20100401 20100401 (experimental), 32-bit'
+
+[20100408:1820] sbajic: Fixed potential security issue with HTML message processing
+
+[20100405:2215] sbajic: Fixing README regarding wrong location of dspam.conf (--sysconfdir)
+
+[20100402:2345] sbajic: Updated UPGRADING regarding the additional lookup_tokens for PostgreSQL
+
+[20100323:0945] sbajic: Removing some unused variables from decode.c
+
+[20100318:0325] sbajic: Fixing reading dailyQuarantineSummary and AllowOverride evaluation in dspam_notify (still need to fix if preferences are overwritten by pref file in user home)
+
+[20100315:2300] sbajic: Added alternating colors for the quarantine notification message
+
+[20100315:1945] sbajic: Fixed issue with empty Message-ID in Web-UI history display
+
+[20100313:2100] sbajic: Fixed a HTML markup error in dspam_notify and extended dspam_notify to list messages in quarantine
+
+[20100313:0235] sbajic: Removed dependency to grep, awk, cut, wc and friends from dspam_notify and fixed a bunch of bugs in dspam_notify.
+
+[20100313:0120] sbajic: Added installation of dspam_notify
+
+[20100224:1815] sbajic: Adding _ds_validate_address() to test recipients for valid email address format (the check is not catching all possible invalid email addresses).
+
+[20100219:1905] sbajic: Adding --nofork switch to prevent DSPAM to switch into background when using --daemon. New default is to fork into background when using --daemon switch. (SF ID #2955089)
+
+[20100219:1215] sbajic: Returning non zero exit code if daemon was not able to bind to ip/port (SF Bug #2947397)
+
+[20100218:2225] sbajic: Fixing dot escaping in LMTP protocol
+
+[20100212:1400] sbajic: Fixing memory leaks in SQLite[2/3] driver
+
+[20100206:0030] sbajic: Adding Russian templates
+
+[20100202:1525] sbajic: Fixing issues with dirname() in cssclean, csscompress and cssconvert
+
+[20100128:2340] hmonteiro: Bumped thunderbird extension version number.
+
+[20100128:2320] hmonteiro: Converted pt-PT localized messages in thunderbird extension to UTF-8
+
+[20100128:0130] sbajic: Removing mapiprop.dll and adding note where to download the dll and source
+
+[20100127:2130] sbajic: Using PQescapeByteaConn instead of PQescapeBytea in PostgreSQL driver when PostgreSQL is >= 7.3
+
+[20100127:1520] sbajic: Fixing unresolved symbols in libdspam
+
+[20100116:1520] sbajic: Don't allow '../' or '..\' in user name
+
+[20100115:2100] sbajic: Updating dspam_maintenance.sh to work better under Fedora
+
+[20100114:0210] sbajic: Change password handling for MySQL/PostgreSQL in dspam_maintenance.sh
+
+[20100111:2035] sbajic: Fixing signal handler under *BSD
+
+[20100107:2320] sbajic: Adding option (--purgescriptdir) to dspam_maintenance.sh allowing the end-user to specify the directory where the purge scripts are located
+
+[20100106:1605] sbajic: Fixing parallel builds
+
+[20100106:1440] sbajic: Enhancing dspam_maintenance.sh to support DSPAM binary that does not print out configuration options when using switch "--version"
+
+[20100106:0110] sbajic: Adding profile support to dspam_maintenance.sh. Restricting purging with dspam_maintenance.sh to only consider currently active driver.
+
+[20100103:1520] sbajic: Changing year in copyright notices from 2009 to 2010 in dspam_maintenance.sh
+
+[20100103:1515] sbajic: Changing year in copyright notices and version output from 2009 to 2010
+
+[20100103:0520] sbajic: Swapping out x labels from graphs to be in strings.pl
+
+[20100103:0415] sbajic: Fixing page direction in Hebrew templates
+
+[20100102:2150] sbajic: Fixing typos in Hebrew template
+
+[20100102:2030] sbajic: Fixing typos in Hebrew template
+
+[20100102:0440] sbajic: Fixing small issue in rtl.css (used in right-to-left page direction templates)
+
+[20100102:0400] sbajic: Fixing the display of Hebrew templates in the Web UI
+
+[20100102:0400] sbajic: Adding TTF font support for legend, x and y labels in Web UI
+
+[20100101:1730] sbajic: Setting 'lang_name' in Hebrew strings.pl to use HTML character entities encoding so that other languages display the language name properly even when not using CP1255/Windows-1255 encoding
+
+[20100101:1730] sbajic: Fixing typo in Czech strings.pl
 
 [20091231:0555] sbajic: Fixing compiler warnings
 

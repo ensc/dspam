@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<language_config language="en-US">
+ <MainForm>
+  <bt_thankYou>Thank Developer</bt_thankYou>
+  <bt_checkForUpdate>Check for Update</bt_checkForUpdate>
+  <bt_sendLogToDeveloper>Send Log</bt_sendLogToDeveloper>
+  <bt_TrainingForm>configure training</bt_TrainingForm>
+  <bt_AktionForm>configure actions</bt_AktionForm>
+  <bt_closeForm>Close</bt_closeForm>
+ </MainForm>
+ <TrainingForm>
+   <rB_trainWithWebUI>train from history</rB_trainWithWebUI>
+   <l_enterUrlOfDSpam>URL for DSpam</l_enterUrlOfDSpam>
+   <l_enterLoginOfDSpam>your login</l_enterLoginOfDSpam>
+   <l_enterPasswordOfDSpam>your password</l_enterPasswordOfDSpam>
+   <rB_trainWithForward>train with mailforward</rB_trainWithForward>
+   <l_enterForwardForSpam>mailaddress for spam</l_enterForwardForSpam>
+   <l_enterForwardForHam>mailaddress for innocent</l_enterForwardForHam>
+   <cB_useAutoTrain>automagicly train</cB_useAutoTrain>
+   <l_enterFolderForSpam>outlookfolder for spamlearning</l_enterFolderForSpam>
+   <l_enterFolderForHam>outlookfolder for innocentlearning</l_enterFolderForHam>
+   <bt_saveForm>Save</bt_saveForm>
+   <bt_closeForm>Close</bt_closeForm>
+ </TrainingForm>
+ <AktionForm>
+  <gB_afterTrainSpam>after training mail as spam, do...</gB_afterTrainSpam>
+  <rB_afterTrainSpam_Nothing>nothing</rB_afterTrainSpam_Nothing>
+  <rB_afterTrainSpam_Delete>delete mail</rB_afterTrainSpam_Delete>
+  <rB_afterTrainSpam_MoveTo>move mail to folder</rB_afterTrainSpam_MoveTo>
+  <cB_afterTrainSpam_MarkAsRead>mark as read</cB_afterTrainSpam_MarkAsRead>
+  <cB_afterTrainSpam_PrefixWith>prefix subject with</cB_afterTrainSpam_PrefixWith>
+  <gB_afterTrainHam>after training mail as innocent, do...</gB_afterTrainHam>
+  <rB_afterTrainHam_Nothing>nothing</rB_afterTrainHam_Nothing>
+  <rB_afterTrainHam_Delete>delete mail</rB_afterTrainHam_Delete>
+  <rB_afterTrainHam_MoveTo>move mail to folder</rB_afterTrainHam_MoveTo>
+  <cB_afterTrainHam_MarkAsRead>mark as read</cB_afterTrainHam_MarkAsRead>
+  <cB_afterTrainHam_PrefixWith>remove prefix from subject</cB_afterTrainHam_PrefixWith>
+   <bt_saveForm>Save</bt_saveForm>
+   <bt_closeForm>Close</bt_closeForm>
+ </AktionForm>
+ <checkForUpdate>
+  <Found>update found, tell your sysadmin to upgrade</Found>
+  <NotFound>no update found, you're using the actual version</NotFound>
+ </checkForUpdate>
+ <Toolbar>
+  <Caption>
+   <cB_Button_AsSpam>Spam</cB_Button_AsSpam>
+   <cB_Button_AsHam>Innocent</cB_Button_AsHam>
+   <cB_Button_DoConfig>Configure</cB_Button_DoConfig>
+  </Caption>
+  <Tag>
+   <cB_Button_AsSpam>Train as Spam</cB_Button_AsSpam>
+   <cB_Button_AsHam>Train as Innocent</cB_Button_AsHam>
+   <cB_Button_DoConfig>Change your Config</cB_Button_DoConfig>
+  </Tag>
+ </Toolbar>
+</language_config>
