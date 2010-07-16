@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.18 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: error.c,v 1.19 2010/05/13 21:01:11 sbajic Exp $ */
 
 /*
  DSPAM
@@ -69,8 +69,9 @@ pthread_mutex_t  __syslog_lock;
 void
 LOG(int priority, const char *err, ... )
 {
-#ifdef USE_SYSLOG
+#if defined(USE_SYSLOG) || defined(LOGFILE)
   va_list ap;
+  va_start (ap, err);
 #endif
 #ifdef LOGFILE
   char date[128];
@@ -84,25 +85,29 @@ LOG(int priority, const char *err, ... )
 #endif
 
 #ifdef USE_SYSLOG
-  va_start (ap, err);
   openlog ("dspam", LOG_PID | LOG_CONS | LOG_NOWAIT, LOG_MAIL);
   vsyslog (priority, err, ap);
   closelog ();
-  va_end (ap);
 #endif
 
 #ifdef LOGFILE
+  char err_text[256];
+  vsnprintf(err_text, sizeof(err_text), err, ap);
   file = fopen(LOGFILE, "a");
   if (file) {
-    fprintf(file, "%ld: [%s] %s\n", (long) getpid(), format_date_r(date), err);
+    fprintf(file, "%ld: [%s] %s\n", (long) getpid(), format_date_r(date), err_text);
     fclose(file);
   } else {
     fprintf(stderr, "%s: %s", LOGFILE, strerror(errno));
-    fprintf(stderr, "%ld: [%s] %s\n", (long)getpid(), format_date_r(date), err);
+    fprintf(stderr, "%ld: [%s] %s\n", (long)getpid(), format_date_r(date), err_text);
   }
 #endif
 
-#ifdef DAEMON 
+#if defined(USE_SYSLOG) || defined(LOGFILE)
+  va_end (ap);
+#endif
+
+#ifdef DAEMON
 #if defined(USE_SYSLOG) && defined(LOGFILE)
   pthread_mutex_unlock(&__syslog_lock);
 #endif

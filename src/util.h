@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.17 2010/01/03 14:26:31 sbajic Exp $ */
+/* $Id: util.h,v 1.18 2010/02/24 16:18:15 sbajic Exp $ */
 
 /*
  DSPAM
@@ -133,4 +133,6 @@ double chi2Q
 float _ds_round
   (float n);
 
+int _ds_validate_address
+  (const char *address);
 #endif /* _UTIL_H */

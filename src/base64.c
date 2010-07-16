@@ -1,4 +1,4 @@
-/* $Id: base64.c,v 1.96 2010/01/03 14:26:31 sbajic Exp $ */
+/* $Id: base64.c,v 1.97 2010/05/22 10:35:50 sbajic Exp $ */
 
 /*
  DSPAM
@@ -120,7 +120,7 @@ base64decode (const char *buf)
       break;
     }
   }
-  if (decoded[strlen(decoded)-1]!='\n')
+  if (strlen(decoded) > 0 && decoded[strlen(decoded)-1] != '\n')
     strcat(decoded, "\n");
   return decoded;
 }

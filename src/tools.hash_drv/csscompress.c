@@ -1,4 +1,4 @@
-/* $Id: csscompress.c,v 1.834 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: csscompress.c,v 1.835 2010/02/02 14:41:40 sbajic Exp $ */
 
 /*
  DSPAM
@@ -104,7 +104,7 @@ int csscompress(const char *filename) {
   hash_drv_spam_record_t rec;
   unsigned long filepos;
   char newfile[128];
-
+  char *filenamecopy;
   unsigned long max_seek     = HASH_SEEK_MAX;
   unsigned long max_extents  = 0;
   unsigned long extent_size  = HASH_EXTENT_MAX;
@@ -131,7 +131,11 @@ int csscompress(const char *filename) {
     }
   }
 
-  snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname((char *)filename), (unsigned int) getpid());
+  filenamecopy = strdup(filename);
+  if (filenamecopy == NULL)
+    return EFAILURE;
+
+  snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname((char *)filenamecopy), (unsigned int) getpid());
 
   if (_hash_drv_open(filename, &old, 0, max_seek,
                      max_extents, extent_size, pctincrease, flags))
@@ -188,4 +192,3 @@ int csscompress(const char *filename) {
     fprintf(stderr, "rename(%s, %s): %s\n", newfile, filename, strerror(errno));
   return 0;
 }
-

@@ -1,4 +1,4 @@
-/* $Id: list.c,v 1.73 2010/01/03 14:26:31 sbajic Exp $ */
+/* $Id: list.c,v 1.74 2010/05/01 18:09:59 sbajic Exp $ */
 
 /*
  DSPAM
@@ -82,7 +82,7 @@ bnr_list_destroy (struct bnr_list *list)
     cur = next;
   }
   free (list);
-  list = (struct bnr_list *) NULL;
+  /* list = (struct bnr_list *) NULL; */
 }
 
 /* list_insert adds an item to the nodetree */

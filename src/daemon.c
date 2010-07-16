@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.13 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: daemon.c,v 1.17 2010/05/13 22:39:26 sbajic Exp $ */
 
 /*
  DSPAM
@@ -581,8 +581,10 @@ void *process_connection(void *ptr) {
         if (_ds_extract_address(username, cmdline, sizeof(username)) ||
             username[0] == 0 || username[0] == '-' || username[0] == '@')
         {
-          daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERR_LMTP_BAD_RCPT);
-          goto GETCMD;
+          if ((server_mode == SSM_DSPAM) || (server_mode == SSM_STANDARD && _ds_validate_address(username) == 0)) {
+            daemon_reply(TTX, LMTP_BAD_CMD, "5.1.2", ERR_LMTP_BAD_RCPT);
+            goto GETCMD;
+          }
         }
 
         if (_ds_match_attribute(agent_config, "Broken", "case"))
@@ -755,9 +757,8 @@ GETCMD:
     /* Send a terminating '.' if --stdout in 'dspam' mode */
 
     if (ATX->sockfd_output) {
-      if (!(ATX->flags & DAF_SUMMARY))
-        if (send_socket(TTX, ".")<=0)
-          goto CLOSE;
+      if (send_socket(TTX, ".")<=0)
+        goto CLOSE;
 
     /* Otherwise, produce standard delivery results */
 
@@ -835,7 +836,7 @@ RSET:
       free(cmdline);
       cmdline = NULL;
       TTX->authenticated = 0;
-      argc = 0;
+      /* argc = 0; */
     }
 
     free(p);

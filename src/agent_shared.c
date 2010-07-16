@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.73 2010/01/03 14:26:31 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.79 2010/05/18 18:13:49 sbajic Exp $ */
 
 /*
  DSPAM
@@ -37,7 +37,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
-#ifdef HAVE_UNISTD_H_
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #include <pwd.h>
 #endif
@@ -100,6 +100,7 @@ int initialize_atx(AGENT_CTX *ATX) {
   ATX->classification  = DSR_NONE;
   ATX->source          = DSS_NONE;
   ATX->operating_mode  = DSM_PROCESS;
+  ATX->fork            = 1;
   ATX->users           = nt_create (NT_CHAR);
 
   if (ATX->users == NULL) {
@@ -228,6 +229,11 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     }
 #endif
  
+    if (!strcmp (argv[i], "--nofork")) {
+      ATX->fork = 0;
+      continue;
+    }
+
     if (!strncmp (argv[i], "--mode=", 7))
     {
       char *mode = strchr(argv[i], '=')+1;
@@ -254,9 +260,17 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
           return EINVAL;
         }
 
-        if (ATX->trusted)
+        if (ATX->trusted) {
 #endif
-          nt_add (ATX->recipients, user);
+          if (_ds_validate_address(user) == 1) {
+            nt_add (ATX->recipients, user);
+          } else {
+            LOG(LOG_ERR, "Invalid email address: %s", user);
+            return EINVAL;
+          }
+#ifdef TRUSTED_USER_SECURITY
+        }
+#endif
       }
       continue;
     }
@@ -267,22 +281,27 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     {
       if (argv[i] != NULL && strlen (argv[i]) < MAX_USERNAME_LENGTH)
       {
-        char user[MAX_USERNAME_LENGTH];
+        if (strstr(argv[i], "../") != NULL || strstr(argv[i], "..\\") != NULL) {
+          LOG(LOG_ERR, "Illegal username ('../' or '..\\' not allowed in username)");
+          return EINVAL;
+        } else {
+          char user[MAX_USERNAME_LENGTH];
 
-        if (_ds_match_attribute(agent_config, "Broken", "case")) 
-          lc(user, argv[i]);
-        else 
-          strcpy(user, argv[i]);
+          if (_ds_match_attribute(agent_config, "Broken", "case"))
+            lc(user, argv[i]);
+          else
+            strcpy(user, argv[i]);
 
 #ifdef TRUSTED_USER_SECURITY
-        if (!ATX->trusted && strcmp(user, __pw_name)) {
-          LOG(LOG_ERR, ERR_TRUSTED_USER, __pw_uid, __pw_name);
-          return EINVAL;
-        }
+          if (!ATX->trusted && strcmp(user, __pw_name)) {
+            LOG(LOG_ERR, ERR_TRUSTED_USER, __pw_uid, __pw_name);
+            return EINVAL;
+          }
 
-        if (ATX->trusted)
+          if (ATX->trusted)
 #endif
-          nt_add (ATX->users, user);
+            nt_add (ATX->users, user);
+        }
       }
       continue;
     }
@@ -731,13 +750,6 @@ buffer * read_stdin(AGENT_CTX *ATX) {
         }
       }
 
-      /* Quote message termination characters, that could truncate messages */
-      if (buf[0] == '.' && buf[1] < 32) {
-        char x[sizeof(buf)];
-        snprintf(x, sizeof(x), ".%s", buf);
-        strcpy(buf, x);
-      }
-  
       /*
        *  Don't include first line of message if it's a quarantine header added
        *  by dspam at time of quarantine 
@@ -829,75 +841,75 @@ bail:
 int process_parseto(AGENT_CTX *ATX, const char *buf) {
   char *y = NULL;
   char *x;
-  char *h;
+  char *h = NULL;
+  char *buffer;
+  char *ptrptr;
 
-  if (!buf) 
+  if (!buf || strncmp(buf+2,":",1) != 0)
     return EINVAL;
-  h = strstr(buf, "\r\n\r\n");
-  if (!h) h = strstr(buf, "\n\n");
 
-  x = strstr(buf, "<spam-");
-  if (!x)
-    x = strstr(buf, " spam-");
-  if (!x)
-    x = strstr(buf, ":spam-");
-  if (!x)
-    x = strstr(buf, "<spam@");
-  if (!x)
-    x = strstr(buf, " spam@");
-  if (!x)
-    x = strstr(buf, ":spam@");
-  if (x > h) x = NULL;
-
-  if (x != NULL) {
-    y = strdup(x+6);
-
-    if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
-    {
-      ATX->classification = DSR_ISSPAM;
-      ATX->source = DSS_ERROR;
-    }
-  } else {
-
-    x = strstr(buf, "<notspam-");
-    if (!x)
-      x = strstr(buf, " notspam-");
-    if (!x)
-      x = strstr(buf, ":notspam-");
-    if (!x)
-      x = strstr(buf, "<notspam@");
-    if (!x)
-      x = strstr(buf, " notspam@");
-    if (!x)
-      x = strstr(buf, ":notspam@");
-
-    if (x > h) x = NULL;
-
-    if (x && strlen(x) >= 9) {
-      y = strdup(x+9);
-
-      if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on"))
-      {
-        ATX->classification = DSR_ISINNOCENT;
+  buffer = strdup (buf+3);
+  h = strtok_r (buffer, "\n", &ptrptr);
+  while (h != NULL) {
+    /* check for spam alias */
+    x = strstr(h, "<spam-");
+    if (!x) x = strstr(h, " spam-");
+    if (!x) x = strstr(h, "\tspam-");
+    if (!x) x = strstr(h, ",spam-");
+    if (!x) x = strstr(h, "<spam@");
+    if (!x) x = strstr(h, " spam@");
+    if (!x) x = strstr(h, "\tspam@");
+    if (!x) x = strstr(h, ",spam@");
+    if (x != NULL) {
+      y = strdup(x+6);
+      if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+        ATX->classification = DSR_ISSPAM;
         ATX->source = DSS_ERROR;
       }
+    } else {
+      /* check for nonspam alias */
+      x = strstr(h, "<notspam-");
+      if (!x) x = strstr(h, " notspam-");
+      if (!x) x = strstr(h, "\tnotspam-");
+      if (!x) x = strstr(h, ",notspam-");
+      if (!x) x = strstr(h, "<notspam@");
+      if (!x) x = strstr(h, " notspam@");
+      if (!x) x = strstr(h, "\tnotspam@");
+      if (!x) x = strstr(h, ",notspam@");
+      if (x && strlen(x) >= 9) {
+        y = strdup(x+9);
+        if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
+          ATX->classification = DSR_ISINNOCENT;
+          ATX->source = DSS_ERROR;
+        }
+      }
+    }
+    /* do not continue if we found a spam/nonspam alias */
+    if (y) break;
+
+    /* get next line from 'To' header */
+    h = strtok_r (NULL, "\n", &ptrptr);
+    if (h && h[0] != 32 && h[0] != 9) {
+      /* we are not any more in the 'To' header */
+      break;
     }
   }
+
+  free (buffer);
 
   if (y && (_ds_match_attribute(agent_config,
                                 "ChangeUserOnParse", "on") ||
             _ds_match_attribute(agent_config,
                                "ChangeUserOnParse", "full") ||
             _ds_match_attribute(agent_config,
-                                "ChangeUserOnParse", "user"))) 
+                                "ChangeUserOnParse", "user")))
   {
-    char *ptrptr;
     char *z;
 
     if (_ds_match_attribute(agent_config, 
                             "ChangeUserOnParse", "full"))
     {
-      z = strtok_r(y, "> \n", &ptrptr);
+      z = strtok_r(y, ">, \t\r\n", &ptrptr);
     } else {
       if (!strstr(x, "spam@"))
         z = strtok_r(y, "@", &ptrptr);
@@ -914,9 +926,9 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
       }
       nt_add (ATX->users, z);
     }
-    free(y);
   }
 
+  if (y) free(y);
   return 0;
 }
 

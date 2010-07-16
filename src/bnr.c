@@ -1,4 +1,4 @@
-/* $Id: bnr.c,v 1.29 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: bnr.c,v 1.30 2010/05/02 19:39:57 sbajic Exp $ */
 
 /*
  DSPAM
@@ -132,8 +132,8 @@ int bnr_instantiate(BNR_CTX *BTX) {
   node_list = c_bnr_list_first(BTX->stream, &c_list);
   while(node_list != NULL) {
     
-    for(i=0;i<BNR_SIZE-1;i++) {
-      previous_bnr_probs[i] = previous_bnr_probs[i+1];
+    for(i=1;i<BNR_SIZE;i++) {
+      previous_bnr_probs[i-1] = previous_bnr_probs[i];
     }
 
     previous_bnr_probs[BNR_SIZE-1] = _bnr_round(node_list->value);
@@ -272,9 +272,9 @@ int bnr_finalize(BNR_CTX *BTX) {
   while(node_list != NULL) {
     float pattern_value;
 
-    for(i=0;i<BNR_SIZE-1;i++) {
-      previous_bnr_probs[i] = previous_bnr_probs[i+1];
-      previous_bnr_tokens[i] = previous_bnr_tokens[i+1];
+    for(i=1;i<BNR_SIZE;i++) {
+      previous_bnr_probs[i-1] = previous_bnr_probs[i];
+      previous_bnr_tokens[i-1] = previous_bnr_tokens[i];
     }
 
     previous_bnr_probs[BNR_SIZE-1] = _bnr_round(node_list->value);

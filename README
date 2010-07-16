@@ -59,7 +59,7 @@ Advanced DSPAM functionality
   2.1 Configuring groups
   2.2 External Inoculation Theory
   2.3 Client/Server Mode
-  2.4 LMTP 
+  2.4 LMTP
   2.5 DSPAM User Preferences
   2.6 Fallback Domains
   2.7 External User Lookup
@@ -75,17 +75,17 @@ Miscellaneous
 DSPAM is an open-source, freely available anti-spam solution designed to combat
 unsolicited commercial email using advanced statistical analysis. In short,
 DSPAM filters spam by learning what spam is and isn't. It does this by learning
-each user's individual mail behavior. This allows DSPAM to provide 
-highly-accurate, personalized filtering for each user on even a large system 
-and provides an administratively maintenance free solution capable of learning 
-each user's email behaviors with very few false positives.  
+each user's individual mail behavior. This allows DSPAM to provide
+highly-accurate, personalized filtering for each user on even a large system
+and provides an administratively maintenance free solution capable of learning
+each user's email behaviors with very few false positives.
 
 While DSPAM is focused around spam filtering, many have found alternative
-uses for all types of two-concept document classification. 
+uses for all types of two-concept document classification.
 
 DSPAM is rapidly gaining a large support forum and being used in many large-
-scale implementations. Contributions to the project are welcome via the 
-dspam-dev mailing list or in the form of financial contributions. 
+scale implementations. Contributions to the project are welcome via the
+dspam-dev mailing list or in the form of financial contributions.
 
 Many of the foundational principles incorporated into this software were
 contributed by Paul Graham's white paper on combatting spam, which can be
@@ -93,13 +93,13 @@ found at http://paulgraham.com/spam.html.  Much research and development has
 resulted in many new approaches being added onto the DPSAM project as well,
 some of which are explained in white papers on the DSPAM home page.
 
-DSPAM can be implemented as a total solution, or as a library which developers 
-may link their projects to the dspam core engine (libdspam) in accordance with 
-the GPL license agreement.  This enables developers to incorporate libdspam as 
-a "drop-in" for instant spam filtering within their applications - such as mail 
+DSPAM can be implemented as a total solution, or as a library which developers
+may link their projects to the dspam core engine (libdspam) in accordance with
+the GPL license agreement.  This enables developers to incorporate libdspam as
+a "drop-in" for instant spam filtering within their applications - such as mail
 clients, other anti-spam tools, and so on.
 
-PLEASE NOTE: DSPAM and libdspam are distributed under the GPL license, not the 
+PLEASE NOTE: DSPAM and libdspam are distributed under the GPL license, not the
 LGPL. Commercial licensing is available for those who seek to redistribute
 DSPAM or some of DSPAM's components/libraries in their non-GPL products.
 Please contact us for more information about commercial licensing.
@@ -110,15 +110,15 @@ DSPAM AGENT
 
 The DSPAM agent is the command center for all shell and daemon operations.
 If you're using DSPAM as a filtering solution, this is the 'dspam' (or dspamc)
-binary you're likely going to be talking to via commandline. 
+binary you're likely going to be talking to via commandline.
 
 LIBDSPAM: CORE ENGINE
 
 The DSPAM core processing engine, also known as libdspam, provides all critical
 spam filtering functions.  The engine is embedded into other dspam components
 (such as the agent) and is responsbile for the actual filtering logic.
-If you're not a developer, you don't need to be concerned with this component 
-as it is automatically compiled in with the build. 
+If you're not a developer, you don't need to be concerned with this component
+as it is automatically compiled in with the build.
 
 WEB UI
 
@@ -127,7 +127,7 @@ spam quarantine and history, graphs, and to delete their spam permanently.
 They can also optionally use the quarantine to perform all of their training.
 The UI also includes some basic administrative tools to change settings and
 manage user quarantines.
- 
+
 TOOLS
 
 Some basic tools which have been provided to manage dictionaries, automate
@@ -158,7 +158,7 @@ most popular approaches are:
 
 1. As a delivery agent proxy
 
-When your mail server gets ready to deliver mail to a user's mailbox it calls 
+When your mail server gets ready to deliver mail to a user's mailbox it calls
 a delivery agent of some sort. On most UNIX systems, this is procmail, maildrop,
 mail.local, or a similar tool. When used as a delivery proxy, the DSPAM agent
 is called in place of your existing agent - or better put, it can masquerade
@@ -208,8 +208,8 @@ AFTER:
 
 Newer versions of DSPAM have seen features that allow it to function more
 easily as an SMTP relay. An SMTP relay sits in front of your existing mail
-server (requiring no integration). To use an SMTP relay, the MX records for 
-your domains are repointed to the relay machine running DSPAM. DSPAM then 
+server (requiring no integration). To use an SMTP relay, the MX records for
+your domains are repointed to the relay machine running DSPAM. DSPAM then
 relays the good (and optionally bad) mail to the existing SMTP server. This
 allows you to use DSPAM with even a Windows-based destination mail server
 as no integration is necessary. See doc/relay.txt for one example of how to
@@ -222,7 +222,7 @@ BEFORE:
 AFTER:
 
   { Internet } --->  [ Inbound SMTP Relay  ]  --->  [Company Mail Server]
-                         ( MTA <> DSPAM )     SMTP 
+                         ( MTA <> DSPAM )     SMTP
                           \                    or
                            \--> [Quarantine]  LMTP
              [End User] ------> [Web UI]
@@ -237,13 +237,13 @@ FRESH INSTALLATION
 
    DSPAM can use one of many different backends to store its information, and
    you will need to decide on one and install the appropriate software before
-   you can build DSPAM. The following storage backends are presently available: 
- 
+   you can build DSPAM. The following storage backends are presently available:
+
    Driver       Requirements
    -------------------------------------------------------------------------
- T mysql_drv:   MySQL client libraries      (and a server to connect to) 
+ T mysql_drv:   MySQL client libraries      (and a server to connect to)
  T pgsql_drv:   PostgreSQL client libraries (and a server to connect to)
-   sqlite_drv:  SQLite v2.7.7 or above 
+   sqlite_drv:  SQLite v2.7.7 or above
    sqlite3_drv: SQLite v3.x
 *T hash_drv:    None (Self-Contained Hash-Based Driver)
 
@@ -251,17 +251,17 @@ FRESH INSTALLATION
     * Default storage driver
     T Thread-safe (Required for running DSPAM in server daemon mode)
 
-   In general, MySQL is one of the faster solutions with a smaller storage 
+   In general, MySQL is one of the faster solutions with a smaller storage
    footprint, and is well suited for both small and large-scale implementations.
 
    The hash driver (inspired by Bill Yerazunis' CRM Sparse Spectra algorithm)
    is the fastest solution by far and requires no dependencies, supports
    an auto-extend feature to grow the file size as needed, and is very
-   fast and compact. It does, however, lack some features (such as merged 
+   fast and compact. It does, however, lack some features (such as merged
    groups support) and uses a lot of memory to mmap() users.
 
-   Documentation for any additional setup of your selected storage driver can 
-   be found in the doc/ directory. You'll need to follow any steps outlined in 
+   Documentation for any additional setup of your selected storage driver can
+   be found in the doc/ directory. You'll need to follow any steps outlined in
    the storage driver documentation before continuing.
 
    You can download MySQL from http://www.mysql.com.
@@ -283,12 +283,11 @@ FRESH INSTALLATION
 
      --prefix=DIR
      Specify an alternative root prefix for installation.  The default is
-     /usr/local. This does not affect the location of dspam.conf (which 
-     defaults to /usr/local/etc). Use --sysconfdir= for this.
+     /usr/local. This does not affect the location of dspam.conf (which
+     defaults to /etc). Use --sysconfdir= for this.
 
      --sysconfdir=DIR
-     Specify an alternative home for the dspam.conf file. The default is
-     prefix/etc.
+     Specify an alternative home for the dspam.conf file. The default is /etc.
 
      --with-dspam-home=DIR
      Specify an alternative DSPAM home for installation. This can alternatively
@@ -297,14 +296,14 @@ FRESH INSTALLATION
 
      --with-logdir=DIR
      Specify an alternative log directory. The default is $dspam_home/log. Do
-     not set this to /var/log unless DSPAM will have permissions to write to 
+     not set this to /var/log unless DSPAM will have permissions to write to
      the directory.
 
    FILESYSTEM SCALE
 
      The default filesystem scale is "small-scale", and writes each user to
-     its own directory in the top-level DSPAM home data directory.  
-     The following two switches allow the scale to be changed to be more 
+     its own directory in the top-level DSPAM home data directory.
+     The following two switches allow the scale to be changed to be more
      suitable for larger installations.
 
      --enable-large-scale
@@ -312,8 +311,8 @@ FRESH INSTALLATION
      $HOME/data/u/s/user instead of $HOME/data/user
 
      --enable-domain-scale
-     Switch for domain-scale implementation.  When used, DSPAM expects 
-     username@domain to be passed in as the user id and user data will be 
+     Switch for domain-scale implementation.  When used, DSPAM expects
+     username@domain to be passed in as the user id and user data will be
      stored as $HOME/data/domain.com/user and $HOME/opt-in/domain/user.dspam
      instead of $HOME/data/user
 
@@ -325,15 +324,15 @@ FRESH INSTALLATION
      perform other proprietary operations.  The default driver is hash_drv.
      The following drivers have been provided:
 
-     mysql_drv:   MySQL Drivers 
+     mysql_drv:   MySQL Drivers
      pgsql_drv:   PostgreSQL Drivers
-     sqlite_drv:  SQLite v2.x Drivers 
+     sqlite_drv:  SQLite v2.x Drivers
      sqlite3_drv: SQLite v3.x Drivers
      hash_drv:    Self-Contained Hash Database
 
      If you are a packager, or wish to have multiple drivers built for any
      reason, you may specify multiple drivers by separating them with commas.
-     This will cause the storage driver specified in dspam.conf to be 
+     This will cause the storage driver specified in dspam.conf to be
      dynamically loaded at runtime rather than statically linked. If you wish
      to build only one driver, but dynamically, then specify it twice as in
      --with-storage-driver=mysql_drv,mysql_drv.
@@ -360,14 +359,14 @@ FRESH INSTALLATION
      When enabled, instead of checking for $HOME/$USER/opt-in/
      $USER[.dspam|.nodspam], DSPAM will check for a .dspam|.nodspam file in the
      user's home directory. DSPAM will also store each user's data in ~/.dspam
-     when this option is enabled. Because of this, DSPAM will automatically 
+     when this option is enabled. Because of this, DSPAM will automatically
      install and run setuid root so that it can read each user's home directory.
 
      Note:
 
-       This function is incompatible with most implementations of the Web UI, 
-       since it requires access to read each user's home directory. Therefore, 
-       only use this option if you will not be using the Web UI or plan on 
+       This function is incompatible with most implementations of the Web UI,
+       since it requires access to read each user's home directory. Therefore,
+       only use this option if you will not be using the Web UI or plan on
        doing something asinine like running it as root.
 
      --enable-daemon
@@ -389,7 +388,7 @@ FRESH INSTALLATION
 
        --enable-virtual-users
        Tells DSPAM to create virtual user ids.  Use this if your users don't
-       actually exist on the system (e.g. in /etc/passwd if using a password 
+       actually exist on the system (e.g. in /etc/passwd if using a password
        file)
 
        --enable-preferences-extension
@@ -419,11 +418,11 @@ FRESH INSTALLATION
 
        --enable-virtual-users
        Tells DSPAM to create virtual user ids.  Use this if your users don't
-       actually exist on the system (e.g. in /etc/passwd if using a password 
+       actually exist on the system (e.g. in /etc/passwd if using a password
        file)
 
        --enable-preferences-extension
-       Postgres supports the preferences extension, which stores user 
+       Postgres supports the preferences extension, which stores user
        preferences in pgsql instead of flat files (the built-in method)
 
        Note:
@@ -442,17 +441,17 @@ FRESH INSTALLATION
    DEBUGGING SWITCHES
 
      --enable-debug
-     Turns on support for debugging output. This option allows you to turn on 
+     Turns on support for debugging output. This option allows you to turn on
      debugging messages for all or some users by editing dspam.conf or setting
-     --debug on the commandline. Enabling debug in configure only adds support 
-     for debug to be compiled in, it must still be activated using one of the 
-     options prescribed above. Debugging support itself doesn't use up very 
-     many additional resources, so it should be safe to leave enabled on 
+     --debug on the commandline. Enabling debug in configure only adds support
+     for debug to be compiled in, it must still be activated using one of the
+     options prescribed above. Debugging support itself doesn't use up very
+     many additional resources, so it should be safe to leave enabled on
      non-enterprise class systems.
 
      --enable-verbose-debug
      Turns on extremely verbose debugging output. --enable-debug is implied.
-     Never use this on production builds! 
+     Never use this on production builds!
 
      Note:
 
@@ -464,8 +463,8 @@ FRESH INSTALLATION
    FEATURE ACTIVATION
 
      --enable-clamav
-     Enables support for Clam Antivirus. DSPAM can interface directly with 
-     clamd to perform virus scanning and can be configured to react in 
+     Enables support for Clam Antivirus. DSPAM can interface directly with
+     clamd to perform virus scanning and can be configured to react in
      different ways to viruses. See dspam.conf for more information.
 
    ADDITIONAL CONFIGURATION OPTIONS
@@ -482,7 +481,7 @@ FRESH INSTALLATION
 
    make && make install
 
-   Note: 
+   Note:
 
      If you are a developer wanting to link to the core engine of dspam,
      libdspam will be built during this process.  Please see the
@@ -504,9 +503,9 @@ FRESH INSTALLATION
        - Trusted user permissions in dspam.conf ("Trust [username]")
        - The execution 'Group' used must match the group dspam is running as
          (this is typically 'mail', 'dspam', or similar)
-     
+
    The MTA User: This is the user your mail server software is running as when
-     it executes DSPAM. This is usually daemon, mail, exim, etc. This is 
+     it executes DSPAM. This is usually daemon, mail, exim, etc. This is
      typically different from the user the MTA runs and polices itself as, to
      avoid security problems. Consult your MTA's documentation for more info.
      The MTA user will require:
@@ -519,7 +518,7 @@ FRESH INSTALLATION
        - Trusted user permissions in dspam.conf ("Trust [username]")
 
    Note:
- 
+
      If the MTA is communicating with DSPAM via LMTP (explained later), then
      execution permissions are not necessary
 
@@ -527,7 +526,7 @@ FRESH INSTALLATION
 
      FreeBSD's default MTA user is 'mailnull'
      FreeBSD's default delivery agent also changes its uid, and so in order
-     to call it, dspam must be installed as setuid root to work on the 
+     to call it, dspam must be installed as setuid root to work on the
      commandline properly. This is done automatically on install.
 
 
@@ -535,9 +534,9 @@ FRESH INSTALLATION
 
    DSPAM has tighter security for untrusted users on the system to prevent
    them from touching other user's data or passing arbitrary commands to the
-   delivery agent DSPAM calls. "Trusted User Security" is a simple system 
-   whereby any unsafe functions are not available to a user calling dspam 
-   unless they are within dspam.conf's trusted user list. 
+   delivery agent DSPAM calls. "Trusted User Security" is a simple system
+   whereby any unsafe functions are not available to a user calling dspam
+   unless they are within dspam.conf's trusted user list.
 
    Local non-privileged users should be able to use DSPAM without any problems
    while remaining untrusted, as long as they behave. For example, an untrusted
@@ -547,8 +546,8 @@ FRESH INSTALLATION
 
    A list of trusted users is maintained in dspam.conf. This file should
    include a list of trusted users who should be allowed to set the dspam user,
-   passthru parameters, and other information that would be potentially 
-   dangerous for a malicious user to be able to set.  You'll need to ensure 
+   passthru parameters, and other information that would be potentially
+   dangerous for a malicious user to be able to set.  You'll need to ensure
    that your CGI user, MTA user, and system administrators are on the list.
 
 4. MAIL SERVER INTEGRATION
@@ -556,15 +555,15 @@ FRESH INSTALLATION
    As previously mentioned, there are three popular ways to implement DSPAM:
 
    As a delivery proxy:
-     The default approach integrates DSPAM directly with the mail server and 
-     filters spam as mail comes in. Please see the appropriate instructions 
+     The default approach integrates DSPAM directly with the mail server and
+     filters spam as mail comes in. Please see the appropriate instructions
      in doc/ pertaining to your MTA.
 
    As a POP3 proxy:
      This alternative approach implements a POP3 proxy where users
      connect to the proxy to check their email, and email is filtered when
      being downloaded.  The POP3 proxy is a much easier approach, as it
-     requires much less integration work with the mail server (and is ideal 
+     requires much less integration work with the mail server (and is ideal
      for implementing DSPAM on Exchange, etcetera). Please see the file
      doc/pop3filter.txt.
 
@@ -578,10 +577,10 @@ FRESH INSTALLATION
    Trusted users and the MTA
 
    If you are using an MTA that changes its userid to match the destination
-   user before calling DSPAM, you won't be able to provide pass-thru 
+   user before calling DSPAM, you won't be able to provide pass-thru
    arguments to DSPAM (these are the commandline arguments that DSPAM in turn
-   passed to the local delivery agent, in such a configuration). 
-   You will need to pre-configure the "default" pass-thru arguments in DSPAM. 
+   passed to the local delivery agent, in such a configuration).
+   You will need to pre-configure the "default" pass-thru arguments in DSPAM.
    This can be done by declaring an untrusted delivery agent in dspam.conf.
    When DSPAM is called by an untrusted user, it will automatically force their
    DSPAM user id and passthru delivery agent arguments specified in dspam.conf.
@@ -611,7 +610,7 @@ FRESH INSTALLATION
    sorts is appended to each email processed by DSPAM. DSPAM reads this serial
    number when the user forwards (or bounced) a message to what is called their
    "spam email address". The serial number points to temporary information
-   stored on the server (for 14 days by default) containing all of the 
+   stored on the server (for 14 days by default) containing all of the
    information necessary for DSPAM to relearn the message. This is necessary
    in order to relearn the *exact* message DSPAM originally processed.
 
@@ -636,7 +635,7 @@ FRESH INSTALLATION
      this, uncomment the appropriate UIDInSignature option in dspam.conf:
 
      # MySQLUIDInSignature    on
-     # PgSQLUIDInSignature    on  
+     # PgSQLUIDInSignature    on
 
      Now all you'll need is a single system-wide alias, and DSPAM will train
      the appropriate user when it sees the signature. An example of an alias
@@ -651,7 +650,7 @@ FRESH INSTALLATION
 
      Note:
 
-     The 'root' user represents any active dspam user. It is necessary to 
+     The 'root' user represents any active dspam user. It is necessary to
      supply a username on the commandline or DSPAM will bail on
      an error, however the user will be changed internally once the signature
      is read.
@@ -664,15 +663,15 @@ FRESH INSTALLATION
      retraining. You can then instruct your users to email addresses like
      'spam-bob@relearn.domain.tld'. The ParseToHeaders option (available
      in dspam.conf) will parse the To: header of forwarded messages and
-     set the username to either 'bob' or 'bob@relearn.domain.tld', depending 
+     set the username to either 'bob' or 'bob@relearn.domain.tld', depending
      on how it is configured. DSPAM can also set the training mode to either
      "learn spam" or "learn notspam" depending on whether the user specified
      a spam- or notspam- address in the To: header.
 
-     This is ideal if you don't want to set up a separate alias for each user 
+     This is ideal if you don't want to set up a separate alias for each user
      on your system (The Hard Way). If you're fortunate enough to have a
      mail server that can perform regular expression matching, you can set up
-     your system without a subdomain, and just use addresses like 
+     your system without a subdomain, and just use addresses like
      spam-bob@domain.tld. For the rest of us, it will be necessary to set up
      a subdomain catch-all directly into DSPAM. For example:
 
@@ -691,17 +690,17 @@ FRESH INSTALLATION
      If neither of the easy ways are possible, you're stuck with doing it
      the hard way. This means you'll need a separate spam alias (and notspam
      alias, if users are tagging mail) for each user. To do this, you will
-     need to create an email address for each user, so that DSPAM can 
+     need to create an email address for each user, so that DSPAM can
      analyze and learn for that specific user.  For example:
 
      spam-bob: "|/usr/local/bin/dspam --user bob --class=spam --source=error"
 
      You will end up having one alias per mail user on the system, two if you
-     do not use DSPAM's CGI quarantine (an additional one using notspam-). Be 
-     sure the aliases are unique and each username matches the name after the 
-     --user flag.  A tool has been provided called dspam_genaliases.  This tool 
-     will read the /etc/passwd file and write out a dspam aliases file that can 
-     be included in your master aliases table.  
+     do not use DSPAM's CGI quarantine (an additional one using notspam-). Be
+     sure the aliases are unique and each username matches the name after the
+     --user flag.  A tool has been provided called dspam_genaliases.  This tool
+     will read the /etc/passwd file and write out a dspam aliases file that can
+     be included in your master aliases table.
 
      To report spam, the user should be instructed to forward each spam to
      spam-user@yourhost
@@ -709,7 +708,7 @@ FRESH INSTALLATION
      It doesn't really matter what you name these aliases, so long as the flags
      being passed to dspam are correct for each user.  It might be a good idea
      to create an alias custom to your network, so that spammers don't forward
-     spam into it.  For example, notspam-yourcompany-bob or something.  
+     spam into it.  For example, notspam-yourcompany-bob or something.
 
    Note About Security:
 
@@ -726,11 +725,11 @@ FRESH INSTALLATION
    Non-SQL Based Nightly Purge
 
      If you are NOT running a SQL-based solution, then you should configure
-     dspam_clean to run under cron nightly. This clean tool will read all 
-     signature databases and purge signatures that are older than 14 days 
-     (configurable), purge abandoned tokens, and remove unimportant tokens.  
-     Without this tool, old signatures will continue to pile up. 
-     Be sure the user running cleanup has full read/write permissions on the 
+     dspam_clean to run under cron nightly. This clean tool will read all
+     signature databases and purge signatures that are older than 14 days
+     (configurable), purge abandoned tokens, and remove unimportant tokens.
+     Without this tool, old signatures will continue to pile up.
+     Be sure the user running cleanup has full read/write permissions on the
      DSPAM data files.
 
      0 0 * * * /usr/local/bin/dspam_clean [options]
@@ -751,7 +750,7 @@ FRESH INSTALLATION
    Log Rotation
 
      The system log and user logs can fill up fairly quickly, when all that's
-     really needed to generate graphs are the last two to three weeks of data. 
+     really needed to generate graphs are the last two to three weeks of data.
      You can configure a nightly log cleanup using dspam_logrotate:
 
      0 0 * * * dspam_logrotate -a 30 -d /usr/local/var/dspam/data
@@ -760,7 +759,7 @@ FRESH INSTALLATION
 
    DSPAM is capable of sending three different notifications to users:
 
-     - A "First Run" message sent to each user when they receive their first 
+     - A "First Run" message sent to each user when they receive their first
        message through DSPAM.
 
      - A "First Spam" message sent to each user when they receive their first
@@ -795,12 +794,12 @@ FRESH INSTALLATION
    authentication to access the CGI (Any type of authentication will work,
    so long as Apache supports the module). This is also convenient in that you
    can set up authentication using almost any existing system you have.
-   The only catch is that you'll need the usernames to match the actual 
+   The only catch is that you'll need the usernames to match the actual
    DSPAM usernames used the system. A copy of the shadow password file
    will suffice for most common installs.
 
-   The accompanying files in the webui/ folder should be copied into your 
-   document root and cgi-bin, as specified. 
+   The accompanying files in the webui/ folder should be copied into your
+   document root and cgi-bin, as specified.
 
      Note:
 
@@ -815,27 +814,27 @@ FRESH INSTALLATION
      $ENV{'REMOTE_USER'} = lc($ENV{'REMOTE_USER'});
 
    The CGI will need to function in the same group as the dspam agent in order
-   to work with the files in dspam_home.  The best way to do this is to create 
-   a separate virtualhost specifically for the CGI and assign it to run in the 
-   MTA group using Apache's suexec. If you are using procmail, additional 
-   configuration may also be necessary (see below).  
+   to work with the files in dspam_home.  The best way to do this is to create
+   a separate virtualhost specifically for the CGI and assign it to run in the
+   MTA group using Apache's suexec. If you are using procmail, additional
+   configuration may also be necessary (see below).
 
    Note:
 
-     Apache users do NOT take on the identity of the groups specified in 
-     /etc/group so you will need to specifically assign the group in 
+     Apache users do NOT take on the identity of the groups specified in
+     /etc/group so you will need to specifically assign the group in
      httpd.conf.
 
    Note about Procmail:
 
-      Because the DSPAM Web UI is a CGI script, DSPAM will not retain its 
-      setuid privileges when called. If you are running procmail, this will 
-      become a problem as procmail requires root privileges to deliver. The 
+      Because the DSPAM Web UI is a CGI script, DSPAM will not retain its
+      setuid privileges when called. If you are running procmail, this will
+      become a problem as procmail requires root privileges to deliver. The
       easiest hack around this is to create a procmail.dspam binary and make it
-      setuid root, then make it executable only by the mail group (or 
+      setuid root, then make it executable only by the mail group (or
       whatever group DSPAM and the CGI run in).
 
-   The DSPAM Web UI has a minimal configuration inside the configure.pl script. 
+   The DSPAM Web UI has a minimal configuration inside the configure.pl script.
    You'll want to check and make sure all of the settings are correct. In
    most cases, the only that will be necessary to change are the large-scale
    or domain-scale flags.
@@ -846,7 +845,7 @@ FRESH INSTALLATION
 
    Default Preferences
 
-   Now would be a good time to set the system's default preferences. This can 
+   Now would be a good time to set the system's default preferences. This can
    be done using the dspam_admin tool.  For example:
 
      dspam_admin ch pref default trainingMode TEFT
@@ -854,14 +853,14 @@ FRESH INSTALLATION
      dspam_admin ch pref default spamSubject "[SPAM]"
      dspam_admin ch pref default enableWhitelist on
      dspam_admin ch pref showFactors off
- 
+
    The default preferences are used for any users who have not yet set their
    own preferences. You can also control which preferences the user may
    override by changing the "AllowOverride" settings in dspam.conf.
 
    By default, the parameters specified on the commandline will be used (if
-   any). If, however, a preference is found for the particular user those 
-   preferences will override the commandline. 
+   any). If, however, a preference is found for the particular user those
+   preferences will override the commandline.
 
    GD Graphing Library
 
@@ -918,25 +917,25 @@ Opt out of DSPAM filtering
   however, you'll need to find a way to ensure your configuration isn't broken.
 
   Most software packages are supplied with a test suite to determine if the
-  software is functioning properly.  Since DSPAM's correct function relies 
+  software is functioning properly.  Since DSPAM's correct function relies
   primarily on having the correct permissions and mail server configuration,
   a test script fails to provide the level of testing required for such a
   package.  The following exercise has been provided to test dspam's correct
   functioning on your system. This exercise does not test the Web UI, but only
   the core dspam agent.
-  
+
   Before running the test, you should have completed section 1.1's instructions
   for compiling and installing dspam as well as configured your mail server
   to support dspam.
 
-  1. Create a new user account on your system.  It is important that this be a 
-  new account to prevent any unrelated email from being delivered during 
+  1. Create a new user account on your system.  It is important that this be a
+  new account to prevent any unrelated email from being delivered during
   testing.  Be sure to configure a spam alias for the test account.
 
-  2. Send a short (10 words or less) email to the account, and pick it up 
-  using your favorite mail client.  
+  2. Send a short (10 words or less) email to the account, and pick it up
+  using your favorite mail client.
 
-  3. Run dspam_stats [username] on the server.  You should see a value of 1 
+  3. Run dspam_stats [username] on the server.  You should see a value of 1
   for "TI" or "Total Innocent" as shown below:
 
   dspam-test            0 TP       1 TN       0 FN       0 FP
@@ -947,8 +946,8 @@ Opt out of DSPAM filtering
   permissions on the directory or agent.  Check your configuration and
   permissions, and repeat this step until the correct results are experienced.
 
-  4. Run dspam_dump [username] to get a complete list of tokens and their 
-  statistics.  Each token should have an I: (innocent) hit count of 1. The 
+  4. Run dspam_dump [username] to get a complete list of tokens and their
+  statistics.  Each token should have an I: (innocent) hit count of 1. The
   tokens will be represented as 64-bit values, for example:
 
 3126549390380922317              S:    0  I:    1  LH: Mon Aug  4 11:40:12 2003
@@ -962,10 +961,10 @@ Opt out of DSPAM filtering
   % dspam_dump bill FREE
   7717766825815048192  S: 00265  I: 00068  P: 0.7358
 
-  5. Forward the test message to the spam alias you've created for the test 
+  5. Forward the test message to the spam alias you've created for the test
   account.  Provide enough time for the message to have processed.
 
-  6. Run dspam_stats [username] on the server again.  Now, the value for TN 
+  6. Run dspam_stats [username] on the server again.  Now, the value for TN
   should be zero and the value for FN (false negatives) should be 1 as shown
   below:
 
@@ -973,8 +972,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
   If this is not the case, check the group permissions of the dspam agent as
   well as the permissions your MTA uses when piping to aliases.
-  
-  7. Run dspam_dump [username] again.  make sure that _EVERY_ token now has an 
+
+  7. Run dspam_dump [username] again.  make sure that _EVERY_ token now has an
   I: of zero and a S: of 1:
 
 3126549390380922317              S:    1  I:    0  LH: Mon Aug  4 11:44:29 2003
@@ -989,7 +988,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 1.3 TROUBLESHOOTING
 
     Problem: No files are being created in the user directory
-   Solution: Check the directory permissions of the directory.  The user 
+   Solution: Check the directory permissions of the directory.  The user
              directory must be writable by the user the dspam agent is running
              as as well as the CGI user.
 
@@ -1014,7 +1013,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
 1.4 DSPAM TOOLS
 
-  A few useful tools have been provided to make DSPAM management a bit easier. 
+  A few useful tools have been provided to make DSPAM management a bit easier.
   These tools include:
 
   dspam_admin - A tool used to perform specific administrative functions. These
@@ -1023,22 +1022,22 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
     usage output.
 
   dspam_train - Used to train and test a corpus of ham and spam (in maildir
-    format). 
+    format).
     Syntax: dspam_train [username] [spam_dir] [nonspam_dir]
     where username is the username of the user to apply the training to, and
     the two dirs represent directories containing messages in individual
     files (e.g. maildir/corpus format). dspam_train can be used on an existing
     user's database, to further improve accuracy, or to train from scratch.
     it also provides a solid test jig for testing the efficiency and accuracy
-    of a test corpus against the filter. 
+    of a test corpus against the filter.
     NOTE: dspam_train will automatically balance training of the corpus to
-          ensure both spam and nonspam are trained based on the ratio of 
+          ensure both spam and nonspam are trained based on the ratio of
           spam/nonspam. this means if you have twice as much spam as nonspam,
           two spam will be trained for every nonspam.
-    
-  dspam_dump - Dumps a DSPAM dictionary. This can be used to view the 
-    entire contents of a user's dictionary, or used in combination 
-    with grep to view a subset of data.  Syntax: dspam_dump [username] [token] 
+
+  dspam_dump - Dumps a DSPAM dictionary. This can be used to view the
+    entire contents of a user's dictionary, or used in combination
+    with grep to view a subset of data.  Syntax: dspam_dump [username] [token]
     where username is the DSPAM user's username.  If a token is specified,
     statistics only for that token will be printed.
 
@@ -1049,27 +1048,27 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
      purging.  If an age is specified, for example -s14, the age defined as the
      default will be overridden.  Specifying an age of 0 will delete all
      signatures for the users processed.
-                                                                                
-    2. Using the -p flag, dspam_clean will delete all tokens from a user's 
-     database whose probability is between 0.35 and 0.65 (fairly neutral, 
+
+    2. Using the -p flag, dspam_clean will delete all tokens from a user's
+     database whose probability is between 0.35 and 0.65 (fairly neutral,
      useless tokens) that fall beyond the default age.  If an age is specified,
-     for example -p30, the age defined as the default will be overridden.  It 
+     for example -p30, the age defined as the default will be overridden.  It
      is a good idea to use this type of clean with an age of 0 on users after
      a lot of corpus training.
-                                                                                
-    3. Using the -u flag, dspam_clean will delete all unused tokens from a 
+
+    3. Using the -u flag, dspam_clean will delete all unused tokens from a
      user's database.  There are four different types of unused tokens:
-                                                                                
+
      - Tokens which have not been used for a long time
      - Tokens which have a total hit count below 5
      - Tokens which have only one spam hit
      - Tokens which have only one innocent hit
-                                                                                
+
    Ages may be overridden by specifying a format such as -u30,15,10,10
    where each number represents the respective age.  Specifying an age of
    zero will delete all unused tokens in the category. Defaults are set in
    dspam.conf.
-                                                                                
+
    Optionally, usernames may be specified to override the default behavior of
    processing all users.
 
@@ -1088,25 +1087,25 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
    users on the system:
      dspam_clean -s -p -u
 
-  NOTE: You may wish to only run certain cleaning modes depending on the type 
+  NOTE: You may wish to only run certain cleaning modes depending on the type
   of storage driver you are using.  For example, the MySQL storage driver
-  includes a script which performs signature and unused token operations, 
+  includes a script which performs signature and unused token operations,
   leaving only probability operations as useful.  If you are using a SQL-based
-  storage driver, it is strongly recommended that you use the maintenance 
+  storage driver, it is strongly recommended that you use the maintenance
   scripts wherever possible for optimum efficiency.
 
   dspam_stats - Displays the spam statistics for one or all users on the system.
-    Syntax: dspam_stats [username].  If no username is provided, all users 
+    Syntax: dspam_stats [username].  If no username is provided, all users
     will be displayed.  Displays TP (true positives), TN (true negatives),
     FN (false negatives), and FP (false positives).
 
   dspam_genaliases - Reads the /etc/passwd file and outputs a dspam aliases
     table which can be included in the master aliases table.  You may try
-    Art Sackett's generate_dspam_aliases tool at 
+    Art Sackett's generate_dspam_aliases tool at
     http://www.artsackett.com/freebies/generate_dspam_aliases/ if you need
     some better functionality.  This will eventually be merged in as a
     replacement for the existing tool.
- 
+
   dspam_merge - Merges multiple users' dictionaries together into one user's
     dictionary (does not affect the merge users).  This can be used to create
     a seeded dictionary for a new user, or to copy a single user's dictionary
@@ -1118,15 +1117,15 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   The DSPAM agent (dspam) recognizes the following commandline arguments:
 
   --user [user1 user2 ... userN]
-  Specifies the destination user(s) of the incoming message.  DSPAM then 
+  Specifies the destination user(s) of the incoming message.  DSPAM then
   processes the message once for each user individually.  If the message is to
   be delivered, the $u (or %u) parameters of the arguments string will be
   interpolated for the current user being processed.
 
   --class=[spam|innocent]
   Tells DSPAM that the message being presented has already been classified by
-  the user.  This flag should be used when a misclassification has occurred, 
-  when the user is corpus-feeding a message, or an inoculation is being 
+  the user.  This flag should be used when a misclassification has occurred,
+  when the user is corpus-feeding a message, or an inoculation is being
   presented.  This flag must be used in conjunction with the --source flag.
   Providing no classification invokes the SOP of DSPAM, which is to determine
   the message's nature on its own.
@@ -1144,7 +1143,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
            DSPAM will also decrement each token's previous classification's
            count as well as the user totals.
 
-           You should use error only when DSPAM has made an error in 
+           You should use error only when DSPAM has made an error in
            classifying the message, and should present the modified version of
            the message with the DSPAM signature when doing so.
 
@@ -1158,8 +1157,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
            for correcting errors.
 
    inoculation: The message being presented is in pristine form, and should
-                be trained as an inoculation.  Inoculations are a more 
-                intense mode of training designed to cause DSPAM to 
+                be trained as an inoculation.  Inoculations are a more
+                intense mode of training designed to cause DSPAM to
                 train the user's metadata repeatedly on previously unknown
                 tokens, in an attepmt to vaccinate the user from future
                 messages similar to the one being presented.
@@ -1168,29 +1167,29 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
   --deliver=[innocent,spam]
   Tells DSPAM to deliver the message if its result falls within the criteria
-  specified.  For example, --deliver=innocent will cause DSPAM to only 
+  specified.  For example, --deliver=innocent will cause DSPAM to only
   deliver the message if it classifies as innocent.  Providing
   --deliver=innocent,spam will cause DSPAM to deliver the message regardless
-  of its classification.  This flag provides a significant amount of 
+  of its classification.  This flag provides a significant amount of
   flexibility for nonstandard implementations, where false positives may not
   be delivered but spam is, and etcetera.
-  
+
   --stdout
   If the message is indeed deemed "deliverable" by the --deliver flag, this
-  flag will cause DSPAM to deliver the message to stdout, rather than 
+  flag will cause DSPAM to deliver the message to stdout, rather than
   the configured delivery agent.
 
   --process
   Tells DSPAM to process the message.  This is the default behavior, and the
-  flag is implied unless --classify is used - but is a good idea to use to 
+  flag is implied unless --classify is used - but is a good idea to use to
   avoid ambiguity.
 
   --classify
   Tells DSPAM only to classify the message, and not make any writes to the
-  user's metadata or attempt to deliver/quarantine the message.  
+  user's metadata or attempt to deliver/quarantine the message.
 
   NOTE: The output of the classification is specific to the user, not including
-        the output of any groups they might be affiliated with, so it is 
+        the output of any groups they might be affiliated with, so it is
         entirely possible that the message would be caught as spam by the group,
         even if it didn't appear in the classification.  If you want to get
         the classification for the GROUP, use the group name as the user
@@ -1201,12 +1200,12 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   via commandline instead of allowing DSPAM to find it on its own. This is
   especially useful when front-ending the agent with other tools. Using this
   option will set the active signature and will also forego reading of stdin.
-  
+
   --mode=[toe|tum|teft|notrain|unlearn]
   Configures the training mode to be used for this process:
 
     teft: Train-Everything.  Trains on all messages processed.  This is
-          a very thorough training approach and should be considered the 
+          a very thorough training approach and should be considered the
           standard training approach for most users.  TEFT may, however,
           prove too volatile on installations with extremely high per-user
           traffic, or prove not very scalable on systems with extremely large
@@ -1248,7 +1247,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
           --class to whatever the original classification the message was
           learned under. If not using TrainPristine, this will require the
           original signature from training.
- 
+
     RECOMMENDATIONS:
       In general, it is recommended that users begin with TEFT.  If a user
       is experiencing between a 75-85% spam ratio, they may benefit from
@@ -1267,18 +1266,17 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
     no:  Bayesian Noise Reduction (BNR). Bayesian Noise Reduction kicks in
          at 2500 innocent messages and provides an advanced progressive
          noise logic to reduce Bayesian Noise (wordlist attacks) in
-         spams. See http://www.zdziarski.com/papers/bnr.html for more information.
-         BNR is not for everyone, and so users should try it out after 
-         they've trained to see if it helps improve accuracy.
+         spams. BNR is not for everyone, and so users should try it out
+         after they've trained to see if it helps improve accuracy.
 
   tb=N:  Sets the training loop buffering level.
          Training loop buffering is the amount of statistical sedation
-         performed to water down statistics and avoid false positives 
+         performed to water down statistics and avoid false positives
          during the user's training loop. The training  buffer sets the
          buffer sensitivity, and should be a number between 0 (no buffering
          whatsoever) to 10 (heavy buffering). The default is 5, half of
          what previous versions of DSPAM used.
-         To avoid dulling down statistics at all during the training loop, 
+         To avoid dulling down statistics at all during the training loop,
          set this to 0. This feature should be disabled if you're not
          paranoid about false positives, as it does increase the number of
         spam misses significantly during training.
@@ -1291,11 +1289,11 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
              for that sender.  Since DSPAM uses the entire "From:" line, and
              not just the sender's email address, automatic whitelisting is
              a very safe approach to improving accuracy during initial training.
-  
+
    NOTE: None of the present features are necessary when the source is "error",
-         because the original training data is used from the signature to 
+         because the original training data is used from the signature to
          retrain, instantiating whatever features (such as whitelisting) were
-         active at the time of the initial classification.  Since BNR is only 
+         active at the time of the initial classification.  Since BNR is only
          necessary when a message is being classified, the
          --feature flag can be safely omitted from error source calls.
 
@@ -1305,16 +1303,16 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
 2.0 LINKING WITH LIBDSPAM
 
-  Developers are able to link to the DSPAM core engine (libdspam) to provide 
+  Developers are able to link to the DSPAM core engine (libdspam) to provide
   "drop-in" spam-filtering for their applications.  Examples of the libdspam
    API can be found in the example.c file included with this distribution.
 
   <COMMERCIAL LICENSING>
 
   IF YOUR PROJECT USES THE LIBDSPAM API, A GPL-COMPATIBLE OPEN SOURCE LICENSE
-  IS REQUIRED IN ORDER TO REDISTRIBUTE. IF YOU ARE DEVELOPING A CLOSED-SOURCE 
-  APPLICATION OR APPLICATION THAT DOES NOT CONFORM TO GPL STANDARD, YOU MAY 
-  NOT REDISTRIBUTE ANY APPLICATIONS USING LIBDSPAM WITHOUT A COMMERCIAL 
+  IS REQUIRED IN ORDER TO REDISTRIBUTE. IF YOU ARE DEVELOPING A CLOSED-SOURCE
+  APPLICATION OR APPLICATION THAT DOES NOT CONFORM TO GPL STANDARD, YOU MAY
+  NOT REDISTRIBUTE ANY APPLICATIONS USING LIBDSPAM WITHOUT A COMMERCIAL
   LICENSE.
 
   COMMERCIAL LICENSING BENEFITS:
@@ -1323,15 +1321,15 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   - NON-GPL REDISTRIBUTION PRIVILEGES
   - BUG AND FEATURE REQUEST PRIORITY
 
-  Please contact the author at jonathan@nuclearelephant.com for information 
-  about commercial licensing. 
+  Please contact the author at jonathan@nuclearelephant.com for information
+  about commercial licensing.
 
   </COMMERCIAL LICENSING>
 
-  To link to libdspam, follow the instructions for compiling and installing 
-  DSPAM. When compiled, the libdspam static and shared libraries are also 
-  built. This library contains all the functions necessary to use dspam's 
-  filtering in your application. 
+  To link to libdspam, follow the instructions for compiling and installing
+  DSPAM. When compiled, the libdspam static and shared libraries are also
+  built. This library contains all the functions necessary to use dspam's
+  filtering in your application.
 
   Your application will also need to link to the correct storage driver
   libraries. If you are using libdspam in a multithreaded application, you
@@ -1349,153 +1347,199 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
   Please see example.c for API examples.
 
-  If you are interested in linking libdspam with your project and have 
+  If you are interested in linking libdspam with your project and have
   questions or concerns, please contact the dspam-dev mailing list.
 
 2.1 CONFIGURING GROUPS
 
-  Groups enable a group of users to share information.  The following
-  group types are supported:
+  Groups enable a group of users to share information.
+
+  To create groups, you'll want to create a file with the filename 'group'
+  located in the DSPAM user directory.  The default is
+  /usr/local/var/dspam/group. The format of the file is:
+
+    group1:type:user1,user2,user3
+    group2:type:*globaluser
+
+  DSPAM will read this file upon startup and determine if the user fits into
+  any particular group.
+
+  DSPAM supports the following group types:
 
   SHARED
-  Enables users with similar email behavior to share the same dictionary 
+  Enables users with similar email behavior to share the same dictionary
   while still maintaining a private quarantine box.  The benefits of this
   type of group are faster learning, and sharing a single spam alias.  Shared
   groups can have both positive and negative effects on accuracy.  If a shared
-  group consists of users with similar, predictable email behavior, the users 
-  in the group can benefit from a larger dictionary of spam and faster 
-  learning (especially for newcomers in the group).  If a group consists of 
-  users with different email behavior, however, the users in the group will 
+  group consists of users with similar, predictable email behavior, the users
+  in the group can benefit from a larger dictionary of spam and faster
+  learning (especially for newcomers in the group).  If a group consists of
+  users with different email behavior, however, the users in the group will
   experience poor spam filtering and a higher number of false positives.
 
-  NOTE
-    The SQL-based storage drivers support shared groups, but has one caveat:
-    If you are NOT enabling "virtual users" support, you will need to create
-    an actual user on your system named after each group you create.
+  NOTE: The SQL-based storage drivers support shared groups, but has one caveat:
+        If you are NOT enabling "virtual users" support, you will need to create
+        an actual user on your system named after each group you create.
 
   On top of shared group support, a shared group can also be made to be
   'managed'.  Using the group type 'SHARED,MANAGED' will cause the group to
   share a single quarantine mailbox which could be managed by the group's
-  administrator.  This would enable one individual to monitor quarantine for
-  the entire group, however personal emails marked as false positives could
-  potentially be viewed as well.  For this reason, managed groups should only
-  be used when this is not an issue.
+  administrator (aka: the group name).  This would enable one individual to
+  monitor quarantine for the entire group, however personal emails marked as
+  false positives could potentially be viewed as well.  For this reason,
+  managed groups should only be used when this is not an issue.
+
+  NOTE: Use the dspam_stats tool to keep an eye on the effectiveness of
+        shared groups. If a shared group experiences poor performance, find
+        the users whose email behavior is inconsistent with that of the group
+        and remove them from the group.
+
+  The format for a shared or shared,managed group is:
+
+    group1:shared:user1,user2,userN
+    group2:shared,managed:user1,user2,userN
+    group3:shared:*@domain.tld
+    group4:shared:*
+
+  The group name (in the example above 'group1', 'group2', 'group3', 'group4')
+  can be anything you like. If you set the shared group to be managed then the
+  groupname (in the example above 'group2') will be used by DSPAM as the shared
+  group administrator.
+
+  The user/member list for shared group allows the following syntax:
+    user1         : Exact match of user with the name "user1"
+    *             : Match any user
+    *@domain.tld  : Match any user having '@domain.tld' at the end of ther
+                    username. The matching only works for the '@' character.
+                    You can not use something like '*user' to include user
+                    'infouser', 'testuser', 'dummyuser', etc.
 
   INOCULATION
   An inoculation group allows users to maintain their own private dictionaries
   with their own spam alias, but all members of the group will inoculate other
-  members with spams they manually forward into their alias.  This allows 
-  users to report spams to one another and maintain their own private
-  dictionary.  Another advantage to this is that users do not necessarily have
-  to share the same email behavior.  
+  members with spams they manually forward into their alias. This allows users
+  to report spams to one another and maintain their own private dictionary.
+  Another advantage to this is that users do not necessarily have to share the
+  same email behavior.
+
+    VERSATILE LANGUAGE INOCULATION MESSAGES
+
+    A new Internet-Draft has been released to the public:
+
+      http://tools.ietf.org/html/draft-spamfilt-inoculation-01
+      http://tools.ietf.org/html/draft-yerazunis-spamfilt-inoculation-03
+
+    To create a message format standard for sending inoculation data via email.
+    This will allow users on different servers, and even using different
+    anti-spam tools to share inoculation information with one-another.
+
+    DSPAM presently implements support for this message standard with the
+    following limitations:
+
+    - Only inbound inoculation messages are supported.  DSPAM does not yet send
+      out inoculations using this message format.  This should not be confused
+      with local inoculation, which *is* supported.
+
+    - The message/inoculation format is the only inoculation type presently
+      supported.  text/inoculation and multipart/inoculation coming soon.
+
+    - The only supported authentication mechanism is presently md5 verification
+      codes/checksums.
+
+    Any unsupported inoculations will simply be dropped.
+
+    A list of identifies and authentication information can be set up in the file
+    [username].inoc or in the user's home directory in a .inoc file if
+    homedir-dotfiles is enabled.  The format of this file is:
+
+    sender1:shared secret
+    sender2:shared secret
+
+    Each sender should specify the correct sender id when sending an
+    inoculation, and should generate their checksum based on the shared secret
+    established between both parties.
 
   NOTE: Users should only be added to an inoculation group after their initial
         learning period, to avoid potential false positives due to lack of data.
 
-  To create groups, you'll want to create a file with the filename 'group' 
-  located in the DSPAM user directory.  The default is
-  /usr/local/var/dspam/group. The format of the file should look like this:
+  The format for a innoculation group is:
 
-  group1:shared:user1,user2,user3
-  group2:inoculation:user4,user5,user6
+    group1:inoculation:user1,user2,userN
+    group2:inoculation:user3,user4,userN
 
-  A user can be a member of multiple inoculation groups, but a user cannot be
-  a member of both an inoculation group and a shared group.
+  The group name (in the example above 'group1', 'group2') can be anything you
+  like. It is not used by DSPAM and does even not have to be unique.
 
-  DSPAM will read this file upon startup and determine if the user fits into
-  any particular group.  
-  
-  Use the dspam_stats tool to keep an eye on the effectiveness of shared groups.
-  If a shared group experiences poor performance, find the users whose email 
-  behavior is inconsistent with that of the group and remove them from the 
-  group.
+  The user/member list for inoculation group allows the following syntax:
+    user1         : Exact match of user with the name "user1"
 
   CLASSIFICATION
   Classification groups allow a group of users to network their results
-  together.  If DSPAM is uncertain of whether a message is spam or nonspam for
-  a group member, all other members of the group are queried.  If another
-  member believes the message to be spam, it will be marked as spam.
+  together. If DSPAM is uncertain of whether a message is spam or nonspam for
+  a group member, all other members of the group are queried. If another member
+  believes the message to be spam, it will be marked as spam. DSPAM is querying
+  the members one by one and stopps as soon as a member reports believes that
+  the message is spam.
 
-  A user can simultaneously be a member of a classification and inoculation
-  group, but a user cannot be a member of both a classification group and a
-  shared group.
+  The format for a classification group is:
 
-  VERSATILE LANGUAGE INOCULATION MESSAGES
+    group1:classification:user1,user2,userN
+    group2:classification:user3,user4,userN
 
-  A new Internet-Draft has been released to the public:
+  The group name (in the example above 'group1', 'group2') can be anything you
+  like. It is not used by DSPAM and does even not have to be unique.
 
-    http://tools.ietf.org/draft/draft-spamfilt-inoculation/draft-spamfilt-inoculation-01.txt
+  The user/member list for inoculation group allows the following syntax:
+    user1         : Exact match of user with the name "user1"
 
-  To create a message format standard for sending inoculation data via email.
-  This will allow users on different servers, and even using different 
-  anti-spam tools to share inoculation information with one-another.
-
-  DSPAM presently implements support for this message standard with the 
-  following limitations:
-
-  - Only inbound inoculation messages are supported.  DSPAM does not yet send
-    out inoculations using this message format.  This should not be confused
-    with local inoculation, which *is* supported.
-  
-  - The message/inoculation format is the only inoculation type presently
-    supported.  text/inoculation and multipart/inoculation coming soon.
-
-  - The only supported authentication mechanism is presently md5 verification
-    codes/checksums.
-
-  Any unsupported inoculations will simply be dropped.
-
-  A list of identifies and authentication information can be set up in the file
-  [username].inoc or in the user's home directory in a .inoc file if
-  homedir-dotfiles is enabled.  The format of this file is:
-
-  sender1:shared secret
-  sender2:shared secret
-
-  Each sender should specify the correct sender id when sending an 
-  inoculation, and should generate their checksum based on the shared secret
-  established between both parties.
-
-  GLOBAL GROUPS
-
+  GLOBAL
   Global groups allows DSPAM to provide a "SpamAssassin type out-of-the-box
   filtering" for all new users until they have built their own useful
-  dictionaries.  to create a global classification group, add something like
-  this to $HOME/group:
+  dictionaries. A global group can be created by adding a CLASSIFICATION
+  group definition (see above) but prefix the group member/user with a '*'.
 
-  groupname:classification:*globaluser
+  The format for a global classification group is:
 
-  This will automatically add globaluser as a classification peer to all users.
-  Any user who has less than 1000 innocent messages or 250 spam messages in
-  their corpus, or whose filter is uncertain about a particular message will
-  consult the global dictionary for an answer.
+    groupname:classification:*globaluser
 
-  Global groups will need to be trained using corpus or other means, or by
-  using the dspam_merge tool.  the global user (in this case 'globaluser') is
-  treated just as any other user on the system.
+  This will automatically add user globaluser as a classification peer to all
+  users. Any user who has less than 1000 innocent messages or 250 spam messages
+  in their corpus, or whose filter is uncertain (confidence less than 0.65)
+  about a particular message will consult the globaluser dictionary for an
+  answer.
 
-  NOTE: Be sure and set your global user's preferences so that trainingMode
-        is set to TOE. This will prevent the purge tools you use from
-        purging them empty in 90 days.
+  The Global group user (in this case 'globaluser') will need to be trained
+  using corpus, by using the dspam_merge tool, or other means. The Global
+  group user (in this case 'globaluser') is treated just as any other user on
+  the system.
 
-  MERGED GROUPS
+  The group name (in the example above 'groupname') can be anything you like. It
+  is not used by DSPAM and does even not have to be unique.
 
-  Merged groups are similar to global groups in that the entire system uses
-  a single global user as a parent.  What's different is that the global
-  group is merged with the individual user's training data at run-time,
-  instead of switching between the two.  This allows the global group to be
-  treated like a base dataset for all users, and provides for quicker
-  learning and correction than the previous approach.  It is recommended 
-  merged groups are only used with TOE-mode training so that only corrective 
-  data is stored, but systems with ample amounts of disk may wish to run in
-  TUM mode to learn the user's behavior dynamically.
+    NOTE: Be sure and set your global user's preferences so that trainingMode
+          is set to TOE. This will prevent the purge tools you use from
+          purging them empty in 90 days.
+
+  MERGED
+  Merged groups are similar to global groups in that the entire system uses a
+  single global user as a parent. What's different is that the merged group is
+  merged with the individual user's training data at run-time, instead of
+  switching between the two. This allows the merged group to be treated like a
+  base dataset for all users, and provides for quicker learning and correction
+  than the previous approach. It is recommended merged groups are only used with
+  TOE-mode training so that only corrective data is stored, but systems with
+  ample amounts of disk may wish to run in TUM mode to learn the user's behavior
+  dynamically.
 
   The group's data is merged with the user's data in real-time, so if you have:
 
-  Group: Viagra = 10 Spam Hits, 0 Innocent Hits
-   User: Viagra = 5 Spam Hits, 15 Innocent Hits
+    Group : Viagra = 10 Spam Hits,  0 Innocent Hits
+    User1 : Viagra =  5 Spam Hits, 15 Innocent Hits
+    User2 : Viagra = 20 Spam Hits,  1 Innocent Hits
 
-  Then the token is loaded as: 15 Spam Hits, 15 Innocent Hits = 0.50 (50%)
+  Then the token is loaded as:
+    User1 : Viagra = 15 Spam Hits, 15 Innocent Hits     = 0.50 (50%) = neutral
+    User2 : Viagra = 30 Spam Hits,  1 Innocent Hits
 
   No data is written to the group by DSPAM; only the user's data. This then
   offsets the group's data without affecting other users. Because of the way
@@ -1503,130 +1547,151 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   with more than a handful of messages periodically, as it affects how all
   stats are defined for each user.
 
-  To set up a merged group, use something like this in your group file:
+  The format for a merged group is:
 
-  groupname:merged:*
-  groupname:merged:user1,user2,userN
+    group1:merged:user1,user2,userN
+    group2:merged:user3,user4,userN
 
-  groupname represents the name of the global user to merge with all members of
-  the group.
+  The group name (in the example above 'group1', 'group2') can be anything you
+  like and represents the name of the group user to merge with all members of
+  the group. DSPAM will use that group name (in the example above 'group1',
+  'group2') and merge at run-time the tokens from that group name with the tokens
+  of the user (if the user is member of the merged group).
+
+  The user/member list for merged group allows the following syntax:
+    user1         : exact match of user with the name "user1"
+    -user1        : exclude user with the name "user1"
+    *             : match any user
+    *@domain.tld  : match users having "@domain.tld" at the end of ther
+                    username. The matching only works for the '@' character.
+                    You can not use something like '*user' to include user
+                    'infouser', 'testuser', 'dummyuser', etc.
+    -*@domain.tld : exclude users having "@domain.tld" at the end of their
+                    username. The matching only works for the '@' character.
+                    You can not use something like '-*user' to exclude user
+                    'infouser', 'testuser', 'dummyuser', etc.
 
   NOTE: Merged Groups are great for providing out-of-the-box adaptive filtering,
-        but allowing users to build their own data from scratch will still 
+        but allowing users to build their own data from scratch will still
         result in the best possible accuracy in the longrun.
 
-  NOTE: Be sure and set your global user's preferences so that trainingMode
-        is set to TOE. This will prevent the purge tools you use from
-        purging them empty in 90 days.
+  NOTE: Be sure and set your group user's preferences so that trainingMode is
+        set to TOE. This will prevent the purge tools you use from purging them
+        empty in 90 days.
 
+  RESTRICTIONS!
 
-  IMPORTANT!
+  A user can simultaneously be a member of multiple classification / global
+  group(s) and multiple inoculation group(s), but a user cannot be a member
+  of both a classification / global group(s) or inoculation group(s) and a
+  shared or shared,managed group.
 
-  If you are running dspam_clean, be sure to set a preference for your merged
-  group users where trainingMode = TOE. This will cause dspam_clean to skip
-  the purging of unused tokens from the global databases (which could wipe
-  out your entire merged group user's dataset, since it's old).
+  A user can not be member of:
+    * both a classification group and a global group
+    * multiple merged groups
+    * multiple shared or shared,managed groups
+    * both a shared group or shared,managed group and a merged group
 
 2.2 EXTERNAL INOCULATION THEORY
 
   Bill Yerazunis recently expressed his theory of inoculation on an anti-spam
   development list, using the term "vaccination":
 
-  "Part of the problem is that spam isn't stationary, it evolves. That 
-   pesky .1% error rate is in some part due to the base mutation rate of spam 
-   itself.  Maybe the answer is "vaccination".  Vaccination is using _one_ 
-   person's misery be used to generate some protective agent that protects the 
-   rest of the population; only the first person to get the spam actually has 
-   to read it. 
+  "Part of the problem is that spam isn't stationary, it evolves. That
+   pesky .1% error rate is in some part due to the base mutation rate of spam
+   itself.  Maybe the answer is "vaccination".  Vaccination is using _one_
+   person's misery be used to generate some protective agent that protects the
+   rest of the population; only the first person to get the spam actually has
+   to read it.
 
-   My expectation is this: say you have ten friends, and you all agree to share 
-   your training errors.  Each of you will (statistically) expect to be the 
-   first to see a new mutation of spam about 9% of the time; the other ten 
-   friends in this group will have their bayesian filter trained preemptively 
-   to prevent this.  Net result: you get a tenfold decrease in error rate - 
-   down to 99.99% accuracy.  With a hundred such (trusted) friends, you may be 
+   My expectation is this: say you have ten friends, and you all agree to share
+   your training errors.  Each of you will (statistically) expect to be the
+   first to see a new mutation of spam about 9% of the time; the other ten
+   friends in this group will have their bayesian filter trained preemptively
+   to prevent this.  Net result: you get a tenfold decrease in error rate -
+   down to 99.99% accuracy.  With a hundred such (trusted) friends, you may be
    down to 99.999% accuracy."
 
-   DSPAM has taken this concept and rolled it into support for what we call
-   "inoculation groups" providing the exact functionality Bill describes.  This
-   could be considered an "internal inoculation" practice.
+  DSPAM has taken this concept and rolled it into support for what we call
+  "inoculation groups" providing the exact functionality Bill describes.  This
+  could be considered an "internal inoculation" practice.
 
-   On top of this, DSPAM has been designed to support external inoculation as 
-   a complement to internal inoculation.  This is where instead of your internal
-   circle of friends inoculate you, you rely on external elements - namely
-   spammers themselves - to inoculate you.
+  On top of this, DSPAM has been designed to support external inoculation as
+  a complement to internal inoculation.  This is where instead of your internal
+  circle of friends inoculate you, you rely on external elements - namely
+  spammers themselves - to inoculate you.
 
-   The theory behind external inoculation is this: why put _anyone_ through
-   the misery of being the first to receive a new spam when you can have
-   the spammers themselves send it directly to you.  On top of this,
-   external inoculation can be combined with internal inoculation by taking
-   the spam you received externally and inoculating your friends with it
-   internally.
+  The theory behind external inoculation is this: why put _anyone_ through
+  the misery of being the first to receive a new spam when you can have
+  the spammers themselves send it directly to you.  On top of this,
+  external inoculation can be combined with internal inoculation by taking
+  the spam you received externally and inoculating your friends with it
+  internally.
 
-   Inoculation is a little different from learning, as inoculation causes
-   tokens to be given additional hit counts in an attempt to learn from a
-   single email.  As a result, any form of inoculation should _only_ be
-   attempted after an initial learning phase (perhaps when your filtering
-   accuracy exceeds 99.0%).  DSPAM inoculates like this:
+  Inoculation is a little different from learning, as inoculation causes
+  tokens to be given additional hit counts in an attempt to learn from a
+  single email.  As a result, any form of inoculation should _only_ be
+  attempted after an initial learning phase (perhaps when your filtering
+  accuracy exceeds 99.0%).  DSPAM inoculates like this:
 
-   1. Every token that doesn't already exist in the database, or have fewer
-      than two hits will be hit five times.
+  1. Every token that doesn't already exist in the database, or have fewer
+     than two hits will be hit five times.
 
-   2. All other tokens are hit twice.
+  2. All other tokens are hit twice.
 
-   External inoculation is accomplished by creating a covert, external alias
-   that is configured to automatically inoculate your dictionary from any
-   messages it receives.  The covert alias can then be published onto a series
-   of public newsgroups and websites where it is sure to be harvested by
-   a spammer's tools.  One could even pro-actively subscribe one's self to
-   several different opt-in spam lists, etcetera.
+  External inoculation is accomplished by creating a covert, external alias
+  that is configured to automatically inoculate your dictionary from any
+  messages it receives.  The covert alias can then be published onto a series
+  of public newsgroups and websites where it is sure to be harvested by
+  a spammer's tools.  One could even pro-actively subscribe one's self to
+  several different opt-in spam lists, etcetera.
 
-   The first step is to configure an alias.  To do this you would use something
-   like:
+  The first step is to configure an alias.  To do this you would use something
+  like:
 
-   bob_c:	"|/path/to/dspam --process --class=spam --source=inoculation --user bob"
+    bob_c:	"|/path/to/dspam --process --class=spam --source=inoculation --user bob"
 
-   The 'C' in bob is for 'Covert'.  We must use a covert alias because if we
-   use something obvious like 'bob-spam', harvester tools will automatically
-   strip the -spam off and spam your real account.
+  The 'C' in bob is for 'Covert'.  We must use a covert alias because if we
+  use something obvious like 'bob-spam', harvester tools will automatically
+  strip the -spam off and spam your real account.
 
-   Once the alias is set up, make sure this alias gets out only on lists where
-   harvesters will grab it, and nobody will send legitimate email to it.  
-   It may even be a good idea to put it at the bottom of your tagline in all
-   your publicly archived emails, something like...
+  Once the alias is set up, make sure this alias gets out only on lists where
+  harvesters will grab it, and nobody will send legitimate email to it.
+  It may even be a good idea to put it at the bottom of your tagline in all
+  your publicly archived emails, something like...
 
-   Spammers, send me mail here: bob_c@yourdomain.com
+    Spammers, send me mail here: bob_c@yourdomain.com
 
-   Finally, you can multiply the effects of this by sharing an inoculation
-   group with your friends.  If all of your friends have a public covert
-   alias, then you will all be able to inoculate eachother should one of you
-   receive a spam to the account.  What a great way to train your filter!
+  Finally, you can multiply the effects of this by sharing an inoculation
+  group with your friends.  If all of your friends have a public covert
+  alias, then you will all be able to inoculate eachother should one of you
+  receive a spam to the account.  What a great way to train your filter!
 
-   On top of this, should external inoculation become commonplace to the
-   point where harvesters are picking up an equal amount of them as legitimate
-   email addresses, spammers will start to realize that harvesters are just
-   plain too dumb to tell the difference (the spammers themselves couldn't tell
-   if mine was or not).  This could, best case scenario, put an end to
-   harvester bots, making them obsolete as counter-productive tools.
+  On top of this, should external inoculation become commonplace to the
+  point where harvesters are picking up an equal amount of them as legitimate
+  email addresses, spammers will start to realize that harvesters are just
+  plain too dumb to tell the difference (the spammers themselves couldn't tell
+  if mine was or not).  This could, best case scenario, put an end to
+  harvester bots, making them obsolete as counter-productive tools.
 
 2.3 CLIENT/SERVER MODE
 
   DSPAM supports two different modes of operation.  In standard operating
-  mode, the DSPAM agent is called by the MTA (or proxy) and each agent process 
-  performs independently, establishing its own connection to a database and 
-  performs delivery on its own. The second operating mode, client/server mode, 
+  mode, the DSPAM agent is called by the MTA (or proxy) and each agent process
+  performs independently, establishing its own connection to a database and
+  performs delivery on its own. The second operating mode, client/server mode,
   allows the DSPAM agent to act more like a thin client, connecting to the
   DSPAM server process which then does all the work of analyzing and delivering
-  or quarantining the message. The advantages to using DSPAM in client/server 
+  or quarantining the message. The advantages to using DSPAM in client/server
   mode are:
 
   - Maintaining a set of stateful database connections (within the server),
     which should enhance performance on some systems by eliminating the need
     to establish a new database connection for every message processed.
 
-  - Providing a central point of processing. Having one server perform all 
-    processing and delivery, while having multiple thin clients on your mail 
-    servers may be more desirable than having multiple agents performing 
+  - Providing a central point of processing. Having one server perform all
+    processing and delivery, while having multiple thin clients on your mail
+    servers may be more desirable than having multiple agents performing
     processing and delivery on all your servers.
 
   - The DSPAM server speaks LMTP, which some implementations may be able to
@@ -1641,25 +1706,25 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   The DSPAM agent can be compiled with client/server support by configuring
   with --enable-daemon. You will need to use a multithread-safe storage driver
   (presently mysql_drv and pgsql_drv are supported). Once you have compiled
-  with daemon support, you'll need to modify your dspam.conf to provide the 
+  with daemon support, you'll need to modify your dspam.conf to provide the
   settings necessary for client/server mode:
 
-	ServerHost             127.0.0.1
+	ServerHost		127.0.0.1
 
   The host to listen on. The default is to comment this setting which will
   force DSPAM to listen on all available interfaces.
 
-	ServerPort             24
+	ServerPort		24
 
   The port to listen on. The default is 24, the LMTP port.
 
-	ServerQueueSize        32
+	ServerQueueSize		32
 
-  The maximum number of connections which may remain backlogged before they 
+  The maximum number of connections which may remain backlogged before they
   are accepted.
 
-	ServerPass.Relay1      "secret"
-	ServerPass.Relay2      "password"
+	ServerPass.Relay1	"secret"
+	ServerPass.Relay2	"password"
 
   Each client server allowed to connect should have its own password. They
   can be defined here.
@@ -1669,22 +1734,22 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   a domain socket should be used as it eliminates additional overhead. To use
   a domain socket, you'll also need to add the following option:
 
-	ServerDomainSocketPath  "/tmp/dspam.sock"
+	ServerDomainSocketPath	"/tmp/dspam.sock"
 
   Once you've configured the server config, you'll want to set the client
   configuration on all client machines. If you are using network sockets,
   set the following to appropriate values:
 
-	ClientHost     127.0.0.1
-	ClientPort     24
+	ClientHost		127.0.0.1
+	ClientPort		24
 
   Or if using a domain socket:
 
-        ClientHost     /tmp/dspam.sock
+        ClientHost		/tmp/dspam.sock
 
   In both cases, you'll need to set the client's authentication ident:
 
-	ClientIdent    "secret@Relay1"
+	ClientIdent		"secret@Relay1"
 
   Now you're ready to go. To start the DSPAM server, run:
 
@@ -1707,32 +1772,32 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   to the dspam binary in behavior, but has been stripped down to only include
   the lightweight client.
 
-	dspamc --client --user dick jane --deliver=innocent -d %u
+	dspamc --user dick jane --deliver=innocent -d %u
 
   The conversation that takes place between the client/server is LMTP-based,
   and will look like this:
 
-SERVER> 220 DSPAM DLMTP 3.4.0 Authentication Required
-CLIENT> LHLO Relay1
-SERVER> 250-PIPELINING
-SERVER> 250-ENHANCEDSTATUSCODES
-SERVER> 250-DSPAMPROCESSMODE
-SERVER> 250 SIZE
-CLIENT> MAIL FROM: <secret@Relay1> DSPAMPROCESSMODE="--deliver=innocent -d %u"
-SERVER> 250 2.1.0 OK
-CLIENT> RCPT TO: dick
-SERVER> 250 2.1.5 OK
-CLIENT> RCPT TO: jane
-SERVER: 250 2.1.5 OK
-CLIENT> DATA
-SERVER> 354 Enter mail, end with "." on a line by itself
-CLIENT> Subject: Cheap Viagra!
-CLIENT>
-CLIENT> Click Here: http://www.cheapviagra.com
-CLIENT> .
-SERVER> 250 2.0.0 <dick> Message accepted for delivery: INNOCENT
-SERVER> 250 2.0.0 <jane> Message accepted for delivery: SPAM
- 
+    SERVER> 220 DSPAM DLMTP 3.9.0 Authentication Required
+    CLIENT> LHLO Relay1
+    SERVER> 250-PIPELINING
+    SERVER> 250-ENHANCEDSTATUSCODES
+    SERVER> 250-DSPAMPROCESSMODE
+    SERVER> 250 SIZE
+    CLIENT> MAIL FROM: <secret@Relay1> DSPAMPROCESSMODE="--deliver=innocent -d %u"
+    SERVER> 250 2.1.0 OK
+    CLIENT> RCPT TO: dick
+    SERVER> 250 2.1.5 OK
+    CLIENT> RCPT TO: jane
+    SERVER> 250 2.1.5 OK
+    CLIENT> DATA
+    SERVER> 354 Enter mail, end with "." on a line by itself
+    CLIENT> Subject: Cheap Viagra!
+    CLIENT>
+    CLIENT> Click Here: http://www.cheapviagra.com
+    CLIENT> .
+    SERVER> 250 2.0.0 <dick> Message accepted for delivery: INNOCENT
+    SERVER> 250 2.0.0 <jane> Message accepted for delivery: SPAM
+
   Optionally, if you'd like the clients to perform delivery, you can use
   DSPAM's --stdout or --classify functionality to obtain a dump of the message
   or results, respectively. From there, it's up to you and your MTA to
@@ -1753,10 +1818,10 @@ SERVER> 250 2.0.0 <jane> Message accepted for delivery: SPAM
   dspam.conf without the need to interrupt the process.
 
   NOTE: During the period of time the daemon is reloading, client connections
-  will fail. Depending on how the MTA reacts, this may cause messages to
-  fall back to queue or to bounce.
+        will fail. Depending on how the MTA reacts, this may cause messages to
+        fall back to queue or to bounce.
 
-2.4 LMTP 
+2.4 LMTP
 
   DSPAM supports LMTP both on the front-end and back-end (delivery). This
   section will briefly provide instructions for configuring either or both of
@@ -1772,27 +1837,28 @@ SERVER> 250 2.0.0 <jane> Message accepted for delivery: SPAM
 
   1. Compile DSPAM with --enable-daemon to enable LMTP delivery code
 
-  2. Configure your DeliveryHost and DeliveryIdent in dspam.conf. Set 
+  2. Configure your DeliveryHost and DeliveryIdent in dspam.conf. Set
      DeliveryProto based on whether you would like to delivery via LMTP or SMTP.
 
      NOTE: If you would like to delivery to different hosts based on domain,
-     specify DeliveryHost.domain.com as the configuration directive
+           specify DeliveryHost.domain.com as the configuration directive. Use
+           DeliveryPort.domain.com to specify a port for the delivery.
 
   3. Add the --lmtp-recipient flag to the arguments passed into DSPAM. This is
      used to specify the destination address for the message. For example, in
      postfix:
 
      --lmtp-recipient=${recipient}
- 
+
   DSPAM will then connect to the specified host, and deliver using a standard
   LMTP looking like:
 
-LHLO [ident]
-MAIL FROM:<> SIZE=[message_length]
-RCPT TO: <recipient>
-DATA
-[Message]
-.
+    LHLO [ident]
+    MAIL FROM:<> SIZE=[message_length]
+    RCPT TO: <recipient>
+    DATA
+    [Message]
+    .
 
   LMTP SERVER
 
@@ -1807,24 +1873,24 @@ DATA
   the "standard" server mode.
 
   The ServerMode can be set in dspam.conf. Each mode has its own custom
-  tweaks and configurations that will need to be set in dspam.conf. 
+  tweaks and configurations that will need to be set in dspam.conf.
 
   "dspam" mode settings.
   In "dspam" mode, you'll need to set up authentication for each dspam client
   relay. This involves configuring the relay ident and password. Examples are
   provided.
-  
+
   "dspam" mode notes.
   In dspam mode, only the dspam client will be connecting to your LMTP server.
   This can be dspamc (a thin-client) or the dspam binary. In either case,
-  you'll need to specify --client to tell DSPAM to act as a client. DLMTP 
+  you'll need to specify --client to tell DSPAM to act as a client. DLMTP
   allows the client to pass in any commandline arguments provided, so it should
   function identical to if you were running it as a dedicated (non-stateful)
   process.
 
   "standard" mode settings.
   In "standard" mode, you will need to configure the ServerParameters flag to
-  reflect the commandline parameters you would normally want to pass to DSPAM. 
+  reflect the commandline parameters you would normally want to pass to DSPAM.
 
   "standard" mode notes.
   One thing to watch out for is that the recipient you're sending via LMTP is
@@ -1832,7 +1898,7 @@ DATA
   resolved before the MTA relays to DSPAM. Because DSPAM uses the addresses in
   the RCPT TO as usernames, _not_ resolving any aliases will result in
   multiple databases being created for one user. Since the signature will be
-  different for each user, and since the message must be processed 
+  different for each user, and since the message must be processed
   differently for each user, DSPAM demultiplexes a multi-recipient email. This
   means that while it can receive an email with multiple RCPT TO's specified, it
   will perform delivery individually.
@@ -1842,7 +1908,7 @@ DATA
   processes (such as for inoculations), you can set the server mode to auto,
   which will base its dialect on the ident supplied in the LHLO. If the LHLO
   ident matches an ident in dspam.conf's ServerPass section, the server will
-  default to DLMTP. Otherwise, DSPAM will assume the client is a standard 
+  default to DLMTP. Otherwise, DSPAM will assume the client is a standard
   LMTP client and speak standard LMTP.
 
   LOCAL DELIVERY WITH LMTP FRONT-END
@@ -1851,7 +1917,7 @@ DATA
   DSPAM deliver via LDA. In these cases, you may use the following
   conventions in your ServerParameters configuration:
 
-  %r - The RCPT TO passed in via LMTP 
+  %r - The RCPT TO passed in via LMTP
   %s - The MAIL FROM passed in via LMTP
 
   In both cases, the content provided between < > is what is actually used.
@@ -1861,16 +1927,16 @@ DATA
   Preferences are settings that can be configured globally in dspam.conf or
   for individual users via the dspam_admin command.
 
-  trainingMode { TOE | TUM | TEFT | NOTRAIN } 
+  trainingMode { TOE | TUM | TEFT | NOTRAIN }
     How DSPAM should train messages it analyzes. See section 1.5 --mode
     (default:teft, see dspam.conf)
 
-  spamAction { quarantine | tag | deliver } 
+  spamAction { quarantine | tag | deliver }
     What to do with spam. The tag and deliver options both deliver, but tag
     adds a special prefix to the subject, whereas deliver merely sets
     X-DSPAM-Result. (default:quarantine)
 
-  spamSubject 
+  spamSubject
     A customized subject to prefix when spamAction=tag. (default:[SPAM])
 
   statisticalSedation { 0 - 10 }
@@ -1878,7 +1944,7 @@ DATA
 
   enableBNR { on | off }
     Enables or disables bayesian noise reduction (default:off)
- 
+
   enableWhitelist { on | off }
     Enables or disables automatic whitelisting (default:on)
 
@@ -1890,7 +1956,7 @@ DATA
     Adds a tagline to the end of a message based on its classification; useful
     for things such as "Scanned by Your ISP.com". If set to on, the file
     msgtag.spam and/or msgtag.nonspam will be looked for in dspam_home/txt/
-    and appended to appropriate messages. 
+    and appended to appropriate messages.
 
     NOTE: Signed messages will not be tagged in this fashion
 
@@ -1914,17 +1980,17 @@ DATA
     other analysis. (default:off)
 
   storeFragments { on | off }
-    When activated, the first 1k of each message are temporarily stored on 
+    When activated, the first 1k of each message are temporarily stored on
     the server for reference via the webui's history function. (default:off)
 
   localStore { on | off }
     Overrides the directory name used for the user's dspam data directory. This
-    is useful when using recipient addresses as usernames, as it will allow 
+    is useful when using recipient addresses as usernames, as it will allow
     all addresses belonging to a specific user to be written to a single
     webui directory. (default:username)
-    
+
   processorBias { on | off }
-    Overrides the "bias" setting in dspam.conf, which biases mail as 
+    Overrides the "bias" setting in dspam.conf, which biases mail as
     innocent. (default:on, see dspam.conf)
 
   fallbackDomain { on | off }
@@ -1961,14 +2027,14 @@ DATA
   Fallback domains allow you to default some or all users for a particular
   domain to a single domain user; this allows you to set preferences (including
   opting out of filtering entirely) for users based on domain name. Any user
-  who does not exist as a known user to DSPAM will be defaulted to the 
+  who does not exist as a known user to DSPAM will be defaulted to the
   domain it belongs to if it is designated as a fallback domain. This
   means that you can create bob@domain.com and alice@domain.com with their own
   databases and preferences, but also default all other users to @domain.com.
   Alternatively, you could create just the domain without any other users and
   default all users to @domain.com
 
-  To use fallback domains, you'll first need to activate this feature in 
+  To use fallback domains, you'll first need to activate this feature in
   dspam.conf:
 
   FallbackDomains on
@@ -1979,14 +2045,14 @@ DATA
   be created automatically when setting a user's preferences.
 
   Finally, designate that special user as a fallback domain by setting a
-  preference: 
+  preference:
 
   dspam_admin ch pref @domain.com fallbackDomain on
 
-  Any mail coming in for that domain that does _not_ match a known user in 
+  Any mail coming in for that domain that does _not_ match a known user in
   dspam will now fall back to this user; you can then set specific preferences
   or even opt out the entire user. Alternatively, you can create a domain-based
-  database for filtering mail specific to that domain, just as you would a 
+  database for filtering mail specific to that domain, just as you would a
   normal user.
 
 2.7 EXTERNAL USER LOOKUP
@@ -2046,10 +2112,10 @@ DATA
   DSPAM Project but by the respective authors; however, in order to help the
   authors, facilitate integration with DSPAM and release procedures, we provide
   a bug tracker for each script/plugin at the same URL.
- 
+
 3.1 PORTS / PACKAGES
 
-  The DSPAM Project does not provide binary packages of DSPAM. Each 
+  The DSPAM Project does not provide binary packages of DSPAM. Each
   OS/distribution has its own contributors (they know perfectly their
   distribution's policy, their special guidelines, testing procedures, etc.).
 
@@ -2060,24 +2126,24 @@ DATA
   If you wish to port DSPAM to an other OS/distro/platform and need help or have
   patches you would like to be merged in the repo please email
   dspam-devel@lists.sourceforge.net mailing list.
-  
+
 
   Note:
 
-  In order to keep DSPAM unencumbered by intellectual property abuses, all 
-  external contributors to the project are asked to release any rights to the 
+  In order to keep DSPAM unencumbered by intellectual property abuses, all
+  external contributors to the project are asked to release any rights to the
   submission. This keeps the DSPAM project a healthy, unencumbered GPL project.
-  Please accompany your patch, code, or other submission with the following 
-  statement. By submitting a patch to the project, you agree to be bound by 
-  the terms of this statement whether it is specifically included in the 
-  submission or not, however we still require that it be attached to the 
-  submission: 
+  Please accompany your patch, code, or other submission with the following
+  statement. By submitting a patch to the project, you agree to be bound by
+  the terms of this statement whether it is specifically included in the
+  submission or not, however we still require that it be attached to the
+  submission:
 
-    The author or authors of this submission hereby release any and all 
-    copyright interest in this code, documentation, or other materials 
-    included to the DSPAM project and its primary governors. We intend this 
-    relinquishment of copyright interest in perpetuity of all present and 
-    future rights to said submission under copyright law. 
+    The author or authors of this submission hereby release any and all
+    copyright interest in this code, documentation, or other materials
+    included to the DSPAM project and its primary governors. We intend this
+    relinquishment of copyright interest in perpetuity of all present and
+    future rights to said submission under copyright law.
 
 3.2 GIT ACCESS
 
