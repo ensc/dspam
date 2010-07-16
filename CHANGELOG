@@ -1,6 +1,8 @@
 Version 3.9.0
 -------------
 
+[20100716:2200] sbajic: Fixing bug m4/Makefile.am regarding removal of libtool_hack.m4
+
 [20100615:2225] sbajic: Fixing bug in _mysql_drv_getpwnam() regarding allocation of space for the username
 
 [20100612:1540] sbajic: Make LLVM clang compiler happy
