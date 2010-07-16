@@ -6,14 +6,14 @@
 <!ENTITY dspam.options.selecthamfolder.accesskey  "f">
 <!ENTITY dspam.spamreportbutton.label "Spam">
 <!ENTITY dspam.spamreportbutton.tooltiptext "Submeter as mensagens seleccionadas como sendo SPAM">
-<!ENTITY dspam.hamreportbutton.label "Não Spam">
-<!ENTITY dspam.hamreportbutton.tooltiptext "Submeter as mensagens seleccionadas como não sendo SPAM">
-<!ENTITY dspam.options.spamaddresstooltip "Endereço para submissão de SPAM">
-<!ENTITY dspam.options.hamaddresstooltip "Endereço para submissão de NÃO SPAM">
-<!ENTITY dspam.options.spamaddressLabel "Endereço para SPAM:">
-<!ENTITY dspam.options.hamaddressLabel "Endereço para NÃO SPAM:">
-<!ENTITY dspam.options.webuiurlLabel "Endereço WebUI:">
-<!ENTITY dspam.options.webuiurltooltip "Introduza o endereço do WebUIl para retreinamento de mensagens">
+<!ENTITY dspam.hamreportbutton.label "NÃ£o Spam">
+<!ENTITY dspam.hamreportbutton.tooltiptext "Submeter as mensagens seleccionadas como nÃ£o sendo SPAM">
+<!ENTITY dspam.options.spamaddresstooltip "EndereÃ§o para submissÃ£o de SPAM">
+<!ENTITY dspam.options.hamaddresstooltip "EndereÃ§o para submissÃ£o de NÃƒO SPAM">
+<!ENTITY dspam.options.spamaddressLabel "EndereÃ§o para SPAM:">
+<!ENTITY dspam.options.hamaddressLabel "EndereÃ§o para NÃƒO SPAM:">
+<!ENTITY dspam.options.webuiurlLabel "EndereÃ§o WebUI:">
+<!ENTITY dspam.options.webuiurltooltip "Introduza o endereÃ§o do WebUIl para retreinamento de mensagens">
 <!ENTITY dspam.options.webuiuserLabel "Indetificador do WebUI:">
 <!ENTITY dspam.options.webuiusertooltip "Introduza o seu identificador de acesso ao WebUI">
 <!ENTITY dspam.options.webuipassLabel "Senha do WebUI:">
@@ -26,17 +26,17 @@
 <!ENTITY dspam.options.spamfoldertooltip "Depois de submeter como SPAM, mover messagens para a pasta">
 <!ENTITY dspam.options.hamactionLabel "Depois de submeter SPAM:">
 <!ENTITY dspam.options.hamactionLeave "Fazer nada">
-<!ENTITY dspam.options.hamfoldertooltip "Depois de submeter como NÃO SPAM, mover messagens para a pasta">
+<!ENTITY dspam.options.hamfoldertooltip "Depois de submeter como NÃƒO SPAM, mover messagens para a pasta">
 <!ENTITY dspam.options.browsebutton "Procurar...">
 <!ENTITY dspam.options.methodLabel "Submeter as mensagens usando:">
 <!ENTITY dspam.options.methodForward "Reencaminhamento de mensagens">
 <!ENTITY dspam.options.methodWebUI "DSPAM WebUI">
 <!ENTITY dspam.options.gentab.label "Geral">
-<!ENTITY dspam.options.gentab.tooltip "Configurações Gerais">
+<!ENTITY dspam.options.gentab.tooltip "ConfiguraÃ§Ãµes Gerais">
 <!ENTITY dspam.options.forwardtab.label "Reencaminhamento">
-<!ENTITY dspam.options.forwardtab.tooltip "Configurações para a submissão via reencaminhamento de mensagens">
+<!ENTITY dspam.options.forwardtab.tooltip "ConfiguraÃ§Ãµes para a submissÃ£o via reencaminhamento de mensagens">
 <!ENTITY dspam.options.webuitab.label "WebUI">
-<!ENTITY dspam.options.webuitab.tooltip "Configurações para a submissão  via WebUI">
-<!ENTITY dspam.options.actiontab.label "Acções">
-<!ENTITY dspam.options.actiontab.tooltip "Acções a tomar após a submissão">
+<!ENTITY dspam.options.webuitab.tooltip "ConfiguraÃ§Ãµes para a submissÃ£o  via WebUI">
+<!ENTITY dspam.options.actiontab.label "AcÃ§Ãµes">
+<!ENTITY dspam.options.actiontab.tooltip "AcÃ§Ãµes a tomar apÃ³s a submissÃ£o">
 <!ENTITY dspam. "">

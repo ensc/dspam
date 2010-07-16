@@ -1,6 +1,5 @@
-# $Id: mysql_drv.m4,v 1.3 2007/12/07 00:15:31 mjohnson Exp $
+# $Id: mysql_drv.m4,v 1.4 2010/04/29 14:12:39 sbajic Exp $
 # Autoconf macros for checking for MySQL
-# Jonathan Zdziarski <jonathan@nuclearelephant.com>
 #
 #   Public available macro:
 #       DS_MYSQL([mysql_cppflags_out],
@@ -72,14 +71,16 @@ else
     mysql_headers_CPPFLAGS="-I$with_mysql_includes"
     CPPFLAGS="$mysql_headers_CPPFLAGS $CPPFLAGS"
 fi
-AC_CHECK_HEADER([mysql.h],
+AC_CHECK_HEADERS([mysql.h mysqld_error.h errmsg.h],
                 [],
                 [ mysql_headers_success=no ])
 if test x"$mysql_headers_success" = xyes
 then
     AC_PREPROC_IFELSE([AC_LANG_SOURCE([[
     #include <mysql.h>
-    #ifdef PROTOCOL_VERSION
+    #include <mysqld_error.h>
+    #include <errmsg.h>
+    #if defined(PROTOCOL_VERSION) && defined(ER_LOCK_DEADLOCK) && defined(ER_LOCK_WAIT_TIMEOUT) && defined(ER_LOCK_OR_ACTIVE_TRANSACTION) && defined(CR_ERROR_FIRST)
     /* Success */
     #else
     #error Unsupported version of MySQL 
@@ -87,7 +88,7 @@ then
             ]])],
             [],
             [
-                AC_MSG_FAILURE([Unsupported version of MySQL (no PROTOCOL_VERSION defined)])
+                AC_MSG_FAILURE([Unsupported version of MySQL (no PROTOCOL_VERSION or ER_LOCK_DEADLOCK or ER_LOCK_WAIT_TIMEOUT or ER_LOCK_OR_ACTIVE_TRANSACTION or CR_ERROR_FIRST defined)])
                 mysql_headers_success=no
             ])
 fi

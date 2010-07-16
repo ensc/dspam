@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.390 2010/01/03 14:26:31 sbajic Exp $ */
+/* $Id: dspam.c,v 1.402 2010/06/12 15:39:35 sbajic Exp $ */
 
 /*
  DSPAM
@@ -44,9 +44,9 @@
 #include <errno.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#include <pwd.h>
 #endif
 #include <sys/types.h>
-#include <pwd.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <netdb.h>
@@ -109,7 +109,7 @@ int
 main (int argc, char *argv[])
 {
   AGENT_CTX ATX;		/* agent configuration */
-  buffer *message = NULL;       /* input message */
+  buffer *message = NULL;	/* input message */
   int agent_init = 0;		/* agent is initialized */
   int driver_init = 0;		/* storage driver is initialized */
   int pwent_cache_init = 0;	/* cache for username and uid is initialized */
@@ -177,12 +177,11 @@ main (int argc, char *argv[])
   if (ATX.operating_mode == DSM_DAEMON)
 #endif
   {
-    daemon_start(&ATX);
+    exitcode = daemon_start(&ATX);
 
     if (agent_init) {
       nt_destroy(ATX.users);
       nt_destroy(ATX.recipients);
-      free(ATX.recipient);
     }
 
     if (agent_config)
@@ -191,7 +190,7 @@ main (int argc, char *argv[])
     pthread_mutex_destroy(&__syslog_lock);
     if (pwent_cache_init)
       free(__pw_name);
-    exit(EXIT_SUCCESS);
+    exit(exitcode);
   }
 #endif
 
@@ -276,6 +275,7 @@ main (int argc, char *argv[])
     }
   }
   nt_destroy(ATX.results);
+  node_nt = NULL;
 
 #ifdef DAEMON
   }
@@ -292,23 +292,26 @@ BAIL:
   }
 
 #ifdef DAEMON
-  if (!ATX.client_mode) {
+  if (agent_init) {
+    if (!ATX.client_mode) {
 #endif
   if (driver_init)
     dspam_shutdown_driver(NULL);
   libdspam_shutdown();
 #ifdef DAEMON
+    }
   }
 #endif
 
   if (agent_config)
     _ds_destroy_config(agent_config);
 
-#ifdef DAEMON
-  pthread_mutex_destroy(&__syslog_lock);
-#endif
   if (pwent_cache_init)
     free(__pw_name);
+#ifdef DAEMON
+  pthread_mutex_destroy(&__syslog_lock);
+  // pthread_exit(0);
+#endif
   exit(exitcode);
 }
 
@@ -554,10 +557,10 @@ process_message (
     do_notifications(CTX, ATX);
   }
 
-  if (strcmp(CTX->class, LANG_CLASS_WHITELISTED))
-    result = ensure_confident_result(CTX, ATX, result);
-  if (result<0)
-   goto RETURN;
+  /* Consult global group or classification network */
+  result = ensure_confident_result(CTX, ATX, result);
+  if (result < 0)
+    goto RETURN;
 
   /* Inoculate other users (signature) */
 
@@ -610,7 +613,7 @@ process_message (
     CTX->signature = calloc(1, sizeof(struct _ds_spam_signature));
     if (CTX->signature) {
       CTX->signature->length = 8;
-      CTX->signature->data = calloc(1, 8);
+      CTX->signature->data = calloc(1, (CTX->signature->length));
     }
   }
 
@@ -954,7 +957,7 @@ deliver_message (
 
   /* If we're delivering to stdout, we need to provide a classification for
    * use by client/daemon setups where the client needs to know the result
-   * in order to support broken returnCodes.s
+   * in order to support broken returnCodes.
    */
 
   if (ATX->sockfd && ATX->flags & DAF_STDOUT)
@@ -1197,7 +1200,7 @@ int
 quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
 {
   char filename[MAX_FILENAME_LENGTH];
-  char *x, *msg, *omsg;
+  char *x, *msg, *ptrptr;
   int line = 1, i;
   FILE *file;
 
@@ -1232,7 +1235,6 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
   }
 
   msg = strdup(message);
-  omsg = msg;
 
   if (msg == NULL) {
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
@@ -1241,7 +1243,7 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
 
   /* TODO: Is there a way to do this without a strdup/strsep ? */
 
-  x = strsep (&msg, "\n");
+  x = strtok_r (msg, "\n", &ptrptr);
   while (x != NULL)
   {
     /* Quote any lines beginning with 'From ' to keep mbox from breaking */
@@ -1251,14 +1253,14 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
     fputs (x, file);
     fputs ("\n", file);
     line++;
-    x = strsep (&msg, "\n");
+    x = strtok_r (NULL, "\n", &ptrptr);
   }
   fputs ("\n\n", file);
 
   _ds_free_fcntl_lock(fileno(file));
   fclose (file);
 
-  free (omsg);
+  free (msg);
   return 0;
 }
 
@@ -1591,7 +1593,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
   struct nt_node *node_rcpt = NULL;
   struct nt_c c_nt, c_rcpt;
   buffer *parse_message;
-  agent_result_t presult;
+  agent_result_t presult = NULL;
   char *plus, *atsign;
   char mailbox[256];
   FILE *fout;
@@ -1653,7 +1655,6 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 #endif
 	username = node_nt->ptr;
 
-    presult = calloc(1, sizeof(struct agent_result));
     if (node_rcpt) {
       ATX->recipient = node_rcpt->ptr;
       node_rcpt = c_nt_next (ATX->recipients, &c_rcpt);
@@ -1687,6 +1688,7 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
       }
     }
 
+    presult = calloc(1, sizeof(struct agent_result));
     parse_message = buffer_create(message->data);
     if (parse_message == NULL) {
       LOG(LOG_CRIT, ERR_MEM_ALLOC);
@@ -1880,6 +1882,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
           presult->classification = DSR_ISSPAM;
           presult->exitcode = ERC_PERMANENT_DELIVERY;
           strlcpy(presult->text, ATX->status, sizeof(presult->text));
+          free(result_string);
+          result_string = NULL;
           goto RSET;
         }
         else if (_ds_match_attribute(agent_config, "ClamAVResponse", "spam"))
@@ -1891,6 +1895,8 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
         } else {
           presult->classification = DSR_ISINNOCENT;
           presult->exitcode = ERC_SUCCESS;
+          free(result_string);
+          result_string = NULL;
           goto RSET;
         }
       }
@@ -2113,6 +2119,7 @@ RSET:
     buffer_destroy(parse_message);
   }
 
+  if (presult) free(presult);
   return return_code;
 }
 // break
@@ -2401,127 +2408,268 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
 
   /* Set Group Membership */
 
-  if (strcmp(_ds_pref_val(ATX->PTX, "ignoreGroups"), "on")) {
+  if (ATX->operating_mode == DSM_CLASSIFY) {
+    LOGDEBUG ("Group support disabled in classify mode");
+  } else if (!strcmp(_ds_pref_val(ATX->PTX, "ignoreGroups"), "on")) {
+    LOGDEBUG ("Ignoring groups due preference ignoreGroups on");
+  } else if (ATX->operating_mode == DSM_PROCESS) {
     snprintf (filename, sizeof (filename), "%s/group",
               _ds_read_attribute(agent_config, "Home"));
     file = fopen (filename, "r");
     if (file != NULL)
     {
+      int is_group_member_inoculation = 0;
+      int is_group_member_classification = 0;
+      int is_group_member_global = 0;
+      int is_group_member_shared = 0;
+      int is_group_member_merged = 0;
       char *group;
-      char *user;
       char buffer[10240];
 
       while (fgets (buffer, sizeof (buffer), file) != NULL)
       {
         int do_inocgroups = 0;
-        char *type, *list;
+        int do_classgroups = 0;
+        char *type, *list, *listentry;
         chomp (buffer);
 
         if (buffer[0] == 0 || buffer[0] == '#' || buffer[0] == ';')
           continue;
 
         list = strdup (buffer);
+        listentry = strdup (buffer);
         group = strtok (buffer, ":");
 
         if (group != NULL)
         {
           type = strtok (NULL, ":");
-          user = strtok (NULL, ",");
-
           if (!type)
             continue;
 
-          if (!strcasecmp (type, "INOCULATION") &&
+          /* Check if user is member of inoculation group */
+          if (strcasecmp (type, "INOCULATION") == 0 &&
               ATX->classification == DSR_ISSPAM &&
               ATX->source != DSS_CORPUS)
           {
-            do_inocgroups = 1;
+            if (is_group_member_shared == 1) {
+              LOGDEBUG ("skipping innoculation group %s: user %s is already in a shared group", group, username);
+              /* Process next entry in group file */
+              continue;
+            } else {
+              char *l = list, *u;
+              strsep (&l, ":");
+              strsep (&l, ":");
+              u = strsep (&l, ",");
+              while (u != NULL) {
+                if (strcasecmp(u,username) == 0) {
+                  LOGDEBUG ("user %s is member of inoculation group %s", username, group);
+                  is_group_member_inoculation = 1;
+                  do_inocgroups = 1;
+                  break;
+                }
+                u = strsep (&l, ",");
+              }
+            }
           }
-
-          while (user != NULL)
+          /* Check if user is member of classification group */
+          else if (strcasecmp (type, "CLASSIFICATION") == 0)
           {
-            if (strcasecmp(user,username) == 0 || strcmp(user,"*") == 0 ||
-               (strncmp(user,"*@",2) == 0 && strchr(username,'@') != NULL && strcasecmp(user+1,strchr(username,'@')) == 0))
-            {
-
-              /* If we're reporting a spam, report it as a spam to all other
-               * users in the inoculation group */
-              if (do_inocgroups)
-              {
-                char *l = list, *u;
-                u = strsep (&l, ":");
-                u = strsep (&l, ":");
-                u = strsep (&l, ",");
-                while (u != NULL)
-                {
-                  if (strcasecmp(u,username) != 0)
-                  {
-                    LOGDEBUG ("adding user %s to inoculation group %s", u, group);
-                    if (u[0] == '*') {
-                      nt_add (ATX->inoc_users, u+1);
-                    } else {
-                      nt_add (ATX->inoc_users, u);
-                    }
+            if (is_group_member_shared == 1) {
+              LOGDEBUG ("skipping classification or global group %s: user %s is already in a shared group", group, username);
+              /* Process next entry in group file */
+              continue;
+            } else {
+              char *l = list, *u;
+              strsep (&l, ":");
+              strsep (&l, ":");
+              u = strsep (&l, ",");
+              while (u != NULL) {
+                if (u[0] == '*' && strcmp(u,"*") != 0) {
+                  if (is_group_member_classification == 1) {
+                    LOGDEBUG ("skipping global group %s: user %s is already in a classification group", group, username);
+                    break;
                   }
-                  u = strsep (&l, ",");
-                }
-              }
-              else if (strncasecmp (type, "SHARED", 6) == 0)
-              {
-                strlcpy (ctx_group, group, sizeof (ctx_group));
-                LOGDEBUG ("assigning user %s to group %s", username, group);
-                if (strncasecmp (type + 6, ",MANAGED", 8) == 0) {
-                  strlcpy (ATX->managed_group, ctx_group, sizeof(ATX->managed_group));
-                }
-              }
-              else if (strcasecmp (type, "CLASSIFICATION") == 0)
-              {
-                char *l = list, *u;
-                u = strsep (&l, ":");
-                u = strsep (&l, ":");
-                u = strsep (&l, ",");
-                while (u != NULL)
-                {
-                  if (strcasecmp (u, username) != 0)
-                  {
-                    LOGDEBUG ("adding user %s to classification group %s", u, group);
-                    if (u[0] == '*') {
-                      ATX->flags |= DAF_GLOBAL;
-                      nt_add (ATX->classify_users, u+1);
-                    } else {
-                      nt_add (ATX->classify_users, u);
-                    }
+                  LOGDEBUG ("user %s is member of global group %s", username, group);
+                  is_group_member_global = 1;
+                  do_classgroups = 1;
+                  break;
+                } else if (strcasecmp(u,username) == 0) {
+                  if (is_group_member_global == 1) {
+                    LOGDEBUG ("skipping classification group %s: user %s is already in a global group", group, username);
+                    break;
                   }
-                  u = strsep (&l, ",");
+                  LOGDEBUG ("user %s is member of classification group %s", username, group);
+                  is_group_member_classification = 1;
+                  do_classgroups = 1;
+                  break;
                 }
-              }
-              else if (strcasecmp (type, "MERGED") == 0 && strcasecmp(group, username) != 0)
-              {
-                char *l = list, *u;
-                u = strsep (&l, ":");
-                u = strsep (&l, ":");
                 u = strsep (&l, ",");
-                while (u != NULL)
+              }
+            }
+          }
+          /* Process shared and shared,managed group */
+          else if (strncasecmp (type, "SHARED", 6) == 0)
+          {
+            if (is_group_member_shared == 1) {
+              LOGDEBUG ("skipping shared group %s: user %s is already in a shared group", group, username);
+              /* Process next entry in group file */
+              continue;
+            } else if (is_group_member_merged == 1) {
+              LOGDEBUG ("skipping shared group %s: user %s is already in a merged group", group, username);
+              /* Process next entry in group file */
+              continue;
+            } else if (is_group_member_inoculation == 1) {
+              LOGDEBUG ("skipping shared group %s: user %s is already in a inoculation group", group, username);
+              /* Process next entry in group file */
+              continue;
+            } else if (is_group_member_classification == 1) {
+              LOGDEBUG ("skipping shared group %s: user %s is already in a classification group", group, username);
+              /* Process next entry in group file */
+              continue;
+            } else if (is_group_member_global == 1) {
+              LOGDEBUG ("skipping shared group %s: user %s is already in a global group", group, username);
+              /* Process next entry in group file */
+              continue;
+            } else {
+              char *l = list, *u;
+              strsep (&l, ":");
+              strsep (&l, ":");
+              u = strsep (&l, ",");
+              while (u != NULL) {
+                if (strcasecmp(u,username) == 0 ||
+                    strcmp(u,"*") == 0 ||
+                    (strncmp(u,"*@",2) == 0 && strchr(username,'@') != NULL && strcasecmp(u+1,strchr(username,'@')) == 0))
                 {
-                  if (strcasecmp (u, username) == 0 || u[0] == '*') {
+                  LOGDEBUG ("assigning user %s to shared group %s", username, group);
+                  strlcpy (ctx_group, group, sizeof (ctx_group));
+                  if (strncasecmp (type + 6, ",MANAGED", 8) == 0) {
+                    LOGDEBUG ("shared group is managed by %s", group);
+                    strlcpy (ATX->managed_group, ctx_group, sizeof(ATX->managed_group));
+                  }
+                  is_group_member_shared = 1;
+                  break;
+                }
+                u = strsep (&l, ",");
+              }
+            }
+            /* Process next entry in group file */
+            continue;
+          }
+          /* Process merged group */
+          else if (strcasecmp (type, "MERGED") == 0 && strcasecmp(group, username) != 0)
+          {
+            if (is_group_member_merged == 1) {
+              LOGDEBUG ("skipping merged group %s: user %s is already in merged group %s", group, username, ctx_group);
+              /* Process next entry in group file */
+              continue;
+            } else if (is_group_member_shared == 1) {
+              LOGDEBUG ("skipping merged group %s: user %s is already in a shared group", group, username);
+              /* Process next entry in group file */
+              continue;
+            } else if (ATX->flags & DAF_MERGED) {
+              LOGDEBUG ("BUG in DSPAM. Please report this bug:");
+              LOGDEBUG (" --> Skipping merged group %s: user %s is already in merged group %s", group, username, ctx_group);
+              /* Process next entry in group file */
+              continue;
+            } else {
+              char *l = list, *u;
+              strsep (&l, ":");
+              strsep (&l, ":");
+              u = strsep (&l, ",");
+              while (u != NULL) {
+                if (strcasecmp(u,username) == 0 || strcmp(u,"*") == 0 ||
+                    (strncmp(u,"*@",2) == 0 && strchr(username,'@') != NULL && strcasecmp(u+1,strchr(username,'@')) == 0))
+                {
+                  if (is_group_member_merged == 1) {
+                    LOGDEBUG ("skipping entry %s for merged group %s. User is already in merged group.", u, group);
+                    continue;
+                  } else {
                     LOGDEBUG ("adding user to merged group %s", group);
                     ATX->flags |= DAF_MERGED;
                     strlcpy(ctx_group, group, sizeof(ctx_group));
-                  } else if (u[0] == '-' && !strcmp(u+1, username)) {
+                    is_group_member_merged = 1;
+                  }
+                } else if ((strncmp(u,"-",1) == 0 && strcasecmp(u+1,username) == 0) ||
+                            (strncmp(u,"-*@",3) == 0 && strchr(username,'@') != NULL && strcasecmp(u+2,strchr(username,'@')) == 0))
+                {
+                  if (is_group_member_merged == 0) {
+                    LOGDEBUG ("skipping entry %s for merged group %s. User is already not in merged group.", u, group);
+                    continue;
+                  } else {
                     LOGDEBUG ("removing user from merged group %s", group);
                     ATX->flags ^= DAF_MERGED;
                     ctx_group[0] = 0;
+                    is_group_member_merged = 0;
                   }
-                  u = strsep (&l, ",");
+                } else {
+                  LOGDEBUG ("unhandled entry %s in merged group %s", u, group);
                 }
+                u = strsep (&l, ",");
               }
             }
-            do_inocgroups = 0;
-            user = strtok (NULL, ",");
+            /* Process next entry in group file */
+            continue;
+          }
+
+          /*
+           * If we are reporting a spam, report it as a spam to all other
+           * users in the inoculation group
+           */
+          if (do_inocgroups)
+          {
+            char *l = listentry, *u;
+            strsep (&l, ":");
+            strsep (&l, ":");
+            u = strsep (&l, ",");
+            while (u != NULL) {
+              if (strcasecmp(u,username) != 0) {
+                LOGDEBUG ("adding user %s as target for inoculation", u);
+                nt_add (ATX->inoc_users, u);
+              }
+              u = strsep (&l, ",");
+            }
+          }
+          /*
+           * When user is member of a global group or classification network
+           * then consult all other users in the group
+           */
+          else if (do_classgroups)
+          {
+            char *l = listentry, *u;
+            strsep (&l, ":");
+            strsep (&l, ":");
+            u = strsep (&l, ",");
+            while (u != NULL) {
+              if (u[0] == '*' && strcmp(u,"*") != 0) {
+                /* global classification group */
+                if (is_group_member_classification == 1) {
+                  LOGDEBUG ("skipping global group (%s) entry %s: user %s is already in a classification group", group, u, username);
+                  continue;
+                } else if (strcasecmp(u+1,username) != 0 && is_group_member_global == 1) {
+                  LOGDEBUG ("adding %s as classification peer for %s", u+1, username);
+                  ATX->flags |= DAF_GLOBAL;
+                  nt_add (ATX->classify_users, u+1);
+                } else {
+                  LOGDEBUG ("skipping global group entry %s for user %s", u+1, username);
+                }
+              } else if (strcasecmp(u,username) != 0) {
+                /* classification network group */
+                if (is_group_member_global == 1) {
+                  LOGDEBUG ("skipping classification group (%s) entry %s: user %s is already in a global group", group, u, username);
+                  continue;
+                } else if (is_group_member_classification == 1) {
+                  LOGDEBUG ("adding user %s to classification network group %", u, group);
+                  nt_add (ATX->classify_users, u);
+                } else {
+                  LOGDEBUG ("skipping classification group entry %s for user %s", u, username);
+                }
+              }
+              u = strsep (&l, ",");
+            }
           }
         }
-
         free (list);
+        free (listentry);
       }
       fclose (file);
     }
@@ -2552,8 +2700,7 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
       f_all |= DSF_BIAS;
   }
 
-  if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "enableWhitelist"), ""))
-  {
+  if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "enableWhitelist"), "")) {
     if (!strcmp(_ds_pref_val(ATX->PTX, "enableWhitelist"), "on"))
       f_all |= DSF_WHITELIST;
   } else {
@@ -2714,7 +2861,7 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 }
 
 /*
- * ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX, ATX, int result)
+ * ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result)
  *
  * DESCRIPTION
  *   Consult a global group or classification network if
@@ -2734,6 +2881,22 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
 int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
   int was_spam = 0;
+
+  /* Exit if no users available for global group or classification network */
+  if (ATX->classify_users && ATX->classify_users->items == 0)
+    return result;
+
+  /* global groups or classification network only operates on SPAM or INNOCENT */
+  if (strcmp(CTX->class, LANG_CLASS_WHITELISTED) ==0 ||
+      strcmp(CTX->class, LANG_CLASS_VIRUS) == 0 ||
+      strcmp(CTX->class, LANG_CLASS_BLOCKLISTED) == 0 ||
+      strcmp(CTX->class, LANG_CLASS_BLACKLISTED) == 0)
+  {
+    LOGDEBUG ("Not consulting %s group: message class is %s",
+              (ATX->flags & DAF_GLOBAL) ? "global" : "classification",
+              CTX->class);
+    return result;
+  }
 
   /* Defer to global group */
   if (ATX->flags & DAF_GLOBAL &&
@@ -2755,37 +2918,33 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       CTX->classification == DSR_NONE    &&
       CTX->confidence < 0.65)
   {
-      struct nt_node *node_int;
-      struct nt_c c_i;
+    LOGDEBUG ("consulting %s group member list", (ATX->flags & DAF_GLOBAL) ? "global" : "classification");
 
-      node_int = c_nt_first (ATX->classify_users, &c_i);
-      while (node_int != NULL && result != DSR_ISSPAM)
-      {
-        LOGDEBUG ("checking result for user %s", (const char *) node_int->ptr);
-        result = user_classify (ATX, (const char *) node_int->ptr,
-                                CTX->signature, NULL);
-        if (result == DSR_ISSPAM)
-        {
-          LOGDEBUG ("CLASSIFY CATCH: %s", (const char *) node_int->ptr);
-          CTX->result = result;
-        }
+    struct nt_node *node_int;
+    struct nt_c c_i;
 
-        node_int = c_nt_next (ATX->classify_users, &c_i);
+    node_int = c_nt_first (ATX->classify_users, &c_i);
+    while (node_int != NULL && result != DSR_ISSPAM) {
+      LOGDEBUG ("checking result for user %s", (const char *) node_int->ptr);
+      result = user_classify (ATX, (const char *) node_int->ptr, CTX->signature, NULL);
+      if (result == DSR_ISSPAM) {
+        LOGDEBUG ("CLASSIFY CATCH: %s", (const char *) node_int->ptr);
+        CTX->result = result;
       }
+      node_int = c_nt_next (ATX->classify_users, &c_i);
+    }
 
-    /* Re-add as spam */
-
-    if (result == DSR_ISSPAM && !was_spam)
-    {
+    /* If the global user thinks it's spam, and the user thought it was
+     * innocent, retrain the user as a false negative.
+     */
+    if (result == DSR_ISSPAM && !was_spam) {
+      LOGDEBUG ("re-adding as %s", LANG_CLASS_SPAM);
       DSPAM_CTX *CTC = malloc(sizeof(DSPAM_CTX));
-
       if (CTC == NULL) {
         LOG(LOG_CRIT, ERR_MEM_ALLOC);
         return EUNKNOWN;
       }
-
       memcpy(CTC, CTX, sizeof(DSPAM_CTX));
-
       CTC->operating_mode = DSM_PROCESS;
       CTC->classification = DSR_ISSPAM;
       CTC->source         = DSS_ERROR;
@@ -2798,21 +2957,17 @@ int ensure_confident_result(DSPAM_CTX *CTX, AGENT_CTX *ATX, int result) {
       strncpy(CTX->class, LANG_CLASS_SPAM, sizeof(CTX->class));
       /* should we be resetting CTX->probability and CTX->confidence here as well? */
       CTX->result = result;
-    }
-
     /* If the global user thinks it's innocent, and the user thought it was
      * spam, retrain the user as a false positive
      */
-
-    if (result == DSR_ISINNOCENT && was_spam) {
+    } else if (result == DSR_ISINNOCENT && was_spam) {
+      LOGDEBUG ("re-adding as %s", LANG_CLASS_INNOCENT);
       DSPAM_CTX *CTC = malloc(sizeof(DSPAM_CTX));
       if (CTC == NULL) {
         LOG(LOG_CRIT, ERR_MEM_ALLOC);
         return EUNKNOWN;
       }
-
       memcpy(CTC, CTX, sizeof(DSPAM_CTX));
-
       CTC->operating_mode = DSM_PROCESS;
       CTC->classification = DSR_ISINNOCENT;
       CTC->source         = DSS_ERROR;
@@ -2915,31 +3070,31 @@ int log_events(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
 
   _ds_userdir_path(filename, _ds_read_attribute(agent_config, "Home"), LOOKUP(ATX->PTX, (ATX->managed_group[0]) ? ATX->managed_group : CTX->username), "log");
 
-  node_nt = c_nt_first (CTX->message->components, &c_nt);
-  if (node_nt != NULL)
+  if (CTX->message)
   {
-    ds_message_part_t block;
-
-    block = node_nt->ptr;
-    if (block->headers != NULL)
+    node_nt = c_nt_first (CTX->message->components, &c_nt);
+    if (node_nt != NULL)
     {
-      ds_header_t head;
-      struct nt_node *node_header;
-
-      node_header = block->headers->first;
-      while(node_header != NULL) {
-        head = (ds_header_t) node_header->ptr;
-	if (head) {
-          if (!strcasecmp(head->heading, "Subject")) {
-            subject = head->data;
-            if (from != NULL) break;
-          } else if (!strcasecmp(head->heading, "From")) {
-            from = head->data;
-            if (subject != NULL) break;
+      ds_message_part_t block;
+      block = node_nt->ptr;
+      if (block->headers != NULL)
+      {
+        ds_header_t head;
+        struct nt_node *node_header;
+        node_header = block->headers->first;
+        while(node_header != NULL) {
+          head = (ds_header_t) node_header->ptr;
+          if (head) {
+            if (!strcasecmp(head->heading, "Subject")) {
+              subject = head->data;
+              if (from != NULL) break;
+            } else if (!strcasecmp(head->heading, "From")) {
+              from = head->data;
+              if (subject != NULL) break;
+            }
           }
+          node_header = node_header->next;
         }
-
-        node_header = node_header->next;
       }
     }
   }
@@ -3856,6 +4011,7 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   char *ptr;
   char *octet[4];
   int i = 3;
+  octet[0] = octet[1] = octet[2] = octet[3] = NULL;
 
   if (!dspam_getsource (CTX, ip, sizeof (ip))) {
     host[0] = 0;
@@ -3868,8 +4024,10 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
       i--;
     }
 
-      snprintf(host, sizeof(host), "%s.%s.%s.%s.",
-             octet[0], octet[1], octet[2], octet[3]);
+    if (octet[0] == NULL || octet[1] == NULL || octet[2] == NULL || octet[3] == NULL)
+      return 0;
+
+    snprintf(host, sizeof(host), "%s.%s.%s.%s.", octet[0], octet[1], octet[2], octet[3]);
 
     attrib = _ds_find_attribute(agent_config, "Lookup");
     while(attrib != NULL) {
@@ -3970,6 +4128,10 @@ int daemon_start(AGENT_CTX *ATX) {
   DRIVER_CTX DTX;
   char *pidfile;
   ATX = ATX; /* Keep compiler happy */
+  int exitcode = EXIT_SUCCESS;
+
+  if (ATX->fork && fork())    /* Fork DSPAM into the background */
+    exit(exitcode);
 
   __daemon_run  = 1;
   __num_threads = 0;
@@ -3977,6 +4139,7 @@ int daemon_start(AGENT_CTX *ATX) {
   pthread_mutex_init(&__lock, NULL);
   if (libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"))) {
     LOG(LOG_CRIT, ERR_DRV_INIT);
+    // pthread_mutex_destroy(&__lock);
     exit(EXIT_FAILURE);
   }
 
@@ -3994,6 +4157,8 @@ int daemon_start(AGENT_CTX *ATX) {
     if (!DTX.CTX)
     {
       LOG(LOG_ERR, ERR_CORE_INIT);
+      // pthread_mutex_destroy(&__lock);
+      // libdspam_shutdown();
       exit(EXIT_FAILURE);
     }
 
@@ -4007,6 +4172,8 @@ int daemon_start(AGENT_CTX *ATX) {
     if (dspam_init_driver (&DTX))
     {
       LOG (LOG_WARNING, ERR_DRV_INIT);
+      // pthread_mutex_destroy(&__lock);
+      // libdspam_shutdown();
       exit(EXIT_FAILURE);
     }
 
@@ -4026,6 +4193,7 @@ int daemon_start(AGENT_CTX *ATX) {
     if (daemon_listen(&DTX)) {
       LOG(LOG_CRIT, ERR_DAEMON_FAIL);
       __daemon_run = 0;
+      exitcode = EXIT_FAILURE;
     } else {
 
       LOG(LOG_WARNING, "received signal. waiting for processing threads to exit.");
@@ -4055,6 +4223,8 @@ int daemon_start(AGENT_CTX *ATX) {
       agent_config = read_config(NULL);
       if (!agent_config) {
         LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
+        pthread_mutex_destroy(&__lock);
+        libdspam_shutdown();
         exit(EXIT_FAILURE);
       }
 
@@ -4067,7 +4237,7 @@ int daemon_start(AGENT_CTX *ATX) {
   pthread_mutex_destroy(&__lock);
   libdspam_shutdown();
 
-  return 0;
+  return exitcode;
 }
 #endif
 
@@ -4103,7 +4273,6 @@ agent_pref_t load_aggregated_prefs(AGENT_CTX *ATX, const char *username) {
                             _ds_read_attribute(agent_config, "Home"), ATX->dbh);
         if (UTX && !strcmp(_ds_pref_val(UTX, "fallbackDomain"), "on")) {
           LOGDEBUG("empty prefs found. falling back to %s", domain);
-          username = domain;
         } else {
           _ds_pref_free(UTX);
           UTX = NULL;

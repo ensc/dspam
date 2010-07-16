@@ -1,4 +1,4 @@
-/* $Id: cssclean.c,v 1.135 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: cssclean.c,v 1.136 2010/02/02 14:37:06 sbajic Exp $ */
 
 /*
  DSPAM
@@ -110,7 +110,7 @@ int cssclean(const char *filename, int heavy) {
   struct stat st;
   unsigned long spam, nonspam, cntr;
   int drop, prb;
-
+  char *filenamecopy;
   unsigned long hash_rec_max = HASH_REC_MAX;
   unsigned long max_seek     = HASH_SEEK_MAX;
   unsigned long max_extents  = 0;
@@ -150,7 +150,11 @@ int cssclean(const char *filename, int heavy) {
   if (dir == NULL)
     goto end;
 
-  snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname((char *) filename), (unsigned int) getpid());
+  filenamecopy = strdup(filename);
+  if (filenamecopy == NULL)
+    goto end;
+
+  snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname((char *) filenamecopy), (unsigned int) getpid());
 
   lockfile = _hash_tools_lock_get (filename);
   if (lockfile == NULL)

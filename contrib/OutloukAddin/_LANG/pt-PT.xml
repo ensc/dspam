@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<language_config language="pt-PT">
+ <MainForm>
+  <bt_thankYou>Agradecer ao Autor</bt_thankYou>
+  <bt_checkForUpdate>Verificar Actualização</bt_checkForUpdate>
+  <bt_sendLogToDeveloper>Enviar Relatório</bt_sendLogToDeveloper>
+  <bt_TrainingForm>configurar retreinamento</bt_TrainingForm>
+  <bt_AktionForm>configurar acções</bt_AktionForm>
+  <bt_closeForm>Fechar</bt_closeForm>
+ </MainForm>
+ <TrainingForm>
+   <rB_trainWithWebUI>treinar com interface web</rB_trainWithWebUI>
+   <l_enterUrlOfDSpam>Localização do interface</l_enterUrlOfDSpam>
+   <l_enterLoginOfDSpam>o seu identificador</l_enterLoginOfDSpam>
+   <l_enterPasswordOfDSpam>a sua senha</l_enterPasswordOfDSpam>
+   <rB_trainWithForward>treinar através de forward</rB_trainWithForward>
+   <l_enterForwardForSpam>endereço para spam</l_enterForwardForSpam>
+   <l_enterForwardForHam>endereço para nãp spam</l_enterForwardForHam>
+   <cB_useAutoTrain>treinar automaticamente</cB_useAutoTrain>
+   <l_enterFolderForSpam>pasta para aprendizagem de spam</l_enterFolderForSpam>
+   <l_enterFolderForHam>pasta para aprendizagem de não spam</l_enterFolderForHam>
+   <bt_saveForm>Guardar</bt_saveForm>
+   <bt_closeForm>Fechar</bt_closeForm>
+ </TrainingForm>
+ <AktionForm>
+  <gB_afterTrainSpam>acção a tomar após treinar como spam...</gB_afterTrainSpam>
+  <rB_afterTrainSpam_Nothing>nenhuma</rB_afterTrainSpam_Nothing>
+  <rB_afterTrainSpam_Delete>apagar mensagem</rB_afterTrainSpam_Delete>
+  <rB_afterTrainSpam_MoveTo>mover mensagem para a pasta</rB_afterTrainSpam_MoveTo>
+  <cB_afterTrainSpam_MarkAsRead>marcar mensagem como lida</cB_afterTrainSpam_MarkAsRead>
+  <cB_afterTrainSpam_PrefixWith>prefixar assunto com</cB_afterTrainSpam_PrefixWith>
+  <gB_afterTrainHam>acção a tomar após treinar como não spam...</gB_afterTrainHam>
+  <rB_afterTrainHam_Nothing>nenhuma</rB_afterTrainHam_Nothing>
+  <rB_afterTrainHam_Delete>apagar mensagem</rB_afterTrainHam_Delete>
+  <rB_afterTrainHam_MoveTo>mover mensagem para a pasta</rB_afterTrainHam_MoveTo>
+  <cB_afterTrainHam_MarkAsRead>marcar mensagem como lida</cB_afterTrainHam_MarkAsRead>
+  <cB_afterTrainHam_PrefixWith>prefixar assunto com</cB_afterTrainHam_PrefixWith>
+   <bt_saveForm>Guardar</bt_saveForm>
+   <bt_closeForm>Fechar</bt_closeForm>
+ </AktionForm>
+ <checkForUpdate>
+  <Found>nova versão disponível, peça ao seu administrador de sistema para actualizar</Found>
+  <NotFound>não há novas versões. já está a usar a última versão</NotFound>
+ </checkForUpdate>
+ <Toolbar>
+  <Caption>
+   <cB_Button_AsSpam>Spam</cB_Button_AsSpam>
+   <cB_Button_AsHam>Não Spam</cB_Button_AsHam>
+   <cB_Button_DoConfig>Configurar</cB_Button_DoConfig>
+  </Caption>
+  <Tag>
+   <cB_Button_AsSpam>Treinar como Spam</cB_Button_AsSpam>
+   <cB_Button_AsHam>Treinar como Não Spam</cB_Button_AsHam>
+   <cB_Button_DoConfig>Alterar a sua Configuração</cB_Button_DoConfig>
+  </Tag>
+ </Toolbar>
+</language_config>

@@ -1,4 +1,4 @@
-/* $Id: cssconvert.c,v 1.623 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: cssconvert.c,v 1.624 2010/02/02 14:45:00 sbajic Exp $ */
 
 /*
  DSPAM
@@ -109,7 +109,7 @@ int cssconvert(const char *filename) {
   hash_drv_spam_record_t rec;
   unsigned long filepos;
   char newfile[128];
-
+  char *filenamecopy;
   unsigned long hash_rec_max = HASH_REC_MAX;
   unsigned long max_seek     = HASH_SEEK_MAX;
   unsigned long max_extents  = 0;
@@ -140,7 +140,11 @@ int cssconvert(const char *filename) {
     }
   }
 
-  snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname((char *)filename), (unsigned int) getpid());
+  filenamecopy = strdup(filename);
+  if (filenamecopy == NULL)
+    return EFAILURE;
+
+  snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname((char *)filenamecopy), (unsigned int) getpid());
 
   if (_hash_drv_open(filename, &old, 0, max_seek,
                      max_extents, extent_size, pctincrease, flags))

@@ -1,4 +1,4 @@
-.\" $Id: dspam.1,v 1.16 2010/01/03 15:02:55 sbajic Exp $
+.\" $Id: dspam.1,v 1.18 2010/04/17 00:16:23 sbajic Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam3.9
@@ -9,7 +9,7 @@
 .\" Copyright (c) 2002-2010 DSPAM Project
 .\" All rights reserved
 .\"
-.TH DSPAM 1  "Jan 03, 2010" "DSPAM" "DSPAM"
+.TH DSPAM 1  "Apr 17, 2010" "DSPAM" "DSPAM"
 
 .SH NAME
 dspam \- DSPAM Anti-Spam Agent
@@ -64,6 +64,9 @@ user2\ ...\ userN\c
 .BI \--daemon\c
 ]
 [\c
+.BI \--nofork\c
+]]
+[\c
 .BI \--client\c
 ]
 [\c
@@ -100,7 +103,7 @@ incoming message once for each user specified. If the message is to be
 delivered, the $u (or %u) parameters of the argument string will be interpolated
 for the current user being processed.
  
-.n3 3
+.ne 3
 .TP
 .BI \--mode= toe|tum|teft|notrain\c
 Configures the training mode to be used for this process, overriding any defaults in
@@ -203,7 +206,7 @@ tells dspam how to learn the message being presented:
  
 .B error
 : The message being presented was a message previously misclassified by DSPAM. When
-'error' is provided as a source, DSPAM requires that the DSPAM signature be present
+\'error\' is provided as a source, DSPAM requires that the DSPAM signature be present
 in the message, and will use the signature to recall the original training metadata.
 If the signature is not present, the message will be rejected. In this source mode,
 DSPAM will also decrement each token's previous classification's count as well as
@@ -328,6 +331,19 @@ connect and actively service requests.
 
 .ne 3
 .TP
+.BI \--nofork\c
+If
+.B DSPAM
+was compiled with
+.B \--enable\-daemon
+then using
+.B \--nofork
+will cause DSPAM to not fork the daemon into backgound when using
+.B \--daemon
+switch.
+
+.ne 3
+.TP
 .BI \--client\c
 If
 .B DSPAM
@@ -349,7 +365,7 @@ If
 will be configured to deliver via LMTP or SMTP, this flag may be used to define the
 RCPT TOs which will be used for the delivery of each user specified with
 .B \--user
-. If no recipients are provided, the RCPT TOs will match the username.
+If no recipients are provided, the RCPT TOs will match the username.
 
 .B NOTE
 :  The recipient list should always be balanced with the user list, or empty.

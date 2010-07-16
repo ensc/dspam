@@ -1,4 +1,4 @@
-$Id: sendmail.txt,v 1.1 2005/03/11 21:16:03 jonz Exp $
+$Id: sendmail.txt,v 1.2 2010/06/12 15:12:15 sbajic Exp $
 
 SENDMAIL INTEGRATION
 
@@ -22,6 +22,11 @@ define(`LOCAL_MAILER_PATH', `/usr/local/bin/dspam')
 define(`LOCAL_MAILER_ARGS', 
       `dspam -t -Y -a $h "--deliver=innocent" --user $u -d %u')
 
+NOTE: By default MAILER(local) define the flag F=w and sendmail check for a
+      valid user identity in passwd(5). This Flag does not play well with
+      virtual users - e.g. users authenticated via the saslauthd daemon. This
+      flag can be removed with:  MODIFY_MAILER_FLAGS(`LOCAL', `-w')
+
 If you don't feel like rebuilding your .cf files, you can alternatively
 just replace your local mailer in the Mlocal block of sendmail.cf and
 submit.cf. Be sure to update the path (P=) as well as arguments (A=).
@@ -29,4 +34,3 @@ submit.cf. Be sure to update the path (P=) as well as arguments (A=).
 NOTE: If you are using sendmail restricted shell (smrsh), you will
       need to either disable it, or add /usr/local/bin/dspam to the allow list. 
       Some administrators have experienced problems using smrsh with DSPAM.
-

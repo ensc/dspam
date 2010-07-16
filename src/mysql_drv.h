@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.h,v 1.16 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: mysql_drv.h,v 1.17 2010/04/29 11:18:57 sbajic Exp $ */
 
 /*
  DSPAM
@@ -28,6 +28,8 @@
 #endif
 
 #include <mysql.h>
+#include <mysqld_error.h>
+#include <errmsg.h>
 
 typedef struct _mysql_drv_dbh {
   MYSQL *dbh_read;

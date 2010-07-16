@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.184 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: sqlite3_drv.c,v 1.185 2010/02/12 12:27:20 sbajic Exp $ */
 
 /*
  DSPAM
@@ -748,6 +748,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
                 "spam_hits INT,innocent_hits INT,last_hit DATE)");
     if ((sqlite3_exec(s->dbh, buff, NULL, NULL, &err))!=SQLITE_OK) {
       _sqlite_drv_query_error (err, buff);
+      free(s);
       return EFAILURE;
     }
 
@@ -757,6 +758,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
                 "(innocent_hits)");
     if ((sqlite3_exec(s->dbh, buff, NULL, NULL, &err))!=SQLITE_OK) {
       _sqlite_drv_query_error (err, buff);
+      free(s);
       return EFAILURE;
     }
 
@@ -766,6 +768,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
                 "signature CHAR(128) PRIMARY KEY,data BLOB,created_on DATE)");
     if ((sqlite3_exec(s->dbh, buff, NULL, NULL, &err))!=SQLITE_OK) {
       _sqlite_drv_query_error (err, buff);
+      free(s);
       return EFAILURE;
     }
 
@@ -778,6 +781,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
                 "spam_classified INT,innocent_classified INT)");
     if ((sqlite3_exec(s->dbh, buff, NULL, NULL, &err))!=SQLITE_OK) {
       _sqlite_drv_query_error (err, buff);
+      free(s);
       return EFAILURE;
     }
 

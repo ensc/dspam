@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.95 2009/12/19 01:07:46 sbajic Exp $
+## $Id: dspam.conf.in,v 1.96 2010/04/17 14:39:49 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -514,7 +514,7 @@ HashMaxSeek		10
 HashConnectionCache	10
 
 
-# -- ExtLookup --
+# --- ExtLookup ---
 
 # ExtLookup: Prefrom various external lookup functions depending on user-
 # defined variables. ExtLookup can either be set to 'on' or 'off'. The 
@@ -556,7 +556,7 @@ HashConnectionCache	10
 #ExtLookupCrypto	tls				# Sets the use of TLS on backend communication (only compatible with LDAPv3)
 
 
-# -- Profiles --
+# --- Profiles ---
 
 #
 # You can specify multiple storage profiles, and specify the server to
@@ -772,6 +772,8 @@ Opt out
 #
 #MaxMessageSize 4194304
 
+# --- ClamAV ---
+
 #
 # Virus Checking: If you are running clamd, DSPAM can perform stream-based
 # virus checking using TCP. Uncomment the values below to enable virus
@@ -785,7 +787,7 @@ Opt out
 #ClamAVHost		127.0.0.1
 #ClamAVResponse		accept
 
-# -- CLIENT / SERVER --
+# --- CLIENT / SERVER ---
 
 #
 # Daemonized Server: If you are running DSPAM as a daemonized server using
@@ -851,11 +853,15 @@ Opt out
 #ClientPort	24
 #ClientIdent	"secret@Relay1"
 
+# --- RABL ---
+
 # RABLQueue: Touch files in the RABL queue
 # If you are a reporting streamlined blackhole list participant, you can
 # touch ip addresses within the directory the rabl_client process is watching.
 #
 #RABLQueue	/var/spool/rabl
+
+# ---  ---
 
 # DataSource: If you are using any type of data source that does not include
 # email-like headers (such as documents), uncomment the line below. This
@@ -890,5 +896,12 @@ ProcessorBias on
 # dspam-web.
 #
 StripRcptDomain off
+
+# --- Split Configuration File Support ---
+
+# Include a directory with configuration items.
+#Include /etc/dspam/dspam.d/
+
+# ---  ---
 
 ## EOF
