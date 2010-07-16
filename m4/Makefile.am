@@ -1,10 +1,9 @@
-# $Id: Makefile.am,v 1.01 2009/12/23 10:04:48 sbajic Exp $
+# $Id: Makefile.am,v 1.02 2010/07/16 21:57:19 sbajic Exp $
 # m4/Makefile.am
 #
 
 EXTRA_DIST = 					\
 	gcc_build_options.m4			\
-	libtool_hack.m4				\
 	mysql_drv.m4				\
 	netlibs.m4				\
 	pgsql_drv.m4				\
