@@ -1,5 +1,7 @@
-Version 3.9.0
+Version 3.9.1
 -------------
+
+[20100719:2115] sbajic: Adding strings.pl to makefile for HE translation
 
 [20100716:2200] sbajic: Fixing bug m4/Makefile.am regarding removal of libtool_hack.m4
 

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.0 2009/08/04 11:38:00 sbajic Exp $
+# $Id: Makefile.am,v 1.1 2010/07/19 21:15:01 sbajic Exp $
 
 EXTRA_DIST =            \
         nav_alerts.html \
@@ -13,4 +13,5 @@ EXTRA_DIST =            \
         nav_admin_status.html \
         nav_admin_user.html \
         nav_admin_preferences.html \
-	nav_fragment.html
+	nav_fragment.html \
+	strings.pl
