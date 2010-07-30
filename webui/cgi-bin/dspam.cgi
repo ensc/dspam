@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.52 2010/07/31 00:08:56 sbajic Exp $
+# $Id: dspam.cgi,v 1.53 2010/07/31 01:28:00 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
@@ -556,9 +556,9 @@ sub DisplayHistory {
 
     my $retrain_action = "";
     if ( $class eq "V" || $class eq "A" || $class eq "O" || $class eq "U" || $class eq "") {
-      $retrain_action = qq!&nbsp;</td>!;
+      $retrain_action = qq!<small>&nbsp;</small>!;
     } else {
-      $retrain_action = qq! <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)">$retrain</td>!;
+      $retrain_action = qq!<input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)"><small>$retrain</small>!;
     }
 
     # HTMLize special characters
@@ -569,13 +569,12 @@ sub DisplayHistory {
 
     my($entry) = <<_END;
 <tr>
-	<td class="$cl $rowclass" nowrap="true"><small>$cllabel</td>
-        <td class="$rowclass" nowrap="true"><small>
-	$retrain_action
-	<td class="$rowclass" nowrap="true"><small>$ctime</td>
-	<td class="$rowclass" nowrap="true"><small>$from</td>
-	<td class="$rowclass" nowrap="true"><small>$subject</td>
-	<td class="$rowclass" nowrap="true"><small>$info</td>
+ <td class="$cl $rowclass" nowrap="nowrap"><small>$cllabel</small></td>
+ <td class="$rowclass" nowrap="nowrap">$retrain_action</td>
+ <td class="$rowclass" nowrap="nowrap"><small>$ctime</small></td>
+ <td class="$rowclass" nowrap="nowrap"><small>$from</small></td>
+ <td class="$rowclass" nowrap="nowrap"><small>$subject</small></td>
+ <td class="$rowclass" nowrap="nowrap"><small>$info</small></td>
 </tr>
 _END
 
@@ -590,15 +589,12 @@ _END
 
   }
 
-  my $entry = <<_END;
-	<input name="history_page" type="hidden" value="$history_page">
-_END
-  push(@history, $entry);
-
   while($line = pop(@history)) { $DATA{'HISTORY'} .= $line; }
 
+  $DATA{'HISTORYPAGES'} = qq!<input name="history_page" type="hidden" value="$history_page">!;
+
   if ($CONFIG{'HISTORY_PER_PAGE'} > 0) {
-    $DATA{'HISTORYPAGES'} = "<div class=\"historypages\">";
+    $DATA{'HISTORYPAGES'} .= "<div class=\"historypages\">";
     $DATA{'HISTORYPAGES'} .= "[" if ($history_pages > 0);
     if (($history_pages > 1) && ($history_page > 1)) {
       my $i = $history_page-1;
@@ -608,7 +604,7 @@ _END
       $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\">";
       $DATA{'HISTORYPAGES'} .= "<big><strong>" if ($i == $history_page);
       $DATA{'HISTORYPAGES'} .= "&nbsp;$i&nbsp;";
-      $DATA{'HISTORYPAGES'} .= "</big></strong>" if ($i == $history_page);
+      $DATA{'HISTORYPAGES'} .= "</strong></big>" if ($i == $history_page);
       $DATA{'HISTORYPAGES'} .= "</a>";
     }
     if (($history_pages > 1) && ($history_page < $history_pages)) {
@@ -1362,11 +1358,11 @@ sub DisplayQuarantine {
 
     $DATA{'QUARANTINE'} .= <<_END;
 <tr>
-	<td class="$outclass" nowrap="true"><input type="checkbox" name="$row->{'X-DSPAM-Signature'}" id="checkbox-$counter" onclick="checkboxclicked(this)"></td>
-	<td class="$outclass $markclass" nowrap="true">$rating</td>
-        <td class="$outclass" nowrap="true">$ptime</td>
-	<td class="$outclass" nowrap="true">$row->{'From'}</td>
-	<td class="$outclass" nowrap="true"><a href="$CONFIG{'ME'}?$url">$row->{'Subject'}</a></td>
+ <td class="$outclass" nowrap="nowrap"><input type="checkbox" name="$row->{'X-DSPAM-Signature'}" id="checkbox-$counter" onclick="checkboxclicked(this)"></td>
+ <td class="$outclass $markclass" nowrap="nowrap">$rating</td>
+ <td class="$outclass" nowrap="nowrap">$ptime</td>
+ <td class="$outclass" nowrap="nowrap">$row->{'From'}</td>
+ <td class="$outclass" nowrap="nowrap"><a href="$CONFIG{'ME'}?$url">$row->{'Subject'}</a></td>
 </tr>
 _END
 
@@ -1710,7 +1706,7 @@ sub SafeVars {
   foreach $key (keys(%PAIRS)) {
     my($value) = $PAIRS{$key};
     $value =~ s/([^A-Z0-9])/sprintf("%%%x", ord($1))/gie;
-    $url .= "$key=$value&";
+    $url .= "$key=$value&amp;";
   }
   $url =~ s/\&$//;
   return $url;
