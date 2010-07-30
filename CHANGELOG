@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100731:0010] sbajic: Fixing HTML markup in dspam.cgi
+
 [20100719:2115] sbajic: Adding strings.pl to makefile for HE translation
 
 [20100716:2200] sbajic: Fixing bug m4/Makefile.am regarding removal of libtool_hack.m4

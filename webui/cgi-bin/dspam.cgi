@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.51 2010/04/27 02:19:54 sbajic Exp $
+# $Id: dspam.cgi,v 1.52 2010/07/31 00:08:56 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
@@ -225,7 +225,7 @@ if ($CONFIG{'ADMIN'} == 1 || $CONFIG{'SUBADMIN'} == 1) {
 }
 
 my($MYURL);
-$MYURL = qq!$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}&language=$LANGUAGE!;
+$MYURL = qq!$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=$FORM{'template'}&amp;language=$LANGUAGE!;
 
 #
 # Set up initial display variables
@@ -259,7 +259,7 @@ if ($FORM{'template'} eq "performance") {
   if ($FORM{'command'} eq "viewMessage") {
     &Quarantine_ViewMessage;
   } else {
-    $MYURL .= "&sortby=$FORM{'sortby'}" if ($FORM{'sortby'} ne "");
+    $MYURL .= "&amp;sortby=$FORM{'sortby'}" if ($FORM{'sortby'} ne "");
     if ($FORM{'command'} eq "processQuarantine") {
       &ProcessQuarantine;
       redirect($MYURL);
@@ -347,14 +347,14 @@ sub DisplayHistory {
         system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($retrain) . " --signature=" . quotemeta($signature) . " --user " . quotemeta("$CURRENT_USER"));
       }
     }
-    redirect("$MYURL&show=$show&history_page=$history_page");
+    redirect("$MYURL&amp;show=$show&amp;history_page=$history_page");
   } elsif ($FORM{'retrain'} ne "") {
     if ($FORM{'retrain'} eq "innocent") {
       &ProcessFalsePositive();
     } else {
       system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($FORM{'retrain'}) . " --signature=" . quotemeta($FORM{'signatureID'}) . " --user " . quotemeta("$CURRENT_USER"));
     }
-    redirect("$MYURL&show=$show&history_page=$history_page");
+    redirect("$MYURL&amp;show=$show&amp;history_page=$history_page");
   }
 
   my($LOG) = "$USER.log";
@@ -839,7 +839,7 @@ dailyQuarantineSummary=$FORM{'dailyQuarantineSummary'}
 _END
       close(FILE);
     }
-  redirect("$CONFIG{'ME'}?user=$FORM{'user'}&template=preferences&language=$LANGUAGE");
+  redirect("$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=preferences&amp;language=$LANGUAGE");
   }
 
   %PREFS = GetPrefs();
@@ -1104,7 +1104,7 @@ sub Quarantine_DeleteSpam {
 
     $FORM{'template'} = "performance";
     &CheckQuarantine;
-    redirect("$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}&language=$LANGUAGE");
+    redirect("$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=$FORM{'template'}&amp;language=$LANGUAGE");
     return; 
   }
   open(FILE, "<$MAILBOX");
@@ -1683,11 +1683,11 @@ sub output {
     s/\$CGI\$/$CONFIG{'ME'}/g;
     if($FORM{'user'}) {
       if($CONFIG{'ADMIN'} == 1) {
-        s/\$USER\$/user=$FORM{'user'}&/g;
+        s/\$USER\$/user=$FORM{'user'}&amp;/g;
       } elsif ($CONFIG{'SUBADMIN'} == 1) {
         my $form_user_domain = (split(/@/, $FORM{'user'}))[1];
         if($CONFIG{'SUBADMIN_USERS'}->{ $FORM{'user'} } == 1 || ($form_user_domain ne "" && $CONFIG{'SUBADMIN_USERS'}->{ "*@" . $form_user_domain } == 1)) {
-          s/\$USER\$/user=$FORM{'user'}&/g;
+          s/\$USER\$/user=$FORM{'user'}&amp;/g;
         } else {
           s/\$USER\$//g;
         }
