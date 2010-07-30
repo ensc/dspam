@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100731:0140] sbajic: Fixing HTML markup issues in German template
+
 [20100731:0120] sbajic: Fixing some more HTML markup issues in dspam.cgi
 
 [20100731:0010] sbajic: Fixing HTML markup in dspam.cgi
