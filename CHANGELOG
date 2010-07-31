@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100731:1510] sbajic: Adding more debug output to tokenizer.c
+
 [20100731:1500] sbajic: Unifying _pgsql_drv_getpwnam() to have same logic as _mysql_drv_getpwnam()
 
 [20100731:1445] sbajic: Limiting scope of variables in _mysql_drv_getpwnam()

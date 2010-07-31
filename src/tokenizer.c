@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.296 2010/05/22 11:46:13 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.298 2010/07/31 12:39:33 sbajic Exp $ */
 
 /*
  DSPAM
@@ -223,6 +223,10 @@ int _ds_tokenize_ngram(
     l = strlen (token);
     if (l >= 1 && l < 50)
     {
+#ifdef VERBOSE
+        LOGDEBUG ("Processing body token '%s'", token);
+#endif
+
       /* Process "current" token */
       if ( !_ds_process_body_token(CTX, token, previous_token, diction)
         && tokenizer == DSZ_CHAIN)
@@ -232,6 +236,10 @@ int _ds_tokenize_ngram(
     }
     token = strtok_r (NULL, DELIMITERS, &ptrptr);
   }
+
+#ifdef VERBOSE
+  LOGDEBUG("Finished tokenizing (ngram) message");
+#endif
 
   /* Final token reassembly (anything left in the buffer) */
 
@@ -295,6 +303,10 @@ int _ds_tokenize_sparse(
   heading[0] = 0;
   while (node_nt) {
     int multiline;
+
+#ifdef VERBOSE
+    LOGDEBUG("processing line: %s", node_nt->ptr);
+#endif
 
     _ds_sparse_clear(previous_tokens);
 
@@ -363,12 +375,20 @@ int _ds_tokenize_sparse(
    * Body Tokenization
    */
 
+#ifdef VERBOSE
+  LOGDEBUG("parsing message body");
+#endif
+
   token = strtok_r (body, DELIMITERS, &ptrptr);
   while (token != NULL)
   {
     l = strlen (token);
     if (l > 0 && l < 50)
     {
+#ifdef VERBOSE
+        LOGDEBUG ("Processing body token '%s'", token);
+#endif
+
       /* Process "current" token */
       _ds_map_body_token (CTX, token, previous_tokens, diction, bitpattern);
     }
@@ -382,6 +402,11 @@ int _ds_tokenize_sparse(
   _ds_sparse_clear(previous_tokens);
 
   free(bitpattern);
+
+#ifdef VERBOSE
+  LOGDEBUG("Finished tokenizing (sparse) message");
+#endif
+
   return 0;
 }
 
