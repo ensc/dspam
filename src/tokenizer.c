@@ -1,4 +1,4 @@
-/* $Id: tokenizer.c,v 1.298 2010/07/31 12:39:33 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.299 2010/07/31 15:11:25 sbajic Exp $ */
 
 /*
  DSPAM
@@ -345,7 +345,7 @@ int _ds_tokenize_sparse(
     /* Received headers use a different set of delimiters to preserve things
        like ip addresses */
 
-    token = strtok_r ((multiline) ? line : NULL, DELIMITERS_HEADING, &ptrptr);
+    token = strtok_r ((multiline) ? line : NULL, SPARSE_DELIMITERS_HEADING, &ptrptr);
 
     while (token)
     {
@@ -359,7 +359,7 @@ int _ds_tokenize_sparse(
         _ds_map_header_token (CTX, token, previous_tokens, diction, heading, bitpattern);
       }
 
-      token = strtok_r (NULL, DELIMITERS_HEADING, &ptrptr);
+      token = strtok_r (NULL, SPARSE_DELIMITERS_HEADING, &ptrptr);
     }
 
     for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
@@ -379,7 +379,7 @@ int _ds_tokenize_sparse(
   LOGDEBUG("parsing message body");
 #endif
 
-  token = strtok_r (body, DELIMITERS, &ptrptr);
+  token = strtok_r (body, SPARSE_DELIMITERS, &ptrptr);
   while (token != NULL)
   {
     l = strlen (token);
@@ -392,7 +392,7 @@ int _ds_tokenize_sparse(
       /* Process "current" token */
       _ds_map_body_token (CTX, token, previous_tokens, diction, bitpattern);
     }
-    token = strtok_r (NULL, DELIMITERS, &ptrptr);
+    token = strtok_r (NULL, SPARSE_DELIMITERS, &ptrptr);
   }
 
   for(i=0;i<SPARSE_WINDOW_SIZE;i++) {

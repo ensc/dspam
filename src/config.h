@@ -1,4 +1,4 @@
-/* $Id: config.h,v 1.13 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: config.h,v 1.14 2010/07/31 03:14:45 sbajic Exp $ */
 
 /*
  DSPAM
@@ -52,6 +52,9 @@ OLD DELIMITERS
  - : -FP, -FN
 + *: 
 */
+
+#define SPARSE_DELIMITERS           " .,;:\"/\\[]}{=+_()<>|&\n\t\r@-*~`?#$%^"
+#define SPARSE_DELIMITERS_HEADING   " ,;:\"/\\[]}{=+()<>|&\n\t\r@*~`?#$%^"
 
 #define DELIMITERS              " .,;:\n\t\r@-+*"
 #define DELIMITERS_HEADING      " ,;:\n\t\r@-+*"
