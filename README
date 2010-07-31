@@ -2077,7 +2077,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 	backend facilities.
 
     map - It will NOT verify that the supplied username exists in the lookup backend.
-	It will, thought, try to use the lookup backend to map (rewrite) the username. If
+	It will, though, try to use the lookup backend to map (rewrite) the username. If
 	There is a map/rewrite available, it will use the retrieved username, instead of
 	the supplied one. On the other hand, if there is no map/rewrite available, DSPAM
 	will use the supplied username and create the respective entries in it's backend.
