@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.742 2010/07/31 13:31:58 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.743 2010/07/31 13:55:04 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2128,6 +2128,8 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   char query[256];
   PGresult *result;
   char *virtual_table, *virtual_uid, *virtual_username;
+  unsigned char *sql_username;
+  size_t length;
 
   if (s->p_getpwnam.pw_name != NULL)
   {
@@ -2153,15 +2155,31 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     "PgSQLVirtualUsernameField")) ==NULL)
   { virtual_username = "username"; }
 
+  if ((s->pg_major_ver >= 7 && s->pg_minor_ver >= 3) || (s->pg_major_ver >= 8)) {
+    sql_username = PQescapeByteaConn(s->dbh, (unsigned char *) name, strlen(name), &length);
+  } else {
+    sql_username = PQescapeBytea((unsigned char *) name, strlen(name), &length);
+  }
+
+  if (sql_username == NULL)  {
+    LOGDEBUG("_pgsql_drv_getpwnam: returning NULL for name: %s. PQescapeByteaConn/PQescapeBytea failed somehow.", name);
+    PQFREEMEM(sql_username);
+    return NULL;
+  }
+
   snprintf (query, sizeof (query),
             "SELECT %s FROM %s WHERE %s='%s'",
-            virtual_uid, virtual_table, virtual_username, name);
+            virtual_uid, virtual_table, virtual_username, sql_username);
+
+  PQFREEMEM(sql_username);
+  sql_username = NULL;
 
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
+    LOGDEBUG ("_pgsql_drv_getpwnam: unable to run query: %s", query);
     if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
-      LOGDEBUG("_pgsql_drv_getpwnam returning NULL for query on name: %s that returned a null result", name);
+      LOGDEBUG("_pgsql_drv_getpwnam: returning NULL for query on name: %s that returned a null result", name);
       if (result) PQclear(result);
       return NULL;
     }
@@ -2174,7 +2192,7 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   {
     if (result) PQclear(result);
     if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
-      LOGDEBUG("_pgsql_drv_getpwnam returning NULL for query on name: %s that returned a null result", name);
+      LOGDEBUG("_pgsql_drv_getpwnam: returning NULL for query on name: %s that returned a null result", name);
       return NULL;
     }
     return _pgsql_drv_setpwnam (CTX, name);
@@ -2183,8 +2201,11 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   if ( PQgetvalue(result, 0, 0) == NULL )
   {
     if (result) PQclear(result);
-    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS)
+    if (CTX->source == DSS_ERROR || CTX->operating_mode != DSM_PROCESS) {
+      LOGDEBUG("_pgsql_drv_getpwnam: returning NULL for query on name: %s", name);
       return NULL;
+    }
+    LOGDEBUG("_pgsql_drv_getpwnam: setting, then returning passed name: %s", name);
     return _pgsql_drv_setpwnam (CTX, name);
   }
 
