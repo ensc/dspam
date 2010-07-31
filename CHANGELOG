@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100731:1330] sbajic: Fixing typo in PostgreSQL debug output
+
 [20100731:0140] sbajic: Fixing HTML markup issues in German template
 
 [20100731:0120] sbajic: Fixing some more HTML markup issues in dspam.cgi

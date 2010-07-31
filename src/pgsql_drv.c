@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.741 2010/06/12 09:47:46 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.742 2010/07/31 13:31:58 sbajic Exp $ */
 
 /*
  DSPAM
@@ -424,7 +424,7 @@ _pgsql_drv_set_spamtotals (DSPAM_CTX * CTX)
 
   if (p == NULL)
   {
-    LOGDEBUG ("_pgsql_drv_get_spamtotals: unable to _pgsql_drv_getpwnam(%s)",
+    LOGDEBUG ("_pgsql_drv_set_spamtotals: unable to _pgsql_drv_getpwnam(%s)",
               name);
     return EINVAL;
   }
