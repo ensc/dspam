@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100731:1610] sbajic: Fixing two typos in ExtLookup section in dspam.conf
+
 [20100731:1545] sbajic: Fixing two typos in ExtLookup section in dspam.conf
 
 [20100731:1520] sbajic: Adding different (extended) delimiters for advanced tokenizers (aka: SBPH and OSB) that profit from more tokens per message

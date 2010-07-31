@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.97 2010/07/31 15:38:40 sbajic Exp $
+## $Id: dspam.conf.in,v 1.98 2010/07/31 16:07:48 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -516,7 +516,7 @@ HashConnectionCache	10
 
 # --- ExtLookup ---
 
-# ExtLookup: Perfrom various external lookup functions depending on user-
+# ExtLookup: Perform various external lookup functions depending on user-
 # defined variables. ExtLookup can either be set to 'on' or 'off'. The
 # behavior of such lookups are defined by the use of ExtLookupMode, which
 # can be set to 'verify', 'map' and 'strict'.
