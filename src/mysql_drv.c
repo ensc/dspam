@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.876 2010/06/15 22:21:21 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.877 2010/07/31 13:59:09 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2265,7 +2265,6 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   int query_rc = 0;
   int query_errno = 0;
-  int name_size = MAX_USERNAME_LENGTH;
 #ifndef VIRTUAL_USERS
   struct passwd *q;
 #if defined(_REENTRANT) && defined(HAVE_GETPWNAM_R)
@@ -2273,11 +2272,8 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   char buf[1024];
 #endif
 
-  if (name == NULL) {
+  if (name == NULL)
     return NULL;
-  } else {
-    name_size = strlen(name);
-  }
 
   if (s->p_getpwnam.pw_name != NULL)
   {
@@ -2309,7 +2305,20 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   MYSQL_ROW row;
   char *virtual_table, *virtual_uid, *virtual_username;
   char *sql_username;
+  int name_size = MAX_USERNAME_LENGTH;
   result = NULL;
+
+  if (s->p_getpwnam.pw_name != NULL)
+  {
+    /* cache the last name queried */
+    if (name != NULL && !strcmp (s->p_getpwnam.pw_name, name)) {
+      LOGDEBUG("_mysql_drv_getpwnam returning cached name %s.", name);
+      return &s->p_getpwnam;
+    }
+
+    free (s->p_getpwnam.pw_name);
+    s->p_getpwnam.pw_name = NULL;
+  }
 
   if ((virtual_table
     = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
@@ -2323,16 +2332,8 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     "MySQLVirtualUsernameField")) ==NULL)
   { virtual_username = "username"; }
 
-  if (s->p_getpwnam.pw_name != NULL)
-  {
-    /* cache the last name queried */
-    if (name != NULL && !strcmp (s->p_getpwnam.pw_name, name)) {
-      LOGDEBUG("_mysql_drv_getpwnam returning cached name %s.", name);
-      return &s->p_getpwnam;
-    }
-
-    free (s->p_getpwnam.pw_name);
-    s->p_getpwnam.pw_name = NULL;
+  if (name != NULL) {
+    name_size = strlen(name);
   }
 
   sql_username = malloc ((2 * name_size) + 1);

@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100731:1445] sbajic: Limiting scope of variables in _mysql_drv_getpwnam()
+
 [20100731:1330] sbajic: Fixing typo in PostgreSQL debug output
 
 [20100731:0140] sbajic: Fixing HTML markup issues in German template
