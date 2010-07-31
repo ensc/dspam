@@ -1,4 +1,4 @@
-DSPAM v3.9.0
+DSPAM v3.9.1
 Copyright (c) 2002-2010 DSPAM Project
 http://dspam.sourceforge.net/
 
@@ -1777,7 +1777,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   The conversation that takes place between the client/server is LMTP-based,
   and will look like this:
 
-    SERVER> 220 DSPAM DLMTP 3.9.0 Authentication Required
+    SERVER> 220 DSPAM DLMTP 3.9.1 Authentication Required
     CLIENT> LHLO Relay1
     SERVER> 250-PIPELINING
     SERVER> 250-ENHANCEDSTATUSCODES
