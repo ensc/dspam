@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.53 2010/07/31 01:28:00 sbajic Exp $
+# $Id: dspam.cgi,v 1.54 2010/08/02 20:39:33 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
@@ -225,7 +225,7 @@ if ($CONFIG{'ADMIN'} == 1 || $CONFIG{'SUBADMIN'} == 1) {
 }
 
 my($MYURL);
-$MYURL = qq!$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=$FORM{'template'}&amp;language=$LANGUAGE!;
+$MYURL = qq!$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}&language=$LANGUAGE!;
 
 #
 # Set up initial display variables

@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100802:2045] sbajic: Fixing HTML formatting errors in dspam.cgi
+
 [20100731:1610] sbajic: Fixing two typos in ExtLookup section in dspam.conf
 
 [20100731:1545] sbajic: Fixing two typos in ExtLookup section in dspam.conf
