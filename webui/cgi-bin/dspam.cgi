@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.54 2010/08/02 20:39:33 sbajic Exp $
+# $Id: dspam.cgi,v 1.55 2010/08/03 12:52:06 sbajic Exp $
 # DSPAM
 # COPYRIGHT (C) DSPAM PROJECT 2002-2010
 #
@@ -1441,7 +1441,7 @@ sub DisplayIndex {
     open(FILE, "<$GROUP");
     chomp($gspam = <FILE>);
     close(FILE);
-    ($gspam, $ginnocent, $gfp, $gmisses, $gsc, $gic) = split(/\,/, $gspam);
+    ($gspam, $ginnocent, $gmisses, $gfp, $gsc, $gic) = split(/\,/, $gspam);
     $spam     -= $gspam;
     $innocent -= $ginnocent;
     $misses   -= $gmisses;
@@ -1473,8 +1473,8 @@ sub DisplayIndex {
       $monthly = sprintf("%2.3f", 
         (100.0-(($real_missed)/($real_caught+$real_missed))*100.0));
       $overall = sprintf("%2.3f", 
-        (100-((($real_missed+$real_fp) / 
-        ($real_fp+$real_innocent+$real_caught+$real_missed))*100)));
+        (100.0-(($real_missed+$real_fp) / 
+        ($real_fp+$real_innocent+$real_caught+$real_missed))*100.0));
     } else {
       if ($real_caught == 0 && $real_missed > 0) {
         $monthly = 0;
