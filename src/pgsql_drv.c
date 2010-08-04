@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.746 2010/08/04 15:13:41 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.747 2010/08/04 23:51:07 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1553,8 +1553,8 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   }
 
   snprintf (scratch, sizeof (scratch),
-            "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d,'%s',%lu,CURRENT_DATE,%s'",
-            (int) p->pw_uid, signature, (unsigned long) SIG->length, (!strncmp(mem, "\\\\x", 3)) ? "E" : "");
+            "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d,'%s',%lu,CURRENT_DATE,E'",
+            (int) p->pw_uid, signature, (unsigned long) SIG->length;
   buffer_cat (query, scratch);
   buffer_cat (query, (const char *) mem);
   buffer_cat (query, "')");

@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100804:2350] sbajic: Declare signature data to be escaped in PostgreSQL driver
+
 [20100804:2315] sbajic: Setting query buffer size inside functions to be equal with the one used in the PostgreSQL driver
 
 [20100804:1515] sbajic: Remove useless (double) encoding/escaping and one memory allocation issue in PostgreSQL driver
