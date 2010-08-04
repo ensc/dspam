@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# $Id: dspam_maintenance.sh,v 1.19 2010/04/26 21:25:58 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.20 2010/08/04 02:01:12 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -345,7 +345,7 @@ clean_mysql_drv() {
 			echo "password=${MySQLPass}">>"${DSPAM_CRON_TMPFILE}"
 		fi
 		DSPAM_MySQL_CMD="${MYSQL_BIN_DIR}/mysql"
-		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --defaults-extra-file=${DSPAM_CRON_TMPFILE}"
+		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --defaults-file=${DSPAM_CRON_TMPFILE}"
 		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --silent"
 		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --user=${MySQLUser}"
 		[ -S "${MySQLServer}" ] &&
