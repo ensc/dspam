@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.745 2010/08/04 12:07:27 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.746 2010/08/04 15:13:41 sbajic Exp $ */
 
 /*
  DSPAM
@@ -164,7 +164,7 @@ int
 _pgsql_drv_get_spamtotals (DSPAM_CTX * CTX)
 {
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
-  char query[1024];
+  char query[512];
   struct passwd *p;
   char *name;
   PGresult *result;
@@ -1553,8 +1553,8 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   }
 
   snprintf (scratch, sizeof (scratch),
-            "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d,'%s',%lu,CURRENT_DATE,'",
-            (int) p->pw_uid, signature, (unsigned long) SIG->length);
+            "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d,'%s',%lu,CURRENT_DATE,%s'",
+            (int) p->pw_uid, signature, (unsigned long) SIG->length, (!strncmp(mem, "\\\\x", 3)) ? "E" : "");
   buffer_cat (query, scratch);
   buffer_cat (query, (const char *) mem);
   buffer_cat (query, "')");
@@ -1697,7 +1697,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   char *virtual_table, *virtual_username;
 #endif
   uid_t uid;
-  char query[256];
+  char query[512];
   PGresult *result;
 
   if (s->dbh == NULL) {
@@ -2126,11 +2126,9 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 
   return &s->p_getpwnam;
 #else
-  char query[256];
+  char query[512];
   PGresult *result;
   char *virtual_table, *virtual_uid, *virtual_username;
-  unsigned char *sql_username;
-  size_t length;
 
   if (s->p_getpwnam.pw_name != NULL)
   {
@@ -2156,24 +2154,9 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     "PgSQLVirtualUsernameField")) ==NULL)
   { virtual_username = "username"; }
 
-  if ((s->pg_major_ver >= 7 && s->pg_minor_ver >= 3) || (s->pg_major_ver >= 8)) {
-    sql_username = PQescapeByteaConn(s->dbh, (unsigned char *) name, strlen(name), &length);
-  } else {
-    sql_username = PQescapeBytea((unsigned char *) name, strlen(name), &length);
-  }
-
-  if (sql_username == NULL)  {
-    LOGDEBUG("_pgsql_drv_getpwnam: returning NULL for name: %s. PQescapeByteaConn/PQescapeBytea failed somehow.", name);
-    PQFREEMEM(sql_username);
-    return NULL;
-  }
-
   snprintf (query, sizeof (query),
             "SELECT %s FROM %s WHERE %s='%s'",
-            virtual_uid, virtual_table, virtual_username, sql_username);
-
-  PQFREEMEM(sql_username);
-  sql_username = NULL;
+            virtual_uid, virtual_table, virtual_username, name);
 
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
@@ -2270,7 +2253,7 @@ _pgsql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
 
   return &s->p_getpwuid;
 #else
-  char query[256];
+  char query[512];
   PGresult *result;
   char *virtual_table, *virtual_uid, *virtual_username;
 
@@ -2359,7 +2342,7 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   if (name == NULL)
     return NULL;
 
-  char query[256];
+  char query[512];
   char *virtual_table, *virtual_uid, *virtual_username;
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   PGresult *result;
@@ -2602,7 +2585,7 @@ agent_pref_t _ds_pref_load(
 {
   struct _pgsql_drv_storage *s;
   struct passwd *p;
-  char query[256];
+  char query[512];
   PGresult *result;
   DSPAM_CTX *CTX;
   agent_pref_t PTX;
@@ -2678,56 +2661,19 @@ agent_pref_t _ds_pref_load(
 
   for (i=0; i<ntuples; i++)
   {
-    size_t attribute_length, value_length;
-    unsigned char *m1, *m2, *p, *q;
-    m1 = PQunescapeBytea((const unsigned char *) PQgetvalue(result,i,0), &attribute_length);
-    m2 = PQunescapeBytea((const unsigned char *) PQgetvalue(result,i,1), &value_length);
-
-    if (m1 == NULL || m2 == NULL) {
-      LOG (LOG_CRIT, ERR_MEM_ALLOC);
-      if (result) PQclear(result);
-      dspam_destroy(CTX);
-      PQFREEMEM(m1);
-      PQFREEMEM(m2);
-      return PTX;
-    }
-
-    p = calloc(1, attribute_length+1);
-    if (!p) {
-      LOG (LOG_CRIT, ERR_MEM_ALLOC);
-      if (result) PQclear(result);
-      dspam_destroy(CTX);
-      PQFREEMEM(m1);
-      PQFREEMEM(m2);
-      return PTX;
-    }
-    memcpy(p, m1, attribute_length);
-    PQFREEMEM(m1);
-
-    q = calloc(1, value_length+1);
-    if (!q) {
-      LOG (LOG_CRIT, ERR_MEM_ALLOC);
-      if (result) PQclear(result);
-      dspam_destroy(CTX);
-      PQFREEMEM(m2);
-      free(p);
-      return PTX;
-    }
-    memcpy(q, m2, value_length);
-    PQFREEMEM(m2);
+    char *p = PQgetvalue(result,i,0);
+    char *q = PQgetvalue(result,i,1);
 
     pref = malloc(sizeof(struct _ds_agent_attribute));
     if (pref == NULL) {
       LOG(LOG_CRIT, ERR_MEM_ALLOC);
       if (result) PQclear(result);
       dspam_destroy(CTX);
-      free(p);
-      free(q);
       return PTX;
     }
 
-    pref->attribute = (void *)(p);
-    pref->value = (void *)(q);
+    pref->attribute = strdup(p);
+    pref->value = strdup(q);
     PTX[i] = pref;
     PTX[i+1] = NULL;
   }
@@ -2747,11 +2693,9 @@ int _ds_pref_set (
 {
   struct _pgsql_drv_storage *s;
   struct passwd *p;
-  char query[256];
+  char query[512];
   DSPAM_CTX *CTX;
   int uid;
-  unsigned char *m1, *m2;
-  size_t length;
   PGresult *result;
 
   CTX = _pgsql_drv_init_tools(home, config, dbh, DSM_PROCESS);
@@ -2779,25 +2723,8 @@ int _ds_pref_set (
     uid = 0; /* Default Preferences */
   }
 
-  if ((s->pg_major_ver >= 7 && s->pg_minor_ver >= 3) || (s->pg_major_ver >= 8)) {
-    m1 = PQescapeByteaConn(s->dbh, (unsigned char *) preference, strlen(preference), &length);
-    m2 = PQescapeByteaConn(s->dbh, (unsigned char *) value, strlen(value), &length);
-  } else {
-    m1 = PQescapeBytea((unsigned char *) preference, strlen(preference), &length);
-    m2 = PQescapeBytea((unsigned char *) value, strlen(value), &length);
-  }
-
-  if (m1 == NULL || m2 == NULL)
-  {
-    LOG (LOG_CRIT, ERR_MEM_ALLOC);
-    dspam_destroy(CTX);
-    PQFREEMEM(m1);
-    PQFREEMEM(m2);
-    return EFAILURE;
-  }
-
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
-    " WHERE uid=%d AND preference=E'%s'", (int) uid, m1);
+    " WHERE uid=%d AND preference='%s'", (int) uid, preference);
 
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
@@ -2810,7 +2737,7 @@ int _ds_pref_set (
   if (result) PQclear(result);
 
   snprintf(query, sizeof(query), "INSERT INTO dspam_preferences"
-    " (uid,preference,value) VALUES (%d,E'%s',E'%s')", (int) uid, m1, m2);
+    " (uid,preference,value) VALUES (%d,'%s','%s')", (int) uid, preference, value);
 
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
@@ -2823,14 +2750,10 @@ int _ds_pref_set (
 
   if (result) PQclear(result);
   dspam_destroy(CTX);
-  PQFREEMEM(m1);
-  PQFREEMEM(m2);
   return 0;
 
 FAIL:
   LOGDEBUG("_ds_pref_set: failed");
-  PQFREEMEM(m1);
-  PQFREEMEM(m2);
   dspam_destroy(CTX);
   return EFAILURE;
 }
@@ -2844,11 +2767,9 @@ int _ds_pref_del (
 {
   struct _pgsql_drv_storage *s;
   struct passwd *p;
-  char query[256];
+  char query[512];
   DSPAM_CTX *CTX;
   int uid;
-  unsigned char *m1;
-  size_t length;
   PGresult *result;
 
   CTX = _pgsql_drv_init_tools(home, config, dbh, DSM_TOOLS);
@@ -2875,40 +2796,23 @@ int _ds_pref_del (
     uid = 0; /* Default Preferences */
   }
 
-  if ((s->pg_major_ver >= 7 && s->pg_minor_ver >= 3) || (s->pg_major_ver >= 8)) {
-    m1 = PQescapeByteaConn(s->dbh, (unsigned char *) preference, strlen(preference), &length);
-  } else {
-    m1 = PQescapeBytea((unsigned char *) preference, strlen(preference), &length);
-  }
-
-  if (m1 == NULL)
-  {
-    LOG (LOG_CRIT, ERR_MEM_ALLOC);
-    dspam_destroy(CTX);
-    PQFREEMEM(m1);
-    return EFAILURE;
-  }
-
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
-    " WHERE uid=%d AND preference=E'%s'", (int) uid, m1);
+    " WHERE uid=%d AND preference='%s'", (int) uid, preference);
 
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     _pgsql_drv_query_error (PQresultErrorMessage(result), query);
     if (result) PQclear(result);
-    result = NULL;
     goto FAIL;
   }
 
   if (result) PQclear(result);
   dspam_destroy(CTX);
-  PQFREEMEM(m1);
   return 0;
 
 FAIL:
   LOGDEBUG("_ds_pref_del: failed");
-  PQFREEMEM(m1);
   dspam_destroy(CTX);
   return EFAILURE;
 }
@@ -3099,14 +3003,14 @@ _pgsql_drv_token_type(struct _pgsql_drv_storage *s, PGresult *result, int column
 {
   int found_type = -1;
   char *type_str;
-  char query[1025];
+  char query[1024];
   PGresult *select_res;
 
   if (result == NULL)
   {
-    memset((void *)query, 0, 1025);
+    memset((void *)query, 0, sizeof(query));
 
-    snprintf(query, 1024,
+    snprintf(query, sizeof(query),
       "SELECT typname FROM pg_type WHERE typelem IN"
         " (SELECT atttypid FROM pg_attribute WHERE attname='token' AND attrelid IN"
           " (SELECT oid FROM pg_class WHERE relname='dspam_token_data'));");
