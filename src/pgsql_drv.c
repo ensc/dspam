@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.744 2010/08/04 01:51:42 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.745 2010/08/04 12:07:27 sbajic Exp $ */
 
 /*
  DSPAM
@@ -471,6 +471,7 @@ _pgsql_drv_set_spamtotals (DSPAM_CTX * CTX)
   if ( s->control_totals.innocent_learned != 0 || result == NULL || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
     if (result) PQclear(result);
+    result = NULL;
 
     /* Do not update stats if all values are zero (aka: no update needed) */
     if (!(abs(CTX->totals.spam_learned           - s->control_totals.spam_learned) == 0 &&

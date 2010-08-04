@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100804:1210] sbajic: Fix a crash in the PostgreSQL driver (corrupted double-linked free)
+
 [20100804:0200] sbajic: Use '--defaults-file' instead of '--defaults-extra-file' in maintenance script
 
 [20100804:0200] sbajic: Fixing double encoding of signature data in PostgreSQL driver
