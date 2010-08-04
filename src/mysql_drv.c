@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.877 2010/07/31 13:59:09 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.878 2010/08/04 23:10:16 sbajic Exp $ */
 
 /*
  DSPAM
@@ -167,7 +167,7 @@ int
 _mysql_drv_get_spamtotals (DSPAM_CTX * CTX)
 {
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
-  char query[1024];
+  char query[512];
   struct passwd *p;
   char *name;
   MYSQL_RES *result;
@@ -1957,7 +1957,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   char *virtual_table, *virtual_username;
 #endif
   uid_t uid;
-  char query[256];
+  char query[512];
   MYSQL_ROW row;
   int query_rc = 0;
   int query_errno = 0;
@@ -2300,7 +2300,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 
   return &s->p_getpwnam;
 #else
-  char query[256];
+  char query[512];
   MYSQL_RES *result;
   MYSQL_ROW row;
   char *virtual_table, *virtual_uid, *virtual_username;
@@ -2455,7 +2455,7 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
 
   return &s->p_getpwuid;
 #else
-  char query[256];
+  char query[512];
   MYSQL_RES *result;
   MYSQL_ROW row;
   char *virtual_table, *virtual_uid, *virtual_username;
@@ -2561,7 +2561,7 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   if (name == NULL)
     return NULL;
 
-  char query[256];
+  char query[512];
   int query_rc = 0;
   int query_errno = 0;
   char *virtual_table, *virtual_uid, *virtual_username;
@@ -2826,7 +2826,7 @@ agent_pref_t _ds_pref_load(
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
-  char query[256];
+  char query[512];
   int query_rc = 0;
   int query_errno = 0;
   MYSQL_RES *result;
@@ -2948,7 +2948,7 @@ int _ds_pref_set (
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
-  char query[256];
+  char query[512];
   int query_rc = 0;
   int query_errno = 0;
   DSPAM_CTX *CTX;
@@ -3057,7 +3057,7 @@ int _ds_pref_del (
 {
   struct _mysql_drv_storage *s;
   struct passwd *p;
-  char query[256];
+  char query[512];
   int query_rc = 0;
   int query_errno = 0;
   DSPAM_CTX *CTX;
