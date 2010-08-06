@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.402 2010/06/12 15:39:35 sbajic Exp $ */
+/* $Id: dspam.c,v 1.403 2010/08/06 18:52:38 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1200,7 +1200,7 @@ int
 quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
 {
   char filename[MAX_FILENAME_LENGTH];
-  char *x, *msg, *ptrptr;
+  char *x, *msg;
   int line = 1, i;
   FILE *file;
 
@@ -1243,8 +1243,8 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
 
   /* TODO: Is there a way to do this without a strdup/strsep ? */
 
-  x = strtok_r (msg, "\n", &ptrptr);
-  while (x != NULL)
+  x = strsep (msg, "\n");
+  while (x)
   {
     /* Quote any lines beginning with 'From ' to keep mbox from breaking */
 
@@ -1253,14 +1253,14 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
     fputs (x, file);
     fputs ("\n", file);
     line++;
-    x = strtok_r (NULL, "\n", &ptrptr);
+    x = strsep (msg, "\n");
   }
+  free (msg);
   fputs ("\n\n", file);
 
   _ds_free_fcntl_lock(fileno(file));
   fclose (file);
 
-  free (msg);
   return 0;
 }
 

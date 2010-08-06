@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100806:1900] sbajic: Fix broken appending of message (the old code removed all lines with a single \n from the message) to quarantine (mbox file)
+
 [20100806:0050] sbajic: Exit dspam_admin with proper return code
 
 [20100804:2355] sbajic: Fixing typo from last commit
