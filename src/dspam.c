@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.403 2010/08/06 18:52:38 sbajic Exp $ */
+/* $Id: dspam.c,v 1.403 2010/08/06 23:36:36 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1243,7 +1243,7 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
 
   /* TODO: Is there a way to do this without a strdup/strsep ? */
 
-  x = strsep (msg, "\n");
+  x = strsep (&msg, "\n");
   while (x)
   {
     /* Quote any lines beginning with 'From ' to keep mbox from breaking */
@@ -1253,7 +1253,7 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
     fputs (x, file);
     fputs ("\n", file);
     line++;
-    x = strsep (msg, "\n");
+    x = strsep (&msg, "\n");
   }
   free (msg);
   fputs ("\n\n", file);
