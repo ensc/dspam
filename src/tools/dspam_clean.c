@@ -1,4 +1,4 @@
-/* $Id: dspam_clean.c,v 1.242 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: dspam_clean.c,v 1.243 2010/08/09 23:28:18 sbajic Exp $ */
 
 /*
  DSPAM
@@ -96,7 +96,11 @@ main (int argc, char *argv[])
     goto bail;
   }
                                                                                 
-  libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
+  if (libdspam_init(_ds_read_attribute(agent_config, "StorageDriver")) != 0) {
+    LOG(LOG_ERR, ERR_AGENT_MISCONFIGURED);
+    _ds_destroy_config(agent_config);
+    exit(EXIT_FAILURE);
+  }
 
 #ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY

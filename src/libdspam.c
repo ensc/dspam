@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.195 2010/04/29 17:30:27 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.196 2010/08/09 23:13:35 sbajic Exp $ */
 
 /*
  DSPAM
@@ -2214,7 +2214,10 @@ void _ds_factor_destroy(struct nt *factors) {
 int libdspam_init(const char *driver) {
 
 #ifndef STATIC_DRIVER
-  if (driver) {
+  if (driver == NULL) {
+      LOG(LOG_CRIT, "dlopen() failed: Can not load NULL driver");
+      return EFAILURE;
+  } else if (driver) {
     if ((_drv_handle = dlopen(driver, RTLD_NOW))==NULL) {
       LOG(LOG_CRIT, "dlopen() failed: %s: %s", driver, dlerror());
       return EFAILURE;

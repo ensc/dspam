@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100809:2330] sbajic: Fix hang/segmentation fault when no StorageDriver is selected AND no storage driver is statically linked
+
 [20100806:2340] sbajic: Fix logical error/typo in last commit
 
 [20100806:1900] sbajic: Fix broken appending of message (the old code removed all lines with a single \n from the message) to quarantine (mbox file)
