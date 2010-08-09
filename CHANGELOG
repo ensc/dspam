@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100810:0135] sbajic: Print errors to stderr when using the helper tools
+
 [20100809:2355] sbajic: Changing error message to ERR_DRV_INIT for the helper tools when there is a problem loading the storage driver
 
 [20100809:2350] sbajic: Fix hang/segmentation fault in dspam_2sql when no StorageDriver is selected AND no storage dirver is statically linked

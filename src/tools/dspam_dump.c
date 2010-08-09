@@ -1,4 +1,4 @@
-/* $Id: dspam_dump.c,v 1.18 2010/08/09 23:46:18 sbajic Exp $ */
+/* $Id: dspam_dump.c,v 1.19 2010/08/10 01:19:04 sbajic Exp $ */
 
 /*
  DSPAM
@@ -82,16 +82,19 @@ main (int argc, char **argv)
   agent_config = read_config(NULL);
   if (!agent_config) {
     LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
+    fprintf (stderr, ERR_AGENT_READ_CONFIG "\n");
     exit(EXIT_FAILURE);
   }
                                                                                 
   if (!_ds_read_attribute(agent_config, "Home")) {
     LOG(LOG_ERR, ERR_AGENT_DSPAM_HOME);
+    fprintf (stderr, ERR_AGENT_DSPAM_HOME "\n");
     exit(EXIT_FAILURE);
   }
 
   if (libdspam_init(_ds_read_attribute(agent_config, "StorageDriver")) != 0) {
     LOG(LOG_ERR, ERR_DRV_INIT);
+    fprintf (stderr, ERR_DRV_INIT "\n");
     _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
@@ -113,6 +116,7 @@ main (int argc, char **argv)
     {
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
         LOG(LOG_ERR, ERR_AGENT_NO_SUCH_PROFILE, argv[i]+10);
+        fprintf (stderr, ERR_AGENT_NO_SUCH_PROFILE "\n", argv[i]+10);
         goto BAIL;
       } else {
         _ds_overwrite_attribute(agent_config, "DefaultProfile", argv[i]+10);
@@ -158,6 +162,7 @@ main (int argc, char **argv)
   set_libdspam_attributes(CTX);
   if (dspam_attach(CTX, NULL)) {
     LOG (LOG_WARNING, "unable to attach dspam context");
+    fprintf (stderr, "Unable to attach DSPAM context\n");
     goto BAIL;
   }
 
