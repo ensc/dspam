@@ -1,4 +1,4 @@
-/* $Id: dspam_merge.c,v 1.154 2010/08/09 23:29:20 sbajic Exp $ */
+/* $Id: dspam_merge.c,v 1.155 2010/08/09 23:46:43 sbajic Exp $ */
 
 /*
  DSPAM
@@ -86,7 +86,7 @@ main (int argc, char **argv)
   }
                                                                                 
   if (libdspam_init(_ds_read_attribute(agent_config, "StorageDriver")) != 0) {
-    LOG(LOG_ERR, ERR_AGENT_MISCONFIGURED);
+    LOG(LOG_ERR, ERR_DRV_INIT);
     _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
