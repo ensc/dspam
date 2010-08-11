@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100812:0155] sbajic: Do not allow --profile option for dspam_stats if trusted user security is active and user is not trusted
+
 [20100810:0135] sbajic: Print errors to stderr when using the helper tools
 
 [20100809:2355] sbajic: Changing error message to ERR_DRV_INIT for the helper tools when there is a problem loading the storage driver

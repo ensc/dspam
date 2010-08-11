@@ -1,4 +1,4 @@
-/* $Id: dspam_stats.c,v 1.33 2010/08/10 01:05:21 sbajic Exp $ */
+/* $Id: dspam_stats.c,v 1.34 2010/08/12 01:22:43 sbajic Exp $ */
 
 /*
  DSPAM
@@ -113,6 +113,14 @@ main (int argc, char **argv)
   for(i=0;i<argc;i++) {
     if (!strncmp (argv[i], "--profile=", 10))
     {
+#ifdef TRUSTED_USER_SECURITY
+      if (!trusted) {
+        LOG(LOG_ERR, ERR_TRUSTED_PRIV, "--profile", p->pw_uid, p->pw_name);
+        fprintf (stderr, ERR_TRUSTED_PRIV "\n", "--profile", p->pw_uid, p->pw_name);
+        _ds_destroy_config(agent_config);
+        goto BAIL;
+      }
+#endif
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
         LOG(LOG_ERR, ERR_AGENT_NO_SUCH_PROFILE, argv[i]+10);
         fprintf (stderr, ERR_AGENT_NO_SUCH_PROFILE "\n", argv[i]+10);
