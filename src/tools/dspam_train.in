@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# $Id: dspam_train.in,v 1.00 2009/12/22 12:25:59 sbajic Exp $
+# $Id: dspam_train.in,v 1.01 2010/08/12 02:03:35 sbajic Exp $
 
 use strict;
 use vars qw { $USER %CONFIG $SPAM_CORPUS $NONSPAM_CORPUS };
@@ -32,6 +32,10 @@ sub usage {
 
 print "Taking Snapshot...\n";
 system("$CONFIG{'BINDIR'}/dspam_stats -r $USER");
+if (($? >> 8) != 0) {
+    print STDERR "Running dspam_stats for $USER failed.\n";
+    exit(-1);
+}
 
 if ($SPAM_CORPUS eq "-i") {
     TrainOnIndex($NONSPAM_CORPUS);
@@ -109,8 +113,16 @@ sub FinishTraining() {
     print "TRAINING COMPLETE\n";
     print "\nTraining Snapshot:\n";
     system("$CONFIG{'BINDIR'}/dspam_stats -S -s $USER");
+    if (($? >> 8) != 0) {
+        print STDERR "Running dspam_stats for $USER failed.\n";
+        exit(-1);
+    }
     print "\nOverall Statistics:\n";
     system("$CONFIG{'BINDIR'}/dspam_stats -S $USER");
+    if (($? >> 8) != 0) {
+        print STDERR "Running dspam_stats for $USER failed.\n";
+        exit(-1);
+    }
 }
 
 sub GetFilesOrMessages {

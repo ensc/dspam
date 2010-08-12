@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100812:0205] sbajic: Do not continue training with dspam_train if calling dspam_stats has failed
+
 [20100812:0155] sbajic: Do not allow --profile option for dspam_stats if trusted user security is active and user is not trusted
 
 [20100810:0135] sbajic: Print errors to stderr when using the helper tools
