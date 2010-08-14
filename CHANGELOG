@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100814:1640] sbajic: Fixing dot escaping in client/server socket protocol
+
 [20100814:1515] sbajic: Fix client to only send SIZE=n if the LMTP delivery destination has SIZE extension support
 
 [20100814:1330] sbajic: Documenting additional --deliver values

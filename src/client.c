@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.686 2010/08/14 15:05:59 sbajic Exp $ */
+/* $Id: client.c,v 1.687 2010/08/14 16:36:04 sbajic Exp $ */
 
 /*
  DSPAM
@@ -140,15 +140,44 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   i = 0;
   msglen = strlen(message->data);
   while(i<msglen) {
-    int r = send(TTX.sockfd, message->data+i, msglen - i, 0);
-    if (r <= 0) {
-      STATUS(ERR_CLIENT_SEND_FAILED);
-      goto BAIL;
+    int r;
+    int t;
+    int buflen;
+
+    /* fill buf with partial msg, replacing \n with \r\n */
+    buflen = 0;
+    while ((size_t)buflen < (sizeof(buf) - 2) && i < msglen) {
+      /* only replace \n and not \r\n */
+      if (i > 0 && message->data[i] == '\n' && message->data[i - 1] != '\r') {
+        buf[buflen] = '\r';
+        buflen++;
+      }
+
+      /* escape dot if first character on line */
+      if (message->data[i] == '.' && (i == 0 || message->data[i - 1] == '\n')) {
+        buf[buflen] = '.';
+        buflen++;
+      }
+
+      buf[buflen] = message->data[i];
+      buflen++;
+      i++;
     }
-    i += r;
+
+    /* send buf */
+    t = 0;
+    while (t < buflen) {
+      r = send(TTX.sockfd, buf+t, buflen - t, 0);
+      if (r <= 0) {
+        LOG(LOG_ERR, ERR_CLIENT_SEND_FAILED);
+        STATUS(ERR_CLIENT_SEND_FAILED);
+        goto BAIL;
+      }
+      t += r;
+    }
   }
 
-  if (message->data[strlen(message->data)-1]!= '\n') {
+  if (message->data[msglen-1]!= '\n') {
     if (send_socket(&TTX, "")<=0) {
      STATUS(ERR_CLIENT_SEND_FAILED);
      goto BAIL;
