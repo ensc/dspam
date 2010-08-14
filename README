@@ -22,6 +22,7 @@ CREDITS
 
 Original Work By
   Lead development till 3.8.0: Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+  Lead development after 3.8.0: Stevan Bajic <stevan@bajic.ch>
   PostgreSQL driver: Rustam Aliyev <rustam@azernews.com>
   External Lookup module: Hugo Monteiro <hugo.monteiro@fct.unl.pt>
   Various:
