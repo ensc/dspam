@@ -1165,14 +1165,22 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
                 You should use inoculation only on honeypots and the like.
 
-  --deliver=[innocent,spam]
+  --deliver=[spam,[innocent|nonspam],summary,stdout]
   Tells DSPAM to deliver the message if its result falls within the criteria
-  specified.  For example, --deliver=innocent will cause DSPAM to only
-  deliver the message if it classifies as innocent.  Providing
-  --deliver=innocent,spam will cause DSPAM to deliver the message regardless
-  of its classification.  This flag provides a significant amount of
-  flexibility for nonstandard implementations, where false positives may not
-  be delivered but spam is, and etcetera.
+  specified. For example, --deliver=innocent or --deliver=nonspam will cause
+  DSPAM to only deliver the message if its classification has been determined
+  as innocent. Providing --deliver=innocent,spam or --deliver=nonspam,spam will
+  cause DSPAM to deliver the message regardless of its classification. This flag
+  provides a significant amount of flexibility for nonstandard implementations,
+  where false positives may not be delivered but spam is, and etcetera.
+
+    summary : Deliver (to stdout) a summary indentical to the output of message
+              classification:
+                X-DSPAM-Result: User; result="Innocent"; class="Innocent";
+                probability=0.0000; confidence=1.00;
+                signature=4b11c532158749980119923
+
+    stdout : Is a shortcut for for --deliver=innocent,spam --stdout
 
   --stdout
   If the message is indeed deemed "deliverable" by the --deliver flag, this
