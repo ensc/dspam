@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.685 2010/05/13 22:38:45 sbajic Exp $ */
+/* $Id: client.c,v 1.686 2010/08/14 15:05:59 sbajic Exp $ */
 
 /*
  DSPAM
@@ -685,6 +685,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   int buflen;
   char *inp;
   int i;
+  int size_extension = 0;
 
   err[0] = 0;
 
@@ -720,9 +721,45 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
     goto BAIL;
   }
 
-  /* MAIL FROM */
+  /* Check for SIZE extension */
 
-  inp = client_expect(&TTX, LMTP_OK, err, sizeof(err));
+  if (proto == DDP_LMTP) {
+    char *dup, *ptr, *ptrptr;
+    inp = client_getline(&TTX, 300);
+    while(inp != NULL) {
+      code = 0;
+      dup = strdup(inp);
+      if (!dup) {
+        free(inp);
+        LOG(LOG_CRIT, ERR_MEM_ALLOC);
+        LOG(LOG_ERR, ERR_CLIENT_INVALID_RESPONSE, "LHLO", ERR_MEM_ALLOC);
+        STATUS("LHLO: %s", ERR_MEM_ALLOC);
+        goto QUIT;
+      }
+      if (!strcmp(dup, "250-SIZE")) {
+        free(inp);
+        free(dup);
+        size_extension = 1;
+        inp = client_expect(&TTX, LMTP_OK, err, sizeof(err));
+        break;
+      } else if (strncmp(dup, "250-", 4)) {
+        ptr = strtok_r(dup, " ", &ptrptr);
+        if (ptr)
+          code = atoi(ptr);
+        free(dup);
+        if (code == LMTP_OK) {
+          err[0] = 0;
+          break;
+        }
+        LOG(LOG_WARNING, ERR_CLIENT_RESPONSE_CODE, code, inp);
+      }
+      strlcpy(err, inp, sizeof(err));
+      free(inp);
+      inp = client_getline(&TTX, 300);
+    }
+  } else {
+    inp = client_expect(&TTX, LMTP_OK, err, sizeof(err));
+  }
   if (inp == NULL) {
     LOG(LOG_ERR, ERR_CLIENT_INVALID_RESPONSE,
       (proto == DDP_LMTP) ? "LHLO" : "HELO", err);
@@ -731,8 +768,10 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   }
   free(inp);
 
-  if (proto == DDP_LMTP) {
-    snprintf(buf, sizeof(buf), "MAIL FROM:<%s> SIZE=%ld", 
+  /* MAIL FROM */
+
+  if (proto == DDP_LMTP && size_extension == 1) {
+    snprintf(buf, sizeof(buf), "MAIL FROM:<%s> SIZE=%ld",
              ATX->mailfrom, (long) strlen(msg));
   } else {
     snprintf(buf, sizeof(buf), "MAIL FROM:<%s>", ATX->mailfrom);

@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100814:1515] sbajic: Fix client to only send SIZE=n if the LMTP delivery destination has SIZE extension support
+
 [20100814:1330] sbajic: Documenting additional --deliver values
 
 [20100812:0205] sbajic: Do not continue training with dspam_train if calling dspam_stats has failed
