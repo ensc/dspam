@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.687 2010/08/14 16:36:04 sbajic Exp $ */
+/* $Id: client.c,v 1.688 2010/08/16 16:50:47 sbajic Exp $ */
 
 /*
  DSPAM
@@ -765,7 +765,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
         STATUS("LHLO: %s", ERR_MEM_ALLOC);
         goto QUIT;
       }
-      if (!strcmp(dup, "250-SIZE")) {
+      if (!strcmp(dup, "250-SIZE") || (!strncmp(dup, "250-SIZE", 8) && strlen(dup)>=8 && isspace(dup[8]))) {
         free(inp);
         free(dup);
         size_extension = 1;
@@ -775,6 +775,11 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
         ptr = strtok_r(dup, " ", &ptrptr);
         if (ptr)
           code = atoi(ptr);
+        if (code == LMTP_OK) {
+          ptr = strtok_r(NULL, " ", &ptrptr);
+          if (ptr && !strcmp(ptr, "SIZE"))
+            size_extension = 1;
+        }
         free(dup);
         if (code == LMTP_OK) {
           err[0] = 0;
