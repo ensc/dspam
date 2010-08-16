@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100816:2000] sbajic: Remove undocumented and unsupported spam/ham aliases and correct firstrun.txt to mention correct spam training alias
+
 [20100816:1650] sbajic: Extend SIZE extension detection to support more variants of the extension
 
 [20100814:1640] sbajic: Fixing dot escaping in client/server socket protocol

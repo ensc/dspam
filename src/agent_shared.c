@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.79 2010/05/18 18:13:49 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.80 2010/08/16 19:59:57 sbajic Exp $ */
 
 /*
  DSPAM
@@ -856,10 +856,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
     if (!x) x = strstr(h, " spam-");
     if (!x) x = strstr(h, "\tspam-");
     if (!x) x = strstr(h, ",spam-");
-    if (!x) x = strstr(h, "<spam@");
-    if (!x) x = strstr(h, " spam@");
-    if (!x) x = strstr(h, "\tspam@");
-    if (!x) x = strstr(h, ",spam@");
+    if (!x) x = strstr(h, ":spam-");
     if (x != NULL) {
       y = strdup(x+6);
       if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
@@ -872,10 +869,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
       if (!x) x = strstr(h, " notspam-");
       if (!x) x = strstr(h, "\tnotspam-");
       if (!x) x = strstr(h, ",notspam-");
-      if (!x) x = strstr(h, "<notspam@");
-      if (!x) x = strstr(h, " notspam@");
-      if (!x) x = strstr(h, "\tnotspam@");
-      if (!x) x = strstr(h, ",notspam@");
+      if (!x) x = strstr(h, ":notspam-");
       if (x && strlen(x) >= 9) {
         y = strdup(x+9);
         if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
@@ -911,7 +905,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
     {
       z = strtok_r(y, ">, \t\r\n", &ptrptr);
     } else {
-      if (!strstr(x, "spam@"))
+      if (strstr(x, "@"))
         z = strtok_r(y, "@", &ptrptr);
       else
         z = NULL;
