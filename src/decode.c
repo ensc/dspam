@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.389 2010/05/22 10:37:15 sbajic Exp $ */
+/* $Id: decode.c,v 1.390 2010/08/16 14:43:17 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1374,6 +1374,7 @@ _ds_strip_html (const char *html)
         }
         continue;
       } else if (html[k]) {
+        /* find the end of the tag */
         while (k < len && html[k] != '<' && html[k] != '>') {k++;}
 
         /* if we've got a tag with a uri, save the address to print later. */
@@ -1406,37 +1407,41 @@ _ds_strip_html (const char *html)
                 } else if (html[url_start] == '\'') {
                   delim = '\'';
                   url_start++;
+                } else {
+                  delim = '>';
                 }
                 break;
               } else {
+                /* Start of uri tag found but no '=' after the tag.
+                 * Skip the whole tag.
+                 */
                 break;
               }
             } else if ((url_start - tag_offset) >= 50) {
               /* The length of the html tag is over 50 characters long without
                * finding the start of the url/uri. Skip the whole tag.
                */
-              i = url_start;
-              const char *w = &(html[tag_offset]);
-              while (i < len && (w - html) < len && *w != '>') {w++;i++;};
               break;
             }
           }
           /* find end of uri */
-          if (url_start < len &&
-              (strncasecmp(html + url_start, "http:", 5) == 0 ||
-               strncasecmp(html + url_start, "https:", 6) == 0 ||
-               strncasecmp(html + url_start, "ftp:", 4) == 0)) {
-            html2[j++]=' ';
-            const char *w = &(html[url_start]);
-            /* html2 is a buffer of len + 1, where the +1 is for NULL
-             * termination. This means we only want to loop to len
-             * since we will replace html2[j] right after the loop.
-             */
-            while (j < len && (w - html) < len && *w != delim) {
-              html2[j++]=*w;
-              w++;
+          if (delim != ' ') {
+            if (url_start < len &&
+                (strncasecmp(html + url_start, "http:", 5) == 0 ||
+                 strncasecmp(html + url_start, "https:", 6) == 0 ||
+                 strncasecmp(html + url_start, "ftp:", 4) == 0)) {
+              html2[j++]=' ';
+              const char *w = &(html[url_start]);
+              /* html2 is a buffer of len + 1, where the +1 is for NULL
+               * termination. This means we only want to loop to len
+               * since we will replace html2[j] right after the loop.
+               */
+              while (j < len && (w - html) < len && *w != delim) {
+                html2[j++]=*w;
+                w++;
+              }
+              html2[j++]=' ';
             }
-            html2[j++]=' ';
           }
         } else if (strncasecmp(html + i, "<p>", 3) == 0
                 || strncasecmp(html + i, "<p ", 3) == 0
