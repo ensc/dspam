@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100819:0030] sbajic: Adding missing JavaScript code to the German Web-UI templates
+
 [20100816:2010] sbajic: Speedup HTML stripping and extract uri from invalid tags (aka: uri tags that have no " or ' around the uri)
 
 [20100816:2000] sbajic: Remove undocumented and unsupported spam/ham aliases and correct firstrun.txt to mention correct spam training alias
