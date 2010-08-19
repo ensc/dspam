@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.83 2010/02/06 00:26:18 sbajic Exp $
+dnl $Id: configure.ac,v 1.84 2010/08/19 22:06:06 sbajic Exp $
 dnl
 dnl    autoconf (GNU Autoconf) 2.59
 dnl    ltmain.sh (GNU libtool) 1.5.6
@@ -610,6 +610,12 @@ AC_MSG_RESULT([$enable_domain_scale])
 if test x"$enable_domain_scale$enable_large_scale" = xyesyes
 then
   AC_MSG_ERROR([you may not have domain-scale and large-scale implemented simultaneously])
+elif test x"$enable_domain_scale$enable_homedir" = xyesyes
+then
+  AC_MSG_ERROR([you may not have domain-scale and homedir implemented simultaneously])
+elif test x"$enable_large_scale$enable_homedir" = xyesyes
+then
+  AC_MSG_ERROR([you may not have large-scale and homedir implemented simultaneously])
 fi
 
 #
