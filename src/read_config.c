@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.193 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: read_config.c,v 1.194 2010/08/20 11:42:13 sbajic Exp $ */
 
 /*
  DSPAM
@@ -106,13 +106,20 @@ static char *tokenize(char *text, char **next)
 // or if it is a file, pass it to fileread.
 long dirread(const char *path, config_t *attrib, long num_root) {
   DIR *dir_p;
-  char *fulldir;
+  char *fulldir = NULL;
   struct dirent *dir_entry_p;
+
+  if (path == NULL) return 0;
 
   // Strip "\n"
   char *ptr = strrchr(path, '\n');
   if (ptr)
     *ptr = '\0';
+
+  if ((dir_p = opendir(path)) == NULL) {
+    LOG(LOG_ERR, ERR_IO_FILE_OPEN, path, strerror(errno));
+    return 0;
+  }
 
   if ((dir_p = opendir(path))) {
     while((dir_entry_p = readdir(dir_p)))
@@ -122,15 +129,20 @@ long dirread(const char *path, config_t *attrib, long num_root) {
           strcmp(dir_entry_p->d_name, "..") == 0)
         continue;
 
+      int n = strlen(dir_entry_p->d_name);
+
       // only use files which end in .conf:
-      if (strncmp(dir_entry_p->d_name + strlen(dir_entry_p->d_name) - 5,
-                 ".conf", 5) != 0) {
-       continue;
+      if (n < 5) continue;
+      if (strncmp(dir_entry_p->d_name + n - 5, ".conf", 5) != 0) continue;
+
+      int m = strlen(path);
+
+      fulldir = (char *)malloc(n+m+2);
+      if (fulldir == NULL) {
+        LOG(LOG_CRIT, ERR_MEM_ALLOC);
+        return 0;
       }
 
-      int n = strlen(dir_entry_p->d_name);
-      int m = strlen(path);
-      fulldir = (char *)malloc(n+m+2);
       strcpy(fulldir, (char *)path);
       strcat(fulldir, "/");
       strcat(fulldir, dir_entry_p->d_name);
@@ -183,7 +195,6 @@ config_t read_config(const char *path) {
     } else {
       LOG(LOG_ERR, ERR_IO_FILE_OPEN, path, strerror(errno));
     }
-    free(*attrib);
     return 0;
 #else
     LOG(LOG_ERR, ERR_IO_FILE_OPEN, CONFIG_DEFAULT, strerror(errno));
