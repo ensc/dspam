@@ -1,4 +1,4 @@
-/* $Id: read_config.c,v 1.194 2010/08/20 11:42:13 sbajic Exp $ */
+/* $Id: read_config.c,v 1.195 2010/08/20 22:30:30 sbajic Exp $ */
 
 /*
  DSPAM
@@ -222,35 +222,41 @@ config_t read_config(const char *path) {
         // Give v (value) to dirraed
         num_root = dirread(v, attrib, num_root);
       } else {
-        if (_ds_find_attribute((*attrib), a)!=NULL) { 
+        if (_ds_find_attribute((*attrib), a)!=NULL) {
           _ds_add_attribute((*attrib), a, v);
         }
         else {
           num_root++;
           if (num_root >= attrib_size) {
             attrib_size *=2;
-            ptr = realloc((*attrib), attrib_size*sizeof(attribute_t)); 
+            ptr = realloc((*attrib), attrib_size*sizeof(attribute_t));
             if (ptr)
               *attrib = ptr;
-            else
+            else {
               LOG(LOG_CRIT, ERR_MEM_ALLOC);
-          } 
+              fclose(file);
+              return 0;
+            }
+          }
           _ds_add_attribute((*attrib), a, v);
         }
 #else
-      if (_ds_find_attribute(attrib, a)!=NULL) { 
+      if (_ds_find_attribute(attrib, a)!=NULL) {
         _ds_add_attribute(attrib, a, v);
       }
       else {
         num_root++;
         if (num_root >= attrib_size) {
           attrib_size *=2;
-          ptr = realloc(attrib, attrib_size*sizeof(attribute_t)); 
-          if (ptr) 
+          ptr = realloc(attrib, attrib_size*sizeof(attribute_t));
+          if (ptr)
             attrib = ptr;
-          else
+          else {
             LOG(LOG_CRIT, ERR_MEM_ALLOC);
-        } 
+            fclose(file);
+            return NULL;
+          }
+        }
         _ds_add_attribute(attrib, a, v);
 #endif
       }

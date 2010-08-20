@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100820:2230] sbajic: Fixing file descriptor leak in read_config()
+
 [20100820:1145] sbajic: Fix segmentation fault when using split configuration and running dspam_stats and the running user has no permission to read the files/directories mentioned in the "Include" configuration option.
 
 [20100819:2210] sbajic: Only allow one filesystem layout (large scale, domain scale or home dir)
