@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.403 2010/08/06 23:36:36 sbajic Exp $ */
+/* $Id: dspam.c,v 1.404 2010/08/20 20:59:07 sbajic Exp $ */
 
 /*
  DSPAM
@@ -4145,10 +4145,6 @@ int daemon_start(AGENT_CTX *ATX) {
 
   LOG(LOG_INFO, INFO_DAEMON_START);
 
-  pidfile = _ds_read_attribute(agent_config, "ServerPID");
-  if ( pidfile == NULL )
-    pidfile = "/var/run/dspam/dspam.pid";
-
   while(__daemon_run) {
 
     DTX.CTX = dspam_create (NULL, NULL,
@@ -4177,37 +4173,43 @@ int daemon_start(AGENT_CTX *ATX) {
       exit(EXIT_FAILURE);
     }
 
+    pidfile = _ds_read_attribute(agent_config, "ServerPID");
+    if ( pidfile == NULL )
+      pidfile = "/var/run/dspam/dspam.pid";
+
     if (pidfile) {
       FILE *file;
       file = fopen(pidfile, "w");
       if (file == NULL) {
         LOG(LOG_ERR, ERR_IO_FILE_WRITE, pidfile, strerror(errno));
+        dspam_shutdown_driver(&DTX);
+        libdspam_shutdown();
+        exit(EXIT_FAILURE);
       } else {
         fprintf(file, "%ld\n", (long) getpid());
         fclose(file);
       }
     }
 
-    LOGDEBUG("spawning daemon listener");
+    LOGDEBUG("Spawning daemon listener");
 
     if (daemon_listen(&DTX)) {
       LOG(LOG_CRIT, ERR_DAEMON_FAIL);
       __daemon_run = 0;
       exitcode = EXIT_FAILURE;
     } else {
-
-      LOG(LOG_WARNING, "received signal. waiting for processing threads to exit.");
+      LOG(LOG_WARNING, "Received signal. Waiting for processing threads to exit.");
       while(__num_threads) {
         struct timeval tv;
         tv.tv_sec = 1;
         tv.tv_usec = 0;
         select(0, NULL, NULL, NULL, &tv);
       }
-
-      LOG(LOG_WARNING, "daemon is down.");
+      LOG(LOG_WARNING, "Processing threads terminated.");
     }
 
-    if (pidfile)
+    /* only unlink pid file if daemon is shut down */
+    if (pidfile && !__daemon_run)
       unlink(pidfile);
 
     dspam_shutdown_driver(&DTX);
@@ -4215,7 +4217,7 @@ int daemon_start(AGENT_CTX *ATX) {
 
     /* Reload */
     if (__hup) {
-      LOG(LOG_WARNING, "reloading configuration");
+      LOG(LOG_WARNING, INFO_DAEMON_RELOAD);
 
       if (agent_config)
         _ds_destroy_config(agent_config);
