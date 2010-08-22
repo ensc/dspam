@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100822:1945] sbajic: Change mail recipient for uid-based signatures when processing message
+
 [20100821:1045] sbajic: Don't remove pid file when sending SIGHUP to the daemon
 
 [20100820:2230] sbajic: Fixing file descriptor leak in read_config()

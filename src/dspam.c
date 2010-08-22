@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.404 2010/08/20 20:59:07 sbajic Exp $ */
+/* $Id: dspam.c,v 1.405 2010/08/22 19:40:40 sbajic Exp $ */
 
 /*
  DSPAM
@@ -498,6 +498,10 @@ process_message (
             strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "off")) {
                 ATX->train_pristine = 1;
         }
+
+        /* Change also the mail recipient */
+        ATX->recipient = CTX->username;
+
       }
     }
   } else if (CTX->operating_mode == DSM_CLASSIFY ||
