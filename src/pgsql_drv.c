@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.748 2010/08/04 23:54:52 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.749 2010/08/23 11:49:47 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1390,6 +1390,9 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   char query[256];
   PGresult *result;
   int uid = -1;
+  char *sig_esc = NULL;
+  int pgerror;
+  size_t pgsize;
 
   if (s->dbh == NULL)
   {
@@ -1451,10 +1454,29 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     uid = (int) p->pw_uid;
   }
 
-  snprintf (query, sizeof (query),
-            "SELECT data,length FROM dspam_signature_data WHERE uid=%d AND signature='%s'",
-            (int) uid, signature);
+  /* escape the signature */
+  sig_esc = malloc(strlen(signature)*2+1);
+  if (sig_esc == NULL) {
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    return EFAILURE;
+  }
+  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
+    pgsize = PQescapeStringConn (s->dbh, sig_esc, signature, strlen(signature), &pgerror);
+  } else {
+    pgsize = PQescapeString (sig_esc, signature, strlen(signature));
+    pgerror = 0;
+  }
+  if (pgsize == 0 || pgerror != 0) {
+    LOGDEBUG ("_ds_get_signature: unable to escape signature '%s'", signature);
+    free(sig_esc);
+    return EFAILURE;
+  }
 
+  snprintf (query, sizeof (query),
+            "SELECT data,length FROM dspam_signature_data WHERE uid=%d AND signature=E'%s'",
+            (int) uid, sig_esc);
+
+  free(sig_esc);
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
@@ -1517,6 +1539,9 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   PGresult *result;
   struct passwd *p;
   char *name;
+  char *sig_esc = NULL;
+  int pgerror;
+  size_t pgsize;
 
   if (s->dbh == NULL)
   {
@@ -1552,9 +1577,28 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     mem = PQescapeBytea(SIG->data, SIG->length, &length);
   }
 
+  /* escape the signature */
+  sig_esc = malloc(strlen(signature)*2+1);
+  if (sig_esc == NULL) {
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    return EFAILURE;
+  }
+  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
+    pgsize = PQescapeStringConn (s->dbh, sig_esc, signature, strlen(signature), &pgerror);
+  } else {
+    pgsize = PQescapeString (sig_esc, signature, strlen(signature));
+    pgerror = 0;
+  }
+  if (pgsize == 0 || pgerror != 0) {
+    LOGDEBUG ("_ds_set_signature: unable to escape signature '%s'", signature);
+    free(sig_esc);
+    return EFAILURE;
+  }
+
   snprintf (scratch, sizeof (scratch),
-            "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d,'%s',%lu,CURRENT_DATE,E'",
-            (int) p->pw_uid, signature, (unsigned long) SIG->length);
+            "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d,E'%s',%lu,CURRENT_DATE,E'",
+            (int) p->pw_uid, sig_esc, (unsigned long) SIG->length);
+  free(sig_esc);
   buffer_cat (query, scratch);
   buffer_cat (query, (const char *) mem);
   buffer_cat (query, "')");
@@ -1583,6 +1627,9 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   char *name;
   char query[256];
   PGresult *result;
+  char *sig_esc = NULL;
+  int pgerror;
+  size_t pgsize;
 
   if (s->dbh == NULL)
   {
@@ -1605,10 +1652,29 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
     return EINVAL;
   }
 
-  snprintf (query, sizeof (query),
-            "DELETE FROM dspam_signature_data WHERE uid=%d AND signature='%s'",
-            (int) p->pw_uid, signature);
+  /* escape the signature */
+  sig_esc = malloc(strlen(signature)*2+1);
+  if (sig_esc == NULL) {
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    return EFAILURE;
+  }
+  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
+    pgsize = PQescapeStringConn (s->dbh, sig_esc, signature, strlen(signature), &pgerror);
+  } else {
+    pgsize = PQescapeString (sig_esc, signature, strlen(signature));
+    pgerror = 0;
+  }
+  if (pgsize == 0 || pgerror != 0) {
+    LOGDEBUG ("_ds_delete_signature: unable to escape signature '%s'", signature);
+    free(sig_esc);
+    return EFAILURE;
+  }
 
+  snprintf (query, sizeof (query),
+            "DELETE FROM dspam_signature_data WHERE uid=%d AND signature=E'%s'",
+            (int) p->pw_uid, sig_esc);
+
+  free(sig_esc);
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
@@ -1629,6 +1695,9 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   char *name;
   char query[256];
   PGresult *result;
+  char *sig_esc = NULL;
+  int pgerror;
+  size_t pgsize;
 
   if (s->dbh == NULL)
   {
@@ -1651,10 +1720,29 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
     return EINVAL;
   }
 
-  snprintf (query, sizeof (query),
-            "SELECT signature FROM dspam_signature_data WHERE uid=%d AND signature='%s'",
-            (int) p->pw_uid, signature);
+  /* escape the signature */
+  sig_esc = malloc(strlen(signature)*2+1);
+  if (sig_esc == NULL) {
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    return EFAILURE;
+  }
+  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
+    pgsize = PQescapeStringConn (s->dbh, sig_esc, signature, strlen(signature), &pgerror);
+  } else {
+    pgsize = PQescapeString (sig_esc, signature, strlen(signature));
+    pgerror = 0;
+  }
+  if (pgsize == 0 || pgerror != 0) {
+    LOGDEBUG ("_ds_verify_signature: unable to escape signature '%s'", signature);
+    free(sig_esc);
+    return EFAILURE;
+  }
 
+  snprintf (query, sizeof (query),
+            "SELECT signature FROM dspam_signature_data WHERE uid=%d AND signature=E'%s'",
+            (int) p->pw_uid, sig_esc);
+
+  free(sig_esc);
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
@@ -2129,12 +2217,15 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   char query[512];
   PGresult *result;
   char *virtual_table, *virtual_uid, *virtual_username;
+  char *name_esc = NULL;
+  int pgerror;
+  size_t pgsize;
 
   if (s->p_getpwnam.pw_name != NULL)
   {
     /* cache the last name queried */
     if (name != NULL && !strcmp (s->p_getpwnam.pw_name, name)) {
-      LOGDEBUG("_pgsql_drv_getpwnam returning cached name %s.", name);
+      LOGDEBUG("_pgsql_drv_getpwnam: returning cached name '%s'", name);
       return &s->p_getpwnam;
     }
 
@@ -2154,10 +2245,29 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     "PgSQLVirtualUsernameField")) ==NULL)
   { virtual_username = "username"; }
 
-  snprintf (query, sizeof (query),
-            "SELECT %s FROM %s WHERE %s='%s'",
-            virtual_uid, virtual_table, virtual_username, name);
+  /* escape the user name */
+  name_esc = malloc(strlen(name)*2+1);
+  if (name_esc == NULL) {
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    return NULL;
+  }
+  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
+    pgsize = PQescapeStringConn (s->dbh, name_esc, name, strlen(name), &pgerror);
+  } else {
+    pgsize = PQescapeString (name_esc, name, strlen(name));
+    pgerror = 0;
+  }
+  if (pgsize == 0 || pgerror != 0) {
+    LOGDEBUG ("_pgsql_drv_getpwnam: unable to escape user name '%s'", name);
+    free(name_esc);
+    return NULL;
+  }
 
+  snprintf (query, sizeof (query),
+            "SELECT %s FROM %s WHERE %s=E'%s'",
+            virtual_uid, virtual_table, virtual_username, name_esc);
+
+  free(name_esc);
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
@@ -2346,6 +2456,9 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   char *virtual_table, *virtual_uid, *virtual_username;
   struct _pgsql_drv_storage *s = (struct _pgsql_drv_storage *) CTX->storage;
   PGresult *result;
+  char *name_esc = NULL;
+  int pgerror;
+  size_t pgsize;
 
   if ((virtual_table
     = _ds_read_attribute(CTX->config->attributes, "PgSQLVirtualTable"))==NULL)
@@ -2367,9 +2480,29 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   }
 #endif
 
+  /* escape the user name */
+  name_esc = malloc(strlen(name)*2+1);
+  if (name_esc == NULL) {
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    return NULL;
+  }
+  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
+    pgsize = PQescapeStringConn (s->dbh, name_esc, name, strlen(name), &pgerror);
+  } else {
+    pgsize = PQescapeString (name_esc, name, strlen(name));
+    pgerror = 0;
+  }
+  if (pgsize == 0 || pgerror != 0) {
+    LOGDEBUG ("_pgsql_drv_setpwnam: unable to escape user name '%s'", name);
+    free(name_esc);
+    return NULL;
+  }
+
   snprintf (query, sizeof (query),
-            "INSERT INTO %s (%s, %s) VALUES (default, '%s')",
-            virtual_table, virtual_uid, virtual_username, name);
+            "INSERT INTO %s (%s, %s) VALUES (default, E'%s')",
+            virtual_table, virtual_uid, virtual_username, name_esc);
+
+  free(name_esc);
 
   /* we need to fail, to prevent a potential loop - even if it was inserted
    * by another process */
@@ -2697,12 +2830,16 @@ int _ds_pref_set (
   DSPAM_CTX *CTX;
   int uid;
   PGresult *result;
+  char *pref_esc = NULL;
+  char *val_esc = NULL;
+  int pgerror;
+  size_t pgsize;
 
   CTX = _pgsql_drv_init_tools(home, config, dbh, DSM_PROCESS);
   if (CTX == NULL)
   {
     LOG (LOG_WARNING, "_ds_pref_set: unable to initialize tools context");
-    return EFAILURE;
+    goto FAIL;
   }
 
   s = (struct _pgsql_drv_storage *) CTX->storage;
@@ -2714,8 +2851,7 @@ int _ds_pref_set (
     {
       LOGDEBUG ("_ds_pref_set: unable to _pgsql_drv_getpwnam(%s)",
               CTX->username);
-      dspam_destroy(CTX);
-      return EFAILURE;
+      goto FAIL;
     } else {
       uid = (int) p->pw_uid;
     }
@@ -2723,8 +2859,42 @@ int _ds_pref_set (
     uid = 0; /* Default Preferences */
   }
 
+  /* escape the preference name */
+  pref_esc = malloc(strlen(preference)*2+1);
+  if (pref_esc == NULL) {
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    goto FAIL;
+  }
+  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
+    pgsize = PQescapeStringConn (s->dbh, pref_esc, preference, strlen(preference), &pgerror);
+  } else {
+    pgsize = PQescapeString (pref_esc, preference, strlen(preference));
+    pgerror = 0;
+  }
+  if (pgsize == 0 || pgerror != 0) {
+    LOGDEBUG ("_ds_pref_set: unable to escape preference '%s'", preference);
+    goto FAIL;
+  }
+
+  /* escape the preference value */
+  val_esc = malloc(strlen(value)*2+1);
+  if (val_esc == NULL) {
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    goto FAIL;
+  }
+  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
+    pgsize = PQescapeStringConn (s->dbh, val_esc, value, strlen(value), &pgerror);
+  } else {
+    pgsize = PQescapeString (val_esc, value, strlen(value));
+    pgerror = 0;
+  }
+  if (pgsize == 0 || pgerror != 0) {
+    LOGDEBUG ("_ds_pref_set: unable to escape preference value '%s'", value);
+    goto FAIL;
+  }
+
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
-    " WHERE uid=%d AND preference='%s'", (int) uid, preference);
+    " WHERE uid=%d AND preference=E'%s'", (int) uid, pref_esc);
 
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
@@ -2737,8 +2907,10 @@ int _ds_pref_set (
   if (result) PQclear(result);
 
   snprintf(query, sizeof(query), "INSERT INTO dspam_preferences"
-    " (uid,preference,value) VALUES (%d,'%s','%s')", (int) uid, preference, value);
+    " (uid,preference,value) VALUES (%d,E'%s',E'%s')", (int) uid, pref_esc, val_esc);
 
+  free(pref_esc);
+  free(val_esc);
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
@@ -2754,7 +2926,9 @@ int _ds_pref_set (
 
 FAIL:
   LOGDEBUG("_ds_pref_set: failed");
-  dspam_destroy(CTX);
+  if (pref_esc) free(pref_esc);
+  if (val_esc) free(val_esc);
+  if (CTX) dspam_destroy(CTX);
   return EFAILURE;
 }
 
@@ -2771,11 +2945,14 @@ int _ds_pref_del (
   DSPAM_CTX *CTX;
   int uid;
   PGresult *result;
+  char *pref_esc = NULL;
+  int pgerror;
+  size_t pgsize;
 
   CTX = _pgsql_drv_init_tools(home, config, dbh, DSM_TOOLS);
   if (CTX == NULL) {
     LOG (LOG_WARNING, "_ds_pref_del: unable to initialize tools context");
-    return EFAILURE;
+    goto FAIL;
   }
 
   s = (struct _pgsql_drv_storage *) CTX->storage;
@@ -2787,8 +2964,7 @@ int _ds_pref_del (
     {
       LOGDEBUG ("_ds_pref_del: unable to _pgsql_drv_getpwnam(%s)",
               username);
-      dspam_destroy(CTX);
-      return EFAILURE;
+      goto FAIL;
     } else {
       uid = (int) p->pw_uid;
     }
@@ -2796,9 +2972,27 @@ int _ds_pref_del (
     uid = 0; /* Default Preferences */
   }
 
-  snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
-    " WHERE uid=%d AND preference='%s'", (int) uid, preference);
+  /* escape the preference name */
+  pref_esc = malloc(strlen(preference)*2+1);
+  if (pref_esc == NULL) {
+    LOG(LOG_CRIT, ERR_MEM_ALLOC);
+    goto FAIL;
+  }
+  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
+    pgsize = PQescapeStringConn (s->dbh, pref_esc, preference, strlen(preference), &pgerror);
+  } else {
+    pgsize = PQescapeString (pref_esc, preference, strlen(preference));
+    pgerror = 0;
+  }
+  if (pgsize == 0 || pgerror != 0) {
+    LOGDEBUG ("_ds_pref_del: unable to escape preference '%s'", preference);
+    goto FAIL;
+  }
 
+  snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
+    " WHERE uid=%d AND preference=E'%s'", (int) uid, pref_esc);
+
+  free(pref_esc);
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
   {
@@ -2813,7 +3007,8 @@ int _ds_pref_del (
 
 FAIL:
   LOGDEBUG("_ds_pref_del: failed");
-  dspam_destroy(CTX);
+  if (pref_esc) free(pref_esc);
+  if (CTX) dspam_destroy(CTX);
   return EFAILURE;
 }
 

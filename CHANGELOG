@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100823:1200] sbajic: Properly escape strings in PostgreSQL driver
+
 [20100822:2020] sbajic: Do not allow empty delivery agent if no delivery host is specified
 
 [20100822:1945] sbajic: Change mail recipient for uid-based signatures when processing message
