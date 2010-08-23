@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.749 2010/08/23 11:49:47 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.750 2010/08/23 23:16:40 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1571,7 +1571,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EUNKNOWN;
   }
 
-  if ((s->pg_major_ver >= 7 && s->pg_minor_ver >= 3) || (s->pg_major_ver >= 8)) {
+  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
     mem = PQescapeByteaConn(s->dbh, SIG->data, SIG->length, &length);
   } else {
     mem = PQescapeBytea(SIG->data, SIG->length, &length);
