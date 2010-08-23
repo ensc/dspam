@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.80 2010/08/16 19:59:57 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.81 2010/08/22 20:16:54 sbajic Exp $ */
 
 /*
  DSPAM
@@ -609,9 +609,18 @@ int apply_defaults(AGENT_CTX *ATX) {
 #endif
       strcpy(key, "TrustedDeliveryAgent");
 
-    if (_ds_read_attribute(agent_config, key)) {
+    char *value = _ds_read_attribute(agent_config, key);
+
+    if (value) {
+      char *trimmed_value = ALLTRIM(strdup(value));
+      if (trimmed_value && *trimmed_value == '\0') {
+        LOG(LOG_ERR, ERR_AGENT_NO_AGENT, key);
+        free(trimmed_value);
+        return EINVAL;
+      }
+      if (trimmed_value) free(trimmed_value);
       char fmt[sizeof(ATX->mailer_args)];
-      snprintf(fmt, sizeof(fmt), "%s ", _ds_read_attribute(agent_config, key));
+      snprintf(fmt, sizeof(fmt), "%s ", value);
 #ifdef TRUSTED_USER_SECURITY
       if (ATX->trusted)
 #endif

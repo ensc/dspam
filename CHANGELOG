@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100822:2020] sbajic: Do not allow empty delivery agent if no delivery host is specified
+
 [20100822:1945] sbajic: Change mail recipient for uid-based signatures when processing message
 
 [20100821:1045] sbajic: Don't remove pid file when sending SIGHUP to the daemon
