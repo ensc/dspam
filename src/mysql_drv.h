@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.h,v 1.17 2010/04/29 11:18:57 sbajic Exp $ */
+/* $Id: mysql_drv.h,v 1.18 2010/08/24 00:10:36 sbajic Exp $ */
 
 /*
  DSPAM
@@ -42,6 +42,11 @@ struct _mysql_drv_storage
 
   unsigned long max_packet_read;                /* maximum size of db communication buffer */
   unsigned long max_packet_write;               /* maximum size of db communication buffer */
+  int supress_quote;                            /* quote certain values (MySQL 4.1 quote bug) */
+  int uid_in_signature;                         /* should the signature be prefixed with the UID */
+  char *virtual_table;                          /* name of the virtual table */
+  char *virtual_username;                       /* name of the virtual username field */
+  char *virtual_uid;                            /* name of the virtual uid field */
 
   struct _ds_spam_totals control_totals;        /* totals at storage init */
   struct _ds_spam_totals merged_totals;         /* totals for merged group */ 

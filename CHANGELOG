@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100824:0045] sbajic: Small speed improvements in the MySQL driver
+
 [20100823:2320] sbajic: Reorder version check in PostgreSQL driver (for slightly speed improvement)
 
 [20100823:1200] sbajic: Properly escape strings in PostgreSQL driver

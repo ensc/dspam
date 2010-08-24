@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.878 2010/08/04 23:10:16 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.879 2010/08/24 00:03:42 sbajic Exp $ */
 
 /*
  DSPAM
@@ -710,7 +710,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     scratch[0] = 0;
     buffer_copy(query, queryhead);
     while (ds_term) {
-      if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+      if (s->supress_quote)
         snprintf(scratch, sizeof(scratch), "%llu", ds_term->key);
       else
         snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
@@ -1050,7 +1050,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     }
 
     if (stat.status & TST_DISK) {
-      if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+      if (s->supress_quote)
         snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
       else
         snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
@@ -1203,7 +1203,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     return EINVAL;
   }
 
-  if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+  if (s->supress_quote)
     snprintf (query, sizeof (query),
             "SELECT spam_hits,innocent_hits FROM dspam_token_data"
             " WHERE uid=%d AND token IN (%llu)", (int) p->pw_uid, token);
@@ -1495,6 +1495,30 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     }
   }
 
+  /* Check if we should quote certain values (MySQL 4.1 quote bug) */
+  if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+    s->supress_quote = 1;
+  else
+    s->supress_quote = 0;
+
+  /* Check if we should prefix the signature with the UID */
+  if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
+    s->uid_in_signature = 1;
+  else
+    s->uid_in_signature = 0;
+
+  if ((s->virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable")) == NULL)
+  { s->virtual_table = "dspam_virtual_uids"; }
+
+  if ((s->virtual_username
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUsernameField")) == NULL)
+  { s->virtual_username = "username"; }
+
+  if ((s->virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField")) == NULL)
+  { s->virtual_uid = "uid"; }
+
   return 0;
 }
 
@@ -1558,6 +1582,7 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
 int
 _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
 {
+  struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   char session[64];
   char digit[6];
   int pid, j;
@@ -1565,7 +1590,7 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
   char *name;
 
   pid = getpid ();
-  if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
+  if (s->uid_in_signature)
   {
     if (!CTX->group || CTX->flags & DSF_MERGED) {
       p = _mysql_drv_getpwnam (CTX, CTX->username);
@@ -1633,7 +1658,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EINVAL;
   }
 
-  if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
+  if (s->uid_in_signature)
   {
     char *u, *sig, *username;
     void *dbt = s->dbt;
@@ -1953,8 +1978,6 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
 #ifndef VIRTUAL_USERS
   struct passwd *p;
-#else
-  char *virtual_table, *virtual_username;
 #endif
   uid_t uid;
   char query[512];
@@ -1968,22 +1991,12 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     return NULL;
   }
 
-#ifdef VIRTUAL_USERS
-  if ((virtual_table
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
-  { virtual_table = "dspam_virtual_uids"; }
-
-  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
-    "MySQLVirtualUsernameField")) ==NULL)
-  { virtual_username = "username"; }
-#endif
-
   if (s->iter_user == NULL)
   {
 #ifdef VIRTUAL_USERS
     snprintf(query, sizeof(query), "SELECT DISTINCT %s FROM %s",
-      virtual_username,
-      virtual_table);
+      s->virtual_username,
+      s->virtual_table);
 #else
     strncpy (query, "SELECT DISTINCT uid FROM dspam_stats", sizeof(query));
 #endif
@@ -2303,7 +2316,6 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   char query[512];
   MYSQL_RES *result;
   MYSQL_ROW row;
-  char *virtual_table, *virtual_uid, *virtual_username;
   char *sql_username;
   int name_size = MAX_USERNAME_LENGTH;
   result = NULL;
@@ -2319,18 +2331,6 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     free (s->p_getpwnam.pw_name);
     s->p_getpwnam.pw_name = NULL;
   }
-
-  if ((virtual_table
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
-  { virtual_table = "dspam_virtual_uids"; }
-
-  if ((virtual_uid
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
-  { virtual_uid = "uid"; }
-
-  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
-    "MySQLVirtualUsernameField")) ==NULL)
-  { virtual_username = "username"; }
 
   if (name != NULL) {
     name_size = strlen(name);
@@ -2348,7 +2348,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 
   snprintf (query, sizeof (query),
             "SELECT %s FROM %s WHERE %s='%s'",
-            virtual_uid, virtual_table, virtual_username, sql_username);
+            s->virtual_uid, s->virtual_table, s->virtual_username, sql_username);
 
   free (sql_username);
   sql_username = NULL;
@@ -2458,20 +2458,7 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   char query[512];
   MYSQL_RES *result;
   MYSQL_ROW row;
-  char *virtual_table, *virtual_uid, *virtual_username;
   result = NULL;
-
-  if ((virtual_table
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
-  { virtual_table = "dspam_virtual_uids"; }
-
-  if ((virtual_uid
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
-  { virtual_uid = "uid"; }
-
-  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
-    "MySQLVirtualUsernameField")) ==NULL)
-  { virtual_username = "username"; }
 
   if (s->p_getpwuid.pw_name != NULL)
   {
@@ -2484,7 +2471,7 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
 
   snprintf (query, sizeof (query),
             "SELECT %s FROM %s WHERE %s='%d'",
-            virtual_username, virtual_table, virtual_uid, (int) uid);
+            s->virtual_username, s->virtual_table, s->virtual_uid, (int) uid);
 
   query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
   if (query_rc) {
@@ -2564,21 +2551,8 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   char query[512];
   int query_rc = 0;
   int query_errno = 0;
-  char *virtual_table, *virtual_uid, *virtual_username;
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   char *sql_username;
-
-  if ((virtual_table
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
-  { virtual_table = "dspam_virtual_uids"; }
-
-  if ((virtual_uid
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
-  { virtual_uid = "uid"; }
-
-  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
-    "MySQLVirtualUsernameField")) ==NULL)
-  { virtual_username = "username"; }
 
 #ifdef EXT_LOOKUP
   LOGDEBUG("_mysql_drv_setpwnam: verified_user is %d", verified_user);
@@ -2599,7 +2573,7 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
 
   snprintf (query, sizeof (query),
             "INSERT INTO %s (%s,%s) VALUES (NULL,'%s')",
-            virtual_table, virtual_uid, virtual_username, sql_username);
+            s->virtual_table, s->virtual_uid, s->virtual_username, sql_username);
 
   free (sql_username);
   sql_username = NULL;
@@ -2656,7 +2630,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
               name);
     return EINVAL;
   }
-  if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+  if (s->supress_quote)
     snprintf (query, sizeof (query),
             "DELETE FROM dspam_token_data WHERE uid=%d AND token=%llu",
             (int) p->pw_uid, token);
@@ -2741,7 +2715,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     scratch[0] = 0;
     buffer_copy(query, queryhead);
     while (ds_term) {
-      if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+      if (s->supress_quote)
         snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
       else
         snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
