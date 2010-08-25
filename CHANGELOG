@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100825:2130] sbajic: Do the same small speed improvements in the MySQL driver as in the last commit but when initializing the preference extension in _mysql_drv_init_tools()
+
 [20100824:0045] sbajic: Small speed improvements in the MySQL driver
 
 [20100823:2320] sbajic: Reorder version check in PostgreSQL driver (for slightly speed improvement)

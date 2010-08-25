@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.879 2010/08/24 00:03:42 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.880 2010/08/25 20:06:23 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1507,14 +1507,17 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   else
     s->uid_in_signature = 0;
 
+  /* Cache the virtual uid table */
   if ((s->virtual_table
     = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable")) == NULL)
   { s->virtual_table = "dspam_virtual_uids"; }
 
+  /* Cache the virtual username field */
   if ((s->virtual_username
     = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUsernameField")) == NULL)
   { s->virtual_username = "username"; }
 
+  /* Cache the virtual username field */
   if ((s->virtual_uid
     = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField")) == NULL)
   { s->virtual_uid = "uid"; }
@@ -2783,6 +2786,33 @@ DSPAM_CTX *_mysql_drv_init_tools(
 
   s = (struct _mysql_drv_storage *) CTX->storage;
   s->dbh_attached = dbh_attached;
+
+  /* Check if we should quote certain values (MySQL 4.1 quote bug) */
+  if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+    s->supress_quote = 1;
+  else
+    s->supress_quote = 0;
+
+  /* Check if we should prefix the signature with the UID */
+  if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
+    s->uid_in_signature = 1;
+  else
+    s->uid_in_signature = 0;
+
+  /* Cache the virtual uid table */
+  if ((s->virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable")) == NULL)
+  { s->virtual_table = "dspam_virtual_uids"; }
+
+  /* Cache the virtual username field */
+  if ((s->virtual_username
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUsernameField")) == NULL)
+  { s->virtual_username = "username"; }
+
+  /* Cache the virtual username field */
+  if ((s->virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField")) == NULL)
+  { s->virtual_uid = "uid"; }
 
   return CTX;
 
