@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.880 2010/08/25 20:06:23 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.881 2010/08/25 22:09:44 sbajic Exp $ */
 
 /*
  DSPAM
@@ -71,6 +71,133 @@
 
 #define MYSQL_RUN_QUERY(A, B) mysql_query(A, B)
 #define MYSQL_RUN_REAL_QUERY(A, B, C) mysql_real_query(A, B, C)
+
+/*
+ * _mysql_drv_get_UIDInSignature()
+ *
+ * DESCRIPTION
+ *   The _mysql_drv_get_UIDInSignature() function is called to check if the
+ *   configuration option MySQLUIDInSignature is turned on or off.
+ *
+ * RETURN VALUES
+ *   Returns 1 if MySQLUIDInSignature is turned "on" and 0 if turned "off".
+ */
+static int _mysql_drv_get_UIDInSignature (DSPAM_CTX *CTX) {
+  if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
+    return 1;
+  else
+    return 0;
+}
+
+/*
+ * _mysql_drv_get_SupressQuote()
+ *
+ * DESCRIPTION
+ *   The _mysql_drv_get_SupressQuote() function is called to check if the
+ *   configuration option MySQLSupressQuote is turned on or off.
+ *
+ * RETURN VALUES
+ *   Returns 1 if MySQLSupressQuote is turned "on" and 0 if turned "off".
+ */
+static int _mysql_drv_get_SupressQuote (DSPAM_CTX *CTX) {
+  if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
+    return 1;
+  else
+    return 0;
+}
+
+/*
+ * _mysql_drv_get_virtual_table()
+ *
+ * DESCRIPTION
+ *   The _mysql_drv_get_virtual_table() function is called to get the
+ *   virtual table name.
+ *
+ * RETURN VALUES
+ *   Returns the name of the virtual table if defined, otherwise returns
+ *   "dspam_virtual_uids".
+ */
+static char *_mysql_drv_get_virtual_table (DSPAM_CTX *CTX) {
+  char *virtual_table;
+  if ((virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable")) == NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+  return virtual_table;
+}
+
+/*
+ * _mysql_drv_get_virtual_uid_field()
+ *
+ * DESCRIPTION
+ *   The _mysql_drv_get_virtual_uid_field() function is called to get the
+ *   virtual uid field name.
+ *
+ * RETURN VALUES
+ *   Returns the name of the virtual uid field if defined, otherwise returns
+ *   "uid".
+ */
+static char *_mysql_drv_get_virtual_uid_field (DSPAM_CTX *CTX) {
+  char *virtual_uid;
+  if ((virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField")) == NULL)
+  { virtual_uid = "uid"; }
+  return virtual_uid;
+}
+
+/*
+ * _mysql_drv_get_virtual_username_field()
+ *
+ * DESCRIPTION
+ *   The _mysql_drv_get_virtual_username_field() function is called to get the
+ *   virtual username field name.
+ *
+ * RETURN VALUES
+ *   Returns the name of the virtual username field if defined, otherwise returns
+ *   "username".
+ */
+static char *_mysql_drv_get_virtual_username_field (DSPAM_CTX *CTX) {
+  char *virtual_username;
+  if ((virtual_username
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUsernameField")) == NULL)
+  { virtual_username = "username"; }
+  return virtual_username;
+}
+
+/*
+ * _mysql_driver_get_max_packet()
+ *
+ * DESCRIPTION
+ *   The _mysql_driver_get_max_packet() function is called to get the maximum
+ *   size of db communication buffer.
+ *
+ * RETURN VALUES
+ *   Returns the maximum size for the db communication buffer. If the maximum
+ *   size can not be determined then 1000000 is returned.
+ */
+static unsigned long _mysql_driver_get_max_packet (MYSQL *dbh) {
+  unsigned long drv_max_packet = 1000000;
+  if (dbh) {
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    char scratch[128];
+    snprintf (scratch, sizeof (scratch), "SHOW VARIABLES WHERE variable_name='max_allowed_packet'");
+    if (MYSQL_RUN_QUERY (dbh, scratch) == 0) {
+      result = mysql_use_result (dbh);
+      if (result != NULL) {
+        row = mysql_fetch_row (result);
+        if (row != NULL) {
+          drv_max_packet = strtoul (row[1], NULL, 0);
+          if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
+            LOGDEBUG("_ds_init_storage: failed converting %s to max_allowed_packet", row[1]);
+            drv_max_packet = 1000000;
+          }
+        }
+      }
+      mysql_free_result (result);
+    }
+  }
+  return drv_max_packet;
+}
 
 int
 dspam_init_driver (DRIVER_CTX *DTX)
@@ -683,7 +810,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   stat.probability   = 0.00000;
 
   /* Get the all spam records but split the query when the query size + 1024
-   * reaches s->max_packet_read
+   * reaches max_allowed_packet
    */
   query = buffer_create (NULL);
   if (query == NULL)
@@ -710,7 +837,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     scratch[0] = 0;
     buffer_copy(query, queryhead);
     while (ds_term) {
-      if (s->supress_quote)
+      if (_mysql_drv_get_SupressQuote(CTX))
         snprintf(scratch, sizeof(scratch), "%llu", ds_term->key);
       else
         snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
@@ -719,7 +846,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       ds_term->s.spam_hits = 0;
       ds_term->s.probability = 0.00000;
       ds_term->s.status = 0;
-      if((unsigned long)(query->used + 1024) > s->max_packet_read) {
+      if((unsigned long)(query->used + 1024) > _mysql_driver_get_max_packet(s->dbt->dbh_read)) {
         LOGDEBUG("_ds_getall_spamrecords: Splitting query at %ld characters", query->used);
         break;
       }
@@ -984,7 +1111,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       insert_any = 1;
       buffer_cat(insert, ins);
 
-      if((unsigned long)(insert->used + 1024) > s->max_packet_write) {
+      if((unsigned long)(insert->used + 1024) > _mysql_driver_get_max_packet(s->dbt->dbh_write)) {
         LOGDEBUG("_ds_setall_spamrecords: Splitting insert query at %ld characters", insert->used);
         if (insert_any) {
           snprintf (scratch, sizeof (scratch),
@@ -1050,7 +1177,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     }
 
     if (stat.status & TST_DISK) {
-      if (s->supress_quote)
+      if (_mysql_drv_get_SupressQuote(CTX))
         snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
       else
         snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
@@ -1063,7 +1190,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     ds_term->s.status |= TST_DISK;
 
     ds_term = ds_diction_next(ds_c);
-    if((unsigned long)(query->used + 1024) > s->max_packet_write) {
+    if((unsigned long)(query->used + 1024) > _mysql_driver_get_max_packet(s->dbt->dbh_write)) {
       LOGDEBUG("_ds_setall_spamrecords: Splitting update query at %ld characters", query->used);
       buffer_cat (query, ")");
       if (update_any) {
@@ -1203,7 +1330,7 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     return EINVAL;
   }
 
-  if (s->supress_quote)
+  if (_mysql_drv_get_SupressQuote(CTX))
     snprintf (query, sizeof (query),
             "SELECT spam_hits,innocent_hits FROM dspam_token_data"
             " WHERE uid=%d AND token IN (%llu)", (int) p->pw_uid, token);
@@ -1447,81 +1574,6 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     memset (&s->control_totals, 0, sizeof (struct _ds_spam_totals));
   }
 
-  /* Query max_allowed_packet from MySQL server for this connection. If the value
-   * can not be queried, then assume 1000000 as value.
-   */
-  unsigned long drv_max_packet = 1000000;
-  char scratch[128];
-  MYSQL_RES *result;
-  snprintf (scratch, sizeof (scratch), "SHOW VARIABLES WHERE variable_name='max_allowed_packet'");
-  s->max_packet_read = 1000000;
-  s->max_packet_write = 1000000;
-  if (s->dbt) {
-    MYSQL_ROW row;
-    if (s->dbt->dbh_read) {
-      if (MYSQL_RUN_QUERY (s->dbt->dbh_read, scratch) == 0) {
-        result = mysql_use_result (s->dbt->dbh_read);
-        if (result != NULL) {
-          row = mysql_fetch_row (result);
-          if (row != NULL) {
-            drv_max_packet = strtoul (row[1], NULL, 0);
-            if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
-              LOGDEBUG("_ds_init_storage: failed converting %s to max_allowed_packet for read", row[1]);
-              drv_max_packet = 1000000;
-            }
-          }
-        }
-        mysql_free_result (result);
-      }
-      s->max_packet_read = drv_max_packet;
-    }
-    drv_max_packet = 1000000;
-    if (s->dbt->dbh_write) {
-      if (MYSQL_RUN_QUERY (s->dbt->dbh_write, scratch) == 0) {
-        result = mysql_use_result (s->dbt->dbh_write);
-        if (result != NULL) {
-          row = mysql_fetch_row (result);
-          if (row != NULL) {
-            drv_max_packet = strtoul (row[1], NULL, 0);
-            if (drv_max_packet == ULONG_MAX && errno == ERANGE) {
-              LOGDEBUG("_ds_init_storage: failed converting %s to max_allowed_packet for write", row[1]);
-              drv_max_packet = 1000000;
-            }
-          }
-        }
-        mysql_free_result (result);
-      }
-      s->max_packet_write = drv_max_packet;
-    }
-  }
-
-  /* Check if we should quote certain values (MySQL 4.1 quote bug) */
-  if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
-    s->supress_quote = 1;
-  else
-    s->supress_quote = 0;
-
-  /* Check if we should prefix the signature with the UID */
-  if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
-    s->uid_in_signature = 1;
-  else
-    s->uid_in_signature = 0;
-
-  /* Cache the virtual uid table */
-  if ((s->virtual_table
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable")) == NULL)
-  { s->virtual_table = "dspam_virtual_uids"; }
-
-  /* Cache the virtual username field */
-  if ((s->virtual_username
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUsernameField")) == NULL)
-  { s->virtual_username = "username"; }
-
-  /* Cache the virtual username field */
-  if ((s->virtual_uid
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField")) == NULL)
-  { s->virtual_uid = "uid"; }
-
   return 0;
 }
 
@@ -1593,7 +1645,7 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
   char *name;
 
   pid = getpid ();
-  if (s->uid_in_signature)
+  if (_mysql_drv_get_UIDInSignature(CTX))
   {
     if (!CTX->group || CTX->flags & DSF_MERGED) {
       p = _mysql_drv_getpwnam (CTX, CTX->username);
@@ -1661,7 +1713,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EINVAL;
   }
 
-  if (s->uid_in_signature)
+  if (_mysql_drv_get_UIDInSignature(CTX))
   {
     char *u, *sig, *username;
     void *dbt = s->dbt;
@@ -1811,7 +1863,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
 
   length = mysql_real_escape_string (s->dbt->dbh_write, mem, SIG->data, SIG->length);
 
-  if(length+1024 > s->max_packet_write) {
+  if(length+1024 > _mysql_driver_get_max_packet(s->dbt->dbh_write)) {
     LOG (LOG_WARNING, "_ds_set_signature: signature data to big to be inserted");
     LOG (LOG_WARNING, "_ds_set_signature: consider increasing max_allowed_packet to at least %llu",
               length+1025);
@@ -1998,8 +2050,8 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   {
 #ifdef VIRTUAL_USERS
     snprintf(query, sizeof(query), "SELECT DISTINCT %s FROM %s",
-      s->virtual_username,
-      s->virtual_table);
+      _mysql_drv_get_virtual_username_field(CTX),
+      _mysql_drv_get_virtual_table(CTX));
 #else
     strncpy (query, "SELECT DISTINCT uid FROM dspam_stats", sizeof(query));
 #endif
@@ -2351,7 +2403,10 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 
   snprintf (query, sizeof (query),
             "SELECT %s FROM %s WHERE %s='%s'",
-            s->virtual_uid, s->virtual_table, s->virtual_username, sql_username);
+            _mysql_drv_get_virtual_uid_field(CTX),
+            _mysql_drv_get_virtual_table(CTX),
+            _mysql_drv_get_virtual_username_field(CTX),
+            sql_username);
 
   free (sql_username);
   sql_username = NULL;
@@ -2474,7 +2529,10 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
 
   snprintf (query, sizeof (query),
             "SELECT %s FROM %s WHERE %s='%d'",
-            s->virtual_username, s->virtual_table, s->virtual_uid, (int) uid);
+            _mysql_drv_get_virtual_username_field(CTX),
+            _mysql_drv_get_virtual_table(CTX),
+            _mysql_drv_get_virtual_uid_field(CTX),
+            (int) uid);
 
   query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
   if (query_rc) {
@@ -2576,7 +2634,10 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
 
   snprintf (query, sizeof (query),
             "INSERT INTO %s (%s,%s) VALUES (NULL,'%s')",
-            s->virtual_table, s->virtual_uid, s->virtual_username, sql_username);
+            _mysql_drv_get_virtual_table(CTX),
+            _mysql_drv_get_virtual_uid_field(CTX),
+            _mysql_drv_get_virtual_username_field(CTX),
+            sql_username);
 
   free (sql_username);
   sql_username = NULL;
@@ -2633,7 +2694,7 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
               name);
     return EINVAL;
   }
-  if (s->supress_quote)
+  if (_mysql_drv_get_SupressQuote(CTX))
     snprintf (query, sizeof (query),
             "DELETE FROM dspam_token_data WHERE uid=%d AND token=%llu",
             (int) p->pw_uid, token);
@@ -2710,7 +2771,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
             (int) p->pw_uid);
 
   /* Delete the spam records but split the query when the query size + 1024
-   * reaches s->max_packet_write
+   * reaches max_allowed_packet
    */
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
@@ -2718,13 +2779,13 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     scratch[0] = 0;
     buffer_copy(query, queryhead);
     while (ds_term) {
-      if (s->supress_quote)
+      if (_mysql_drv_get_SupressQuote(CTX))
         snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
       else
         snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
       buffer_cat (query, scratch);
       ds_term = ds_diction_next(ds_c);
-      if((unsigned long)(query->used + 1024) > s->max_packet_write || !ds_term) {
+      if((unsigned long)(query->used + 1024) > _mysql_driver_get_max_packet(s->dbt->dbh_write) || !ds_term) {
         LOGDEBUG("_ds_delall_spamrecords: Splitting query at %lu characters", query->used);
         break;
       }
@@ -2786,33 +2847,6 @@ DSPAM_CTX *_mysql_drv_init_tools(
 
   s = (struct _mysql_drv_storage *) CTX->storage;
   s->dbh_attached = dbh_attached;
-
-  /* Check if we should quote certain values (MySQL 4.1 quote bug) */
-  if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
-    s->supress_quote = 1;
-  else
-    s->supress_quote = 0;
-
-  /* Check if we should prefix the signature with the UID */
-  if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
-    s->uid_in_signature = 1;
-  else
-    s->uid_in_signature = 0;
-
-  /* Cache the virtual uid table */
-  if ((s->virtual_table
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable")) == NULL)
-  { s->virtual_table = "dspam_virtual_uids"; }
-
-  /* Cache the virtual username field */
-  if ((s->virtual_username
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUsernameField")) == NULL)
-  { s->virtual_username = "username"; }
-
-  /* Cache the virtual username field */
-  if ((s->virtual_uid
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField")) == NULL)
-  { s->virtual_uid = "uid"; }
 
   return CTX;
 
@@ -3384,4 +3418,3 @@ MYSQL * _mysql_drv_sig_write_handle(
   else
     return s->dbt->dbh_read;
 }
-
