@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.390 2010/08/16 14:43:17 sbajic Exp $ */
+/* $Id: decode.c,v 1.391 2010/08/26 07:27:33 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1230,8 +1230,7 @@ _ds_strip_html (const char *html)
 #ifdef VERBOSE
   LOGDEBUG("stripping HTML tags from message block");
 #endif
-  int j = 0, k = 0;
-  size_t i = 0;
+  size_t j = 0, k = 0, i = 0;
   int visible = 1;
   int closing_td_tag = 0;
   char *html2;
@@ -1367,7 +1366,7 @@ _ds_strip_html (const char *html)
         html2[j++]=html[i];
         i = k;
         const char *w = &(html[k]);
-        while (j < len && (w - html) < len && *w != '<') {
+        while (j < len && (size_t)(w - html) < len && *w != '<') {
           html2[j++]=*w;
           w++;
           i++;
@@ -1390,8 +1389,8 @@ _ds_strip_html (const char *html)
         }
         /* tag with uri found */
         if (tag_offset > 0) {
-          int url_start;         /* start of url tag inclusive [ */
-          int url_tag_len = strlen(url_tag);
+          size_t url_start;         /* start of url tag inclusive [ */
+          size_t url_tag_len = strlen(url_tag);
           char delim = ' ';
           /* find start of uri */
           for (url_start = tag_offset; url_start <= k; url_start++) {
@@ -1436,7 +1435,7 @@ _ds_strip_html (const char *html)
                * termination. This means we only want to loop to len
                * since we will replace html2[j] right after the loop.
                */
-              while (j < len && (w - html) < len && *w != delim) {
+              while (j < len && (size_t)(w - html) < len && *w != delim) {
                 html2[j++]=*w;
                 w++;
               }

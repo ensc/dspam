@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20100826:0730] sbajic: Fix compiler warnings
+
 [20100825:2215] sbajic: Fix bug introduced in the last two commits by using static functions instead saving the values in the _mysql_drv_storage struct.
 
 [20100825:2130] sbajic: Do the same small speed improvements in the MySQL driver as in the last commit but when initializing the preference extension in _mysql_drv_init_tools()

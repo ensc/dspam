@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.881 2010/08/25 22:09:44 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.882 2010/08/26 07:21:58 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1637,7 +1637,6 @@ _ds_shutdown_storage (DSPAM_CTX * CTX)
 int
 _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
 {
-  struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   char session[64];
   char digit[6];
   int pid, j;
