@@ -1,4 +1,4 @@
-/* $Id: cssstat.c,v 1.83 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: cssstat.c,v 1.84 2010/11/12 10:58:01 sbajic Exp $ */
 
 /*
  DSPAM
@@ -137,8 +137,7 @@ int cssstat(const char *filename) {
       (unsigned long) header->hash_rec_max);
     efree = eused = 0;
     for(i=0;i<header->hash_rec_max;i++) {
-      rec = map.addr;
-      rec += filepos;
+      rec = (void *) ((unsigned long) map.addr + filepos);
       if (rec->hashcode) {
         eused++;
         nused++;
@@ -148,8 +147,7 @@ int cssstat(const char *filename) {
       }
       filepos += sizeof(struct _hash_drv_spam_record);
     }
-    header = map.addr;
-    header += filepos;
+    header = (void *) ((unsigned long) map.addr + filepos);
     filepos += sizeof(struct _hash_drv_header);
     extents++;
 
