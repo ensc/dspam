@@ -458,8 +458,8 @@ FRESH INSTALLATION
 
      When verbose debug is compiled in, DSPAM performs many additional
      mathematical calculations regardless of whether or not it's been
-     activated. You shouldn't use --enable-verbose for production builds
-     unless you have serious issues you can't resolve.
+     activated. You shouldn't use --enable-verbose-debug for production
+     builds unless you have serious issues you can't resolve.
 
    FEATURE ACTIVATION
 
