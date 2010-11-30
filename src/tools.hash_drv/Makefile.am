@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.0 2009/06/25 22:23:38 sbajic Exp $ #
+# $Id: Makefile.am,v 1.1 2010/11/30 09:02:46 sbajic Exp $ #
 # tools.hash_drv/Makefile.am
 #
 
@@ -24,6 +24,7 @@ if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssstat_CPPFLAGS = $(libhash_drv_cppflags)
 cssstat_LDFLAGS += $(libhash_drv_libs) $(libhash_drv_ldflags)
+cssstat_LDADD = -lm
 endif
 endif
 
@@ -35,6 +36,7 @@ if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssclean_CPPFLAGS = $(libhash_drv_cppflags)
 cssclean_LDFLAGS += $(libhash_drv_libs) $(libhash_drv_ldflags)
+cssclean_LDADD = -lm
 endif
 endif
 
@@ -46,6 +48,7 @@ if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssconvert_CPPFLAGS = $(libhash_drv_cppflags)
 cssconvert_LDFLAGS += $(libhash_drv_libs) $(libhash_drv_ldflags)
+cssconvert_LDADD = -lm
 endif
 endif
 
@@ -58,5 +61,6 @@ if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 csscompress_CPPFLAGS = $(libhash_drv_cppflags)
 csscompress_LDFLAGS += $(libhash_drv_libs) $(libhash_drv_ldflags)
+csscompress_LDADD = -lm
 endif
 endif

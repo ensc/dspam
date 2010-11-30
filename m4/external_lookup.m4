@@ -1,4 +1,4 @@
-# $Id: external_lookup.m4,v 1.2 2009/10/27 23:13:09 sbajic Exp $
+# $Id: external_lookup.m4,v 1.3 2010/11/30 09:00:27 sbajic Exp $
 # m4/external_lookup.m4
 # Hugo Monteiro <hugo.monteiro@javali.pt>
 #
@@ -36,11 +36,10 @@ AC_DEFUN([DS_EXT_LOOKUP],
 
       # Check for LDAP and LDAP version
       AC_CHECK_HEADERS([lber.h ldap.h])
-      save_libs="$LIBS"
       if test x"$ac_cv_header_ldap_h" = "xyes" -a x"$ac_cv_header_lber_h" = "xyes"
 	  then
-          AC_CHECK_LIB(lber, ber_alloc)
-          AC_CHECK_LIB(ldap, ldap_init)
+          AC_CHECK_LIB(lber, ber_alloc,AC_DEFINE([HAVE_LIBLBER], [1], [Define if you have liblber]))
+          AC_CHECK_LIB(ldap, ldap_init,AC_DEFINE([HAVE_LIBLDAP], [1], [Define if you have libldap]))
       fi
       if test x"$ac_cv_lib_lber_ber_alloc" = "xyes" -a x"$ac_cv_lib_ldap_ldap_init" = "xyes"
 	  then
@@ -58,13 +57,13 @@ AC_DEFUN([DS_EXT_LOOKUP],
                                           have_ldap_version=yes],
                                           AC_MSG_RESULT([no]))
       fi
-      LIBS="$save_libs"
       AC_MSG_CHECKING([whether to enable LDAP support in external lookup])
       if test x"$have_ldap_version" != "xyes" ; then
           AC_MSG_RESULT([no])
       else
           AC_MSG_RESULT([yes])
-          LIBS="$LIBS -lldap -llber"
+          external_lookup_libs="-lldap -llber"
+          AC_SUBST(external_lookup_libs)
           AC_DEFINE(USE_LDAP, 1, [Defined if LDAP is found])
       fi
 

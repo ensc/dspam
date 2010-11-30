@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20101130:0910] sbajic: Remove unused direct dependencies on most of the executables and libraries
+
 [20101113:1510] sbajic: Fixing typo in README
 
 [20101112:1100] sbajic: Fix segmentation fault in cssstat

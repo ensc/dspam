@@ -1,4 +1,4 @@
-# $Id: mysql_drv.m4,v 1.4 2010/04/29 14:12:39 sbajic Exp $
+# $Id: mysql_drv.m4,v 1.5 2010/11/30 09:01:17 sbajic Exp $
 # Autoconf macros for checking for MySQL
 #
 #   Public available macro:
@@ -149,7 +149,7 @@ DS_NETLIBS([mysql_libs_netlibs],
 if test x"$mysql_libs_success" = xyes
 then
     AC_MSG_CHECKING([for mysql_init in -lmysqlclient])
-    mysql_libs_LIBS="-lmysqlclient $mysql_libs_netlibs -lm -lz"
+    mysql_libs_LIBS="-lmysqlclient $mysql_libs_netlibs"
     LIBS="$mysql_libs_LIBS $mysql_libs_save_LIBS"
     LDFLAGS="$mysql_libs_LDFLAGS $mysql_libs_save_LDFLAGS"
 

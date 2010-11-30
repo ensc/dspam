@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.84 2010/08/19 22:06:06 sbajic Exp $
+dnl $Id: configure.ac,v 1.85 2010/11/30 08:59:59 sbajic Exp $
 dnl
 dnl    autoconf (GNU Autoconf) 2.59
 dnl    ltmain.sh (GNU libtool) 1.5.6
@@ -63,7 +63,7 @@ AC_CHECK_FUNCS(localtime_r)
 DS_CHECK_FUNC_INET_NTOA_R
 AC_CHECK_FUNCS(strcasestr)
 
-LIBS="-lm"
+LIBS=
 
 #   Daemon support
 #
@@ -129,7 +129,7 @@ if test x"$success" != xyes
 then
     AC_MSG_FAILURE([required libraries are not found or not usable])
 fi
-LIBS="$LIBS $DLLIBS"
+AC_SUBST(DLLIBS)
 
 #---------------------------------------------------------
 #   DSPAM features
