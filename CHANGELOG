@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20101205:0155] sbajic: Fix linker issue with privious patch when compiling DSPAM with static Hash driver
+
 [20101130:0910] sbajic: Remove unused direct dependencies on most of the executables and libraries
 
 [20101113:1510] sbajic: Fixing typo in README
