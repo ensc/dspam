@@ -1,7 +1,7 @@
-# $Id: virtual_users.sql,v 1.21 2009/05/25 11:54:52 sbajic Exp $
+# $Id: virtual_users.sql,v 1.22 2011/01/07 00:59:32 sbajic Exp $
 
 create table dspam_virtual_uids (
-  uid int unsigned primary key AUTO_INCREMENT,
+  uid int unsigned not null primary key AUTO_INCREMENT,
   username varchar(128)
 ) type=MyISAM;
 

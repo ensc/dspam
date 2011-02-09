@@ -29,7 +29,7 @@ UPGRADING FROM 3.9.0
    If you are using the DSPAM virtual user feature then execute the following
    clauses to update the DSPAM virtual user table to use latin1 character set:
      ALTER TABLE `dspam_virtual_uids`
-       CHANGE `username` `username` VARCHAR(128) CHARACTER SET latin1 COLLATE latin1_general_ci NULL DEFAULT NULL;
+       CHANGE `username` `username` VARCHAR(128) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL;
      ALTER TABLE `dspam_virtual_uids`
        DEFAULT CHARACTER SET latin1 COLLATE latin1_general_ci;
 

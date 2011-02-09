@@ -1,8 +1,8 @@
-/* $Id: mysql_drv.c,v 1.882 2010/08/26 07:21:58 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.883 2011/01/07 00:59:33 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -2082,9 +2082,18 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
     return NULL;
   }
 
-  uid = (uid_t) atoi (row[0]);
-  if (uid == INT_MAX && errno == ERANGE) {
-    LOGDEBUG("_ds_get_nextuser: failed converting %s to uid", row[0]);
+  if (row[0]) {
+    uid = (uid_t) atoi (row[0]);
+    if (uid == INT_MAX && errno == ERANGE) {
+      LOGDEBUG("_ds_get_nextuser: failed converting %s to uid", row[0]);
+      return NULL;
+    }
+  } else {
+#ifdef VIRTUAL_USERS
+    LOG (LOG_CRIT, "_ds_get_nextuser: detected empty or NULL uid in table %s", _mysql_drv_get_virtual_table(CTX));
+#else
+    LOG (LOG_CRIT, "_ds_get_nextuser: detected empty or NULL uid in table dspam_stats");
+#endif
     return NULL;
   }
 #ifdef VIRTUAL_USERS

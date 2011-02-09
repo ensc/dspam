@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20110209:2120] sbajic: Fix segmentation fault problem in MySQL driver _ds_get_nextuser() when user row is NULL
+
 [20110209:2115] sbajic: Fix autoconf macros for ExtLookup to handle properly OpenLDAP version check
 
 [20101205:0155] sbajic: Fix linker issue with privious patch when compiling DSPAM with static Hash driver
