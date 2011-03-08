@@ -1,4 +1,4 @@
-/* $Id: client.c,v 1.688 2010/08/16 16:50:47 sbajic Exp $ */
+/* $Id: client.c,v 1.689 2011/03/02 21:16:28 sbajic Exp $ */
 
 /*
  DSPAM
@@ -144,19 +144,31 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
     int t;
     int buflen;
 
-    /* fill buf with partial msg, replacing \n with \r\n */
+    /*
+     * fill buf with partial msg, replacing \n with \r\n
+     * and do dot stuffing, if needed.
+     */
     buflen = 0;
-    while ((size_t)buflen < (sizeof(buf) - 2) && i < msglen) {
-      /* only replace \n and not \r\n */
-      if (i > 0 && message->data[i] == '\n' && message->data[i - 1] != '\r') {
-        buf[buflen] = '\r';
-        buflen++;
-      }
-
-      /* escape dot if first character on line */
-      if (message->data[i] == '.' && (i == 0 || message->data[i - 1] == '\n')) {
-        buf[buflen] = '.';
-        buflen++;
+    while ((size_t)buflen < (sizeof(buf) - 4) && i < msglen) {
+      if (i > 0) {
+        if (message->data[i] == '\n') {
+          /* only replace \n and not \r\n */
+          if (message->data[i - 1] != '\r') {
+            buf[buflen] = '\r';
+            buflen++;
+          }
+          /* take care of dot stuffing \n */
+          if (message->data[i + 1] && message->data[i + 1] == '.') {
+            buf[buflen] = '\n';
+            buflen++;
+            buf[buflen] = '.';
+            buflen++;
+            buf[buflen] = '.';
+            buflen++;
+            i += 2;
+            continue;
+          }
+        }
       }
 
       buf[buflen] = message->data[i];
