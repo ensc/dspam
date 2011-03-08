@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.17 2010/05/13 22:39:26 sbajic Exp $ */
+/* $Id: daemon.c,v 1.18 2011/03/07 10:22:49 sbajic Exp $ */
 
 /*
  DSPAM
@@ -912,7 +912,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
     if (strip) {
       size_t len = strlen(buf);
   
-      while (len>1 && buf[len-2]==13) {
+      while (len>1 && buf[len-2]=='\n') {
         buf[len-2] = buf[len-1];
         buf[len-1] = 0;
         len--;
@@ -926,6 +926,15 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
           body = 1;
         if (!body && !strncasecmp(buf, "To: ", 4))
           process_parseto(ATX, buf);
+      }
+
+      /* remove dot stuffing, if needed */
+      if((buf[0] && buf[0]=='.') && (buf[1] && buf[1]=='.')) {
+        size_t i, len = strlen(buf);
+        for(i=0;i<len;i++){
+          buf[i]=buf[i+1];
+        }
+        buf[len-1]=0;
       }
 
       if (buffer_cat (message, buf) || buffer_cat(message, "\n"))
