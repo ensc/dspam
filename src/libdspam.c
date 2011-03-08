@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.196 2010/08/09 23:13:35 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.197 2010/12/22 22:50:46 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1281,26 +1281,15 @@ _ds_process_signature (DSPAM_CTX * CTX)
       {
         if (CTX->flags & DSF_UNLEARN)
         {
-          if (CTX->classification == DSR_ISSPAM)
-          {
-            if (occurrence)
-            {
-              ds_term->s.innocent_hits -= ds_term->frequency;
-              if (ds_term->s.innocent_hits < 0)
-                ds_term->s.innocent_hits = 0;
-            } else {
-              ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
-            }
-          }
-
-        } else {
           if (occurrence)
           {
-            ds_term->s.innocent_hits += ds_term->frequency;
+            ds_term->s.innocent_hits -= ds_term->frequency;
+            if (ds_term->s.innocent_hits < 0)
+              ds_term->s.innocent_hits = 0;
           } else {
-            ds_term->s.innocent_hits++;
+            ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
           }
-
+        } else {
           if (CTX->source == DSS_ERROR          && 
               CTX->training_mode != DST_NOTRAIN && 
               CTX->training_mode != DST_TOE)
@@ -1309,11 +1298,29 @@ _ds_process_signature (DSPAM_CTX * CTX)
             {
               ds_term->s.spam_hits -= ds_term->frequency;
               if (ds_term->s.spam_hits < 0)
-              {
                 ds_term->s.spam_hits = 0;
-              }
             } else {
               ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
+            }
+          }
+
+          if (CTX->source == DSS_INOCULATION)
+          {
+            if (ds_term->s.spam_hits < 2 && ds_term->s.innocent_hits < 5)
+            {
+              ds_term->s.innocent_hits += 5;
+            }
+            else
+            {
+              ds_term->s.innocent_hits += 2;
+            }
+          } else /* ERROR or CORPUS */
+          {
+            if (occurrence)
+            {
+              ds_term->s.innocent_hits += ds_term->frequency;
+            } else {
+              ds_term->s.innocent_hits++;
             }
           }
         }
@@ -1324,20 +1331,14 @@ _ds_process_signature (DSPAM_CTX * CTX)
       {
         if (CTX->flags & DSF_UNLEARN)
         {
-          if (CTX->classification == DSR_ISSPAM)
+          if (occurrence)
           {
-            if (occurrence)
-            {
-              ds_term->s.spam_hits -= ds_term->frequency;
-              if (ds_term->s.spam_hits < 0)
-              {
-                ds_term->s.spam_hits = 0;
-              }
-            } else {
-              ds_term->s.spam_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
-            }
+            ds_term->s.spam_hits -= ds_term->frequency;
+            if (ds_term->s.spam_hits < 0)
+              ds_term->s.spam_hits = 0;
+          } else {
+            ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
           }
-
         } else {
           if (CTX->source == DSS_ERROR          && 
               CTX->training_mode != DST_NOTRAIN && 

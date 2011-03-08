@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20110308:0110] sbajic: Fix broken message unlearning
+
 [20110308:0105] sbajic: Speedup up dot stuffing when sending to LMTP/SMTP delivery
 
 [20110308:0100] sbajic: Add dot de-stuffing when reveiving message in deamon mode (aka: DLMTP/LMTP)
