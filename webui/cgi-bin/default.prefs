@@ -1,4 +1,4 @@
-# $Id: default.prefs,v 1.1 2005/07/02 03:59:52 jonz Exp $
+# $Id: default.prefs,v 1.2 2011/04/19 07:17:03 sbajic Exp $
 # default.prefs v3.2
 # Default preferences for DSPAM
 
@@ -12,7 +12,7 @@
 # Training Mode: TEFT, TOE, TUM, NOTRAIN
 trainingMode=TEFT
 
-# Spam Action: quarantine, tag
+# Spam Action: quarantine, tag, deliver
 spamAction=quarantine
 
 # Spam Subject: the text to be prepended onto the subject line of tagged spams
