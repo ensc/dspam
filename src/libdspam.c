@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.197 2010/12/22 22:50:46 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.198 2011/05/06 20:36:29 sbajic Exp $ */
 
 /*
  DSPAM
@@ -463,8 +463,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   int spam_result = 0, is_toe = 0, is_undertrain = 0;
 
 #ifdef DEBUG
-  if (DO_DEBUG)
-    gettimeofday(&tp1, &tzp);
+  gettimeofday(&tp1, &tzp);
 #endif
 
   if (CTX->signature != NULL)

@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20110506:2305] sbajic: Fix clang analyzer issues
+
 [20110419:0720] sbajic: Document value 'deliver' in default.prefs for option 'spamAction'
 
 [20110308:0110] sbajic: Fix broken message unlearning
