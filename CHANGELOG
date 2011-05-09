@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20110509:2305] sbajic: Update SQL files for MySQL to allow table creation for MySQL >=5.5.x
+
 [20110506:2305] sbajic: Fix clang analyzer issues
 
 [20110419:0720] sbajic: Document value 'deliver' in default.prefs for option 'spamAction'
