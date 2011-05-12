@@ -1,4 +1,4 @@
-/* $Id: daemon.c,v 1.19 2011/05/06 23:03:20 sbajic Exp $ */
+/* $Id: daemon.c,v 1.20 2011/05/13 00:14:19 sbajic Exp $ */
 
 /*
  DSPAM
@@ -243,7 +243,6 @@ int daemon_listen(DRIVER_CTX *DTX) {
             } else if (!domain) {
               char buff[32];
               LOGDEBUG("connection id %d from %s.", newfd, 
-                       (remote_addr.sin_addr) ? "unknown" :
 #ifdef HAVE_INET_NTOA_R_2
                        inet_ntoa_r(remote_addr.sin_addr, buff)
 #else
