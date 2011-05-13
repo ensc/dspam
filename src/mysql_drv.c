@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.883 2011/01/07 00:59:33 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.884 2011/05/13 14:22:28 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1021,21 +1021,34 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   snprintf (scratch, sizeof (scratch),
             "UPDATE dspam_token_data SET last_hit=CURRENT_DATE()");
   buffer_copy (buf, scratch);
-
   /* Do not update spam hits if no change is needed */
-  if (abs(control.spam_hits - s->control_sh) != 0) {
-    snprintf (scratch, sizeof (scratch),
-              ",spam_hits=GREATEST(0,spam_hits%s%d)",
-              (control.spam_hits > s->control_sh) ? "+" : "-",
-              abs (control.spam_hits - s->control_sh));
+  int sh_adiff = abs(control.spam_hits - s->control_sh);
+  if (sh_adiff != 0) {
+    if (control.spam_hits > s->control_sh) {
+      snprintf (scratch, sizeof (scratch),
+                ",spam_hits=spam_hits+%d",
+                sh_adiff);
+    } else {
+      snprintf (scratch, sizeof (scratch),
+                ",spam_hits=IF(spam_hits<%d,0,spam_hits-%d)",
+                sh_adiff + 1,
+                sh_adiff);
+    }
     buffer_cat (buf, scratch);
   }
   /* Do not update innocent hits if no change is needed */
-  if (abs(control.innocent_hits - s->control_ih) != 0) {
-    snprintf (scratch, sizeof (scratch),
-              ",innocent_hits=GREATEST(0,innocent_hits%s%d)",
-              (control.innocent_hits > s->control_ih) ? "+" : "-",
-              abs (control.innocent_hits - s->control_ih));
+  int ih_adiff = abs(control.innocent_hits - s->control_ih);
+  if (ih_adiff != 0) {
+    if (control.innocent_hits > s->control_ih) {
+      snprintf (scratch, sizeof (scratch),
+                ",innocent_hits=innocent_hits+%d",
+                ih_adiff);
+    } else {
+      snprintf (scratch, sizeof (scratch),
+                ",innocent_hits=IF(innocent_hits<%d,0,innocent_hits-%d)",
+                ih_adiff + 1,
+                ih_adiff);
+    }
     buffer_cat (buf, scratch);
   }
   snprintf (scratch, sizeof (scratch),
@@ -1119,18 +1132,20 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
           buffer_cat(insert, scratch);
           /* Do not update spam hits if no change is needed */
           if (abs(control.spam_hits - s->control_sh) != 0) {
-            snprintf (scratch, sizeof (scratch),
-                      ",spam_hits=GREATEST(0,spam_hits%s%d)",
-                      (control.spam_hits > s->control_sh) ? "+" : "-",
-                      abs (control.spam_hits - s->control_sh) > 0 ? 1 : 0);
+            if (control.spam_hits > s->control_sh) {
+              snprintf (scratch, sizeof (scratch), ",spam_hits=spam_hits+1");
+            } else {
+              snprintf (scratch, sizeof (scratch), ",spam_hits=IF(spam_hits<2,0,spam_hits-1)");
+            }
             buffer_cat(insert, scratch);
           }
           /* Do not update innocent hits if no change is needed */
           if (abs(control.innocent_hits - s->control_ih) != 0) {
-            snprintf (scratch, sizeof (scratch),
-                      ",innocent_hits=GREATEST(0,innocent_hits%s%d)",
-                      (control.innocent_hits > s->control_ih) ? "+" : "-",
-                      abs (control.innocent_hits - s->control_ih) > 0 ? 1 : 0);
+            if (control.innocent_hits > s->control_ih) {
+              snprintf (scratch, sizeof (scratch), ",innocent_hits=innocent_hits+1");
+            } else {
+              snprintf (scratch, sizeof (scratch), ",innocent_hits=IF(innocent_hits<2,0,innocent_hits-1)");
+            }
             buffer_cat(insert, scratch);
           }
           query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, insert->data);
@@ -1258,18 +1273,20 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     buffer_cat(insert, scratch);
     /* Do not update spam hits if no change is needed */
     if (abs(control.spam_hits - s->control_sh) != 0) {
-      snprintf (scratch, sizeof (scratch),
-                ",spam_hits=GREATEST(0,spam_hits%s%d)",
-                (control.spam_hits > s->control_sh) ? "+" : "-",
-                abs (control.spam_hits - s->control_sh) > 0 ? 1 : 0);
+      if (control.spam_hits > s->control_sh) {
+        snprintf (scratch, sizeof (scratch), ",spam_hits=spam_hits+1");
+      } else {
+        snprintf (scratch, sizeof (scratch), ",spam_hits=IF(spam_hits<2,0,spam_hits-1)");
+      }
       buffer_cat(insert, scratch);
     }
     /* Do not update innocent hits if no change is needed */
     if (abs(control.innocent_hits - s->control_ih) != 0) {
-      snprintf (scratch, sizeof (scratch),
-                ",innocent_hits=GREATEST(0,innocent_hits%s%d)",
-                (control.innocent_hits > s->control_ih) ? "+" : "-",
-                abs (control.innocent_hits - s->control_ih) > 0 ? 1 : 0);
+      if (control.innocent_hits > s->control_ih) {
+        snprintf (scratch, sizeof (scratch), ",innocent_hits=innocent_hits+1");
+      } else {
+        snprintf (scratch, sizeof (scratch), ",innocent_hits=IF(innocent_hits<2,0,innocent_hits-1)");
+      }
       buffer_cat(insert, scratch);
     }
     query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, insert->data);
