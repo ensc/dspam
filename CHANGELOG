@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20110514:0410] sbajic: Fix Lookup feature
+
 [20110513:1425] sbajic: Fix out-of-range and overflow handling in MySQL driver (fixes issue with MySQL >= 5.5.x)
 
 [20110513:0020] sbajic: Remove compile failure when using debug option

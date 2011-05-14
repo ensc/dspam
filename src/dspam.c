@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.405 2010/08/22 19:40:40 sbajic Exp $ */
+/* $Id: dspam.c,v 1.406 2011/05/14 04:06:20 sbajic Exp $ */
 
 /*
  DSPAM
@@ -4023,7 +4023,7 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     while(ptr != NULL && i>=0 && i<4) {
       octet[i] = ptr;
       ptr = strtok(NULL, ".");
-      if (ptr == NULL && i!=4)
+      if (ptr == NULL && i!=0)
         return 0;
       i--;
     }
