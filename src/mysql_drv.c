@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.884 2011/05/13 14:22:28 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.885 2011/05/18 01:30:45 sbajic Exp $ */
 
 /*
  DSPAM
@@ -84,23 +84,6 @@
  */
 static int _mysql_drv_get_UIDInSignature (DSPAM_CTX *CTX) {
   if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
-    return 1;
-  else
-    return 0;
-}
-
-/*
- * _mysql_drv_get_SupressQuote()
- *
- * DESCRIPTION
- *   The _mysql_drv_get_SupressQuote() function is called to check if the
- *   configuration option MySQLSupressQuote is turned on or off.
- *
- * RETURN VALUES
- *   Returns 1 if MySQLSupressQuote is turned "on" and 0 if turned "off".
- */
-static int _mysql_drv_get_SupressQuote (DSPAM_CTX *CTX) {
-  if (_ds_match_attribute(CTX->config->attributes, "MySQLSupressQuote", "on"))
     return 1;
   else
     return 0;
@@ -837,10 +820,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     scratch[0] = 0;
     buffer_copy(query, queryhead);
     while (ds_term) {
-      if (_mysql_drv_get_SupressQuote(CTX))
-        snprintf(scratch, sizeof(scratch), "%llu", ds_term->key);
-      else
-        snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
+      snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
       buffer_cat (query, scratch);
       ds_term->s.innocent_hits = 0;
       ds_term->s.spam_hits = 0;
@@ -1192,11 +1172,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     }
 
     if (stat.status & TST_DISK) {
-      if (_mysql_drv_get_SupressQuote(CTX))
-        snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
-      else
-        snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
-
+      snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
       buffer_cat (query, scratch);
       update_any = 1;
       use_comma = 1;
@@ -1347,14 +1323,9 @@ _ds_get_spamrecord (DSPAM_CTX * CTX, unsigned long long token,
     return EINVAL;
   }
 
-  if (_mysql_drv_get_SupressQuote(CTX))
-    snprintf (query, sizeof (query),
-            "SELECT spam_hits,innocent_hits FROM dspam_token_data"
-            " WHERE uid=%d AND token IN (%llu)", (int) p->pw_uid, token);
-  else
-    snprintf (query, sizeof (query),
-            "SELECT spam_hits,innocent_hits FROM dspam_token_data"
-            " WHERE uid=%d AND token IN ('%llu')", (int) p->pw_uid, token);
+  snprintf (query, sizeof (query),
+          "SELECT spam_hits,innocent_hits FROM dspam_token_data"
+          " WHERE uid=%d AND token IN ('%llu')", (int) p->pw_uid, token);
 
   stat->probability = 0.00000;
   stat->spam_hits = 0;
@@ -2719,14 +2690,9 @@ _ds_del_spamrecord (DSPAM_CTX * CTX, unsigned long long token)
               name);
     return EINVAL;
   }
-  if (_mysql_drv_get_SupressQuote(CTX))
-    snprintf (query, sizeof (query),
-            "DELETE FROM dspam_token_data WHERE uid=%d AND token=%llu",
-            (int) p->pw_uid, token);
-  else
-    snprintf (query, sizeof (query),
-            "DELETE FROM dspam_token_data WHERE uid=%d AND token=\"%llu\"",
-            (int) p->pw_uid, token);
+  snprintf (query, sizeof (query),
+          "DELETE FROM dspam_token_data WHERE uid=%d AND token=\"%llu\"",
+          (int) p->pw_uid, token);
 
   query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_write, query);
   if (query_rc) {
@@ -2804,10 +2770,7 @@ int _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     scratch[0] = 0;
     buffer_copy(query, queryhead);
     while (ds_term) {
-      if (_mysql_drv_get_SupressQuote(CTX))
-        snprintf (scratch, sizeof (scratch), "%llu", ds_term->key);
-      else
-        snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
+      snprintf (scratch, sizeof (scratch), "'%llu'", ds_term->key);
       buffer_cat (query, scratch);
       ds_term = ds_diction_next(ds_c);
       if((unsigned long)(query->used + 1024) > _mysql_driver_get_max_packet(s->dbt->dbh_write) || !ds_term) {

@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20110520:0025] sbajic: Remove support for MySQL < 5.0.0 (EOL)
+
 [20110514:0410] sbajic: Fix Lookup feature
 
 [20110513:1425] sbajic: Fix out-of-range and overflow handling in MySQL driver (fixes issue with MySQL >= 5.5.x)

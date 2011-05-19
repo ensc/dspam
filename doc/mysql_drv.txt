@@ -1,4 +1,4 @@
-$Id: mysql_drv.txt,v 1.3 2010/04/26 09:30:23 sbajic Exp $
+$Id: mysql_drv.txt,v 1.4 2011/05/18 01:31:40 sbajic Exp $
 
 Copyright (c) 2002-2010 DSPAM Project
 http://dspam.sourceforge.net
@@ -47,24 +47,6 @@ some critical issues were addressed including:
     4.1 Supports the use of ON DUPLICATE KEY which allows us to perform all
     token inserts with a single query. As a result, MySQL 4.1 is about 20%
     faster.
-
-0. CHECK FOR 4.1 BUG
-
-Some versions of 4.1 apparently have a bug with the way bigint's are handled.
-If you have this bug, you'll need to either upgrade to a better version of
-MySQL or use the 4.0 (speed, space) object scripts for DSPAM instead of the 4.1
-scripts.
-
-To check for this bug, log into MySQL and issue these statements:
-
-create table dspam_test (token bigint(20));
-
-insert into dspam_test values('3232933621568372736'),('5174632569486238062'),('5860192774298853742'),('8787532532089676142'),('8029914733239132526');
-
-select token from dspam_test where token in('3232933621568372736','8787532532089676142','8029914733239132526','5174632569486238062','5860192774298853742');
-
-Broken versions of MySQL will return only one row, whereas a working
-version will return all five rows.
 
 1. CONFIGURING DSPAM
 
