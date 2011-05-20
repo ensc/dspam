@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.885 2011/05/18 01:30:45 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.886 2011/05/19 19:04:28 sbajic Exp $ */
 
 /*
  DSPAM
@@ -83,10 +83,16 @@
  *   Returns 1 if MySQLUIDInSignature is turned "on" and 0 if turned "off".
  */
 static int _mysql_drv_get_UIDInSignature (DSPAM_CTX *CTX) {
-  if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
-    return 1;
-  else
-    return 0;
+  static int uid_in_signature = -1;
+  if (uid_in_signature > -1) {
+    return uid_in_signature;
+  } else {
+    if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
+      uid_in_signature = 1;
+    else
+      uid_in_signature = 0;
+  }
+  return uid_in_signature;
 }
 
 /*
@@ -101,10 +107,14 @@ static int _mysql_drv_get_UIDInSignature (DSPAM_CTX *CTX) {
  *   "dspam_virtual_uids".
  */
 static char *_mysql_drv_get_virtual_table (DSPAM_CTX *CTX) {
-  char *virtual_table;
-  if ((virtual_table
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable")) == NULL)
-  { virtual_table = "dspam_virtual_uids"; }
+  static char *virtual_table = "*";
+  if (virtual_table[0] != '*') {
+    return virtual_table;
+  } else {
+    if ((virtual_table = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable")) == NULL) {
+      virtual_table = "dspam_virtual_uids";
+    }
+  }
   return virtual_table;
 }
 
@@ -120,10 +130,14 @@ static char *_mysql_drv_get_virtual_table (DSPAM_CTX *CTX) {
  *   "uid".
  */
 static char *_mysql_drv_get_virtual_uid_field (DSPAM_CTX *CTX) {
-  char *virtual_uid;
-  if ((virtual_uid
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField")) == NULL)
-  { virtual_uid = "uid"; }
+  static char *virtual_uid = "*";
+  if (virtual_uid[0] != '*') {
+    return virtual_uid;
+  } else {
+    if ((virtual_uid = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField")) == NULL) {
+      virtual_uid = "uid";
+    }
+  }
   return virtual_uid;
 }
 
@@ -139,10 +153,14 @@ static char *_mysql_drv_get_virtual_uid_field (DSPAM_CTX *CTX) {
  *   "username".
  */
 static char *_mysql_drv_get_virtual_username_field (DSPAM_CTX *CTX) {
-  char *virtual_username;
-  if ((virtual_username
-    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUsernameField")) == NULL)
-  { virtual_username = "username"; }
+  static char *virtual_username = "*";
+  if (virtual_username[0] != '*') {
+    return virtual_username;
+  } else {
+    if ((virtual_username = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUsernameField")) == NULL) {
+      virtual_username = "username";
+    }
+  }
   return virtual_username;
 }
 
@@ -158,7 +176,12 @@ static char *_mysql_drv_get_virtual_username_field (DSPAM_CTX *CTX) {
  *   size can not be determined then 1000000 is returned.
  */
 static unsigned long _mysql_driver_get_max_packet (MYSQL *dbh) {
-  unsigned long drv_max_packet = 1000000;
+  static unsigned long drv_max_packet = 0;
+  if (drv_max_packet > 0) {
+    return drv_max_packet;
+  } else {
+    drv_max_packet = 1000000;
+  }
   if (dbh) {
     MYSQL_RES *result;
     MYSQL_ROW row;
