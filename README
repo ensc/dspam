@@ -1,5 +1,5 @@
 DSPAM v3.9.1
-Copyright (c) 2002-2010 DSPAM Project
+Copyright (c) 2002-2011 DSPAM Project
 http://dspam.sourceforge.net/
 
 LICENSE
@@ -1714,9 +1714,9 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
   The DSPAM agent can be compiled with client/server support by configuring
   with --enable-daemon. You will need to use a multithread-safe storage driver
-  (presently mysql_drv and pgsql_drv are supported). Once you have compiled
-  with daemon support, you'll need to modify your dspam.conf to provide the
-  settings necessary for client/server mode:
+  (presently mysql_drv, pgsql_drv and hash_drv are supported). Once you have
+  compiled with daemon support, you'll need to modify your dspam.conf to
+  provide the settings necessary for client/server mode:
 
 	ServerHost		127.0.0.1
 

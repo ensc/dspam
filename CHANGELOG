@@ -1,6 +1,15 @@
 Version 3.9.1
 -------------
 
+[20110618:1545] sbajic: Merge two patches from Debian:
+  1. 011_Document-hash-drv-support-daemon.diff
+     Description: hash driver support daemon mode since version 3.6rc2 (see upstream CHANGELOG)
+     Author: Debian DSPAM Maintainers <pkg-dspam-misc@lists.alioth.debian.org>
+
+  2. 012_typo-dspam_maintenance.diff
+     Description: Fix typo in dspam_maintenance for pgsql backend
+     Author: Rodolphe Pelloux-Prayer <rodolphe@damsy.net>
+
 [20110520:0915] sbajic: Fix bug with static functions/variables inside MySQL driver
 
 [20110520:0025] sbajic: Remove support for MySQL < 5.0.0 (EOL)

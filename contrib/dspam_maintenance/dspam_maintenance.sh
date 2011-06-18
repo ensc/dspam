@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# $Id: dspam_maintenance.sh,v 1.20 2010/08/04 02:01:12 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.21 2011/06/18 15:39:50 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -504,7 +504,7 @@ clean_pgsql_drv() {
 				-e "/^DELETE FROM dspam_signature_data/,/COMMIT/{s:^\([\t ]*WHERE[\t ]\{1,\}created_on[\t ]\{1,\}<[\t ]\{1,\}CURRENT_DATE[\t ]\{1,\}\-[\t ]\{1,\}\)14\(.*\)$:\1${SIGNATURE_AGE}\2:g}" \
 				-e "/^DELETE FROM dspam_token_data/,/COMMIT/{s:^\([\t ]*AND[\t ]\{1,\}last_hit[\t ]\{1,\}<[\t ]\{1,\}CURRENT_DATE[\t ]\{1,\}\-[\t ]\{1,\}\)[36]0\(.*\)$:\1${HAPAXES_AGE}\2:g}" \
 				-e "/^DELETE FROM dspam_token_data/,/COMMIT/{s:^\([\t ]*AND[\t ]\{1,\}last_hit[\t ]\{1,\}<[\t ]\{1,\}CURRENT_DATE[\t ]\{1,\}\-[\t ]\{1,\}\)15\(.*\)$:\1${HITS1MAX}\2:g}" \
-				-e "/^DELETE FROM dspam_token_data/,/COMMIT/{s:^\([\t ]*\(AND\|WHERE\)[\t ]\{1,\}last_hit[\t ]\{1,\}<[\t ]\{1,\}CURRENT_DATE[\t ]\{1,\}\-[\t ]\{1,\}\)90\(.*\)$:\1${UNUSED_AGE}\2:g}" \
+				-e "/^DELETE FROM dspam_token_data/,/COMMIT/{s:^\([\t ]*\(AND\|WHERE\)[\t ]\{1,\}last_hit[\t ]\{1,\}<[\t ]\{1,\}CURRENT_DATE[\t ]\{1,\}\-[\t ]\{1,\}\)90\(.*\)$:\1${UNUSED_AGE}\3:g}" \
 				"${DSPAM_PgSQL_PURGE_SQL}">"${DSPAM_SQL_TMPFILE}"
 			[ -r "${DSPAM_SQL_TMPFILE}" ] && DSPAM_PgSQL_PURGE_SQL="${DSPAM_SQL_TMPFILE}"
 		fi
