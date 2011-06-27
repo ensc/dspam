@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20110627:2230] sbajic: Added option to HTMLize sender and subject in quarantine view
+
 [20110618:1545] sbajic: Merge two patches from Debian:
   1. 011_Document-hash-drv-support-daemon.diff
      Description: hash driver support daemon mode since version 3.6rc2 (see upstream CHANGELOG)

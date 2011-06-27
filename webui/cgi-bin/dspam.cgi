@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.55 2010/08/03 12:52:06 sbajic Exp $
+# $Id: dspam.cgi,v 1.56 2011/06/08 22:20:45 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2010
+# COPYRIGHT (C) DSPAM PROJECT 2002-2011
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -1227,6 +1227,12 @@ sub DisplayQuarantine {
 
     if ($alert) { $rowclass="rowAlert"; }
 
+    # HTMLize special characters
+    if ($CONFIG{'QUARANTINE_HTMLIZE'} eq "yes") {
+      $new->{'Subject'} = htmlize($new->{'Subject'});
+      $new->{'From'} = htmlize($new->{'From'});
+    }
+
     $new->{'Sub2'} = $new->{'X-DSPAM-Signature'};
     if (length($new->{'Subject'})>$CONFIG{'MAX_COL_LEN'}) {
       $new->{'Subject'} = substr($new->{'Subject'}, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "...";
@@ -1618,14 +1624,26 @@ sub htmlize {
   #
   my($text) = @_;
 
-  use Encode;
-  use HTML::Entities;
+  my $has_encode = eval{require Encode;};
+  my $has_html_entities = eval{require HTML::Entities;};
 
   if ($text =~ /^(.*?)=\?([^?]+)\?([qb])\?([^?]*)\?=(.*)$/is) {
-    $text = encode_entities(decode($2, Encode::decode('MIME-Header', $text)));
-  } else {
-    $text = decode("utf8", $text) if ($text =~ /[\xC2-\xDF][\x80-\xBF]/);
-    $text = encode_entities(decode_entities($text));
+    if ($has_encode) {
+      $text = Encode::decode($2, Encode::decode('MIME-Header', $text));
+    }
+  } elsif ($text =~ /([\xC2-\xDF][\x80-\xBF]
+                     | \xE0[\xA0-\xBF][\x80-\xBF]
+                     |[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}
+                     | \xED[\x80-\x9F][\x80-\xBF]
+                     | \xF0[\x90-\xBF][\x80-\xBF]{2}
+                     |[\xF1-\xF3][\x80-\xBF]{3}
+                     | \xF4[\x80-\x8F][\x80-\xBF]{2})/x) {
+    if ($has_encode) {
+      $text = Encode::decode("utf8", $text);
+    }
+  }
+  if ($has_html_entities) {
+    $text = HTML::Entities::encode_entities(HTML::Entities::decode_entities($text));
   }
   if ($text =~ /[\xC2-\xDF][\x80-\xBF]/) {
     if ((-e "htmlize.pl") && (-r "htmlize.pl")) {
