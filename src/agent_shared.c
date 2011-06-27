@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.83 2011/06/28 00:13:48 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.84 2011/06/28 01:15:42 sbajic Exp $ */
 
 /*
  DSPAM
@@ -447,10 +447,8 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       printf ("\nDSPAM Anti-Spam Suite %s (agent/library)\n\n", VERSION);
       printf ("Copyright (C) 2002-2011 DSPAM Project\n");
       printf ("http://dspam.sourceforge.net.\n\n");
-      printf ("DSPAM may be copied only under the terms of the GNU "
-              "General Public License,\n");
-      printf ("a copy of which can be found with the DSPAM distribution "
-              "kit.\n\n");
+      printf ("DSPAM may be copied only under the terms of the GNU Affero General Public\n");
+      printf ("License, a copy of which can be found with the DSPAM distribution kit.\n\n");
 #ifdef TRUSTED_USER_SECURITY
       if (ATX->trusted) {
 #endif
