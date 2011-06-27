@@ -1,5 +1,6 @@
 - DSPAM itself is distributes under AGPL v3 licence (listed bellow).
 - inet_ntoa_r() in src/util.c is under BSD licence (listed in src/util.c).
+- external lookup is under GPL v2 license
 - for the licence of third party scripts, plugins, etc. please check their
 directories under contrib/
 

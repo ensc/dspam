@@ -1,22 +1,21 @@
-/* $Id: agent_shared.c,v 1.82 2011/06/27 23:01:37 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.83 2011/06/28 00:13:48 sbajic Exp $ */
 
 /*
  DSPAM
  COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -446,7 +445,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     if (!strcmp (argv[i], "--version"))
     {
       printf ("\nDSPAM Anti-Spam Suite %s (agent/library)\n\n", VERSION);
-      printf ("Copyright (c) 2002-2010 DSPAM Project\n");
+      printf ("Copyright (C) 2002-2011 DSPAM Project\n");
       printf ("http://dspam.sourceforge.net.\n\n");
       printf ("DSPAM may be copied only under the terms of the GNU "
               "General Public License,\n");
