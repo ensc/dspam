@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.199 2011/06/27 23:01:37 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.200 2011/06/27 23:22:29 sbajic Exp $ */
 
 /*
  DSPAM
@@ -477,24 +477,24 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     return EINVAL;
   }
 
-  if (CTX->algorithms == 0) 
+  if (CTX->algorithms == 0)
   {
     LOG(LOG_WARNING, "No algorithms configured. Use CTX->algorithms and DSA_");
     return EINVAL;
   }
 
-  if (CTX->classification != DSR_NONE && CTX->source == DSR_NONE) 
+  if (CTX->classification != DSR_NONE && CTX->source == DSS_NONE)
   {
     LOG(LOG_WARNING, "A classification requires a source be specified");
     return EINVAL;
   }
 
-  if (CTX->classification == DSR_NONE && CTX->source != DSR_NONE)
+  if (CTX->classification == DSR_NONE && CTX->source != DSS_NONE)
   {
     LOG(LOG_WARNING, "A source requires a classification be specified");
     return EINVAL;
   }
- 
+
   /* Set TOE mode pretrain option if we haven't seen many messages yet */
   if (CTX->training_mode == DST_TOE
   && (CTX->totals.innocent_learned <= 100 || CTX->totals.spam_learned <= 100)

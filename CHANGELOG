@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20110627:2320] sbajic: Use DSS_NONE and DSR_NONE according to specification (no change in binary code)
+
 [20110627:2300] sbajic: Change copyright year
 
 [20110627:2245] sbajic: Updated headers with new FSF address
