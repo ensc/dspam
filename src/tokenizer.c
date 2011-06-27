@@ -1,8 +1,8 @@
-/* $Id: tokenizer.c,v 1.299 2010/07/31 15:11:25 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.300 2011/06/27 23:01:37 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

@@ -1,8 +1,8 @@
-/* $Id: error.c,v 1.19 2010/05/13 21:01:11 sbajic Exp $ */
+/* $Id: error.c,v 1.20 2011/06/27 23:01:37 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

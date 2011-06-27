@@ -1,9 +1,9 @@
-/* $Id: hash.h,v 1.4 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: hash.h,v 1.5 2011/06/27 23:01:37 sbajic Exp $ */
 
 /*
   Bayesian Noise Reduction - Jonathan A. Zdziarski
   http://www.zdziarski.com/papers/bnr.html
-  Copyright (c) 2004-2010 DSPAM PROJECT
+  COPYRIGHT (c) 2004-2011 DSPAM PROJECT
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

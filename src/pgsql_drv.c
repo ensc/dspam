@@ -1,8 +1,8 @@
-/* $Id: pgsql_drv.c,v 1.750 2010/08/23 23:16:40 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.751 2011/06/27 23:01:37 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

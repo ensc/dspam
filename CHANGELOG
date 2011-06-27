@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20110627:2300] sbajic: Change copyright year
+
 [20110627:2245] sbajic: Updated headers with new FSF address
 
 [20110627:2230] sbajic: Added option to HTMLize sender and subject in quarantine view

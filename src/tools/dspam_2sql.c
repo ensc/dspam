@@ -1,8 +1,8 @@
-/* $Id: dspam_2sql.c,v 1.15 2010/08/10 01:14:20 sbajic Exp $ */
+/* $Id: dspam_2sql.c,v 1.16 2011/06/27 23:01:37 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
