@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.201 2011/06/28 00:13:48 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.202 2011/07/01 17:38:52 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1190,7 +1190,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
 
   LOGDEBUG ("processing signature.  length: %ld", CTX->signature->length);
 
-  CTX->result = DSS_NONE;
+  CTX->result = DSR_NONE;
 
   if (!(CTX->flags & DSF_UNLEARN)) 
     CTX->learned = 1;

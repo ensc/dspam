@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20110701:1740] sbajic: Use DSS_NONE and DSR_NONE according to specification (no change in binary code)
+
 [20110627:2330] sbajic: Changing DSPAM license to AGPL v3
 
 [20110627:2320] sbajic: Use DSS_NONE and DSR_NONE according to specification (no change in binary code)
