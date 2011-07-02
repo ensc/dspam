@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# $Id: dspam_maintenance.sh,v 1.21 2011/06/18 15:39:50 sbajic Exp $
+# $Id: dspam_maintenance.sh,v 1.22 2011/07/02 12:54:17 sbajic Exp $
 #
 # Copyright 2007-2010 Stevan Bajic <stevan@bajic.ch>
 # Distributed under the terms of the GNU Affero General Public License v3
@@ -25,6 +25,7 @@
 ###
 
 DSPAM_CONFIGDIR=""
+INCLUDE_DIRS=""
 DSPAM_HOMEDIR=""
 DSPAM_PURGE_SCRIPT_DIR=""
 DSPAM_BIN_DIR=""
@@ -191,8 +192,6 @@ check_for_tool() {
 #
 read_dspam_params() {
 	local PARAMETER VALUE
-	local INCLUDE_DIRS
-	INCLUDE_DIRS=$(awk "BEGIN { IGNORECASE=1; } \$1==\"Include\" { print \$2 \"/*.conf\"; }" "${DSPAM_CONFIGDIR}/dspam.conf" 2>/dev/null)
 	for PARAMETER in $@ ; do
 		VALUE=$(awk "BEGIN { IGNORECASE=1; } \$1==\"${PARAMETER}\" { print \$2; exit; }" "${DSPAM_CONFIGDIR}/dspam.conf" ${INCLUDE_DIRS[@]} 2>/dev/null)
 		[ ${?} = 0 ] || return 1
@@ -328,7 +327,8 @@ clean_mysql_drv() {
 
 		# Construct mysql command line
 		echo "[client]">"${DSPAM_CRON_TMPFILE}"
-		if ( echo ${MySQLPass} 2>&1 | grep -q '#\|\\\\\|\"\|\$' )
+		MySQLQuotePass=""
+		if [ "${MySQLPass}" != "${MySQLPass/[#\\\"\$]/}" ]
 		then
 			if [ "${DSPAM_MySQL_INT}" -lt "262160" ]
 			then
@@ -337,13 +337,13 @@ clean_mysql_drv() {
 					echo "  You will most likely have an authentication issue/failure with the"
 					echo "  currently used MySQL DSPAM password and your current MySQL version."
 				fi
-				echo "password=${MySQLPass}">>"${DSPAM_CRON_TMPFILE}"
 			else
-				echo "password='${MySQLPass}'">>"${DSPAM_CRON_TMPFILE}"
+				MySQLQuotePass="'"
 			fi
-		else
-			echo "password=${MySQLPass}">>"${DSPAM_CRON_TMPFILE}"
 		fi
+		echo -n "password=${MySQLQuotePass}">>"${DSPAM_CRON_TMPFILE}"
+		awk "BEGIN { IGNORECASE=1; ORS=\"\"; } \$1==\"MySQLPass${PROFILE}\" { gsub(\"^\\\"|\\\"$\", \"\", \$2); print \$2 >>\"${DSPAM_CRON_TMPFILE}\"; exit; }" "${DSPAM_CONFIGDIR}/dspam.conf" ${INCLUDE_DIRS[@]} 2>/dev/null
+		echo "${MySQLQuotePass}">>"${DSPAM_CRON_TMPFILE}"
 		DSPAM_MySQL_CMD="${MYSQL_BIN_DIR}/mysql"
 		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --defaults-file=${DSPAM_CRON_TMPFILE}"
 		DSPAM_MySQL_CMD="${DSPAM_MySQL_CMD} --silent"
@@ -400,7 +400,7 @@ clean_pgsql_drv() {
 	#
 	[ "${VERBOSE}" = "true" ] && echo "Running PostgreSQL storage driver data cleanup"
 	if [ "${USE_SQL_PURGE}" = "true" ] && \
-		read_dspam_params PgSQLServer${PROFILE} PgSQLPort${PROFILE} PgSQLUser${PROFILE} PgSQLPass${PROFILE} PgSQLDb${PROFILE} && \
+		read_dspam_params PgSQLServer${PROFILE} PgSQLPort${PROFILE} PgSQLUser${PROFILE} PgSQLDb${PROFILE} && \
 		[ -n "${PgSQLServer}" -a -n "${PgSQLUser}" -a -n "${PgSQLDb}" ]
 	then
 		for foo in ${PGSQL_BIN_DIR} /usr/bin /usr/local/bin /usr/sbin /usr/local/sbin
@@ -486,7 +486,8 @@ clean_pgsql_drv() {
 		fi
 
 		# Construct psql command line
-		echo "*:*:${PgSQLDb}:${PgSQLUser}:${PgSQLPass}">"${DSPAM_CRON_TMPFILE}"
+		echo -n "*:*:${PgSQLDb}:${PgSQLUser}:">"${DSPAM_CRON_TMPFILE}"
+		awk "BEGIN { IGNORECASE=1; } \$1==\"PgSQLPass${PROFILE}\" { gsub(\"^\\\"|\\\"$\", \"\", \$2); print \$2 >>\"${DSPAM_CRON_TMPFILE}\"; exit; }" "${DSPAM_CONFIGDIR}/dspam.conf" ${INCLUDE_DIRS[@]} 2>/dev/null
 		DSPAM_PgSQL_CMD="${PGSQL_BIN_DIR}/psql -q -U ${PgSQLUser} -h ${PgSQLServer} -d ${PgSQLDb}"
 		[ -n "${PgSQLPort}" ] &&
 			DSPAM_PgSQL_CMD="${DSPAM_PgSQL_CMD} -p ${PgSQLPort}"
@@ -1027,7 +1028,7 @@ if ( set -o noclobber; echo "$$" > "${DSPAM_CRON_LOCKFILE}") 2> /dev/null; then
 		[ "${VERBOSE}" = "true" ] && echo "dspam.conf not found! Can not continue without it."
 		exit 2
 	fi
-
+	INCLUDE_DIRS=$(awk "BEGIN { IGNORECASE=1; } \$1==\"Include\" { print \$2 \"/*.conf\"; }" "${DSPAM_CONFIGDIR}/dspam.conf" 2>/dev/null)
 
 	#
 	# Parameters
