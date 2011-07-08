@@ -1,6 +1,12 @@
 Version 3.9.1
 -------------
 
+[20110708:2345] pcockings: Documentation changes:
+ * Add note that sqlite_drv will be removed in future release
+ * Add note that hash_drv is not 32/64 or big/little endian safe
+ * Update contact details for commercial licensing
+ * Small documentation typos
+
 [20110702:1300] sbajic: Prevent password leakage in dspam_maintenance.sh
 
 [20110701:1740] sbajic: Use DSS_NONE and DSR_NONE according to specification (no change in binary code)

@@ -243,22 +243,25 @@ FRESH INSTALLATION
    -------------------------------------------------------------------------
  T mysql_drv:   MySQL client libraries      (and a server to connect to)
  T pgsql_drv:   PostgreSQL client libraries (and a server to connect to)
-   sqlite_drv:  SQLite v2.7.7 or above
+   sqlite_drv:  SQLite v2.7.7 or above      (scheduled for removal)
    sqlite3_drv: SQLite v3.x
-*T hash_drv:    None (Self-Contained Hash-Based Driver)
+*T hash_drv:    None                        (Self-Contained Hash-Based Driver)
 
    Legend:
     * Default storage driver
     T Thread-safe (Required for running DSPAM in server daemon mode)
 
    In general, MySQL is one of the faster solutions with a smaller storage
-   footprint, and is well suited for both small and large-scale implementations.
+   footprint and is well suited for both small and large-scale implementations.
 
    The hash driver (inspired by Bill Yerazunis' CRM Sparse Spectra algorithm)
-   is the fastest solution by far and requires no dependencies, supports
-   an auto-extend feature to grow the file size as needed, and is very
-   fast and compact. It does, however, lack some features (such as merged
+   is the fastest solution by far and requires no dependencies. It supports
+   an auto-extend feature to grow the file size as needed and is very
+   fast and compact. It does however lack some features (such as merged
    groups support) and uses a lot of memory to mmap() users.
+
+   Also note that a database created with the hash driver is currently not safe
+   to move between 32/64 bit systems or big/little endian systems.
 
    Documentation for any additional setup of your selected storage driver can
    be found in the doc/ directory. You'll need to follow any steps outlined in
@@ -270,7 +273,7 @@ FRESH INSTALLATION
 
 1. CONFIGURATION
 
-   DSPAM uses autoconf, so configuration is fairly standardized with other
+   DSPAM uses autoconf, so configuration is fairly standardised with other
    UNIX-based software:
 
    ./configure [options]
@@ -326,12 +329,12 @@ FRESH INSTALLATION
 
      mysql_drv:   MySQL Drivers
      pgsql_drv:   PostgreSQL Drivers
-     sqlite_drv:  SQLite v2.x Drivers
+     sqlite_drv:  SQLite v2.x Drivers (scheduled for removal)
      sqlite3_drv: SQLite v3.x Drivers
      hash_drv:    Self-Contained Hash Database
 
      If you are a packager, or wish to have multiple drivers built for any
-     reason, you may specify multiple drivers by separating them with commas.
+     reason you may specify multiple drivers by separating them with commas.
      This will cause the storage driver specified in dspam.conf to be
      dynamically loaded at runtime rather than statically linked. If you wish
      to build only one driver, but dynamically, then specify it twice as in
@@ -1323,14 +1326,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   NOT REDISTRIBUTE ANY APPLICATIONS USING LIBDSPAM WITHOUT A COMMERCIAL
   LICENSE.
 
-  COMMERCIAL LICENSING BENEFITS:
-  - PRIORITY DEVELOPER SUPPORT
-  - 1-YEAR, 2-YEAR, AND PERPETUAL LICENSING AVAILABLE
-  - NON-GPL REDISTRIBUTION PRIVILEGES
-  - BUG AND FEATURE REQUEST PRIORITY
-
-  Please contact the author at jonathan@nuclearelephant.com for information
-  about commercial licensing.
+  Please contact project administrators paulcockings@users.sourceforge.net
+  or sbajic@users.sourceforge.net for information about commercial licensing.
 
   </COMMERCIAL LICENSING>
 
@@ -1356,7 +1353,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   Please see example.c for API examples.
 
   If you are interested in linking libdspam with your project and have
-  questions or concerns, please contact the dspam-dev mailing list.
+  questions or concerns, please contact the dspam-devel@lists.sourceforge.net
+  mailing list.
 
 2.1 CONFIGURING GROUPS
 
