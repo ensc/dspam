@@ -162,6 +162,9 @@ Version 3.9.1
 
 [20100719:2115] sbajic: Adding strings.pl to makefile for HE translation
 
+Version 3.9.1 RC1
+-----------------
+
 [20100716:2200] sbajic: Fixing bug m4/Makefile.am regarding removal of libtool_hack.m4
 
 [20100615:2225] sbajic: Fixing bug in _mysql_drv_getpwnam() regarding allocation of space for the username
@@ -472,6 +475,12 @@ Version 3.9.1
 
 [20091217:1210] sbajic: Adding code to PostgreSQL driver to not fail with an error on non fatal PostgreSQL errors
 
+Version 3.9.0
+-------------
+
+Version 3.9.0 RC2
+-----------------
+
 [20091215:2335] sbajic: Adding contrib to distribution
 
 [20091215:1710] sbajic: Fixing small typo in pt-BR template
@@ -479,6 +488,9 @@ Version 3.9.1
 [20091215:0330] sbajic: Removed LDAP driver (replaced by ExtLookup)
 
 [20091215:0100] sbajic: Replacing non ascii characters in Romanian template with HTML characters entries
+
+Version 3.9.0 RC1
+-----------------
 
 [20091214:1420] sbajic: Web UI changes: Fix display for history page selection and add and use function to transform some special characters (sender and subject) into HTML character entries
 
@@ -572,7 +584,13 @@ Version 3.9.1
   then LDAP lookups are enabled in External Lookup else LDAP
   lookups are disabled in the External Lookup module)
 
+Version 3.9.0 BETA4
+-------------------
+
 [20091027:1300] sbajic: Fixing various issues (memory leaks and logical errors) in PostgreSQL driver
+
+Version 3.9.0 BETA3
+-------------------
 
 [20091016:1022] sbajic: Fixing (potential) branching on uninitialized variable in SQLite3 driver
 
@@ -803,11 +821,17 @@ Version 3.9.1
   made connection to the PostgreSQL database. No need to check that for
   each and every token in _ds_get_nexttoken().
 
+Version 3.9.0 ALPHA2
+--------------------
+
 [20090623:2255] sbajic: Code cleanup in MySQL and PostgreSQL driver
 
 [20090623:2157] sbajic: Removing not needed index from PostgreSQL schema
 
 [20090620:2130] sbajic: Updating documentation for Postfix integration
+
+Version 3.9.0 ALPHA
+-------------------
 
 [20090617:0100] sbajic: Code cleanup in PostgreSQL driver
 
