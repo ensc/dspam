@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.99 2011/05/18 01:24:06 sbajic Exp $
+## $Id: dspam.conf.in,v 1.100 2011/07/09 00:00:52 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -250,6 +250,10 @@ Algorithm graham burton
 #   osb     Orthogonal Sparse biGram tokenizer
 #           Similar to SBPH, but only uses the biGrams
 #           example: "the * * fox" and "the * * * jumped"
+#
+# In general the reccomendation is to use 'osb' for new installations.
+# The default value of 'chain' remains here as not to surprise anyone upgrading
+# that has not changed from the default value.
 #
 Tokenizer chain
 

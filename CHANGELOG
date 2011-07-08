@@ -1,6 +1,8 @@
 Version 3.9.1
 -------------
 
+[20110709:0000] pcockings: Add note that osb is recommended for new installs
+
 [20110708:2345] pcockings: Documentation changes:
  * Add note that sqlite_drv will be removed in future release
  * Add note that hash_drv is not 32/64 or big/little endian safe
