@@ -1045,7 +1045,10 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
     statistics only for that token will be printed.
 
   dspam_clean - Performs nightly housecleaning by deleting old or useless
-    data from user data.  dspam_clean performs the following operations:
+    data from user data.  If using the hash driver (hash_drv) please use
+    cssclean instead (see doc/README.cssclean)
+    
+    dspam_clean performs the following operations:
 
     1. Using the -s flag, dspam_clean will continue to perform stale signature
      purging.  If an age is specified, for example -s14, the age defined as the
