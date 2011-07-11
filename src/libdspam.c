@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.202 2011/07/01 17:38:52 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.203 2011/07/11 21:49:16 sbajic Exp $ */
 
 /*
  DSPAM
@@ -584,15 +584,13 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   buffer_destroy (header);
   buffer_destroy (body);
 
-  /* Fail if _ds_operate() was unable to process message */
-  if (spam_result != DSR_ISSPAM && spam_result != DSR_ISINNOCENT) {
-    return EFAILURE;
+  /* _ds_operate() was unable to process message. Restore operating and training mode. */
+  if (!(spam_result != DSR_ISSPAM && spam_result != DSR_ISINNOCENT)) {
+    goto restore_mode;
   }
 
   /* Force decision if a classification was specified */
-
-  if (CTX->classification != DSR_NONE && spam_result >= 0) 
-  {
+  if (CTX->classification != DSR_NONE && spam_result >= 0) {
     if (CTX->classification == DSR_ISINNOCENT)
       spam_result = DSR_ISINNOCENT;
     else if (CTX->classification == DSR_ISSPAM)
@@ -607,6 +605,9 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     else if (CTX->result == DSR_ISINNOCENT)
       strcpy(CTX->class, LANG_CLASS_INNOCENT);
   }
+
+/* Restore operating mode and training mode */
+restore_mode:
 
   if (is_toe)
     CTX->operating_mode = DSM_PROCESS;
@@ -624,13 +625,13 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   }
 #endif
 
-  if (CTX->result == DSR_ISSPAM || CTX->result == DSR_ISINNOCENT) 
+  if (CTX->result == DSR_ISSPAM || CTX->result == DSR_ISINNOCENT)
     return 0;
   else
   {
     LOG(LOG_WARNING, "received invalid result (! DSR_ISSPAM || DSR_INNOCENT) "
-                     ": %d", CTX->result);
-    return EUNKNOWN;
+                     ": %d", spam_result);
+    return EFAILURE;
   }
 }
 
