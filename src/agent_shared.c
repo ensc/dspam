@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.85 2011/07/11 21:23:57 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.86 2011/07/11 22:05:48 sbajic Exp $ */
 
 /*
  DSPAM
@@ -237,7 +237,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
       char *mode = strchr(argv[i], '=')+1;
       if (process_mode(ATX, mode))
         return EINVAL;
-      ATX->flags |= DAF_FIXED_TR_MODE
+      ATX->flags |= DAF_FIXED_TR_MODE;
       continue;
     }
 

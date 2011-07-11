@@ -1,6 +1,8 @@
 Version 3.9.2
 -------------
 
+[20110711:2200] sbajic: Fixing typo from last commit
+
 [20110711:2130] sbajic: If the training mode has been specified on the command line, it should not be overruled by the user's (or default) preferences. Remove the DST_DEFAULT constant from the libdspam interface since it has only been (ab)used by the agent and never really belonged to the library in the first place.
 
 [20110710:1215] pcockings: Decision to release as 3.9.2 and update RELEASE.NOTES
