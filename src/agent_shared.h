@@ -1,4 +1,4 @@
-/* $Id: agent_shared.h,v 1.34 2011/06/28 00:13:48 sbajic Exp $ */
+/* $Id: agent_shared.h,v 1.35 2011/07/11 21:27:15 sbajic Exp $ */
 
 /*
  DSPAM
@@ -116,20 +116,21 @@ int init_pwent_cache(void);
 
 /*
  * Agent context flag (DAF)
- * Do not confuse with libdspam's classification context flags (DSF) 
+ * Do not confuse with libdspam's classification context flags (DSF)
  *
  */
 
 #define DAF_STDOUT		0x01
 #define DAF_DELIVER_SPAM	0x02
 #define DAF_DELIVER_INNOCENT	0x04
-#define DAF_WHITELIST		0x08 
-#define DAF_GLOBAL		0x10 
-#define DAF_INOCULATE		0x20 
+#define DAF_WHITELIST		0x08
+#define DAF_GLOBAL		0x10
+#define DAF_INOCULATE		0x20
 #define DAF_NOISE		0x40
 #define DAF_MERGED		0x80
 #define DAF_SUMMARY		0x100
 #define DAF_UNLEARN		0x200
+#define DAF_FIXED_TR_MODE	0x400
 
 #define DAZ_WORD		0x01
 #define DAZ_CHAIN		0x02
@@ -137,4 +138,3 @@ int init_pwent_cache(void);
 #define DAZ_OSB			0x04
 
 #endif /* _AGENT_SHARED_H */
-

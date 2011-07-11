@@ -1,4 +1,4 @@
-/* $Id: libdspam_objects.h,v 1.26 2011/06/28 00:13:48 sbajic Exp $ */
+/* $Id: libdspam_objects.h,v 1.27 2011/07/11 21:29:57 sbajic Exp $ */
 
 /*
  DSPAM
@@ -363,13 +363,12 @@ typedef struct
 #define DSM_CLASSIFY		0x02
 #define DSM_NONE		0xFF
 
-/* Training Modes */ 
+/* Training Modes */
 
 #define DST_TEFT		0x00
 #define DST_TOE			0x01
 #define DST_TUM			0x02
 #define DST_NOTRAIN		0xFE
-#define DST_DEFAULT		0xFF
 
 /* Classification Results */
 

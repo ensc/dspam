@@ -1,4 +1,4 @@
-/* $Id: agent_shared.c,v 1.84 2011/06/28 01:15:42 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.85 2011/07/11 21:23:57 sbajic Exp $ */
 
 /*
  DSPAM
@@ -93,7 +93,6 @@ uid_t  __pw_uid;
 
 int initialize_atx(AGENT_CTX *ATX) {
   memset(ATX, 0, sizeof(AGENT_CTX));
-  ATX->training_mode   = DST_DEFAULT;
   ATX->training_buffer = 0;
   ATX->train_pristine  = 0;
   ATX->classification  = DSR_NONE;
@@ -236,7 +235,9 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     if (!strncmp (argv[i], "--mode=", 7))
     {
       char *mode = strchr(argv[i], '=')+1;
-      process_mode(ATX, mode);
+      if (process_mode(ATX, mode))
+        return EINVAL;
+      ATX->flags |= DAF_FIXED_TR_MODE
       continue;
     }
 
@@ -587,9 +588,12 @@ int apply_defaults(AGENT_CTX *ATX) {
 
   /* Training mode */
 
-  if (ATX->training_mode == DST_DEFAULT) {
+  if (!(ATX->flags & DAF_FIXED_TR_MODE)) {
     char *v = _ds_read_attribute(agent_config, "TrainingMode");
-    process_mode(ATX, v);
+    if (process_mode(ATX, v)) {
+      LOG(LOG_ERR, ERR_AGENT_NO_TR_MODE);
+      return EINVAL;
+    }
   }
 
   /* Default delivery agent */
@@ -689,12 +693,6 @@ int check_configuration(AGENT_CTX *ATX) {
   if (ATX->operating_mode == DSM_NONE)
   {
     LOG(LOG_ERR, ERR_AGENT_NO_OP_MODE);
-    return EINVAL;
-  }
-
-  if (ATX->training_mode == DST_DEFAULT)
-  {
-    LOG(LOG_ERR, ERR_AGENT_NO_TR_MODE);
     return EINVAL;
   }
 
