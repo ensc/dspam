@@ -1,6 +1,8 @@
 Version 3.9.2
 -------------
 
+[20110711:2345] sbajic: rename doc/README.cssclean to doc/cssclean.txt
+
 [20110711:2224] pcockings: move README.cssclean to /doc and update README Section 1.4 to note that cssclean should be used with the hash driver
 
 [20110711:2230] sbajic: Updating README to reflect upcoming macro version
