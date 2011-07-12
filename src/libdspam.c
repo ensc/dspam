@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.203 2011/07/11 21:49:16 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.204 2011/07/12 23:09:33 sbajic Exp $ */
 
 /*
  DSPAM
@@ -585,7 +585,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   buffer_destroy (body);
 
   /* _ds_operate() was unable to process message. Restore operating and training mode. */
-  if (!(spam_result != DSR_ISSPAM && spam_result != DSR_ISINNOCENT)) {
+  if (spam_result != DSR_ISSPAM && spam_result != DSR_ISINNOCENT) {
     goto restore_mode;
   }
 
