@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.409 2011/07/11 21:28:28 sbajic Exp $ */
+/* $Id: dspam.c,v 1.410 2011/07/13 00:28:59 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1943,20 +1943,15 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
         /* Processing Error */
 
-        if (result != DSR_ISINNOCENT        &&
-            ATX->classification != DSR_NONE &&
-            ATX->classification != DSR_NONE)
-        {
-          deliver = 0;
-          LOG (LOG_WARNING,
-               "process_message returned error %d.  dropping message.", result);
-        }
-
-        if (result != DSR_ISINNOCENT && ATX->classification == DSR_NONE)
-        {
-          deliver = 1;
-          LOG (LOG_WARNING,
-               "process_message returned error %d.  delivering.", result);
+        if (result != DSR_ISINNOCENT) {
+          if (ATX->classification != DSR_NONE) {
+            deliver = 0;
+            LOG (LOG_WARNING,
+                 "process_message returned error %d.  dropping message.", result);
+          } else if (ATX->classification == DSR_NONE) {
+            LOG (LOG_WARNING,
+                 "process_message returned error %d.  delivering.", result);
+          }
         }
 
         /* Deliver */

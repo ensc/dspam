@@ -1,6 +1,8 @@
 Version 3.9.2
 -------------
 
+[20110713:0045] sbajic: Remove redundant code in process_users()
+
 [20110712:2310] sbajic: Fix typo (logical error) from last commit to libdspam
 
 [20110711:2150] sbajic: Restore operating mode and training mode on failure of ds_operate()
