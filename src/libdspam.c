@@ -1,4 +1,4 @@
-/* $Id: libdspam.c,v 1.204 2011/07/12 23:09:33 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.205 2011/07/13 00:51:46 sbajic Exp $ */
 
 /*
  DSPAM
@@ -459,7 +459,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   struct timezone tzp;
 #endif
   buffer *header, *body;
-  int spam_result = 0, is_toe = 0, is_undertrain = 0;
+  int spam_result = 0, is_toe = 0, is_undertrain = 0, retcode = 0;
 
 #ifdef DEBUG
   gettimeofday(&tp1, &tzp);
@@ -504,8 +504,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   }
 
   /* Classify only for TOE / NOTRAIN mode setting if data is mature enough */
-  if ( CTX->operating_mode == DSM_PROCESS 
-    && CTX->classification == DSR_NONE 
+  if ( CTX->operating_mode == DSM_PROCESS
+    && CTX->classification == DSR_NONE
     && (CTX->training_mode == DST_TOE || CTX->training_mode == DST_NOTRAIN))
   {
     CTX->operating_mode = DSM_CLASSIFY;
@@ -514,17 +514,13 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
 
   /* A signature has been presented for training; process it */
   /* Non-SPBH Signature */
-  if (CTX->operating_mode == DSM_PROCESS 
-   && CTX->classification != DSR_NONE 
-   && CTX->flags & DSF_SIGNATURE 
+  if (CTX->operating_mode == DSM_PROCESS
+   && CTX->classification != DSR_NONE
+   && CTX->flags & DSF_SIGNATURE
    && (CTX->tokenizer != DSZ_SBPH))
   {
-    int i = _ds_process_signature (CTX);
-    if (is_toe)
-      CTX->operating_mode = DSM_PROCESS;
-    if (is_undertrain)
-      CTX->training_mode = DST_TOE;
-    return i;
+    retcode = _ds_process_signature (CTX);
+    goto restore_mode;
   }
 
   header = buffer_create (NULL);
@@ -534,11 +530,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     buffer_destroy (header);
     buffer_destroy (body);
-    if (is_toe)
-      CTX->operating_mode = DSM_PROCESS;
-    if (is_undertrain)
-      CTX->training_mode = DST_TOE;
-    return EUNKNOWN;
+    retcode = EUNKNOWN;
+    goto restore_mode;
   }
 
   /* Parse the message if it hasn't already been by the client app */
@@ -561,8 +554,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   /* If SBPH reclassification, recall and operate on saved SBPH text */
 
   if ( CTX->tokenizer == DSZ_SBPH
-    && CTX->operating_mode != DSM_CLASSIFY 
-    && CTX->classification != DSR_NONE 
+    && CTX->operating_mode != DSM_CLASSIFY
+    && CTX->classification != DSR_NONE
     && CTX->flags & DSF_SIGNATURE)
   {
     char *y, *h, *b;
@@ -575,7 +568,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     free(y);
 
   /* Otherwise, operate on the input message */
- 
+
   } else {
     spam_result = _ds_operate (CTX, header->data, body->data);
   }
@@ -586,11 +579,14 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
 
   /* _ds_operate() was unable to process message. Restore operating and training mode. */
   if (spam_result != DSR_ISSPAM && spam_result != DSR_ISINNOCENT) {
+    LOG(LOG_WARNING, "received invalid result (!DSR_ISSPAM && !DSR_ISINNOCENT)"
+                     ": %d", spam_result);
+    retcode = EFAILURE;
     goto restore_mode;
   }
 
   /* Force decision if a classification was specified */
-  if (CTX->classification != DSR_NONE && spam_result >= 0) {
+  if (CTX->classification != DSR_NONE) {
     if (CTX->classification == DSR_ISINNOCENT)
       spam_result = DSR_ISINNOCENT;
     else if (CTX->classification == DSR_ISSPAM)
@@ -600,13 +596,13 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   /* Apply results to context */
   CTX->result = spam_result;
   if (CTX->class[0] == 0) {
-    if (CTX->result == DSR_ISSPAM)
+    if (spam_result == DSR_ISSPAM)
       strcpy(CTX->class, LANG_CLASS_SPAM);
-    else if (CTX->result == DSR_ISINNOCENT)
+    else if (spam_result == DSR_ISINNOCENT)
       strcpy(CTX->class, LANG_CLASS_INNOCENT);
   }
 
-/* Restore operating mode and training mode */
+/* Restore operating mode and/or training mode */
 restore_mode:
 
   if (is_toe)
@@ -625,14 +621,7 @@ restore_mode:
   }
 #endif
 
-  if (CTX->result == DSR_ISSPAM || CTX->result == DSR_ISINNOCENT)
-    return 0;
-  else
-  {
-    LOG(LOG_WARNING, "received invalid result (! DSR_ISSPAM || DSR_INNOCENT) "
-                     ": %d", spam_result);
-    return EFAILURE;
-  }
+  return retcode;
 }
 
 /*
@@ -838,7 +827,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   if (!diction)
   {
-    ds_diction_destroy(diction);
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     errcode = EUNKNOWN;
     goto bail;
