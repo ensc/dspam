@@ -1,4 +1,4 @@
-# $Id: mysql_drv.m4,v 1.6 2011/05/20 00:14:10 sbajic Exp $
+# $Id: mysql_drv.m4,v 1.7 2011/07/16 15:17:46 sbajic Exp $
 # Autoconf macros for checking for MySQL
 #
 #   Public available macro:
@@ -190,7 +190,6 @@ then
         ],[
           AC_MSG_RESULT([no])
           mysql_libs_success=no
-        ],[ # cross-compilation
         ])
     fi
 fi
