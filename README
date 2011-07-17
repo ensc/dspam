@@ -99,7 +99,7 @@ the GPL license agreement.  This enables developers to incorporate libdspam as
 a "drop-in" for instant spam filtering within their applications - such as mail
 clients, other anti-spam tools, and so on.
 
-PLEASE NOTE: DSPAM and libdspam are distributed under the GPL license, not the
+PLEASE NOTE: DSPAM and libdspam are distributed under the AGPL license, not the
 LGPL. Commercial licensing is available for those who seek to redistribute
 DSPAM or some of DSPAM's components/libraries in their non-GPL products.
 Please contact us for more information about commercial licensing.
