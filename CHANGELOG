@@ -1,6 +1,8 @@
 Version 3.9.2
 -------------
 
+[20110726:2324] tomhendr: Updated MySQL documentation, added emphasis on usage of *-4.1.sql files, removed MySQL <4.1 specific notes
+
 [20110716:1520] sbajic: Fix build error (when selecting MySQL driver) on older autoconf/automake versions
 
 [20110713:0100] sbajic: Code cleanup in dspam_process()/_ds_operate() and minor improvements (no functional change)
