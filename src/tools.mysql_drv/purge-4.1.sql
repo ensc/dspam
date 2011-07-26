@@ -1,5 +1,9 @@
 -- $Id: purge-4.1.sql,v 1.11 2010/04/21 21:14:18 sbajic Exp $
 
+--
+-- This file contains statements for purging the DSPAM for MySQL 4.1 or greater.
+--
+
 -- ---------------------------------------------------------------------------
 -- Note: Should you have modified your dspam.conf to have other intervals for
 --       the purging or you have modified the TrainingMode to be other then

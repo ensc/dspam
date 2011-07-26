@@ -1,5 +1,10 @@
 # $Id: mysql_objects-speed.sql,v 1.32 2011/05/09 22:43:52 sbajic Exp $
 
+-- ---------------------------------------------------------------------------
+--  ! ! ! ! ! ! ! THIS FILE SHOULD ONLY BE USED ON MYSQL < 4.1 ! ! ! ! ! ! !
+--  ! ! ! ! ! FOR MYSQL 4.1+ PLEASE USE mysql_objects-4.1.sql FILE ! ! ! ! !
+-- ---------------------------------------------------------------------------
+
 create table dspam_token_data (
   uid int unsigned not null,
   token char(20) not null,

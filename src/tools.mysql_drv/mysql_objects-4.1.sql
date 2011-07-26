@@ -1,5 +1,10 @@
 -- $Id: mysql_objects-4.1.sql,v 1.43 2011/05/09 22:58:48 sbajic Exp $
 
+--
+-- This file contains statements for creating the DSPAM 
+-- database objects for MySQL 4.1 or greater.
+--
+
 create table dspam_token_data (
   uid int unsigned not null,
   token bigint unsigned not null,
