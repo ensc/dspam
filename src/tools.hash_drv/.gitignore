@@ -1,4 +1,5 @@
 # Files produced by the build process
 cssclean
+csscompress
 cssconvert
 cssstat
