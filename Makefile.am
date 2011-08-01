@@ -12,7 +12,7 @@ SUBDIRS = . webui m4 man src
 DIST_SUBDIRS = . webui m4 txt man src doc contrib
 
 EXTRA_DIST = autogen.sh RELEASE.NOTES CHANGELOG LICENSE \
-	README README.cssclean UPGRADING
+	README UPGRADING
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 auto-config.h.in \
 	config.guess config.sub configure depcomp install-sh   \

@@ -1,22 +1,21 @@
-/* $Id: cssstat.c,v 1.83 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: cssstat.c,v 1.86 2011/06/28 00:13:48 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -137,8 +136,7 @@ int cssstat(const char *filename) {
       (unsigned long) header->hash_rec_max);
     efree = eused = 0;
     for(i=0;i<header->hash_rec_max;i++) {
-      rec = map.addr;
-      rec += filepos;
+      rec = (void *) ((unsigned long) map.addr + filepos);
       if (rec->hashcode) {
         eused++;
         nused++;
@@ -148,8 +146,7 @@ int cssstat(const char *filename) {
       }
       filepos += sizeof(struct _hash_drv_spam_record);
     }
-    header = map.addr;
-    header += filepos;
+    header = (void *) ((unsigned long) map.addr + filepos);
     filepos += sizeof(struct _hash_drv_header);
     extents++;
 

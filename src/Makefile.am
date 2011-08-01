@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.49 2010/01/26 19:00:19 sbajic Exp $
+# $Id: Makefile.am,v 1.50 2010/11/30 09:01:56 sbajic Exp $
 #
 # autoconf (GNU Autoconf) 2.59
 # ltmain.sh (GNU libtool) 1.5.6
@@ -116,8 +116,11 @@ EXTRA_libdspam_la_SOURCES = \
 #endif
 
 libdspam_la_LIBADD = $(adapter_objects)
-libdspam_la_LIBADD += -lm $(NETLIBS)
+libdspam_la_LIBADD += -lm $(NETLIBS) $(DLLIBS)
 libdspam_la_DEPENDENCIES = $(adapter_objects)
+if BUILD_EXT_LOOKUP
+libdspam_la_LIBADD += $(external_lookup_libs)
+endif
 if STATIC_DRIVER
 libdspam_la_LIBADD += $(active_driver).lo
 libdspam_la_DEPENDENCIES += $(active_driver).lo
@@ -191,7 +194,7 @@ dspamc_SOURCES = \
 	client.c client.h \
 	agent_shared.c agent_shared.h 
 
-dspamc_LDADD = -lm buffer.o config_shared.o error.o pref.o nodetree.o util.o $(NETLIBS)
+dspamc_LDADD = -lm buffer.o config_shared.o error.o pref.o nodetree.o util.o $(NETLIBS) $(DLLIBS)
 dspamc_LDFLAGS = 
 dspamc_DEPENDENCIES = buffer.o config_shared.o error.o pref.o nodetree.o util.o
 

@@ -1,22 +1,21 @@
-/* $Id: libdspam.c,v 1.195 2010/04/29 17:30:27 sbajic Exp $ */
+/* $Id: libdspam.c,v 1.205 2011/07/13 00:51:46 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -460,11 +459,10 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   struct timezone tzp;
 #endif
   buffer *header, *body;
-  int spam_result = 0, is_toe = 0, is_undertrain = 0;
+  int spam_result = 0, is_toe = 0, is_undertrain = 0, retcode = 0;
 
 #ifdef DEBUG
-  if (DO_DEBUG)
-    gettimeofday(&tp1, &tzp);
+  gettimeofday(&tp1, &tzp);
 #endif
 
   if (CTX->signature != NULL)
@@ -478,24 +476,24 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     return EINVAL;
   }
 
-  if (CTX->algorithms == 0) 
+  if (CTX->algorithms == 0)
   {
     LOG(LOG_WARNING, "No algorithms configured. Use CTX->algorithms and DSA_");
     return EINVAL;
   }
 
-  if (CTX->classification != DSR_NONE && CTX->source == DSR_NONE) 
+  if (CTX->classification != DSR_NONE && CTX->source == DSS_NONE)
   {
     LOG(LOG_WARNING, "A classification requires a source be specified");
     return EINVAL;
   }
 
-  if (CTX->classification == DSR_NONE && CTX->source != DSR_NONE)
+  if (CTX->classification == DSR_NONE && CTX->source != DSS_NONE)
   {
     LOG(LOG_WARNING, "A source requires a classification be specified");
     return EINVAL;
   }
- 
+
   /* Set TOE mode pretrain option if we haven't seen many messages yet */
   if (CTX->training_mode == DST_TOE
   && (CTX->totals.innocent_learned <= 100 || CTX->totals.spam_learned <= 100)
@@ -506,8 +504,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   }
 
   /* Classify only for TOE / NOTRAIN mode setting if data is mature enough */
-  if ( CTX->operating_mode == DSM_PROCESS 
-    && CTX->classification == DSR_NONE 
+  if ( CTX->operating_mode == DSM_PROCESS
+    && CTX->classification == DSR_NONE
     && (CTX->training_mode == DST_TOE || CTX->training_mode == DST_NOTRAIN))
   {
     CTX->operating_mode = DSM_CLASSIFY;
@@ -516,17 +514,13 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
 
   /* A signature has been presented for training; process it */
   /* Non-SPBH Signature */
-  if (CTX->operating_mode == DSM_PROCESS 
-   && CTX->classification != DSR_NONE 
-   && CTX->flags & DSF_SIGNATURE 
+  if (CTX->operating_mode == DSM_PROCESS
+   && CTX->classification != DSR_NONE
+   && CTX->flags & DSF_SIGNATURE
    && (CTX->tokenizer != DSZ_SBPH))
   {
-    int i = _ds_process_signature (CTX);
-    if (is_toe)
-      CTX->operating_mode = DSM_PROCESS;
-    if (is_undertrain)
-      CTX->training_mode = DST_TOE;
-    return i;
+    retcode = _ds_process_signature (CTX);
+    goto restore_mode;
   }
 
   header = buffer_create (NULL);
@@ -536,11 +530,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     buffer_destroy (header);
     buffer_destroy (body);
-    if (is_toe)
-      CTX->operating_mode = DSM_PROCESS;
-    if (is_undertrain)
-      CTX->training_mode = DST_TOE;
-    return EUNKNOWN;
+    retcode = EUNKNOWN;
+    goto restore_mode;
   }
 
   /* Parse the message if it hasn't already been by the client app */
@@ -563,8 +554,8 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   /* If SBPH reclassification, recall and operate on saved SBPH text */
 
   if ( CTX->tokenizer == DSZ_SBPH
-    && CTX->operating_mode != DSM_CLASSIFY 
-    && CTX->classification != DSR_NONE 
+    && CTX->operating_mode != DSM_CLASSIFY
+    && CTX->classification != DSR_NONE
     && CTX->flags & DSF_SIGNATURE)
   {
     char *y, *h, *b;
@@ -577,7 +568,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
     free(y);
 
   /* Otherwise, operate on the input message */
- 
+
   } else {
     spam_result = _ds_operate (CTX, header->data, body->data);
   }
@@ -586,15 +577,16 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   buffer_destroy (header);
   buffer_destroy (body);
 
-  /* Fail if _ds_operate() was unable to process message */
+  /* _ds_operate() was unable to process message. Restore operating and training mode. */
   if (spam_result != DSR_ISSPAM && spam_result != DSR_ISINNOCENT) {
-    return EFAILURE;
+    LOG(LOG_WARNING, "received invalid result (!DSR_ISSPAM && !DSR_ISINNOCENT)"
+                     ": %d", spam_result);
+    retcode = EFAILURE;
+    goto restore_mode;
   }
 
   /* Force decision if a classification was specified */
-
-  if (CTX->classification != DSR_NONE && spam_result >= 0) 
-  {
+  if (CTX->classification != DSR_NONE) {
     if (CTX->classification == DSR_ISINNOCENT)
       spam_result = DSR_ISINNOCENT;
     else if (CTX->classification == DSR_ISSPAM)
@@ -604,11 +596,14 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   /* Apply results to context */
   CTX->result = spam_result;
   if (CTX->class[0] == 0) {
-    if (CTX->result == DSR_ISSPAM)
+    if (spam_result == DSR_ISSPAM)
       strcpy(CTX->class, LANG_CLASS_SPAM);
-    else if (CTX->result == DSR_ISINNOCENT)
+    else if (spam_result == DSR_ISINNOCENT)
       strcpy(CTX->class, LANG_CLASS_INNOCENT);
   }
+
+/* Restore operating mode and/or training mode */
+restore_mode:
 
   if (is_toe)
     CTX->operating_mode = DSM_PROCESS;
@@ -626,14 +621,7 @@ dspam_process (DSPAM_CTX * CTX, const char *message)
   }
 #endif
 
-  if (CTX->result == DSR_ISSPAM || CTX->result == DSR_ISINNOCENT) 
-    return 0;
-  else
-  {
-    LOG(LOG_WARNING, "received invalid result (! DSR_ISSPAM || DSR_INNOCENT) "
-                     ": %d", CTX->result);
-    return EUNKNOWN;
-  }
+  return retcode;
 }
 
 /*
@@ -839,7 +827,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   if (!diction)
   {
-    ds_diction_destroy(diction);
     LOG (LOG_CRIT, ERR_MEM_ALLOC);
     errcode = EUNKNOWN;
     goto bail;
@@ -1192,7 +1179,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
 
   LOGDEBUG ("processing signature.  length: %ld", CTX->signature->length);
 
-  CTX->result = DSS_NONE;
+  CTX->result = DSR_NONE;
 
   if (!(CTX->flags & DSF_UNLEARN)) 
     CTX->learned = 1;
@@ -1281,26 +1268,15 @@ _ds_process_signature (DSPAM_CTX * CTX)
       {
         if (CTX->flags & DSF_UNLEARN)
         {
-          if (CTX->classification == DSR_ISSPAM)
-          {
-            if (occurrence)
-            {
-              ds_term->s.innocent_hits -= ds_term->frequency;
-              if (ds_term->s.innocent_hits < 0)
-                ds_term->s.innocent_hits = 0;
-            } else {
-              ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
-            }
-          }
-
-        } else {
           if (occurrence)
           {
-            ds_term->s.innocent_hits += ds_term->frequency;
+            ds_term->s.innocent_hits -= ds_term->frequency;
+            if (ds_term->s.innocent_hits < 0)
+              ds_term->s.innocent_hits = 0;
           } else {
-            ds_term->s.innocent_hits++;
+            ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
           }
-
+        } else {
           if (CTX->source == DSS_ERROR          && 
               CTX->training_mode != DST_NOTRAIN && 
               CTX->training_mode != DST_TOE)
@@ -1309,11 +1285,29 @@ _ds_process_signature (DSPAM_CTX * CTX)
             {
               ds_term->s.spam_hits -= ds_term->frequency;
               if (ds_term->s.spam_hits < 0)
-              {
                 ds_term->s.spam_hits = 0;
-              }
             } else {
               ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
+            }
+          }
+
+          if (CTX->source == DSS_INOCULATION)
+          {
+            if (ds_term->s.spam_hits < 2 && ds_term->s.innocent_hits < 5)
+            {
+              ds_term->s.innocent_hits += 5;
+            }
+            else
+            {
+              ds_term->s.innocent_hits += 2;
+            }
+          } else /* ERROR or CORPUS */
+          {
+            if (occurrence)
+            {
+              ds_term->s.innocent_hits += ds_term->frequency;
+            } else {
+              ds_term->s.innocent_hits++;
             }
           }
         }
@@ -1324,20 +1318,14 @@ _ds_process_signature (DSPAM_CTX * CTX)
       {
         if (CTX->flags & DSF_UNLEARN)
         {
-          if (CTX->classification == DSR_ISSPAM)
+          if (occurrence)
           {
-            if (occurrence)
-            {
-              ds_term->s.spam_hits -= ds_term->frequency;
-              if (ds_term->s.spam_hits < 0)
-              {
-                ds_term->s.spam_hits = 0;
-              }
-            } else {
-              ds_term->s.spam_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
-            }
+            ds_term->s.spam_hits -= ds_term->frequency;
+            if (ds_term->s.spam_hits < 0)
+              ds_term->s.spam_hits = 0;
+          } else {
+            ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
           }
-
         } else {
           if (CTX->source == DSS_ERROR          && 
               CTX->training_mode != DST_NOTRAIN && 
@@ -2214,7 +2202,10 @@ void _ds_factor_destroy(struct nt *factors) {
 int libdspam_init(const char *driver) {
 
 #ifndef STATIC_DRIVER
-  if (driver) {
+  if (driver == NULL) {
+      LOG(LOG_CRIT, "dlopen() failed: Can not load NULL driver");
+      return EFAILURE;
+  } else if (driver) {
     if ((_drv_handle = dlopen(driver, RTLD_NOW))==NULL) {
       LOG(LOG_CRIT, "dlopen() failed: %s: %s", driver, dlerror());
       return EFAILURE;

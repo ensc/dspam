@@ -1,5 +1,194 @@
-Version 3.9.0
+Version 3.10.0
 -------------
+[20110801:1024] tomhendr: Update version to 3.10.0 after discussion between projectadmins.
+
+[20110726:2324] tomhendr: Updated MySQL documentation, added emphasis on usage of *-4.1.sql files, removed MySQL <4.1 specific notes
+
+[20110716:1520] sbajic: Fix build error (when selecting MySQL driver) on older autoconf/automake versions
+
+[20110713:0100] sbajic: Code cleanup in dspam_process()/_ds_operate() and minor improvements (no functional change)
+
+[20110713:0045] sbajic: Remove redundant code in process_users()
+
+[20110712:2310] sbajic: Fix typo (logical error) from last commit to libdspam
+
+[20110711:2150] sbajic: Restore operating mode and training mode on failure of ds_operate()
+
+[20110711:2345] sbajic: rename doc/README.cssclean to doc/cssclean.txt
+
+[20110711:2224] pcockings: move README.cssclean to /doc and update README Section 1.4 to note that cssclean should be used with the hash driver
+
+[20110711:2230] sbajic: Updating README to reflect upcoming macro version
+
+[20110711:2200] sbajic: Fixing typo from last commit
+
+[20110711:2130] sbajic: If the training mode has been specified on the command line, it should not be overruled by the user's (or default) preferences. Remove the DST_DEFAULT constant from the libdspam interface since it has only been (ab)used by the agent and never really belonged to the library in the first place.
+
+[20110710:1215] pcockings: Decision to release as 3.9.2 and update RELEASE.NOTES
+
+[20110709:0000] pcockings: Add note that osb is recommended for new installs
+
+[20110708:2345] pcockings: Documentation changes:
+ * Add note that sqlite_drv will be removed in future release
+ * Add note that hash_drv is not 32/64 or big/little endian safe
+ * Update contact details for commercial licensing
+ * Small documentation typos
+
+[20110702:1300] sbajic: Prevent password leakage in dspam_maintenance.sh
+
+[20110701:1740] sbajic: Use DSS_NONE and DSR_NONE according to specification (no change in binary code)
+
+[20110627:2330] sbajic: Changing DSPAM license to AGPL v3
+
+[20110627:2320] sbajic: Use DSS_NONE and DSR_NONE according to specification (no change in binary code)
+
+[20110627:2300] sbajic: Change copyright year
+
+[20110627:2245] sbajic: Updated headers with new FSF address
+
+[20110627:2230] sbajic: Added option to HTMLize sender and subject in quarantine view
+
+[20110618:1545] sbajic: Merge two patches from Debian:
+  1. 011_Document-hash-drv-support-daemon.diff
+     Description: hash driver support daemon mode since version 3.6rc2 (see upstream CHANGELOG)
+     Author: Debian DSPAM Maintainers <pkg-dspam-misc@lists.alioth.debian.org>
+
+  2. 012_typo-dspam_maintenance.diff
+     Description: Fix typo in dspam_maintenance for pgsql backend
+     Author: Rodolphe Pelloux-Prayer <rodolphe@damsy.net>
+
+[20110520:0915] sbajic: Fix bug with static functions/variables inside MySQL driver
+
+[20110520:0025] sbajic: Remove support for MySQL < 5.0.0 (EOL)
+
+[20110514:0410] sbajic: Fix Lookup feature
+
+[20110513:1425] sbajic: Fix out-of-range and overflow handling in MySQL driver (fixes issue with MySQL >= 5.5.x)
+
+[20110513:0020] sbajic: Remove compile failure when using debug option
+
+[20110509:2305] sbajic: Update SQL files for MySQL to allow table creation for MySQL >=5.5.x
+
+[20110506:2305] sbajic: Fix clang analyzer issues
+
+[20110419:0720] sbajic: Document value 'deliver' in default.prefs for option 'spamAction'
+
+[20110308:0110] sbajic: Fix broken message unlearning
+
+[20110308:0105] sbajic: Speedup up dot stuffing when sending to LMTP/SMTP delivery
+
+[20110308:0100] sbajic: Add dot de-stuffing when reveiving message in deamon mode (aka: DLMTP/LMTP)
+
+[20110209:2120] sbajic: Fix segmentation fault problem in MySQL driver _ds_get_nextuser() when user row is NULL
+
+[20110209:2115] sbajic: Fix autoconf macros for ExtLookup to handle properly OpenLDAP version check
+
+[20101205:0155] sbajic: Fix linker issue with privious patch when compiling DSPAM with static Hash driver
+
+[20101130:0910] sbajic: Remove unused direct dependencies on most of the executables and libraries
+
+[20101113:1510] sbajic: Fixing typo in README
+
+[20101112:1100] sbajic: Fix segmentation fault in cssstat
+
+[20100826:0730] sbajic: Fix compiler warnings
+
+[20100825:2215] sbajic: Fix bug introduced in the last two commits by using static functions instead saving the values in the _mysql_drv_storage struct.
+
+[20100825:2130] sbajic: Do the same small speed improvements in the MySQL driver as in the last commit but when initializing the preference extension in _mysql_drv_init_tools()
+
+[20100824:0045] sbajic: Small speed improvements in the MySQL driver
+
+[20100823:2320] sbajic: Reorder version check in PostgreSQL driver (for slightly speed improvement)
+
+[20100823:1200] sbajic: Properly escape strings in PostgreSQL driver
+
+[20100822:2020] sbajic: Do not allow empty delivery agent if no delivery host is specified
+
+[20100822:1945] sbajic: Change mail recipient for uid-based signatures when processing message
+
+[20100821:1045] sbajic: Don't remove pid file when sending SIGHUP to the daemon
+
+[20100820:2230] sbajic: Fixing file descriptor leak in read_config()
+
+[20100820:1145] sbajic: Fix segmentation fault when using split configuration and running dspam_stats and the running user has no permission to read the files/directories mentioned in the "Include" configuration option.
+
+[20100819:2210] sbajic: Only allow one filesystem layout (large scale, domain scale or home dir)
+
+[20100819:0030] sbajic: Adding missing JavaScript code to the German Web-UI templates
+
+[20100816:2010] sbajic: Speedup HTML stripping and extract uri from invalid tags (aka: uri tags that have no " or ' around the uri)
+
+[20100816:2000] sbajic: Remove undocumented and unsupported spam/ham aliases and correct firstrun.txt to mention correct spam training alias
+
+[20100816:1650] sbajic: Extend SIZE extension detection to support more variants of the extension
+
+[20100814:1640] sbajic: Fixing dot escaping in client/server socket protocol
+
+[20100814:1515] sbajic: Fix client to only send SIZE=n if the LMTP delivery destination has SIZE extension support
+
+[20100814:1330] sbajic: Documenting additional --deliver values
+
+[20100812:0205] sbajic: Do not continue training with dspam_train if calling dspam_stats has failed
+
+[20100812:0155] sbajic: Do not allow --profile option for dspam_stats if trusted user security is active and user is not trusted
+
+[20100810:0135] sbajic: Print errors to stderr when using the helper tools
+
+[20100809:2355] sbajic: Changing error message to ERR_DRV_INIT for the helper tools when there is a problem loading the storage driver
+
+[20100809:2350] sbajic: Fix hang/segmentation fault in dspam_2sql when no StorageDriver is selected AND no storage dirver is statically linked
+
+[20100809:2330] sbajic: Fix hang/segmentation fault when no StorageDriver is selected AND no storage driver is statically linked
+
+[20100806:2340] sbajic: Fix logical error/typo in last commit
+
+[20100806:1900] sbajic: Fix broken appending of message (the old code removed all lines with a single \n from the message) to quarantine (mbox file)
+
+[20100806:0050] sbajic: Exit dspam_admin with proper return code
+
+[20100804:2355] sbajic: Fixing typo from last commit
+
+[20100804:2350] sbajic: Declare signature data to be escaped in PostgreSQL driver
+
+[20100804:2315] sbajic: Setting query buffer size inside functions to be equal with the one used in the PostgreSQL driver
+
+[20100804:1515] sbajic: Remove useless (double) encoding/escaping and one memory allocation issue in PostgreSQL driver
+
+[20100804:1210] sbajic: Fix a crash in the PostgreSQL driver (corrupted double-linked free)
+
+[20100804:0200] sbajic: Use '--defaults-file' instead of '--defaults-extra-file' in maintenance script
+
+[20100804:0200] sbajic: Fixing double encoding of signature data in PostgreSQL driver
+
+[20100803:1300] sbajic: Fixing calculation of performance metric in Web-UI when using groups
+
+[20100802:2045] sbajic: Fixing HTML formatting errors in dspam.cgi
+
+[20100731:1610] sbajic: Fixing two typos in ExtLookup section in dspam.conf
+
+[20100731:1545] sbajic: Fixing two typos in ExtLookup section in dspam.conf
+
+[20100731:1520] sbajic: Adding different (extended) delimiters for advanced tokenizers (aka: SBPH and OSB) that profit from more tokens per message
+
+[20100731:1510] sbajic: Adding more debug output to tokenizer.c
+
+[20100731:1500] sbajic: Unifying _pgsql_drv_getpwnam() to have same logic as _mysql_drv_getpwnam()
+
+[20100731:1445] sbajic: Limiting scope of variables in _mysql_drv_getpwnam()
+
+[20100731:1330] sbajic: Fixing typo in PostgreSQL debug output
+
+[20100731:0140] sbajic: Fixing HTML markup issues in German template
+
+[20100731:0120] sbajic: Fixing some more HTML markup issues in dspam.cgi
+
+[20100731:0010] sbajic: Fixing HTML markup in dspam.cgi
+
+[20100719:2115] sbajic: Adding strings.pl to makefile for HE translation
+
+Version 3.9.1 RC1
+-----------------
 
 [20100716:2200] sbajic: Fixing bug m4/Makefile.am regarding removal of libtool_hack.m4
 
@@ -311,6 +500,12 @@ Version 3.9.0
 
 [20091217:1210] sbajic: Adding code to PostgreSQL driver to not fail with an error on non fatal PostgreSQL errors
 
+Version 3.9.0
+-------------
+
+Version 3.9.0 RC2
+-----------------
+
 [20091215:2335] sbajic: Adding contrib to distribution
 
 [20091215:1710] sbajic: Fixing small typo in pt-BR template
@@ -318,6 +513,9 @@ Version 3.9.0
 [20091215:0330] sbajic: Removed LDAP driver (replaced by ExtLookup)
 
 [20091215:0100] sbajic: Replacing non ascii characters in Romanian template with HTML characters entries
+
+Version 3.9.0 RC1
+-----------------
 
 [20091214:1420] sbajic: Web UI changes: Fix display for history page selection and add and use function to transform some special characters (sender and subject) into HTML character entries
 
@@ -411,7 +609,13 @@ Version 3.9.0
   then LDAP lookups are enabled in External Lookup else LDAP
   lookups are disabled in the External Lookup module)
 
+Version 3.9.0 BETA4
+-------------------
+
 [20091027:1300] sbajic: Fixing various issues (memory leaks and logical errors) in PostgreSQL driver
+
+Version 3.9.0 BETA3
+-------------------
 
 [20091016:1022] sbajic: Fixing (potential) branching on uninitialized variable in SQLite3 driver
 
@@ -642,11 +846,17 @@ Version 3.9.0
   made connection to the PostgreSQL database. No need to check that for
   each and every token in _ds_get_nexttoken().
 
+Version 3.9.0 ALPHA2
+--------------------
+
 [20090623:2255] sbajic: Code cleanup in MySQL and PostgreSQL driver
 
 [20090623:2157] sbajic: Removing not needed index from PostgreSQL schema
 
 [20090620:2130] sbajic: Updating documentation for Postfix integration
+
+Version 3.9.0 ALPHA
+-------------------
 
 [20090617:0100] sbajic: Code cleanup in PostgreSQL driver
 

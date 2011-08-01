@@ -1,4 +1,4 @@
-.\" $Id: dspam.1,v 1.18 2010/04/17 00:16:23 sbajic Exp $
+.\" $Id: dspam.1,v 1.20 2011/06/28 00:13:48 sbajic Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam3.9
@@ -6,10 +6,10 @@
 .\" Authors:	Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
 .\"		Stevan Bajic <stevan@bajic.ch>
 .\"
-.\" Copyright (c) 2002-2010 DSPAM Project
+.\" Copyright (C) 2002-2011 DSPAM Project
 .\" All rights reserved
 .\"
-.TH DSPAM 1  "Apr 17, 2010" "DSPAM" "DSPAM"
+.TH DSPAM 1  "Aug 14, 2010" "DSPAM" "DSPAM"
 
 .SH NAME
 dspam \- DSPAM Anti-Spam Agent
@@ -37,7 +37,7 @@ user2\ ...\ userN\c
 .BI \--profile= PROFILE\c
 ]
 [\c
-.BI \--deliver= spam,innocent,summary\c
+.BI \--deliver= spam,innocent|nonspam,summary,stdout\c
 ]
 [\c
 .BI \--help\c
@@ -239,14 +239,18 @@ for all database connectivity. See dspam.conf for more information.
 
 .ne 3
 .TP
-.BI \--deliver= innocent,spam,summary\c
+.BI \--deliver= spam,innocent|nonspam,summary,stdout\c
 Tells
 .B DSPAM
 to deliver the message if its result falls within the criteria specified. For example,
 .B \--deliver=innocent
+or
+.B \--deliver=nonspam
 will cause DSPAM to only deliver the message if its classification has been determined
 as innocent. Providing
 .B \--deliver=innocent,spam
+or
+.B \--deliver=nonspam,spam
 will cause DSPAM to deliver the message regardless of its classification. This flag
 provides a significant amount of flexibility for nonstandard implementations, where
 false positives may not be delivered but spam is, and etcetera.
@@ -255,6 +259,10 @@ false positives may not be delivered but spam is, and etcetera.
 : Deliver (to stdout) a summary indentical to the output of message classification:
 
 X\-DSPAM\-Result: User; result="Innocent"; class="Innocent"; probability=0.0000; confidence=1.00; signature=4b11c532158749980119923
+
+.B stdout
+: Is a shortcut for for
+.B \--deliver=innocent,spam --stdout
 
 .ne 3
 .TP
@@ -397,7 +405,7 @@ delivery agent, the exit value of the delivery agent will be returned.
 .PD
 
 .SH COPYRIGHT
-Copyright \(co 2002\-2010 DSPAM Project
+Copyright \(co 2002\-2011 DSPAM Project
 .br
 All rights reserved.
 .br

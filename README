@@ -1,27 +1,27 @@
-DSPAM v3.9.0
-Copyright (c) 2002-2010 DSPAM Project
+DSPAM v3.10.0
+COPYRIGHT (C) 2002-2011 DSPAM Project
 http://dspam.sourceforge.net/
 
 LICENSE
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; version 2
-of the License.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Affero General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 CREDITS
 
 Original Work By
   Lead development till 3.8.0: Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+  Lead development after 3.8.0: Stevan Bajic <stevan@bajic.ch>
   PostgreSQL driver: Rustam Aliyev <rustam@azernews.com>
   External Lookup module: Hugo Monteiro <hugo.monteiro@fct.unl.pt>
   Various:
@@ -99,7 +99,7 @@ the GPL license agreement.  This enables developers to incorporate libdspam as
 a "drop-in" for instant spam filtering within their applications - such as mail
 clients, other anti-spam tools, and so on.
 
-PLEASE NOTE: DSPAM and libdspam are distributed under the GPL license, not the
+PLEASE NOTE: DSPAM and libdspam are distributed under the AGPL license, not the
 LGPL. Commercial licensing is available for those who seek to redistribute
 DSPAM or some of DSPAM's components/libraries in their non-GPL products.
 Please contact us for more information about commercial licensing.
@@ -243,22 +243,25 @@ FRESH INSTALLATION
    -------------------------------------------------------------------------
  T mysql_drv:   MySQL client libraries      (and a server to connect to)
  T pgsql_drv:   PostgreSQL client libraries (and a server to connect to)
-   sqlite_drv:  SQLite v2.7.7 or above
+   sqlite_drv:  SQLite v2.7.7 or above      (scheduled for removal)
    sqlite3_drv: SQLite v3.x
-*T hash_drv:    None (Self-Contained Hash-Based Driver)
+*T hash_drv:    None                        (Self-Contained Hash-Based Driver)
 
    Legend:
     * Default storage driver
     T Thread-safe (Required for running DSPAM in server daemon mode)
 
    In general, MySQL is one of the faster solutions with a smaller storage
-   footprint, and is well suited for both small and large-scale implementations.
+   footprint and is well suited for both small and large-scale implementations.
 
    The hash driver (inspired by Bill Yerazunis' CRM Sparse Spectra algorithm)
-   is the fastest solution by far and requires no dependencies, supports
-   an auto-extend feature to grow the file size as needed, and is very
-   fast and compact. It does, however, lack some features (such as merged
+   is the fastest solution by far and requires no dependencies. It supports
+   an auto-extend feature to grow the file size as needed and is very
+   fast and compact. It does however lack some features (such as merged
    groups support) and uses a lot of memory to mmap() users.
+
+   Also note that a database created with the hash driver is currently not safe
+   to move between 32/64 bit systems or big/little endian systems.
 
    Documentation for any additional setup of your selected storage driver can
    be found in the doc/ directory. You'll need to follow any steps outlined in
@@ -270,7 +273,7 @@ FRESH INSTALLATION
 
 1. CONFIGURATION
 
-   DSPAM uses autoconf, so configuration is fairly standardized with other
+   DSPAM uses autoconf, so configuration is fairly standardised with other
    UNIX-based software:
 
    ./configure [options]
@@ -326,12 +329,12 @@ FRESH INSTALLATION
 
      mysql_drv:   MySQL Drivers
      pgsql_drv:   PostgreSQL Drivers
-     sqlite_drv:  SQLite v2.x Drivers
+     sqlite_drv:  SQLite v2.x Drivers (scheduled for removal)
      sqlite3_drv: SQLite v3.x Drivers
      hash_drv:    Self-Contained Hash Database
 
      If you are a packager, or wish to have multiple drivers built for any
-     reason, you may specify multiple drivers by separating them with commas.
+     reason you may specify multiple drivers by separating them with commas.
      This will cause the storage driver specified in dspam.conf to be
      dynamically loaded at runtime rather than statically linked. If you wish
      to build only one driver, but dynamically, then specify it twice as in
@@ -457,8 +460,8 @@ FRESH INSTALLATION
 
      When verbose debug is compiled in, DSPAM performs many additional
      mathematical calculations regardless of whether or not it's been
-     activated. You shouldn't use --enable-verbose for production builds
-     unless you have serious issues you can't resolve.
+     activated. You shouldn't use --enable-verbose-debug for production
+     builds unless you have serious issues you can't resolve.
 
    FEATURE ACTIVATION
 
@@ -1042,7 +1045,10 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
     statistics only for that token will be printed.
 
   dspam_clean - Performs nightly housecleaning by deleting old or useless
-    data from user data.  dspam_clean performs the following operations:
+    data from user data.  If using the hash driver (hash_drv) please use
+    cssclean instead (see doc/README.cssclean)
+    
+    dspam_clean performs the following operations:
 
     1. Using the -s flag, dspam_clean will continue to perform stale signature
      purging.  If an age is specified, for example -s14, the age defined as the
@@ -1165,14 +1171,22 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
                 You should use inoculation only on honeypots and the like.
 
-  --deliver=[innocent,spam]
+  --deliver=[spam,[innocent|nonspam],summary,stdout]
   Tells DSPAM to deliver the message if its result falls within the criteria
-  specified.  For example, --deliver=innocent will cause DSPAM to only
-  deliver the message if it classifies as innocent.  Providing
-  --deliver=innocent,spam will cause DSPAM to deliver the message regardless
-  of its classification.  This flag provides a significant amount of
-  flexibility for nonstandard implementations, where false positives may not
-  be delivered but spam is, and etcetera.
+  specified. For example, --deliver=innocent or --deliver=nonspam will cause
+  DSPAM to only deliver the message if its classification has been determined
+  as innocent. Providing --deliver=innocent,spam or --deliver=nonspam,spam will
+  cause DSPAM to deliver the message regardless of its classification. This flag
+  provides a significant amount of flexibility for nonstandard implementations,
+  where false positives may not be delivered but spam is, and etcetera.
+
+    summary : Deliver (to stdout) a summary indentical to the output of message
+              classification:
+                X-DSPAM-Result: User; result="Innocent"; class="Innocent";
+                probability=0.0000; confidence=1.00;
+                signature=4b11c532158749980119923
+
+    stdout : Is a shortcut for for --deliver=innocent,spam --stdout
 
   --stdout
   If the message is indeed deemed "deliverable" by the --deliver flag, this
@@ -1315,14 +1329,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   NOT REDISTRIBUTE ANY APPLICATIONS USING LIBDSPAM WITHOUT A COMMERCIAL
   LICENSE.
 
-  COMMERCIAL LICENSING BENEFITS:
-  - PRIORITY DEVELOPER SUPPORT
-  - 1-YEAR, 2-YEAR, AND PERPETUAL LICENSING AVAILABLE
-  - NON-GPL REDISTRIBUTION PRIVILEGES
-  - BUG AND FEATURE REQUEST PRIORITY
-
-  Please contact the author at jonathan@nuclearelephant.com for information
-  about commercial licensing.
+  Please contact project administrators paulcockings@users.sourceforge.net
+  or sbajic@users.sourceforge.net for information about commercial licensing.
 
   </COMMERCIAL LICENSING>
 
@@ -1348,7 +1356,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   Please see example.c for API examples.
 
   If you are interested in linking libdspam with your project and have
-  questions or concerns, please contact the dspam-dev mailing list.
+  questions or concerns, please contact the dspam-devel@lists.sourceforge.net
+  mailing list.
 
 2.1 CONFIGURING GROUPS
 
@@ -1705,9 +1714,9 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
   The DSPAM agent can be compiled with client/server support by configuring
   with --enable-daemon. You will need to use a multithread-safe storage driver
-  (presently mysql_drv and pgsql_drv are supported). Once you have compiled
-  with daemon support, you'll need to modify your dspam.conf to provide the
-  settings necessary for client/server mode:
+  (presently mysql_drv, pgsql_drv and hash_drv are supported). Once you have
+  compiled with daemon support, you'll need to modify your dspam.conf to
+  provide the settings necessary for client/server mode:
 
 	ServerHost		127.0.0.1
 
@@ -1777,7 +1786,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   The conversation that takes place between the client/server is LMTP-based,
   and will look like this:
 
-    SERVER> 220 DSPAM DLMTP 3.9.0 Authentication Required
+    SERVER> 220 DSPAM DLMTP 3.10.0 Authentication Required
     CLIENT> LHLO Relay1
     SERVER> 250-PIPELINING
     SERVER> 250-ENHANCEDSTATUSCODES
@@ -2077,7 +2086,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 	backend facilities.
 
     map - It will NOT verify that the supplied username exists in the lookup backend.
-	It will, thought, try to use the lookup backend to map (rewrite) the username. If
+	It will, though, try to use the lookup backend to map (rewrite) the username. If
 	There is a map/rewrite available, it will use the retrieved username, instead of
 	the supplied one. On the other hand, if there is no map/rewrite available, DSPAM
 	will use the supplied username and create the respective entries in it's backend.

@@ -1,22 +1,21 @@
-/* $Id: dspam_merge.c,v 1.153 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: dspam_merge.c,v 1.158 2011/06/28 00:13:48 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -76,16 +75,23 @@ main (int argc, char **argv)
   agent_config = read_config(NULL);
   if (!agent_config) {
     LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
+    fprintf (stderr, ERR_AGENT_READ_CONFIG "\n");
     exit(EXIT_FAILURE);
   }
                                                                                 
   if (!_ds_read_attribute(agent_config, "Home")) {
     LOG(LOG_ERR, ERR_AGENT_DSPAM_HOME);
+    fprintf (stderr, ERR_AGENT_DSPAM_HOME "\n");
     _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
                                                                                 
-  libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
+  if (libdspam_init(_ds_read_attribute(agent_config, "StorageDriver")) != 0) {
+    LOG(LOG_ERR, ERR_DRV_INIT);
+    fprintf (stderr, ERR_DRV_INIT "\n");
+    _ds_destroy_config(agent_config);
+    exit(EXIT_FAILURE);
+  }
 
 #ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
@@ -125,6 +131,7 @@ main (int argc, char **argv)
     {
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
         LOG(LOG_ERR, ERR_AGENT_NO_SUCH_PROFILE, argv[i]+10);
+        fprintf (stderr, ERR_AGENT_NO_SUCH_PROFILE "\n", argv[i]+10);
         goto bail;
       } else {
         _ds_overwrite_attribute(agent_config, "DefaultProfile", argv[i]+10);
@@ -156,6 +163,7 @@ main (int argc, char **argv)
   set_libdspam_attributes(CTX);
   if (dspam_attach(CTX, NULL)) {
     LOG (LOG_WARNING, "unable to attach dspam context");
+    fprintf (stderr, "Unable to attach DSPAM context\n");
     goto bail;
   }
 
@@ -187,6 +195,7 @@ main (int argc, char **argv)
     set_libdspam_attributes(MTX);
     if (dspam_attach(MTX, NULL)) {
       LOG (LOG_WARNING, "unable to attach dspam context");
+      fprintf (stderr, "Unable to attach DSPAM context\n");
       goto bail;
     }
 
@@ -273,4 +282,3 @@ dieout (int signal)
   _ds_destroy_config(agent_config);
   exit (EXIT_SUCCESS);
 }
-

@@ -1,22 +1,21 @@
-/* $Id: agent_shared.h,v 1.31 2010/05/07 00:45:53 sbajic Exp $ */
+/* $Id: agent_shared.h,v 1.35 2011/07/11 21:27:15 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -39,7 +38,7 @@ extern uid_t __pw_uid;
 
 #define STATUS( ... )   snprintf(ATX->status, sizeof(ATX->status), __VA_ARGS__);
 
-#define SYNTAX "Syntax: dspam [--help|--version|[--client|--daemon [--nofork]] [--debug] --mode=[toe|tum|teft|notrain|unlearn] --user [user1 user2 ... userN] [--feature=[no,wh,tb=N]] [--class=[spam|innocent]] [--source=[error|corpus|inoculation]] [--profile=[PROFILE]] [--deliver=[spam,innocent,summary]] [--process|--classify] [--stdout] [--mail-from=sender-address] [--rcpt-to recipient-address(es)] [--signature=DSPAM-Signature] [passthru-arguments]]"
+#define SYNTAX "Syntax: dspam [--help|--version|[--client|--daemon [--nofork]] [--debug] --mode=[toe|tum|teft|notrain|unlearn] --user [user1 user2 ... userN] [--feature=[no,wh,tb=N]] [--class=[spam|innocent]] [--source=[error|corpus|inoculation]] [--profile=[PROFILE]] [--deliver=[spam,[innocent|nonspam],summary,stdout]] [--process|--classify] [--stdout] [--mail-from=sender-address] [--rcpt-to recipient-address(es)] [--signature=DSPAM-Signature] [passthru-arguments]]"
 
 #define         SIGNATURE_BEGIN		"!DSPAM:"
 #define         SIGNATURE_END		"!"
@@ -117,20 +116,21 @@ int init_pwent_cache(void);
 
 /*
  * Agent context flag (DAF)
- * Do not confuse with libdspam's classification context flags (DSF) 
+ * Do not confuse with libdspam's classification context flags (DSF)
  *
  */
 
 #define DAF_STDOUT		0x01
 #define DAF_DELIVER_SPAM	0x02
 #define DAF_DELIVER_INNOCENT	0x04
-#define DAF_WHITELIST		0x08 
-#define DAF_GLOBAL		0x10 
-#define DAF_INOCULATE		0x20 
+#define DAF_WHITELIST		0x08
+#define DAF_GLOBAL		0x10
+#define DAF_INOCULATE		0x20
 #define DAF_NOISE		0x40
 #define DAF_MERGED		0x80
 #define DAF_SUMMARY		0x100
 #define DAF_UNLEARN		0x200
+#define DAF_FIXED_TR_MODE	0x400
 
 #define DAZ_WORD		0x01
 #define DAZ_CHAIN		0x02
@@ -138,4 +138,3 @@ int init_pwent_cache(void);
 #define DAZ_OSB			0x04
 
 #endif /* _AGENT_SHARED_H */
-

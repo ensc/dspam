@@ -1,25 +1,30 @@
-$Id: sqlite_drv.txt,v 1.1 2010/01/03 14:26:31 sbajic Exp $
+$Id: sqlite_drv.txt,v 1.3 2011/07/08 23:01:42 pcockings Exp $
 
-Copyright (c) 2002-2010 DSPAM Project
+COPYRIGHT (C) 2002-2011 DSPAM Project
 http://dspam.sourceforge.net
 
 LICENSE
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; version 2
-of the License.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Affero General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ABOUT
+
+- - ----------------------------------------------------------------------- - -
+- - Note: The sqlite_drv for using SQLite2 (>2.7.7) is not widely used and  - -
+- -       is likely to be removed in a future release. Please consider      - -
+- -       moving to SQLite3 and the sqlite3_drv instead.                    - -
+- - ----------------------------------------------------------------------- - -
 
 sqlite_drv and sqlite3_drv are SQLite storage drivers for DSPAM v3.0 and above.
 These drivers enables DSPAM to read and write all token, signature, and

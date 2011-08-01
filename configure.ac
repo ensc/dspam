@@ -1,11 +1,11 @@
-dnl $Id: configure.ac,v 1.83 2010/02/06 00:26:18 sbajic Exp $
+dnl $Id: configure.ac,v 1.86 2011/06/28 00:13:48 sbajic Exp $
 dnl
 dnl    autoconf (GNU Autoconf) 2.59
 dnl    ltmain.sh (GNU libtool) 1.5.6
 dnl    automake (GNU automake) 1.9.2
 dnl
 AC_PREREQ(2.59)
-AC_COPYRIGHT([Copyright (C) 2002-2010 DSPAM Project])
+AC_COPYRIGHT([Copyright (C) 2002-2011 DSPAM Project])
 AC_INIT([dspam],[GIT],[dspam-devel@lists.sourceforge.net])
 AC_CONFIG_SRCDIR(./src)
 
@@ -63,7 +63,7 @@ AC_CHECK_FUNCS(localtime_r)
 DS_CHECK_FUNC_INET_NTOA_R
 AC_CHECK_FUNCS(strcasestr)
 
-LIBS="-lm"
+LIBS=
 
 #   Daemon support
 #
@@ -129,7 +129,7 @@ if test x"$success" != xyes
 then
     AC_MSG_FAILURE([required libraries are not found or not usable])
 fi
-LIBS="$LIBS $DLLIBS"
+AC_SUBST(DLLIBS)
 
 #---------------------------------------------------------
 #   DSPAM features
@@ -610,6 +610,12 @@ AC_MSG_RESULT([$enable_domain_scale])
 if test x"$enable_domain_scale$enable_large_scale" = xyesyes
 then
   AC_MSG_ERROR([you may not have domain-scale and large-scale implemented simultaneously])
+elif test x"$enable_domain_scale$enable_homedir" = xyesyes
+then
+  AC_MSG_ERROR([you may not have domain-scale and homedir implemented simultaneously])
+elif test x"$enable_large_scale$enable_homedir" = xyesyes
+then
+  AC_MSG_ERROR([you may not have large-scale and homedir implemented simultaneously])
 fi
 
 #

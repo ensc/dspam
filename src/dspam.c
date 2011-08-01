@@ -1,22 +1,21 @@
-/* $Id: dspam.c,v 1.402 2010/06/12 15:39:35 sbajic Exp $ */
+/* $Id: dspam.c,v 1.410 2011/07/13 00:28:59 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -498,6 +497,10 @@ process_message (
             strcmp(_ds_pref_val(ATX->PTX, "trainPristine"), "off")) {
                 ATX->train_pristine = 1;
         }
+
+        /* Change also the mail recipient */
+        ATX->recipient = CTX->username;
+
       }
     }
   } else if (CTX->operating_mode == DSM_CLASSIFY ||
@@ -1200,7 +1203,7 @@ int
 quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
 {
   char filename[MAX_FILENAME_LENGTH];
-  char *x, *msg, *ptrptr;
+  char *x, *msg;
   int line = 1, i;
   FILE *file;
 
@@ -1243,8 +1246,8 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
 
   /* TODO: Is there a way to do this without a strdup/strsep ? */
 
-  x = strtok_r (msg, "\n", &ptrptr);
-  while (x != NULL)
+  x = strsep (&msg, "\n");
+  while (x)
   {
     /* Quote any lines beginning with 'From ' to keep mbox from breaking */
 
@@ -1253,14 +1256,14 @@ quarantine_message (AGENT_CTX *ATX, const char *message, const char *username)
     fputs (x, file);
     fputs ("\n", file);
     line++;
-    x = strtok_r (NULL, "\n", &ptrptr);
+    x = strsep (&msg, "\n");
   }
+  free (msg);
   fputs ("\n\n", file);
 
   _ds_free_fcntl_lock(fileno(file));
   fclose (file);
 
-  free (msg);
   return 0;
 }
 
@@ -1940,20 +1943,15 @@ int process_users(AGENT_CTX *ATX, buffer *message) {
 
         /* Processing Error */
 
-        if (result != DSR_ISINNOCENT        &&
-            ATX->classification != DSR_NONE &&
-            ATX->classification != DSR_NONE)
-        {
-          deliver = 0;
-          LOG (LOG_WARNING,
-               "process_message returned error %d.  dropping message.", result);
-        }
-
-        if (result != DSR_ISINNOCENT && ATX->classification == DSR_NONE)
-        {
-          deliver = 1;
-          LOG (LOG_WARNING,
-               "process_message returned error %d.  delivering.", result);
+        if (result != DSR_ISINNOCENT) {
+          if (ATX->classification != DSR_NONE) {
+            deliver = 0;
+            LOG (LOG_WARNING,
+                 "process_message returned error %d.  dropping message.", result);
+          } else if (ATX->classification == DSR_NONE) {
+            LOG (LOG_WARNING,
+                 "process_message returned error %d.  delivering.", result);
+          }
         }
 
         /* Deliver */
@@ -2736,7 +2734,9 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
     CTX->source          = ATX->source;
   }
 
-  if (ATX->PTX != NULL && strcmp(_ds_pref_val(ATX->PTX, "trainingMode"), "")) {
+  if (!( ATX->flags & DAF_FIXED_TR_MODE)
+      && ATX->PTX != NULL
+      && strcmp(_ds_pref_val(ATX->PTX, "trainingMode"), "")) {
     if (!strcasecmp(_ds_pref_val(ATX->PTX, "trainingMode"), "TEFT"))
       CTX->training_mode = DST_TEFT;
     else if (!strcasecmp(_ds_pref_val(ATX->PTX, "trainingMode"), "TOE"))
@@ -4019,7 +4019,7 @@ int is_blacklisted(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     while(ptr != NULL && i>=0 && i<4) {
       octet[i] = ptr;
       ptr = strtok(NULL, ".");
-      if (ptr == NULL && i!=4)
+      if (ptr == NULL && i!=0)
         return 0;
       i--;
     }
@@ -4145,10 +4145,6 @@ int daemon_start(AGENT_CTX *ATX) {
 
   LOG(LOG_INFO, INFO_DAEMON_START);
 
-  pidfile = _ds_read_attribute(agent_config, "ServerPID");
-  if ( pidfile == NULL )
-    pidfile = "/var/run/dspam/dspam.pid";
-
   while(__daemon_run) {
 
     DTX.CTX = dspam_create (NULL, NULL,
@@ -4177,37 +4173,43 @@ int daemon_start(AGENT_CTX *ATX) {
       exit(EXIT_FAILURE);
     }
 
+    pidfile = _ds_read_attribute(agent_config, "ServerPID");
+    if ( pidfile == NULL )
+      pidfile = "/var/run/dspam/dspam.pid";
+
     if (pidfile) {
       FILE *file;
       file = fopen(pidfile, "w");
       if (file == NULL) {
         LOG(LOG_ERR, ERR_IO_FILE_WRITE, pidfile, strerror(errno));
+        dspam_shutdown_driver(&DTX);
+        libdspam_shutdown();
+        exit(EXIT_FAILURE);
       } else {
         fprintf(file, "%ld\n", (long) getpid());
         fclose(file);
       }
     }
 
-    LOGDEBUG("spawning daemon listener");
+    LOGDEBUG("Spawning daemon listener");
 
     if (daemon_listen(&DTX)) {
       LOG(LOG_CRIT, ERR_DAEMON_FAIL);
       __daemon_run = 0;
       exitcode = EXIT_FAILURE;
     } else {
-
-      LOG(LOG_WARNING, "received signal. waiting for processing threads to exit.");
+      LOG(LOG_WARNING, "Received signal. Waiting for processing threads to exit.");
       while(__num_threads) {
         struct timeval tv;
         tv.tv_sec = 1;
         tv.tv_usec = 0;
         select(0, NULL, NULL, NULL, &tv);
       }
-
-      LOG(LOG_WARNING, "daemon is down.");
+      LOG(LOG_WARNING, "Processing threads terminated.");
     }
 
-    if (pidfile)
+    /* only unlink pid file if daemon is shut down */
+    if (pidfile && !__daemon_run)
       unlink(pidfile);
 
     dspam_shutdown_driver(&DTX);
@@ -4215,7 +4217,7 @@ int daemon_start(AGENT_CTX *ATX) {
 
     /* Reload */
     if (__hup) {
-      LOG(LOG_WARNING, "reloading configuration");
+      LOG(LOG_WARNING, INFO_DAEMON_RELOAD);
 
       if (agent_config)
         _ds_destroy_config(agent_config);

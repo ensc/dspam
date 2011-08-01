@@ -1,22 +1,21 @@
-/* $Id: agent_shared.c,v 1.79 2010/05/18 18:13:49 sbajic Exp $ */
+/* $Id: agent_shared.c,v 1.86 2011/07/11 22:05:48 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -94,7 +93,6 @@ uid_t  __pw_uid;
 
 int initialize_atx(AGENT_CTX *ATX) {
   memset(ATX, 0, sizeof(AGENT_CTX));
-  ATX->training_mode   = DST_DEFAULT;
   ATX->training_buffer = 0;
   ATX->train_pristine  = 0;
   ATX->classification  = DSR_NONE;
@@ -237,7 +235,9 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     if (!strncmp (argv[i], "--mode=", 7))
     {
       char *mode = strchr(argv[i], '=')+1;
-      process_mode(ATX, mode);
+      if (process_mode(ATX, mode))
+        return EINVAL;
+      ATX->flags |= DAF_FIXED_TR_MODE;
       continue;
     }
 
@@ -446,12 +446,10 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     if (!strcmp (argv[i], "--version"))
     {
       printf ("\nDSPAM Anti-Spam Suite %s (agent/library)\n\n", VERSION);
-      printf ("Copyright (c) 2002-2010 DSPAM Project\n");
+      printf ("Copyright (C) 2002-2011 DSPAM Project\n");
       printf ("http://dspam.sourceforge.net.\n\n");
-      printf ("DSPAM may be copied only under the terms of the GNU "
-              "General Public License,\n");
-      printf ("a copy of which can be found with the DSPAM distribution "
-              "kit.\n\n");
+      printf ("DSPAM may be copied only under the terms of the GNU Affero General Public\n");
+      printf ("License, a copy of which can be found with the DSPAM distribution kit.\n\n");
 #ifdef TRUSTED_USER_SECURITY
       if (ATX->trusted) {
 #endif
@@ -590,9 +588,12 @@ int apply_defaults(AGENT_CTX *ATX) {
 
   /* Training mode */
 
-  if (ATX->training_mode == DST_DEFAULT) {
+  if (!(ATX->flags & DAF_FIXED_TR_MODE)) {
     char *v = _ds_read_attribute(agent_config, "TrainingMode");
-    process_mode(ATX, v);
+    if (process_mode(ATX, v)) {
+      LOG(LOG_ERR, ERR_AGENT_NO_TR_MODE);
+      return EINVAL;
+    }
   }
 
   /* Default delivery agent */
@@ -609,9 +610,18 @@ int apply_defaults(AGENT_CTX *ATX) {
 #endif
       strcpy(key, "TrustedDeliveryAgent");
 
-    if (_ds_read_attribute(agent_config, key)) {
+    char *value = _ds_read_attribute(agent_config, key);
+
+    if (value) {
+      char *trimmed_value = ALLTRIM(strdup(value));
+      if (trimmed_value && *trimmed_value == '\0') {
+        LOG(LOG_ERR, ERR_AGENT_NO_AGENT, key);
+        free(trimmed_value);
+        return EINVAL;
+      }
+      if (trimmed_value) free(trimmed_value);
       char fmt[sizeof(ATX->mailer_args)];
-      snprintf(fmt, sizeof(fmt), "%s ", _ds_read_attribute(agent_config, key));
+      snprintf(fmt, sizeof(fmt), "%s ", value);
 #ifdef TRUSTED_USER_SECURITY
       if (ATX->trusted)
 #endif
@@ -683,12 +693,6 @@ int check_configuration(AGENT_CTX *ATX) {
   if (ATX->operating_mode == DSM_NONE)
   {
     LOG(LOG_ERR, ERR_AGENT_NO_OP_MODE);
-    return EINVAL;
-  }
-
-  if (ATX->training_mode == DST_DEFAULT)
-  {
-    LOG(LOG_ERR, ERR_AGENT_NO_TR_MODE);
     return EINVAL;
   }
 
@@ -856,10 +860,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
     if (!x) x = strstr(h, " spam-");
     if (!x) x = strstr(h, "\tspam-");
     if (!x) x = strstr(h, ",spam-");
-    if (!x) x = strstr(h, "<spam@");
-    if (!x) x = strstr(h, " spam@");
-    if (!x) x = strstr(h, "\tspam@");
-    if (!x) x = strstr(h, ",spam@");
+    if (!x) x = strstr(h, ":spam-");
     if (x != NULL) {
       y = strdup(x+6);
       if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
@@ -872,10 +873,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
       if (!x) x = strstr(h, " notspam-");
       if (!x) x = strstr(h, "\tnotspam-");
       if (!x) x = strstr(h, ",notspam-");
-      if (!x) x = strstr(h, "<notspam@");
-      if (!x) x = strstr(h, " notspam@");
-      if (!x) x = strstr(h, "\tnotspam@");
-      if (!x) x = strstr(h, ",notspam@");
+      if (!x) x = strstr(h, ":notspam-");
       if (x && strlen(x) >= 9) {
         y = strdup(x+9);
         if (_ds_match_attribute(agent_config, "ChangeModeOnParse", "on")) {
@@ -911,7 +909,7 @@ int process_parseto(AGENT_CTX *ATX, const char *buf) {
     {
       z = strtok_r(y, ">, \t\r\n", &ptrptr);
     } else {
-      if (!strstr(x, "spam@"))
+      if (strstr(x, "@"))
         z = strtok_r(y, "@", &ptrptr);
       else
         z = NULL;

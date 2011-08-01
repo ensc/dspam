@@ -1,22 +1,21 @@
-/* $Id: mysql_drv.h,v 1.17 2010/04/29 11:18:57 sbajic Exp $ */
+/* $Id: mysql_drv.h,v 1.21 2011/06/28 00:13:48 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -39,9 +38,6 @@ typedef struct _mysql_drv_dbh {
 struct _mysql_drv_storage
 {
   _mysql_drv_dbh_t dbt;				/* db connections */
-
-  unsigned long max_packet_read;                /* maximum size of db communication buffer */
-  unsigned long max_packet_write;               /* maximum size of db communication buffer */
 
   struct _ds_spam_totals control_totals;        /* totals at storage init */
   struct _ds_spam_totals merged_totals;         /* totals for merged group */ 

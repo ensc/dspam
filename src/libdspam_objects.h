@@ -1,22 +1,21 @@
-/* $Id: libdspam_objects.h,v 1.24 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: libdspam_objects.h,v 1.27 2011/07/11 21:29:57 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -364,13 +363,12 @@ typedef struct
 #define DSM_CLASSIFY		0x02
 #define DSM_NONE		0xFF
 
-/* Training Modes */ 
+/* Training Modes */
 
 #define DST_TEFT		0x00
 #define DST_TOE			0x01
 #define DST_TUM			0x02
 #define DST_NOTRAIN		0xFE
-#define DST_DEFAULT		0xFF
 
 /* Classification Results */
 

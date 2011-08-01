@@ -1,4 +1,4 @@
-# $Id: mysql_drv.m4,v 1.4 2010/04/29 14:12:39 sbajic Exp $
+# $Id: mysql_drv.m4,v 1.7 2011/07/16 15:17:46 sbajic Exp $
 # Autoconf macros for checking for MySQL
 #
 #   Public available macro:
@@ -149,7 +149,7 @@ DS_NETLIBS([mysql_libs_netlibs],
 if test x"$mysql_libs_success" = xyes
 then
     AC_MSG_CHECKING([for mysql_init in -lmysqlclient])
-    mysql_libs_LIBS="-lmysqlclient $mysql_libs_netlibs -lm -lz"
+    mysql_libs_LIBS="-lmysqlclient $mysql_libs_netlibs"
     LIBS="$mysql_libs_LIBS $mysql_libs_save_LIBS"
     LDFLAGS="$mysql_libs_LDFLAGS $mysql_libs_save_LDFLAGS"
 
@@ -165,6 +165,33 @@ then
         [ mysql_libs_success=no ]
         )
     AC_MSG_RESULT([$mysql_libs_success])
+
+    if test x"$mysql_libs_success" = xyes
+    then
+        AC_MSG_CHECKING([for MySQL client version >= 5.0.0])
+        AC_RUN_IFELSE([
+          AC_LANG_PROGRAM([[
+            #include <stdlib.h>
+            #include <string.h>
+            #include <mysql.h>
+          ]],[[
+            int is_ok = 0;
+            const char *info = mysql_get_client_info();
+            char *i = strdup(info);
+            char *m = strtok(i, ".");
+            if (m)
+              if (atoi(m) >= 5)
+                is_ok = 1;
+            free (i);
+            return is_ok ? 0 : 1;
+          ]])
+        ],[
+          AC_MSG_RESULT([yes])
+        ],[
+          AC_MSG_RESULT([no])
+          mysql_libs_success=no
+        ])
+    fi
 fi
 LIBS="$mysql_libs_save_LIBS"
 LDFLAGS="$mysql_libs_save_LDFLAGS"

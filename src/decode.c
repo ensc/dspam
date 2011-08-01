@@ -1,22 +1,21 @@
-/* $Id: decode.c,v 1.389 2010/05/22 10:37:15 sbajic Exp $ */
+/* $Id: decode.c,v 1.393 2011/06/28 00:13:48 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -1230,8 +1229,7 @@ _ds_strip_html (const char *html)
 #ifdef VERBOSE
   LOGDEBUG("stripping HTML tags from message block");
 #endif
-  int j = 0, k = 0;
-  size_t i = 0;
+  size_t j = 0, k = 0, i = 0;
   int visible = 1;
   int closing_td_tag = 0;
   char *html2;
@@ -1367,13 +1365,14 @@ _ds_strip_html (const char *html)
         html2[j++]=html[i];
         i = k;
         const char *w = &(html[k]);
-        while (j < len && (w - html) < len && *w != '<') {
+        while (j < len && (size_t)(w - html) < len && *w != '<') {
           html2[j++]=*w;
           w++;
           i++;
         }
         continue;
       } else if (html[k]) {
+        /* find the end of the tag */
         while (k < len && html[k] != '<' && html[k] != '>') {k++;}
 
         /* if we've got a tag with a uri, save the address to print later. */
@@ -1389,8 +1388,8 @@ _ds_strip_html (const char *html)
         }
         /* tag with uri found */
         if (tag_offset > 0) {
-          int url_start;         /* start of url tag inclusive [ */
-          int url_tag_len = strlen(url_tag);
+          size_t url_start;         /* start of url tag inclusive [ */
+          size_t url_tag_len = strlen(url_tag);
           char delim = ' ';
           /* find start of uri */
           for (url_start = tag_offset; url_start <= k; url_start++) {
@@ -1406,37 +1405,41 @@ _ds_strip_html (const char *html)
                 } else if (html[url_start] == '\'') {
                   delim = '\'';
                   url_start++;
+                } else {
+                  delim = '>';
                 }
                 break;
               } else {
+                /* Start of uri tag found but no '=' after the tag.
+                 * Skip the whole tag.
+                 */
                 break;
               }
             } else if ((url_start - tag_offset) >= 50) {
               /* The length of the html tag is over 50 characters long without
                * finding the start of the url/uri. Skip the whole tag.
                */
-              i = url_start;
-              const char *w = &(html[tag_offset]);
-              while (i < len && (w - html) < len && *w != '>') {w++;i++;};
               break;
             }
           }
           /* find end of uri */
-          if (url_start < len &&
-              (strncasecmp(html + url_start, "http:", 5) == 0 ||
-               strncasecmp(html + url_start, "https:", 6) == 0 ||
-               strncasecmp(html + url_start, "ftp:", 4) == 0)) {
-            html2[j++]=' ';
-            const char *w = &(html[url_start]);
-            /* html2 is a buffer of len + 1, where the +1 is for NULL
-             * termination. This means we only want to loop to len
-             * since we will replace html2[j] right after the loop.
-             */
-            while (j < len && (w - html) < len && *w != delim) {
-              html2[j++]=*w;
-              w++;
+          if (delim != ' ') {
+            if (url_start < len &&
+                (strncasecmp(html + url_start, "http:", 5) == 0 ||
+                 strncasecmp(html + url_start, "https:", 6) == 0 ||
+                 strncasecmp(html + url_start, "ftp:", 4) == 0)) {
+              html2[j++]=' ';
+              const char *w = &(html[url_start]);
+              /* html2 is a buffer of len + 1, where the +1 is for NULL
+               * termination. This means we only want to loop to len
+               * since we will replace html2[j] right after the loop.
+               */
+              while (j < len && (size_t)(w - html) < len && *w != delim) {
+                html2[j++]=*w;
+                w++;
+              }
+              html2[j++]=' ';
             }
-            html2[j++]=' ';
           }
         } else if (strncasecmp(html + i, "<p>", 3) == 0
                 || strncasecmp(html + i, "<p ", 3) == 0

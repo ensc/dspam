@@ -1,22 +1,21 @@
-/* $Id: dspam_admin.c,v 1.20 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: dspam_admin.c,v 1.26 2011/06/28 00:13:48 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -60,8 +59,8 @@ int list_preference_attributes(const char *);
 int list_aggregate_preference_attributes(const char *);
 
 void dieout (int signal);
-void usage (void);
-void min_args(int argc, int min);
+int usage (void);
+int min_args(int argc, int min);
 
 int
 main (int argc, char **argv)
@@ -70,27 +69,35 @@ main (int argc, char **argv)
   struct passwd *p = getpwuid (getuid ());
 #endif
   int i, valid = 0;
+  int ret = EXIT_SUCCESS;
 
  /* Read dspam.conf */
-                                                                                
+
   agent_config = read_config(NULL);
   if (!agent_config) {
     LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
+    fprintf (stderr, ERR_AGENT_READ_CONFIG "\n");
     exit(EXIT_FAILURE);
   }
-                                                                                
+
   if (!_ds_read_attribute(agent_config, "Home")) {
     LOG(LOG_ERR, ERR_AGENT_DSPAM_HOME);
+    fprintf (stderr, ERR_AGENT_DSPAM_HOME "\n");
     _ds_destroy_config(agent_config);
     exit(EXIT_FAILURE);
   }
-                                                                                
-  libdspam_init(_ds_read_attribute(agent_config, "StorageDriver"));
+
+  if (libdspam_init(_ds_read_attribute(agent_config, "StorageDriver")) != 0) {
+    LOG(LOG_ERR, ERR_DRV_INIT);
+    fprintf (stderr, ERR_DRV_INIT "\n");
+    _ds_destroy_config(agent_config);
+    exit(EXIT_FAILURE);
+  }
 
 #ifndef _WIN32
 #ifdef TRUSTED_USER_SECURITY
   if (!_ds_match_attribute(agent_config, "Trust", p->pw_name) && p->pw_uid) {
-    fprintf(stderr, ERR_TRUSTED_MODE "\n");     
+    fprintf(stderr, ERR_TRUSTED_MODE "\n");
     _ds_destroy_config(agent_config);
     goto BAIL;
   }
@@ -98,11 +105,11 @@ main (int argc, char **argv)
 #endif
 
   for(i=0;i<argc;i++) {
-                                                                                
     if (!strncmp (argv[i], "--profile=", 10))
     {
       if (!_ds_match_attribute(agent_config, "Profile", argv[i]+10)) {
         LOG(LOG_ERR, ERR_AGENT_NO_SUCH_PROFILE, argv[i]+10);
+        fprintf (stderr, ERR_AGENT_NO_SUCH_PROFILE "\n", argv[i]+10);
         _ds_destroy_config(agent_config);
         goto BAIL;
       } else {
@@ -120,48 +127,58 @@ main (int argc, char **argv)
 
   if (argc < 3 || !strcmp(argv[1], "help"))
   {
+    dspam_shutdown_driver (NULL);
+    _ds_destroy_config(agent_config);
     usage();
+    goto BAIL;
   }
 
   /* PREFERENCE FUNCTIONS */
   if (!strncmp(argv[2], "pref", 4)) {
- 
+
     /* Delete */
     if (!strncmp(argv[1], "d", 1)) {
-      min_args(argc, 4);
-      valid = 1;
-      del_preference_attribute(argv[3], argv[4]);
+      if (min_args(argc, 4)) {
+        valid = 1;
+        ret = del_preference_attribute(argv[3], argv[4]);
+      }
     }
 
     /* Add, Change */
-    if (!strncmp(argv[1], "ch", 2) || !strncmp(argv[1], "ad", 2)) {
-      min_args(argc, 5);
-      valid = 1; 
-      set_preference_attribute(argv[3], argv[4], argv[5]); 
+    else if (!strncmp(argv[1], "ch", 2) || !strncmp(argv[1], "ad", 2)) {
+      if (min_args(argc, 5)) {
+        valid = 1;
+        ret = set_preference_attribute(argv[3], argv[4], argv[5]);
+      }
     }
 
     /* List */
-    if (!strncmp(argv[1], "l", 1)) {
-      min_args(argc, 3);
-      valid = 1;
-      list_preference_attributes(argv[3]);
+    else if (!strncmp(argv[1], "l", 1)) {
+      if (min_args(argc, 3)) {
+        valid = 1;
+        ret = list_preference_attributes(argv[3]);
+      }
     }
 
     /* Aggregate - Preference attr + AllowOverride attr + user prefs */
-    if (!strncmp(argv[1], "ag", 2)) {
-      min_args(argc, 3);
-      valid = 1;
-      list_aggregate_preference_attributes(argv[3]);
+    else if (!strncmp(argv[1], "ag", 2)) {
+      if (min_args(argc, 3)) {
+        valid = 1;
+        ret = list_aggregate_preference_attributes(argv[3]);
+      }
     }
   }
 
-  if (!valid) 
-    usage();
-
   dspam_shutdown_driver (NULL);
   _ds_destroy_config(agent_config);
+
+  if (!valid) {
+    usage();
+    goto BAIL;
+  }
+
   libdspam_shutdown();
-  exit (EXIT_SUCCESS);
+  exit(ret);
 
 BAIL:
   libdspam_shutdown();
@@ -177,33 +194,29 @@ dieout (int signal)
   exit (EXIT_SUCCESS);
 }
 
-void
+int
 usage (void)
 {
   fprintf(stderr, "%s\n", TSYNTAX);
-
   fprintf(stderr, "\tadd preference [user] [attrib] [value]\n");
   fprintf(stderr, "\tchange preference [user] [attrib] [value]\n");
   fprintf(stderr, "\tdelete preference [user] [attrib] [value]\n");
   fprintf(stderr, "\tlist preference [user] [attrib] [value]\n");
   fprintf(stderr, "\taggregate preference [user]\n");
-  _ds_destroy_config(agent_config);
-  exit(EXIT_FAILURE);
+  return 0;
 }
 
-void min_args(int argc, int min) {
+int min_args(int argc, int min) {
   if (argc<(min+1)) {
     fprintf(stderr, "invalid command syntax.\n");
-    usage();
-    _ds_destroy_config(agent_config);
-    exit(EXIT_FAILURE);
+    return 0;
   }
-  return;
+  return 1;
 }
 
 int set_preference_attribute(
-  const char *username, 
-  const char *attr, 
+  const char *username,
+  const char *attr,
   const char *value)
 {
   int i;
@@ -213,7 +226,7 @@ int set_preference_attribute(
   else
     i = _ds_pref_set(agent_config, username, _ds_read_attribute(agent_config, "Home"), attr, value, NULL);
 
-  if (!i) 
+  if (!i)
     printf("operation successful.\n");
   else
     printf("operation failed with error %d.\n", i);
@@ -245,13 +258,13 @@ int list_preference_attributes(const char *username)
   agent_pref_t PTX;
   agent_attrib_t pref;
   int i;
-  
+
   if (username[0] == 0 || !strncmp(username, "default", strlen(username)))
     PTX = _ds_pref_load(agent_config, NULL, _ds_read_attribute(agent_config, "Home"), NULL);
   else
     PTX = _ds_pref_load(agent_config, username,  _ds_read_attribute(agent_config, "Home"), NULL);
 
-  if (PTX == NULL) 
+  if (PTX == NULL)
     return 0;
 
   for(i=0;PTX[i];i++) {
@@ -271,7 +284,7 @@ int list_aggregate_preference_attributes(const char *username)
   agent_pref_t UTX = NULL;
   agent_attrib_t pref;
   int i;
-  
+
   STX =  _ds_pref_load(agent_config,
                        NULL,
                        _ds_read_attribute(agent_config, "Home"), NULL);

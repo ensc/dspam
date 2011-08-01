@@ -1,22 +1,21 @@
-/* $Id: daemon.c,v 1.17 2010/05/13 22:39:26 sbajic Exp $ */
+/* $Id: daemon.c,v 1.22 2011/06/28 00:13:48 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -912,7 +911,7 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
     if (strip) {
       size_t len = strlen(buf);
   
-      while (len>1 && buf[len-2]==13) {
+      while (len>1 && buf[len-2]=='\n') {
         buf[len-2] = buf[len-1];
         buf[len-1] = 0;
         len--;
@@ -926,6 +925,15 @@ buffer * read_sock(THREAD_CTX *TTX, AGENT_CTX *ATX) {
           body = 1;
         if (!body && !strncasecmp(buf, "To: ", 4))
           process_parseto(ATX, buf);
+      }
+
+      /* remove dot stuffing, if needed */
+      if((buf[0] && buf[0]=='.') && (buf[1] && buf[1]=='.')) {
+        size_t i, len = strlen(buf);
+        for(i=0;i<len;i++){
+          buf[i]=buf[i+1];
+        }
+        buf[len-1]=0;
       }
 
       if (buffer_cat (message, buf) || buffer_cat(message, "\n"))

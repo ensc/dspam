@@ -1,22 +1,21 @@
-/* $Id: client.c,v 1.685 2010/05/13 22:38:45 sbajic Exp $ */
+/* $Id: client.c,v 1.691 2011/06/28 00:13:48 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -140,15 +139,56 @@ int client_process(AGENT_CTX *ATX, buffer *message) {
   i = 0;
   msglen = strlen(message->data);
   while(i<msglen) {
-    int r = send(TTX.sockfd, message->data+i, msglen - i, 0);
-    if (r <= 0) {
-      STATUS(ERR_CLIENT_SEND_FAILED);
-      goto BAIL;
+    int r;
+    int t;
+    int buflen;
+
+    /*
+     * fill buf with partial msg, replacing \n with \r\n
+     * and do dot stuffing, if needed.
+     */
+    buflen = 0;
+    while ((size_t)buflen < (sizeof(buf) - 4) && i < msglen) {
+      if (i > 0) {
+        if (message->data[i] == '\n') {
+          /* only replace \n and not \r\n */
+          if (message->data[i - 1] != '\r') {
+            buf[buflen] = '\r';
+            buflen++;
+          }
+          /* take care of dot stuffing \n */
+          if (message->data[i + 1] && message->data[i + 1] == '.') {
+            buf[buflen] = '\n';
+            buflen++;
+            buf[buflen] = '.';
+            buflen++;
+            buf[buflen] = '.';
+            buflen++;
+            i += 2;
+            continue;
+          }
+        }
+      }
+
+      buf[buflen] = message->data[i];
+      buflen++;
+      i++;
     }
-    i += r;
+
+    /* send buf */
+    t = 0;
+    while (t < buflen) {
+      r = send(TTX.sockfd, buf+t, buflen - t, 0);
+      if (r <= 0) {
+        LOG(LOG_ERR, ERR_CLIENT_SEND_FAILED);
+        STATUS(ERR_CLIENT_SEND_FAILED);
+        goto BAIL;
+      }
+      t += r;
+    }
   }
 
-  if (message->data[strlen(message->data)-1]!= '\n') {
+  if (message->data[msglen-1]!= '\n') {
     if (send_socket(&TTX, "")<=0) {
      STATUS(ERR_CLIENT_SEND_FAILED);
      goto BAIL;
@@ -685,6 +725,7 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   int buflen;
   char *inp;
   int i;
+  int size_extension = 0;
 
   err[0] = 0;
 
@@ -720,9 +761,50 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
     goto BAIL;
   }
 
-  /* MAIL FROM */
+  /* Check for SIZE extension */
 
-  inp = client_expect(&TTX, LMTP_OK, err, sizeof(err));
+  if (proto == DDP_LMTP) {
+    char *dup, *ptr, *ptrptr;
+    inp = client_getline(&TTX, 300);
+    while(inp != NULL) {
+      code = 0;
+      dup = strdup(inp);
+      if (!dup) {
+        free(inp);
+        LOG(LOG_CRIT, ERR_MEM_ALLOC);
+        LOG(LOG_ERR, ERR_CLIENT_INVALID_RESPONSE, "LHLO", ERR_MEM_ALLOC);
+        STATUS("LHLO: %s", ERR_MEM_ALLOC);
+        goto QUIT;
+      }
+      if (!strcmp(dup, "250-SIZE") || (!strncmp(dup, "250-SIZE", 8) && strlen(dup)>=8 && isspace(dup[8]))) {
+        free(inp);
+        free(dup);
+        size_extension = 1;
+        inp = client_expect(&TTX, LMTP_OK, err, sizeof(err));
+        break;
+      } else if (strncmp(dup, "250-", 4)) {
+        ptr = strtok_r(dup, " ", &ptrptr);
+        if (ptr)
+          code = atoi(ptr);
+        if (code == LMTP_OK) {
+          ptr = strtok_r(NULL, " ", &ptrptr);
+          if (ptr && !strcmp(ptr, "SIZE"))
+            size_extension = 1;
+        }
+        free(dup);
+        if (code == LMTP_OK) {
+          err[0] = 0;
+          break;
+        }
+        LOG(LOG_WARNING, ERR_CLIENT_RESPONSE_CODE, code, inp);
+      }
+      strlcpy(err, inp, sizeof(err));
+      free(inp);
+      inp = client_getline(&TTX, 300);
+    }
+  } else {
+    inp = client_expect(&TTX, LMTP_OK, err, sizeof(err));
+  }
   if (inp == NULL) {
     LOG(LOG_ERR, ERR_CLIENT_INVALID_RESPONSE,
       (proto == DDP_LMTP) ? "LHLO" : "HELO", err);
@@ -731,8 +813,10 @@ int deliver_socket(AGENT_CTX *ATX, const char *msg, int proto) {
   }
   free(inp);
 
-  if (proto == DDP_LMTP) {
-    snprintf(buf, sizeof(buf), "MAIL FROM:<%s> SIZE=%ld", 
+  /* MAIL FROM */
+
+  if (proto == DDP_LMTP && size_extension == 1) {
+    snprintf(buf, sizeof(buf), "MAIL FROM:<%s> SIZE=%ld",
              ATX->mailfrom, (long) strlen(msg));
   } else {
     snprintf(buf, sizeof(buf), "MAIL FROM:<%s>", ATX->mailfrom);

@@ -1,24 +1,22 @@
 #!/usr/bin/perl
 
-# $Id: configure.pl,v 1.05 2010/01/03 14:39:13 sbajic Exp $
+# $Id: configure.pl,v 1.07 2011/06/28 00:13:48 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2010
+# COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; version 2
-# of the License.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 # This configuration file is read by all the CGI scripts to configure both the
 # environment that DSPAM is working in and the way it will display information
 # to the web user.
@@ -43,6 +41,7 @@ $CONFIG{'HISTORY_SIZE'}	= 799;		# Number of items in history
 $CONFIG{'HISTORY_PER_PAGE'} = 100;	# Number of items per page
 $CONFIG{'HISTORY_DUPLICATES'} = "yes";	# Wether to show duplicate entries in history "yes" or "no"
 $CONFIG{'HISTORY_HTMLIZE'} = "no";	# Wether to HTML-ize sender and subject in history "yes" or "no"
+$CONFIG{'QUARANTINE_HTMLIZE'} = "no";	# Wether to HTML-ize sender and subject in quarantine "yes" or "no"
 $CONFIG{'MAX_COL_LEN'}	= 50;		# Max chars in list columns
 $CONFIG{'SORT_DEFAULT'}	= "Rating";	# Show quarantine by "Date" or "Rating"
 $CONFIG{'3D_GRAPHS'}	= 1;		# 0=graphs in 2D, 1=graphs in 3D

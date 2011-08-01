@@ -5,5 +5,6 @@ dspam_clean
 dspam_crc
 dspam_dump
 dspam_merge
+dspam_notify
 dspam_stats
 dspam_train

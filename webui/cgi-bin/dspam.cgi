@@ -1,22 +1,21 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.51 2010/04/27 02:19:54 sbajic Exp $
+# $Id: dspam.cgi,v 1.57 2011/06/28 00:13:48 sbajic Exp $
 # DSPAM
-# COPYRIGHT (C) DSPAM PROJECT 2002-2010
+# COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; version 2
-# of the License.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use strict;
 use Time::Local;
@@ -259,7 +258,7 @@ if ($FORM{'template'} eq "performance") {
   if ($FORM{'command'} eq "viewMessage") {
     &Quarantine_ViewMessage;
   } else {
-    $MYURL .= "&sortby=$FORM{'sortby'}" if ($FORM{'sortby'} ne "");
+    $MYURL .= "&amp;sortby=$FORM{'sortby'}" if ($FORM{'sortby'} ne "");
     if ($FORM{'command'} eq "processQuarantine") {
       &ProcessQuarantine;
       redirect($MYURL);
@@ -347,14 +346,14 @@ sub DisplayHistory {
         system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($retrain) . " --signature=" . quotemeta($signature) . " --user " . quotemeta("$CURRENT_USER"));
       }
     }
-    redirect("$MYURL&show=$show&history_page=$history_page");
+    redirect("$MYURL&amp;show=$show&amp;history_page=$history_page");
   } elsif ($FORM{'retrain'} ne "") {
     if ($FORM{'retrain'} eq "innocent") {
       &ProcessFalsePositive();
     } else {
       system("$CONFIG{'DSPAM'} --source=error --class=" . quotemeta($FORM{'retrain'}) . " --signature=" . quotemeta($FORM{'signatureID'}) . " --user " . quotemeta("$CURRENT_USER"));
     }
-    redirect("$MYURL&show=$show&history_page=$history_page");
+    redirect("$MYURL&amp;show=$show&amp;history_page=$history_page");
   }
 
   my($LOG) = "$USER.log";
@@ -556,9 +555,9 @@ sub DisplayHistory {
 
     my $retrain_action = "";
     if ( $class eq "V" || $class eq "A" || $class eq "O" || $class eq "U" || $class eq "") {
-      $retrain_action = qq!&nbsp;</td>!;
+      $retrain_action = qq!<small>&nbsp;</small>!;
     } else {
-      $retrain_action = qq! <input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)">$retrain</td>!;
+      $retrain_action = qq!<input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)"><small>$retrain</small>!;
     }
 
     # HTMLize special characters
@@ -569,13 +568,12 @@ sub DisplayHistory {
 
     my($entry) = <<_END;
 <tr>
-	<td class="$cl $rowclass" nowrap="true"><small>$cllabel</td>
-        <td class="$rowclass" nowrap="true"><small>
-	$retrain_action
-	<td class="$rowclass" nowrap="true"><small>$ctime</td>
-	<td class="$rowclass" nowrap="true"><small>$from</td>
-	<td class="$rowclass" nowrap="true"><small>$subject</td>
-	<td class="$rowclass" nowrap="true"><small>$info</td>
+ <td class="$cl $rowclass" nowrap="nowrap"><small>$cllabel</small></td>
+ <td class="$rowclass" nowrap="nowrap">$retrain_action</td>
+ <td class="$rowclass" nowrap="nowrap"><small>$ctime</small></td>
+ <td class="$rowclass" nowrap="nowrap"><small>$from</small></td>
+ <td class="$rowclass" nowrap="nowrap"><small>$subject</small></td>
+ <td class="$rowclass" nowrap="nowrap"><small>$info</small></td>
 </tr>
 _END
 
@@ -590,15 +588,12 @@ _END
 
   }
 
-  my $entry = <<_END;
-	<input name="history_page" type="hidden" value="$history_page">
-_END
-  push(@history, $entry);
-
   while($line = pop(@history)) { $DATA{'HISTORY'} .= $line; }
 
+  $DATA{'HISTORYPAGES'} = qq!<input name="history_page" type="hidden" value="$history_page">!;
+
   if ($CONFIG{'HISTORY_PER_PAGE'} > 0) {
-    $DATA{'HISTORYPAGES'} = "<div class=\"historypages\">";
+    $DATA{'HISTORYPAGES'} .= "<div class=\"historypages\">";
     $DATA{'HISTORYPAGES'} .= "[" if ($history_pages > 0);
     if (($history_pages > 1) && ($history_page > 1)) {
       my $i = $history_page-1;
@@ -608,7 +603,7 @@ _END
       $DATA{'HISTORYPAGES'} .= "<a href=\"$MYURL&amp;show=$show&amp;history_page=$i\">";
       $DATA{'HISTORYPAGES'} .= "<big><strong>" if ($i == $history_page);
       $DATA{'HISTORYPAGES'} .= "&nbsp;$i&nbsp;";
-      $DATA{'HISTORYPAGES'} .= "</big></strong>" if ($i == $history_page);
+      $DATA{'HISTORYPAGES'} .= "</strong></big>" if ($i == $history_page);
       $DATA{'HISTORYPAGES'} .= "</a>";
     }
     if (($history_pages > 1) && ($history_page < $history_pages)) {
@@ -839,7 +834,7 @@ dailyQuarantineSummary=$FORM{'dailyQuarantineSummary'}
 _END
       close(FILE);
     }
-  redirect("$CONFIG{'ME'}?user=$FORM{'user'}&template=preferences&language=$LANGUAGE");
+  redirect("$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=preferences&amp;language=$LANGUAGE");
   }
 
   %PREFS = GetPrefs();
@@ -1104,7 +1099,7 @@ sub Quarantine_DeleteSpam {
 
     $FORM{'template'} = "performance";
     &CheckQuarantine;
-    redirect("$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}&language=$LANGUAGE");
+    redirect("$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=$FORM{'template'}&amp;language=$LANGUAGE");
     return; 
   }
   open(FILE, "<$MAILBOX");
@@ -1230,6 +1225,12 @@ sub DisplayQuarantine {
     $new->{'alert'} = $alert;
 
     if ($alert) { $rowclass="rowAlert"; }
+
+    # HTMLize special characters
+    if ($CONFIG{'QUARANTINE_HTMLIZE'} eq "yes") {
+      $new->{'Subject'} = htmlize($new->{'Subject'});
+      $new->{'From'} = htmlize($new->{'From'});
+    }
 
     $new->{'Sub2'} = $new->{'X-DSPAM-Signature'};
     if (length($new->{'Subject'})>$CONFIG{'MAX_COL_LEN'}) {
@@ -1362,11 +1363,11 @@ sub DisplayQuarantine {
 
     $DATA{'QUARANTINE'} .= <<_END;
 <tr>
-	<td class="$outclass" nowrap="true"><input type="checkbox" name="$row->{'X-DSPAM-Signature'}" id="checkbox-$counter" onclick="checkboxclicked(this)"></td>
-	<td class="$outclass $markclass" nowrap="true">$rating</td>
-        <td class="$outclass" nowrap="true">$ptime</td>
-	<td class="$outclass" nowrap="true">$row->{'From'}</td>
-	<td class="$outclass" nowrap="true"><a href="$CONFIG{'ME'}?$url">$row->{'Subject'}</a></td>
+ <td class="$outclass" nowrap="nowrap"><input type="checkbox" name="$row->{'X-DSPAM-Signature'}" id="checkbox-$counter" onclick="checkboxclicked(this)"></td>
+ <td class="$outclass $markclass" nowrap="nowrap">$rating</td>
+ <td class="$outclass" nowrap="nowrap">$ptime</td>
+ <td class="$outclass" nowrap="nowrap">$row->{'From'}</td>
+ <td class="$outclass" nowrap="nowrap"><a href="$CONFIG{'ME'}?$url">$row->{'Subject'}</a></td>
 </tr>
 _END
 
@@ -1445,7 +1446,7 @@ sub DisplayIndex {
     open(FILE, "<$GROUP");
     chomp($gspam = <FILE>);
     close(FILE);
-    ($gspam, $ginnocent, $gfp, $gmisses, $gsc, $gic) = split(/\,/, $gspam);
+    ($gspam, $ginnocent, $gmisses, $gfp, $gsc, $gic) = split(/\,/, $gspam);
     $spam     -= $gspam;
     $innocent -= $ginnocent;
     $misses   -= $gmisses;
@@ -1477,8 +1478,8 @@ sub DisplayIndex {
       $monthly = sprintf("%2.3f", 
         (100.0-(($real_missed)/($real_caught+$real_missed))*100.0));
       $overall = sprintf("%2.3f", 
-        (100-((($real_missed+$real_fp) / 
-        ($real_fp+$real_innocent+$real_caught+$real_missed))*100)));
+        (100.0-(($real_missed+$real_fp) / 
+        ($real_fp+$real_innocent+$real_caught+$real_missed))*100.0));
     } else {
       if ($real_caught == 0 && $real_missed > 0) {
         $monthly = 0;
@@ -1622,14 +1623,26 @@ sub htmlize {
   #
   my($text) = @_;
 
-  use Encode;
-  use HTML::Entities;
+  my $has_encode = eval{require Encode;};
+  my $has_html_entities = eval{require HTML::Entities;};
 
   if ($text =~ /^(.*?)=\?([^?]+)\?([qb])\?([^?]*)\?=(.*)$/is) {
-    $text = encode_entities(decode($2, Encode::decode('MIME-Header', $text)));
-  } else {
-    $text = decode("utf8", $text) if ($text =~ /[\xC2-\xDF][\x80-\xBF]/);
-    $text = encode_entities(decode_entities($text));
+    if ($has_encode) {
+      $text = Encode::decode($2, Encode::decode('MIME-Header', $text));
+    }
+  } elsif ($text =~ /([\xC2-\xDF][\x80-\xBF]
+                     | \xE0[\xA0-\xBF][\x80-\xBF]
+                     |[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}
+                     | \xED[\x80-\x9F][\x80-\xBF]
+                     | \xF0[\x90-\xBF][\x80-\xBF]{2}
+                     |[\xF1-\xF3][\x80-\xBF]{3}
+                     | \xF4[\x80-\x8F][\x80-\xBF]{2})/x) {
+    if ($has_encode) {
+      $text = Encode::decode("utf8", $text);
+    }
+  }
+  if ($has_html_entities) {
+    $text = HTML::Entities::encode_entities(HTML::Entities::decode_entities($text));
   }
   if ($text =~ /[\xC2-\xDF][\x80-\xBF]/) {
     if ((-e "htmlize.pl") && (-r "htmlize.pl")) {
@@ -1683,11 +1696,11 @@ sub output {
     s/\$CGI\$/$CONFIG{'ME'}/g;
     if($FORM{'user'}) {
       if($CONFIG{'ADMIN'} == 1) {
-        s/\$USER\$/user=$FORM{'user'}&/g;
+        s/\$USER\$/user=$FORM{'user'}&amp;/g;
       } elsif ($CONFIG{'SUBADMIN'} == 1) {
         my $form_user_domain = (split(/@/, $FORM{'user'}))[1];
         if($CONFIG{'SUBADMIN_USERS'}->{ $FORM{'user'} } == 1 || ($form_user_domain ne "" && $CONFIG{'SUBADMIN_USERS'}->{ "*@" . $form_user_domain } == 1)) {
-          s/\$USER\$/user=$FORM{'user'}&/g;
+          s/\$USER\$/user=$FORM{'user'}&amp;/g;
         } else {
           s/\$USER\$//g;
         }
@@ -1710,7 +1723,7 @@ sub SafeVars {
   foreach $key (keys(%PAIRS)) {
     my($value) = $PAIRS{$key};
     $value =~ s/([^A-Z0-9])/sprintf("%%%x", ord($1))/gie;
-    $url .= "$key=$value&";
+    $url .= "$key=$value&amp;";
   }
   $url =~ s/\&$//;
   return $url;

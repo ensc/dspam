@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.0 2009/06/25 22:23:38 sbajic Exp $ #
+# $Id: Makefile.am,v 1.2 2010/12/05 01:53:33 sbajic Exp $ #
 # tools.hash_drv/Makefile.am
 #
 
@@ -20,6 +20,7 @@ cssstat_SOURCES =  cssstat.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
                    ../pref.c
 cssstat_LDFLAGS =
+cssstat_LDADD = -lm
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssstat_CPPFLAGS = $(libhash_drv_cppflags)
@@ -31,6 +32,7 @@ cssclean_SOURCES = cssclean.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
                    ../pref.c
 cssclean_LDFLAGS =
+cssclean_LDADD = -lm
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssclean_CPPFLAGS = $(libhash_drv_cppflags)
@@ -42,6 +44,7 @@ cssconvert_SOURCES = cssconvert.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
                    ../pref.c
 cssconvert_LDFLAGS =
+cssconvert_LDADD = -lm
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 cssconvert_CPPFLAGS = $(libhash_drv_cppflags)
@@ -52,8 +55,8 @@ endif
 csscompress_SOURCES =  csscompress.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
                    ../pref.c
-
 csscompress_LDFLAGS =
+csscompress_LDADD = -lm
 if DYNAMIC_DRIVER
 if BUILD_HASH_DRV
 csscompress_CPPFLAGS = $(libhash_drv_cppflags)

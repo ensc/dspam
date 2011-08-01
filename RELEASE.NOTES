@@ -1,3 +1,69 @@
+RELEASE 3.10.0
+
+
+Please see UPGRADING and CHANGELOG for a detailed
+explanation of the differences from previous versions.
+
+## Upgrading from 3.9.0 / 3.9.1RC1
+   - We expect no changes are required to upgrade to 3.10.0
+
+## upgrading from 3.8.0
+   - Read the release notes from 3.9.0 (see end of this file)
+   - Read UPGRADING
+
+## upgrading from 3.6.8 or older
+   - Read all the documentation
+   - Read the release notes from 3.9.0 (see end of this file)
+   - Read UPGRADING
+
+
+
+What happened to 3.9.1RC1 ?
+===========================
+
+3.9.1RC1 was packaged in July 2010.  It is now one year later and 
+a lot of work has been added since the RC1 package.
+
+The DSPAM team feel its more accurate to release our current
+status as 3.10.0
+
+Please see CHANGELOG for a detailed explanation of the differences
+from previous versions
+
+
+
+Summary Changes from 3.9.0 to 3.10.0
+===================================
+
+Changing DSPAM license to AGPL v3
+
+Remove support for MySQL < 5.0.0 (EOL)
+Add support for MySQL >=5.5.x
+
+Future removal of SQLite2 driver noted
+
+Add dot de-stuffing when receiving message in daemon mode (aka: DLMTP/LMTP) or over socket
+and speedup up dot stuffing when sending to LMTP/SMTP delivery
+
+Extensive work on MySQL, PostgreSQL and Hash driver
+
+Remove unused direct dependencies on most of the executables and libraries
+
+Extending delimiters for advanced tokenizers (aka: SBPH and OSB) that profit from more tokens per message
+
+Adding more debug output
+
+Adding HE translation (web-ui)
+
+
+
+
+##################################################################
+# Release notes from previous release, here for your convenience #
+##################################################################
+
+
+
 RELEASE 3.9.0
 
 Why should you upgrade to DSPAM 3.9.0?

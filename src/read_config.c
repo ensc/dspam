@@ -1,22 +1,21 @@
-/* $Id: read_config.c,v 1.193 2010/01/03 14:39:13 sbajic Exp $ */
+/* $Id: read_config.c,v 1.197 2011/06/28 00:13:48 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -106,13 +105,20 @@ static char *tokenize(char *text, char **next)
 // or if it is a file, pass it to fileread.
 long dirread(const char *path, config_t *attrib, long num_root) {
   DIR *dir_p;
-  char *fulldir;
+  char *fulldir = NULL;
   struct dirent *dir_entry_p;
+
+  if (path == NULL) return 0;
 
   // Strip "\n"
   char *ptr = strrchr(path, '\n');
   if (ptr)
     *ptr = '\0';
+
+  if ((dir_p = opendir(path)) == NULL) {
+    LOG(LOG_ERR, ERR_IO_FILE_OPEN, path, strerror(errno));
+    return 0;
+  }
 
   if ((dir_p = opendir(path))) {
     while((dir_entry_p = readdir(dir_p)))
@@ -122,15 +128,20 @@ long dirread(const char *path, config_t *attrib, long num_root) {
           strcmp(dir_entry_p->d_name, "..") == 0)
         continue;
 
+      int n = strlen(dir_entry_p->d_name);
+
       // only use files which end in .conf:
-      if (strncmp(dir_entry_p->d_name + strlen(dir_entry_p->d_name) - 5,
-                 ".conf", 5) != 0) {
-       continue;
+      if (n < 5) continue;
+      if (strncmp(dir_entry_p->d_name + n - 5, ".conf", 5) != 0) continue;
+
+      int m = strlen(path);
+
+      fulldir = (char *)malloc(n+m+2);
+      if (fulldir == NULL) {
+        LOG(LOG_CRIT, ERR_MEM_ALLOC);
+        return 0;
       }
 
-      int n = strlen(dir_entry_p->d_name);
-      int m = strlen(path);
-      fulldir = (char *)malloc(n+m+2);
       strcpy(fulldir, (char *)path);
       strcat(fulldir, "/");
       strcat(fulldir, dir_entry_p->d_name);
@@ -183,7 +194,6 @@ config_t read_config(const char *path) {
     } else {
       LOG(LOG_ERR, ERR_IO_FILE_OPEN, path, strerror(errno));
     }
-    free(*attrib);
     return 0;
 #else
     LOG(LOG_ERR, ERR_IO_FILE_OPEN, CONFIG_DEFAULT, strerror(errno));
@@ -211,35 +221,41 @@ config_t read_config(const char *path) {
         // Give v (value) to dirraed
         num_root = dirread(v, attrib, num_root);
       } else {
-        if (_ds_find_attribute((*attrib), a)!=NULL) { 
+        if (_ds_find_attribute((*attrib), a)!=NULL) {
           _ds_add_attribute((*attrib), a, v);
         }
         else {
           num_root++;
           if (num_root >= attrib_size) {
             attrib_size *=2;
-            ptr = realloc((*attrib), attrib_size*sizeof(attribute_t)); 
+            ptr = realloc((*attrib), attrib_size*sizeof(attribute_t));
             if (ptr)
               *attrib = ptr;
-            else
+            else {
               LOG(LOG_CRIT, ERR_MEM_ALLOC);
-          } 
+              fclose(file);
+              return 0;
+            }
+          }
           _ds_add_attribute((*attrib), a, v);
         }
 #else
-      if (_ds_find_attribute(attrib, a)!=NULL) { 
+      if (_ds_find_attribute(attrib, a)!=NULL) {
         _ds_add_attribute(attrib, a, v);
       }
       else {
         num_root++;
         if (num_root >= attrib_size) {
           attrib_size *=2;
-          ptr = realloc(attrib, attrib_size*sizeof(attribute_t)); 
-          if (ptr) 
+          ptr = realloc(attrib, attrib_size*sizeof(attribute_t));
+          if (ptr)
             attrib = ptr;
-          else
+          else {
             LOG(LOG_CRIT, ERR_MEM_ALLOC);
-        } 
+            fclose(file);
+            return NULL;
+          }
+        }
         _ds_add_attribute(attrib, a, v);
 #endif
       }

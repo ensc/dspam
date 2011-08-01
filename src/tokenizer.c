@@ -1,22 +1,21 @@
-/* $Id: tokenizer.c,v 1.296 2010/05/22 11:46:13 sbajic Exp $ */
+/* $Id: tokenizer.c,v 1.301 2011/06/28 00:13:48 sbajic Exp $ */
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2010 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; version 2
- of the License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -223,6 +222,10 @@ int _ds_tokenize_ngram(
     l = strlen (token);
     if (l >= 1 && l < 50)
     {
+#ifdef VERBOSE
+        LOGDEBUG ("Processing body token '%s'", token);
+#endif
+
       /* Process "current" token */
       if ( !_ds_process_body_token(CTX, token, previous_token, diction)
         && tokenizer == DSZ_CHAIN)
@@ -232,6 +235,10 @@ int _ds_tokenize_ngram(
     }
     token = strtok_r (NULL, DELIMITERS, &ptrptr);
   }
+
+#ifdef VERBOSE
+  LOGDEBUG("Finished tokenizing (ngram) message");
+#endif
 
   /* Final token reassembly (anything left in the buffer) */
 
@@ -296,6 +303,10 @@ int _ds_tokenize_sparse(
   while (node_nt) {
     int multiline;
 
+#ifdef VERBOSE
+    LOGDEBUG("processing line: %s", node_nt->ptr);
+#endif
+
     _ds_sparse_clear(previous_tokens);
 
     line = node_nt->ptr;
@@ -333,7 +344,7 @@ int _ds_tokenize_sparse(
     /* Received headers use a different set of delimiters to preserve things
        like ip addresses */
 
-    token = strtok_r ((multiline) ? line : NULL, DELIMITERS_HEADING, &ptrptr);
+    token = strtok_r ((multiline) ? line : NULL, SPARSE_DELIMITERS_HEADING, &ptrptr);
 
     while (token)
     {
@@ -347,7 +358,7 @@ int _ds_tokenize_sparse(
         _ds_map_header_token (CTX, token, previous_tokens, diction, heading, bitpattern);
       }
 
-      token = strtok_r (NULL, DELIMITERS_HEADING, &ptrptr);
+      token = strtok_r (NULL, SPARSE_DELIMITERS_HEADING, &ptrptr);
     }
 
     for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
@@ -363,16 +374,24 @@ int _ds_tokenize_sparse(
    * Body Tokenization
    */
 
-  token = strtok_r (body, DELIMITERS, &ptrptr);
+#ifdef VERBOSE
+  LOGDEBUG("parsing message body");
+#endif
+
+  token = strtok_r (body, SPARSE_DELIMITERS, &ptrptr);
   while (token != NULL)
   {
     l = strlen (token);
     if (l > 0 && l < 50)
     {
+#ifdef VERBOSE
+        LOGDEBUG ("Processing body token '%s'", token);
+#endif
+
       /* Process "current" token */
       _ds_map_body_token (CTX, token, previous_tokens, diction, bitpattern);
     }
-    token = strtok_r (NULL, DELIMITERS, &ptrptr);
+    token = strtok_r (NULL, SPARSE_DELIMITERS, &ptrptr);
   }
 
   for(i=0;i<SPARSE_WINDOW_SIZE;i++) {
@@ -382,6 +401,11 @@ int _ds_tokenize_sparse(
   _ds_sparse_clear(previous_tokens);
 
   free(bitpattern);
+
+#ifdef VERBOSE
+  LOGDEBUG("Finished tokenizing (sparse) message");
+#endif
+
   return 0;
 }
 
