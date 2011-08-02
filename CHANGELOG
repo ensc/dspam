@@ -1,3 +1,6 @@
+
+[20110802:1151] tomhendr: add cssclean.txt to doc/Makefile.am
+
 Version 3.10.0
 -------------
 [20110801:1024] tomhendr: Update version to 3.10.0 after discussion between projectadmins.
