@@ -3,6 +3,7 @@
 #
 
 EXTRA_DIST = 	courier.txt	\
+		cssclean.txt \
 		exim.txt	\
 		mysql_drv.txt	\
 		osx.txt		\
