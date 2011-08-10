@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.888 2011/06/28 00:13:48 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.889 2011/08/10 13:54:21 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1654,7 +1654,10 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
   char *name;
 
   pid = getpid ();
+  /* TODO
   if (_mysql_drv_get_UIDInSignature(CTX))
+  */
+  if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
   {
     if (!CTX->group || CTX->flags & DSF_MERGED) {
       p = _mysql_drv_getpwnam (CTX, CTX->username);
@@ -1722,7 +1725,10 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EINVAL;
   }
 
+  /* TODO
   if (_mysql_drv_get_UIDInSignature(CTX))
+  */
+  if (_ds_match_attribute(CTX->config->attributes, "MySQLUIDInSignature", "on"))
   {
     char *u, *sig, *username;
     void *dbt = s->dbt;
@@ -2042,12 +2048,24 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
 #ifndef VIRTUAL_USERS
   struct passwd *p;
+#else
+  char *virtual_table, *virtual_username;
 #endif
   uid_t uid;
   char query[512];
   MYSQL_ROW row;
   int query_rc = 0;
   int query_errno = 0;
+
+#ifdef VIRTUAL_USERS
+  if ((virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
+    "MySQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; }
+#endif
 
   if (s->dbt == NULL)
   {
@@ -2058,9 +2076,14 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
   if (s->iter_user == NULL)
   {
 #ifdef VIRTUAL_USERS
+    /* TODO
+    char *virtual_table, *virtual_username;
+    virtual_table = _mysql_drv_get_virtual_table(CTX);
+    virtual_username = _mysql_drv_get_virtual_username_field(CTX);
+    */
     snprintf(query, sizeof(query), "SELECT DISTINCT %s FROM %s",
-      _mysql_drv_get_virtual_username_field(CTX),
-      _mysql_drv_get_virtual_table(CTX));
+      virtual_username,
+      virtual_table);
 #else
     strncpy (query, "SELECT DISTINCT uid FROM dspam_stats", sizeof(query));
 #endif
@@ -2099,11 +2122,7 @@ _ds_get_nextuser (DSPAM_CTX * CTX)
       return NULL;
     }
   } else {
-#ifdef VIRTUAL_USERS
-    LOG (LOG_CRIT, "_ds_get_nextuser: detected empty or NULL uid in table %s", _mysql_drv_get_virtual_table(CTX));
-#else
-    LOG (LOG_CRIT, "_ds_get_nextuser: detected empty or NULL uid in table dspam_stats");
-#endif
+    LOG (LOG_CRIT, "_ds_get_nextuser: detected empty or NULL uid in stats table");
     return NULL;
   }
 #ifdef VIRTUAL_USERS
@@ -2389,9 +2408,28 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   char query[512];
   MYSQL_RES *result;
   MYSQL_ROW row;
+  char *virtual_table, *virtual_uid, *virtual_username;
   char *sql_username;
   int name_size = MAX_USERNAME_LENGTH;
   result = NULL;
+
+  if ((virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
+  { virtual_uid = "uid"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
+    "MySQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; }
+
+  /* TODO
+  virtual_table = _mysql_drv_get_virtual_table(CTX);
+  virtual_uid = _mysql_drv_get_virtual_uid_field(CTX);
+  virtual_username = _mysql_drv_get_virtual_username_field(CTX);
+  */
 
   if (s->p_getpwnam.pw_name != NULL)
   {
@@ -2421,10 +2459,7 @@ _mysql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
 
   snprintf (query, sizeof (query),
             "SELECT %s FROM %s WHERE %s='%s'",
-            _mysql_drv_get_virtual_uid_field(CTX),
-            _mysql_drv_get_virtual_table(CTX),
-            _mysql_drv_get_virtual_username_field(CTX),
-            sql_username);
+            virtual_uid, virtual_table, virtual_username, sql_username);
 
   free (sql_username);
   sql_username = NULL;
@@ -2534,7 +2569,26 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
   char query[512];
   MYSQL_RES *result;
   MYSQL_ROW row;
+  char *virtual_table, *virtual_uid, *virtual_username;
   result = NULL;
+
+  if ((virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
+  { virtual_uid = "uid"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
+    "MySQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; }
+
+  /* TODO
+  virtual_table = _mysql_drv_get_virtual_table(CTX);
+  virtual_uid = _mysql_drv_get_virtual_uid_field(CTX);
+  virtual_username = _mysql_drv_get_virtual_username_field(CTX);
+  */
 
   if (s->p_getpwuid.pw_name != NULL)
   {
@@ -2547,10 +2601,7 @@ _mysql_drv_getpwuid (DSPAM_CTX * CTX, uid_t uid)
 
   snprintf (query, sizeof (query),
             "SELECT %s FROM %s WHERE %s='%d'",
-            _mysql_drv_get_virtual_username_field(CTX),
-            _mysql_drv_get_virtual_table(CTX),
-            _mysql_drv_get_virtual_uid_field(CTX),
-            (int) uid);
+            virtual_username, virtual_table, virtual_uid, (int) uid);
 
   query_rc = MYSQL_RUN_QUERY (s->dbt->dbh_read, query);
   if (query_rc) {
@@ -2630,8 +2681,27 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   char query[512];
   int query_rc = 0;
   int query_errno = 0;
+  char *virtual_table, *virtual_uid, *virtual_username;
   struct _mysql_drv_storage *s = (struct _mysql_drv_storage *) CTX->storage;
   char *sql_username;
+
+  if ((virtual_table
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualTable"))==NULL)
+  { virtual_table = "dspam_virtual_uids"; }
+
+  if ((virtual_uid
+    = _ds_read_attribute(CTX->config->attributes, "MySQLVirtualUIDField"))==NULL)
+  { virtual_uid = "uid"; }
+
+  if ((virtual_username = _ds_read_attribute(CTX->config->attributes,
+    "MySQLVirtualUsernameField")) ==NULL)
+  { virtual_username = "username"; }
+
+  /* TODO
+  virtual_table = _mysql_drv_get_virtual_table(CTX);
+  virtual_uid = _mysql_drv_get_virtual_uid_field(CTX);
+  virtual_username = _mysql_drv_get_virtual_username_field(CTX);
+  */
 
 #ifdef EXT_LOOKUP
   LOGDEBUG("_mysql_drv_setpwnam: verified_user is %d", verified_user);
@@ -2652,10 +2722,7 @@ _mysql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
 
   snprintf (query, sizeof (query),
             "INSERT INTO %s (%s,%s) VALUES (NULL,'%s')",
-            _mysql_drv_get_virtual_table(CTX),
-            _mysql_drv_get_virtual_uid_field(CTX),
-            _mysql_drv_get_virtual_username_field(CTX),
-            sql_username);
+            virtual_table, virtual_uid, virtual_username, sql_username);
 
   free (sql_username);
   sql_username = NULL;
