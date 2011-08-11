@@ -1,36 +1,11 @@
-RELEASE 3.10.0
-
-
 Please see UPGRADING and CHANGELOG for a detailed
 explanation of the differences from previous versions.
 
-## Upgrading from 3.9.0 / 3.9.1RC1
-   - We expect no changes are required to upgrade to 3.10.0
+Summary Changes from 3.10.0 to 3.10.1
+=====================================
 
-## upgrading from 3.8.0
-   - Read the release notes from 3.9.0 (see end of this file)
-   - Read UPGRADING
-
-## upgrading from 3.6.8 or older
-   - Read all the documentation
-   - Read the release notes from 3.9.0 (see end of this file)
-   - Read UPGRADING
-
-
-
-What happened to 3.9.1RC1 ?
-===========================
-
-3.9.1RC1 was packaged in July 2010.  It is now one year later and 
-a lot of work has been added since the RC1 package.
-
-The DSPAM team feel its more accurate to release our current
-status as 3.10.0
-
-Please see CHANGELOG for a detailed explanation of the differences
-from previous versions
-
-
+DSPAM 3.10.1 is a bugfix release that resolves an issue with the MySQL driver 
+introduced in DSPAM 3.10.0.
 
 Summary Changes from 3.9.0 to 3.10.0
 ===================================
@@ -55,6 +30,29 @@ Adding more debug output
 
 Adding HE translation (web-ui)
 
+## Upgrading from 3.9.0 / 3.9.1RC1
+   - We expect no changes are required to upgrade to 3.10.0
+
+## upgrading from 3.8.0
+   - Read the release notes from 3.9.0 (see end of this file)
+   - Read UPGRADING
+
+## upgrading from 3.6.8 or older
+   - Read all the documentation
+   - Read the release notes from 3.9.0 (see end of this file)
+   - Read UPGRADING
+
+What happened to 3.9.1RC1 ?
+===========================
+
+3.9.1RC1 was packaged in July 2010.  It is now one year later and 
+a lot of work has been added since the RC1 package.
+
+The DSPAM team feel its more accurate to release our current
+status as 3.10.0
+
+Please see CHANGELOG for a detailed explanation of the differences
+from previous versions
 
 
 
