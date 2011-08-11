@@ -1,10 +1,13 @@
+Version 3.10.1
+--------------
 
 [20110810:1420] sbajic: Do not use (for now) static functions/variables when computing/reading virtual_table, virtual_uid, virtual_username and MySQLUIDInSignature
 
 [20110802:1151] tomhendr: add cssclean.txt to doc/Makefile.am
 
 Version 3.10.0
--------------
+--------------
+
 [20110801:1024] tomhendr: Update version to 3.10.0 after discussion between projectadmins.
 
 [20110726:2324] tomhendr: Updated MySQL documentation, added emphasis on usage of *-4.1.sql files, removed MySQL <4.1 specific notes
