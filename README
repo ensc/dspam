@@ -1012,7 +1012,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
              calls to dspam_clean -p to purge neutral data, which comprises a
              majority of most databases.
 
-  For more help, please see the DSPAM FAQ at http://dspam.sf.net.
+  For more help, please see the DSPAM FAQ at http://dspam.sourceforge.net.
 
 1.4 DSPAM TOOLS
 
@@ -2112,8 +2112,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 3.0 BUGS, FEATURE REQUESTS
 
   Please use our Bug Tracker on the sourceforge project page at
-  http://sf.net/projects/dspam for the current known bugs list and proper
-  reporting procedure.
+  http://sourceforge.net/projects/dspam for the current known bugs list and 
+  proper reporting procedure.
 
   In the same place you can ask for new feature via the Feature Request Tracker.
 
