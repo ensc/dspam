@@ -62,8 +62,8 @@ ParseToHeaders		on
 ChangeModeOnParse	on
 ChangeUserOnParse	full
 
-  This means if a user forwards their spam to spam-bob@domain.com, the
-  username will be set to bob@domain.com and the training mode will be set to
+  This means if a user forwards their spam to spam-bob@example.org, the
+  username will be set to bob@example.org and the training mode will be set to
   "learn spam".
 
   You can then start DSPAM:  dspam --daemon &

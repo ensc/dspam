@@ -54,7 +54,7 @@ $CONFIG{'OPTMODE'}	= "NONE";	# OUT=OptOut IN=OptIn NONE=not selectable
 #$CONFIG{'GRAPHS_LEGEND_FONT'}  = "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf";
 
 # Add customized settings below
-$CONFIG{'LOCAL_DOMAIN'}	= "yourdomain.com";
+$CONFIG{'LOCAL_DOMAIN'}	= "example.org";
 
 $ENV{'PATH'}		= "$ENV{'PATH'}:$CONFIG{'DSPAM_BIN'}";
 

@@ -65,7 +65,7 @@ TrustedDeliveryAgent "@delivery_agent@"
 # address or UNIX path to a domain socket below as a host.
 #
 # If you would like to set up DeliveryHost's on a per-domain basis, use
-# the syntax: DeliveryHost.domain.com 1.2.3.4
+# the syntax: DeliveryHost.example.org 1.2.3.4
 #
 #DeliveryHost		127.0.0.1
 #DeliveryPort		24
@@ -74,11 +74,11 @@ TrustedDeliveryAgent "@delivery_agent@"
 
 #
 # FallbackDomains: If you want to specify certain domains as fallback domains,
-# enable this option. For example, you could create a user @domain.com, and
-# if bob@domain.com does not resolve to a known user on the system, the user
-# could default to your @domain.com user. NOTE: This also requires designating
+# enable this option. For example, you could create a user @example.org, and
+# if bob@example.org does not resolve to a known user on the system, the user
+# could default to your @example.org user. NOTE: This also requires designating
 # fallbackDomain for the domain name;
-# e.g. dspam_admin ch pref domain.com fallbackDomain on
+# e.g. dspam_admin ch pref example.org fallbackDomain on
 #
 #FallbackDomains on
 
@@ -543,7 +543,7 @@ HashConnectionCache	10
 							# 'strict' enforces both verify and map
 #ExtLookupDriver	ldap				# Currently only ldap and program are supported.
 							# There are plans to support both MySQL and Postgres.
-#ExtLookupServer	ldap.domain.com			# Can either be a database hostname or the full path to
+#ExtLookupServer	ldap.example.org			# Can either be a database hostname or the full path to
 							# an executable lookup program and its arguments.
 #ExtLookupPort		389				# Desired port when connecting to the lookup database.
 #ExtLookupDB		"ou=Users,dc=domain,dc=com"	# Can either be an LDAP search base or a database name (TODO).
@@ -628,7 +628,7 @@ HashConnectionCache	10
 # maintained by humans as they're often inaccurate and could hurt filter
 # learning and accuracy.
 #
-#Lookup		"sbl.yourdomain.com"
+#Lookup		"sbl.example.org"
 
 #
 # RBLInoculate: If you want to inoculate the user from RBL'd messages it would
