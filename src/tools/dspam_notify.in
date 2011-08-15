@@ -10,16 +10,16 @@ $DSPAM_BINARY = '@bindir@/@dspam_transformed@';
 $BINDIR = '@bindir@';
 
 # Who will the notifications be sent from?
-$FROM = 'dspam@domain.tld';
+$FROM = 'dspam@example.org';
   
 # What will the notification subject be?
 $SUBJECT = 'Daily Spam Quarantine Summary';
 
 # What text to display in the body?
-$BODY = qq!<p>This report has been sent to you from the Anti-Spam service hosted at ISP.com. Below is a list of items in your quarantine area. You can view or release a message by clicking on the links (right). If you no longer wish to receive these reports then you may change the option on the 'Preferences' page.</p>!;
+$BODY = qq!<p>This report has been sent to you from the Anti-Spam service hosted at example.org. Below is a list of items in your quarantine area. You can view or release a message by clicking on the links (right). If you no longer wish to receive these reports then you may change the option on the 'Preferences' page.</p>!;
 
 # Quarantine URL
-$DSPAM_URL = 'https://dspam.domain.tld';
+$DSPAM_URL = 'https://dspam.example.org';
 
 # Maximum of entries to show in mail
 $MAX_ITEMS = 200;
