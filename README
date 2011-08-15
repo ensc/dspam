@@ -316,7 +316,7 @@ FRESH INSTALLATION
      --enable-domain-scale
      Switch for domain-scale implementation.  When used, DSPAM expects
      username@domain to be passed in as the user id and user data will be
-     stored as $HOME/data/domain.com/user and $HOME/opt-in/domain/user.dspam
+     stored as $HOME/data/example.org/user and $HOME/opt-in/example.org/user.dspam
      instead of $HOME/data/user
 
    INTEGRATION SWITCHES
@@ -780,7 +780,7 @@ FRESH INSTALLATION
    /usr/local/var/dspam/txt/qurantinefull.txt
 
    You will want to modify these templates prior to installing them to reflect the
-   correct email addresses and URLs (look for 'configureme' and 'yourdomain').
+   correct email addresses and URLs (look for 'example.org').
 
    NOTE: The quarantine warning is reset when the user clicks 'Delete All', but
    is not reset if they use "Delete Selected".  If the user doesn't wish to
@@ -1669,7 +1669,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   It may even be a good idea to put it at the bottom of your tagline in all
   your publicly archived emails, something like...
 
-    Spammers, send me mail here: bob_c@yourdomain.com
+    Spammers, send me mail here: bob_c@example.org
 
   Finally, you can multiply the effects of this by sharing an inoculation
   group with your friends.  If all of your friends have a public covert
@@ -1850,8 +1850,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
      DeliveryProto based on whether you would like to delivery via LMTP or SMTP.
 
      NOTE: If you would like to delivery to different hosts based on domain,
-           specify DeliveryHost.domain.com as the configuration directive. Use
-           DeliveryPort.domain.com to specify a port for the delivery.
+           specify DeliveryHost.example.org as the configuration directive. Use
+           DeliveryPort.example.org to specify a port for the delivery.
 
   3. Add the --lmtp-recipient flag to the arguments passed into DSPAM. This is
      used to specify the destination address for the message. For example, in
@@ -2003,7 +2003,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
     innocent. (default:on, see dspam.conf)
 
   fallbackDomain { on | off }
-    Allows a dspam user ("@domain.com") to be marked as a fallback user for
+    Allows a dspam user ("@example.org") to be marked as a fallback user for
     the entire domain, so if the destination dspam user does not exist in
     the database, the fallback user's database will be used. The
     dspam.conf "FallbackDomains" setting must also be "on". (default:off)
@@ -2038,10 +2038,10 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   opting out of filtering entirely) for users based on domain name. Any user
   who does not exist as a known user to DSPAM will be defaulted to the
   domain it belongs to if it is designated as a fallback domain. This
-  means that you can create bob@domain.com and alice@domain.com with their own
-  databases and preferences, but also default all other users to @domain.com.
+  means that you can create bob@example.org and alice@example.org with their own
+  databases and preferences, but also default all other users to @example.org.
   Alternatively, you could create just the domain without any other users and
-  default all users to @domain.com
+  default all users to @example.org
 
   To use fallback domains, you'll first need to activate this feature in
   dspam.conf:
@@ -2049,14 +2049,14 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   FallbackDomains on
 
   Next, you'll need to create a dspam user for each domain you wish to use
-  as a fallback domain. For example, @domain.com. Depending on your
+  as a fallback domain. For example, @example.org. Depending on your
   implementation, this may be a simple insert into dspam_virtual_uids or may
   be created automatically when setting a user's preferences.
 
   Finally, designate that special user as a fallback domain by setting a
   preference:
 
-  dspam_admin ch pref @domain.com fallbackDomain on
+  dspam_admin ch pref @example.org fallbackDomain on
 
   Any mail coming in for that domain that does _not_ match a known user in
   dspam will now fall back to this user; you can then set specific preferences
