@@ -664,9 +664,9 @@ FRESH INSTALLATION
      way to configure aliases is to have DSPAM parse the 'To:' header of the
      message and use a catch-all subdomain to direct all mail into DSPAM for
      retraining. You can then instruct your users to email addresses like
-     'spam-bob@relearn.domain.tld'. The ParseToHeaders option (available
+     'spam-bob@relearn.example.org'. The ParseToHeaders option (available
      in dspam.conf) will parse the To: header of forwarded messages and
-     set the username to either 'bob' or 'bob@relearn.domain.tld', depending
+     set the username to either 'bob' or 'bob@relearn.example.org', depending
      on how it is configured. DSPAM can also set the training mode to either
      "learn spam" or "learn notspam" depending on whether the user specified
      a spam- or notspam- address in the To: header.
@@ -675,10 +675,10 @@ FRESH INSTALLATION
      on your system (The Hard Way). If you're fortunate enough to have a
      mail server that can perform regular expression matching, you can set up
      your system without a subdomain, and just use addresses like
-     spam-bob@domain.tld. For the rest of us, it will be necessary to set up
+     spam-bob@example.org. For the rest of us, it will be necessary to set up
      a subdomain catch-all directly into DSPAM. For example:
 
-     @relearn.domain.tld	"|/usr/local/bin/dspam"
+     @relearn.example.org	"|/usr/local/bin/dspam"
 
      Don't forget to set the appropriate ParseToHeaders and related options in
      dspam.conf as well. More specific instructions can be found in dspam.conf
@@ -1407,7 +1407,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
     group1:shared:user1,user2,userN
     group2:shared,managed:user1,user2,userN
-    group3:shared:*@domain.tld
+    group3:shared:*@example.org
     group4:shared:*
 
   The group name (in the example above 'group1', 'group2', 'group3', 'group4')
@@ -1418,7 +1418,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   The user/member list for shared group allows the following syntax:
     user1         : Exact match of user with the name "user1"
     *             : Match any user
-    *@domain.tld  : Match any user having '@domain.tld' at the end of ther
+    *@example.org : Match any user having '@example.org' at the end of ther
                     username. The matching only works for the '@' character.
                     You can not use something like '*user' to include user
                     'infouser', 'testuser', 'dummyuser', etc.
@@ -1568,17 +1568,17 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   of the user (if the user is member of the merged group).
 
   The user/member list for merged group allows the following syntax:
-    user1         : exact match of user with the name "user1"
-    -user1        : exclude user with the name "user1"
-    *             : match any user
-    *@domain.tld  : match users having "@domain.tld" at the end of ther
-                    username. The matching only works for the '@' character.
-                    You can not use something like '*user' to include user
-                    'infouser', 'testuser', 'dummyuser', etc.
-    -*@domain.tld : exclude users having "@domain.tld" at the end of their
-                    username. The matching only works for the '@' character.
-                    You can not use something like '-*user' to exclude user
-                    'infouser', 'testuser', 'dummyuser', etc.
+    user1          : exact match of user with the name "user1"
+    -user1         : exclude user with the name "user1"
+    *              : match any user
+    *@example.org  : match users having "@example.org" at the end of ther
+                     username. The matching only works for the '@' character.
+                     You can not use something like '*user' to include user
+                     'infouser', 'testuser', 'dummyuser', etc.
+    -*@example.org : exclude users having "@example.org" at the end of their
+                     username. The matching only works for the '@' character.
+                     You can not use something like '-*user' to exclude user
+                     'infouser', 'testuser', 'dummyuser', etc.
 
   NOTE: Merged Groups are great for providing out-of-the-box adaptive filtering,
         but allowing users to build their own data from scratch will still
@@ -1802,7 +1802,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
     SERVER> 354 Enter mail, end with "." on a line by itself
     CLIENT> Subject: Cheap Viagra!
     CLIENT>
-    CLIENT> Click Here: http://www.cheapviagra.com
+    CLIENT> Click Here: http://www.cheapviagra.example.org
     CLIENT> .
     SERVER> 250 2.0.0 <dick> Message accepted for delivery: INNOCENT
     SERVER> 250 2.0.0 <jane> Message accepted for delivery: SPAM
@@ -1963,7 +1963,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
   tagSpam / tagNonspam { on | off }
     Adds a tagline to the end of a message based on its classification; useful
-    for things such as "Scanned by Your ISP.com". If set to on, the file
+    for things such as "Scanned by Your ISP example.org". If set to on, the file
     msgtag.spam and/or msgtag.nonspam will be looked for in dspam_home/txt/
     and appended to appropriate messages.
 

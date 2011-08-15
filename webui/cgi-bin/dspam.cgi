@@ -204,7 +204,7 @@ if ($CONFIG{'ADMIN'} == 1 || $CONFIG{'SUBADMIN'} == 1) {
           push(@dsusers, qq!<option value="$username">&nbsp;$username</option>!);
         } elsif ($CONFIG{'SUBADMIN'} == 1) {
           # Sub-administrators can only see their users. Either full
-          # quallified email address or *@domain.tld
+          # qualified email address or *@example.org
           my $form_user_domain = (split(/@/, $username))[1];
           if($CONFIG{'SUBADMIN_USERS'}->{ $username } == 1 || ($form_user_domain ne "" && $CONFIG{'SUBADMIN_USERS'}->{ "*@" . $form_user_domain } == 1)) {
             $CONFIG{'SUBADMIN_USERS'}->{ $username } = 1; # Add full email to hash list so that we

@@ -743,7 +743,7 @@ Opt out
 #   are delivering via LMTP.
 #
 # ChangeUserOnParse: Automatically change the username to match that specified
-#   in the To: header. For example, spam-bob@domain.tld will set the username
+#   in the To: header. For example, spam-bob@example.org will set the username
 #   to bob, ignoring any --user passed in. This may not always be desirable if
 #   you are using virtual email addresses as usernames. Options:
 #     on or user	take the portion before the @ sign only
