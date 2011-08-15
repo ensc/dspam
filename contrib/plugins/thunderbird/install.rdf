@@ -23,7 +23,7 @@
     <em:iconURL>chrome://dspam/skin/dspam-logo-eyes-small.gif</em:iconURL>
     <em:creator>Hugo Monteiro</em:creator>
 		<em:optionsURL>chrome://dspam/content/options.xul</em:optionsURL>
-    <em:homepageURL>http://dspam.sf.net/contrib/plugins/thunderbird/</em:homepageURL>
+    <em:homepageURL>http://dspam.sourceforge.net/contrib/plugins/thunderbird/</em:homepageURL>
     <!-- Front End Integration Hooks (used by Extension Manager)-->
     
     <!-- Packages, Skins and Locales that this extension registers -->
