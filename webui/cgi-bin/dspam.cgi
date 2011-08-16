@@ -18,11 +18,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use strict;
+use POSIX qw(strftime ctime);
 use Time::Local;
 use vars qw { %CONFIG %DATA %FORM %LANG $MAILBOX $CURRENT_USER $USER $TMPFILE $USERSELECT };
 use vars qw { $CURRENT_STORE $LANGUAGE };
-
-require "ctime.pl";
 
 #
 # Read configuration parameters common to all CGI scripts
@@ -35,10 +34,6 @@ if (!(-e "configure.pl") || !(-r "configure.pl")) {
   exit;
 }
 require "configure.pl";
-
-if($CONFIG{"DATE_FORMAT"}) {
-  use POSIX qw(strftime);
-}
 
 #
 # The current CGI script
