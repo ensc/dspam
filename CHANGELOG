@@ -1,3 +1,5 @@
+[20110816:2226] tomhendr: replace ctime.pl usage with POSIX::ctime in webui, since it is marked as deprecated
+
 [20110815:1825] tomhendr: replace random example domains like domain.com/yourdomain.com/configureme.com with example.org
 
 [20110811:2220] sbajic: Adding license note to dspam-retrain-forward.pl
