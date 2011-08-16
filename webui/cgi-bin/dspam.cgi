@@ -219,7 +219,7 @@ if ($CONFIG{'ADMIN'} == 1 || $CONFIG{'SUBADMIN'} == 1) {
 }
 
 my($MYURL);
-$MYURL = qq!$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}&language=$LANGUAGE!;
+$MYURL = qq!$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=$FORM{'template'}&amp;language=$LANGUAGE!;
 
 #
 # Set up initial display variables
