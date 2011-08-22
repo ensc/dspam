@@ -4,12 +4,12 @@
 # not beeing real DSPAM admins.
 #
 # Format:
-#   <subadmin_user1>: <full1@email.address>, <full2@email.address>, *@<domain.tld>
+#   <subadmin_user1>: <full1@email.address>, <full2@email.address>, *@<example.org>
 #   <subadmin_user2>: <full1@email.address>
 #   <subadmin_user3>: <full2@email.address>
-#   <subadmin_user4>: *@<domain.tld>
+#   <subadmin_user4>: *@<example.org>
 #
 # Note: Lines starting with '#' are comments and are not processed
 #
 
-#subadmin@mydomain.tld: *@mydomain.tld, *@otherdomain.tld, user1@yourdomain.tld, user2@hisdomain.tld
+#subadmin@example.org: *@example.org, *@other.example.org, user1@second.example.org, user2@final.example.org

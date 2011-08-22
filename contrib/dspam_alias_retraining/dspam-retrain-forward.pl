@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 ###
-# $Id: dspam-retrain-forward.pl,v0.5 2006/05/28 05:28:47 sbajic Exp $
+# $Id: dspam-retrain-forward.pl,v0.6 2011/08/11 22:20:04 sbajic Exp $
 #
-# Copyright 2006, Stevan Bajic <stevan@bajic.ch>, all rights reserved.
+# Copyright 2006-2011, Stevan Bajic <stevan@bajic.ch>, all rights reserved.
+# Distributed under the terms of the GNU Affero General Public License v3
 #
 # Purpose: Script for retraining DSPAM
 ###

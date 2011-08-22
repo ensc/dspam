@@ -20,7 +20,6 @@
 use strict;
 use Time::Local;
 use vars qw { %CONFIG %DATA %FORM %LANG $LANGUAGE };
-require "ctime.pl";
 
 #
 # Read configuration parameters common to all CGI scripts

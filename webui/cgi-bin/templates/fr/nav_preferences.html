@@ -1,9 +1,11 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML>
 <HEAD><TITLE>DSPAM v3 - Centre de contr&ocirc;le</TITLE>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">
 <link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 </HEAD>
-<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
 <div id="header">
 	<div id="logo">
 		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
@@ -23,7 +25,7 @@
                 <li><a href="$CGI$?$USER$template=alerts&amp;language=$LANG$">Alertes</a></li>
                 <li><a href="$CGI$?$USER$template=quarantine&amp;language=$LANG$">Quarantaine ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
                 <li><a href="$CGI$?$USER$template=analysis&amp;language=$LANG$">Analyses</a></li>
-                <li><a href="$CGI$?$USER$template=history&amp;language=$LANG$&history_page=1">Historique</a></li>
+                <li><a href="$CGI$?$USER$template=history&amp;language=$LANG$&amp;history_page=1">Historique</a></li>
 		$NAV_ADMIN$
 	</ul>
 </div>
@@ -41,7 +43,7 @@ Cette page vous permet de configurer la fa&ccedil;on dont le filtre g&egrave;re 
 
 <div class="content">
 	<h3><strong>Apprentissage</strong> - Configure la fa&ccedil;on dont le filtre apprend lors de l'analyse des messages</h3>
-<p>
+
 <table class="hollow">
 <tr><td>
 DSPAM doit apprendre&nbsp;:<br><br>
@@ -60,10 +62,9 @@ Lorsque j'entraine DSPAM, je pr&eacute;f&egrave;re&nbsp;:<br><br>
 transf&eacute;rer les pourriels re&ccedil;us en tant que <u>pi&egrave;ce jointe</u> (la signature appara&icirc;t dans les en-t&ecirc;tes du messages)<BR>
 </td></tr>
 </table>
-</p>
 
 <p>
-Sensibilit&eacute; du filtre <stron>pendant</strong> la p&eacute;riode d'apprentissage&nbsp;:<br>
+Sensibilit&eacute; du filtre <strong>pendant</strong> la p&eacute;riode d'apprentissage&nbsp;:<br>
 <span class="small">Haute sensibilit&eacute (plus de pourriels seront plac&eacute; en quarantaine)</span>
     <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=0 $SEDATION_0$>
     <INPUT TYPE=RADIO NAME=statisticalSedation VALUE=1 $SEDATION_1$>

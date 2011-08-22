@@ -18,11 +18,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use strict;
+use POSIX qw(strftime ctime);
 use Time::Local;
 use vars qw { %CONFIG %DATA %FORM %LANG $MAILBOX $CURRENT_USER $USER $TMPFILE $USERSELECT };
 use vars qw { $CURRENT_STORE $LANGUAGE };
-
-require "ctime.pl";
 
 #
 # Read configuration parameters common to all CGI scripts
@@ -35,10 +34,6 @@ if (!(-e "configure.pl") || !(-r "configure.pl")) {
   exit;
 }
 require "configure.pl";
-
-if($CONFIG{"DATE_FORMAT"}) {
-  use POSIX qw(strftime);
-}
 
 #
 # The current CGI script
@@ -204,7 +199,7 @@ if ($CONFIG{'ADMIN'} == 1 || $CONFIG{'SUBADMIN'} == 1) {
           push(@dsusers, qq!<option value="$username">&nbsp;$username</option>!);
         } elsif ($CONFIG{'SUBADMIN'} == 1) {
           # Sub-administrators can only see their users. Either full
-          # quallified email address or *@domain.tld
+          # qualified email address or *@example.org
           my $form_user_domain = (split(/@/, $username))[1];
           if($CONFIG{'SUBADMIN_USERS'}->{ $username } == 1 || ($form_user_domain ne "" && $CONFIG{'SUBADMIN_USERS'}->{ "*@" . $form_user_domain } == 1)) {
             $CONFIG{'SUBADMIN_USERS'}->{ $username } = 1; # Add full email to hash list so that we
@@ -224,7 +219,7 @@ if ($CONFIG{'ADMIN'} == 1 || $CONFIG{'SUBADMIN'} == 1) {
 }
 
 my($MYURL);
-$MYURL = qq!$CONFIG{'ME'}?user=$FORM{'user'}&template=$FORM{'template'}&language=$LANGUAGE!;
+$MYURL = qq!$CONFIG{'ME'}?user=$FORM{'user'}&amp;template=$FORM{'template'}&amp;language=$LANGUAGE!;
 
 #
 # Set up initial display variables

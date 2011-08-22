@@ -1,9 +1,11 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML>
 <HEAD><TITLE>DSPAM v3 - Administration</TITLE>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">
 <link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
 <LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
 </HEAD>
-<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#000000" VLINK="#000000" ALINK="#000000">
 <div id="header">
 	<div id="logo">
 		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
@@ -127,15 +129,15 @@ Les graphiques et les tableaux ci-dessous r&eacute;sument les analyses effectu&e
 
 <div class="content">
 	<h3><strong>Activit&eacute; sur 24 heures</strong> - $TS_DAILY$ pourriel(s), $TI_DAILY$ message(s) l&eacute;gitime(s), $SM_DAILY$ pourriel(s) manqu&eacute;(s), $FP_DAILY$ faux positif(s), $INOC_DAILY$ inoculation(s), $CORPUS_DAILY$ depuis le corpus, $WHITE_DAILY$ mis en liste de blanche, $VIRUS_DAILY$ infect&eacute;(s), $BLACK_DAILY$ mis en liste noire, $BLOCK_DAILY$ RBL</h3>
-	<img src="./admingraph.cgi?data=$DATA_DAILY$&x_label=hour&amp;language=$LANG$">
+    <img src="./admingraph.cgi?data=$DATA_DAILY$&amp;x_label=hour&amp;language=$LANG$" alt="Graphique de l'activit&eacute; sur 24 heures">
 </div>
 
 <div class="content">
 	<h3><strong>Activit&eacute; journali&egrave;re</strong> - $TS_DAILY$ pourriel(s), $TI_DAILY$ message(s) l&eacute;gitime(s), $SM_DAILY$ pourriel(s) manqu&eacute;(s), $FP_DAILY$ faux positif(s), $INOC_DAILY$ inoculation(s), $CORPUS_DAILY$ depuis le corpus, $WHITE_DAILY$ mis en liste de blanche, $VIRUS_DAILY$ infect&eacute;(s), $BLACK_DAILY$ mis en liste noire, $BLOCK_DAILY$ RBL</h3>
-        <img src="./admingraph.cgi?data=$DATA_WEEKLY$&x_label=date&amp;language=$LANG$">
+    <img src="./admingraph.cgi?data=$DATA_WEEKLY$&amp;x_label=date&amp;language=$LANG$" alt="Graphique de l'activit&eacute; journali&egrave;">
 </div>
 
-
+</div>
 
 </body>
 </html>

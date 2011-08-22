@@ -316,7 +316,7 @@ FRESH INSTALLATION
      --enable-domain-scale
      Switch for domain-scale implementation.  When used, DSPAM expects
      username@domain to be passed in as the user id and user data will be
-     stored as $HOME/data/domain.com/user and $HOME/opt-in/domain/user.dspam
+     stored as $HOME/data/example.org/user and $HOME/opt-in/example.org/user.dspam
      instead of $HOME/data/user
 
    INTEGRATION SWITCHES
@@ -664,9 +664,9 @@ FRESH INSTALLATION
      way to configure aliases is to have DSPAM parse the 'To:' header of the
      message and use a catch-all subdomain to direct all mail into DSPAM for
      retraining. You can then instruct your users to email addresses like
-     'spam-bob@relearn.domain.tld'. The ParseToHeaders option (available
+     'spam-bob@relearn.example.org'. The ParseToHeaders option (available
      in dspam.conf) will parse the To: header of forwarded messages and
-     set the username to either 'bob' or 'bob@relearn.domain.tld', depending
+     set the username to either 'bob' or 'bob@relearn.example.org', depending
      on how it is configured. DSPAM can also set the training mode to either
      "learn spam" or "learn notspam" depending on whether the user specified
      a spam- or notspam- address in the To: header.
@@ -675,10 +675,10 @@ FRESH INSTALLATION
      on your system (The Hard Way). If you're fortunate enough to have a
      mail server that can perform regular expression matching, you can set up
      your system without a subdomain, and just use addresses like
-     spam-bob@domain.tld. For the rest of us, it will be necessary to set up
+     spam-bob@example.org. For the rest of us, it will be necessary to set up
      a subdomain catch-all directly into DSPAM. For example:
 
-     @relearn.domain.tld	"|/usr/local/bin/dspam"
+     @relearn.example.org	"|/usr/local/bin/dspam"
 
      Don't forget to set the appropriate ParseToHeaders and related options in
      dspam.conf as well. More specific instructions can be found in dspam.conf
@@ -780,7 +780,7 @@ FRESH INSTALLATION
    /usr/local/var/dspam/txt/qurantinefull.txt
 
    You will want to modify these templates prior to installing them to reflect the
-   correct email addresses and URLs (look for 'configureme' and 'yourdomain').
+   correct email addresses and URLs (look for 'example.org').
 
    NOTE: The quarantine warning is reset when the user clicks 'Delete All', but
    is not reset if they use "Delete Selected".  If the user doesn't wish to
@@ -1012,7 +1012,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
              calls to dspam_clean -p to purge neutral data, which comprises a
              majority of most databases.
 
-  For more help, please see the DSPAM FAQ at http://dspam.sf.net.
+  For more help, please see the DSPAM FAQ at http://dspam.sourceforge.net.
 
 1.4 DSPAM TOOLS
 
@@ -1407,7 +1407,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
     group1:shared:user1,user2,userN
     group2:shared,managed:user1,user2,userN
-    group3:shared:*@domain.tld
+    group3:shared:*@example.org
     group4:shared:*
 
   The group name (in the example above 'group1', 'group2', 'group3', 'group4')
@@ -1418,7 +1418,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   The user/member list for shared group allows the following syntax:
     user1         : Exact match of user with the name "user1"
     *             : Match any user
-    *@domain.tld  : Match any user having '@domain.tld' at the end of ther
+    *@example.org : Match any user having '@example.org' at the end of ther
                     username. The matching only works for the '@' character.
                     You can not use something like '*user' to include user
                     'infouser', 'testuser', 'dummyuser', etc.
@@ -1568,17 +1568,17 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   of the user (if the user is member of the merged group).
 
   The user/member list for merged group allows the following syntax:
-    user1         : exact match of user with the name "user1"
-    -user1        : exclude user with the name "user1"
-    *             : match any user
-    *@domain.tld  : match users having "@domain.tld" at the end of ther
-                    username. The matching only works for the '@' character.
-                    You can not use something like '*user' to include user
-                    'infouser', 'testuser', 'dummyuser', etc.
-    -*@domain.tld : exclude users having "@domain.tld" at the end of their
-                    username. The matching only works for the '@' character.
-                    You can not use something like '-*user' to exclude user
-                    'infouser', 'testuser', 'dummyuser', etc.
+    user1          : exact match of user with the name "user1"
+    -user1         : exclude user with the name "user1"
+    *              : match any user
+    *@example.org  : match users having "@example.org" at the end of ther
+                     username. The matching only works for the '@' character.
+                     You can not use something like '*user' to include user
+                     'infouser', 'testuser', 'dummyuser', etc.
+    -*@example.org : exclude users having "@example.org" at the end of their
+                     username. The matching only works for the '@' character.
+                     You can not use something like '-*user' to exclude user
+                     'infouser', 'testuser', 'dummyuser', etc.
 
   NOTE: Merged Groups are great for providing out-of-the-box adaptive filtering,
         but allowing users to build their own data from scratch will still
@@ -1669,7 +1669,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   It may even be a good idea to put it at the bottom of your tagline in all
   your publicly archived emails, something like...
 
-    Spammers, send me mail here: bob_c@yourdomain.com
+    Spammers, send me mail here: bob_c@example.org
 
   Finally, you can multiply the effects of this by sharing an inoculation
   group with your friends.  If all of your friends have a public covert
@@ -1802,7 +1802,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
     SERVER> 354 Enter mail, end with "." on a line by itself
     CLIENT> Subject: Cheap Viagra!
     CLIENT>
-    CLIENT> Click Here: http://www.cheapviagra.com
+    CLIENT> Click Here: http://www.cheapviagra.example.org
     CLIENT> .
     SERVER> 250 2.0.0 <dick> Message accepted for delivery: INNOCENT
     SERVER> 250 2.0.0 <jane> Message accepted for delivery: SPAM
@@ -1850,8 +1850,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
      DeliveryProto based on whether you would like to delivery via LMTP or SMTP.
 
      NOTE: If you would like to delivery to different hosts based on domain,
-           specify DeliveryHost.domain.com as the configuration directive. Use
-           DeliveryPort.domain.com to specify a port for the delivery.
+           specify DeliveryHost.example.org as the configuration directive. Use
+           DeliveryPort.example.org to specify a port for the delivery.
 
   3. Add the --lmtp-recipient flag to the arguments passed into DSPAM. This is
      used to specify the destination address for the message. For example, in
@@ -1963,7 +1963,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
   tagSpam / tagNonspam { on | off }
     Adds a tagline to the end of a message based on its classification; useful
-    for things such as "Scanned by Your ISP.com". If set to on, the file
+    for things such as "Scanned by Your ISP example.org". If set to on, the file
     msgtag.spam and/or msgtag.nonspam will be looked for in dspam_home/txt/
     and appended to appropriate messages.
 
@@ -2003,7 +2003,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
     innocent. (default:on, see dspam.conf)
 
   fallbackDomain { on | off }
-    Allows a dspam user ("@domain.com") to be marked as a fallback user for
+    Allows a dspam user ("@example.org") to be marked as a fallback user for
     the entire domain, so if the destination dspam user does not exist in
     the database, the fallback user's database will be used. The
     dspam.conf "FallbackDomains" setting must also be "on". (default:off)
@@ -2038,10 +2038,10 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   opting out of filtering entirely) for users based on domain name. Any user
   who does not exist as a known user to DSPAM will be defaulted to the
   domain it belongs to if it is designated as a fallback domain. This
-  means that you can create bob@domain.com and alice@domain.com with their own
-  databases and preferences, but also default all other users to @domain.com.
+  means that you can create bob@example.org and alice@example.org with their own
+  databases and preferences, but also default all other users to @example.org.
   Alternatively, you could create just the domain without any other users and
-  default all users to @domain.com
+  default all users to @example.org
 
   To use fallback domains, you'll first need to activate this feature in
   dspam.conf:
@@ -2049,14 +2049,14 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   FallbackDomains on
 
   Next, you'll need to create a dspam user for each domain you wish to use
-  as a fallback domain. For example, @domain.com. Depending on your
+  as a fallback domain. For example, @example.org. Depending on your
   implementation, this may be a simple insert into dspam_virtual_uids or may
   be created automatically when setting a user's preferences.
 
   Finally, designate that special user as a fallback domain by setting a
   preference:
 
-  dspam_admin ch pref @domain.com fallbackDomain on
+  dspam_admin ch pref @example.org fallbackDomain on
 
   Any mail coming in for that domain that does _not_ match a known user in
   dspam will now fall back to this user; you can then set specific preferences
@@ -2112,8 +2112,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 3.0 BUGS, FEATURE REQUESTS
 
   Please use our Bug Tracker on the sourceforge project page at
-  http://sf.net/projects/dspam for the current known bugs list and proper
-  reporting procedure.
+  http://sourceforge.net/projects/dspam for the current known bugs list and 
+  proper reporting procedure.
 
   In the same place you can ask for new feature via the Feature Request Tracker.
 
