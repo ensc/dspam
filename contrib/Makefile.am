@@ -4,6 +4,9 @@
 
 EXTRA_DIST =									\
 	README									\
+	dspam_alias_retraining	\
+	dspam_alias_retraining/README	\
+	dspam_alias_retraining/dspam-retrain-forward.pl \
 	dspam_maintenance							\
 	dspam_maintenance/README						\
 	dspam_maintenance/dspam_maintenance.sh					\
