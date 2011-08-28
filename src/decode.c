@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.393 2011/06/28 00:13:48 sbajic Exp $ */
+/* $Id: decode.c,v 1.394 2011/08/28 12:23:57 ssbajic Exp $ */
 
 /*
  DSPAM
@@ -445,6 +445,8 @@ _ds_decode_headers (ds_message_part_t block) {
         ptr = strtok_r (NULL, "?", &ptrptr);
         dptr = strtok_r (NULL, "?", &ptrptr);
         if (!dptr) {
+          if (was_null && header->original_data != NULL)
+            free(header->original_data);
           if (was_null)
             header->original_data = NULL;
           continue;

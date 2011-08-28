@@ -1,3 +1,5 @@
+[20110828:1230] sbajic: Fix potential memory leak and a strcmp() call that reads uninitialized bytes
+
 [20110822:2250] tomhendr: added dspam_alias_retraining to release tarball
 
 [20110817:0936] jvalroff: updated webui fr templates to validate on w3c validator

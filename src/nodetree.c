@@ -1,4 +1,4 @@
-/* $Id: nodetree.c,v 1.11 2011/06/28 00:13:48 sbajic Exp $ */
+/* $Id: nodetree.c,v 1.11 2011/08/28 12:25:20 sbajic Exp $ */
 
 /*
  DSPAM
@@ -106,7 +106,8 @@ nt_add (struct nt *nt, void *data)
   if (nt->nodetype == NT_CHAR)
   {
     long size = strlen ((char *) data) + 1;
-    vptr = malloc (size);
+    /* vptr is compared with  'From' and 'X-DSPAM-'even if data is shorter; but a larger buffer is allocated to prevent a comparison against garbage */
+    vptr = malloc (size < 16 ? 16 : size);
     if (vptr == NULL)
     {
       LOG (LOG_CRIT, ERR_MEM_ALLOC);
