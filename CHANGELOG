@@ -1,3 +1,5 @@
+[20110831:2300] tomhendr: Fix message parsing with CRLF line breaks
+
 [20110828:1230] sbajic: Fix potential memory leak and a strcmp() call that reads uninitialized bytes
 
 [20110822:2250] tomhendr: added dspam_alias_retraining to release tarball
