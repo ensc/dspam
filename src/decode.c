@@ -185,9 +185,9 @@ _ds_actualize_message (const char *message)
         }
       }
 
-      /* New header field */
+      /* New header field when LF or CRLF is not found */
 
-      else if (line[0] != 0)
+      else if (line[0] != 0  && line[0] != 13)
       {
         ds_header_t header = _ds_create_header_field (line);
 
@@ -199,7 +199,7 @@ _ds_actualize_message (const char *message)
         }
 
 
-      /* line[0] == 0; switch to body */
+      /* line[0] == 0 or line[0] == 13; LF or CRLF, switch to body */
 
       } else {
         block_position = BP_BODY;
