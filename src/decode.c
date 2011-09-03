@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.394 2011/08/28 12:23:57 ssbajic Exp $ */
+/* $Id: decode.c,v 1.395 2011/09/03 13:25:39 sbajic Exp $ */
 
 /*
  DSPAM
@@ -492,6 +492,10 @@ _ds_decode_headers (ds_message_part_t block) {
           enc_offset += (decoded_len-1);
           free(header->concatenated_data);
           header->concatenated_data = decoded;
+        }
+        else if (was_null && header->original_data) {
+          free(header->original_data);
+          header->original_data = NULL;
         }
         else if (was_null) {
           header->original_data = NULL;
