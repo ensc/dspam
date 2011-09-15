@@ -468,9 +468,10 @@ process_message (
   if (ATX->source == DSS_CORPUS || ATX->source == DSS_NONE)
     have_signature = 0; /* ignore sigs from corpusfed and inbound email */
 
+  char *original_username = strdup(CTX->username);
+
   if (have_signature)
   {
-    char *original_username = CTX->username;
 
     if (_ds_get_signature (CTX, &ATX->SIG, ATX->signature))
     {
@@ -483,7 +484,7 @@ process_message (
          preferences if it has changed */
 
       CTX->signature = &ATX->SIG;
-      if (CTX->username != original_username) {
+      if (!strcasecmp(CTX->username, original_username)) {
         if (ATX->PTX)
           _ds_pref_free(ATX->PTX);
         free(ATX->PTX);
@@ -643,6 +644,14 @@ process_message (
         }
       }
     }
+  }
+
+  /* Restore original username if necessary */
+
+  if (CTX->group != NULL && strcasecmp(CTX->username, original_username) != 0)
+  {
+    LOGDEBUG ("restoring original username %s after group processing as %s", original_username, CTX->username);
+    CTX->username = original_username;
   }
 
   /* Write .stats file for web interface */
