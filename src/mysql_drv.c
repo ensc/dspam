@@ -1,4 +1,4 @@
-/* $Id: mysql_drv.c,v 1.889 2011/08/10 13:54:21 sbajic Exp $ */
+/* $Id: mysql_drv.c,v 1.889 2011/10/01 10:22:17 sbajic Exp $ */
 
 /*
  DSPAM
@@ -81,6 +81,7 @@
  * RETURN VALUES
  *   Returns 1 if MySQLUIDInSignature is turned "on" and 0 if turned "off".
  */
+/*
 static int _mysql_drv_get_UIDInSignature (DSPAM_CTX *CTX) {
   static int uid_in_signature = -1;
   if (uid_in_signature > -1) {
@@ -93,6 +94,7 @@ static int _mysql_drv_get_UIDInSignature (DSPAM_CTX *CTX) {
   }
   return uid_in_signature;
 }
+*/
 
 /*
  * _mysql_drv_get_virtual_table()
@@ -105,6 +107,7 @@ static int _mysql_drv_get_UIDInSignature (DSPAM_CTX *CTX) {
  *   Returns the name of the virtual table if defined, otherwise returns
  *   "dspam_virtual_uids".
  */
+/*
 static char *_mysql_drv_get_virtual_table (DSPAM_CTX *CTX) {
   static char *virtual_table = "*";
   if (virtual_table[0] != '*') {
@@ -116,6 +119,7 @@ static char *_mysql_drv_get_virtual_table (DSPAM_CTX *CTX) {
   }
   return virtual_table;
 }
+*/
 
 /*
  * _mysql_drv_get_virtual_uid_field()
@@ -128,6 +132,7 @@ static char *_mysql_drv_get_virtual_table (DSPAM_CTX *CTX) {
  *   Returns the name of the virtual uid field if defined, otherwise returns
  *   "uid".
  */
+/*
 static char *_mysql_drv_get_virtual_uid_field (DSPAM_CTX *CTX) {
   static char *virtual_uid = "*";
   if (virtual_uid[0] != '*') {
@@ -139,6 +144,7 @@ static char *_mysql_drv_get_virtual_uid_field (DSPAM_CTX *CTX) {
   }
   return virtual_uid;
 }
+*/
 
 /*
  * _mysql_drv_get_virtual_username_field()
@@ -151,6 +157,7 @@ static char *_mysql_drv_get_virtual_uid_field (DSPAM_CTX *CTX) {
  *   Returns the name of the virtual username field if defined, otherwise returns
  *   "username".
  */
+/*
 static char *_mysql_drv_get_virtual_username_field (DSPAM_CTX *CTX) {
   static char *virtual_username = "*";
   if (virtual_username[0] != '*') {
@@ -162,6 +169,7 @@ static char *_mysql_drv_get_virtual_username_field (DSPAM_CTX *CTX) {
   }
   return virtual_username;
 }
+*/
 
 /*
  * _mysql_driver_get_max_packet()
