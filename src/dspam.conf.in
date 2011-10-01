@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.100 2011/07/09 00:00:52 sbajic Exp $
+## $Id: dspam.conf.in,v 1.101 2011/10/01 12:03:51 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -535,7 +535,7 @@ HashConnectionCache	10
 # talk directly to the configured LDAP server. The second will prefrom the
 # various lookup functions by running a certain binary program or executable
 # script. The program MUST be a binary executable or a script with a well
-# defined interperter in its first line ( #!/path/to/interpreter ). There
+# defined interpreter in its first line ( #!/path/to/interpreter ). There
 # are plans to support TLS/SSL connections to backend databases.
 #
 #ExtLookup		on				# Turns on/off external lookup
@@ -543,7 +543,7 @@ HashConnectionCache	10
 							# 'strict' enforces both verify and map
 #ExtLookupDriver	ldap				# Currently only ldap and program are supported.
 							# There are plans to support both MySQL and Postgres.
-#ExtLookupServer	ldap.example.org			# Can either be a database hostname or the full path to
+#ExtLookupServer	ldap.example.org		# Can either be a database hostname or the full path to
 							# an executable lookup program and its arguments.
 #ExtLookupPort		389				# Desired port when connecting to the lookup database.
 #ExtLookupDB		"ou=Users,dc=domain,dc=com"	# Can either be an LDAP search base or a database name (TODO).
