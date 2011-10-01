@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.h,v 1.16 2011/06/28 00:13:48 sbajic Exp $ */
+/* $Id: pgsql_drv.h,v 1.17 2011/09/30 20:52:20 sbajic Exp $ */
 
 /*
  DSPAM
@@ -31,9 +31,6 @@
 struct _pgsql_drv_storage
 {
   PGconn *dbh;                   /* database connection */
-  int pg_major_ver;              /* database major version */
-  int pg_minor_ver;              /* database minor version */
-  int pg_micro_ver;              /* database micro version */
   int pg_token_type;             /* type of token  */
 
   struct _ds_spam_totals control_totals;        /* totals at storage init */
@@ -65,7 +62,6 @@ void	_pgsql_drv_query_error		(const char *error, const char *query);
 int	_pgsql_drv_token_type		(struct _pgsql_drv_storage *s, PGresult *result, int column);
 char	*_pgsql_drv_token_write		(int type, unsigned long long token, char *buffer, size_t bufsz);
 unsigned long long _pgsql_drv_token_read(int type, char *str);
-int	_pgsql_drv_get_dbversion	(struct _pgsql_drv_storage *s, unsigned int range);
 PGconn *_pgsql_drv_connect		(DSPAM_CTX *CTX);
 struct passwd *_pgsql_drv_getpwnam      (DSPAM_CTX * CTX, const char *name);
 struct passwd *_pgsql_drv_getpwuid      (DSPAM_CTX * CTX, uid_t uid);

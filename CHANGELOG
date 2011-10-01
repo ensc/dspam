@@ -1,3 +1,5 @@
+[20110930:2055] sbajic: Remove support for PostgreSQL < 8.1.0 (EOL)
+
 [20110915:2230] tomhendr: Fix issue where the files under the group name in DSPAM_HOME were updated in stead of the actual users' files, when retrainig and using shared groups.
 
 [20110903:1330] sbajic: Fix potential memory leak in _ds_decode_headers()
