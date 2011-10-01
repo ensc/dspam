@@ -1,3 +1,5 @@
+[20111001:1200] sbajic: Fix typo and formatting issues in dspam.conf
+
 [20111001:1030] sbajic: Fix compiler warnings (unused function) in MySQL driver
 
 [20110930:2055] sbajic: Remove support for PostgreSQL < 8.1.0 (EOL)
