@@ -1,3 +1,5 @@
+[20111001:1030] sbajic: Fix compiler warnings (unused function) in MySQL driver
+
 [20110930:2055] sbajic: Remove support for PostgreSQL < 8.1.0 (EOL)
 
 [20110915:2230] tomhendr: Fix issue where the files under the group name in DSPAM_HOME were updated in stead of the actual users' files, when retrainig and using shared groups.
