@@ -1,4 +1,4 @@
-/* $Id: pgsql_drv.c,v 1.752 2011/06/28 00:13:48 sbajic Exp $ */
+/* $Id: pgsql_drv.c,v 1.753 2011/09/30 20:52:05 sbajic Exp $ */
 
 /*
  DSPAM
@@ -671,25 +671,11 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
 
   if (uid != gid) {
-    if (s->pg_major_ver >= 8) {
-      snprintf (scratch, sizeof (scratch),
-                "SELECT * FROM lookup_tokens(%d,%d,'{", (int) uid, (int) gid);
-    } else {
-      snprintf (scratch, sizeof (scratch),
-                "SELECT uid,token,spam_hits,innocent_hits"
-                " FROM dspam_token_data WHERE uid IN ('%d','%d') AND token IN (",
-                (int) uid, (int) gid);
-    }
+    snprintf (scratch, sizeof (scratch),
+              "SELECT * FROM lookup_tokens(%d,%d,'{", (int) uid, (int) gid);
   } else {
-    if (s->pg_major_ver >= 8) {
-      snprintf (scratch, sizeof (scratch),
-                "SELECT * FROM lookup_tokens(%d,'{", (int) uid);
-    } else {
-      snprintf (scratch, sizeof (scratch),
-                "SELECT uid,token,spam_hits,innocent_hits"
-                " FROM dspam_token_data WHERE uid=%d AND token IN (",
-                (int) uid);
-    }
+    snprintf (scratch, sizeof (scratch),
+              "SELECT * FROM lookup_tokens(%d,'{", (int) uid);
   }
   buffer_copy (query, scratch);
 
@@ -709,11 +695,7 @@ _ds_getall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   }
   ds_diction_close(ds_c);
 
-  if (s->pg_major_ver >= 8) {
-    buffer_cat(query, "}')");
-  } else {
-    buffer_cat (query, ")");
-  }
+  buffer_cat(query, "}')");
 
 #ifdef VERBOSE
   LOGDEBUG ("pgsql query length: %ld\n", query->used);
@@ -1176,9 +1158,6 @@ int
 _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
 {
   struct _pgsql_drv_storage *s;
-  int major_ver = 0;
-  int minor_ver = 0;
-  int micro_ver = 0;
 
   if (CTX == NULL) {
     return EINVAL;
@@ -1199,15 +1178,7 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   }
 
   if (dbh) {
-      s->dbh = dbh;
-      major_ver = _pgsql_drv_get_dbversion(s, 1);
-      minor_ver = _pgsql_drv_get_dbversion(s, 2);
-      micro_ver = _pgsql_drv_get_dbversion(s, 3);
-      if ((major_ver < 0) || (minor_ver < 0) || (micro_ver < 0)) {
-          LOG(LOG_WARNING, "_ds_init_storage: connection failed.");
-          free(s);
-          return EFAILURE;
-      }
+    s->dbh = dbh;
   } else {
     s->dbh = _pgsql_drv_connect(CTX);
   }
@@ -1245,21 +1216,6 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
   s->control_sh = 0;
 
   /* init db version and token type */
-  if (major_ver) {
-      s->pg_major_ver = major_ver;
-  } else {
-      s->pg_major_ver = _pgsql_drv_get_dbversion(s, 1);
-  }
-  if (minor_ver) {
-      s->pg_minor_ver = minor_ver;
-  } else {
-      s->pg_minor_ver = _pgsql_drv_get_dbversion(s, 2);
-  }
-  if (micro_ver) {
-      s->pg_micro_ver = micro_ver;
-  } else {
-      s->pg_micro_ver = _pgsql_drv_get_dbversion(s, 3);
-  }
   s->pg_token_type = _pgsql_drv_token_type(s,NULL,0);
 
   /* get spam totals on successful init */
@@ -1459,12 +1415,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EFAILURE;
   }
-  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
-    pgsize = PQescapeStringConn (s->dbh, sig_esc, signature, strlen(signature), &pgerror);
-  } else {
-    pgsize = PQescapeString (sig_esc, signature, strlen(signature));
-    pgerror = 0;
-  }
+  pgsize = PQescapeStringConn (s->dbh, sig_esc, signature, strlen(signature), &pgerror);
   if (pgsize == 0 || pgerror != 0) {
     LOGDEBUG ("_ds_get_signature: unable to escape signature '%s'", signature);
     free(sig_esc);
@@ -1472,7 +1423,7 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   }
 
   snprintf (query, sizeof (query),
-            "SELECT data,length FROM dspam_signature_data WHERE uid=%d AND signature=E'%s'",
+            "SELECT data,length FROM dspam_signature_data WHERE uid=%d AND signature='%s'",
             (int) uid, sig_esc);
 
   free(sig_esc);
@@ -1570,11 +1521,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     return EUNKNOWN;
   }
 
-  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
-    mem = PQescapeByteaConn(s->dbh, SIG->data, SIG->length, &length);
-  } else {
-    mem = PQescapeBytea(SIG->data, SIG->length, &length);
-  }
+  mem = PQescapeByteaConn(s->dbh, SIG->data, SIG->length, &length);
 
   /* escape the signature */
   sig_esc = malloc(strlen(signature)*2+1);
@@ -1582,12 +1529,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EFAILURE;
   }
-  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
-    pgsize = PQescapeStringConn (s->dbh, sig_esc, signature, strlen(signature), &pgerror);
-  } else {
-    pgsize = PQescapeString (sig_esc, signature, strlen(signature));
-    pgerror = 0;
-  }
+  pgsize = PQescapeStringConn (s->dbh, sig_esc, signature, strlen(signature), &pgerror);
   if (pgsize == 0 || pgerror != 0) {
     LOGDEBUG ("_ds_set_signature: unable to escape signature '%s'", signature);
     free(sig_esc);
@@ -1595,7 +1537,7 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   }
 
   snprintf (scratch, sizeof (scratch),
-            "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d,E'%s',%lu,CURRENT_DATE,E'",
+            "INSERT INTO dspam_signature_data (uid,signature,length,created_on,data) VALUES (%d,'%s',%lu,CURRENT_DATE,'",
             (int) p->pw_uid, sig_esc, (unsigned long) SIG->length);
   free(sig_esc);
   buffer_cat (query, scratch);
@@ -1657,12 +1599,7 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EFAILURE;
   }
-  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
-    pgsize = PQescapeStringConn (s->dbh, sig_esc, signature, strlen(signature), &pgerror);
-  } else {
-    pgsize = PQescapeString (sig_esc, signature, strlen(signature));
-    pgerror = 0;
-  }
+  pgsize = PQescapeStringConn (s->dbh, sig_esc, signature, strlen(signature), &pgerror);
   if (pgsize == 0 || pgerror != 0) {
     LOGDEBUG ("_ds_delete_signature: unable to escape signature '%s'", signature);
     free(sig_esc);
@@ -1670,7 +1607,7 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   }
 
   snprintf (query, sizeof (query),
-            "DELETE FROM dspam_signature_data WHERE uid=%d AND signature=E'%s'",
+            "DELETE FROM dspam_signature_data WHERE uid=%d AND signature='%s'",
             (int) p->pw_uid, sig_esc);
 
   free(sig_esc);
@@ -1725,12 +1662,7 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return EFAILURE;
   }
-  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
-    pgsize = PQescapeStringConn (s->dbh, sig_esc, signature, strlen(signature), &pgerror);
-  } else {
-    pgsize = PQescapeString (sig_esc, signature, strlen(signature));
-    pgerror = 0;
-  }
+  pgsize = PQescapeStringConn (s->dbh, sig_esc, signature, strlen(signature), &pgerror);
   if (pgsize == 0 || pgerror != 0) {
     LOGDEBUG ("_ds_verify_signature: unable to escape signature '%s'", signature);
     free(sig_esc);
@@ -1738,7 +1670,7 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   }
 
   snprintf (query, sizeof (query),
-            "SELECT signature FROM dspam_signature_data WHERE uid=%d AND signature=E'%s'",
+            "SELECT signature FROM dspam_signature_data WHERE uid=%d AND signature='%s'",
             (int) p->pw_uid, sig_esc);
 
   free(sig_esc);
@@ -2250,12 +2182,7 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
-  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
-    pgsize = PQescapeStringConn (s->dbh, name_esc, name, strlen(name), &pgerror);
-  } else {
-    pgsize = PQescapeString (name_esc, name, strlen(name));
-    pgerror = 0;
-  }
+  pgsize = PQescapeStringConn (s->dbh, name_esc, name, strlen(name), &pgerror);
   if (pgsize == 0 || pgerror != 0) {
     LOGDEBUG ("_pgsql_drv_getpwnam: unable to escape user name '%s'", name);
     free(name_esc);
@@ -2263,7 +2190,7 @@ _pgsql_drv_getpwnam (DSPAM_CTX * CTX, const char *name)
   }
 
   snprintf (query, sizeof (query),
-            "SELECT %s FROM %s WHERE %s=E'%s'",
+            "SELECT %s FROM %s WHERE %s='%s'",
             virtual_uid, virtual_table, virtual_username, name_esc);
 
   free(name_esc);
@@ -2485,12 +2412,7 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
-  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
-    pgsize = PQescapeStringConn (s->dbh, name_esc, name, strlen(name), &pgerror);
-  } else {
-    pgsize = PQescapeString (name_esc, name, strlen(name));
-    pgerror = 0;
-  }
+  pgsize = PQescapeStringConn (s->dbh, name_esc, name, strlen(name), &pgerror);
   if (pgsize == 0 || pgerror != 0) {
     LOGDEBUG ("_pgsql_drv_setpwnam: unable to escape user name '%s'", name);
     free(name_esc);
@@ -2498,7 +2420,7 @@ _pgsql_drv_setpwnam (DSPAM_CTX * CTX, const char *name)
   }
 
   snprintf (query, sizeof (query),
-            "INSERT INTO %s (%s, %s) VALUES (default, E'%s')",
+            "INSERT INTO %s (%s, %s) VALUES (default, '%s')",
             virtual_table, virtual_uid, virtual_username, name_esc);
 
   free(name_esc);
@@ -2864,12 +2786,7 @@ int _ds_pref_set (
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     goto FAIL;
   }
-  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
-    pgsize = PQescapeStringConn (s->dbh, pref_esc, preference, strlen(preference), &pgerror);
-  } else {
-    pgsize = PQescapeString (pref_esc, preference, strlen(preference));
-    pgerror = 0;
-  }
+  pgsize = PQescapeStringConn (s->dbh, pref_esc, preference, strlen(preference), &pgerror);
   if (pgsize == 0 || pgerror != 0) {
     LOGDEBUG ("_ds_pref_set: unable to escape preference '%s'", preference);
     goto FAIL;
@@ -2881,19 +2798,14 @@ int _ds_pref_set (
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     goto FAIL;
   }
-  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
-    pgsize = PQescapeStringConn (s->dbh, val_esc, value, strlen(value), &pgerror);
-  } else {
-    pgsize = PQescapeString (val_esc, value, strlen(value));
-    pgerror = 0;
-  }
+  pgsize = PQescapeStringConn (s->dbh, val_esc, value, strlen(value), &pgerror);
   if (pgsize == 0 || pgerror != 0) {
     LOGDEBUG ("_ds_pref_set: unable to escape preference value '%s'", value);
     goto FAIL;
   }
 
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
-    " WHERE uid=%d AND preference=E'%s'", (int) uid, pref_esc);
+    " WHERE uid=%d AND preference='%s'", (int) uid, pref_esc);
 
   result = PQexec(s->dbh, query);
   if ( !result || (PQresultStatus(result) != PGRES_COMMAND_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
@@ -2906,7 +2818,7 @@ int _ds_pref_set (
   if (result) PQclear(result);
 
   snprintf(query, sizeof(query), "INSERT INTO dspam_preferences"
-    " (uid,preference,value) VALUES (%d,E'%s',E'%s')", (int) uid, pref_esc, val_esc);
+    " (uid,preference,value) VALUES (%d,'%s','%s')", (int) uid, pref_esc, val_esc);
 
   free(pref_esc);
   free(val_esc);
@@ -2977,19 +2889,14 @@ int _ds_pref_del (
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     goto FAIL;
   }
-  if ((s->pg_major_ver >= 8) || (s->pg_major_ver >= 7 && s->pg_minor_ver >= 3)) {
-    pgsize = PQescapeStringConn (s->dbh, pref_esc, preference, strlen(preference), &pgerror);
-  } else {
-    pgsize = PQescapeString (pref_esc, preference, strlen(preference));
-    pgerror = 0;
-  }
+  pgsize = PQescapeStringConn (s->dbh, pref_esc, preference, strlen(preference), &pgerror);
   if (pgsize == 0 || pgerror != 0) {
     LOGDEBUG ("_ds_pref_del: unable to escape preference '%s'", preference);
     goto FAIL;
   }
 
   snprintf(query, sizeof(query), "DELETE FROM dspam_preferences"
-    " WHERE uid=%d AND preference=E'%s'", (int) uid, pref_esc);
+    " WHERE uid=%d AND preference='%s'", (int) uid, pref_esc);
 
   free(pref_esc);
   result = PQexec(s->dbh, query);
@@ -3270,40 +3177,4 @@ _pgsql_drv_token_write(int type, unsigned long long token, char *buffer, size_t 
     snprintf(buffer, bufsz, "%llu", token);
   }
   return buffer;
-}
-
-/* Detects PostgreSQL database version */
-int
-_pgsql_drv_get_dbversion(struct _pgsql_drv_storage *s, unsigned int range)
-{
-  int pg_ver = 0;
-  char query[256];
-  PGresult *result;
-
-  /* by default return major version number */
-  if (range > 3 || range < 1) {
-    range = 1;
-  }
-
-  /* detect postgres version */
-  snprintf (query, sizeof (query), "SELECT coalesce(substring(split_part(split_part(version(),' ',2),'.',%d) FROM E'\\\\d+')::int2,0)", range);
-
-  result = PQexec(s->dbh, query);
-  if ( !result || (PQresultStatus(result) != PGRES_TUPLES_OK && PQresultStatus(result) != PGRES_NONFATAL_ERROR) )
-  {
-    _pgsql_drv_query_error (PQresultErrorMessage(result), query);
-    if (result) PQclear(result);
-    return EFAILURE;
-  }
-
-  if ( PQntuples(result) < 1 )
-  {
-    if (result) PQclear(result);
-    return EFAILURE;
-  }
-
-  pg_ver = strtol (PQgetvalue( result, 0, 0), NULL, 0);
-  if (result) PQclear(result);
-
-  return pg_ver;
 }

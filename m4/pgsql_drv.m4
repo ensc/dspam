@@ -1,7 +1,5 @@
-# $Id: pgsql_drv.m4,v 1.4 2007/12/07 00:15:31 mjohnson Exp $
+# $Id: pgsql_drv.m4,v 1.5 2011/09/30 20:52:14 sbajic Exp $
 # Autuconf macroses for checking for PostgreSQL
-# Rustam Aliyev <rustam@azernews.com>
-# Jonathan Zdziarski <jonathan@nuclearelephant.com>
 #
 #   Public available macro:
 #       DS_PGSQL([pgsql_cppflags_out],
@@ -117,6 +115,15 @@ pgsql_libs_LIBS=''
 pgsql_libs_success=no
 pgsql_freemem_success=no
 pgsql_libs_netlibs=''
+pgsql_version_success=no
+pgsql_version_major=''
+pgsql_version_minor=''
+pgsql_version_micro=''
+pgsql_version_number=''
+pgsql_version_req_major=8
+pgsql_version_req_minor=1
+pgsql_version_req_micro=0
+pgsql_version_req_number=''
 
 AC_ARG_WITH(pgsql-libraries,
     [AS_HELP_STRING([--with-pgsql-libraries=DIR],
@@ -181,6 +188,54 @@ if test x"$pgsql_freemem_success" = xyes
 then
   AC_DEFINE([HAVE_PQFREEMEM], 1, [Defined if PQfreemem is supported])
 fi
+
+if test x"$pgsql_libs_success" = xyes
+then
+  AC_PATH_PROG([pgsql_pg_config], [pg_config], [])
+  if test ! -x "$pgsql_pg_config"
+  then
+    pgsql_pg_config="no"
+    AC_MSG_ERROR([$pgsql_pg_config does not exist or it is not an exectuable file])
+  fi
+
+  if test x"$pgsql_pg_config" != xno
+  then
+    AC_MSG_CHECKING([for PostgreSQL client version >= $pgsql_version_req_major.$pgsql_version_req_minor.$pgsql_version_req_micro])
+
+    pgsql_version_req_number=`expr $pgsql_version_req_major \* 1000000 \
+                              \+ $pgsql_version_req_minor \* 1000 \
+                              \+ $pgsql_version_req_micro`
+
+    pgsql_version=`$pgsql_pg_config --version | sed -e 's:^PostgreSQL ::'`
+    pgsql_version_major=`expr $pgsql_version : '\([[0-9]]*\)'`
+    pgsql_version_minor=`expr $pgsql_version : '[[0-9]]*\.\([[0-9]]*\)'`
+    pgsql_version_micro=`expr $pgsql_version : '[[0-9]]*\.[[0-9]]*\.\([[0-9]]*\)'`
+    if test "x$pgsql_version_micro" = x
+    then
+      pgsql_version_micro='0'
+    fi
+
+    pgsql_version_number=`expr $pgsql_version_major \* 1000000 \
+                              \+ $pgsql_version_minor \* 1000 \
+                              \+ $pgsql_version_micro`
+
+    pgsql_version_success=`expr $pgsql_version_number \>\= $pgsql_version_req_number`
+    if test x"$pgsql_version_success" = x1
+    then
+      pgsql_version_success='yes'
+      AC_MSG_RESULT([yes])
+    else
+      pgsql_version_success='no'
+      AC_MSG_RESULT([no])
+    fi
+  fi
+fi
+
+if test x"$pgsql_version_success" = xno
+then
+  pgsql_libs_success=no
+fi
+
 
 LIBS="$pgsql_libs_save_LIBS"
 LDFLAGS="$pgsql_libs_save_LDFLAGS"
