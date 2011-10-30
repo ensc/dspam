@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.410 2011/07/13 00:28:59 sbajic Exp $ */
+/* $Id: dspam.c,v 1.411 2011/10/30 12:40:38 sbajic Exp $ */
 
 /*
  DSPAM
@@ -1546,7 +1546,11 @@ int send_notice(
 
   time(&now);
 
-  snprintf(msgfile, sizeof(msgfile), "%s/txt/%s", _ds_read_attribute(agent_config, "Home"), filename);
+  if (_ds_read_attribute(agent_config, "NotificationsDirectory")) {
+    snprintf(msgfile, sizeof(msgfile), "%s/%s", _ds_read_attribute(agent_config, "NotificationsDirectory"), filename);
+  } else {
+    snprintf(msgfile, sizeof(msgfile), "%s/txt/%s", _ds_read_attribute(agent_config, "Home"), filename);
+  }
   f = fopen(msgfile, "r");
   if (!f) {
     LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
@@ -3438,9 +3442,15 @@ int embed_msgtag(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     return EINVAL;
 
   /* Load the message tag */
-  snprintf(msgfile, sizeof(msgfile), "%s/txt/msgtag.%s",
+  if (_ds_read_attribute(agent_config, "NotificationsDirectory")) {
+    snprintf(msgfile, sizeof(msgfile), "%s/msgtag.%s",
+           _ds_read_attribute(agent_config, "NotificationsDirectory"),
+           (CTX->result == DSR_ISSPAM) ? "spam" : "nonspam");
+  } else {
+    snprintf(msgfile, sizeof(msgfile), "%s/txt/msgtag.%s",
            _ds_read_attribute(agent_config, "Home"),
            (CTX->result == DSR_ISSPAM) ? "spam" : "nonspam");
+  }
   f = fopen(msgfile, "r");
   if (!f) {
     LOG(LOG_ERR, ERR_IO_FILE_OPEN, msgfile, strerror(errno));

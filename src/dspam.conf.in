@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.101 2011/10/01 12:03:51 sbajic Exp $
+## $Id: dspam.conf.in,v 1.102 2011/10/30 12:39:34 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -641,6 +641,11 @@ HashConnectionCache	10
 # message, quarantine full, etc.)
 #
 Notifications	off
+
+# NotificationsDirectory: the directory that holds the templates for
+# notification messages.
+#
+#NotificationsDirectory @dspam_home@/txt
 
 #
 # QuarantineWarnSize: You may specify a size when DSPAM should send a "Quarantine
