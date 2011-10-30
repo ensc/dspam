@@ -1,3 +1,5 @@
+[20111030:1245] sbajic: Make notification directory configurable in dspam.conf
+
 [20111001:1200] sbajic: Fix typo and formatting issues in dspam.conf
 
 [20111001:1030] sbajic: Fix compiler warnings (unused function) in MySQL driver
