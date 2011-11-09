@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.410 2011/07/13 00:28:59 sbajic Exp $ */
+/* $Id: dspam.c,v 1.411 2011/10/30 12:40:38 sbajic Exp $ */
 
 /*
  DSPAM
@@ -468,9 +468,10 @@ process_message (
   if (ATX->source == DSS_CORPUS || ATX->source == DSS_NONE)
     have_signature = 0; /* ignore sigs from corpusfed and inbound email */
 
+  char *original_username = strdup(CTX->username);
+
   if (have_signature)
   {
-    char *original_username = CTX->username;
 
     if (_ds_get_signature (CTX, &ATX->SIG, ATX->signature))
     {
@@ -483,7 +484,7 @@ process_message (
          preferences if it has changed */
 
       CTX->signature = &ATX->SIG;
-      if (CTX->username != original_username) {
+      if (!strcasecmp(CTX->username, original_username)) {
         if (ATX->PTX)
           _ds_pref_free(ATX->PTX);
         free(ATX->PTX);
@@ -643,6 +644,14 @@ process_message (
         }
       }
     }
+  }
+
+  /* Restore original username if necessary */
+
+  if (CTX->group != NULL && strcasecmp(CTX->username, original_username) != 0)
+  {
+    LOGDEBUG ("restoring original username %s after group processing as %s", original_username, CTX->username);
+    CTX->username = original_username;
   }
 
   /* Write .stats file for web interface */
@@ -1537,7 +1546,11 @@ int send_notice(
 
   time(&now);
 
-  snprintf(msgfile, sizeof(msgfile), "%s/txt/%s", _ds_read_attribute(agent_config, "Home"), filename);
+  if (_ds_read_attribute(agent_config, "NotificationsDirectory")) {
+    snprintf(msgfile, sizeof(msgfile), "%s/%s", _ds_read_attribute(agent_config, "NotificationsDirectory"), filename);
+  } else {
+    snprintf(msgfile, sizeof(msgfile), "%s/txt/%s", _ds_read_attribute(agent_config, "Home"), filename);
+  }
   f = fopen(msgfile, "r");
   if (!f) {
     LOG(LOG_ERR, ERR_IO_FILE_OPEN, filename, strerror(errno));
@@ -3429,9 +3442,15 @@ int embed_msgtag(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     return EINVAL;
 
   /* Load the message tag */
-  snprintf(msgfile, sizeof(msgfile), "%s/txt/msgtag.%s",
+  if (_ds_read_attribute(agent_config, "NotificationsDirectory")) {
+    snprintf(msgfile, sizeof(msgfile), "%s/msgtag.%s",
+           _ds_read_attribute(agent_config, "NotificationsDirectory"),
+           (CTX->result == DSR_ISSPAM) ? "spam" : "nonspam");
+  } else {
+    snprintf(msgfile, sizeof(msgfile), "%s/txt/msgtag.%s",
            _ds_read_attribute(agent_config, "Home"),
            (CTX->result == DSR_ISSPAM) ? "spam" : "nonspam");
+  }
   f = fopen(msgfile, "r");
   if (!f) {
     LOG(LOG_ERR, ERR_IO_FILE_OPEN, msgfile, strerror(errno));
