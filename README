@@ -772,12 +772,13 @@ FRESH INSTALLATION
        is > 2MB in size (note: the 2MB limit is hardcoded in DSPAM).
 
    These notifications can be activated by copying the txt/ directory from the
-   distribution into DSPAM's home (by default /usr/local/var/dspam).
+   distribution into DSPAM's home (by default /usr/local/var/dspam). You can 
+   alter the location of this directory by setting "TxtDirectory" in dspam.conf.
 
    Example:
    /usr/local/var/dspam/txt/firstrun.txt
    /usr/local/var/dspam/txt/firstspam.txt
-   /usr/local/var/dspam/txt/qurantinefull.txt
+   /usr/local/var/dspam/txt/quarantinefull.txt
 
    You will want to modify these templates prior to installing them to reflect the
    correct email addresses and URLs (look for 'example.org').
@@ -1963,9 +1964,9 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
   tagSpam / tagNonspam { on | off }
     Adds a tagline to the end of a message based on its classification; useful
-    for things such as "Scanned by Your ISP example.org". If set to on, the file
-    msgtag.spam and/or msgtag.nonspam will be looked for in dspam_home/txt/
-    and appended to appropriate messages.
+    for things such as "Scanned by your ISP example.org". If set to on, the file
+    msgtag.spam and/or msgtag.nonspam will be looked for in TxtDirectory/txt/ 
+    (see dspam.conf) and appended to appropriate messages. 
 
     NOTE: Signed messages will not be tagged in this fashion
 
