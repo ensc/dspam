@@ -47,8 +47,8 @@
 /*
  *  _ds_pref_aggregate: aggregate system preferences and user preferences
  *
- *  This function takes a set of system preferences and a set of user 
- *  preferences as input and returns an aggregated set of preferences based on 
+ *  This function takes a set of system preferences and a set of user
+ *  preferences as input and returns an aggregated set of preferences based on
  *  the system's override rules.
  */
 
@@ -80,7 +80,7 @@ agent_pref_t _ds_pref_aggregate(agent_pref_t STX, agent_pref_t UTX) {
             break;
           }
         }
-  
+
         if (!found) {
           PTX[size] = _ds_pref_new(UTX[i]->attribute, UTX[i]->value);
           PTX[size+1] = NULL;
@@ -141,14 +141,14 @@ const char *_ds_pref_val(
 
 agent_attrib_t _ds_pref_new(const char *attribute, const char *value) {
   agent_attrib_t pref;
-                                                                                
+
   pref = malloc(sizeof(struct _ds_agent_attribute));
-                                                                                
+
   if (pref == NULL) {
     LOG(LOG_CRIT, ERR_MEM_ALLOC);
     return NULL;
   }
-                                                                                
+
   pref->attribute = strdup(attribute);
   pref->value = strdup(value);
 
@@ -226,7 +226,7 @@ agent_pref_t _ds_ff_pref_load(
  *  is to be overwritten or deleted. If nlines is provided, it will be set to
  *  the number of lines in the file.
  */
- 
+
 FILE *_ds_ff_pref_prepare_file (
   const char *filename,
   const char *omission,
@@ -256,7 +256,7 @@ FILE *_ds_ff_pref_prepare_file (
         continue;
 
       lineno++;
-  
+
       if (fputs(line, out_file)<0) {
         LOG(LOG_ERR, ERR_IO_FILE_WRITE, out_filename, strerror(errno));
         fclose(in_file);
@@ -334,7 +334,7 @@ int _ds_ff_pref_del (
 {
   char filename[MAX_FILENAME_LENGTH];
   FILE *out_file;
-  int nlines; 
+  int nlines;
   config = config; /* Keep compiler happy */
   ignore = ignore; /* Keep compiler happy */
 
