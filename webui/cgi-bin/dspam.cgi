@@ -65,6 +65,23 @@ if ($CONFIG{'AUTODETECT'} == 1 || $CONFIG{'AUTODETECT'} eq "") {
   }
 }
 
+
+#
+# If set, then MIME-encoded headers are decoded
+#
+$CONFIG{'MIME_DECODE'} = 1;
+# Additional aliases in case Unicode::Map8 aliases db is not enough
+$CONFIG{'CHARSET_ALIASES'} = {
+   'windows-1251' => 'cp1251',
+};
+
+#
+# Local charset to put into http header
+# and charset to decode headers to.
+# Should be "utf8", as log files written by dspam are expected to be in utf8 also.
+#
+$DATA{'LOCALCHARSET'} = "utf8";
+
 #
 # Determine admin status
 #
@@ -357,8 +374,8 @@ sub DisplayHistory {
   }
 
   # Preseed retraining information and delivery errors
- 
-  open(LOG, "< $LOG") or die "Can't open log file $LOG";
+
+  open(LOG, "<:utf8", $LOG) or die "Can't open log file $LOG";
   while(<LOG>) {
     my($time, $class, $from, $signature, $subject, $info, $messageid) 
       = split(/\t/, $_);
@@ -501,9 +518,6 @@ sub DisplayHistory {
 
     $info = $rec{$signature}->{'info'} if ($rec{$signature}->{'info'} ne "");
 
-    $from = substr($from, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "..." if (length($from)>$CONFIG{'MAX_COL_LEN'});
-    $subject = substr($subject, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "..." if (length($subject)>$CONFIG{'MAX_COL_LEN'});
-
     $from =~ s/&/&amp;/g;
     $from =~ s/</&lt;/g;
     $from =~ s/>/&gt;/g;
@@ -515,6 +529,9 @@ sub DisplayHistory {
     $subject =~ s/>/&gt;/g;
     $subject =~ s/"/&quot;/g;
     $subject =~ s/'/&#39;/g;	# MSIE doesn't know "&apos;"
+
+    $from = substr($from, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "..." if (length($from)>$CONFIG{'MAX_COL_LEN'});
+    $subject = substr($subject, 0, $CONFIG{'MAX_COL_LEN'} - 3) . "..." if (length($subject)>$CONFIG{'MAX_COL_LEN'});
 
     my($rclass);
     $rclass = "spam" if ($class eq "I" || $class eq "W" || $class eq "F");
@@ -1168,6 +1185,48 @@ sub DisplayQuarantine {
   }
   close(FILE);
 
+    # MIME decoder
+    my $mime_dec;
+    if ($CONFIG{'MIME_DECODE'} > 0)
+    {
+        require MIME::WordDecoder;
+        require Unicode::Map8;
+
+        my %charset_cache = ();
+
+        my $charset_handler = sub {
+       my ($s, $charset) = @_;
+
+            return $s if $charset eq 'raw';
+            my $src = $charset_cache{ $charset };
+
+            unless (defined $src)
+            {
+                foreach my $c (($charset, $CONFIG{'CHARSET_ALIASES'}->{$charset}, $CONFIG{'CHARSET_ALIASES'}->{lc $charset}))
+                {
+                    $src = Unicode::Map8->new($c);
+                    last if defined $src;
+
+                    $src = Unicode::Map8->new(lc $c);
+                    last if defined $src;
+                }
+                $charset_cache{ $charset } = $src;
+            }
+
+            return '...' unless defined $src;
+            my $ret = $src->tou($s)->utf8;
+
+            ### Unicode::String still returns unmarked string (like bytes)
+            ### We need to turn utf8 flag on, so that string functions work correctly
+            utf8::decode($ret);
+            return $ret;
+        };
+
+        $mime_dec = MIME::WordDecoder->new();
+        $mime_dec->handler('US_ASCII' => 'KEEP');
+        $mime_dec->handler('*' => $charset_handler);
+    }
+
   my($next, @buffer, $rowclass, $mode, $markclass, $marklabel, @headings);
   $rowclass="rowEven";
   open(FILE, "<$MAILBOX");
@@ -1225,6 +1284,15 @@ sub DisplayQuarantine {
     if ($CONFIG{'QUARANTINE_HTMLIZE'} eq "yes") {
       $new->{'Subject'} = htmlize($new->{'Subject'});
       $new->{'From'} = htmlize($new->{'From'});
+    }
+
+    # Only decode fields shown in table
+    if (defined $mime_dec)
+    {
+        foreach my $field (qw/Subject From/)
+        {
+            $new->{ $field } = $mime_dec->decode($new->{ $field });
+        }
     }
 
     $new->{'Sub2'} = $new->{'X-DSPAM-Signature'};
@@ -1661,7 +1729,9 @@ sub htmlheader {
   print "Expires: now\n";
   print "Pragma: no-cache\n";
   print "Cache-control: no-cache\n";
-  print "Content-type: text/html\n\n";
+  print "Content-type: text/html";
+  print "; charset=$DATA{'LOCALCHARSET'}" if defined $DATA{'LOCALCHARSET'};
+  print "\n\n";
 }
 
 sub output {
