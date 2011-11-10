@@ -1,3 +1,5 @@
+[20111110:1814] tomhendr: Fix issue with malformed characters in webui: convert everything to utf-8.
+
 [20111110:0020] tomhendr: Renamed NotificationsDirectory to TxtDirectory, added documentation on the new parameter.
 
 [20111103:1200] sbajic: Fix bugs in dspam_notify: add new line between header and body, do proper parsing of dates where the day is one single digit or the weekday is a Thursday, add From header entry.
