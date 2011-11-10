@@ -1,3 +1,5 @@
+[20111110:2112] tomhendr: Make some perl stuff for mime decoding optional depedencies.
+
 [20111110:1950] tomhendr: Removed all meta tag charset definitions from webui templates.
 
 [20111110:1814] tomhendr: Fix issue with malformed characters in webui: convert everything to utf-8.

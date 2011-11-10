@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: dspam.cgi,v 1.57 2011/06/28 00:13:48 sbajic Exp $
+# $Id: dspam.cgi,v 1.58 2011/11/10 21:12:48 tomhendr Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 #
@@ -64,16 +64,6 @@ if ($CONFIG{'AUTODETECT'} == 1 || $CONFIG{'AUTODETECT'} eq "") {
     }
   }
 }
-
-
-#
-# If set, then MIME-encoded headers are decoded
-#
-$CONFIG{'MIME_DECODE'} = 1;
-# Additional aliases in case Unicode::Map8 aliases db is not enough
-$CONFIG{'CHARSET_ALIASES'} = {
-   'windows-1251' => 'cp1251',
-};
 
 #
 # Local charset to put into http header

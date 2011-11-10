@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: configure.pl,v 1.07 2011/06/28 00:13:48 sbajic Exp $
+# $Id: configure.pl,v 1.08 2011/11/10 21:12:48 tomhendr Exp $
 # DSPAM
 # COPYRIGHT (C) 2002-2011 DSPAM PROJECT
 #
@@ -67,6 +67,15 @@ $CONFIG{'AUTODETECT'}	= 1;
 #$CONFIG{'LARGE_SCALE'}	= 0;
 #$CONFIG{'DOMAIN_SCALE'}= 0;
 #$CONFIG{'PREFERENCES_EXTENSION'} = 0;
+
+# Enable to decode mail mime headers (f.i. From, Subject) in the webui
+# Adds a dependency on Perl libraries MIME::WordDecoder and Unicode::Map8
+$CONFIG{'MIME_DECODE'} = 0
+
+# Additional aliases in case Unicode::Map8 aliases db is not enough
+$CONFIG{'CHARSET_ALIASES'} = {
+   'windows-1251' => 'cp1251',
+};
 
 # Get DSPAM version
 $CONFIG{'DSPAM_VERSION'} = "Unknown Version";
