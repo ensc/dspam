@@ -70,7 +70,7 @@ $CONFIG{'AUTODETECT'}	= 1;
 
 # Enable to decode mail mime headers (f.i. From, Subject) in the webui
 # Adds a dependency on Perl libraries MIME::WordDecoder and Unicode::Map8
-$CONFIG{'MIME_DECODE'} = 0
+$CONFIG{'MIME_DECODE'} = 0;
 
 # Additional aliases in case Unicode::Map8 aliases db is not enough
 $CONFIG{'CHARSET_ALIASES'} = {
