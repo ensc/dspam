@@ -1,4 +1,4 @@
-.\" $Id: dspam_clean.1,v 1.11 2011/06/28 00:13:48 sbajic Exp $
+.\" $Id: dspam_clean.1,v 1.12 2011/11/16 00:14:11 sbajic Exp $
 .\"  -*- nroff -*-
 .\"
 .\" dspam_clean3.9
@@ -40,6 +40,14 @@ dspam_clean \- perform periodic maintenance of metadata
 .B dspam_clean
 is used to perform periodic housecleaning on DSPAM's metadata dictionary by
 deleting old or useless data. 
+
+.B dspam_clean
+has no effect if you use the "hash" storage driver. In that case, you should use
+the tools
+.B cssclean
+and
+.B csscompress
+(which do not currently have manual pages).
 
 .SH OPTIONS
 .LP
