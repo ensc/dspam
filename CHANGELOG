@@ -1,3 +1,5 @@
+[20111116:0020] sbajic: csscompress: preserve ownership and permissions as in cssclean
+
 [20111116:0015] sbajic: document that dspam_clean does nothing with hash driver
 
 [20111110:0020] tomhendr: Renamed NotificationsDirectory to TxtDirectory, added documentation on the new parameter.

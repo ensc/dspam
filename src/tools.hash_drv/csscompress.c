@@ -1,4 +1,4 @@
-/* $Id: csscompress.c,v 1.837 2011/06/28 00:13:48 sbajic Exp $ */
+/* $Id: csscompress.c,v 1.838 2011/11/16 00:19:14 sbajic Exp $ */
 
 /*
  DSPAM
@@ -103,6 +103,7 @@ int csscompress(const char *filename) {
   hash_drv_spam_record_t rec;
   unsigned long filepos;
   char newfile[128];
+  struct stat st;
   char *filenamecopy;
   unsigned long max_seek     = HASH_SEEK_MAX;
   unsigned long max_extents  = 0;
@@ -136,6 +137,9 @@ int csscompress(const char *filename) {
 
   snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname((char *)filenamecopy), (unsigned int) getpid());
 
+  if (stat(filename, &st) < 0)
+    return EFAILURE;
+
   if (_hash_drv_open(filename, &old, 0, max_seek,
                      max_extents, extent_size, pctincrease, flags))
   {
@@ -159,6 +163,23 @@ int csscompress(const char *filename) {
                      max_extents, extent_size, pctincrease, flags))
   {
     _hash_drv_close(&old);
+    return EFAILURE;
+  }
+
+  /* preserve counters, permissions, and ownership */
+  memcpy(&(new.header->totals), &(old.header->totals), sizeof(new.header->totals));
+
+  if (fchown(new.fd, st.st_uid, st.st_gid) < 0) {
+    _hash_drv_close(&new);
+    _hash_drv_close(&old);
+    unlink(newfile);
+    return EFAILURE;
+  }
+
+  if (fchmod(new.fd, st.st_mode) < 0) {
+    _hash_drv_close(&new);
+    _hash_drv_close(&old);
+    unlink(newfile);
     return EFAILURE;
   }
 
