@@ -1,3 +1,5 @@
+[20111116:0020] sbajic: csscompress: preserve ownership and permissions as in cssclean
+
 [20111116:0015] sbajic: document that dspam_clean does nothing with hash driver
 
 [20111110:2112] tomhendr: Make some perl stuff for mime decoding optional depedencies.
