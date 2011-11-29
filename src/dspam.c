@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.411 2011/10/30 12:40:38 sbajic Exp $ */
+/* $Id: dspam.c,v 1.412 2011/11/10 00:26:00 tomhendr Exp $ */
 
 /*
  DSPAM
@@ -1546,8 +1546,8 @@ int send_notice(
 
   time(&now);
 
-  if (_ds_read_attribute(agent_config, "NotificationsDirectory")) {
-    snprintf(msgfile, sizeof(msgfile), "%s/%s", _ds_read_attribute(agent_config, "NotificationsDirectory"), filename);
+  if (_ds_read_attribute(agent_config, "TxtDirectory")) {
+    snprintf(msgfile, sizeof(msgfile), "%s/%s", _ds_read_attribute(agent_config, "TxtDirectory"), filename);
   } else {
     snprintf(msgfile, sizeof(msgfile), "%s/txt/%s", _ds_read_attribute(agent_config, "Home"), filename);
   }
@@ -3442,9 +3442,9 @@ int embed_msgtag(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
     return EINVAL;
 
   /* Load the message tag */
-  if (_ds_read_attribute(agent_config, "NotificationsDirectory")) {
+  if (_ds_read_attribute(agent_config, "TxtDirectory")) {
     snprintf(msgfile, sizeof(msgfile), "%s/msgtag.%s",
-           _ds_read_attribute(agent_config, "NotificationsDirectory"),
+           _ds_read_attribute(agent_config, "TxtDirectory"),
            (CTX->result == DSR_ISSPAM) ? "spam" : "nonspam");
   } else {
     snprintf(msgfile, sizeof(msgfile), "%s/txt/msgtag.%s",

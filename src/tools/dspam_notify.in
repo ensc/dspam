@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# $Id: dspam_notify,v 1.05 2010/03/18 03:18:59 sbajic Exp $
+# $Id: dspam_notify,v 1.06 2011/11/03 11:58:15 sbajic Exp $
 
 use Net::SMTP;
 
@@ -10,7 +10,8 @@ $DSPAM_BINARY = '@bindir@/@dspam_transformed@';
 $BINDIR = '@bindir@';
 
 # Who will the notifications be sent from?
-$FROM = 'dspam@example.org';
+$FROM_EMAIL = 'dspam@example.org';
+$FROM_NAME = 'DSPAM Filter';
   
 # What will the notification subject be?
 $SUBJECT = 'Daily Spam Quarantine Summary';
@@ -56,7 +57,7 @@ do {
 my ($SEC,$MIN,$HOUR,$MDAY,$MON,$YEAR,$WDAY,$YDAY,$ISDST) = localtime(time);
   
 # Array containing Days of the week abreviations
-@WEEKDAYS = ('Sun','Mon','Tue','Wed','Thur','Fri','Sat');
+@WEEKDAYS = ('Sun','Mon','Tue','Wed','Thu','Fri','Sat');
     
 # Array containing Month abreviations
 @MONTHS = ('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec');
@@ -69,8 +70,8 @@ $MONTH_ABR = $MONTHS[$M];
 $DAY_NUM = $MDAY; 
 $YEAR += 1900;
 
-$TODAY = $DAY_ABR . " " . $MONTH_ABR . " " . $DAY_NUM;
-    
+$TODAY = $DAY_ABR . " " . $MONTH_ABR . " " . sprintf("%2s", $DAY_NUM);
+
 # Get the location of DSPAM home and if AllowOverride is set for dailyQuarantineSummary
 $DSPAMHOME = "";
 $ALLOW_OVERRIDE = "";
@@ -212,13 +213,15 @@ $SMTP = Net::SMTP->new(								# Establish SMTP Connection
 	Timeout => 30) || die ("Could not connect to SMTP server " . $SERVER . ":" . $PORT . "; $!");
 for ($I = 0; $I <= $#RECIPIENT_LIST; $I++) {					# Loop through Recipients List and send the message
   if (@Q_TOTAL_ITEMS[$I] != 0) {						# Don't send reminders to users with empty quarantines
-    $SMTP->mail($FROM);
+    $SMTP->mail($FROM_EMAIL);
     $SMTP->to($RECIPIENT_LIST[$I]);
     $SMTP->data();
+    $SMTP->datasend("From: $FROM_NAME <$FROM_EMAIL>\n");
     $SMTP->datasend("To: $RECIPIENT_LIST[$I]\n");
     $SMTP->datasend("Subject: $SUBJECT\n");
     $SMTP->datasend("Mime-Version: 1.0\n");
     $SMTP->datasend("Content-Type: text/html; charset=UTF-8\n");
+    $SMTP->datasend("\n");
     $SMTP->datasend("<HTML>\n");
     $SMTP->datasend("<HEAD>\n");
     $SMTP->datasend("<TITLE>DSPAM Quarantine Summary for $RECIPIENT_LIST[$I]</TITLE>\n");
