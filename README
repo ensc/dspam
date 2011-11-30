@@ -1,4 +1,4 @@
-DSPAM v3.10.1
+DSPAM v3.10.2
 COPYRIGHT (C) 2002-2011 DSPAM Project
 http://dspam.sourceforge.net/
 
@@ -1965,7 +1965,7 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
   tagSpam / tagNonspam { on | off }
     Adds a tagline to the end of a message based on its classification; useful
     for things such as "Scanned by your ISP example.org". If set to on, the file
-    msgtag.spam and/or msgtag.nonspam will be looked for in TxtDirectory/txt/ 
+    msgtag.spam and/or msgtag.nonspam will be looked for in "TxtDirectory"
     (see dspam.conf) and appended to appropriate messages. 
 
     NOTE: Signed messages will not be tagged in this fashion
