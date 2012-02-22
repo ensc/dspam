@@ -1650,6 +1650,7 @@ sub htmlize {
 
 sub redirect {
   my($loc) = @_;
+  $loc =~ s/&amp\;/&/g;
   print "Expires: now\n";
   print "Pragma: no-cache\n";
   print "Cache-control: no-cache\n";
