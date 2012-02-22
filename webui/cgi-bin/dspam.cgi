@@ -538,6 +538,12 @@ sub DisplayHistory {
       $retrain .= qq! (<A HREF="$MYURL&amp;show=$show&amp;history_page=$history_page&amp;retrain=$rclass&amp;signatureID=$signature">$CONFIG{'LANG'}->{$LANGUAGE}->{'history_retrain_undo'}</A>)!;
     }
 
+    # HTMLize special characters
+    if ($CONFIG{'HISTORY_HTMLIZE'} eq "yes") {
+      $from=htmlize($from);
+      $subject=htmlize($subject);
+    }
+
     my($path) = "$USER.frag/$signature.frag";
     if (-e $path) {
       my(%pairs);
@@ -560,12 +566,6 @@ sub DisplayHistory {
       $retrain_action = qq!<small>&nbsp;</small>!;
     } else {
       $retrain_action = qq!<input name="msgid$retrain_checked_msg_no" type="checkbox" value="$rclass:$signature" id="checkbox-$counter" onclick="checkboxclicked(this)"><small>$retrain</small>!;
-    }
-
-    # HTMLize special characters
-    if ($CONFIG{'HISTORY_HTMLIZE'} eq "yes") {
-      $from=htmlize($from);
-      $subject=htmlize($subject);
     }
 
     my($entry) = <<_END;
