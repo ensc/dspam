@@ -2,7 +2,7 @@
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2011 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2012 DSPAM PROJECT
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as
@@ -2424,8 +2424,8 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
   } else if (!strcmp(_ds_pref_val(ATX->PTX, "ignoreGroups"), "on")) {
     LOGDEBUG ("Ignoring groups due preference ignoreGroups on");
   } else if (ATX->operating_mode == DSM_PROCESS) {
-    snprintf (filename, sizeof (filename), "%s/group",
-              _ds_read_attribute(agent_config, "Home"));
+    snprintf (filename, sizeof (filename), "%s",
+              _ds_read_attribute(agent_config, "GroupConfig"));
     file = fopen (filename, "r");
     if (file != NULL)
     {

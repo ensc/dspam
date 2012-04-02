@@ -7,7 +7,9 @@ Summary Changes from 3.10.1 to 3.10.2
 DSPAM 3.10.2 is a bugfix release that resolves some issues that existed in earlier releases.
 - Support for Postgresql 8.1 (EOL) was dropped
 - Support for Postgresql 9.1 was added
+- Bug in RSET handling during LHLO phase fixed
 - Introduced 'TxtDirectory' directive in dspam.conf (defaults to previously hardcoded location)
+- Introduced 'GroupConfig' directive in dspam.conf (defaults to previously hardcoded location)
 - Various updates to the webui
 - Some (potential) memory leaks were fixed
 

@@ -3,7 +3,7 @@
 /*
   Bayesian Noise Reduction - Jonathan A. Zdziarski
   http://www.zdziarski.com/papers/bnr.html
-  COPYRIGHT (C) 2004-2011 DSPAM PROJECT
+  COPYRIGHT (C) 2004-2012 DSPAM PROJECT
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as
