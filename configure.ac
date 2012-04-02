@@ -5,7 +5,7 @@ dnl    ltmain.sh (GNU libtool) 1.5.6
 dnl    automake (GNU automake) 1.9.2
 dnl
 AC_PREREQ(2.59)
-AC_COPYRIGHT([Copyright (C) 2002-2011 DSPAM Project])
+AC_COPYRIGHT([Copyright (C) 2002-2012 DSPAM Project])
 AC_INIT([dspam],[GIT],[dspam-devel@lists.sourceforge.net])
 AC_CONFIG_SRCDIR(./src)
 
