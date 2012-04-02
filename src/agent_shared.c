@@ -2,7 +2,7 @@
 
 /*
  DSPAM
- COPYRIGHT (C) 2002-2011 DSPAM PROJECT
+ COPYRIGHT (C) 2002-2012 DSPAM PROJECT
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as
@@ -446,7 +446,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
     if (!strcmp (argv[i], "--version"))
     {
       printf ("\nDSPAM Anti-Spam Suite %s (agent/library)\n\n", VERSION);
-      printf ("Copyright (C) 2002-2011 DSPAM Project\n");
+      printf ("Copyright (C) 2002-2012 DSPAM Project\n");
       printf ("http://dspam.sourceforge.net.\n\n");
       printf ("DSPAM may be copied only under the terms of the GNU Affero General Public\n");
       printf ("License, a copy of which can be found with the DSPAM distribution kit.\n\n");

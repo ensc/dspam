@@ -2,7 +2,7 @@
 
 # $Id: dspam.cgi,v 1.58 2011/11/10 21:12:48 tomhendr Exp $
 # DSPAM
-# COPYRIGHT (C) 2002-2011 DSPAM PROJECT
+# COPYRIGHT (C) 2002-2012 DSPAM PROJECT
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
