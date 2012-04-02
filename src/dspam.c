@@ -2424,8 +2424,8 @@ DSPAM_CTX *ctx_init(AGENT_CTX *ATX, const char *username) {
   } else if (!strcmp(_ds_pref_val(ATX->PTX, "ignoreGroups"), "on")) {
     LOGDEBUG ("Ignoring groups due preference ignoreGroups on");
   } else if (ATX->operating_mode == DSM_PROCESS) {
-    snprintf (filename, sizeof (filename), "%s/group",
-              _ds_read_attribute(agent_config, "Home"));
+    snprintf (filename, sizeof (filename), "%s",
+              _ds_read_attribute(agent_config, "GroupConfig"));
     file = fopen (filename, "r");
     if (file != NULL)
     {

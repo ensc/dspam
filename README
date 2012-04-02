@@ -1364,8 +1364,8 @@ dspam-test            0 TP       0 TN       1 FN       0 FP
 
   Groups enable a group of users to share information.
 
-  To create groups, you'll want to create a file with the filename 'group'
-  located in the DSPAM user directory.  The default is
+  To create groups, you'll want to create a group configuration file. The location 
+  of this file is defined as GroupConfig in dspam.conf, and defaults to 
   /usr/local/var/dspam/group. The format of the file is:
 
     group1:type:user1,user2,user3
