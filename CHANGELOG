@@ -1,9 +1,9 @@
+Version 3.10.2
+--------------
+
 [20120402:2022] tomhendr: Make group file location configurable in dspam.conf
 
 [20120209:2215] sbajic: Fix bug in RSET handling during LHLO phase (daemon mode).
-
-Version 3.10.2
---------------
 
 [20111116:0020] sbajic: csscompress: preserve ownership and permissions as in cssclean
 
