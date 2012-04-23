@@ -1,4 +1,4 @@
-/* $Id: decode.c,v 1.396 2011/11/10 18:09:39 tomhendr Exp $ */
+/* $Id: decode.c,v 1.395 2011/09/03 13:25:39 sbajic Exp $ */
 
 /*
  DSPAM
@@ -400,77 +400,6 @@ MEMFAIL:
   return NULL;
 }
 
-#include <iconv.h>
-#include <errno.h>
-
-/*
- * _ds_recode(encoding, data)
- *
- * DESCRIPTION
- *   convert string in some encoding into UTF8
- *   (for uniformity - so that all data in in the same encoding)
- *
- * RETURN VALUES
- *   allocated recoded string
- *   NULL on error
- */
-char* _ds_recode(const char *encoding, char *data)
-{
-  iconv_t cd;
-  char *recoded, *ptr;
-  size_t inlen, outcur, outlen;
-  int rc;
-
-  cd = iconv_open("utf8//TRANSLIT", encoding);
-
-  if (cd == (iconv_t)-1)
-  {
-    LOG(LOG_WARNING, "iconv open failed for '%s'\n", encoding);
-    return NULL;
-  }
-
-  recoded = malloc(256);
-  if (recoded == NULL)
-    return NULL;
-
-  inlen = strlen(data);
-  outlen = outcur = 255; // Leave one byte for termination
-  ptr = recoded;
-
-  while (1)
-  {
-    rc = iconv(cd, & data, & inlen, & ptr, & outcur);
-    if (rc >= 0)
-    {
-      *ptr = 0; // Terminate string
-      goto ok;
-    }
-
-    if (errno == E2BIG)
-    {
-      char *tmp;
-      tmp = realloc(recoded, outlen + 256);
-      if (tmp == NULL)
-        goto err;
-
-      ptr = tmp + (ptr-recoded);
-      recoded = tmp;
-      outlen += 256;
-      outcur += 256;
-      continue;
-    }
-    goto err;
-  }
-
-err:
-  free(recoded);
-  recoded = NULL;
-
-ok:
-  iconv_close(cd);
-  return recoded;
-}
-
 /*
  * _ds_decode_headers (ds_message_part_t block)
  *
@@ -504,7 +433,6 @@ _ds_decode_headers (ds_message_part_t block) {
       if (!strncmp(enc, "=?", 2)) {
         int was_null = 0;
         char *ptrptr, *decoded = NULL;
-        char *encoding;
         long offset = (long) enc - (long) header->concatenated_data;
 
         if (header->original_data == NULL) {
@@ -512,10 +440,10 @@ _ds_decode_headers (ds_message_part_t block) {
           was_null = 1;
         }
 
-        ptr = strtok_r (enc, "?", &ptrptr); //=
-        encoding = strtok_r (NULL, "?", &ptrptr); // encoding
-        ptr = strtok_r (NULL, "?", &ptrptr); // B
-        dptr = strtok_r (NULL, "?", &ptrptr); // data
+        strtok_r (enc, "?", &ptrptr);
+        strtok_r (NULL, "?", &ptrptr);
+        ptr = strtok_r (NULL, "?", &ptrptr);
+        dptr = strtok_r (NULL, "?", &ptrptr);
         if (!dptr) {
           if (was_null && header->original_data != NULL)
             free(header->original_data);
@@ -542,14 +470,6 @@ _ds_decode_headers (ds_message_part_t block) {
         if (decoded)
         {
           char *new_alloc;
-          char *recoded;
-
-          recoded = _ds_recode(encoding, decoded);
-          if (recoded)
-          {
-            free(decoded);
-            decoded = recoded;
-          }
 
           decoded_len = strlen(decoded);
           new_alloc = calloc (1, offset + decoded_len + strlen (rest) + 2);
