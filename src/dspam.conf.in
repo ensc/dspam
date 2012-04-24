@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.103 2011/11/10 00:27:34 tomhendr Exp $
+## $Id: dspam.conf.in,v 1.104 2012/04/24 23:20:57 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -186,7 +186,7 @@ Trust daemon
 #     tum     Train Until Mature (Train only tokens without enough data)
 #     notrain Do not train or store signatures (large ISP systems, post-train)
 #
-TrainingMode teft
+TrainingMode toe
 
 #
 # TestConditionalTraining: By default, dspam will retrain certain errors
@@ -200,7 +200,7 @@ TestConditionalTraining on
 # on the commandline. See the documentation for a list of available features.
 # If _any_ features are specified on the commandline, these are ignored.
 #
-#Feature noise
+Feature noise
 Feature whitelist
 
 # Training Buffer: The training buffer waters down statistics during training.
@@ -255,7 +255,7 @@ Algorithm graham burton
 # The default value of 'chain' remains here as not to surprise anyone upgrading
 # that has not changed from the default value.
 #
-Tokenizer chain
+Tokenizer osb
 
 #
 # PValue: Specify the technique used for calculating Probability Values,
@@ -289,10 +289,10 @@ WebStats on
 # If user or default.prefs are found, the user's preferences will override any
 # defaults.
 #
-Preference "trainingMode=TEFT"		# { TOE | TUM | TEFT | NOTRAIN } -> default:teft
+Preference "trainingMode=TOE"		# { TOE | TUM | TEFT | NOTRAIN } -> default:teft
 Preference "spamAction=quarantine"	# { quarantine | tag | deliver } -> default:quarantine
 Preference "spamSubject=[SPAM]"		# { string } -> default:[SPAM]
-Preference "statisticalSedation=5"	# { 0 - 10 } -> default:0
+Preference "statisticalSedation=0"	# { 0 - 10 } -> default:0
 Preference "enableBNR=on"		# { on | off } -> default:off
 Preference "enableWhitelist=on"		# { on | off } -> default:on
 Preference "signatureLocation=message"	# { message | headers } -> default:message
