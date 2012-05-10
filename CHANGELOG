@@ -1,3 +1,5 @@
+[20120510:2300] sbajic: Fix recipient corrpution when releasing a message from quarantine
+
 [20120424:2330] sbajic: Change dspam.conf defaults to use TOE and OSB by default
 
 [20120423:2110] tomhendr: reverted commit 2169b243927712edbb22b51d7f61b97d79de9103 (see changelog at [20111110:1814]) because the code is not portable, needs ./configure checks for iconv functionality (and code for equivalents on platforms that don't have iconv).

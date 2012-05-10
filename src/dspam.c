@@ -1,4 +1,4 @@
-/* $Id: dspam.c,v 1.412 2011/11/10 00:26:00 tomhendr Exp $ */
+/* $Id: dspam.c,v 1.413 2012/05/10 23:03:25 sbajic Exp $ */
 
 /*
  DSPAM
@@ -500,7 +500,7 @@ process_message (
         }
 
         /* Change also the mail recipient */
-        ATX->recipient = CTX->username;
+        strcpy(ATX->recipient, CTX->username);
 
       }
     }
