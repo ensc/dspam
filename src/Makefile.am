@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.50 2010/11/30 09:01:56 sbajic Exp $
+# $Id: Makefile.am,v 1.51 2012/06/28 10:08:36 sbajic Exp $
 #
 # autoconf (GNU Autoconf) 2.59
 # ltmain.sh (GNU libtool) 1.5.6
@@ -184,6 +184,8 @@ dspam_SOURCES = \
 	agent_shared.c agent_shared.h
 
 dspam_LDADD = -lm libdspam.la
+dspam_CFLAGS = $(SUID_CFLAGS)
+dspam_LDFLAGS = $(SUID_LDFLAGS)
 dspam_DEPENDENCIES = libdspam.la
 
 dspamc_SOURCES = \
@@ -195,7 +197,8 @@ dspamc_SOURCES = \
 	agent_shared.c agent_shared.h 
 
 dspamc_LDADD = -lm buffer.o config_shared.o error.o pref.o nodetree.o util.o $(NETLIBS) $(DLLIBS)
-dspamc_LDFLAGS = 
+dspamc_CFLAGS = $(SUID_CFLAGS)
+dspamc_LDFLAGS = $(SUID_LDFLAGS)
 dspamc_DEPENDENCIES = buffer.o config_shared.o error.o pref.o nodetree.o util.o
 
 # Failing of chgrp is expected and normal case when someone do
