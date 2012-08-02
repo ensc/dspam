@@ -1,4 +1,4 @@
-## $Id: dspam.conf.in,v 1.104 2012/04/24 23:20:57 sbajic Exp $
+## $Id: dspam.conf.in,v 1.105 2012/08/02 21:06:41 sbajic Exp $
 ## dspam.conf -- DSPAM configuration file
 ##
 
@@ -43,7 +43,7 @@ StorageDriver @libdir@/dspam/@storage_driver@
 # Other popular configurations:
 #TrustedDeliveryAgent "/usr/cyrus/bin/deliver"	# Cyrus
 #TrustedDeliveryAgent "/bin/maildrop"		# Maildrop
-#TrustedDeliveryAgent "/usr/local/sbin/exim -oMr spam-scanned" # Exim
+#TrustedDeliveryAgent "/usr/local/sbin/exim -oMr spam-scanned -oi" # Exim
 #
 TrustedDeliveryAgent "@delivery_agent@"
 

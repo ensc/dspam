@@ -1,3 +1,5 @@
+[20121202:2115] sbajic: Update documentation for Exim integration.
+
 [20120628:1000] sbajic: suid binaries in Linux require to be built with -fPIE CFLAGS and -pie LDFLAGS. This allows it to specify them for the configure script. SUID_CFLAGS=-fPIE SUID_LDFLAGS=-pie ./configure ...
 
 [20120510:2300] sbajic: Fix recipient corrpution when releasing a message from quarantine

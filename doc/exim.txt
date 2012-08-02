@@ -1,4 +1,4 @@
-$Id: exim.txt,v 1.1 2005/03/11 21:16:03 jonz Exp $
+$Id: exim.txt,v 1.2 2012/08/02 21:09:23 sbajic Exp $
 
 EXIM 4 INTEGRATION
 
@@ -40,11 +40,17 @@ domain as part of the username:
 
   command = /usr/local/bin/dspam --deliver=innocent --user "$local_part@$domain" -- %u
 
-Finally, you will need to configure and compile DSPAM. DSPAM will most likely
-end up calling exim again for delivery, using the spam-scanned protocol to
-identify scanned messages. The most common example is:
+Finally, you will need to configure and compile DSPAM. You can configure
+DSPAM with the appropriate LDA using --with-delivery-agent= at configure
+time or by specifying TrustedDeliveryAgent in dspam.conf. DSPAM will most
+likely end up calling exim again for delivery, using the spam-scanned
+protocol to identify scanned messages. The most common example is:
 
-   ./configure --with-delivery-agent="/usr/sbin/exim -oMr spam-scanned"
+  ./configure --with-delivery-agent="/usr/local/sbin/exim -oMr spam-scanned -oi"
+
+Note: DSPAM expects the LDA to NOT provide the "line with a single dot (.)"
+processing to indicate the end of data that a MTA must provide to meet the
+SMTP RFC, hence the "-oi" option to exim above.
 
 RUNNING WITHOUT PRIVILEGED EXIM USERS
 
