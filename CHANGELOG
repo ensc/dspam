@@ -1,3 +1,5 @@
+[20120824:2110] tomhendr: fix minor inconsistency in return value of dspam_addattribute
+
 [20120824:2030] tomhendr: Include auto-config.h in 'make install'
 
 [20120824:2005] tomhendr: Removed some references to DSR_ISWHITELISTED which has been removed in 2005

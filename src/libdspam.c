@@ -319,7 +319,7 @@ int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value) {
       CTX->config->attributes = ptr;
     } else {
       LOG(LOG_CRIT, ERR_MEM_ALLOC);
-      return EFAILURE; 
+      return EUNKNOWN; 
     } 
   }
                                                                                 
