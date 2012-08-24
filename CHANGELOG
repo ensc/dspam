@@ -1,3 +1,5 @@
+[20120824:2030] tomhendr: Include auto-config.h in 'make install'
+
 [20120824:2005] tomhendr: Removed some references to DSR_ISWHITELISTED which has been removed in 2005
 
 [20120802:2115] sbajic: Update documentation for Exim integration.

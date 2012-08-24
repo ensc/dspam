@@ -57,7 +57,7 @@ bin_PROGRAMS = dspam dspamc
 # installed for libdspam
 include_HEADERS = buffer.h config_shared.h decode.h error.h diction.h \
 	libdspam.h libdspam_objects.h nodetree.h tokenizer.h \
-	storage_driver.h heap.h config.h pref.h read_config.h
+	storage_driver.h heap.h config.h pref.h read_config.h auto-config.h
 
 if BUILD_EXT_LOOKUP
 include_HEADERS += external_lookup.h
