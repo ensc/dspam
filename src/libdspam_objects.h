@@ -211,7 +211,7 @@ struct _ds_config
  *
  *  result (output)
  *    The  final result of the requested operation.  This is generally 
- *    either DSR_ISSPAM, DSR_ISINNOCENT, or DSR_WHITELISTED.
+ *    either DSR_ISSPAM or DSR_ISINNOCENT.
  *
  *  confidence (output)
  *    The  confidence  that the  filter has  in  its  returned  result. 

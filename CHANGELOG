@@ -1,4 +1,6 @@
-[20121202:2115] sbajic: Update documentation for Exim integration.
+[20120824:2005] tomhendr: Removed some references to DSR_ISWHITELISTED which has been removed in 2005
+
+[20120802:2115] sbajic: Update documentation for Exim integration.
 
 [20120628:1000] sbajic: suid binaries in Linux require to be built with -fPIE CFLAGS and -pie LDFLAGS. This allows it to specify them for the configure script. SUID_CFLAGS=-fPIE SUID_LDFLAGS=-pie ./configure ...
 

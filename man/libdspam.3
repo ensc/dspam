@@ -103,11 +103,10 @@ automatically attached by a call to dspam_init().
 .PP
 The \fBdspam_process()\fP function performs analysis of the \fBmessage\fP
 passed into it and will return zero on successful completion. If successful,
-CTX->result will be set to one of three classification results:
+CTX->result will be set to one of two classification results:
 .PP
  \fBDSR_ISSPAM\fP        Message was classified as spam
  \fBDSR_ISINNOCENT\fP    Message was classified as nonspam
- \fBDSR_ISWHITELISTED\fP Recipient was automatically whitelisted
 .PP
 Should the call fail, one of the following errors will be returned:
 .PP
