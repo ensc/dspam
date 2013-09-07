@@ -51,6 +51,12 @@
 #   define BIND_TIMEOUT	10
 #endif
 
+/* Hurd */
+#ifndef WCONTINUED
+#define WCONTINUED 0
+#define WIFCONTINUED(status) 0
+#endif
+
 void 
 sig_alrm(int signum)
 {
