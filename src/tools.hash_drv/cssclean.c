@@ -189,7 +189,7 @@ int cssclean(const char *filename, int heavy) {
   filepos = sizeof(struct _hash_drv_header);
   header = old.addr;
   while(filepos < old.file_len) {
-    for(i=0;i<header->hash_rec_max;i++) {
+    for(i=0;i<header->hash_rec_max&&filepos+sizeof(*rec)-1<=old.file_len;i++) {
       rec = (void *)((unsigned long) old.addr + filepos);
 
       nonspam = rec->nonspam & 0x0fffffff;
@@ -232,12 +232,18 @@ int cssclean(const char *filename, int heavy) {
       }
       filepos += sizeof(struct _hash_drv_spam_record);
     }
+    if (i<header->hash_rec_max) {
+      LOG(LOG_INFO, "css file was corrupted, fixing it now");
+      if (header == old.addr)
+        old.header->hash_rec_max = i;
+      else
+        header->hash_rec_max = i;
+    }
     offset = (void *)((unsigned long) old.addr + filepos);
     header = offset;
     filepos += sizeof(struct _hash_drv_header);
   }
 
-  bcopy (old.header, new.header, sizeof(struct _hash_drv_header));
   _hash_drv_close(&new);
   _hash_drv_close(&old);
   if (rename(newfile, filename) < 0)
