@@ -1,4 +1,4 @@
-/* $Id: sqlite3_drv.c,v 1.187 2011/06/28 00:13:48 sbajic Exp $ */
+/* $Id: sqlite3_drv.c,v 1.188 2015/02/16 13:45:16 Stuart D Gathman Exp $ */
 
 /*
  DSPAM
@@ -435,6 +435,13 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     return EUNKNOWN;
   }
 
+  if ((sqlite3_exec(s->dbh, "BEGIN", NULL, NULL, NULL)) != SQLITE_OK)
+  {
+    buffer_destroy (query);
+    LOGDEBUG ("_ds_setall_spamrecords: BEGIN transaction failed");
+    return EINVAL;
+  }
+
   ds_diction_getstat(diction, s->control_token, &control);
 
   snprintf (queryhead, sizeof (queryhead),
@@ -521,6 +528,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
           LOGDEBUG ("_ds_setall_spamrecords: unable to run query: %s", query->data);
           ds_diction_close(ds_c);
           buffer_destroy(query);
+          sqlite3_exec(s->dbh, "ROLLBACK", NULL, NULL, NULL);
           return EFAILURE;
         }
       }
@@ -552,11 +560,17 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
       _sqlite_drv_query_error (err, query->data);
       LOGDEBUG ("_ds_setall_spamrecords: unable to run query: %s", query->data);
       buffer_destroy(query);
+      sqlite3_exec(s->dbh, "ROLLBACK", NULL, NULL, NULL);
       return EFAILURE;
     }
   }
 
   buffer_destroy (query);
+  if ((sqlite3_exec(s->dbh, "COMMIT", NULL, NULL, NULL)) != SQLITE_OK)
+  {
+    LOGDEBUG ("_ds_setall_spamrecords: COMMIT transaction failed");
+    return EINVAL;
+  }
   return 0;
 }
 
@@ -1336,7 +1350,7 @@ _sqlite_drv_query_error (const char *error, const char *query)
     fclose (file);
   }
 
-  free((char *)error);
+  sqlite3_free((char *)error);
   return;
 }
 
