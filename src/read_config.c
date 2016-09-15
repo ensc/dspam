@@ -182,9 +182,13 @@ config_t read_config(const char *path) {
   }
 #endif
 
-  if (path == NULL)
-    file = fopen(CONFIG_DEFAULT, "r");
-  else
+  if (path == NULL) {
+    char const	*cfg_path = getenv("DSPAM_CONF");
+    if (cfg_path == NULL || getuid() != geteuid() || getgid() != getegid())
+      cfg_path = CONFIG_DEFAULT;
+
+    file = fopen(cfg_path, "r");
+  } else
     file = fopen(path, "r");
 
   if (file == NULL) {
