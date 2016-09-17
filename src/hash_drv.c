@@ -1196,9 +1196,9 @@ static int _hash_drv_autoextend(
   if (rc)
     return EFAILURE;
 
-  _hash_drv_open(map->filename, map, 0, map->max_seek, 
-      map->max_extents, map->extent_size, map->pctincrease, map->flags);
-  return 0;
+  return _hash_drv_open(map->filename, map, 0, map->max_seek,
+			map->max_extents, map->extent_size,
+			map->pctincrease, map->flags);
 }
 
 static struct _hash_drv_spam_record *_hash_drv_seek(
