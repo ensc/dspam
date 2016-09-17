@@ -156,6 +156,62 @@ char
 }
 
 #ifdef USE_LDAP
+#define HEX	"0123456789abcdef"
+
+static char const *ldap_escape_query(char const *s, ssize_t cnt_)
+{
+	size_t const	cnt = cnt_ < 0 ? strlen(s) : (size_t)(cnt_);
+	char		*buf = NULL;
+	char		*d;
+	int		pass;
+
+	for (pass = 0; pass < 2; ++pass) {
+		size_t		i;
+		size_t		alloc_cnt = 0;
+
+		d = buf;
+
+		for (i = 0; i < cnt; ++i) {
+			unsigned char	c = s[i];
+
+			switch (c) {
+			case '*':
+			case '(':
+			case ')':
+			case '\\':
+			case '\0':
+				if (d) {
+					/* pass #2 */
+					*d++ = '\\';
+					*d++ = HEX[(c >> 4) & 0x0f];
+					*d++ = HEX[(c >> 0) & 0x0f];
+				} else {
+					/* pass #1 */
+					alloc_cnt += 3;
+				}
+				break;
+
+			default:
+				if (d) {
+					/* pass #2 */
+					*d++ = c;
+				} else {
+					/* pass #1 */
+					alloc_cnt += 1;
+				}
+				break;
+			}
+		}
+
+		if (pass == 0)
+			buf = malloc(alloc_cnt + 1);
+	}
+
+	*d++ = '\0';
+
+	return buf;
+}
+
 char*
 ldap_lookup(config_t agent_config, const char *username, char *external_uid)
 {
@@ -164,8 +220,7 @@ ldap_lookup(config_t agent_config, const char *username, char *external_uid)
 	LDAPMessage	*e;
 	BerElement	*ber;
 	char		*a, *dn;
-	char		*sane_username = malloc(strlen(username)*2);
-	char		*p = sane_username;
+	char const	*sane_username = ldap_escape_query(username, -1);
 	char		**vals = NULL;
 	struct		timeval	ldaptimeout = {.tv_sec = BIND_TIMEOUT, .tv_usec = 0};
 	int			i, rc=0, num_entries=0;
@@ -215,31 +270,11 @@ ldap_lookup(config_t agent_config, const char *username, char *external_uid)
 	/* set alarm handler */
 	signal(SIGALRM, sig_alrm);
 
-	/* sanitize username for filter integration */
-	for (; *username != '\0'; username++) {
-		switch(*username) {
-			case 0x2a: /* '*' */
-			case 0x28: /* '(' */
-			case 0x29: /* ')' */
-			case 0x5c: /* '\' */
-			case 0x00: /* NUL */
-				*p++ = 0x5c; /* '\' */
-				*p++ = *username;
-				break;
-
-			default:
-				*p++ = *username;
-				break;
-		}
-	}
-
-	*p = '\0';
-
 	LOGDEBUG("External Lookup: sanitized username is %s\n", sane_username);
 
 	/* build proper LDAP filter*/
 	transcoded_query = strdup(transcode_query(ldap_filter, sane_username, transcoded_query));
-	free(sane_username);
+	free((void *)sane_username);
 	if (transcoded_query == NULL) {
 		LOG(LOG_ERR, "External Lookup: %s", ERR_EXT_LOOKUP_MISCONFIGURED); 
 		return NULL;
