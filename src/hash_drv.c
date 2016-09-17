@@ -344,6 +344,24 @@ _hash_tools_lock_free (
   return r;
 }
 
+static int write_all(int fd, void const *buf, size_t len)
+{
+	while (len > 0) {
+		ssize_t	l = write(fd, buf, len);
+
+		if (l < 0 && errno == EINTR)
+			continue;
+		else if (l <= 0)
+			break;
+		else {
+			buf += l;
+			len -= l;
+		}
+	}
+
+	return len == 0;
+}
+
 int _hash_drv_open(
   const char *filename, 
   hash_drv_map_t map, 
@@ -357,7 +375,6 @@ int _hash_drv_open(
   struct _hash_drv_header header;
   int open_flags = O_RDWR;
   int mmap_flags = PROT_READ + PROT_WRITE;
-  FILE *f;
 
   map->fd = open(filename, open_flags);
 
@@ -376,18 +393,18 @@ int _hash_drv_open(
 
     header.hash_rec_max = recmaxifnew;
 
-    f = fopen(filename, "w");
-    if (!f) {
+    map->fd = open(filename, O_CREAT|O_WRONLY, 0660);
+    if (map->fd<0) {
       LOG(LOG_ERR, ERR_IO_FILE_WRITE, filename, strerror(errno));
       return EFILE;
     }
 
-    if(fwrite(&header, sizeof(struct _hash_drv_header), 1, f)!=1)
+    if(!write_all(map->fd, &header, sizeof header))
       goto WRITE_ERROR;
     for(i=0;i<header.hash_rec_max;i++)
-      if(fwrite(&rec, sizeof(struct _hash_drv_spam_record), 1, f)!=1)
+      if(write(map->fd, &rec, sizeof rec)!=sizeof rec)
         goto WRITE_ERROR;
-    fclose(f);
+    close(map->fd);
     map->fd = open(filename, open_flags);
   }
 
@@ -430,7 +447,7 @@ int _hash_drv_open(
   return 0;
 
 WRITE_ERROR:
-  fclose(f);
+  close(map->fd);
   unlink(filename);
   LOG(LOG_ERR, ERR_IO_FILE_WRITING, filename, strerror(errno));
   return EFILE;
@@ -1125,7 +1142,7 @@ static int _hash_drv_autoextend(
   LOGDEBUG("adding extent last: %d(%ld) new: %d(%ld) pctincrease: %1.2f", extents, last_extent_size, extents+1, header.hash_rec_max, (map->pctincrease/100.0));
 
   lastsize=lseek (map->fd, 0, SEEK_END);
-  if(write (map->fd, &header, sizeof(struct _hash_drv_header))!=sizeof(struct _hash_drv_header)) {
+  if(!write_all(map->fd, &header, sizeof header)) {
     if (ftruncate(map->fd, lastsize) < 0) {
       LOG(LOG_WARNING, "unable to truncate hash file %s: %s",
           map->filename, strerror(errno));
