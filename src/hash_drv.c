@@ -434,6 +434,21 @@ out:
 	return rc;
 }
 
+static int hash_drv_mmap(hash_drv_map_t map)
+{
+	int mmap_flags = PROT_READ + PROT_WRITE;
+
+	map->file_len = lseek(map->fd, 0, SEEK_END);
+	map->addr = mmap(NULL, map->file_len, mmap_flags, MAP_SHARED, map->fd, 0);
+	if (map->addr == MAP_FAILED) {
+		close(map->fd);
+		map->addr = 0;
+		return -1;
+	}
+
+	return 0;
+}
+
 int _hash_drv_open(
   const char *filename, 
   hash_drv_map_t map, 
@@ -445,7 +460,6 @@ int _hash_drv_open(
   int flags) 
 {
   int open_flags = O_RDWR | O_CLOEXEC;
-  int mmap_flags = PROT_READ + PROT_WRITE;
 
   map->fd = open(filename, open_flags);
 
@@ -478,14 +492,8 @@ int _hash_drv_open(
     return EFILE;
   }
 
-  map->file_len = lseek(map->fd, 0, SEEK_END);
-
-  map->addr = mmap(NULL, map->file_len, mmap_flags, MAP_SHARED, map->fd, 0);
-  if (map->addr == MAP_FAILED) {
-    close(map->fd);
-    map->addr = 0;
-    return EFAILURE;
-  }
+  if (hash_drv_mmap(map))
+	  return EFAILURE;
 
   strlcpy(map->filename, filename, MAX_FILENAME_LENGTH);
   map->max_seek    = max_seek;
