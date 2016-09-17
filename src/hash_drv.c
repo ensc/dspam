@@ -413,25 +413,10 @@ int _hash_drv_open(
     return EFILE;
   }
 
-  map->header = malloc(sizeof(struct _hash_drv_header));
-  if (map->header == NULL) {
-    LOG(LOG_CRIT, ERR_MEM_ALLOC);
-    close(map->fd);
-    map->addr = 0;
-    return EFAILURE;
-  }
-
-  if (read(map->fd, map->header, sizeof(struct _hash_drv_header))
-        != sizeof(struct _hash_drv_header)) {
-    free(map->header);
-    close(map->fd);
-    return EFAILURE;
-  }
   map->file_len = lseek(map->fd, 0, SEEK_END);
 
   map->addr = mmap(NULL, map->file_len, mmap_flags, MAP_SHARED, map->fd, 0);
   if (map->addr == MAP_FAILED) {
-    free(map->header);
     close(map->fd);
     map->addr = 0;
     return EFAILURE;
@@ -455,28 +440,19 @@ WRITE_ERROR:
 
 int
 _hash_drv_close(hash_drv_map_t map) {
-  struct _hash_drv_header header;
   int r;
 
   if (!map->addr)
     return EINVAL;
-
-  memcpy(&header, map->header, sizeof(struct _hash_drv_header));
 
   r = munmap(map->addr, map->file_len);
   if (r) {
     LOG(LOG_WARNING, "munmap failed on error %d: %s", r, strerror(errno));
   }
 
-  lseek (map->fd, 0, SEEK_SET);
-  r = write (map->fd, &header, sizeof(struct _hash_drv_header));
-  if (r < 0) {
-    LOG(LOG_WARNING, "write failed on error %d: %s", r, strerror(errno));
-  }
   close(map->fd);
 
   map->addr = 0;
-  free(map->header);
 
   return r;
 }
@@ -652,11 +628,15 @@ int
 _hash_drv_get_spamtotals (DSPAM_CTX * CTX)
 {
   struct _hash_drv_storage *s = (struct _hash_drv_storage *) CTX->storage;
+  struct _hash_drv_header const *header;
 
   if (s->map->addr == 0)
     return EINVAL;
+
+  header = (void const *)((uintptr_t)s->map->addr);
+
   /* Totals are loaded straight from the hash header */
-  memcpy(&CTX->totals, &s->map->header->totals, sizeof(struct _ds_spam_totals));
+  memcpy(&CTX->totals, &header->totals, sizeof(struct _ds_spam_totals));
   return 0;
 }
 
@@ -664,11 +644,16 @@ int
 _hash_drv_set_spamtotals (DSPAM_CTX * CTX)
 {
   struct _hash_drv_storage *s = (struct _hash_drv_storage *) CTX->storage;
+  struct _hash_drv_header *header;
 
   if (s->map->addr == NULL)
     return EINVAL;
+
+  header = (void *)((uintptr_t)s->map->addr);
+
   /* Totals are stored into the hash header */
-  memcpy(&s->map->header->totals, &CTX->totals, sizeof(struct _ds_spam_totals));
+  memcpy(&header->totals, &CTX->totals, sizeof(struct _ds_spam_totals));
+
   return 0;
 }
 

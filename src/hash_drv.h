@@ -47,7 +47,6 @@ typedef struct _hash_drv_map
   void *addr;
   int fd;
   size_t file_len;
-  hash_drv_header_t header;
   char filename[MAX_FILENAME_LENGTH];
   unsigned long max_seek;
   unsigned long max_extents;
