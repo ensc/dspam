@@ -269,3 +269,4 @@ sed_substitute_variables = \
 dspam_conf: dspam.conf.in Makefile
 	${sed_substitute_variables} < $(srcdir)/dspam.conf.in > dspam.conf
 
+include $(srcdir)/tests/Makefile-files
