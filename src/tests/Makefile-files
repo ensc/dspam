@@ -1,1 +1,15 @@
 # --*- makefile -*--
+check_PROGRAMS = \
+	test-hash_drv
+
+test_hash_drv_SOURCES = \
+	%reldir%/../diction.c \
+	%reldir%/../util.c \
+	%reldir%/../error.c \
+	%reldir%/../nodetree.c \
+	%reldir%/../config_shared.c \
+	%reldir%/../pref.c \
+	%reldir%/hash-drv.c
+
+test_hash_drv_LDADD = \
+	-lm
