@@ -1245,29 +1245,24 @@ static struct _hash_drv_spam_record *_hash_drv_seek(
   unsigned long long hashcode,
   int flags)
 {
-  size_t offset = (uintptr_t)header - (uintptr_t)(map->addr);
-  hash_drv_spam_record_t rec = NULL;
-  unsigned long fpos;
-  unsigned long iterations = 0;
+  unsigned int iterations;
+  struct _hash_drv_spam_record *rec = NULL;
+  struct _hash_drv_spam_record *start_rec = (void *)(&header[1]);
+  unsigned long const rec_max = header->hash_rec_max;
+  unsigned long fpos = (hashcode % rec_max);
 
-  if (offset >= map->file_len)
-    return NULL;
+  for (iterations = map->max_seek; iterations > 0; --iterations) { /* Max Iterations  */
+	  rec = &start_rec[fpos];
 
-  fpos = sizeof(struct _hash_drv_header) + 
-    ((hashcode % header->hash_rec_max) * sizeof(struct _hash_drv_spam_record));
+	  if (rec->hashcode == hashcode ||	/* Match token     */
+	      rec->hashcode == 0)		/* Insert on empty */
+		  break;
 
-  rec = (void *)((unsigned long) map->addr + offset + fpos);
-  while(rec->hashcode != hashcode  &&   /* Match token     */ 
-        rec->hashcode != 0         &&   /* Insert on empty */
-        iterations < map->max_seek)     /* Max Iterations  */
-  {
-    iterations++;
-    fpos += sizeof(struct _hash_drv_spam_record);
+	  ++fpos;
 
-    if (fpos >= (header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
-      fpos = sizeof(struct _hash_drv_header);
-    rec = (void *)((unsigned long) map->addr + offset + fpos);
-  }     
+	  if (fpos >= rec_max)
+		  fpos = 0;
+  }
 
   if (!rec)
     return NULL;
