@@ -62,7 +62,7 @@
 #define ERR_AGENT_NO_OP_MODE      "No operating mode was specified"
 #define ERR_AGENT_NO_TR_MODE      "No training mode was specified"
 #define ERR_AGENT_TB_INVALID      "Training buffer level must be 0-10"
-#define ERR_AGENT_TR_MODE_INVALID "Invalid training mode specified"
+#define ERR_AGENT_TR_MODE_INVALID "Invalid training mode '%s' specified"
 #define ERR_AGENT_IGNORE_PREF     "Ignoring disallowed preference '%s'"
 #define ERR_AGENT_INIT_ATX        "Unable to initialize agent context"
 #define ERR_AGENT_MISCONFIGURED   "DSPAM agent misconfigured: aborting"

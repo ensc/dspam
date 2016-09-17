@@ -149,7 +149,7 @@ int daemon_listen(DRIVER_CTX *DTX) {
   
     if (bind(listener, (struct sockaddr *) &saun, len)<0) {
       close(listener);
-      LOG(LOG_CRIT, INFO_DAEMON_DOMAINSOCK, address, strerror(errno));
+      LOG(LOG_CRIT, INFO_DAEMON_DOMAINSOCK ": %s", address, strerror(errno));
       umask (mask);
       return EFAILURE;
     }    
