@@ -1179,12 +1179,9 @@ static int _hash_drv_autoextend(
   off_t lastsize;
   int rc;
 
-  _hash_drv_close(map);
-
-  map->fd = open(map->filename, O_RDWR|O_CLOEXEC);
-  if (map->fd < 0) {
-    LOG(LOG_WARNING, "unable to resize hash. open failed: %s", strerror(errno));
-    return EFAILURE;
+  if (map->addr) {
+	  munmap(map->addr, map->file_len);
+	  map->addr = NULL;
   }
 
   memset(&header, 0, sizeof(struct _hash_drv_header));
@@ -1199,14 +1196,11 @@ static int _hash_drv_autoextend(
 
   lastsize=lseek (map->fd, 0, SEEK_END);
   rc = _hash_drv_allocate(map, lastsize, &header);
-  close(map->fd);
 
   if (rc)
     return EFAILURE;
 
-  return _hash_drv_open(map->filename, map, 0, map->max_seek,
-			map->max_extents, map->extent_size,
-			map->pctincrease, map->flags);
+  return hash_drv_mmap(map);
 }
 
 static struct _hash_drv_header const *
