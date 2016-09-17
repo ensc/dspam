@@ -120,7 +120,13 @@ dspam_init_driver (DRIVER_CTX *DTX)
       max_extents = strtol(READ_ATTRIB("HashMaxExtents"), NULL, 0);
 
     if (!MATCH_ATTRIB("HashAutoExtend", "on"))
-      flags = 0;
+      flags &= ~HMAP_AUTOEXTEND;
+
+    if (!MATCH_ATTRIB("HashNoHoles", "on"))
+      flags |= HMAP_HOLES;
+
+    if (MATCH_ATTRIB("HashFallocate", "on"))
+      flags |= HMAP_FALLOCATE;
 
     if (READ_ATTRIB("HashPctIncrease")) {
       pctincrease = atoi(READ_ATTRIB("HashPctIncrease"));
@@ -362,6 +368,72 @@ static int write_all(int fd, void const *buf, size_t len)
 	return len == 0;
 }
 
+static int _hash_drv_allocate(hash_drv_map_t map,
+			      off_t extend_start,
+			      struct _hash_drv_header const *header)
+{
+	struct _hash_drv_spam_record	rec;
+	int				rc;
+	off_t				total_sz;
+
+	/* TODO: check for overflows? */
+	total_sz  = header->hash_rec_max * sizeof rec;
+	total_sz += sizeof *header;
+
+	if (map->flags & HMAP_HOLES) {
+		rc = ftruncate(map->fd, extend_start + total_sz);
+		if (rc < 0) {
+			LOG(LOG_ERR,
+			    "unable to truncate hash file '%s': %s",
+			    map->filename, strerror(errno));
+			goto out;
+		}
+	} else if (map->flags & HMAP_FALLOCATE) {
+		rc = posix_fallocate(map->fd, extend_start, total_sz);
+		if (rc < 0) {
+			LOG(LOG_ERR,
+			    "unable to fallocate hash file '%s': %s",
+			    map->filename, strerror(errno));
+			goto out;
+		}
+	}
+
+	rc = -1;
+	if (!write_all(map->fd, header, sizeof *header)) {
+		LOG(LOG_ERR, "failed to write header in hash file '%s': %s",
+		    map->filename, strerror(errno));
+		goto out;
+	}
+
+	if (!(map->flags & (HMAP_HOLES | HMAP_FALLOCATE))) {
+		size_t		i;
+
+		memset(&rec, 0, sizeof rec);
+
+		for (i = 0; i < header->hash_rec_max; ++i) {
+			if (!write_all(map->fd, &rec, sizeof rec)) {
+				LOG(LOG_ERR,
+				    "failed to fill hash file '%s': %s",
+				    map->filename, strerror(errno));
+				goto out;
+			}
+		}
+	}
+
+	rc = 0;
+
+out:
+	if (rc < 0) {
+		if (ftruncate(map->fd, extend_start) < 0) {
+			LOG(LOG_ERR, "unable to restore hash file '%s': %s",
+			    map->filename, strerror(errno));
+			goto out;
+		}
+	}
+
+	return rc;
+}
+
 int _hash_drv_open(
   const char *filename, 
   hash_drv_map_t map, 
@@ -384,24 +456,19 @@ int _hash_drv_open(
    */
 
   if (map->fd < 0 && recmaxifnew) {
-    struct _hash_drv_spam_record rec;
-    unsigned long i;
     struct _hash_drv_header header = {
 	    .hash_rec_max	= recmaxifnew
     };
 
-    memset(&rec, 0, sizeof(struct _hash_drv_spam_record));
     map->fd = open(filename, O_CREAT|O_WRONLY|O_CLOEXEC, 0660);
     if (map->fd<0) {
       LOG(LOG_ERR, ERR_IO_FILE_WRITE, filename, strerror(errno));
       return EFILE;
     }
 
-    if(!write_all(map->fd, &header, sizeof header))
+    if (_hash_drv_allocate(map, 0, &header) < 0)
       goto WRITE_ERROR;
-    for(i=0;i<header.hash_rec_max;i++)
-      if(write(map->fd, &rec, sizeof rec)!=sizeof rec)
-        goto WRITE_ERROR;
+
     close(map->fd);
     map->fd = open(filename, open_flags);
   }
@@ -1101,9 +1168,8 @@ static int _hash_drv_autoextend(
     unsigned long last_extent_size)
 {
   struct _hash_drv_header header;
-  struct _hash_drv_spam_record rec;
   int lastsize;
-  unsigned long i;
+  int rc;
 
   _hash_drv_close(map);
 
@@ -1114,7 +1180,6 @@ static int _hash_drv_autoextend(
   }
 
   memset(&header, 0, sizeof(struct _hash_drv_header));
-  memset(&rec, 0, sizeof(struct _hash_drv_spam_record));
   
   if (extents == 0 || !map->pctincrease)
     header.hash_rec_max = map->extent_size;
@@ -1125,26 +1190,11 @@ static int _hash_drv_autoextend(
   LOGDEBUG("adding extent last: %d(%ld) new: %d(%ld) pctincrease: %1.2f", extents, last_extent_size, extents+1, header.hash_rec_max, (map->pctincrease/100.0));
 
   lastsize=lseek (map->fd, 0, SEEK_END);
-  if(!write_all(map->fd, &header, sizeof header)) {
-    if (ftruncate(map->fd, lastsize) < 0) {
-      LOG(LOG_WARNING, "unable to truncate hash file %s: %s",
-          map->filename, strerror(errno));
-    }
-    close(map->fd);
-    LOG(LOG_WARNING, "unable to resize hash. open failed: %s", strerror(errno));
-    return EFAILURE;
-  }
-  for(i=0;i<header.hash_rec_max;i++) 
-    if(write (map->fd, &rec, sizeof(struct _hash_drv_spam_record))!=sizeof(struct _hash_drv_spam_record)) {
-      if (ftruncate(map->fd, lastsize) < 0) {
-        LOG(LOG_WARNING, "unable to truncate hash file %s: %s",
-            map->filename, strerror(errno));
-      }
-      close(map->fd);
-      LOG(LOG_WARNING, "unable to resize hash. open failed: %s", strerror(errno));
-      return EFAILURE;
-    }
+  rc = _hash_drv_allocate(map, lastsize, &header);
   close(map->fd);
+
+  if (rc)
+    return EFAILURE;
 
   _hash_drv_open(map->filename, map, 0, map->max_seek, 
       map->max_extents, map->extent_size, map->pctincrease, map->flags);

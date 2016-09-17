@@ -124,5 +124,7 @@ _hash_drv_set_spamrecord (
 #define HSEEK_INSERT	0x01
 
 #define HMAP_AUTOEXTEND	0x01
+#define HMAP_HOLES	0x02
+#define HMAP_FALLOCATE	0x04
 
 #endif /* _HASH_DRV_H */
