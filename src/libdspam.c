@@ -1010,6 +1010,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 #endif
 
     result = _ds_calc_result(CTX, heap_sort, diction);
+    (void)result;
 
 #ifdef LIBBNR_DEBUG
     if (CTX->flags & DSF_NOISE) {

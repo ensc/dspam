@@ -73,19 +73,18 @@
 int
 dspam_init_driver (DRIVER_CTX *DTX)
 {
+#ifdef DAEMON
   DSPAM_CTX *CTX;
   char *HashConcurrentUser;
-#ifdef DAEMON
    unsigned long connection_cache = 1;
 #endif
 
   if (DTX == NULL) 
     return 0;
 
+#ifdef DAEMON
   CTX = DTX->CTX;
   HashConcurrentUser = READ_ATTRIB("HashConcurrentUser");
-
-#ifdef DAEMON
 
   /*
    *  Stateful concurrent hash databases are preloaded into memory and

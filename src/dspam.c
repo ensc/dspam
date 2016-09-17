@@ -2157,13 +2157,10 @@ int find_signature(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
   struct nt_node *node_nt;
   struct nt_c c, c2;
   ds_message_part_t block = NULL;
-  char first_boundary[512];
   int is_signed = 0, i = 0;
   char *signature_begin = NULL, *signature_end, *erase_begin;
   int signature_length, have_signature = 0;
   struct nt_node *node_header;
-
-  first_boundary[0] = 0;
 
   if (ATX->signature[0] != 0)
     return 1;
