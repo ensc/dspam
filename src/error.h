@@ -46,13 +46,15 @@ extern int DO_DEBUG;
 #ifndef DEBUG
 #define LOGDEBUG( ... );
 #else
-void LOGDEBUG (const char *err, ... );
+void LOGDEBUG (const char *err, ... )
+	__attribute__((__format__(printf, 1, 2)));
 #endif
 
 #ifdef _WIN32
 #define LOG ( ... );
 #else
-void LOG (int priority, const char *err, ... );
+void LOG (int priority, const char *err, ... )
+	__attribute__((__format__(printf, 2, 3)));
 #endif
 
 char *format_date_r (char *buf);
