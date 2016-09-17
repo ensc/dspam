@@ -462,6 +462,7 @@ int _hash_drv_open(
   int open_flags = O_RDWR | O_CLOEXEC;
 
   map->fd = open(filename, open_flags);
+  map->flags = flags;
 
   /*
    *  Create a new hash database if desired. The record count written in the
@@ -500,7 +501,6 @@ int _hash_drv_open(
   map->max_extents = max_extents;
   map->extent_size = extent_size;
   map->pctincrease = pctincrease;
-  map->flags       = flags;
 
   return 0;
 
