@@ -1201,13 +1201,51 @@ static int _hash_drv_autoextend(
 			map->pctincrease, map->flags);
 }
 
+static struct _hash_drv_header const *
+_hash_drv_get_extent(hash_drv_map_t map, size_t offset)
+{
+	struct _hash_drv_spam_record	*rec;
+	struct _hash_drv_header		*header;
+	unsigned long			rec_max;
+
+	/* check whether header is within file */
+	if (SIZE_MAX - sizeof *header < offset ||
+	    map->file_len < offset + sizeof *header) {
+		LOG(LOG_WARNING,
+		    "offset %zu + header sz %zu invalid for file len %zu",
+		    offset, sizeof *header, map->file_len);
+		return NULL;
+	}
+
+	/* header is within file; we can read it... */
+	header = (void *)((uintptr_t)map->addr + offset);
+	rec_max = header->hash_rec_max;
+
+	/* check for overflow */
+	if ((SIZE_MAX - offset - sizeof *header) / sizeof *rec < rec_max) {
+		LOG(LOG_WARNING, "hash_rec_max %lu will cause overflow",
+		    rec_max);
+		return NULL;
+	}
+
+	/* check whether file is large enough for whole extent */
+	if (map->file_len < offset + sizeof *header + (rec_max * sizeof *rec)) {
+		LOG(LOG_WARNING, "extent @%zu+%zu*%zu not within file %zu",
+		    (offset + sizeof *header), rec_max, sizeof *rec,
+		    map->file_len);
+		return NULL;
+	}
+
+	return header;
+}
+
 static struct _hash_drv_spam_record *_hash_drv_seek(
   hash_drv_map_t map,
   size_t offset,
   unsigned long long hashcode,
   int flags)
 {
-  hash_drv_header_t header = (void *)((unsigned long) map->addr + offset);
+  struct _hash_drv_header const *header = _hash_drv_get_extent(map, offset);
   hash_drv_spam_record_t rec = NULL;
   unsigned long fpos;
   unsigned long iterations = 0;
@@ -1262,7 +1300,10 @@ _hash_drv_set_spamrecord (
     {
       rec = _hash_drv_seek(map, offset, wrec->hashcode, HSEEK_INSERT);
       if (!rec) {
-        hash_drv_header_t header = (void *)((unsigned long) map->addr + offset);
+	struct _hash_drv_header const *header = _hash_drv_get_extent(map, offset);
+	if (!header)
+	  break;
+
         offset += sizeof(struct _hash_drv_header) +
           (sizeof(struct _hash_drv_spam_record) * header->hash_rec_max);
         last_extent_size = header->hash_rec_max;
@@ -1310,7 +1351,10 @@ _hash_drv_get_spamrecord (
   {
     rec = _hash_drv_seek(map, offset, wrec->hashcode, 0);
     if (!rec) {
-      hash_drv_header_t header = (void *)((unsigned long) map->addr + offset);
+      struct _hash_drv_header const *header = _hash_drv_get_extent(map, offset);
+      if (!header)
+	break;
+
       offset += sizeof(struct _hash_drv_header) +
         (sizeof(struct _hash_drv_spam_record) * header->hash_rec_max);
       extents++;
