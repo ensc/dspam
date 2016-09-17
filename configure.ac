@@ -9,7 +9,7 @@ AC_COPYRIGHT([Copyright (C) 2002-2012 DSPAM Project])
 AC_INIT([dspam],[GIT],[dspam-devel@lists.sourceforge.net])
 AC_CONFIG_SRCDIR(./src)
 
-AM_INIT_AUTOMAKE([1.7 foreign])
+AM_INIT_AUTOMAKE([1.7 foreign subdir-objects])
 
 AC_CANONICAL_HOST
 
