@@ -372,7 +372,6 @@ int _hash_drv_open(
   int pctincrease,
   int flags) 
 {
-  struct _hash_drv_header header;
   int open_flags = O_RDWR;
   int mmap_flags = PROT_READ + PROT_WRITE;
 
@@ -387,12 +386,11 @@ int _hash_drv_open(
   if (map->fd < 0 && recmaxifnew) {
     struct _hash_drv_spam_record rec;
     unsigned long i;
+    struct _hash_drv_header header = {
+	    .hash_rec_max	= recmaxifnew
+    };
 
-    memset(&header, 0, sizeof(struct _hash_drv_header));
     memset(&rec, 0, sizeof(struct _hash_drv_spam_record));
-
-    header.hash_rec_max = recmaxifnew;
-
     map->fd = open(filename, O_CREAT|O_WRONLY, 0660);
     if (map->fd<0) {
       LOG(LOG_ERR, ERR_IO_FILE_WRITE, filename, strerror(errno));
