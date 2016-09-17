@@ -372,7 +372,7 @@ int _hash_drv_open(
   int pctincrease,
   int flags) 
 {
-  int open_flags = O_RDWR;
+  int open_flags = O_RDWR | O_CLOEXEC;
   int mmap_flags = PROT_READ + PROT_WRITE;
 
   map->fd = open(filename, open_flags);
@@ -391,7 +391,7 @@ int _hash_drv_open(
     };
 
     memset(&rec, 0, sizeof(struct _hash_drv_spam_record));
-    map->fd = open(filename, O_CREAT|O_WRONLY, 0660);
+    map->fd = open(filename, O_CREAT|O_WRONLY|O_CLOEXEC, 0660);
     if (map->fd<0) {
       LOG(LOG_ERR, ERR_IO_FILE_WRITE, filename, strerror(errno));
       return EFILE;
@@ -1107,7 +1107,7 @@ static int _hash_drv_autoextend(
 
   _hash_drv_close(map);
 
-  map->fd = open(map->filename, O_RDWR);
+  map->fd = open(map->filename, O_RDWR|O_CLOEXEC);
   if (map->fd < 0) {
     LOG(LOG_WARNING, "unable to resize hash. open failed: %s", strerror(errno));
     return EFAILURE;
