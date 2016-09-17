@@ -742,30 +742,6 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 }
 
 int
-_ds_get_spamrecord (
-  DSPAM_CTX * CTX,
-  unsigned long long token,
-  struct _ds_spam_stat *stat)
-{
-  struct _hash_drv_spam_record rec;
-  struct _hash_drv_storage *s = (struct _hash_drv_storage *) CTX->storage;
-
-  rec.spam = rec.nonspam = 0;
-  rec.hashcode = token;
-
-  stat->offset = _hash_drv_get_spamrecord(s->map, &rec);
-  if (!stat->offset)
-    return EFAILURE;
-
-  stat->probability   = 0.00000;
-  stat->status        = 0;
-  stat->innocent_hits = rec.nonspam & 0x0fffffff;
-  stat->spam_hits     = rec.spam & 0x0fffffff;
-
-  return 0;
-}
-
-int
 _ds_set_spamrecord (
   DSPAM_CTX * CTX,
   unsigned long long token,
@@ -1119,7 +1095,7 @@ _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   return 0;
 }
 
-int _hash_drv_autoextend(
+static int _hash_drv_autoextend(
     hash_drv_map_t map, 
     int extents, 
     unsigned long last_extent_size)
@@ -1175,7 +1151,7 @@ int _hash_drv_autoextend(
   return 0;
 }
 
-unsigned long _hash_drv_seek(
+static unsigned long _hash_drv_seek(
   hash_drv_map_t map,
   unsigned long offset,
   unsigned long long hashcode,
@@ -1268,7 +1244,7 @@ FULL:
   return EFAILURE;
 }
 
-unsigned long
+static unsigned long
 _hash_drv_get_spamrecord (
   hash_drv_map_t map,
   hash_drv_spam_record_t wrec)
@@ -1299,6 +1275,30 @@ _hash_drv_get_spamrecord (
   wrec->nonspam  = rec->nonspam;
   wrec->spam     = rec->spam;
   return offset;
+}
+
+int
+_ds_get_spamrecord (
+  DSPAM_CTX * CTX,
+  unsigned long long token,
+  struct _ds_spam_stat *stat)
+{
+  struct _hash_drv_spam_record rec;
+  struct _hash_drv_storage *s = (struct _hash_drv_storage *) CTX->storage;
+
+  rec.spam = rec.nonspam = 0;
+  rec.hashcode = token;
+
+  stat->offset = _hash_drv_get_spamrecord(s->map, &rec);
+  if (!stat->offset)
+    return EFAILURE;
+
+  stat->probability   = 0.00000;
+  stat->status        = 0;
+  stat->innocent_hits = rec.nonspam & 0x0fffffff;
+  stat->spam_hits     = rec.spam & 0x0fffffff;
+
+  return 0;
 }
 
 /* Preference Stubs for Flat-File */

@@ -116,25 +116,11 @@ int _hash_drv_open(
 int _hash_drv_close
   (hash_drv_map_t map);
 
-int _hash_drv_autoextend
-  (hash_drv_map_t map, int extents, unsigned long last_extent_size);
-
-unsigned long _hash_drv_seek(
-  hash_drv_map_t map,
-  unsigned long offset,
-  unsigned long long hashcode,
-  int flags);
-
 int
 _hash_drv_set_spamrecord (
   hash_drv_map_t map,
   hash_drv_spam_record_t wrec,
   unsigned long map_offset);
-
-unsigned long
-_hash_drv_get_spamrecord (
-  hash_drv_map_t map,
-  hash_drv_spam_record_t wrec);
 
 #define HSEEK_INSERT	0x01
 
