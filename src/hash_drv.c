@@ -1168,7 +1168,7 @@ static int _hash_drv_autoextend(
     unsigned long last_extent_size)
 {
   struct _hash_drv_header header;
-  int lastsize;
+  off_t lastsize;
   int rc;
 
   _hash_drv_close(map);
@@ -1203,7 +1203,7 @@ static int _hash_drv_autoextend(
 
 static struct _hash_drv_spam_record *_hash_drv_seek(
   hash_drv_map_t map,
-  unsigned long offset,
+  size_t offset,
   unsigned long long hashcode,
   int flags)
 {
