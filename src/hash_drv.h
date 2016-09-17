@@ -34,12 +34,13 @@
 #define HASH_EXTENT_MAX 49157
 #define HASH_SEEK_MAX   100
 
-typedef struct _hash_drv_header
+struct _hash_drv_header
 {
   unsigned long hash_rec_max;
   struct _ds_spam_totals totals;
   char padding[4]; /* Keep 8-byte alignment */
-} *hash_drv_header_t;
+} __attribute__((__aligned__(8)));
+typedef struct _hash_drv_header *hash_drv_header_t;
 
 typedef struct _hash_drv_map
 {
