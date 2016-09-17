@@ -126,7 +126,13 @@ int cssconvert(const char *filename) {
     max_extents = strtol(READ_ATTRIB("HashMaxExtents"), NULL, 0);
 
   if (MATCH_ATTRIB("HashAutoExtend", "on"))
-    flags = HMAP_AUTOEXTEND;
+    flags |= HMAP_AUTOEXTEND;
+
+  if (!MATCH_ATTRIB("HashNoHoles", "on"))
+    flags |= HMAP_HOLES;
+
+  if (MATCH_ATTRIB("HashFallocate", "on"))
+    flags |= HMAP_FALLOCATE;
 
   if (READ_ATTRIB("HashMaxSeek"))
      max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
