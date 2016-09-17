@@ -110,6 +110,8 @@ int csscompress(const char *filename) {
   unsigned long extent_size  = HASH_EXTENT_MAX;
   int pctincrease = 0;
   int flags = 0;
+  FILE* lockfile = NULL;
+  int rc = EFAILURE;
 
   if (READ_ATTRIB("HashExtentSize"))
     extent_size = strtol(READ_ATTRIB("HashExtentSize"), NULL, 0);
@@ -135,16 +137,16 @@ int csscompress(const char *filename) {
   if (filenamecopy == NULL)
     return EFAILURE;
 
+  lockfile = _hash_tools_lock_get (filename);
+
   snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname((char *)filenamecopy), (unsigned int) getpid());
 
   if (stat(filename, &st) < 0)
-    return EFAILURE;
+    goto end;
 
   if (_hash_drv_open(filename, &old, 0, max_seek,
                      max_extents, extent_size, pctincrease, flags))
-  {
-    return EFAILURE;
-  }
+    goto end;
 
   /* determine total record length */
   header = old.addr;
@@ -163,7 +165,7 @@ int csscompress(const char *filename) {
                      max_extents, extent_size, pctincrease, flags))
   {
     _hash_drv_close(&old);
-    return EFAILURE;
+    goto end;
   }
 
   /* preserve counters, permissions, and ownership */
@@ -177,14 +179,14 @@ int csscompress(const char *filename) {
     _hash_drv_close(&new);
     _hash_drv_close(&old);
     unlink(newfile);
-    return EFAILURE;
+    goto end;
   }
 
   if (fchmod(new.fd, st.st_mode) < 0) {
     _hash_drv_close(&new);
     _hash_drv_close(&old);
     unlink(newfile);
-    return EFAILURE;
+    goto end;
   }
 
   filepos = sizeof(struct _hash_drv_header);
@@ -200,7 +202,7 @@ int csscompress(const char *filename) {
           _hash_drv_close(&new);
           _hash_drv_close(&old);
           unlink(newfile);
-          return EFAILURE;
+	  goto end;
         }
       }
       filepos += sizeof(struct _hash_drv_spam_record);
@@ -214,5 +216,11 @@ int csscompress(const char *filename) {
   _hash_drv_close(&old);
   if (rename(newfile, filename))
     fprintf(stderr, "rename(%s, %s): %s\n", newfile, filename, strerror(errno));
-  return 0;
+
+  rc = EXIT_SUCCESS;
+
+end:
+  _hash_tools_lock_free(filename, lockfile);
+
+  return rc;
 }
