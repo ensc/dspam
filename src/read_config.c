@@ -384,3 +384,32 @@ agent_pref_t pref_config(void)
   LOG(LOG_CRIT, ERR_MEM_ALLOC);
   return PTX;
 }
+
+bool config_drop_suid(void)
+{
+	if (getenv("DSPAM_CONF")) {
+		int	rc;
+		gid_t	gid = getgid();
+		uid_t	uid = getuid();
+
+		/* drop suid/sgid when custom configuration is given */
+
+		if (gid != getegid()) {
+			rc = setresgid(gid, gid, gid);
+			if (rc < 0) {
+				perror("setresgid()");
+				return false;
+			}
+		}
+
+		if (uid != geteuid()) {
+			rc = setresuid(uid, uid, uid);
+			if (rc < 0) {
+				perror("setresuid()");
+				return false;
+			}
+		}
+	}
+
+	return true;
+}

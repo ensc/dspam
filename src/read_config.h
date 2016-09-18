@@ -26,10 +26,13 @@
 #include <auto-config.h>
 #endif
 
+#include <stdbool.h>
+
 #include "config_shared.h"
 #include "libdspam.h"
 #include "pref.h"
 
+bool config_drop_suid(void);
 config_t read_config (const char *path);
 int configure_algorithms (DSPAM_CTX * CTX);
 

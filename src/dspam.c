@@ -123,6 +123,9 @@ main (int argc, char *argv[])
   DO_DEBUG = 0;
 #endif
 
+  if (!config_drop_suid())
+    return EXIT_FAILURE;
+
 #ifdef DAEMON
   pthread_mutex_init(&__syslog_lock, NULL);
 #endif

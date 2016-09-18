@@ -113,6 +113,9 @@ main (int argc, char *argv[])
   exit(EXIT_FAILURE);
 #endif
 
+  if (!config_drop_suid())
+    return EXIT_FAILURE;
+
   /* Cache my username and uid for trusted user security */
 
   if (!init_pwent_cache()) {
