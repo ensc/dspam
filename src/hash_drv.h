@@ -26,6 +26,8 @@
 #include <auto-config.h>
 #endif
 
+#include <stdint.h>
+
 #include "config.h"
 #include "nodetree.h"
 #include "libdspam.h"
@@ -34,6 +36,8 @@
 #define HASH_EXTENT_MAX 49157
 #define HASH_SEEK_MAX   100
 
+#define HASH_FILE_FLAG_HASHFN_MASK	(3u << 0)
+#define HASH_FILE_FLAG_HASHFN_DIV	(0u << 0)
 struct _hash_drv_spam_record;
 struct _hash_drv_header;
 struct hash_drv_extent {
@@ -55,7 +59,7 @@ struct _hash_drv_header
 {
   unsigned long hash_rec_max;
   struct _ds_spam_totals totals;
-  char padding[4]; /* Keep 8-byte alignment */
+  uint32_t flags;
 } __attribute__((__aligned__(8)));
 typedef struct _hash_drv_header *hash_drv_header_t;
 

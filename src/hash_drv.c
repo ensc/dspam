@@ -501,6 +501,7 @@ int _hash_drv_open(
   if (map->fd < 0 && recmaxifnew) {
     struct _hash_drv_header header = {
 	    .hash_rec_max	= roundup_hash_op(map, recmaxifnew),
+	    .flags		= HASH_FILE_FLAG_HASHFN_DIV,
     };
 
     map->fd = open(filename, O_CREAT|O_WRONLY|O_CLOEXEC, 0660);
@@ -1207,7 +1208,9 @@ static int _hash_drv_autoextend(
     int extents, 
     unsigned long last_extent_size)
 {
-  struct _hash_drv_header header;
+  struct _hash_drv_header header = {
+	  .flags	= HASH_FILE_FLAG_HASHFN_DIV,
+  };
   off_t lastsize;
   int rc;
   size_t i;
@@ -1228,8 +1231,6 @@ static int _hash_drv_autoextend(
 	  ext->header = NULL;
 	  ext->records = NULL;
   }
-
-  memset(&header, 0, sizeof(struct _hash_drv_header));
 
   if (extents == 0 || !map->pctincrease)
     header.hash_rec_max = map->extent_size;
@@ -1310,6 +1311,19 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 		return NULL;
 	}
 
+	switch (header->flags & HASH_FILE_FLAG_HASHFN_MASK) {
+	case HASH_FILE_FLAG_HASHFN_DIV:
+		ext->hash_fn = HASH_DRV_HASH_DIV;
+		ext->hash_op = header->hash_rec_max;
+		break;
+
+	default:
+		LOG(LOG_WARNING,
+		    "extent #%u@%zu: unknown hash-fn %x", idx, offset,
+		    header->flags);
+		return NULL;
+	}
+
 	ext->idx = idx;
 	ext->offset = offset;
 	ext->hash_rec_max = header->hash_rec_max;
@@ -1317,8 +1331,6 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 	ext->records = (void *)(&header[1]);
 	ext->next_offset  = sizeof *header + offset;
 	ext->next_offset += ext->hash_rec_max * sizeof ext->records[0];
-	ext->hash_fn = HASH_DRV_HASH_DIV;
-	ext->hash_op = header->hash_rec_max;
 
 	return ext;
 }
