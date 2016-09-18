@@ -126,6 +126,9 @@ dspam_init_driver (DRIVER_CTX *DTX)
     if (!MATCH_ATTRIB("HashNoHoles", "on"))
       flags |= HMAP_HOLES;
 
+    if (MATCH_ATTRIB("HashPow2", "on"))
+      flags |= HMAP_POW2;
+
     if (MATCH_ATTRIB("HashFallocate", "on"))
       flags |= HMAP_FALLOCATE;
 
@@ -471,8 +474,17 @@ static bool is_prime(unsigned long v)
 static unsigned long roundup_hash_op(struct _hash_drv_map const *map,
 				     unsigned long v)
 {
-	while (!is_prime(v) && v < ULONG_MAX)
-		++v;
+	if (map->flags & HMAP_POW2) {
+		if (v <= 1)
+			v = 0;
+		else
+			v = (sizeof(unsigned long) * 8 - __builtin_clzl(v - 1));
+
+		v = 1ul << v;
+	} else {
+		while (!is_prime(v) && v < ULONG_MAX)
+			++v;
+	}
 
 	return v;
 }
@@ -1209,7 +1221,9 @@ static int _hash_drv_autoextend(
     unsigned long last_extent_size)
 {
   struct _hash_drv_header header = {
-	  .flags	= HASH_FILE_FLAG_HASHFN_DIV,
+	  .flags	= ((map->flags & HMAP_POW2)
+			   ? HASH_FILE_FLAG_HASHFN_POW2_0
+			   : HASH_FILE_FLAG_HASHFN_DIV),
   };
   off_t lastsize;
   int rc;
@@ -1317,6 +1331,20 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 		ext->hash_op = header->hash_rec_max;
 		break;
 
+	case HASH_FILE_FLAG_HASHFN_POW2_0:
+		/* check whether power of two */
+		if (header->hash_rec_max == 0 ||
+		    (header->hash_rec_max & (header->hash_rec_max - 1)) != 0) {
+			LOG(LOG_WARNING,
+			    "extent #%u@%zu: invalid pow2-0 has_rec_max %lu",
+			    idx, offset, header->hash_rec_max);
+			return NULL;
+		}
+
+		ext->hash_fn = HASH_DRV_HASH_POW2_0;
+		ext->hash_op = ffs(header->hash_rec_max) - 1;
+		break;
+
 	default:
 		LOG(LOG_WARNING,
 		    "extent #%u@%zu: unknown hash-fn %x", idx, offset,
@@ -1335,10 +1363,27 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 	return ext;
 }
 
+static unsigned long calc_hash_pow2_0(unsigned long long code,
+				      unsigned int sft)
+{
+	unsigned int	i;
+	unsigned long	res = 0;
+
+	for (i = 0; i < 8 * sizeof code; i += sft) {
+		res   ^= code;
+		code >>= sft;
+	}
+
+	return res & ((1lu << sft) - 1);
+}
+
 static unsigned long calc_hash_value(struct hash_drv_extent const *ext,
 				     unsigned long long hashcode)
 {
 	switch (ext->hash_fn) {
+	case HASH_DRV_HASH_POW2_0:
+		return calc_hash_pow2_0(hashcode, ext->hash_op);
+
 	case HASH_DRV_HASH_DIV:
 		return hashcode % ext->hash_op;
 

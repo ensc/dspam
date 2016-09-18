@@ -38,6 +38,8 @@
 
 #define HASH_FILE_FLAG_HASHFN_MASK	(3u << 0)
 #define HASH_FILE_FLAG_HASHFN_DIV	(0u << 0)
+#define HASH_FILE_FLAG_HASHFN_POW2_0	(1u << 0)
+
 struct _hash_drv_spam_record;
 struct _hash_drv_header;
 struct hash_drv_extent {
@@ -51,6 +53,7 @@ struct hash_drv_extent {
 
 	enum {
 		HASH_DRV_HASH_DIV,
+		HASH_DRV_HASH_POW2_0,
 	}		hash_fn;
 	unsigned long	hash_op;
 };
@@ -150,5 +153,6 @@ _hash_drv_set_spamrecord (
 #define HMAP_AUTOEXTEND	0x01
 #define HMAP_HOLES	0x02
 #define HMAP_FALLOCATE	0x04
+#define HMAP_POW2	0x08
 
 #endif /* _HASH_DRV_H */

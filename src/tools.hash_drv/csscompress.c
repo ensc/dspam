@@ -125,6 +125,9 @@ int csscompress(const char *filename) {
   if (!MATCH_ATTRIB("HashNoHoles", "on"))
     flags |= HMAP_HOLES;
 
+  if (MATCH_ATTRIB("HashPow2", "on"))
+    flags |= HMAP_POW2;
+
   if (MATCH_ATTRIB("HashFallocate", "on"))
     flags |= HMAP_FALLOCATE;
 
