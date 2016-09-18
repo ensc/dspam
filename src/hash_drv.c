@@ -1321,7 +1321,7 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 }
 
 static struct _hash_drv_spam_record *_hash_drv_seek(
-  hash_drv_map_t map,
+  struct _hash_drv_map const *map,
   struct hash_drv_extent const *ext,
   unsigned long long hashcode,
   int flags)
