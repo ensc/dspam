@@ -34,6 +34,18 @@
 #define HASH_EXTENT_MAX 49157
 #define HASH_SEEK_MAX   100
 
+struct _hash_drv_spam_record;
+struct _hash_drv_header;
+struct hash_drv_extent {
+	unsigned long	hash_rec_max;
+	size_t		offset;
+	size_t		next_offset;
+	unsigned int	idx;
+
+	struct _hash_drv_header const	*header;
+	struct _hash_drv_spam_record	*records;
+};
+
 struct _hash_drv_header
 {
   unsigned long hash_rec_max;
@@ -53,6 +65,9 @@ typedef struct _hash_drv_map
   unsigned long extent_size;
   int pctincrease;
   int flags;
+
+  struct hash_drv_extent	*extents;
+  size_t			num_extents;
 } *hash_drv_map_t;
 
 struct _hash_drv_storage

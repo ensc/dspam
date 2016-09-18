@@ -529,6 +529,9 @@ int _hash_drv_open(
   map->extent_size = extent_size;
   map->pctincrease = pctincrease;
 
+  map->extents = NULL;
+  map->num_extents = 0;
+
   return 0;
 
 WRITE_ERROR:
@@ -550,6 +553,7 @@ _hash_drv_close(hash_drv_map_t map) {
     LOG(LOG_WARNING, "munmap failed on error %d: %s", r, strerror(errno));
   }
 
+  free(map->extents);
   close(map->fd);
 
   map->addr = 0;
@@ -1205,14 +1209,27 @@ static int _hash_drv_autoextend(
   struct _hash_drv_header header;
   off_t lastsize;
   int rc;
+  size_t i;
 
   if (map->addr) {
 	  munmap(map->addr, map->file_len);
 	  map->addr = NULL;
   }
 
+  /* HACK: _hash_drv_next_extent() can be called with a pointer of the
+   * previous extent when _hash_drv_autoextend() has been called. So we can
+   * not free the whole 'map->extends' but have to invalidate the pointers.
+   *
+   * TODO: store offset of 'header' and adjust it? */
+  for (i = 0; i < map->num_extents; ++i) {
+	  struct hash_drv_extent	*ext = &map->extents[i];
+
+	  ext->header = NULL;
+	  ext->records = NULL;
+  }
+
   memset(&header, 0, sizeof(struct _hash_drv_header));
-  
+
   if (extents == 0 || !map->pctincrease)
     header.hash_rec_max = map->extent_size;
   else
@@ -1232,12 +1249,37 @@ static int _hash_drv_autoextend(
   return hash_drv_mmap(map);
 }
 
-static struct _hash_drv_header const *
-_hash_drv_get_extent(hash_drv_map_t map, size_t offset)
+static struct hash_drv_extent *
+_hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 {
+	size_t				offset = prev ? prev->next_offset : 0;
+	unsigned int			idx = prev ? (prev->idx + 1) : 0;
 	struct _hash_drv_spam_record	*rec;
 	struct _hash_drv_header		*header;
 	unsigned long			rec_max;
+	struct hash_drv_extent		*ext;
+
+	if (map->num_extents <= idx) {
+		struct hash_drv_extent	*new;
+
+		new = realloc(map->extents, (idx + 1) * sizeof map->extents[0]);
+		if (!new) {
+			LOG(LOG_ERR,
+			    "failed to allocate cache for %u extents: %s",
+			    idx, strerror(errno));
+			return NULL;
+		}
+
+		memset(&new[map->num_extents], 0,
+		       (idx + 1 - map->num_extents) * sizeof map->extents[0]);
+
+		map->extents = new;
+		map->num_extents = idx + 1;
+	}
+
+	ext = &map->extents[idx];
+	if (ext->header)
+		return ext;
 
 	/* check whether header is within file */
 	if (SIZE_MAX - sizeof *header < offset ||
@@ -1267,19 +1309,27 @@ _hash_drv_get_extent(hash_drv_map_t map, size_t offset)
 		return NULL;
 	}
 
-	return header;
+	ext->idx = idx;
+	ext->offset = offset;
+	ext->hash_rec_max = header->hash_rec_max;
+	ext->header = header;
+	ext->records = (void *)(&header[1]);
+	ext->next_offset  = sizeof *header + offset;
+	ext->next_offset += ext->hash_rec_max * sizeof ext->records[0];
+
+	return ext;
 }
 
 static struct _hash_drv_spam_record *_hash_drv_seek(
   hash_drv_map_t map,
-  struct _hash_drv_header const *header,
+  struct hash_drv_extent const *ext,
   unsigned long long hashcode,
   int flags)
 {
   unsigned int iterations;
   struct _hash_drv_spam_record *rec = NULL;
-  struct _hash_drv_spam_record *start_rec = (void *)(&header[1]);
-  unsigned long const rec_max = header->hash_rec_max;
+  struct _hash_drv_spam_record *start_rec = ext->records;
+  unsigned long const rec_max = ext->hash_rec_max;
   unsigned long fpos = (hashcode % rec_max);
 
   for (iterations = map->max_seek; iterations > 0; --iterations) { /* Max Iterations  */
@@ -1313,8 +1363,7 @@ _hash_drv_set_spamrecord (
   hash_drv_spam_record_t wrec,
   unsigned long map_offset)
 {
-  hash_drv_spam_record_t rec = NULL;
-  unsigned long offset = 0, extents = 0, last_extent_size = 0;
+  hash_drv_spam_record_t rec;
 
   if (map->addr == NULL)
     return EINVAL;
@@ -1322,29 +1371,27 @@ _hash_drv_set_spamrecord (
   if (map_offset) {
     rec = (void *)((unsigned long) map->addr + map_offset);
   } else {
-    struct _hash_drv_header const *header;
+    struct hash_drv_extent const *ext = NULL;
 
-    while(!rec && offset < map->file_len)
-    {
-      header = _hash_drv_get_extent(map, offset);
-      if (!header)
+    do {
+      ext = _hash_drv_next_extent(map, ext);
+      if (!ext) {
+        rec = NULL;
 	break;
-
-      rec = _hash_drv_seek(map, header, wrec->hashcode, HSEEK_INSERT);
-      if (!rec) {
-        offset += sizeof(struct _hash_drv_header) +
-          (sizeof(struct _hash_drv_spam_record) * header->hash_rec_max);
-        last_extent_size = header->hash_rec_max;
-        extents++;
       }
-    }
+
+      rec = _hash_drv_seek(map, ext, wrec->hashcode, HSEEK_INSERT);
+    } while (!rec && ext->next_offset < map->file_len);
   
     if (!rec) {
+      if (!ext)
+        return EFAILURE;
+
       if (map->flags & HMAP_AUTOEXTEND) {
-        if (extents > map->max_extents && map->max_extents)
+        if (ext->idx >= map->max_extents && map->max_extents)
           goto FULL;
   
-        if (!_hash_drv_autoextend(map, extents-1, last_extent_size))
+        if (!_hash_drv_autoextend(map, ext->idx + 1, ext->hash_rec_max))
           return _hash_drv_set_spamrecord(map, wrec, map_offset);
         else
           return EFAILURE;
@@ -1369,26 +1416,21 @@ _hash_drv_get_spamrecord (
   hash_drv_map_t map,
   hash_drv_spam_record_t wrec)
 {
-  hash_drv_spam_record_t rec = NULL;
-  unsigned long offset = 0, extents = 0;
-  struct _hash_drv_header const *header;
+  hash_drv_spam_record_t rec;
+  struct hash_drv_extent const *ext = NULL;
 
   if (map->addr == NULL)
     return 0;
 
-  while(!rec && offset < map->file_len)
-  {
-    header = _hash_drv_get_extent(map, offset);
-    if (!header)
+  do {
+    ext = _hash_drv_next_extent(map, ext);
+    if (!ext) {
+	rec = NULL;
 	break;
-
-    rec = _hash_drv_seek(map, header, wrec->hashcode, 0);
-    if (!rec) {
-      offset += sizeof(struct _hash_drv_header) +
-        (sizeof(struct _hash_drv_spam_record) * header->hash_rec_max);
-      extents++;
     }
-  }
+
+    rec = _hash_drv_seek(map, ext, wrec->hashcode, 0);
+  } while (!rec && ext->next_offset < map->file_len);
 
   if (!rec)
     return 0;
