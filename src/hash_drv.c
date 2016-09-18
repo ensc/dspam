@@ -1300,9 +1300,8 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 	/* check whether header is within file */
 	if (SIZE_MAX - sizeof *header < offset ||
 	    map->file_len < offset + sizeof *header) {
-		LOG(LOG_WARNING,
-		    "offset %zu + header sz %zu invalid for file len %zu",
-		    offset, sizeof *header, map->file_len);
+		LOG(LOG_WARNING, "%s: extent #%u@%zu: file too short %zu",
+		    map->filename, idx, offset, map->file_len);
 		return NULL;
 	}
 
@@ -1312,16 +1311,17 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 
 	/* check for overflow */
 	if ((SIZE_MAX - offset - sizeof *header) / sizeof *rec < rec_max) {
-		LOG(LOG_WARNING, "hash_rec_max %lu will cause overflow",
-		    rec_max);
+		LOG(LOG_WARNING,
+		    "%s: extent #%u@%zu: %lu records (*%zu) will cause overflow",
+		    map->filename, idx, offset, rec_max, sizeof *rec);
 		return NULL;
 	}
 
 	/* check whether file is large enough for whole extent */
 	if (map->file_len < offset + sizeof *header + (rec_max * sizeof *rec)) {
-		LOG(LOG_WARNING, "extent @%zu+%zu*%zu not within file %zu",
-		    (offset + sizeof *header), rec_max, sizeof *rec,
-		    map->file_len);
+		LOG(LOG_WARNING,
+		    "%s: extent #%u@%zu: %lu records (*%zu) will exceed file with len %zu",
+		    map->filename, idx, offset, rec_max, sizeof *rec, map->file_len);
 		return NULL;
 	}
 
@@ -1336,8 +1336,8 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 		if (header->hash_rec_max == 0 ||
 		    (header->hash_rec_max & (header->hash_rec_max - 1)) != 0) {
 			LOG(LOG_WARNING,
-			    "extent #%u@%zu: invalid pow2-0 has_rec_max %lu",
-			    idx, offset, header->hash_rec_max);
+			    "%s: extent #%u@%zu: invalid pow2-0 has_rec_max %lu",
+			    map->filename, idx, offset, header->hash_rec_max);
 			return NULL;
 		}
 
@@ -1346,9 +1346,8 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 		break;
 
 	default:
-		LOG(LOG_WARNING,
-		    "extent #%u@%zu: unknown hash-fn %x", idx, offset,
-		    header->flags);
+		LOG(LOG_WARNING, "%s: extent #%u@%zu: unknown hash-fn %x",
+		    map->filename, idx, offset, header->flags);
 		return NULL;
 	}
 
