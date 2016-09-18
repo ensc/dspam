@@ -167,6 +167,10 @@ int csscompress(const char *filename) {
     header = offset;
   }
 
+  if ((flags & HMAP_HOLES) && reclen < ULONG_MAX / 4)
+	  /* increase 'reclen' by 50% when sparse files are created */
+	  reclen = reclen + reclen / 2;
+
   if (_hash_drv_open(newfile, &new, reclen,  max_seek,
                      max_extents, extent_size, pctincrease, flags))
   {
