@@ -38,6 +38,7 @@
 #endif
 
 #include <string.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -449,6 +450,32 @@ static int hash_drv_mmap(hash_drv_map_t map)
 	return 0;
 }
 
+static bool is_prime(unsigned long v)
+{
+	/* algorithm is very simple and can take a long time for large v.
+	 * Place an upper limit; we do not need perfect primes */
+	static unsigned long const	MAX_TEST = 10000;
+	unsigned long	f;
+
+	if (v > 2 && v % 2 == 0)
+		return false;
+
+	for (f = 3; f*f <= v && f < MAX_TEST; f += 2) {
+		if (v % f == 0)
+			return false;
+	}
+
+	return v >= 2;
+}
+
+static unsigned long roundup_prime(unsigned long v)
+{
+	while (!is_prime(v) && v < ULONG_MAX)
+		++v;
+
+	return v;
+}
+
 int _hash_drv_open(
   const char *filename, 
   hash_drv_map_t map, 
@@ -472,7 +499,7 @@ int _hash_drv_open(
 
   if (map->fd < 0 && recmaxifnew) {
     struct _hash_drv_header header = {
-	    .hash_rec_max	= recmaxifnew
+	    .hash_rec_max	= roundup_prime(recmaxifnew),
     };
 
     map->fd = open(filename, O_CREAT|O_WRONLY|O_CLOEXEC, 0660);
@@ -1191,6 +1218,8 @@ static int _hash_drv_autoextend(
   else
     header.hash_rec_max = last_extent_size
                    + (last_extent_size * (map->pctincrease/100.0));
+
+  header.hash_rec_max = roundup_prime(header.hash_rec_max);
 
   LOGDEBUG("adding extent last: %d(%ld) new: %d(%ld) pctincrease: %1.2f", extents, last_extent_size, extents+1, header.hash_rec_max, (map->pctincrease/100.0));
 
