@@ -44,6 +44,11 @@ struct hash_drv_extent {
 
 	struct _hash_drv_header const	*header;
 	struct _hash_drv_spam_record	*records;
+
+	enum {
+		HASH_DRV_HASH_DIV,
+	}		hash_fn;
+	unsigned long	hash_op;
 };
 
 struct _hash_drv_header

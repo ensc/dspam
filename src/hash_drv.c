@@ -468,7 +468,8 @@ static bool is_prime(unsigned long v)
 	return v >= 2;
 }
 
-static unsigned long roundup_prime(unsigned long v)
+static unsigned long roundup_hash_op(struct _hash_drv_map const *map,
+				     unsigned long v)
 {
 	while (!is_prime(v) && v < ULONG_MAX)
 		++v;
@@ -499,7 +500,7 @@ int _hash_drv_open(
 
   if (map->fd < 0 && recmaxifnew) {
     struct _hash_drv_header header = {
-	    .hash_rec_max	= roundup_prime(recmaxifnew),
+	    .hash_rec_max	= roundup_hash_op(map, recmaxifnew),
     };
 
     map->fd = open(filename, O_CREAT|O_WRONLY|O_CLOEXEC, 0660);
@@ -1236,7 +1237,7 @@ static int _hash_drv_autoextend(
     header.hash_rec_max = last_extent_size
                    + (last_extent_size * (map->pctincrease/100.0));
 
-  header.hash_rec_max = roundup_prime(header.hash_rec_max);
+  header.hash_rec_max = roundup_hash_op(map, header.hash_rec_max);
 
   LOGDEBUG("adding extent last: %d(%ld) new: %d(%ld) pctincrease: %1.2f", extents, last_extent_size, extents+1, header.hash_rec_max, (map->pctincrease/100.0));
 
@@ -1316,8 +1317,22 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 	ext->records = (void *)(&header[1]);
 	ext->next_offset  = sizeof *header + offset;
 	ext->next_offset += ext->hash_rec_max * sizeof ext->records[0];
+	ext->hash_fn = HASH_DRV_HASH_DIV;
+	ext->hash_op = header->hash_rec_max;
 
 	return ext;
+}
+
+static unsigned long calc_hash_value(struct hash_drv_extent const *ext,
+				     unsigned long long hashcode)
+{
+	switch (ext->hash_fn) {
+	case HASH_DRV_HASH_DIV:
+		return hashcode % ext->hash_op;
+
+	default:
+		return ULONG_MAX;	/* will trigger errors */
+	}
 }
 
 static struct _hash_drv_spam_record *_hash_drv_seek(
@@ -1330,7 +1345,7 @@ static struct _hash_drv_spam_record *_hash_drv_seek(
   struct _hash_drv_spam_record *rec = NULL;
   struct _hash_drv_spam_record *start_rec = ext->records;
   unsigned long const rec_max = ext->hash_rec_max;
-  unsigned long fpos = (hashcode % rec_max);
+  unsigned long fpos = calc_hash_value(ext, hashcode);
 
   if (fpos >= rec_max) {
 	  LOG(LOG_WARNING,
