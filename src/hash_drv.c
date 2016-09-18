@@ -1332,6 +1332,14 @@ static struct _hash_drv_spam_record *_hash_drv_seek(
   unsigned long const rec_max = ext->hash_rec_max;
   unsigned long fpos = (hashcode % rec_max);
 
+  if (fpos >= rec_max) {
+	  LOG(LOG_WARNING,
+	      "internal error: can not calculate pos for 0x%llx in extent #%u (mod %lu)",
+	      hashcode, ext->idx, rec_max);
+
+	  return NULL;
+  }
+
   for (iterations = map->max_seek; iterations > 0; --iterations) { /* Max Iterations  */
 	  rec = &start_rec[fpos];
 
