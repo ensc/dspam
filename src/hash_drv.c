@@ -1215,12 +1215,26 @@ _ds_delall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   return 0;
 }
 
+static unsigned long calculate_next_rec_max(struct _hash_drv_map const *map,
+					    struct hash_drv_extent const *ext)
+{
+	unsigned long	res;
+
+	if (!ext)
+		res = map->extent_size;
+	else
+		res = (ext->hash_rec_max
+		       + (ext->hash_rec_max * (map->pctincrease/100.0)));
+
+	return roundup_hash_op(map, res);
+}
+
 static int _hash_drv_autoextend(
     hash_drv_map_t map, 
-    int extents, 
-    unsigned long last_extent_size)
+    struct hash_drv_extent const *prev_ext)
 {
   struct _hash_drv_header header = {
+	  .hash_rec_max	= calculate_next_rec_max(map, prev_ext),
 	  .flags	= ((map->flags & HMAP_POW2)
 			   ? HASH_FILE_FLAG_HASHFN_POW2_0
 			   : HASH_FILE_FLAG_HASHFN_DIV),
@@ -1246,15 +1260,11 @@ static int _hash_drv_autoextend(
 	  ext->records = NULL;
   }
 
-  if (extents == 0 || !map->pctincrease)
-    header.hash_rec_max = map->extent_size;
-  else
-    header.hash_rec_max = last_extent_size
-                   + (last_extent_size * (map->pctincrease/100.0));
-
-  header.hash_rec_max = roundup_hash_op(map, header.hash_rec_max);
-
-  LOGDEBUG("adding extent last: %d(%ld) new: %d(%ld) pctincrease: %1.2f", extents, last_extent_size, extents+1, header.hash_rec_max, (map->pctincrease/100.0));
+  LOGDEBUG("%s: adding extent #%u, size %ld (%ld + %1.2f%%)",
+	   map->filename, prev_ext ? prev_ext->idx + 1 : 0,
+	   header.hash_rec_max,
+	   prev_ext ? prev_ext->hash_rec_max : map->extent_size,
+	   (map->pctincrease/100.0));
 
   lastsize=lseek (map->fd, 0, SEEK_END);
   rc = _hash_drv_allocate(map, lastsize, &header);
@@ -1482,7 +1492,7 @@ _hash_drv_set_spamrecord (
         if (ext->idx >= map->max_extents && map->max_extents)
           goto FULL;
   
-        if (!_hash_drv_autoextend(map, ext->idx + 1, ext->hash_rec_max))
+        if (!_hash_drv_autoextend(map, ext))
           return _hash_drv_set_spamrecord(map, wrec, map_offset);
         else
           return EFAILURE;
