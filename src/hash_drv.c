@@ -62,6 +62,8 @@
 #   endif
 #endif
 
+#include <sys/mman.h>
+
 #include "storage_driver.h"
 #include "config_shared.h"
 #include "hash_drv.h"
@@ -1548,6 +1550,21 @@ _hash_drv_get_spamrecord (
   wrec->nonspam  = rec->nonspam;
   wrec->spam     = rec->spam;
   return (uintptr_t)rec - (uintptr_t)(map->addr);
+}
+
+void hash_drv_ext_prefetch(struct hash_drv_extent const *ext)
+{
+	static uintptr_t	PAGE_SZ = 0;
+	uintptr_t		addr = (uintptr_t)ext->records;
+
+	if (PAGE_SZ == 0)
+		PAGE_SZ = sysconf(_SC_PAGESIZE);
+	if (PAGE_SZ == 0)
+		return;
+
+	addr &= ~(PAGE_SZ - 1);
+	madvise((void *)addr, ext->num_records * sizeof ext->records[0],
+		MADV_SEQUENTIAL);
 }
 
 int

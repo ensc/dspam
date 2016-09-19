@@ -175,6 +175,8 @@ int cssconvert(const char *filename) {
 	  if (!ext)
 		  break;
 
+	  hash_drv_ext_prefetch(ext);
+
 	  for (i = 0; i < ext->num_records; ++i) {
 		  int		rc;
 

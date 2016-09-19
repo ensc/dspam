@@ -210,6 +210,8 @@ int cssclean(const char *filename, int heavy) {
 	  if (ext->is_broken)
 		  LOG(LOG_INFO, "css file was corrupted, fixing it now");
 
+	  hash_drv_ext_prefetch(ext);
+
 	  for (i = 0; i < ext->num_records; ++i) {
 		  rec = &ext->records[i];
 

@@ -163,6 +163,8 @@ int csscompress(const char *filename) {
 	  if (!ext)
 		  break;
 
+	  hash_drv_ext_prefetch(ext);
+
 	  for (i = 0; i < ext->num_records; ++i) {
 		  rec = &ext->records[i];
 
@@ -215,6 +217,8 @@ int csscompress(const char *filename) {
 
 	  printf("compressing %lu records in extent %u\n",
 		 ext->num_records, ext->idx);
+
+	  hash_drv_ext_prefetch(ext);
 
 	  for (i = 0; i < ext->num_records; ++i) {
 		  rec = &ext->records[i];

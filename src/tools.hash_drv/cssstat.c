@@ -139,6 +139,8 @@ int cssstat(const char *filename) {
 		 ext->num_records,
 		 ext->is_broken ? " (BROKEN)" : "");
 
+	  hash_drv_ext_prefetch(ext);
+
 	  efree = eused = 0;
 	  for (i = 0; i < ext->num_records; ++i) {
 		  rec = &ext->records[i];

@@ -164,6 +164,8 @@ hash_drv_ext_is_eof(struct _hash_drv_map const *map,
 	return ext->is_broken || ext->next_offset >= map->file_len;
 }
 
+void hash_drv_ext_prefetch(struct hash_drv_extent const *ext);
+
 #define HSEEK_INSERT	0x01
 
 #define HMAP_AUTOEXTEND	0x01
