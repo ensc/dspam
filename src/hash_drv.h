@@ -151,6 +151,9 @@ _hash_drv_set_spamrecord (
   hash_drv_spam_record_t wrec,
   unsigned long map_offset);
 
+struct hash_drv_extent *
+_hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev);
+
 #define HSEEK_INSERT	0x01
 
 #define HMAP_AUTOEXTEND	0x01

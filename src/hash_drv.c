@@ -1265,7 +1265,7 @@ static int _hash_drv_autoextend(
   return hash_drv_mmap(map);
 }
 
-static struct hash_drv_extent *
+struct hash_drv_extent *
 _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 {
 	size_t				offset = prev ? prev->next_offset : 0;
