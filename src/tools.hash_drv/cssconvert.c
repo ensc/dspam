@@ -159,6 +159,9 @@ int cssconvert(const char *filename) {
     return EFAILURE;
   }
 
+  flags &= ~(HMAP_HOLES);
+  flags |= HMAP_FALLOCATE;
+
   if (_hash_drv_open(newfile, &new, hash_rec_max, max_seek,
                      max_extents, extent_size, pctincrease, flags))
   {

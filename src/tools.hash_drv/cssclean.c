@@ -171,6 +171,9 @@ int cssclean(const char *filename, int heavy) {
 		     flags | HMAP_ALLOW_BROKEN))
     goto end;
 
+  flags &= ~(HMAP_HOLES);
+  flags |= HMAP_FALLOCATE;
+
   if (_hash_drv_open(newfile, &new, hash_rec_max, max_seek,
                      max_extents, extent_size, pctincrease, flags)) {
     _hash_drv_close(&old);

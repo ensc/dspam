@@ -171,6 +171,9 @@ int csscompress(const char *filename) {
 	  }
   } while (!hash_drv_ext_is_eof(&old, ext));
 
+  flags &= ~(HMAP_HOLES);
+  flags |= HMAP_FALLOCATE;
+
   if (reclen < HASH_RECLEN_MAX / 4)
 	  reclen *= 4;
   else
