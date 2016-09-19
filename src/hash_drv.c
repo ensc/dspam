@@ -1330,6 +1330,8 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 			 map->filename, idx, offset, rec_max, sizeof *rec, map->file_len);
 
 		ext->is_broken = true;
+		ext->num_records = ((map->file_len - offset - sizeof *header)
+				    / sizeof *rec);
 	}
 
 	switch (header->flags & HASH_FILE_FLAG_HASHFN_MASK) {
@@ -1365,6 +1367,9 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 	ext->records = (void *)(&header[1]);
 	ext->next_offset  = sizeof *header + offset;
 	ext->next_offset += ext->hash_rec_max * sizeof ext->records[0];
+
+	if (!ext->is_broken)
+		ext->num_records = ext->hash_rec_max;
 
 	return ext;
 }
