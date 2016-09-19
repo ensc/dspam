@@ -98,12 +98,10 @@ int main(int argc, char *argv[]) {
 
 int cssclean(const char *filename, int heavy) {
   unsigned long i;
-  hash_drv_header_t header;
   FILE* lockfile = NULL;
-  void *offset;
   struct _hash_drv_map old, new;
   hash_drv_spam_record_t rec;
-  unsigned long filepos;
+  struct hash_drv_extent const *ext;
   char *dir = NULL;
   char newfile[512];
   struct stat st;
@@ -169,7 +167,8 @@ int cssclean(const char *filename, int heavy) {
     goto end;
 
   if (_hash_drv_open(filename, &old, 0, max_seek,
-                     max_extents, extent_size, pctincrease, flags))
+                     max_extents, extent_size, pctincrease,
+		     flags | HMAP_ALLOW_BROKEN))
     goto end;
 
   if (_hash_drv_open(newfile, &new, hash_rec_max, max_seek,
@@ -195,66 +194,58 @@ int cssclean(const char *filename, int heavy) {
     goto end;
   }
 
-  filepos = sizeof(struct _hash_drv_header);
-  header = old.addr;
-  while(filepos < old.file_len) {
-    for(i=0;i<header->hash_rec_max&&filepos+sizeof(*rec)-1<=old.file_len;i++) {
-      rec = (void *)((unsigned long) old.addr + filepos);
+  ext = NULL;
+  do {
+	  ext = _hash_drv_next_extent(&old, ext);
+	  if (!ext)
+		  break;
 
-      nonspam = rec->nonspam & 0x0fffffff;
-      spam = rec->spam & 0x0fffffff;
-      cntr = ((rec->nonspam>>28) & 0x0f) |
-             ((rec->spam>>24) & 0xf0);
+	  if (ext->is_broken)
+		  LOG(LOG_INFO, "css file was corrupted, fixing it now");
 
-      if(cntr<255)cntr++;
-      rec->nonspam=nonspam|((cntr&0x0f)<<28);
-      rec->spam=spam|((cntr&0xf0)<<24);
+	  for (i = 0; i < ext->num_records; ++i) {
+		  rec = &ext->records[i];
 
-      if(nonspam+spam>0)
-        prb=(abs(nonspam-spam)*1000)/(nonspam+spam);
-      else
-        prb=1000;
+		  nonspam = rec->nonspam & 0x0fffffff;
+		  spam = rec->spam & 0x0fffffff;
+		  cntr = ((rec->nonspam>>28) & 0x0f) |
+			  ((rec->spam>>24) & 0xf0);
 
-      drop=0;
+		  if(cntr<255)cntr++;
+		  rec->nonspam=nonspam|((cntr&0x0f)<<28);
+		  rec->spam=spam|((cntr&0xf0)<<24);
 
-      if(heavy) {
-        if( (nonspam+spam<=1) ||
-            (prb<100)
-          )drop=1;
-      }
-      else {
-        if( ((nonspam*2+spam<5)&&(cntr>60)) ||
-            ((nonspam+spam<=1)&&(cntr>15))  ||
-            ((prb<200)&&(cntr>15)) ||
-            (cntr>120)
-          ) drop=1;
-      }
+		  if(nonspam+spam>0)
+			  prb=(abs(nonspam-spam)*1000)/(nonspam+spam);
+		  else
+			  prb=1000;
 
-      if (rec->hashcode && !drop) {
-        if (_hash_drv_set_spamrecord(&new, rec, 0)) {
-          LOG(LOG_WARNING, "aborting on error");
-          _hash_drv_close(&new);
-          _hash_drv_close(&old);
-          unlink(newfile);
-          goto end;
-        }
-      }
-      filepos += sizeof(struct _hash_drv_spam_record);
-    }
-    if (i<header->hash_rec_max) {
-      struct _hash_drv_header *new_header;
-      LOG(LOG_INFO, "css file was corrupted, fixing it now");
-      if (header == old.addr)
-	new_header = old.addr;
-      else
-        new_header = header;
+		  drop=0;
 
-      new_header->hash_rec_max = i;
-    }
-    offset = (void *)((unsigned long) old.addr + filepos);
-    header = offset;
-    filepos += sizeof(struct _hash_drv_header);
-  }
+		  if(heavy) {
+			  if( (nonspam+spam<=1) ||
+			      (prb<100)
+				  )drop=1;
+		  }
+		  else {
+			  if( ((nonspam*2+spam<5)&&(cntr>60)) ||
+			      ((nonspam+spam<=1)&&(cntr>15))  ||
+			      ((prb<200)&&(cntr>15)) ||
+			      (cntr>120)
+				  ) drop=1;
+		  }
+
+		  if (rec->hashcode && !drop) {
+			  if (_hash_drv_set_spamrecord(&new, rec, 0)) {
+				  LOG(LOG_WARNING, "aborting on error");
+				  _hash_drv_close(&new);
+				  _hash_drv_close(&old);
+				  unlink(newfile);
+				  goto end;
+			  }
+		  }
+	  }
+  } while (!hash_drv_ext_is_eof(&old, ext));
 
   _hash_drv_close(&new);
   _hash_drv_close(&old);

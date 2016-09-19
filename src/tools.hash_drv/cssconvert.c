@@ -102,11 +102,9 @@ int main(int argc, char *argv[]) {
 
 int cssconvert(const char *filename) {
   unsigned long i;
-  hash_drv_header_t header;
-  void *offset;
+  struct hash_drv_extent const *ext;
   struct _hash_drv_map old, new;
   hash_drv_spam_record_t rec;
-  unsigned long filepos;
   char newfile[128];
   char *filenamecopy;
   unsigned long hash_rec_max = HASH_REC_MAX;
@@ -155,7 +153,8 @@ int cssconvert(const char *filename) {
   snprintf(newfile, sizeof(newfile), "/%s/.dspam%u.css", dirname((char *)filenamecopy), (unsigned int) getpid());
 
   if (_hash_drv_open(filename, &old, 0, max_seek,
-                     max_extents, extent_size, pctincrease, flags))
+                     max_extents, extent_size, pctincrease,
+		     flags | HMAP_ALLOW_BROKEN))
   {
     return EFAILURE;
   }
@@ -167,24 +166,24 @@ int cssconvert(const char *filename) {
     return EFAILURE;
   }
 
-  filepos = sizeof(struct _old_hash_drv_header);
-  header = old.addr;
-  while(filepos < old.file_len) {
-    for(i=0;i<header->hash_rec_max;i++) {
-      rec = (void *)((unsigned long) old.addr + filepos);
-      if (_hash_drv_set_spamrecord(&new, rec, 0)) {
-        LOG(LOG_WARNING, "aborting on error");
-        _hash_drv_close(&new);
-        _hash_drv_close(&old);
-        unlink(newfile);
-        return EFAILURE;
-      }
-      filepos += sizeof(struct _hash_drv_spam_record);
-    }
-    offset = (void *)((unsigned long) old.addr + filepos);
-    header = offset;
-    filepos += sizeof(struct _old_hash_drv_header);
-  }
+  ext = NULL;
+  do {
+	  ext = _hash_drv_next_extent(&old, ext);
+	  if (!ext)
+		  break;
+
+	  for (i = 0; i < ext->num_records; ++i) {
+		  rec = &ext->records[i];
+
+		  if (_hash_drv_set_spamrecord(&new, rec, 0)) {
+			  LOG(LOG_WARNING, "aborting on error");
+			  _hash_drv_close(&new);
+			  _hash_drv_close(&old);
+			  unlink(newfile);
+			  return EFAILURE;
+		  }
+	  }
+  } while (!hash_drv_ext_is_eof(&old, ext));
 
   _hash_drv_close(&new);
   _hash_drv_close(&old);

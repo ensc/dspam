@@ -96,12 +96,10 @@ int main(int argc, char *argv[]) {
 
 int csscompress(const char *filename) {
   unsigned long i;
-  hash_drv_header_t header;
-  void *offset;
-  unsigned long reclen, extent = 0;
+  struct hash_drv_extent const *ext;
+  unsigned long reclen;
   struct _hash_drv_map old, new;
   hash_drv_spam_record_t rec;
-  unsigned long filepos;
   char newfile[128];
   struct stat st;
   char *filenamecopy;
@@ -154,21 +152,19 @@ int csscompress(const char *filename) {
     goto end;
 
   if (_hash_drv_open(filename, &old, 0, max_seek,
-                     max_extents, extent_size, pctincrease, flags))
+                     max_extents, extent_size, pctincrease,
+		     flags | HMAP_ALLOW_BROKEN))
     goto end;
 
-  /* determine total record length */
-  header = old.addr;
+  ext = NULL;
   reclen = 0;
-  while((unsigned long) header < (unsigned long) ((unsigned long) old.addr + old.file_len)) {
-    unsigned long max = header->hash_rec_max;
-    reclen += max;
-    offset = header;
-    offset = (void *)((unsigned long) offset + sizeof(struct _hash_drv_header));
-    max *= sizeof(struct _hash_drv_spam_record);
-    offset = (void *)((unsigned long) offset + max);
-    header = offset;
-  }
+  do {
+	  ext = _hash_drv_next_extent(&old, ext);
+	  if (!ext)
+		  break;
+
+	  reclen += ext->num_records;
+  } while (!hash_drv_ext_is_eof(&old, ext));
 
   if ((flags & HMAP_HOLES) && reclen < ULONG_MAX / 4)
 	  /* increase 'reclen' by 50% when sparse files are created */
@@ -202,28 +198,29 @@ int csscompress(const char *filename) {
     goto end;
   }
 
-  filepos = sizeof(struct _hash_drv_header);
-  header = old.addr;
-  while(filepos < old.file_len) {
-    printf("compressing %lu records in extent %lu\n", header->hash_rec_max, extent);
-    extent++;
-    for(i=0;i<header->hash_rec_max;i++) {
-      rec = (void *)((unsigned long) old.addr + filepos);
-      if (rec->hashcode) {
-        if (_hash_drv_set_spamrecord(&new, rec, 0)) {
-          LOG(LOG_WARNING, "aborting on error");
-          _hash_drv_close(&new);
-          _hash_drv_close(&old);
-          unlink(newfile);
-	  goto end;
-        }
-      }
-      filepos += sizeof(struct _hash_drv_spam_record);
-    }
-    offset = (void *)((unsigned long) old.addr + filepos);
-    header = offset;
-    filepos += sizeof(struct _hash_drv_header);
-  }
+  ext = NULL;
+  do {
+	  ext = _hash_drv_next_extent(&old, ext);
+	  if (!ext)
+		  break;
+
+	  printf("compressing %lu records in extent %u\n",
+		 ext->num_records, ext->idx);
+
+	  for (i = 0; i < ext->num_records; ++i) {
+		  rec = &ext->records[i];
+
+		  if (rec->hashcode) {
+			  if (_hash_drv_set_spamrecord(&new, rec, 0)) {
+				  LOG(LOG_WARNING, "aborting on error");
+				  _hash_drv_close(&new);
+				  _hash_drv_close(&old);
+				  unlink(newfile);
+				  goto end;
+			  }
+		  }
+	  }
+  } while (!hash_drv_ext_is_eof(&old, ext));
 
   _hash_drv_close(&new);
   _hash_drv_close(&old);

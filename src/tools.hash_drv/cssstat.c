@@ -97,9 +97,8 @@ int main(int argc, char *argv[]) {
 
 int cssstat(const char *filename) {
   struct _hash_drv_map map;
-  hash_drv_header_t header;
+  struct hash_drv_extent const *ext;
   hash_drv_spam_record_t rec;
-  unsigned long filepos = sizeof(struct _hash_drv_header);
   unsigned long nfree = 0, nused = 0;
   unsigned long efree, eused;
   unsigned long extents = 0;
@@ -123,36 +122,38 @@ int cssstat(const char *filename) {
      max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
 
   if (_hash_drv_open(filename, &map, 0, max_seek, 
-                     max_extents, extent_size, 0, flags))
+                     max_extents, extent_size, 0, flags | HMAP_ALLOW_BROKEN))
   {
     return EFAILURE;
   }
 
-  header = map.addr;
   printf("filename %s length %ld\n", filename, (long) map.file_len);
 
-  while(filepos < map.file_len) {
-    printf("extent %lu: record length %lu\n", extents,
-      (unsigned long) header->hash_rec_max);
-    efree = eused = 0;
-    for(i=0;i<header->hash_rec_max;i++) {
-      rec = (void *) ((unsigned long) map.addr + filepos);
-      if (rec->hashcode) {
-        eused++;
-        nused++;
-      } else {
-        efree++;
-        nfree++;
-      }
-      filepos += sizeof(struct _hash_drv_spam_record);
-    }
-    header = (void *) ((unsigned long) map.addr + filepos);
-    filepos += sizeof(struct _hash_drv_header);
-    extents++;
+  ext = NULL;
+  do {
+	  ext = _hash_drv_next_extent(&map, ext);
+	  if (!ext)
+		  break;
 
-    printf("\textent records used %lu\n", eused);
-    printf("\textent records free %lu\n", efree);
-  }
+	  printf("extent %u: record length %lu%s\n", ext->idx,
+		 ext->num_records,
+		 ext->is_broken ? " (BROKEN)" : "");
+
+	  efree = eused = 0;
+	  for (i = 0; i < ext->num_records; ++i) {
+		  rec = &ext->records[i];
+		  if (rec->hashcode) {
+			  eused++;
+			  nused++;
+		  } else {
+			  efree++;
+			  nfree++;
+		  }
+	  }
+
+	  printf("\textent records used %lu\n", eused);
+	  printf("\textent records free %lu\n", efree);
+  } while (!hash_drv_ext_is_eof(&map, ext));
 
   _hash_drv_close(&map);
 
