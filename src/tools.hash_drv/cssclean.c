@@ -177,8 +177,12 @@ int cssclean(const char *filename, int heavy) {
     goto end;
   }
 
-  /* preserve counters */
-  memcpy(new.addr, old.addr, sizeof(struct _hash_drv_header));
+  /* preserve counters, permissions, and ownership */
+  {
+	  struct _hash_drv_header const	*old_hdr = old.addr;
+	  struct _hash_drv_header	*new_hdr = new.addr;
+	  memcpy(&new_hdr->totals, &old_hdr->totals, sizeof new_hdr->totals);
+  }
 
   if (fchown(new.fd, st.st_uid, st.st_gid) < 0) {
     _hash_drv_close(&new);
