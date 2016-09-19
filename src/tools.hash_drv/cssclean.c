@@ -244,6 +244,13 @@ int cssclean(const char *filename, int heavy) {
 				  unlink(newfile);
 				  goto end;
 			  }
+
+			  if (rc) {
+				  LOG(LOG_DEBUG,
+				      "%s: extent #%u@%zu+%lu: hashcode %llx already used",
+				      old.filename, ext->idx, ext->offset, i,
+				      rec->hashcode);
+			  }
 		  }
 	  }
   } while (!hash_drv_ext_is_eof(&old, ext));
