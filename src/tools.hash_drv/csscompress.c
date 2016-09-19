@@ -171,9 +171,10 @@ int csscompress(const char *filename) {
 	  }
   } while (!hash_drv_ext_is_eof(&old, ext));
 
-  if ((flags & HMAP_HOLES) && reclen < ULONG_MAX / 4)
-	  /* increase 'reclen' by 50% when sparse files are created */
-	  reclen = reclen + reclen / 2;
+  if (reclen < HASH_RECLEN_MAX / 4)
+	  reclen *= 4;
+  else
+	  reclen = HASH_RECLEN_MAX;
 
   if (_hash_drv_open(newfile, &new, reclen,  max_seek,
                      max_extents, extent_size, pctincrease, flags))

@@ -33,6 +33,8 @@
 #include "nodetree.h"
 #include "libdspam.h"
 
+#define HASH_RECLEN_MAX	(60*1024*1024)
+
 #define HASH_REC_MAX	98317
 #define HASH_EXTENT_MAX 49157
 #define HASH_SEEK_MAX   100
