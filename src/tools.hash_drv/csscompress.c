@@ -163,7 +163,12 @@ int csscompress(const char *filename) {
 	  if (!ext)
 		  break;
 
-	  reclen += ext->num_records;
+	  for (i = 0; i < ext->num_records; ++i) {
+		  rec = &ext->records[i];
+
+		  if (rec->hashcode)
+			  ++reclen;
+	  }
   } while (!hash_drv_ext_is_eof(&old, ext));
 
   if ((flags & HMAP_HOLES) && reclen < ULONG_MAX / 4)
