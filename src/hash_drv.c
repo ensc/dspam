@@ -1319,10 +1319,17 @@ _hash_drv_next_extent(hash_drv_map_t map, struct hash_drv_extent const *prev)
 
 	/* check whether file is large enough for whole extent */
 	if (map->file_len < offset + sizeof *header + (rec_max * sizeof *rec)) {
-		LOG(LOG_WARNING,
-		    "%s: extent #%u@%zu: %lu records (*%zu) will exceed file with len %zu",
-		    map->filename, idx, offset, rec_max, sizeof *rec, map->file_len);
-		return NULL;
+		if (!(map->flags & HMAP_ALLOW_BROKEN)) {
+			LOG(LOG_WARNING,
+			    "%s: extent #%u@%zu: %lu records (*%zu) will exceed file with len %zu",
+			    map->filename, idx, offset, rec_max, sizeof *rec, map->file_len);
+			return NULL;
+		}
+
+		LOGDEBUG("%s: extent #%u@%zu: %lu records (*%zu) will exceed file with len %zu",
+			 map->filename, idx, offset, rec_max, sizeof *rec, map->file_len);
+
+		ext->is_broken = true;
 	}
 
 	switch (header->flags & HASH_FILE_FLAG_HASHFN_MASK) {

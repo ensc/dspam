@@ -27,6 +27,7 @@
 #endif
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "config.h"
 #include "nodetree.h"
@@ -56,6 +57,8 @@ struct hash_drv_extent {
 		HASH_DRV_HASH_POW2_0,
 	}		hash_fn;
 	unsigned long	hash_op;
+
+	bool		is_broken;
 };
 
 struct _hash_drv_header
@@ -154,5 +157,6 @@ _hash_drv_set_spamrecord (
 #define HMAP_HOLES	0x02
 #define HMAP_FALLOCATE	0x04
 #define HMAP_POW2	0x08
+#define HMAP_ALLOW_BROKEN	0x10
 
 #endif /* _HASH_DRV_H */
