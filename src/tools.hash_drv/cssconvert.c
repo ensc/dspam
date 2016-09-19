@@ -173,9 +173,12 @@ int cssconvert(const char *filename) {
 		  break;
 
 	  for (i = 0; i < ext->num_records; ++i) {
-		  rec = &ext->records[i];
+		  int		rc;
 
-		  if (_hash_drv_set_spamrecord(&new, rec, 0)) {
+		  rec = &ext->records[i];
+		  rc = _hash_drv_set_spamrecord(&new, rec, 0);
+
+		  if (rc < 0) {
 			  LOG(LOG_WARNING, "aborting on error");
 			  _hash_drv_close(&new);
 			  _hash_drv_close(&old);

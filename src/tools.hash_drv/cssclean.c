@@ -236,7 +236,8 @@ int cssclean(const char *filename, int heavy) {
 		  }
 
 		  if (rec->hashcode && !drop) {
-			  if (_hash_drv_set_spamrecord(&new, rec, 0)) {
+			  rc = _hash_drv_set_spamrecord(&new, rec, 0);
+			  if (rc < 0) {
 				  LOG(LOG_WARNING, "aborting on error");
 				  _hash_drv_close(&new);
 				  _hash_drv_close(&old);

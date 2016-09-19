@@ -869,6 +869,7 @@ _ds_set_spamrecord (
 {
   struct _hash_drv_spam_record rec;
   struct _hash_drv_storage *s = (struct _hash_drv_storage *) CTX->storage;
+  int rc;
 
   rec.hashcode = token;
   rec.nonspam = (stat->innocent_hits > 0) ? stat->innocent_hits : 0;
@@ -877,7 +878,11 @@ _ds_set_spamrecord (
   if(rec.nonspam>0x0fffffff)rec.nonspam=0x0fffffff;
   if(rec.spam>0x0fffffff)rec.spam=0x0fffffff;
 
-  return _hash_drv_set_spamrecord(s->map, &rec, stat->offset);
+  rc = _hash_drv_set_spamrecord(s->map, &rec, stat->offset);
+  if (rc < 0)
+	  return rc;
+
+  return 0;
 }
 
 int
@@ -1465,6 +1470,7 @@ _hash_drv_set_spamrecord (
   unsigned long map_offset)
 {
   hash_drv_spam_record_t rec;
+  int rc;
 
   if (map->addr == NULL)
     return EINVAL;
@@ -1501,11 +1507,14 @@ _hash_drv_set_spamrecord (
       }
     }
   }
+
+  rc = rec->hashcode ? 1 : 0;
+
   rec->hashcode = wrec->hashcode;
   rec->nonspam  = wrec->nonspam;
   rec->spam     = wrec->spam;
 
-  return 0;
+  return rc;
 
 FULL:
   LOG(LOG_WARNING, "hash table %s full", map->filename);
