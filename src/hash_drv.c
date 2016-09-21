@@ -818,7 +818,8 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
 {
   ds_term_t ds_term;
   ds_cursor_t ds_c;
-  int ret = EUNKNOWN;
+  int ret = 0;
+  bool is_noop = true;
 
   if (diction == NULL || CTX == NULL)
     return EINVAL;
@@ -834,6 +835,7 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
+    int rc;
     if (!(ds_term->s.status & TST_DIRTY)) {  
       ds_term = ds_diction_next(ds_c);
       continue;
@@ -854,11 +856,17 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
     if (ds_term->s.innocent_hits > CTX->totals.innocent_learned)
       ds_term->s.innocent_hits = CTX->totals.innocent_learned;
 
-    if (!_ds_set_spamrecord (CTX, ds_term->key, &ds_term->s))
-      ret = 0;
+    rc = _ds_set_spamrecord (CTX, ds_term->key, &ds_term->s);
+    if (rc < 0 && ret == 0)
+      ret = rc;
     ds_term = ds_diction_next(ds_c);
+
+    is_noop = false;
   }
   ds_diction_close(ds_c);
+
+  if (is_noop)
+	  LOG(LOG_DEBUG, "%s: no actions executed", __func__);
 
   return ret;
 }
@@ -881,8 +889,11 @@ _ds_set_spamrecord (
   if(rec.spam>0x0fffffff)rec.spam=0x0fffffff;
 
   rc = _hash_drv_set_spamrecord(s->map, &rec, stat->offset);
-  if (rc < 0)
+  if (rc < 0) {
+	  LOG(LOG_DEBUG, "%s: failed to set spamrecord @%lu: %d\n",
+	      __func__, stat->offset, rc);
 	  return rc;
+  }
 
   return 0;
 }
