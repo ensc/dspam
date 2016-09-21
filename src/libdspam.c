@@ -418,11 +418,7 @@ dspam_destroy (DSPAM_CTX * CTX)
   free (CTX->group);
   free (CTX->home);
 
-  if (! CTX->_sig_provided && CTX->signature != NULL) {
-    if (CTX->signature->data != NULL)
-      free (CTX->signature->data);
-    free (CTX->signature);
-  }
+  _ds_spam_signature_put(CTX->signature);
 
   if (CTX->message)
     _ds_destroy_message(CTX->message);
@@ -776,7 +772,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   unsigned long long whitelist_token = 0;
   int do_whitelist = 0;
   int result;
-  unsigned int heap_sort_items = 0;
 
   if (CTX->algorithms & DSA_BURTON)
     heap_sort = ds_heap_create(BURTON_WINDOW_SIZE, HP_DELTA);
@@ -794,13 +789,8 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
        || ! (CTX->_sig_provided)) 
     && CTX->source != DSS_CORPUS)
   {
-    if (CTX->signature) {
-      if (CTX->signature->data)
-        free(CTX->signature->data);
-      free(CTX->signature);
-      CTX->signature = NULL;
-    }
-    CTX->signature = calloc (1, sizeof (struct _ds_spam_signature));
+    _ds_spam_signature_put(CTX->signature);
+    CTX->signature = _ds_spam_signature_new(strlen(headers) + strlen(body) + 2);
     if (CTX->signature == NULL)
     {
       LOG (LOG_CRIT, "memory allocation error");
@@ -808,18 +798,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       goto bail;
     }
                                                                                 
-    CTX->signature->length = strlen(headers)+strlen(body)+2;
-    CTX->signature->data = malloc(CTX->signature->length);
-
-    if (CTX->signature->data == NULL)
-    {
-      LOG (LOG_CRIT, "memory allocation error");
-      free (CTX->signature);
-      CTX->signature = NULL;
-      errcode = EUNKNOWN; 
-      goto bail;
-    }
-
     strcpy(CTX->signature->data, headers);
     strcat(CTX->signature->data, "\001");
     strcat(CTX->signature->data, body);
@@ -947,9 +925,6 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   }
   ds_diction_close(ds_c);
 
-  /* Keep track of items in heap_sort. We need that info later on when freeing the signature */
-  heap_sort_items = heap_sort->items;
-
   /* Take the 15 most interesting tokens and generate a score */
 
   if (heap_sort->items == 0)
@@ -965,28 +940,12 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
     && CTX->flags & DSF_SIGNATURE 
     && (CTX->operating_mode != DSM_CLASSIFY || ! CTX->_sig_provided))
   {
-    if (CTX->signature) {
-      if (CTX->signature->data)
-        free(CTX->signature->data);
-      free(CTX->signature);
-      CTX->signature = NULL;
-    }
-    CTX->signature = calloc (1, sizeof (struct _ds_spam_signature));
+    _ds_spam_signature_put(CTX->signature);
+    CTX->signature = _ds_spam_signature_new(sizeof (struct _ds_signature_token)
+					    * diction->items);
     if (CTX->signature == NULL)
     {
       LOG (LOG_CRIT, "memory allocation error");
-      errcode = EUNKNOWN;
-      goto bail;
-    }
-
-    CTX->signature->length =
-      sizeof (struct _ds_signature_token) * diction->items;
-    CTX->signature->data = malloc (CTX->signature->length);
-    if (CTX->signature->data == NULL)
-    {
-      LOG (LOG_CRIT, "memory allocation error");
-      free (CTX->signature);
-      CTX->signature = NULL;
       errcode = EUNKNOWN;
       goto bail;
     }
@@ -1134,15 +1093,8 @@ bail:
 #endif
   ds_diction_destroy(diction);
   ds_diction_destroy(bnr_patterns);
-  if (CTX->signature != NULL) {
-    if (CTX->signature->data != NULL) {
-      free(CTX->signature->data);
-      CTX->signature->data = NULL;
-    }
-    if (CTX->signature != NULL && heap_sort_items > 0)
-      free (CTX->signature);
-    CTX->signature = NULL;
-  }
+  _ds_spam_signature_put(CTX->signature);
+  CTX->signature = NULL;
   return errcode;
 }
 

@@ -140,7 +140,11 @@ struct _ds_spam_signature
 {
   void *data;
   unsigned long length;
+  unsigned int ref_cnt;
 };
+struct _ds_spam_signature *_ds_spam_signature_new(size_t len);
+struct _ds_spam_signature *_ds_spam_signature_get(struct _ds_spam_signature *);
+void _ds_spam_signature_put(struct _ds_spam_signature *);
 
 /*
  *  struct _ds_signature_token - An entry in the classification signature

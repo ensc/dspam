@@ -202,11 +202,11 @@ main (int argc, char *argv[])
 #endif
 
 BAIL:
-
   if (message)
     buffer_destroy(message);
 
   if (agent_init) {
+    _ds_spam_signature_put(ATX.SIG);
     nt_destroy(ATX.users);
     nt_destroy(ATX.recipients);
   }

@@ -76,7 +76,7 @@ typedef struct {
   struct nt *classify_users;		/* Classify list         OUT     */
   struct nt *recipients;		/* Recipients            IN      */
   struct nt *results;			/* Process Results       OUT     */
-  struct _ds_spam_signature SIG;	/* Signature object      OUT     */
+  struct _ds_spam_signature *SIG;	/* Signature object      OUT     */
   int learned;                  	/* Message learned?      OUT     */
   FILE *sockfd;				/* Socket FD if not STDOUT       */
   int sockfd_output;			/* Output sent to sockfd?        */

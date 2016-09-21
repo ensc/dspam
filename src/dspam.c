@@ -475,8 +475,8 @@ process_message (
 
   if (have_signature)
   {
-
-    if (_ds_get_signature (CTX, &ATX->SIG, ATX->signature))
+    ATX->SIG = _ds_spam_signature_new(0);
+    if (_ds_get_signature (CTX, ATX->SIG, ATX->signature))
     {
       LOG(LOG_WARNING, ERR_AGENT_SIG_RET_FAILED, ATX->signature);
       have_signature = 0;
@@ -486,7 +486,7 @@ process_message (
       /* uid-based signatures will change the active username, so reload
          preferences if it has changed */
 
-      CTX->signature = &ATX->SIG;
+      CTX->signature = _ds_spam_signature_get(ATX->SIG);
       if (!strcasecmp(CTX->username, original_username)) {
         if (ATX->PTX)
           _ds_pref_free(ATX->PTX);
@@ -526,7 +526,6 @@ process_message (
       goto RETURN;
     }
   } else {
-    CTX->signature = NULL;
     if (! ATX->train_pristine) {
       if (CTX->classification != DSR_NONE && CTX->source == DSS_ERROR) {
         LOG(LOG_WARNING, ERR_AGENT_NO_VALID_SIG);
@@ -582,7 +581,7 @@ process_message (
     node_int = c_nt_first (ATX->inoc_users, &c_i);
     while (node_int != NULL)
     {
-      inoculate_user (ATX, (const char *) node_int->ptr, &ATX->SIG, NULL);
+      inoculate_user (ATX, (const char *) node_int->ptr, ATX->SIG, NULL);
       node_int = c_nt_next (ATX->inoc_users, &c_i);
     }
   }
@@ -612,16 +611,8 @@ process_message (
   /* Generate a signature id for the message and store */
 
   if (internally_canned) {
-    if (CTX->signature) {
-      free(CTX->signature->data);
-      free(CTX->signature);
-      CTX->signature = NULL;
-    }
-    CTX->signature = calloc(1, sizeof(struct _ds_spam_signature));
-    if (CTX->signature) {
-      CTX->signature->length = 8;
-      CTX->signature->data = calloc(1, (CTX->signature->length));
-    }
+    _ds_spam_signature_put(CTX->signature);
+    CTX->signature = _ds_spam_signature_new(8);
   }
 
   if (internally_canned || (CTX->operating_mode == DSM_PROCESS &&
@@ -858,27 +849,13 @@ process_message (
     *result_string = strdup(CTX->class);
 
 RETURN:
-  if (have_signature) {
-    if (ATX->SIG.data != NULL) {
-      free(ATX->SIG.data);
-      ATX->SIG.data = NULL;
-    }
-  }
+  _ds_spam_signature_put(ATX->SIG);
+  ATX->SIG = NULL;
   ATX->signature[0] = 0;
   nt_destroy (ATX->inoc_users);
   nt_destroy (ATX->classify_users);
-  if (CTX) {
-    if (CTX->signature == &ATX->SIG) {
-      CTX->signature = NULL;
-    } else if (CTX->signature != NULL) {
-      if (CTX->signature->data != NULL) {
-        free (CTX->signature->data);
-      }
-      free (CTX->signature);
-      CTX->signature = NULL;
-    }
+  if (CTX)
     dspam_destroy (CTX);
-  }
   return result;
 }
 
@@ -1406,7 +1383,7 @@ inoculate_user (
       if (SIG)
       {
         INOC->flags |= DSF_SIGNATURE;
-        INOC->signature = SIG;
+        INOC->signature = _ds_spam_signature_get(SIG);
         result = dspam_process (INOC, NULL);
       }
       else
@@ -1414,8 +1391,6 @@ inoculate_user (
         result = dspam_process (INOC, message);
       }
 
-      if (SIG)
-        INOC->signature = NULL;
       dspam_destroy (INOC);
     }
   }
@@ -1485,22 +1460,18 @@ user_classify (
     if (SIG)
     {
       CLX->flags |= DSF_SIGNATURE;
-      CLX->signature = SIG;
+      CLX->signature = _ds_spam_signature_get(SIG);
       result = dspam_process (CLX, NULL);
     }
     else
     {
       if (message == NULL) {
         LOG(LOG_WARNING, "user_classify: SIG = %ld, message = NULL\n", (unsigned long) SIG);
-        if (SIG) CLX->signature = NULL;
         dspam_destroy (CLX);
         return EFAILURE;
       }
       result = dspam_process (CLX, message);
     }
-
-    if (SIG)
-      CLX->signature = NULL;
 
     if (result)
     {
@@ -2878,16 +2849,14 @@ int retrain_message(DSPAM_CTX *CTX, AGENT_CTX *ATX) {
           break;
         }
 
-        CLX->signature = &ATX->SIG;
+        CLX->signature = _ds_spam_signature_get(ATX->SIG);
         ck_result = dspam_process (CLX, NULL);
         if (ck_result < 0) {
-          CLX->signature = NULL;
           dspam_destroy(CLX);
           return EFAILURE;
         }
         if (ck_result == 0 || CLX->result == match)
           do_train = 0;
-        CLX->signature = NULL;
         dspam_destroy (CLX);
       }
     }

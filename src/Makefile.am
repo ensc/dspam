@@ -81,6 +81,7 @@ libdspam_la_SOURCES = \
 	hash.c hash.h \
 	list.c list.h \
 	tokenizer.c tokenizer.h \
+	signature.c \
 	storage_driver.h
 
 if BUILD_EXT_LOOKUP
@@ -194,6 +195,7 @@ dspamc_SOURCES = \
 	buffer.h error.h \
 	read_config.c read_config.h \
 	client.c client.h \
+	signature.c \
 	agent_shared.c agent_shared.h 
 
 dspamc_LDADD = -lm buffer.o config_shared.o error.o pref.o nodetree.o util.o $(NETLIBS) $(DLLIBS)

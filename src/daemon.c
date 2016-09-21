@@ -827,6 +827,7 @@ RSET:
     buffer_destroy(message);
     message = NULL;
     if (ATX != NULL) {
+      _ds_spam_signature_put(ATX->SIG);
       nt_destroy(ATX->users);
       nt_destroy(ATX->recipients);
       nt_destroy(ATX->results);
