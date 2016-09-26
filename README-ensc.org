@@ -1,0 +1,25 @@
+* Purpose
+
+In the years I am running =dspam= on my site ,several issue arrived
+which were solved locally.  As upstream development of =dspam= seems
+to stuck, I decided to do things /right/ instead of applying only
+small hacks.  So, this repository:
+
+- fixes some issues (protocol errors, crashes, compiler warnings)
+
+- refactors the hash-drv massively
+
+- enhances the hash-drv and related utilities (e.g. create sparse
+  files, use more efficient syscalls)
+
+- adds a testsuite for my changes
+
+
+It has the following limitations:
+
+- requires C99, partly C11 language features
+
+- focused on Linux (e.g. =O_CLOEXEC= =open(2)= flags, =fallocate()=
+  syscall) and its tools (GNU gcc)
+
+- linux kernel C formatting style
