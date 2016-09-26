@@ -1,6 +1,7 @@
 # --*- makefile -*--
 check_PROGRAMS = \
-	test-hash_drv
+	test-hash_drv \
+	test-css_optimize
 
 test_hash_drv_SOURCES = \
 	%reldir%/../diction.c \
@@ -12,4 +13,18 @@ test_hash_drv_SOURCES = \
 	%reldir%/hash-drv.c
 
 test_hash_drv_LDADD = \
+	-lm
+
+test_css_optimize_SOURCES = \
+	%reldir%/../diction.c \
+	%reldir%/../util.c \
+	%reldir%/../error.c \
+	%reldir%/../nodetree.c \
+	%reldir%/../config_shared.c \
+	%reldir%/../pref.c \
+	%reldir%/../tools.hash_drv/utils.c \
+	%reldir%/../tools.hash_drv/utils.h \
+	%reldir%/css-optimize.c
+
+test_css_optimize_LDADD = \
 	-lm

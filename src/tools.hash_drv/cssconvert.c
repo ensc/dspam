@@ -66,6 +66,7 @@ int DO_DEBUG
 #include "hash_drv.h"
 #include "error.h"
 #include "language.h"
+#include "utils.h"
  
 #define SYNTAX "syntax: cssconvert [filename]" 
 
@@ -113,6 +114,7 @@ int cssconvert(const char *filename) {
   unsigned long extent_size  = HASH_EXTENT_MAX;
   int pctincrease = 0;
   int flags = 0;
+  ssize_t opt_l;
 
   if (READ_ATTRIB("HashRecMax"))
     hash_rec_max = strtol(READ_ATTRIB("HashRecMax"), NULL, 0);
@@ -199,6 +201,18 @@ int cssconvert(const char *filename) {
 		  }
 	  }
   } while (!hash_drv_ext_is_eof(&old, ext));
+
+  opt_l = css_optimize(&new, old.flags & ~HMAP_ALLOW_BROKEN);
+  if (opt_l < 0) {
+	  LOG(LOG_ERR, "%s: failed to optimize CSS", old.filename);
+	  _hash_drv_close(&new);
+	  _hash_drv_close(&old);
+	  unlink(newfile);
+	  return EFAILURE;
+  }
+
+  if (opt_l > 0)
+	  LOG(LOG_INFO, "%s: freed %zd bytes", old.filename, opt_l);
 
   _hash_drv_close(&new);
   _hash_drv_close(&old);

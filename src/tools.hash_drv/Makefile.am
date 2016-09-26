@@ -18,7 +18,7 @@ DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
 
 cssstat_SOURCES =  cssstat.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
-                   ../pref.c
+                   ../pref.c utils.c utils.h
 cssstat_LDFLAGS =
 cssstat_LDADD = -lm
 if DYNAMIC_DRIVER
@@ -30,7 +30,7 @@ endif
 
 cssclean_SOURCES = cssclean.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
-                   ../pref.c
+                   ../pref.c utils.c utils.h
 cssclean_LDFLAGS =
 cssclean_LDADD = -lm
 if DYNAMIC_DRIVER
@@ -42,7 +42,7 @@ endif
 
 cssconvert_SOURCES = cssconvert.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
-                   ../pref.c
+                   ../pref.c utils.c utils.h
 cssconvert_LDFLAGS =
 cssconvert_LDADD = -lm
 if DYNAMIC_DRIVER
@@ -54,7 +54,7 @@ endif
 
 csscompress_SOURCES =  csscompress.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
-                   ../pref.c
+                   ../pref.c utils.c utils.h
 csscompress_LDFLAGS =
 csscompress_LDADD = -lm
 if DYNAMIC_DRIVER

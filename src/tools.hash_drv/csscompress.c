@@ -66,6 +66,7 @@ int DO_DEBUG
 #include "hash_drv.h"
 #include "error.h"
 #include "language.h"
+#include "utils.h"
  
 #define SYNTAX "syntax: csscompress [filename]" 
 
@@ -110,6 +111,7 @@ int csscompress(const char *filename) {
   int flags = 0;
   FILE* lockfile = NULL;
   int rc = EFAILURE;
+  ssize_t opt_l;
 
   if (READ_ATTRIB("HashExtentSize"))
     extent_size = strtol(READ_ATTRIB("HashExtentSize"), NULL, 0);
@@ -242,6 +244,19 @@ int csscompress(const char *filename) {
 		  }
 	  }
   } while (!hash_drv_ext_is_eof(&old, ext));
+
+  opt_l = css_optimize(&new, old.flags & ~HMAP_ALLOW_BROKEN);
+  if (opt_l < 0) {
+	  LOG(LOG_ERR, "%s: failed to optimize CSS", old.filename);
+	  rc = EXIT_FAILURE;
+	  _hash_drv_close(&new);
+	  _hash_drv_close(&old);
+	  unlink(newfile);
+	  goto end;
+  }
+
+  if (opt_l > 0)
+	  LOG(LOG_INFO, "%s: freed %zd bytes", old.filename, opt_l);
 
   _hash_drv_close(&new);
   _hash_drv_close(&old);

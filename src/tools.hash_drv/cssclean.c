@@ -65,6 +65,7 @@ int DO_DEBUG
 #include "hash_drv.h"
 #include "error.h"
 #include "language.h"
+#include "utils.h"
  
 #define SYNTAX "syntax: cssclean [filename]" 
 
@@ -115,6 +116,7 @@ int cssclean(const char *filename, int heavy) {
   int pctincrease = 0;
   int flags = 0;
   int rc = EFAILURE;
+  ssize_t opt_l;
 
   if (READ_ATTRIB("HashRecMax"))
     hash_rec_max = strtol(READ_ATTRIB("HashRecMax"), NULL, 0);
@@ -263,6 +265,19 @@ int cssclean(const char *filename, int heavy) {
 		  }
 	  }
   } while (!hash_drv_ext_is_eof(&old, ext));
+
+  opt_l = css_optimize(&new, old.flags & ~HMAP_ALLOW_BROKEN);
+  if (opt_l < 0) {
+	  LOG(LOG_ERR, "%s: failed to optimize CSS", old.filename);
+	  rc = EXIT_FAILURE;
+	  _hash_drv_close(&new);
+	  _hash_drv_close(&old);
+	  unlink(newfile);
+	  goto end;
+  }
+
+  if (opt_l > 0)
+	  LOG(LOG_INFO, "%s: freed %zd bytes", old.filename, opt_l);
 
   _hash_drv_close(&new);
   _hash_drv_close(&old);
