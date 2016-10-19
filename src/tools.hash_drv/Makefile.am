@@ -6,7 +6,8 @@ EXTRA_DIST =
 
 AM_CPPFLAGS = \
   -DLOGDIR=\"$(logdir)\" -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\" \
-  -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D_GNU_SOURCE -I$(top_srcdir)
+  -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D_GNU_SOURCE -I$(top_srcdir) \
+  -D_POSIX_SOURCE=200809L
 
 CFLAGS = @CFLAGS@ -I$(top_srcdir)/src
 

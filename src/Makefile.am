@@ -29,7 +29,8 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 auto-config.h.in \
 DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
        -DCONFDIR=\"$(sysconfdir)\"\
        -DCONFIG_DEFAULT=\"$(sysconfdir)/dspam.conf\"\
-       -D_THREAD_SAFE -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D_GNU_SOURCE
+       -D_THREAD_SAFE -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D_GNU_SOURCE \
+       -D_POSIX_SOURCE=200809L
 
 lib_LTLIBRARIES = libdspam.la
 pkglib_LTLIBRARIES =
