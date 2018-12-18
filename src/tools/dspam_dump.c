@@ -49,6 +49,7 @@
 #include "read_config.h"
 #include "config_api.h"
 #include "language.h"
+#include "agent_shared.h"
 
 #ifdef _WIN32
 /* no trusted users under Windows */
@@ -78,7 +79,7 @@ main (int argc, char **argv)
 
   /* Read dspam.conf */
                                                                                 
-  agent_config = read_config(NULL);
+  agent_config = read_config(get_config_path(argc, argv));
   if (!agent_config) {
     LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
     fprintf (stderr, ERR_AGENT_READ_CONFIG "\n");

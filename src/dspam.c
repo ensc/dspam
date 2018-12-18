@@ -121,6 +121,10 @@ main (int argc, char *argv[])
   setbuf (stdout, NULL);	/* unbuffered output */
 #ifdef DEBUG
   DO_DEBUG = 0;
+  LOG(LOG_INFO, "debug compiled in, logdir: %s", LOGDIR);
+#endif
+#ifdef VERBOSE
+  LOG(LOG_INFO, "verbose compiled in, logdir: %", LOGDIR);
 #endif
 
   if (!config_drop_suid())
@@ -141,7 +145,7 @@ main (int argc, char *argv[])
 
   /* Read dspam.conf into global config structure (ds_config_t) */
 
-  agent_config = read_config(NULL);
+  agent_config = read_config(get_config_path(argc, argv));
   if (!agent_config) {
     LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
     exitcode = EXIT_FAILURE;
@@ -4235,7 +4239,7 @@ int daemon_start(AGENT_CTX *ATX) {
       if (agent_config)
         _ds_destroy_config(agent_config);
 
-      agent_config = read_config(NULL);
+      agent_config = read_config(get_config_path(argc, argv));
       if (!agent_config) {
         LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
         pthread_mutex_destroy(&__lock);

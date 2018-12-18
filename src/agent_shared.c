@@ -149,6 +149,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 
 #ifdef DEBUG
   ATX->debug_args[0] = 0;
+  LOGDEBUG("argc: %d", argc);
 #endif
   ATX->client_args[0] = 0;
 
@@ -158,6 +159,7 @@ int process_arguments(AGENT_CTX *ATX, int argc, char **argv) {
 #ifdef DEBUG
     strlcat (ATX->debug_args, argv[i], sizeof (ATX->debug_args));
     strlcat (ATX->debug_args, " ", sizeof (ATX->debug_args));
+    LOGDEBUG("argv[%d]: %s", i, argv[i]);
 #endif
 
     /* Terminate user/rcpt lists */
@@ -943,4 +945,30 @@ init_pwent_cache(void)
      __pw_uid  = pwent->pw_uid;
   }
   return 1;
+}
+
+const char * const get_config_path(int argc, char **argv) {
+  const char *config_path = NULL;
+
+  for (int i = 1; i < argc; ++i) {
+    if (!strcmp(argv[i], "--"))
+         continue;
+
+    if (!strcmp (argv[i], "--debug"))
+    {
+#ifdef DEBUG
+      if (DO_DEBUG == 0)
+        DO_DEBUG = 1;
+#endif
+      continue;
+    }
+
+    if (!strncmp (argv[i], "--config-path=", 14))
+    {
+      config_path = strchr(argv[i], '=') + 1;
+      continue;
+    }
+  }
+
+  return config_path;
 }

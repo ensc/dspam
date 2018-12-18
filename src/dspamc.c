@@ -127,7 +127,7 @@ main (int argc, char *argv[])
 
   /* Read dspam.conf into global config structure (ds_config_t) */
 
-  agent_config = read_config(NULL);
+  agent_config = read_config(get_config_path(argc, argv));
   if (!agent_config) {
     LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
     exitcode = EXIT_FAILURE;

@@ -38,7 +38,7 @@ extern uid_t __pw_uid;
 
 #define STATUS( ... )   snprintf(ATX->status, sizeof(ATX->status), __VA_ARGS__);
 
-#define SYNTAX "Syntax: dspam [--help|--version|[--client|--daemon [--nofork]] [--debug] --mode=[toe|tum|teft|notrain|unlearn] --user [user1 user2 ... userN] [--feature=[no,wh,tb=N]] [--class=[spam|innocent]] [--source=[error|corpus|inoculation]] [--profile=[PROFILE]] [--deliver=[spam,[innocent|nonspam],summary,stdout]] [--process|--classify] [--stdout] [--mail-from=sender-address] [--rcpt-to recipient-address(es)] [--signature=DSPAM-Signature] [passthru-arguments]]"
+#define SYNTAX "Syntax: dspam [--config-path=CONFIG_PATH] [--help|--version|[--client|--daemon [--nofork]] [--debug] --mode=[toe|tum|teft|notrain|unlearn] --user [user1 user2 ... userN] [--feature=[no,wh,tb=N]] [--class=[spam|innocent]] [--source=[error|corpus|inoculation]] [--profile=[PROFILE]] [--deliver=[spam,[innocent|nonspam],summary,stdout]] [--process|--classify] [--stdout] [--mail-from=sender-address] [--rcpt-to recipient-address(es)] [--signature=DSPAM-Signature] [passthru-arguments]]"
 
 #define         SIGNATURE_BEGIN		"!DSPAM:"
 #define         SIGNATURE_END		"!"
@@ -108,6 +108,7 @@ int process_parseto	(AGENT_CTX *ATX, const char *buf);
 buffer *read_stdin	(AGENT_CTX *ATX);
 
 int init_pwent_cache(void);
+const char * const get_config_path(int argc, char **argv);
 
 #ifndef MIN
 #   define MAX(a,b)  ((a)>(b)?(a):(b))

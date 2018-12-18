@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
 
   if ( (argc>=3) && (!strcmp(argv[2], "heavy") ) )heavy=1;
 
-  agent_config = read_config(NULL);
+  agent_config = read_config(get_config_path(argc, argv));
   if (!agent_config) {
     LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
     exit(EXIT_FAILURE);

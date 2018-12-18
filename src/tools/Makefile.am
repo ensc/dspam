@@ -15,9 +15,9 @@ bin_SCRIPTS = dspam_train dspam_logrotate dspam_notify
 
 dspam_2sql_SOURCES = dspam_2sql.c ../read_config.c ../config_api.c
 dspam_2sql_LDFLAGS = 
-dspam_dump_SOURCES = dspam_dump.c ../read_config.c ../config_api.c
+dspam_dump_SOURCES = dspam_dump.c ../read_config.c ../config_api.c ../agent_shared.c
 dspam_dump_LDFLAGS = 
-dspam_clean_SOURCES = dspam_clean.c ../read_config.c ../config_api.c
+dspam_clean_SOURCES = dspam_clean.c ../read_config.c ../config_api.c ../agent_shared.c
 dspam_clean_LDFLAGS = 
 dspam_crc_SOURCES = dspam_crc.c
 dspam_crc_LDFLAGS = 

@@ -173,6 +173,7 @@ config_t read_config(const char *path) {
 #endif
   char buffer[1024];
   char *a, *c, *v, *bufptr = buffer;
+  const char *config_path = path;
 
 #ifndef SPLIT_CONFIG
   attrib = calloc(1, attrib_size*sizeof(attribute_t));
@@ -182,15 +183,18 @@ config_t read_config(const char *path) {
   }
 #endif
 
-  if (path == NULL) {
-    char const	*cfg_path = getenv("DSPAM_CONF");
-    if (cfg_path == NULL || getuid() != geteuid() || getgid() != getegid())
-      cfg_path = CONFIG_DEFAULT;
+  if (config_path == NULL) {
+    /* if no path in argument, fallback to env var */
+    config_path = getenv("DSPAM_CONF");
+    /* but only if real UID != effective UID and same for group  */
+    if (config_path == NULL || getuid() != geteuid() || getgid() != getegid())
+      config_path = CONFIG_DEFAULT;
+  }
+#ifdef DEBUG
+  LOGDEBUG("loading configuration from: %s", config_path);
+#endif
 
-    file = fopen(cfg_path, "r");
-  } else
-    file = fopen(path, "r");
-
+  file = fopen(config_path, "r");
   if (file == NULL) {
 #ifdef SPLIT_CONFIG
     if (path == NULL) {
@@ -297,19 +301,19 @@ config_t read_config(const char *path) {
 int configure_algorithms(DSPAM_CTX *CTX) {
   if (_ds_read_attribute(agent_config, "Algorithm"))
     CTX->algorithms = 0;
-                                                                                
+
   if (_ds_match_attribute(agent_config, "Algorithm", "graham"))
     CTX->algorithms |= DSA_GRAHAM;
-                                                                                
+
   if (_ds_match_attribute(agent_config, "Algorithm", "burton"))
     CTX->algorithms |= DSA_BURTON;
-                                                                                
+
   if (_ds_match_attribute(agent_config, "Algorithm", "robinson"))
     CTX->algorithms |= DSA_ROBINSON;
 
   if (_ds_match_attribute(agent_config, "Algorithm", "naive"))
     CTX->algorithms |= DSA_NAIVE;
-                                                                                
+
   if (_ds_match_attribute(agent_config, "PValue", "robinson"))
     CTX->algorithms |= DSP_ROBINSON;
   else if (_ds_match_attribute(agent_config, "PValue", "markov"))
@@ -317,7 +321,7 @@ int configure_algorithms(DSPAM_CTX *CTX) {
   else
     CTX->algorithms |= DSP_GRAHAM;
 
-  if (_ds_match_attribute(agent_config, "Tokenizer", "word")) 
+  if (_ds_match_attribute(agent_config, "Tokenizer", "word"))
     CTX->tokenizer = DSZ_WORD;
   else if (_ds_match_attribute(agent_config, "Tokenizer", "chain") ||
            _ds_match_attribute(agent_config, "Tokenizer", "chained"))
@@ -326,7 +330,7 @@ int configure_algorithms(DSPAM_CTX *CTX) {
     CTX->tokenizer = DSZ_SBPH;
   else if (_ds_match_attribute(agent_config, "Tokenizer", "osb"))
     CTX->tokenizer = DSZ_OSB;
- 
+
   if (_ds_match_attribute(agent_config, "Algorithm", "chi-square"))
   {
     if (CTX->algorithms != 0 && CTX->algorithms != DSP_ROBINSON) {
@@ -354,14 +358,14 @@ agent_pref_t pref_config(void)
   PTX[0] = NULL;
 
   /* Apply default preferences from dspam.conf */
-                                                                                
+
   attrib = _ds_find_attribute(agent_config, "Preference");
-                                                                                
+
   LOGDEBUG("Loading preferences from dspam.conf");
-                                                                                
+
   while(attrib != NULL) {
     char *pcopy = strdup(attrib->value);
-                                                                              
+
     p = strtok_r(pcopy, "=", &ptrptr);
     if (p == NULL) {
       free(pcopy);
@@ -380,7 +384,7 @@ agent_pref_t pref_config(void)
   ptr = realloc(PTX, sizeof(agent_attrib_t)*(i+1));
   if (ptr)
     return ptr;
-  
+
   LOG(LOG_CRIT, ERR_MEM_ALLOC);
   return PTX;
 }
