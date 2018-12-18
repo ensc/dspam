@@ -399,15 +399,15 @@ bool config_drop_suid(void)
 		/* drop suid/sgid when custom configuration is given */
 
 		if (gid != getegid()) {
-			rc = setresgid(gid, gid, gid);
+			rc = setgid(gid);
 			if (rc < 0) {
-				perror("setresgid()");
+				perror("setgid()");
 				return false;
 			}
 		}
 
 		if (uid != geteuid()) {
-			rc = setresuid(uid, uid, uid);
+			rc = setuid(uid);
 			if (rc < 0) {
 				perror("setresuid()");
 				return false;

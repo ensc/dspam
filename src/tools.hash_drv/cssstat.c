@@ -52,7 +52,7 @@
 #   endif
 #endif
 
-int DO_DEBUG 
+int DO_DEBUG
 #ifdef DEBUG
 = 1
 #else
@@ -64,7 +64,7 @@ int DO_DEBUG
 #include "hash_drv.h"
 #include "language.h"
 #include "error.h"
- 
+
 #define SYNTAX "syntax: cssstat [filename]"
 
 int cssstat(const char *filename);
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "%s\n", SYNTAX);
     exit(EXIT_FAILURE);
   }
-   
+
   agent_config = read_config(get_config_path(argc, argv));
   if (!agent_config) {
     LOG(LOG_ERR, ERR_AGENT_READ_CONFIG);
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
   filename = argv[1];
 
   r = cssstat(filename);
-  
+
   if (r) {
     fprintf(stderr, "cssstat failed on error %d\n", r);
     exit(EXIT_FAILURE);
@@ -121,7 +121,7 @@ int cssstat(const char *filename) {
   if (READ_ATTRIB("HashMaxSeek"))
      max_seek = strtol(READ_ATTRIB("HashMaxSeek"), NULL, 0);
 
-  if (_hash_drv_open(filename, &map, 0, max_seek, 
+  if (_hash_drv_open(filename, &map, 0, max_seek,
                      max_extents, extent_size, 0, flags | HMAP_ALLOW_BROKEN))
   {
     return EFAILURE;
@@ -164,4 +164,3 @@ int cssstat(const char *filename) {
   printf("total extents               %lu\n", extents);
   return 0;
 }
-

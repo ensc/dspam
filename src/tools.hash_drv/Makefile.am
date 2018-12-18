@@ -19,7 +19,8 @@ DEFS = @DEFS@ -DLOGDIR=\"$(logdir)\" \
 
 cssstat_SOURCES =  cssstat.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
-                   ../pref.c utils.c utils.h ../agent_shared.c ../buffer.c
+                   ../pref.c utils.c utils.h ../agent_shared.c ../buffer.c \
+                   fallocate_mac.c
 cssstat_LDFLAGS =
 cssstat_LDADD = -lm
 if DYNAMIC_DRIVER
@@ -31,7 +32,8 @@ endif
 
 cssclean_SOURCES = cssclean.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
-                   ../pref.c utils.c utils.h ../agent_shared.c ../buffer.c
+                   ../pref.c utils.c utils.h ../agent_shared.c ../buffer.c \
+                   fallocate_mac.c
 cssclean_LDFLAGS =
 cssclean_LDADD = -lm
 if DYNAMIC_DRIVER
@@ -43,7 +45,8 @@ endif
 
 cssconvert_SOURCES = cssconvert.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
-                   ../pref.c utils.c utils.h ../agent_shared.c ../buffer.c
+                   ../pref.c utils.c utils.h ../agent_shared.c ../buffer.c \
+                   fallocate_mac.c
 cssconvert_LDFLAGS =
 cssconvert_LDADD = -lm
 if DYNAMIC_DRIVER
@@ -55,7 +58,8 @@ endif
 
 csscompress_SOURCES =  csscompress.c ../read_config.c ../util.c ../diction.c \
                    ../nodetree.c ../hash_drv.c ../error.c ../config_shared.c \
-                   ../pref.c utils.c utils.h ../agent_shared.c ../buffer.c
+                   ../pref.c utils.c utils.h ../agent_shared.c ../buffer.c \
+                   fallocate_mac.c
 csscompress_LDFLAGS =
 csscompress_LDADD = -lm
 if DYNAMIC_DRIVER

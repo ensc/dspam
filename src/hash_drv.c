@@ -20,9 +20,9 @@
 */
 
 /*
- * hash_drv.c - hash-based storage driver 
+ * hash_drv.c - hash-based storage driver
  *              mmap'd flat-file storage for fast storage
- *              inspired by crm114 sparse spectra algorithm 
+ *              inspired by crm114 sparse spectra algorithm
  *
  * DESCRIPTION
  *   This driver uses a random access file for storage. It is exceptionally fast
@@ -62,8 +62,6 @@
 #   endif
 #endif
 
-#include <sys/mman.h>
-
 #include "storage_driver.h"
 #include "config_shared.h"
 #include "hash_drv.h"
@@ -72,6 +70,10 @@
 #include "error.h"
 #include "language.h"
 #include "util.h"
+
+#if defined(_DARWIN_C_SOURCE)
+#include "tools.hash_drv/fallocate_mac.h"
+#endif
 
 int
 dspam_init_driver (DRIVER_CTX *DTX)
@@ -82,7 +84,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
    unsigned long connection_cache = 1;
 #endif
 
-  if (DTX == NULL) 
+  if (DTX == NULL)
     return 0;
 
 #ifdef DAEMON
@@ -93,7 +95,7 @@ dspam_init_driver (DRIVER_CTX *DTX)
    *  Stateful concurrent hash databases are preloaded into memory and
    *  shared using a reader-writer lock. At the present moment, only a single
    *  user can be loaded into any instance of the daemon, so it is only useful
-   *  if you are running with a system-wide filtering user. 
+   *  if you are running with a system-wide filtering user.
    */
 
   if (DTX->flags & DRF_STATEFUL) {
@@ -147,19 +149,19 @@ dspam_init_driver (DRIVER_CTX *DTX)
 
     /* Connection array (just one single connection for hash_drv) */
     DTX->connections = calloc(1, sizeof(struct _ds_drv_connection *) * connection_cache);
-    if (DTX->connections == NULL) 
+    if (DTX->connections == NULL)
       goto memerr;
 
     /* Initialize Connections */
     for(i=0;i<connection_cache;i++) {
       DTX->connections[i] = calloc(1, sizeof(struct _ds_drv_connection));
-      if (DTX->connections[i] == NULL) 
+      if (DTX->connections[i] == NULL)
         goto memerr;
 
       /* Our connection's storage structure */
       if (HashConcurrentUser) {
         DTX->connections[i]->dbh = calloc(1, sizeof(struct _hash_drv_map));
-        if (DTX->connections[i]->dbh == NULL) 
+        if (DTX->connections[i]->dbh == NULL)
           goto memerr;
         pthread_rwlock_init(&DTX->connections[i]->rwlock, NULL);
       } else {
@@ -179,12 +181,12 @@ dspam_init_driver (DRIVER_CTX *DTX)
       _ds_userdir_path(filename, DTX->CTX->home, HashConcurrentUser, "css");
       _ds_prepare_path_for(filename);
       LOGDEBUG("preloading %s into memory via mmap()", filename);
-      ret = _hash_drv_open(filename, map, hash_rec_max, 
-          max_seek, max_extents, extent_size, pctincrease, flags); 
+      ret = _hash_drv_open(filename, map, hash_rec_max,
+          max_seek, max_extents, extent_size, pctincrease, flags);
 
       if (ret) {
-        LOG(LOG_CRIT, "_hash_drv_open(%s) failed on error %d: %s", 
-                      filename, ret, strerror(errno)); 
+        LOG(LOG_CRIT, "_hash_drv_open(%s) failed on error %d: %s",
+                      filename, ret, strerror(errno));
         free(DTX->connections[0]->dbh);
         free(DTX->connections[0]);
         free(DTX->connections);
@@ -212,7 +214,7 @@ memerr:
   LOG(LOG_CRIT, ERR_MEM_ALLOC);
   return EUNKNOWN;
 #endif
-  
+
 }
 
 int
@@ -287,7 +289,7 @@ _hash_drv_lock_get (
 
 int
 _hash_drv_lock_free (
-  struct _hash_drv_storage *s, 
+  struct _hash_drv_storage *s,
   const char *username)
 {
   int r;
@@ -492,14 +494,14 @@ static unsigned long roundup_hash_op(struct _hash_drv_map const *map,
 }
 
 int _hash_drv_open(
-  const char *filename, 
-  hash_drv_map_t map, 
+  const char *filename,
+  hash_drv_map_t map,
   unsigned long recmaxifnew,
   unsigned long max_seek,
   unsigned long max_extents,
   unsigned long extent_size,
   int pctincrease,
-  int flags) 
+  int flags)
 {
   int open_flags = O_RDWR | O_CLOEXEC;
 
@@ -669,12 +671,12 @@ _ds_init_storage (DSPAM_CTX * CTX, void *dbh)
     else
       _ds_userdir_path(db, CTX->home, CTX->group, "css");
 
-    lock_result = _hash_drv_lock_get (CTX, s, 
+    lock_result = _hash_drv_lock_get (CTX, s,
       (CTX->group) ? CTX->group : CTX->username);
-    if (lock_result < 0) 
+    if (lock_result < 0)
       goto BAIL;
 
-    ret = _hash_drv_open(db, s->map, s->hash_rec_max, s->max_seek, 
+    ret = _hash_drv_open(db, s->map, s->hash_rec_max, s->max_seek,
         s->max_extents, s->extent_size, s->pctincrease, s->flags);
 
     if (ret) {
@@ -830,13 +832,13 @@ _ds_setall_spamrecords (DSPAM_CTX * CTX, ds_diction_t diction)
   {
     return 0;
   }
-                                                                                
+
   ds_c = ds_diction_cursor(diction);
   ds_term = ds_diction_next(ds_c);
   while(ds_term)
   {
     int rc;
-    if (!(ds_term->s.status & TST_DIRTY)) {  
+    if (!(ds_term->s.status & TST_DIRTY)) {
       ds_term = ds_diction_next(ds_c);
       continue;
     }
@@ -906,9 +908,9 @@ _ds_set_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   char scratch[128];
   FILE *file;
 
-  _ds_userdir_path(filename, 
-                   CTX->home, 
-                   (CTX->group) ? CTX->group : CTX->username, 
+  _ds_userdir_path(filename,
+                   CTX->home,
+                   (CTX->group) ? CTX->group : CTX->username,
                    "sig");
 
   snprintf(scratch, sizeof(scratch), "/%s.sig", signature);
@@ -940,9 +942,9 @@ _ds_get_signature (DSPAM_CTX * CTX, struct _ds_spam_signature *SIG,
   FILE *file;
   struct stat statbuf;
 
-  _ds_userdir_path(filename, 
-                   CTX->home, 
-                   (CTX->group) ? CTX->group : CTX->username,  
+  _ds_userdir_path(filename,
+                   CTX->home,
+                   (CTX->group) ? CTX->group : CTX->username,
                    "sig");
 
   snprintf(scratch, sizeof(scratch), "/%s.sig", signature);
@@ -988,13 +990,13 @@ _ds_create_signature_id (DSPAM_CTX * CTX, char *buf, size_t len)
   char session[64];
   char digit[6];
   int pid, j;
- 
+
   CTX = CTX; /* Keep compiler happy */
   pid = getpid ();
   snprintf (session, sizeof (session), "%8lx%d", (long) time (NULL), pid);
- 
-  for (j = 0; j < 2; j++) 
-  {  
+
+  for (j = 0; j < 2; j++)
+  {
     snprintf (digit, 6, "%d", rand ());
     strlcat (session, digit, 64);
   }
@@ -1010,15 +1012,15 @@ _ds_verify_signature (DSPAM_CTX * CTX, const char *signature)
   char scratch[128];
   struct stat statbuf;
 
-  _ds_userdir_path(filename, 
-                   CTX->home, 
-                   (CTX->group) ? CTX->group : CTX->username, 
+  _ds_userdir_path(filename,
+                   CTX->home,
+                   (CTX->group) ? CTX->group : CTX->username,
                    "sig");
 
   snprintf(scratch, sizeof(scratch), "/%s.sig", signature);
   strlcat(filename, scratch, sizeof(filename));
 
-  if (stat (filename, &statbuf)) 
+  if (stat (filename, &statbuf))
     return 1;
 
   return 0;
@@ -1060,9 +1062,9 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     if ((unsigned long) s->map->addr + s->offset_nexttoken >
         (unsigned long) s->offset_header + sizeof(struct _hash_drv_header) +
       (s->offset_header->hash_rec_max * sizeof(struct _hash_drv_spam_record)))
-    { 
+    {
       if (s->offset_nexttoken < s->map->file_len) {
-        s->offset_header = (void *)((unsigned long) s->map->addr + 
+        s->offset_header = (void *)((unsigned long) s->map->addr +
           (s->offset_nexttoken - sizeof(struct _hash_drv_spam_record)));
 
         s->offset_nexttoken += sizeof(struct _hash_drv_header);
@@ -1074,7 +1076,7 @@ _ds_get_nexttoken (DSPAM_CTX * CTX)
     }
 
     memcpy(&rec,
-           (void *)((unsigned long) s->map->addr + s->offset_nexttoken), 
+           (void *)((unsigned long) s->map->addr + s->offset_nexttoken),
            sizeof(struct _hash_drv_spam_record));
     _ds_get_spamrecord (CTX, rec.hashcode, &stat);
   }
@@ -1092,18 +1094,18 @@ _ds_delete_signature (DSPAM_CTX * CTX, const char *signature)
   char filename[MAX_FILENAME_LENGTH];
   char scratch[128];
 
-  _ds_userdir_path(filename, 
-                   CTX->home, 
-                   (CTX->group) ? CTX->group : CTX->username, 
+  _ds_userdir_path(filename,
+                   CTX->home,
+                   (CTX->group) ? CTX->group : CTX->username,
                    "sig");
 
   snprintf(scratch, sizeof(scratch), "/%s.sig", signature);
-  strlcat(filename, scratch, sizeof(filename));  
+  strlcat(filename, scratch, sizeof(filename));
   return unlink(filename);
 }
 
-char * 
-_ds_get_nextuser (DSPAM_CTX * CTX) 
+char *
+_ds_get_nextuser (DSPAM_CTX * CTX)
 {
   static char user[MAX_FILENAME_LENGTH];
   static char path[MAX_FILENAME_LENGTH];
@@ -1248,7 +1250,7 @@ static unsigned long calculate_next_rec_max(struct _hash_drv_map const *map,
 }
 
 static int _hash_drv_autoextend(
-    hash_drv_map_t map, 
+    hash_drv_map_t map,
     struct hash_drv_extent const *prev_ext)
 {
   struct _hash_drv_header header = {
@@ -1467,10 +1469,10 @@ static struct _hash_drv_spam_record *_hash_drv_seek(
   if (!rec)
     return NULL;
 
-  if (rec->hashcode == hashcode) 
+  if (rec->hashcode == hashcode)
     return rec;
 
-  if (rec->hashcode == 0 && (flags & HSEEK_INSERT)) 
+  if (rec->hashcode == 0 && (flags & HSEEK_INSERT))
     return rec;
 
   return NULL;
@@ -1502,7 +1504,7 @@ _hash_drv_set_spamrecord (
 
       rec = _hash_drv_seek(map, ext, wrec->hashcode, HSEEK_INSERT);
     } while (!rec && ext->next_offset < map->file_len);
-  
+
     if (!rec) {
       if (!ext)
         return EFAILURE;
@@ -1510,7 +1512,7 @@ _hash_drv_set_spamrecord (
       if (map->flags & HMAP_AUTOEXTEND) {
         if (ext->idx >= map->max_extents && map->max_extents)
           goto FULL;
-  
+
         if (!_hash_drv_autoextend(map, ext))
           return _hash_drv_set_spamrecord(map, wrec, map_offset);
         else
@@ -1574,8 +1576,8 @@ void hash_drv_ext_prefetch(struct hash_drv_extent const *ext)
 		return;
 
 	addr &= ~(PAGE_SZ - 1);
-	madvise((void *)addr, ext->num_records * sizeof ext->records[0],
-		MADV_SEQUENTIAL);
+	posix_madvise((void *)addr, ext->num_records * sizeof ext->records[0],
+		POSIX_MADV_SEQUENTIAL);
 }
 
 int
@@ -1621,4 +1623,3 @@ int _ds_pref_del(config_t config, const char *user, const char *home,
 {
   return _ds_ff_pref_del(config, user, home, attrib, dbh);
 }
-

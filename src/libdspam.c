@@ -101,15 +101,15 @@ int DO_DEBUG = 0;
  *    DSM_PROCESS   Process the message and return a result
  *    DSM_CLASSIFY  Classify message only, no learning
  *    DSM_TOOLS     No processing, attach to storage only
- * 
+ *
  *   The  flags  provided further tune the classification context for a spe-
  *   cific function. Multiple flags may be OR'd together.
- * 
+ *
  *    DSF_SIGNATURE A binary signature is requested/provided
  *    DSF_NOISE     Apply Bayesian Noise Reduction logic
  *    DSF_WHITELIST Use automatic whitelisting logic
  *    DSF_MERGED    Merge group metadata with user's in memory
- * 
+ *
  * RETURN VALUES
  *   Upon successful completion, dspam_init() will return a pointer to a new
  *   classification context structure containing a copy of the configuration
@@ -251,7 +251,7 @@ bail:
  * RETURN VALUES
  *  returns 0 on success, standard errors on failure
  *
- */ 
+ */
 
 int dspam_clearattributes (DSPAM_CTX * CTX) {
 
@@ -289,7 +289,7 @@ bail:
  *   the  classification  context.  Some  storage drivers support the use of
  *   passing specific attributes such as  server  connect  information.  The
  *   driver-independent attributes supported by DSPAM include:
- * 
+ *
  *    IgnoreHeader   Specify a specific header to ignore
  *    LocalMX        Specify a local mail exchanger to assist in
  *                   correct results from dspam_getsource().
@@ -300,16 +300,16 @@ bail:
  *
  * RETURN VALUES
  *   returns 0 on success, standard errors on failure
- */                                                                                 
+ */
 int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value) {
   int i, j = 0;
-                                                                                
+
   if (_ds_find_attribute(CTX->config->attributes, key))
     return _ds_add_attribute(CTX->config->attributes, key, value);
-                                                                                
+
   for(i=0;CTX->config->attributes[i];i++)
     j++;
-                                                                                
+
   if (j >= CTX->config->size) {
     config_t ptr;
     CTX->config->size *= 2;
@@ -319,10 +319,10 @@ int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value) {
       CTX->config->attributes = ptr;
     } else {
       LOG(LOG_CRIT, ERR_MEM_ALLOC);
-      return EUNKNOWN; 
-    } 
+      return EUNKNOWN;
+    }
   }
-                                                                                
+
   return _ds_add_attribute(CTX->config->attributes, key, value);
 }
 
@@ -346,7 +346,7 @@ int dspam_addattribute (DSPAM_CTX * CTX, const char *key, const char *value) {
 int dspam_attach (DSPAM_CTX *CTX, void *dbh) {
   if (!_ds_init_storage (CTX, dbh))
     return 0;
-                                                                                
+
   return EFAILURE;
 }
 
@@ -370,7 +370,7 @@ int
 dspam_detach (DSPAM_CTX * CTX)
 {
   if (CTX->storage != NULL) {
-                                                                                
+
     /* Sanity check totals before our shutdown call writes them */
 
     if (CTX->totals.spam_learned < 0)
@@ -396,7 +396,7 @@ dspam_detach (DSPAM_CTX * CTX)
 
 /*
  * dspam_destroy()
- * 
+ *
  *     The dspam_destroy() function should be called when the  context  is  no
  *     longer  needed.  If a connection was established to storage internally,
  *     the connection is closed and all data is flushed and written. If a han-
@@ -433,10 +433,10 @@ dspam_destroy (DSPAM_CTX * CTX)
  *   The dspam_process() function performs analysis of  the  message  passed
  *   into  it  and will return zero on successful completion. If successful,
  *   CTX->result will be set to one of three classification results:
- * 
+ *
  *    DSR_ISSPAM        Message was classified as spam
  *    DSR_ISINNOCENT    Message was classified as nonspam
- * 
+ *
  * RETURN VALUES
  *   returns 0 on success
  *
@@ -783,10 +783,10 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   /* Allocate SBPH signature (stored as message text) */
 
   if ( CTX->tokenizer == DSZ_SBPH
-    && CTX->flags & DSF_SIGNATURE 
-    && ( (  CTX->operating_mode != DSM_CLASSIFY 
+    && CTX->flags & DSF_SIGNATURE
+    && ( (  CTX->operating_mode != DSM_CLASSIFY
          && CTX->classification == DSR_NONE)
-       || ! (CTX->_sig_provided)) 
+       || ! (CTX->_sig_provided))
     && CTX->source != DSS_CORPUS)
   {
     _ds_spam_signature_put(CTX->signature);
@@ -797,7 +797,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       errcode = EUNKNOWN;
       goto bail;
     }
-                                                                                
+
     strcpy(CTX->signature->data, headers);
     strcat(CTX->signature->data, "\001");
     strcat(CTX->signature->data, body);
@@ -819,13 +819,13 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   }
 #endif
 
-  CTX->result = 
+  CTX->result =
     (CTX->classification == DSR_ISSPAM) ? DSR_ISSPAM : DSR_ISINNOCENT;
 
   /* If we are classifying based on a signature, preprogram the tree */
 
   if (CTX->flags & DSF_SIGNATURE          &&
-      CTX->operating_mode == DSM_CLASSIFY && 
+      CTX->operating_mode == DSM_CLASSIFY &&
       CTX->_sig_provided)
   {
     int num_tokens =
@@ -870,7 +870,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   if (CTX->flags & DSF_NOISE)
   {
     ds_diction_t p = _ds_apply_bnr(CTX, diction);
-    if (p) 
+    if (p)
       ds_diction_destroy(p);
   }
 
@@ -894,9 +894,9 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       _ds_calc_stat (CTX, ds_term, &ds_term->s, DTT_DEFAULT, NULL);
 
     if (CTX->flags & DSF_WHITELIST) {
-      if (ds_term->key == whitelist_token              && 
-          ds_term->s.spam_hits <= (ds_term->s.innocent_hits / 15) && 
-          ds_term->s.innocent_hits > CTX->wh_threshold && 
+      if (ds_term->key == whitelist_token              &&
+          ds_term->s.spam_hits <= (ds_term->s.innocent_hits / 15) &&
+          ds_term->s.innocent_hits > CTX->wh_threshold &&
           CTX->classification == DSR_NONE)
       {
         do_whitelist = 1;
@@ -930,14 +930,14 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
   if (heap_sort->items == 0)
   {
     LOGDEBUG ("no tokens found in message");
-    errcode = EINVAL; 
+    errcode = EINVAL;
     goto bail;
   }
 
   /* Initialize Non-SBPH signature, if requested */
 
   if ( CTX->tokenizer != DSZ_SBPH
-    && CTX->flags & DSF_SIGNATURE 
+    && CTX->flags & DSF_SIGNATURE
     && (CTX->operating_mode != DSM_CLASSIFY || ! CTX->_sig_provided))
   {
     _ds_spam_signature_put(CTX->signature);
@@ -998,7 +998,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
       CTX->learned = 1;
     }
 
-    if (CTX->classification == DSR_ISSPAM) 
+    if (CTX->classification == DSR_ISSPAM)
     {
       if (CTX->flags & DSF_UNLEARN) {
         CTX->totals.spam_learned -= (CTX->totals.spam_learned > 0) ? 1 : 0;
@@ -1018,7 +1018,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
     /* INNOCENT */
   }
-  else if ((CTX->result == DSR_ISINNOCENT) && 
+  else if ((CTX->result == DSR_ISINNOCENT) &&
             CTX->operating_mode != DSM_CLASSIFY)
   {
     if (!(CTX->flags & DSF_UNLEARN)) {
@@ -1046,7 +1046,7 @@ _ds_operate (DSPAM_CTX * CTX, char *headers, char *body)
 
   /* TOE mode increments 'classified' totals */
   if (CTX->training_mode == DST_TOE && CTX->operating_mode == DSM_CLASSIFY) {
-    if (CTX->result == DSR_ISSPAM) 
+    if (CTX->result == DSR_ISSPAM)
       CTX->totals.spam_classified++;
     else if (CTX->result == DSR_ISINNOCENT)
       CTX->totals.innocent_classified++;
@@ -1116,7 +1116,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
   ds_diction_t diction = ds_diction_create(24593ul);
   ds_term_t ds_term;
   ds_cursor_t ds_c;
-  int occurrence = _ds_match_attribute(CTX->config->attributes, 
+  int occurrence = _ds_match_attribute(CTX->config->attributes,
      "ProcessorWordFrequency", "occurrence");
 
   if (diction == NULL) {
@@ -1134,11 +1134,11 @@ _ds_process_signature (DSPAM_CTX * CTX)
 
   CTX->result = DSR_NONE;
 
-  if (!(CTX->flags & DSF_UNLEARN)) 
+  if (!(CTX->flags & DSF_UNLEARN))
     CTX->learned = 1;
 
   /* INNOCENT */
-  if (CTX->classification == DSR_ISINNOCENT && 
+  if (CTX->classification == DSR_ISINNOCENT &&
       CTX->operating_mode != DSM_CLASSIFY)
   {
     if (CTX->flags & DSF_UNLEARN) {
@@ -1230,8 +1230,8 @@ _ds_process_signature (DSPAM_CTX * CTX)
             ds_term->s.innocent_hits -= (ds_term->s.innocent_hits>0) ? 1:0;
           }
         } else {
-          if (CTX->source == DSS_ERROR          && 
-              CTX->training_mode != DST_NOTRAIN && 
+          if (CTX->source == DSS_ERROR          &&
+              CTX->training_mode != DST_NOTRAIN &&
               CTX->training_mode != DST_TOE)
           {
             if (occurrence)
@@ -1280,8 +1280,8 @@ _ds_process_signature (DSPAM_CTX * CTX)
             ds_term->s.spam_hits -= (ds_term->s.spam_hits>0) ? 1:0;
           }
         } else {
-          if (CTX->source == DSS_ERROR          && 
-              CTX->training_mode != DST_NOTRAIN && 
+          if (CTX->source == DSS_ERROR          &&
+              CTX->training_mode != DST_NOTRAIN &&
               CTX->training_mode != DST_TOE)
           {
             if (occurrence)
@@ -1358,7 +1358,7 @@ _ds_process_signature (DSPAM_CTX * CTX)
  *
  * INPUT ARGUMENTS
  *      CTX           DSPAM context
- *      term          ds_term_t 
+ *      term          ds_term_t
  *      token_type    DTT_ value specifying token type
  *      bnr_tot       BNR totals structure
  */
@@ -1498,7 +1498,7 @@ _ds_calc_stat (
         if ((1.0 / CTX->totals.spam_learned * 1.0) /
            ((1.0 / CTX->totals.spam_learned * 1.0) +
            (s->innocent_hits * ih * 1.0 / CTX->totals.innocent_learned * 1.0))
-          < 0.01) 
+          < 0.01)
         {
           s->probability = (1.0 / CTX->totals.spam_learned * 1.0) /
            ((1.0 / CTX->totals.spam_learned * 1.0) +
@@ -1516,15 +1516,15 @@ _ds_calc_stat (
           > 0.99)
         {
           s->probability = (s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0)
-           / ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0) 
+           / ((s->spam_hits * 1.0 / CTX->totals.spam_learned * 1.0)
            + (ih * 1.0 / CTX->totals.innocent_learned * 1.0));
         }
       }
     }
 
-    if (  (CTX->flags & DSF_BIAS && 
+    if (  (CTX->flags & DSF_BIAS &&
           (s->spam_hits + (2 * s->innocent_hits) < min_hits))
-       || (!(CTX->flags & DSF_BIAS) && 
+       || (!(CTX->flags & DSF_BIAS) &&
           (s->spam_hits + s->innocent_hits < min_hits)))
     {
       s->probability = (CTX->algorithms & DSP_MARKOV) ? .5000 : .4;
@@ -2115,7 +2115,7 @@ CHI_NEXT:
  *    calculation  is provided to the  client in order to explain  libdspam's
  *    final decision about the message's classification.
  */
- 
+
 int _ds_factor(struct nt *set, char *token_name, float value) {
   struct dspam_factor *f;
   f = calloc(1, sizeof(struct dspam_factor));
@@ -2139,7 +2139,7 @@ void _ds_factor_destroy(struct nt *factors) {
 
   if (factors == NULL)
         return;
-  
+
   node = c_nt_first(factors, &c);
   while(node != NULL) {
     f = (struct dspam_factor *) node->ptr;
@@ -2207,7 +2207,7 @@ int _ds_instantiate_bnr(
 
     _ds_calc_stat (CTX, ds_term, &ds_term->s, DTT_DEFAULT, NULL);
 
-    for(i=0;i<BNR_SIZE-1;i++) 
+    for(i=0;i<BNR_SIZE-1;i++)
       previous_bnr_probs[i] = previous_bnr_probs[i+1];
 
     previous_bnr_probs[BNR_SIZE-1] = _ds_round(ds_term->s.probability);
@@ -2322,7 +2322,7 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
       else if (ds_term->name[4] == 'c')
         bnr_set_pattern(BTX_C, ds_term->name, ds_term->s.probability);
       ds_term = ds_diction_next(ds_c);
-    } 
+    }
     ds_diction_close(ds_c);
 
     bnr_finalize(BTX_S);
@@ -2334,7 +2334,7 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
     while(node_nt != NULL) {
       ds_term = node_nt->ptr;
       bnr_get_token(BTX_S, &elim);
-      if (elim) 
+      if (elim)
         ds_term->frequency--;
       node_nt = c_nt_next(diction->order, &c_nt);
     }
@@ -2355,7 +2355,7 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
     {
       snr = 100.0*((BTX_S->eliminations + BTX_C->eliminations + 0.0)/
             (BTX_S->stream->items + BTX_C->stream->items +
-             BTX_S->eliminations  + BTX_C->eliminations)); 
+             BTX_S->eliminations  + BTX_C->eliminations));
     } else {
       snr = 0;
     }
@@ -2381,7 +2381,7 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
     }
     printf("\n");
 #endif
-         
+
 
     snprintf(fn, sizeof(fn), "%s/bnr.log", LOGDIR);
     file = fopen(fn, "a");
@@ -2479,7 +2479,7 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
       ds_diction_setstat(diction, ds_term->key, &ds_term->s);
       if (t)
         t->frequency = 1;
-  
+
 #ifdef LIBBNR_DEBUG
       if (fabs(0.5-ds_term->s.probability)>0.25) {
         LOGDEBUG("Interesting BNR Pattern: %s %01.5f %lds %ldi",
@@ -2489,7 +2489,7 @@ ds_diction_t _ds_apply_bnr (DSPAM_CTX *CTX, ds_diction_t diction) {
                  ds_term->s.innocent_hits);
       }
 #endif
-  
+
       ds_term = ds_diction_next(ds_c);
     }
     ds_diction_close(ds_c);
@@ -2515,7 +2515,7 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
     /* Create a signature if we're processing a message */
 
     if (CTX->tokenizer != DSZ_SBPH
-      && CTX->flags & DSF_SIGNATURE 
+      && CTX->flags & DSF_SIGNATURE
       && (CTX->operating_mode != DSM_CLASSIFY || !(CTX->_sig_provided)))
     {
       struct _ds_signature_token t;
@@ -2531,11 +2531,11 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
     /* If classification was provided, force probabilities */
     if (CTX->classification == DSR_ISSPAM)
       ds_term->s.probability = 1.00;
-    else if (CTX->classification == DSR_ISINNOCENT) 
+    else if (CTX->classification == DSR_ISINNOCENT)
       ds_term->s.probability = 0.00;
 
     if (ds_term->type == 'D' &&
-        ( CTX->training_mode != DST_TUM  || 
+        ( CTX->training_mode != DST_TUM  ||
           CTX->source == DSS_ERROR       ||
           CTX->source == DSS_INOCULATION ||
           ds_term->s.spam_hits + ds_term->s.innocent_hits < 50 ||
@@ -2590,11 +2590,11 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
         }
       }
 
-      if (SPAM_MISS(CTX) && 
-          !(CTX->flags & DSF_UNLEARN) && 
+      if (SPAM_MISS(CTX) &&
+          !(CTX->flags & DSF_UNLEARN) &&
           CTX->training_mode != DST_TOE &&
-          CTX->training_mode != DST_NOTRAIN) 
-      { 
+          CTX->training_mode != DST_NOTRAIN)
+      {
         if (occurrence)
         {
           ds_term->s.innocent_hits -= ds_term->frequency;
@@ -2609,7 +2609,7 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
     /* INNOCENT */
     else
     {
-      if (CTX->flags & DSF_UNLEARN) { 
+      if (CTX->flags & DSF_UNLEARN) {
         if (CTX->classification == DSR_ISINNOCENT)
         {
           if (occurrence)
@@ -2630,8 +2630,8 @@ int _ds_increment_tokens(DSPAM_CTX *CTX, ds_diction_t diction) {
         }
       }
 
-      if (FALSE_POSITIVE(CTX)         && 
-          !(CTX->flags & DSF_UNLEARN) && 
+      if (FALSE_POSITIVE(CTX)         &&
+          !(CTX->flags & DSF_UNLEARN) &&
           CTX->training_mode != DST_TOE &&
           CTX->training_mode != DST_NOTRAIN)
       {

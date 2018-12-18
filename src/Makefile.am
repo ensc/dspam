@@ -6,9 +6,9 @@
 
 includedir=@includedir@/dspam
 
-SUBDIRS = . tools $(storage_drv_subdirs) 
+SUBDIRS = . tools $(storage_drv_subdirs)
 DIST_SUBDIRS = . \
-	tools.mysql_drv tools.pgsql_drv tools.sqlite_drv tools.hash_drv tools 
+	tools.mysql_drv tools.pgsql_drv tools.sqlite_drv tools.hash_drv tools
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dspam.pc
@@ -18,7 +18,7 @@ libversion = 7:0:0
 
 # Defaults from dspam.conf
 
-EXTRA_DIST = example.c dspam.pc.in dspam-uninstalled.pc.in dspam.conf.in 
+EXTRA_DIST = example.c dspam.pc.in dspam-uninstalled.pc.in dspam.conf.in
 
 CLEANFILES = dspam.conf
 
@@ -134,15 +134,15 @@ libdspam_la_LDFLAGS = -rpath '$(libdir)' -version-info $(libversion)
 if DYNAMIC_DRIVER
 
 libmysql_drv_la_SOURCES = \
-	mysql_drv.c mysql_drv.h 
+	mysql_drv.c mysql_drv.h
 libmysql_drv_la_LIBADD = $(libmysql_drv_libs) -L. -ldspam
 libmysql_drv_la_CPPFLAGS = $(libmysql_drv_cppflags)
 libmysql_drv_la_LDFLAGS = $(libmysql_drv_ldflags)
-libmysql_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion) 
+libmysql_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
 libmysql_drv_la_DEPENDENCIES = libdspam.la
 
 libpgsql_drv_la_SOURCES = \
-	pgsql_drv.c pgsql_drv.h 
+	pgsql_drv.c pgsql_drv.h
 libpgsql_drv_la_LIBADD = $(libpgsql_drv_libs) -L. -ldspam
 libpgsql_drv_la_CPPFLAGS = $(libpgsql_drv_cppflags)
 libpgsql_drv_la_LDFLAGS = $(libpgsql_drv_ldflags)
@@ -150,7 +150,7 @@ libpgsql_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
 libpgsql_drv_la_DEPENDENCIES = libdspam.la
 
 libsqlite_drv_la_SOURCES = \
-	sqlite_drv.c sqlite_drv.h 
+	sqlite_drv.c sqlite_drv.h
 libsqlite_drv_la_LIBADD = $(libsqlite_drv_libs) -L. -ldspam
 libsqlite_drv_la_CPPFLAGS = $(libsqlite_drv_cppflags)
 libsqlite_drv_la_LDFLAGS = $(libsqlite_drv_ldflags)
@@ -158,7 +158,7 @@ libsqlite_drv_la_LDFLAGS += -rpath '$(pkglibdir)' -version-info $(libversion)
 libsqlite_drv_la_DEPENDENCIES = libdspam.la
 
 libsqlite3_drv_la_SOURCES = \
-	sqlite3_drv.c sqlite3_drv.h 
+	sqlite3_drv.c sqlite3_drv.h
 libsqlite3_drv_la_LIBADD = $(libsqlite3_drv_libs) -L. -ldspam
 libsqlite3_drv_la_CPPFLAGS = $(libsqlite3_drv_cppflags)
 libsqlite3_drv_la_LDFLAGS = $(libsqlite3_drv_ldflags)
@@ -197,7 +197,7 @@ dspamc_SOURCES = \
 	read_config.c read_config.h \
 	client.c client.h \
 	signature.c \
-	agent_shared.c agent_shared.h 
+	agent_shared.c agent_shared.h
 
 dspamc_LDADD = -lm buffer.o config_shared.o error.o pref.o nodetree.o util.o $(NETLIBS) $(DLLIBS)
 dspamc_CFLAGS = $(SUID_CFLAGS)

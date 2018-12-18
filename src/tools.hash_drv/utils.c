@@ -10,12 +10,15 @@
 
 #include <stdlib.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <sys/stat.h>
-#include <linux/falloc.h>
 
 #include "hash_drv.h"
 
+#if defined(_DARWIN_C_SOURCE)
+#include "fallocate_mac.h"
+#else
+#include <linux/falloc.h>
+#endif
 
 static ssize_t create_hole(struct _hash_drv_map const *map,
 			   size_t start, size_t cur, size_t blksize)
