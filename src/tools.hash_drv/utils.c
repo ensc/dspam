@@ -16,6 +16,11 @@
 
 #if defined(_DARWIN_C_SOURCE)
 #include "fallocate_mac.h"
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+#include <fcntl.h>
+#define FALLOC_FL_PUNCH_HOLE 0
+#define FALLOC_FL_KEEP_SIZE 0
+#define fallocate(fd, mode, offset, len) posix_fallocate((fd), (offset), (len))
 #else
 #include <linux/falloc.h>
 #endif

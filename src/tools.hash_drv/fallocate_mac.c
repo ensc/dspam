@@ -1,3 +1,4 @@
+#if defined(_DARWIN_C_SOURCE)
 #include <fcntl.h>
 #include <unistd.h>
 #include "fallocate_mac.h"
@@ -24,3 +25,4 @@ int fallocate(int fd, int mode, off_t offset, off_t len)
 
 	return ret;
 }
+#endif
